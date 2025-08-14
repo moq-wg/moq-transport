@@ -2663,42 +2663,47 @@ without knowing the client is interested in and authorized to receive the
 content. The communication of intent and authorization can be accomplished by
 the client sending SUBSCRIBE_NAMESPACE, or conveyed in other mechanisms out of
 band.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
-<p id="section-5.1-4">A publisher <span class="bcp14">MUST</span> send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
+<p id="section-5.1-4">An endpoint <span class="bcp14">MAY</span> SUBSCRIBE to a Track it is publishing, though only Relays are
+required to handle such a SUBSCRIBE.  Such self-subscriptions are identical to
+subscriptions initiated by other endpoints, and all published Objects will be
+forwarded back to the endpoint, subject to priority and congestion response
+rules.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-5">A publisher <span class="bcp14">MUST</span> send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
 a SUBSCRIBE. It <span class="bcp14">MUST</span> send exactly one FETCH_OK or FETCH_ERROR in response to a
 FETCH. A subscriber <span class="bcp14">MUST</span> send exactly one PUBLISH_OK or PUBLISH_ERROR in
 response to a PUBLISH. The peer <span class="bcp14">SHOULD</span> close the session with a protocol error
-if it receives more than one.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.1-5">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
+if it receives more than one.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
 with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
-<a href="#datagrams" class="auto internal xref">Section 10.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>).<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
+<a href="#datagrams" class="auto internal xref">Section 10.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>).<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
 receipt of a PUBLISH_DONE or SUBSCRIBE_ERROR. Note that PUBLISH_DONE does not
 usually indicate that state can immediately be destroyed, see
-<a href="#message-publish-done" class="auto internal xref">Section 9.12</a>.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
-<p id="section-5.1-7">A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
+<a href="#message-publish-done" class="auto internal xref">Section 9.12</a>.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
 FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
 data stream is already open, it <span class="bcp14">MAY</span> send STOP_SENDING for the data stream along
-with FETCH_CANCEL, but <span class="bcp14">MUST</span> send FETCH_CANCEL.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
-<p id="section-5.1-8">The Publisher can destroy subscription or fetch state as soon as it has received
+with FETCH_CANCEL, but <span class="bcp14">MUST</span> send FETCH_CANCEL.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<p id="section-5.1-9">The Publisher can destroy subscription or fetch state as soon as it has received
 UNSUBSCRIBE or FETCH_CANCEL, respectively. It <span class="bcp14">MUST</span> reset any open streams
 associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
-the FETCH data stream.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
-<p id="section-5.1-9">The publisher can immediately delete subscription state after sending
+the FETCH data stream.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<p id="section-5.1-10">The publisher can immediately delete subscription state after sending
 PUBLISH_DONE, but <span class="bcp14">MUST NOT</span> send it until it has closed all related streams. It
-can destroy all FETCH state after closing the data stream.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
-<p id="section-5.1-10">A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
+can destroy all FETCH state after closing the data stream.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+<p id="section-5.1-11">A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
 immediately destroy relevant state. Objects <span class="bcp14">MUST NOT</span> be sent for requests that
-end with an error.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
-<p id="section-5.1-11">A FETCH_ERROR indicates that both endpoints can immediately destroy state.
+end with an error.<a href="#section-5.1-11" class="pilcrow">¶</a></p>
+<p id="section-5.1-12">A FETCH_ERROR indicates that both endpoints can immediately destroy state.
 Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
-results in error.<a href="#section-5.1-11" class="pilcrow">¶</a></p>
-<p id="section-5.1-12">The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the publisher
+results in error.<a href="#section-5.1-12" class="pilcrow">¶</a></p>
+<p id="section-5.1-13">The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the publisher
 to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.5.1</a>.<a href="#section-5.1-12" class="pilcrow">¶</a></p>
+uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.5.1</a>.<a href="#section-5.1-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2725,7 +2730,9 @@ for a namespace.<a href="#section-6-2" class="pilcrow">¶</a></p>
 SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
 recipient of this message will send any relevant PUBLISH_NAMESPACE,
 PUBLISH_NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
-part of that namespace.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+part of that namespace.  This includes echoing back PUBLISH or PUBLISH_NAMESPACE
+messages to the endpoint that sent them.  If an endpoint accepts its own
+PUBLISH, this behaves as self-subscription described in <a href="#subscriptions" class="auto internal xref">Section 5.1</a>.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.1-2">A publisher <span class="bcp14">MUST</span> send exactly one SUBSCRIBE_NAMESPACE_OK or
 SUBSCRIBE_NAMESPACE_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
 <span class="bcp14">SHOULD</span> close the session with a protocol error if it detects receiving more than
@@ -2754,34 +2761,30 @@ received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
 publisher, it <span class="bcp14">MUST</span> send a PUBLISH_NAMESPACE to any subscriber that has
 subscribed via SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher <span class="bcp14">MAY</span> send the PUBLISH_NAMESPACE to any other subscriber.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
-<p id="section-6.2-3">An endpoint <span class="bcp14">SHOULD NOT</span>, however, send a PUBLISH_NAMESPACE advertising a
-namespace that exactly matches a namespace for which the peer sent an earlier
-PUBLISH_NAMESPACE (i.e. a PUBLISH_NAMESPACE ought not to be echoed back to its
-sender).<a href="#section-6.2-3" class="pilcrow">¶</a></p>
-<p id="section-6.2-4">An endpoint <span class="bcp14">SHOULD</span> report the reception of a PUBLISH_NAMESPACE_OK or
+<p id="section-6.2-3">An endpoint <span class="bcp14">SHOULD</span> report the reception of a PUBLISH_NAMESPACE_OK or
 PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
 namespace. This might be especially useful in upload or chat applications. A
 subscriber <span class="bcp14">MUST</span> send exactly one PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR
 in response to a PUBLISH_NAMESPACE. The publisher <span class="bcp14">SHOULD</span> close the session with
-a protocol error if it receives more than one.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2-5">A PUBLISH_NAMESPACE_DONE message withdraws a previous PUBLISH_NAMESPACE,
+a protocol error if it receives more than one.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.2-4">A PUBLISH_NAMESPACE_DONE message withdraws a previous PUBLISH_NAMESPACE,
 although it is not a protocol error for the subscriber to send a SUBSCRIBE or
 FETCH message for a track in a namespace after receiving an
-PUBLISH_NAMESPACE_DONE.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
-<p id="section-6.2-6">A subscriber can send PUBLISH_NAMESPACE_CANCEL to revoke acceptance of an
+PUBLISH_NAMESPACE_DONE.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2-5">A subscriber can send PUBLISH_NAMESPACE_CANCEL to revoke acceptance of an
 PUBLISH_NAMESPACE, for example due to expiration of authorization
 credentials. The message enables the publisher to PUBLISH_NAMESPACE again with
 refreshed authorization, or discard associated state. After receiving an
-PUBLISH_NAMESPACE_CANCEL, the publisher does not send PUBLISH_NAMESPACE_DONE.<a href="#section-6.2-6" class="pilcrow">¶</a></p>
-<p id="section-6.2-7">While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
+PUBLISH_NAMESPACE_CANCEL, the publisher does not send PUBLISH_NAMESPACE_DONE.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.2-6">While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
 subscribers, it is not a full-fledged routing protocol and does not protect
 against loops and other phenomena. In particular, PUBLISH_NAMESPACE <span class="bcp14">SHOULD NOT</span>
-be used to find paths through richly connected networks of relays.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
-<p id="section-6.2-8">A subscriber <span class="bcp14">MAY</span> send a SUBSCRIBE or FETCH for a track to any publisher. If it
+be used to find paths through richly connected networks of relays.<a href="#section-6.2-6" class="pilcrow">¶</a></p>
+<p id="section-6.2-7">A subscriber <span class="bcp14">MAY</span> send a SUBSCRIBE or FETCH for a track to any publisher. If it
 has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
 namespace for that track, it <span class="bcp14">SHOULD</span> only request it from the senders of those
-PUBLISH_NAMESPACE messages.<a href="#section-6.2-8" class="pilcrow">¶</a></p>
+PUBLISH_NAMESPACE messages.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
