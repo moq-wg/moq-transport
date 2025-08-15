@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 15 February 2026                                  I. Swett, Ed.
+Expires: 16 February 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          14 August 2025
+                                                          15 August 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 February 2026.
+   This Internet-Draft will expire on 16 February 2026.
 
 Copyright Notice
 
@@ -1329,11 +1329,11 @@ Table of Contents
 
    There is no specified limit to the number of publishers of a Track
    Namespace or Track.  An implementation can use mechanisms such as
-   PUBLISH_ERROR, PUBLISH_NAMESPACE_ERROR, UNSUBSCRIBE,
-   PUBLISH_NAMESPACE_CANCEL or GOAWAY if it cannot accept an additional
-   publisher due to implementation constraints.  Implementations can
-   consider the establishment or idle time of the session or
-   subscription to determine which publisher to reject or disconnect.
+   PUBLISH_ERROR, PUBLISH_NAMESPACE_ERROR, UNSUBSCRIBE or
+   PUBLISH_NAMESPACE_CANCEL if it cannot accept an additional publisher
+   due to implementation constraints.  Implementations can consider the
+   establishment or idle time of the session or subscription to
+   determine which publisher to reject or disconnect.
 
    Relays MUST handle Objects for the same Track from multiple
    publishers and forward them to active matching subscriptions.  The
