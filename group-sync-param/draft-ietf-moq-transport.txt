@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 1 February 2026                                   I. Swett, Ed.
+Expires: 20 February 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            31 July 2025
+                                                          19 August 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 February 2026.
+   This Internet-Draft will expire on 20 February 2026.
 
 Copyright Notice
 
@@ -1839,10 +1839,6 @@ Table of Contents
 
    Relay Handling:
 
-   A relay can have at most one outstanding NEW_GROUP_REQUEST per Track
-   at a time.  After sending a NEW_GROUP_REQUEST upstream, the request
-   is considered outstanding until the Largest Group increases.
-
    A relay that receives a NEW_GROUP_REQUEST for a Track without an
    active subscription MUST include the NEW_GROUP_REQUEST when
    subscribing upstream.
@@ -1855,10 +1851,14 @@ Table of Contents
    1.  The Track does not support dynamic Groups
 
    2.  There is already an outstanding NEW_GROUP_REQUEST from this Relay
+       with a greater or equal value
 
    If a relay receives a NEW_GROUP_REQUEST with a non-zero value less
    than or equal to the Largest Group, it does not send a
    NEW_GROUP_REQUEST upstream.
+
+   After sending a NEW_GROUP_REQUEST upstream, the request is considered
+   outstanding until the Largest Group increases.
 
 8.3.  CLIENT_SETUP and SERVER_SETUP
 
