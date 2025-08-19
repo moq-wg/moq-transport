@@ -6348,8 +6348,8 @@ Immutable Extensions {
 </div>
 <p id="section-10.2-3">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
 Relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed. Relays <span class="bcp14">MUST</span> cache this
-extension if the Object is cached.  Relays are permitted to decode and view
-these extensions.<a href="#section-10.2-3" class="pilcrow">¶</a></p>
+extension if the Object is cached and <span class="bcp14">MUST</span> forward this extension if the
+enclosing Object is forwarded. Relays <span class="bcp14">MAY</span> decode and view these extensions.<a href="#section-10.2-3" class="pilcrow">¶</a></p>
 <p id="section-10.2-4">A Track is considered malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>) if any of the
 following conditions are detected:<a href="#section-10.2-4" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -6376,6 +6376,7 @@ payload.<a href="#section-10.2-6" class="pilcrow">¶</a></p>
                                                    yyyyyyyyyyyyyyyyyyyy
 x = e2e Authenticated Data
 y = e2e Encrypted Data
+EXT 1 and EXT N can be modified or removed by Relays
 </pre><a href="#section-10.2-7" class="pilcrow">¶</a>
 </div>
 </section>
