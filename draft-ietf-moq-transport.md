@@ -3637,32 +3637,45 @@ cannot infer any information about the existence of prior groups (see
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
 
-## Immutable Extensions Marker
+## Immutable Extensions
 
-The "Immutable Extension Marker" (Extension Header Type 0xA) serves as a
-boundary indicating the start of immutable header extensions.
+The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
+Key-Value-Pairs (see {{moq-key-value-pair}}) which are also Object Extension
+Headers of the Object.
 
-Relays MUST NOT add, modify, remove or reorder extensions after the Immutable
-Extension Marker.  Relays MUST cache all immutable header extensions if the
-object is cached. Conversely, header extensions preceding this marker MAY be
-modified or removed by relays, as specified by their individual
-specifications. The Immutable Extension Marker is assigned Type 0xA and is a
-variable length integer that MUST have value 1.  Any other value results in
-closing the session with a `PROTOCOL_VIOLATION`.
+~~~
+Immutable Extensions {
+  Type (0xB),
+  Length (i),
+  Key-Value-Pair (..) ...
+}
+~~~
+
+This extension can be added by the Original Publisher, but MUST NOT be added by
+Relays. This extension MUST NOT be modified or removed. Relays MUST cache this
+extension if the Object is cached.  Relays are permitted to decode and view
+these extensions.
+
+A Track is considered malformed (see {{malformed-tracks}}) if any of the
+following conditions are detected:
+
+ * An Object contains an Immutable Extensions header that contains another
+   Immutable Extensions key
+ * A Key-Value-Pair cannot be parsed
 
 The following figure shows an example Object structure with a combination of
 mutable and immutable extensions and end to end encrypted metadata in the Object
 payload.
 
 ~~~
-                   Object Header                          Object Payload
-<------------------------------------------------------> <---------------->
-+--------+------------+--------+------------+-----------+-----------------+
-| Object | Mutable    | Marker | Immutable  | [Payload] | Enc Obj Headers |
-| Fields | Extensions |        | Extensions | [Length ] | App Payload     |
-+--------+------------+--------+------------+-----------+-----------------+
-                       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-                                                          yyyyyyyyyyyyyyyy
+                   Object Header                      Object Payload
+<------------------------------------------------> <------------------->
++--------+-------+------------+-------+-----------+--------------------+
+| Object | Ext 1 | Immutable  | Ext N | [Payload] | Private Extensions |
+| Fields |       | Extensions |       | [Length]  | App Payload        |
++--------+-------+------------+-------+-----------+--------------------+
+                  xxxxxxxxxxxx                     xxxxxxxxxxxxxxxxxxxx
+                                                   yyyyyyyyyyyyyyyyyyyy
 x = e2e Authenticated Data
 y = e2e Encrypted Data
 ~~~
