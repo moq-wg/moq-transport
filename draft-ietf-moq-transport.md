@@ -3653,8 +3653,8 @@ Immutable Extensions {
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
 Relays. This extension MUST NOT be modified or removed. Relays MUST cache this
-extension if the Object is cached.  Relays are permitted to decode and view
-these extensions.
+extension if the Object is cached and MUST forward this extension if the
+enclosing Object is forwarded. Relays MAY decode and view these extensions.
 
 A Track is considered malformed (see {{malformed-tracks}}) if any of the
 following conditions are detected:
@@ -3678,6 +3678,7 @@ payload.
                                                    yyyyyyyyyyyyyyyyyyyy
 x = e2e Authenticated Data
 y = e2e Encrypted Data
+EXT 1 and EXT N can be modified or removed by Relays
 ~~~
 
 ## Prior Object ID Gap
