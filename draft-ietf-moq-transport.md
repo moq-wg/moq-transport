@@ -1637,10 +1637,6 @@ requirements that it be equal to the NEW_GROUP_REQUEST parameter value.
 
 Relay Handling:
 
-A relay can have at most one outstanding NEW_GROUP_REQUEST per Track at a time.
-After sending a NEW_GROUP_REQUEST upstream, the request is considered
-outstanding until the Largest Group increases.
-
 A relay that receives a NEW_GROUP_REQUEST for a Track without an active
 subscription MUST include the NEW_GROUP_REQUEST when subscribing upstream.
 
@@ -1649,11 +1645,14 @@ value of 0 or a value larger than the Largest Group MUST send a SUBSCRIBE_UPDATE
 including the NEW_GROUP_REQUEST to the publisher unless:
 
 1. The Track does not support dynamic Groups
-2. There is already an outstanding NEW_GROUP_REQUEST from this Relay
+2. There is already an outstanding NEW_GROUP_REQUEST from this Relay with a
+   greater or equal value
 
 If a relay receives a NEW_GROUP_REQUEST with a non-zero value less than or equal
 to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
 
+After sending a NEW_GROUP_REQUEST upstream, the request is considered
+outstanding until the Largest Group increases.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
