@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 1 February 2026                                   I. Swett, Ed.
+Expires: 20 February 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            31 July 2025
+                                                          19 August 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 February 2026.
+   This Internet-Draft will expire on 20 February 2026.
 
 Copyright Notice
 
@@ -177,7 +177,7 @@ Table of Contents
      9.5.  Examples
    10. Extension Headers
      10.1.  Prior Group ID Gap
-     10.2.  Immutable Extensions Marker
+     10.2.  Immutable Extensions
      10.3.  Prior Object ID Gap
    11. Security Considerations
      11.1.  Resource Exhaustion
@@ -3894,32 +3894,43 @@ Table of Contents
    This extension can be added by the Original Publisher, but MUST NOT
    be added by relays.  This extension MUST NOT be modified or removed.
 
-10.2.  Immutable Extensions Marker
+10.2.  Immutable Extensions
 
-   The "Immutable Extension Marker" (Extension Header Type 0xA) serves
-   as a boundary indicating the start of immutable header extensions.
+   The Immutable Extensions (Extension Header Type 0xB) contains a
+   sequence of Key-Value-Pairs (see Figure 2) which are also Object
+   Extension Headers of the Object.
 
-   Relays MUST NOT add, modify, remove or reorder extensions after the
-   Immutable Extension Marker.  Relays MUST cache all immutable header
-   extensions if the object is cached.  Conversely, header extensions
-   preceding this marker MAY be modified or removed by relays, as
-   specified by their individual specifications.  The Immutable
-   Extension Marker is assigned Type 0xA and is a variable length
-   integer that MUST have value 1.  Any other value results in closing
-   the session with a PROTOCOL_VIOLATION.
+   Immutable Extensions {
+     Type (0xB),
+     Length (i),
+     Key-Value-Pair (..) ...
+   }
+
+   This extension can be added by the Original Publisher, but MUST NOT
+   be added by Relays.  This extension MUST NOT be modified or removed.
+   Relays MUST cache this extension if the Object is cached.  Relays are
+   permitted to decode and view these extensions.
+
+   A Track is considered malformed (see Section 2.5) if any of the
+   following conditions are detected:
+
+   *  An Object contains an Immutable Extensions header that contains
+      another Immutable Extensions key
+
+   *  A Key-Value-Pair cannot be parsed
 
    The following figure shows an example Object structure with a
    combination of mutable and immutable extensions and end to end
    encrypted metadata in the Object payload.
 
-                   Object Header                          Object Payload
-<------------------------------------------------------> <---------------->
-+--------+------------+--------+------------+-----------+-----------------+
-| Object | Mutable    | Marker | Immutable  | [Payload] | Enc Obj Headers |
-| Fields | Extensions |        | Extensions | [Length ] | App Payload     |
-+--------+------------+--------+------------+-----------+-----------------+
-                       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-                                                          yyyyyyyyyyyyyyyy
+                   Object Header                      Object Payload
+<------------------------------------------------> <------------------->
++--------+-------+------------+-------+-----------+--------------------+
+| Object | Ext 1 | Immutable  | Ext N | [Payload] | Private Extensions |
+| Fields |       | Extensions |       | [Length]  | App Payload        |
++--------+-------+------------+-------+-----------+--------------------+
+                  xxxxxxxxxxxx                     xxxxxxxxxxxxxxxxxxxx
+                                                   yyyyyyyyyyyyyyyyyyyy
 x = e2e Authenticated Data
 y = e2e Encrypted Data
 
