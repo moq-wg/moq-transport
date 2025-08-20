@@ -1633,6 +1633,58 @@ multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
 handles a downstream request that includes those Objects re-requests them.
 
+#### OBJECT FILTER Parameter
+
+The OBJECT_FILTER parameter(Parameter Type 0x05) MAY appear in SUBSCRIBE,
+SUBSCRIBE_UPDATE, PUBLISH_OK, TRACK_STATUS or FETCH message.  It is a structure
+indicating Objects or ranges of Objects that the Publisher will deliver.
+
+~~~
+Object Filter {
+  Type (0x5),
+  Length (i),
+  Operand and Flag (i),
+  Values (i) ...
+}
+~~~
+
+Operand and Flag contains both an enumeration indicating the Operand, with the
+least significant bit indicating if the filter is negated.
+
+~~~
+Negated = Operand and Flag & 0x1
+Operand = Operand and Flag >> 1
+~~~
+
+Operand | Meaning
+0x0 | No Filter
+0x1 | Group ID
+0x2 | Subgroup ID
+0x3 | Object ID
+0x4 | Extension ID
+
+Values is an array of integers which encode the values of interest.  When
+Operand is Extension ID, the first Value indicates the Extension ID to filter.
+This value MUST indicate an Extension with an integer type.  The remainder of
+the array is a sequence of pairs indicating the start and length of the matching
+range.  The Start is encoded as a delta from the previous End, or from 0 for the
+first element.  The length indicates the number of elements including Start to
+match.  A length of 0 indicates no endpoint.  For example [ 10, 3, 1, 1, 20, 0 ]
+would match values 10, 11, 12, 14 and 34-max.  Only the first (excluding
+Extension ID) or last value can be 0.  If an endpoint receives a 0 value
+anywhere else, it MUST treat the track as Malformed (see {{malformed-tracks}}).
+
+All filters can be removed from a Subscription by sending SUBSCRIBE_UPDATE with
+Operand No Filter.
+
+This parameter MAY appear more than once, and filters are cumulative.  When
+filters are applied, delivery rules regarding Subgroups and FETCH responses are
+modified.  Within a Subgroup, the Publisher is allowed to send an Object on a
+Subgroup stream even when it is not the next Object if the expected Objects
+did not pass the filter.  In a FETCH response, the Subscriber can only infer
+Objects do not exist from their absence if they pass all filters.
+
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
