@@ -1662,6 +1662,7 @@ Operand | Meaning
 0x2 | Subgroup ID
 0x3 | Object ID
 0x4 | Extension ID
+0x5 | Publisher Priority
 
 Values is an array of integers which encode the values of interest.  When
 Operand is Extension ID, the first Value indicates the Extension ID to filter.
