@@ -1643,17 +1643,11 @@ indicating Objects or ranges of Objects that the Publisher will deliver.
 Object Filter {
   Type (0x5),
   Length (i),
-  Operand and Flag (i),
+  Operand (7),
+  Negation Flag (1),
+  [Extension ID (i),
   Values (i) ...
 }
-~~~
-
-Operand and Flag contains both an enumeration indicating the Operand, with the
-least significant bit indicating if the filter is negated.
-
-~~~
-Negated = Operand and Flag & 0x1
-Operand = Operand and Flag >> 1
 ~~~
 
 Operand | Meaning
@@ -1664,26 +1658,35 @@ Operand | Meaning
 0x4 | Extension ID
 0x5 | Publisher Priority
 
-Values is an array of integers which encode the values of interest.  When
-Operand is Extension ID, the first Value indicates the Extension ID to filter.
-This value MUST indicate an Extension with an integer type.  The remainder of
-the array is a sequence of pairs indicating the start and length of the matching
-range.  The Start is encoded as a delta from the previous End, or from 0 for the
-first element.  The length indicates the number of elements including Start to
-match.  A length of 0 indicates no endpoint.  For example [ 10, 3, 1, 1, 20, 0 ]
-would match values 10, 11, 12, 14 and 34-max.  Only the first (excluding
-Extension ID) or last value can be 0.  If an endpoint receives a 0 value
-anywhere else, it MUST treat the track as Malformed (see {{malformed-tracks}}).
+When Negation Flag is 1, the result of the filter is negated to determine which Objects pass the filter.
+Extension ID is present only when Operated is Extension ID (value 0x4) and
+indicates the Extension to filter. This MUST indicate an Extension with an
+integer type.  Objects without the Extension do not pass the filter.
 
+Values is an array of integers which encode the values of interest.  The
+remainder of the array is a sequence of pairs indicating the start and length of
+the matching range.  The Start is encoded as a delta from the previous End, or
+from 0 for the first element.  The length indicates the number of elements
+including Start to match.  An odd number of elements indicates the final range
+has no endpoint.  For example [ 10, 3, 1, 1, 20 ] would match values 10, 11, 12,
+14 and 34-max.  Only the first value can be 0.  If an endpoint receives a 0
+value anywhere else or length of the Values array exceeds TBD, it MUST reject
+the request with `INVALID_FILTER`.
 All filters can be removed from a Subscription by sending SUBSCRIBE_UPDATE with
 Operand No Filter.
 
-This parameter MAY appear more than once, and filters are cumulative.  When
-filters are applied, delivery rules regarding Subgroups and FETCH responses are
-modified.  Within a Subgroup, the Publisher is allowed to send an Object on a
-Subgroup stream even when it is not the next Object if the expected Objects
-did not pass the filter.  In a FETCH response, the Subscriber can only infer
-Objects do not exist from their absence if they pass all filters.
+This parameter MAY appear up to TBD2 times in a request, and filters are
+cumulative.  If the parameter appears more than TBD2 times, the endpoint MUST
+reject the request with `INVALID_FILTER`. When filters are applied, delivery
+rules regarding FETCH responses are modified (see {{message-fetch}}).  In a
+filtered FETCH response, the Subscriber can only infer Objects do not exist from
+their absence if they pass all filters.  This is only possible when filtering on
+Group ID and/or Object ID, as the Subscriber lacks other fields needed to
+evaluate the filters.
+
+Publishers MUST respect Subgroup delivery rules even for filtered responses.  If
+an Object in the middle of a Subgroup is filtered out, the Publisher MUST NOT
+place another Object in that Subgroup stream (see {{closing-subgroup-streams}}).
 
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
