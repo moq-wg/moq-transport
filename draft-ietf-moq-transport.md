@@ -1265,6 +1265,9 @@ bar).  It will not match a session with namespace=(foobar).
 Relays MUST forward SUBSCRIBE messages to all matching publishers and
 PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
 
+When a Relay needs to make an upstream FETCH request, it determines the
+available publishers using the same matching rules as SUBSCRIBE. When more than
+one publisher is available, the Relay MAY send the FETCH to any of them.
 
 When a relay receives an incoming SUBSCRIBE that triggers an upstream
 subscription, it SHOULD send a SUBSCRIBE request to each publisher that has
