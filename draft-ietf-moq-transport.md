@@ -1661,7 +1661,7 @@ Operand | Meaning
 When Negation Flag is 1, the result of the filter is negated to determine which
 Objects pass the filter.
 
-Extension ID is present only when Operated is Extension ID (value 0x4) and
+Extension ID is present only when Operand is Extension ID (value 0x4) and
 indicates the Extension to filter. This MUST indicate an Extension with an
 integer type.  Objects without the Extension do not pass the filter.
 
@@ -1674,6 +1674,7 @@ has no endpoint.  For example [ 10, 3, 1, 1, 20 ] would match values 10, 11, 12,
 14 and 34-max.  Only the first value can be 0.  If an endpoint receives a 0
 value anywhere else or length of the Values array exceeds TBD, it MUST reject
 the request with `INVALID_FILTER`.
+
 All filters can be removed from a Subscription by sending SUBSCRIBE_UPDATE with
 Operand No Filter.
 
