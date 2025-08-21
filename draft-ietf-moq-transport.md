@@ -1658,7 +1658,9 @@ Operand | Meaning
 0x4 | Extension ID
 0x5 | Publisher Priority
 
-When Negation Flag is 1, the result of the filter is negated to determine which Objects pass the filter.
+When Negation Flag is 1, the result of the filter is negated to determine which
+Objects pass the filter.
+
 Extension ID is present only when Operated is Extension ID (value 0x4) and
 indicates the Extension to filter. This MUST indicate an Extension with an
 integer type.  Objects without the Extension do not pass the filter.
