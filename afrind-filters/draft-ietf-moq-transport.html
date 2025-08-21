@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 21 February 2026</td>
+<td class="center">Expires 22 February 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-08-20" class="published">20 August 2025</time>
+<time datetime="2025-08-21" class="published">21 August 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-02-21">21 February 2026</time></dd>
+<dd class="expires"><time datetime="2026-02-22">22 February 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 21 February 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 22 February 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3606,18 +3606,12 @@ indicating Objects or ranges of Objects that the Publisher will deliver.<a href=
 Object Filter {
   Type (0x5),
   Length (i),
-  Operand and Flag (i),
+  Operand (7),
+  Negation Flag (1),
+  [Extension ID (i),
   Values (i) ...
 }
 </pre><a href="#section-9.2.1.4-2" class="pilcrow">¶</a>
-</div>
-<p id="section-9.2.1.4-3">Operand and Flag contains both an enumeration indicating the Operand, with the
-least significant bit indicating if the filter is negated.<a href="#section-9.2.1.4-3" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-9.2.1.4-4">
-<pre>
-Negated = Operand and Flag &amp; 0x1
-Operand = Operand and Flag &gt;&gt; 1
-</pre><a href="#section-9.2.1.4-4" class="pilcrow">¶</a>
 </div>
 <table class="center" id="table-3">
               <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
@@ -3654,24 +3648,33 @@ Operand = Operand and Flag &gt;&gt; 1
                 </tr>
               </tbody>
             </table>
-<p id="section-9.2.1.4-6">Values is an array of integers which encode the values of interest.  When
-Operand is Extension ID, the first Value indicates the Extension ID to filter.
-This value <span class="bcp14">MUST</span> indicate an Extension with an integer type.  The remainder of
-the array is a sequence of pairs indicating the start and length of the matching
-range.  The Start is encoded as a delta from the previous End, or from 0 for the
-first element.  The length indicates the number of elements including Start to
-match.  A length of 0 indicates no endpoint.  For example [ 10, 3, 1, 1, 20, 0 ]
-would match values 10, 11, 12, 14 and 34-max.  Only the first (excluding
-Extension ID) or last value can be 0.  If an endpoint receives a 0 value
-anywhere else, it <span class="bcp14">MUST</span> treat the track as Malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>).<a href="#section-9.2.1.4-6" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.4-4">When Negation Flag is 1, the result of the filter is negated to determine which
+Objects pass the filter.<a href="#section-9.2.1.4-4" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.4-5">Extension ID is present only when Operand is Extension ID (value 0x4) and
+indicates the Extension to filter. This <span class="bcp14">MUST</span> indicate an Extension with an
+integer type.  Objects without the Extension do not pass the filter.<a href="#section-9.2.1.4-5" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.4-6">Values is an array of integers which encode the values of interest.  The
+remainder of the array is a sequence of pairs indicating the start and length of
+the matching range.  The Start is encoded as a delta from the previous End, or
+from 0 for the first element.  The length indicates the number of elements
+including Start to match.  An odd number of elements indicates the final range
+has no endpoint.  For example [ 10, 3, 1, 1, 20 ] would match values 10, 11, 12,
+14 and 34-max.  Only the first value can be 0.  If an endpoint receives a 0
+value anywhere else or length of the Values array exceeds TBD, it <span class="bcp14">MUST</span> reject
+the request with <code>INVALID_FILTER</code>.<a href="#section-9.2.1.4-6" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.4-7">All filters can be removed from a Subscription by sending SUBSCRIBE_UPDATE with
 Operand No Filter.<a href="#section-9.2.1.4-7" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.4-8">This parameter <span class="bcp14">MAY</span> appear more than once, and filters are cumulative.  When
-filters are applied, delivery rules regarding Subgroups and FETCH responses are
-modified.  Within a Subgroup, the Publisher is allowed to send an Object on a
-Subgroup stream even when it is not the next Object if the expected Objects
-did not pass the filter.  In a FETCH response, the Subscriber can only infer
-Objects do not exist from their absence if they pass all filters.<a href="#section-9.2.1.4-8" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.4-8">This parameter <span class="bcp14">MAY</span> appear up to TBD2 times in a request, and filters are
+cumulative.  If the parameter appears more than TBD2 times, the endpoint <span class="bcp14">MUST</span>
+reject the request with <code>INVALID_FILTER</code>. When filters are applied, delivery
+rules regarding FETCH responses are modified (see <a href="#message-fetch" class="auto internal xref">Section 9.16</a>).  In a
+filtered FETCH response, the Subscriber can only infer Objects do not exist from
+their absence if they pass all filters.  This is only possible when filtering on
+Group ID and/or Object ID, as the Subscriber lacks other fields needed to
+evaluate the filters.<a href="#section-9.2.1.4-8" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.4-9">Publishers <span class="bcp14">MUST</span> respect Subgroup delivery rules even for filtered responses.  If
+an Object in the middle of a Subgroup is filtered out, the Publisher <span class="bcp14">MUST NOT</span>
+place another Object in that Subgroup stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>).<a href="#section-9.2.1.4-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
