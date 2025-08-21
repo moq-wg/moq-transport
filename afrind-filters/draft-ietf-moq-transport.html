@@ -3648,12 +3648,11 @@ Object Filter {
                 </tr>
               </tbody>
             </table>
-<p id="section-9.2.1.4-4">When Negation Flag is 1, the result of the filter is negated to determine which
-Objects pass the filter.<a href="#section-9.2.1.4-4" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.4-5">Extension ID is present only when Operand is Extension ID (value 0x4) and
+<p id="section-9.2.1.4-4">When Negation Flag is 1, the result of the filter is negated to determine which Objects pass the filter.
+Extension ID is present only when Operated is Extension ID (value 0x4) and
 indicates the Extension to filter. This <span class="bcp14">MUST</span> indicate an Extension with an
-integer type.  Objects without the Extension do not pass the filter.<a href="#section-9.2.1.4-5" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.4-6">Values is an array of integers which encode the values of interest.  The
+integer type.  Objects without the Extension do not pass the filter.<a href="#section-9.2.1.4-4" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.4-5">Values is an array of integers which encode the values of interest.  The
 remainder of the array is a sequence of pairs indicating the start and length of
 the matching range.  The Start is encoded as a delta from the previous End, or
 from 0 for the first element.  The length indicates the number of elements
@@ -3661,20 +3660,20 @@ including Start to match.  An odd number of elements indicates the final range
 has no endpoint.  For example [ 10, 3, 1, 1, 20 ] would match values 10, 11, 12,
 14 and 34-max.  Only the first value can be 0.  If an endpoint receives a 0
 value anywhere else or length of the Values array exceeds TBD, it <span class="bcp14">MUST</span> reject
-the request with <code>INVALID_FILTER</code>.<a href="#section-9.2.1.4-6" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.4-7">All filters can be removed from a Subscription by sending SUBSCRIBE_UPDATE with
-Operand No Filter.<a href="#section-9.2.1.4-7" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.4-8">This parameter <span class="bcp14">MAY</span> appear up to TBD2 times in a request, and filters are
+the request with <code>INVALID_FILTER</code>.
+All filters can be removed from a Subscription by sending SUBSCRIBE_UPDATE with
+Operand No Filter.<a href="#section-9.2.1.4-5" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.4-6">This parameter <span class="bcp14">MAY</span> appear up to TBD2 times in a request, and filters are
 cumulative.  If the parameter appears more than TBD2 times, the endpoint <span class="bcp14">MUST</span>
 reject the request with <code>INVALID_FILTER</code>. When filters are applied, delivery
 rules regarding FETCH responses are modified (see <a href="#message-fetch" class="auto internal xref">Section 9.16</a>).  In a
 filtered FETCH response, the Subscriber can only infer Objects do not exist from
 their absence if they pass all filters.  This is only possible when filtering on
 Group ID and/or Object ID, as the Subscriber lacks other fields needed to
-evaluate the filters.<a href="#section-9.2.1.4-8" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.4-9">Publishers <span class="bcp14">MUST</span> respect Subgroup delivery rules even for filtered responses.  If
+evaluate the filters.<a href="#section-9.2.1.4-6" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.4-7">Publishers <span class="bcp14">MUST</span> respect Subgroup delivery rules even for filtered responses.  If
 an Object in the middle of a Subgroup is filtered out, the Publisher <span class="bcp14">MUST NOT</span>
-place another Object in that Subgroup stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>).<a href="#section-9.2.1.4-9" class="pilcrow">¶</a></p>
+place another Object in that Subgroup stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>).<a href="#section-9.2.1.4-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
