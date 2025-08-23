@@ -350,8 +350,8 @@ Table of Contents
 
 1.3.  Stream Management Terms
 
-   This document uses stream management terms described in detailed in
-   [RFC9000], Section 1.3 including STOP_SENDING, RESET_STREAM and FIN.
+   This document uses stream management terms described in [RFC9000],
+   Section 1.3 including STOP_SENDING, RESET_STREAM and FIN.
 
 1.4.  Notational Conventions
 
