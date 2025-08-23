@@ -235,6 +235,10 @@ Track:
 
 : A track is a collection of groups. See ({{model-track}}).
 
+## Stream Management Terms
+
+This document uses stream management terms described in detailed in {{?RFC9000,
+Section 1.3}} including STOP_SENDING, RESET_STREAM and FIN.
 
 ## Notational Conventions
 
