@@ -2513,7 +2513,7 @@ Largest Location.Object + 1}.
 Note: the last Object requested by the Joining FETCH is Subscribe Largest
 Location, which is encoded by adding one to the Object ID.
 
-For a Relative Joining Fetch, the publisher sets the Start Location to 
+For a Relative Joining Fetch, the publisher sets the Start Location to
 {Subscribe Largest Location.Group - Joining Start, 0}.
 
 For an Absolute Joining Fetch, the publisher sets the Start Location to
@@ -2644,7 +2644,7 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
      final) Object, End Location is {Largest.Group, Largest.Object + 1}
    - If End Location.Object in the FETCH request was 0 and the response covers
      the last Object in the Group, End Location is {Fetch.End Location.Group, 0}
-   - Otherwise, End Location is Fetch.End Location 
+   - Otherwise, End Location is Fetch.End Location
   Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
   End Location described in {{joining-fetch-range-calculation}}.
 
