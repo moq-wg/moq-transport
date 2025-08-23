@@ -2554,11 +2554,11 @@ FETCH Message {
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
-
 * Standalone: Standalone Fetch structure included when Fetch Type is 0x1
 
 * Joining: Joining Fetch structure included when Fetch Type is 0x2 or 0x3.
+
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  The publisher creates a new unidirectional stream that is used to send the
