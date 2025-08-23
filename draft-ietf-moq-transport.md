@@ -2581,11 +2581,11 @@ error code `INVALID_RANGE`.
 The publisher receiving a Relative Joining Fetch computes the range as follows:
 
 * Fetch Start Location: {Subscribe Largest Location.Group - Joining Start, 0}
-* Fetch End Location: Subscribe Largest Location
+* Fetch End Location: {Subscribe Largest Location.Group, Subscribe Largest
+  Location.Object + 1}
 
-A Fetch End Location.Object of 0 requests the entire group, but Fetch will not
-retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch End Location.Group if Fetch End Location.Object is 0.
+Note: the last Object requested by the Joining FETCH is Subscribe Largest
+Location, which is encoded by adding one to the Object ID.
 
 ### Calculating the Range of an Absolute Joining Fetch
 
