@@ -94,7 +94,7 @@ discovery and subscription.
 
 * {{message}} covers how control messages are encoded on the wire.
 
-* {{data-streams}} covers how data messages are encoded on the wire.
+* {{transmitting-tracks}} covers how data messages are encoded on the wire.
 
 
 ## Motivation
@@ -507,7 +507,7 @@ information in these fields, for example by restricting them to UTF-8. Any
 specification that does needs to specify the canonicalization into the bytes in
 the Track Namespace or Track Name such that exact comparison works.
 
-## Malformed Tracks
+### Malformed Tracks
 
 There are multiple ways a publisher can transmit a Track that does not conform
 to MoQT constraints. Such a Track is considered malformed.  Some example
@@ -581,6 +581,33 @@ ways, for example:
    current time.
 3. Use TRACK_STATUS or similar mechanism to query the previous state to
    determine the largest published Group ID.
+
+## Extension Headers
+
+Tracks and Objects can have additional relay-visible metadata called Extension
+Headers.
+
+Extension Headers are visible to relays and allow the transmission of
+future metadata relevant to MOQT Object distribution.
+
+Extension Headers are defined in {{moqt-extension-headers}} as well as external
+specifications and are registered in an IANA table {{iana}}. These
+specifications define the type and value of the header, along with any rules
+concerning processing, modification, caching and forwarding. A relay which is
+coded to implement these rules is said to "support" the extension.
+
+If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
+cached as part of the Track or Object and MUST be forwarded by relays.
+
+If supported by the relay and subject to the processing rules specified in the
+definition of the extension, Extension Headers MAY be modified, added, removed,
+and/or cached by relays.
+
+Extension Headers are serialized as Key-Value-Pairs (see
+{{moq-key-value-pair}}).
+
+Header types are registered in the IANA table 'MOQ Extension Headers'.
+See {{iana}}.
 
 # Sessions {#session}
 
@@ -741,8 +768,8 @@ CONTROL_MESSAGE_TIMEOUT (0x11):
 
 DATA_STREAM_TIMEOUT (0x12):
 : The session was closed because the peer took too long to send data expected
-  on an open Data Stream (see {{data-streams}}). This includes fields of a
-  stream header or an object header within a data stream. If an endpoint
+  on an open Data Stream (see {{transmitting-tracks}}). This includes fields of
+  a stream header or an object header within a data stream. If an endpoint
   times out waiting for a new object header on an open subgroup stream, it
   MAY send a STOP_SENDING on that stream or terminate the subscription.
 
@@ -1147,7 +1174,7 @@ fields that can be updated are the following:
 1. Object Status can transition from any status to Object Does Not Exist in
    cases where the object is no longer available.  Transitions between Normal,
    End of Group and End of Track are invalid.
-3. Object Header Extensions can be added, removed or updated, subject
+3. Object Extension Headers can be added, removed or updated, subject
    to the constraints of the specific header extension.
 
 An endpoint that receives a duplicate Object with an invalid Object Status
@@ -1159,9 +1186,9 @@ with a status of Normal, End of Group or End of Track after receiving a previous
 status of Object Does Not Exist.  The endpoint SHOULD NOT cache or forward the
 duplicate object in this case.
 
-A cache MUST store all properties of an Object defined in
-{{object-properties}}, with the exception of any extensions
-({{object-extensions}}) that specify otherwise.
+A cache MUST store all properties of an Object defined in {{object-properties}},
+with the exception of any extensions ({{object-extension-headers}}) that specify
+otherwise.
 
 ## Subscriber Interactions
 
@@ -1322,12 +1349,21 @@ new relay instead of the old relay. Once objects are going to the new relay, the
 published namespaces and subscriptions to the old relay can be withdrawn or
 terminated.
 
+## Relay Track Handling
+
+Relays that receive a Track Extension Headers parameter (see
+{{track-extensions-parameter}}) MUST include it in any PUBLISH, SUBSCRIBE_OK,
+TRACK_STATUS_OK or FETCH_OK sent for that Track.  Relays MUST NOT modify the
+contents of the parameter by adding, removing, modifying or reordering the
+contained Extension Headers, unless the relay supports the Extension (see
+{{extension-headers}}).
+
 ## Relay Object Handling
 
 MOQT encodes the delivery information via Object headers
 ({{message-object}}).  A relay MUST NOT modify Object properties when
 forwarding, except for Object Extension Headers as specified in
-{{object-extensions}}.
+{{extension-headers}}.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
@@ -1635,6 +1671,13 @@ since the beginning of the Object was received.  This means Objects earlier in a
 multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
 handles a downstream request that includes those Objects re-requests them.
+
+#### Track Extensions Parameter
+
+The TRACK_EXTENSIONS parameter (Parameter Type 0x7) MAY appear in a PUBLISH,
+SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS_OK message.  It is a variable-length
+block of Key-Value-Pair structures.  Each element is Track-specific metadata
+that is visible to relays.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -3058,12 +3101,13 @@ UNSUBSCRIBE_NAMESPACE Message {
 * Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
 
 
-# Data Streams and Datagrams {#data-streams}
+# Transmitting Tracks {#transmitting-tracks}
 
-A publisher sends Objects matching a subscription on Data Streams or Datagrams.
+A publisher sends Objects matching a subscription on Data Streams or Datagrams,
+and FETCH responses on a Data Stream.
 
-All unidirectional MOQT streams start with a variable-length integer indicating
-the type of the stream in question.
+All unidirectional MOQT streams are Data Streams that start with a
+variable-length integer indicating the type of the stream.
 
 |-------------|-------------------------------------------------|
 | ID          | Type                                            |
@@ -3124,25 +3168,23 @@ A canonical MoQ Object has the following information:
 the Object {{priorities}}.
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Subgroup and Datagram.  When in response to a
-SUBSCRIBE, an Object MUST be sent according to its `Object Forwarding
-Preference`, described below.
+  an object. The preferences are Subgroup and Datagram.  When in response to a
+  SUBSCRIBE, an Object MUST be sent according to its `Object Forwarding
+  Preference`, described below.
 
-* Subgroup ID: The object is a member of the indicated subgroup ID ({{model-subgroup}})
-within the group. This field is omitted if the Object Forwarding Preference is
-Datagram.
+* Subgroup ID: The object is a member of the indicated subgroup ID
+  ({{model-subgroup}}) within the group. This field is omitted if the Object
+  Forwarding Preference is Datagram.
 
 * Object Status: As enumeration used to indicate missing
-objects or mark the end of a group or track. See {{object-status}} below.
+  objects or mark the end of a group or track. See {{object-status}} below.
 
-* Object Extension Length: The total length of the Object Extension Headers
-  block, in bytes.
-
-* Object Extensions : A sequence of Object Extension Headers. See
-  {{object-extensions}} below.
+* Object Extensions : A sequence of Extension Headers. See
+  {{extension-headers}}.
 
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
-NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
+  NOT be processed by a relay. Only present when 'Object Status' is Normal
+  (0x0).
 
 #### Object Status {#object-status}
 
@@ -3179,34 +3221,16 @@ Any other value SHOULD be treated as a protocol error and the session SHOULD
 be terminated with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
-#### Object Extension Header {#object-extensions}
-Any Object may have extension headers except those with Object Status 'Object
-Does Not Exist'.  If an endpoint receives a non-existent Object containing
-extension headers it MUST close the session with a `PROTOCOL_VIOLATION`.
+#### Object Extension Headers
 
-Object Extension Headers are visible to relays and allow the transmission of
-future metadata relevant to MOQT Object distribution. Any Object metadata never
-accessed by the transport or relays SHOULD be serialized as part of the Object
-payload and not as an extension header.
+Any Object can have Extension Headers (see {{extension-headers}}) except those
+with Object Status 'Object Does Not Exist'.  If an endpoint receives a
+non-existent Object containing extension headers it MUST close the session with
+a `PROTOCOL_VIOLATION`.
 
-Extension Headers are defined in external specifications and registered in an
-IANA table {{iana}}. These specifications define the type and value of the
-header, along with any rules concerning processing, modification, caching and
-forwarding. A relay which is coded to implement these rules is said to
-"support" the extension.
+Any Object metadata never accessed by the transport or relays SHOULD be
+serialized as part of the Object payload and not as an extension header.
 
-If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
-cached as part of the Object and MUST be forwarded by relays.
-
-If supported by the relay and subject to the processing rules specified in the
-definition of the extension, Extension Headers MAY be modified, added, removed,
-and/or cached by relays.
-
-Object Extension Headers are serialized as Key-Value-Pairs (see
-{{moq-key-value-pair}}).
-
-Header types are registered in the IANA table 'MOQ Extension Headers'.
-See {{iana}}.
 
 ## Datagrams
 
@@ -3226,9 +3250,9 @@ be dropped without any explicit notification.
 
 Each session along the path between the Original Publisher and End Subscriber
 might have different maximum datagram sizes. Additionally, Object Extension
-Headers ({{object-extensions}}) can be added to Objects as they pass through
-the MOQT network, increasing the size of the Object and the chances it will
-exceed the maximum datagram size of a downstream session and be dropped.
+Headers ({{object-extension-headers}}) can be added to Objects as they pass
+through the MOQT network, increasing the size of the Object and the chances it
+will exceed the maximum datagram size of a downstream session and be dropped.
 
 
 ### Object Datagram {#object-datagram}
@@ -3646,7 +3670,7 @@ SUBGROUP_HEADER {
 
 ~~~
 
-# Extension Headers
+# MOQT Extension Headers
 
 The following Object Extension Headers are defined in MOQT.
 
