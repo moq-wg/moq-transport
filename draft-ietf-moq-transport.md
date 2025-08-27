@@ -1903,7 +1903,7 @@ Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
 
 DOES_NOT_EXIST (0x10):
-: The track or namespace is not available at the publisher. 
+: The track or namespace is not available at the publisher.
 
 INVALID_RANGE (0x11):
 : In response to SUBSCRIBE or FETCH, specified range of Locations cannot be
@@ -1919,7 +1919,7 @@ to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
 UNINTERESTED (0x20):
 : The subscriber is not interested in the track or namespace.
 
-Errors below can only be used in response to one message type. 
+Errors below can only be used in response to one message type.
 
 PREFIX_OVERLAP (0x30):
 : In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
