@@ -1904,38 +1904,49 @@ TIMEOUT (0x2):
 NOT_SUPPORTED (0x3):
 : The endpoint does not support the type of request.
 
-DOES_NOT_EXIST or UNINTERESTED (0x4):
-: In response to SUBSCRIBE, FETCH, TRACK_STATUS, or SUBSCRIBE_NAMESPACE, the
-track or namespace is not available at the publisher. For PUBLISH or
-PUBLISH_NAMESPACE, the subscriber is not interested in the track or namespace.
-
-INVALID_RANGE or PREFIX_OVERLAP (0x5):
-: In response to SUBSCRIBE or FETCH, specified range of Locations cannot be
-accessed with the request type. In response to SUBSCRIBE_NAMESPACE, the
-namespace prefix overlaps with another SUBSCRIBE_NAMESPACE in the same
-session.
-
-NO_OBJECTS (0x6):
-: In response to FETCH, no objects exist between the Start and End Locations.
-
-INVALID_JOINING_REQUEST_ID(0x7):
-: In response to a Joining FETCH, the referenced Request ID is not an active
-Subscription.
-
-UNKNOWN_STATUS_IN_RANGE(0x8):
-: In response to a FETCH, the requested range contains an object with unknown
-status.
-
-MALFORMED_TRACK (0x9):
-: In response to a SUBSCRIBE, FETCH, or TRACK_STATUS, a relay publisher detected
-the track was malformed (see {{malformed-tracks}}).
-
-MALFORMED_AUTH_TOKEN (0x10):
+MALFORMED_AUTH_TOKEN (0x4):
 : Invalid Auth Token serialization during registration (see
   {{authorization-token}}).
 
-EXPIRED_AUTH_TOKEN (0x12):
+EXPIRED_AUTH_TOKEN (0x5):
 : Authorization token has expired ({{authorization-token}}).
+
+Below are errors for use by the publisher. They can appear in response to
+SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
+
+DOES_NOT_EXIST (0x10):
+: The track or namespace is not available at the publisher. 
+
+INVALID_RANGE (0x11):
+: In response to SUBSCRIBE or FETCH, specified range of Locations cannot be
+accessed with the request type.
+
+MALFORMED_TRACK (0x12):
+: In response to a SUBSCRIBE, FETCH, or TRACK_STATUS, a relay publisher detected
+the track was malformed (see {{malformed-tracks}}).
+
+The following are errors for use by the subscriber. They can appear in response
+to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
+
+UNINTERESTED (0x20):
+: The subscriber is not interested in the track or namespace.
+
+Errors below can only be used in response to one message type. 
+
+PREFIX_OVERLAP (0x30):
+: In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
+SUBSCRIBE_NAMESPACE in the same session.
+
+NO_OBJECTS (0x31):
+: In response to FETCH, no objects exist between the Start and End Locations.
+
+INVALID_JOINING_REQUEST_ID(0x32):
+: In response to a Joining FETCH, the referenced Request ID is not an active
+Subscription.
+
+UNKNOWN_STATUS_IN_RANGE(0x33):
+: In response to a FETCH, the requested range contains an object with unknown
+status.
 
 ## SUBSCRIBE {#message-subscribe-req}
 
@@ -3596,22 +3607,22 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 ### REQUEST_ERROR Codes {#iana-request-error}
 
-| Name                       | Code | Request Types  |Specification              |
-|:---------------------------|:----:|:--------------:|:--------------------------|
-| INTERNAL_ERROR             | 0x0  | All            | {{message-request-error}} |
-| UNAUTHORIZED               | 0x1  | All            | {{message-request-error}} |
-| TIMEOUT                    | 0x2  | All            | {{message-request-error}} |
-| NOT_SUPPORTED              | 0x3  | All            | {{message-request-error}} |
-| DOES_NOT_EXIST             | 0x4  | SUBSCRIBE, FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE | {{message-request-error}} |
-| UINTERESTED                | 0x4  | PUBLISH, PUBLISH_NAMESPACE | {{message-request-error}} |
-| INVALID_RANGE              | 0x5  | SUBSCRIBE, FETCH | {{message-request-error}} |
-| PREFIX_OVERLAP             | 0x5  | SUBSCRIBE_NAMESPACE | {{message-request-error}} |
-| NO_OBJECTS                 | 0x6  | FETCH          | {{message-request-error}} |
-| INVALID_JOINING_REQUEST_ID | 0x7  | FETCH          | {{message-request-error}} |
-| UNKNOWN_STATUS_IN_RANGE    | 0x8  | FETCH          | {{message-request-error}} |
-| MALFORMED_TRACK            | 0x9  | SUBSCRIBE, FETCH, TRACK_STATUS | {{message-request-error}} |
-| MALFORMED_AUTH_TOKEN       | 0x10 | All            | {{message-request-error}} |
-| EXPIRED_AUTH_TOKEN         | 0x12 | All            | {{message-request-error}} |
+| Name                       | Code | Specification              |
+|:---------------------------|:----:|:--------------------------|
+| INTERNAL_ERROR             | 0x0  | {{message-request-error}} |
+| UNAUTHORIZED               | 0x1  | {{message-request-error}} |
+| TIMEOUT                    | 0x2  | {{message-request-error}} |
+| NOT_SUPPORTED              | 0x3  | {{message-request-error}} |
+| MALFORMED_AUTH_TOKEN       | 0x4  | {{message-request-error}} |
+| EXPIRED_AUTH_TOKEN         | 0x5  | {{message-request-error}} |
+| DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
+| INVALID_RANGE              | 0x11 | {{message-request-error}} |
+| MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
+| UINTERESTED                | 0x20 | {{message-request-error}} |
+| PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
+| NO_OBJECTS                 | 0x31 | {{message-request-error}} |
+| INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
