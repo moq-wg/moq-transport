@@ -1372,11 +1372,7 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x1A  | REQUESTS_BLOCKED ({{message-requests-blocked}})     |
 |-------|-----------------------------------------------------|
-<<<<<<< HEAD
 | 0x5   | REQUEST_ERROR  ({{message-request-error}})          |
-=======
-| 0x2   | REQUEST_ERROR  ({{message-request-ok}})             |
->>>>>>> 6e0cc6f (merge fixes)
 |-------|-----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
 |-------|-----------------------------------------------------|
@@ -1853,11 +1849,7 @@ REQUESTS_BLOCKED Message {
 * Maximum Request ID: The Maximum Request ID for the session on which the
   endpoint is blocked. More on Request ID in {{request-id}}.
 
-<<<<<<< HEAD
 ## REQUEST_ERROR {#message-request-error}
-=======
-## REQUEST_ERROR (#message-request-error}
->>>>>>> 6e0cc6f (merge fixes)
 
 The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
 PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS). The unique
@@ -1866,11 +1858,7 @@ request.
 
 ~~~
 REQUEST_ERROR Message {
-<<<<<<< HEAD
   Type (i) = 0x5,
-=======
-  Type (i) = 0x2,
->>>>>>> 6e0cc6f (merge fixes)
   Length (16),
   Request ID (i),
   Error Code (i),
