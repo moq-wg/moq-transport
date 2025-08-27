@@ -888,7 +888,7 @@ forwarded back to the endpoint, subject to priority and congestion response
 rules.
 
 A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
-a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
+a SUBSCRIBE. It MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
 FETCH. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
@@ -1372,7 +1372,11 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x1A  | REQUESTS_BLOCKED ({{message-requests-blocked}})     |
 |-------|-----------------------------------------------------|
+<<<<<<< HEAD
 | 0x5   | REQUEST_ERROR  ({{message-request-error}})          |
+=======
+| 0x2   | REQUEST_ERROR  ({{message-request-ok}})             |
+>>>>>>> 6e0cc6f (merge fixes)
 |-------|-----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
 |-------|-----------------------------------------------------|
@@ -1849,7 +1853,11 @@ REQUESTS_BLOCKED Message {
 * Maximum Request ID: The Maximum Request ID for the session on which the
   endpoint is blocked. More on Request ID in {{request-id}}.
 
+<<<<<<< HEAD
 ## REQUEST_ERROR {#message-request-error}
+=======
+## REQUEST_ERROR (#message-request-error}
+>>>>>>> 6e0cc6f (merge fixes)
 
 The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
 PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS). The unique
@@ -1858,7 +1866,11 @@ request.
 
 ~~~
 REQUEST_ERROR Message {
+<<<<<<< HEAD
   Type (i) = 0x5,
+=======
+  Type (i) = 0x2,
+>>>>>>> 6e0cc6f (merge fixes)
   Length (16),
   Request ID (i),
   Error Code (i),
