@@ -2343,14 +2343,12 @@ The <code>moqt</code> URI scheme supports the <code>/.well-known/</code> path pr
 <p id="section-3.1.2-4">This protocol does not specify any semantics on the <code>path-abempty</code> and
 <code>query</code> portions of the URI.  The contents of those are left up to the
 application.<a href="#section-3.1.2-4" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-5">The client can establish a connection to a MoQ server identified by a
-given URI by setting up a QUIC connection to the host and port
-identified by the <code>authority</code> section of the URI. The 'authority' is also
-transmitted to the server in the AUTHORITY parameter, (<a href="#authority" class="auto internal xref">Section 9.3.2.1</a>) which is
-sent in the CLIENT_SETUP message at the start of the session.  The
-<code>path-abempty</code> and <code>query</code> portions of the URI are similarly communicated to the
-server using the PATH parameter (<a href="#path" class="auto internal xref">Section 9.3.2.2</a>).  The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> used by
-the protocol is <code>moq-00</code>.<a href="#section-3.1.2-5" class="pilcrow">¶</a></p>
+<p id="section-3.1.2-5">The client can establish a connection to a MoQ server identified by a given URI
+by setting up a QUIC connection to the host and port identified by the
+<code>authority</code> section of the URI. The <code>authority</code>, <code>path-abempty</code> and <code>query</code>
+portions of the URI are also transmitted in SETUP parameters (see
+<a href="#setup-params" class="auto internal xref">Section 9.3.2</a>).<a href="#section-3.1.2-5" class="pilcrow">¶</a></p>
+<p id="section-3.1.2-6">The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> used by the protocol is <code>moq-00</code>.<a href="#section-3.1.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="connection-url">
@@ -3785,7 +3783,7 @@ the session soon.  Servers can use GOAWAY to initiate session migration
 (<a href="#session-migration" class="auto internal xref">Section 3.5</a>) with an optional URI.<a href="#section-9.4-1" class="pilcrow">¶</a></p>
 <p id="section-9.4-2">The GOAWAY message does not impact subscription state. A subscriber
 <span class="bcp14">SHOULD</span> individually UNSUBSCRIBE for each existing subscription, while a
-publisher <span class="bcp14">MAY</span> reject new requests while in the draining state.<a href="#section-9.4-2" class="pilcrow">¶</a></p>
+publisher <span class="bcp14">MAY</span> reject new requests after sending a GOAWAY.<a href="#section-9.4-2" class="pilcrow">¶</a></p>
 <p id="section-9.4-3">Upon receiving a GOAWAY, an endpoint <span class="bcp14">SHOULD NOT</span> initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE and TRACK_SATUS.<a href="#section-9.4-3" class="pilcrow">¶</a></p>
@@ -3853,8 +3851,8 @@ MAX_REQUEST_ID Message {
             <p id="section-9.5-4.1.1">Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
 equal to or larger than this is received by the endpoint that sent the
 MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE, FETCH, SUBSCRIBE,
-SUBSCRIBE_NAMESPACE or TRACK_STATUS), the endpoint <span class="bcp14">MUST</span> close the session with
-an error of <code>TOO_MANY_REQUESTS</code>.<a href="#section-9.5-4.1.1" class="pilcrow">¶</a></p>
+SUBSCRIBE_NAMESPACE, SUBSCRIBE_UDPATE or TRACK_STATUS), the endpoint <span class="bcp14">MUST</span>
+close the session with an error of <code>TOO_MANY_REQUESTS</code>.<a href="#section-9.5-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.5-5">MAX_REQUEST_ID is similar to MAX_STREAMS in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-4.6" class="relref">Section 4.6</a></span>), and
@@ -3945,7 +3943,8 @@ message <span class="bcp14">MAY</span> be less than the <code>Largest Object</co
 specified <code>End Group</code> is the same group specified in <code>Start</code>, the remainder of
 that Group passes the filter. <code>End Group</code> <span class="bcp14">MUST</span> specify the same or a larger Group
 than specified in <code>Start</code>.<a href="#section-9.7-10" class="pilcrow">¶</a></p>
-<p id="section-9.7-11">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-9.7-11" class="pilcrow">¶</a></p>
+<p id="section-9.7-11">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> be close the
+session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.7-11" class="pilcrow">¶</a></p>
 <p id="section-9.7-12">Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH (<a href="#message-fetch" class="auto internal xref">Section 9.16</a>).<a href="#section-9.7-12" class="pilcrow">¶</a></p>
 <p id="section-9.7-13">A Subscription can also request a publisher to not forward Objects for a given
@@ -4279,9 +4278,9 @@ session with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination" c
         <h3 id="name-unsubscribe">
 <a href="#section-9.11" class="section-number selfRef">9.11. </a><a href="#name-unsubscribe" class="section-name selfRef">UNSUBSCRIBE</a>
         </h3>
-<p id="section-9.11-1">A subscriber issues a <code>UNSUBSCRIBE</code> message to a publisher indicating it is no
-longer interested in receiving media for the specified track and requesting that
-the publisher stop sending Objects as soon as possible.<a href="#section-9.11-1" class="pilcrow">¶</a></p>
+<p id="section-9.11-1">A Subscriber issues an <code>UNSUBSCRIBE</code> message to a Publisher indicating it is no
+longer interested in receiving the specified Track, indicating that the
+Publisher stop sending Objects as soon as possible.<a href="#section-9.11-1" class="pilcrow">¶</a></p>
 <p id="section-9.11-2">The format of <code>UNSUBSCRIBE</code> is as follows:<a href="#section-9.11-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-unsubscribe-message"></span><div id="moq-transport-unsubscribe-format">
 <figure id="figure-13">

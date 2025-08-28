@@ -757,13 +757,11 @@ Table of Contents
 
    The client can establish a connection to a MoQ server identified by a
    given URI by setting up a QUIC connection to the host and port
-   identified by the authority section of the URI.  The 'authority' is
-   also transmitted to the server in the AUTHORITY parameter,
-   (Section 9.3.2.1) which is sent in the CLIENT_SETUP message at the
-   start of the session.  The path-abempty and query portions of the URI
-   are similarly communicated to the server using the PATH parameter
-   (Section 9.3.2.2).  The ALPN value [RFC7301] used by the protocol is
-   moq-00.
+   identified by the authority section of the URI.  The authority, path-
+   abempty and query portions of the URI are also transmitted in SETUP
+   parameters (see Section 9.3.2).
+
+   The ALPN value [RFC7301] used by the protocol is moq-00.
 
 3.1.3.  Connection URL
 
@@ -1999,7 +1997,7 @@ Table of Contents
 
    The GOAWAY message does not impact subscription state.  A subscriber
    SHOULD individually UNSUBSCRIBE for each existing subscription, while
-   a publisher MAY reject new requests while in the draining state.
+   a publisher MAY reject new requests after sending a GOAWAY.
 
    Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests
    to the peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
@@ -2049,9 +2047,9 @@ Table of Contents
    *  Request ID: The new Maximum Request ID for the session plus 1.  If
       a Request ID equal to or larger than this is received by the
       endpoint that sent the MAX_REQUEST_ID in any request message
-      (PUBLISH_NAMESPACE, FETCH, SUBSCRIBE, SUBSCRIBE_NAMESPACE or
-      TRACK_STATUS), the endpoint MUST close the session with an error
-      of TOO_MANY_REQUESTS.
+      (PUBLISH_NAMESPACE, FETCH, SUBSCRIBE, SUBSCRIBE_NAMESPACE,
+      SUBSCRIBE_UDPATE or TRACK_STATUS), the endpoint MUST close the
+      session with an error of TOO_MANY_REQUESTS.
 
    MAX_REQUEST_ID is similar to MAX_STREAMS in ([RFC9000], Section 4.6),
    and similar considerations apply when deciding how often to send
@@ -2140,7 +2138,8 @@ Table of Contents
    End Group MUST specify the same or a larger Group than specified in
    Start.
 
-   A filter type other than the above MUST be treated as error.
+   An endpoint that receives a filter type other than the above MUST be
+   close the session with PROTOCOL_VIOLATION.
 
    Subscribe only delivers newly published or received Objects.  Objects
    from the past are retrieved using FETCH (Section 9.16).
@@ -2396,9 +2395,9 @@ Table of Contents
 
 9.11.  UNSUBSCRIBE
 
-   A subscriber issues a UNSUBSCRIBE message to a publisher indicating
-   it is no longer interested in receiving media for the specified track
-   and requesting that the publisher stop sending Objects as soon as
+   A Subscriber issues an UNSUBSCRIBE message to a Publisher indicating
+   it is no longer interested in receiving the specified Track,
+   indicating that the Publisher stop sending Objects as soon as
    possible.
 
    The format of UNSUBSCRIBE is as follows:
