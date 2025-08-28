@@ -235,6 +235,10 @@ Track:
 
 : A track is a collection of groups. See ({{model-track}}).
 
+## Stream Management Terms
+
+This document uses stream management terms described in {{?RFC9000, Section
+1.3}} including STOP_SENDING, RESET_STREAM and FIN.
 
 ## Notational Conventions
 
@@ -503,14 +507,14 @@ In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace tuple fields or Track Names is done by
 exact comparison of the bytes. Specifications that use MOQT may constrain the
-information in these fields, for example by restricting them to UTF-8. Any
-specification that does needs to specify the canonicalization into the bytes in
-the Track Namespace or Track Name such that exact comparison works.
+information in these fields, for example by restricting them to UTF-8. Any such
+specification needs to specify the canonicalization into the bytes in the Track
+Namespace or Track Name such that exact comparison works.
 
 ## Malformed Tracks
 
 There are multiple ways a publisher can transmit a Track that does not conform
-to MoQT constraints. Such a Track is considered malformed.  Some example
+to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
@@ -939,7 +943,7 @@ done in the context of an established MOQT session.
 
 Given sufficient out of band information, it is valid for a subscriber to send a
 SUBSCRIBE or FETCH message to a publisher (including a relay) without any
-previous MoQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, PUBLISH and
+previous MOQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, PUBLISH and
 PUBLISH_NAMESPACE messages provide an in-band means of discovery of publishers
 for a namespace.
 
@@ -1594,9 +1598,9 @@ The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
 TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or
 SUBSCRIBE_UDPATE message.  It is the duration in milliseconds the relay SHOULD
 continue to attempt forwarding Objects after they have been received.  The start
-time for the timeout is based on when the beginning of the Object is received,
-and does not depend upon the forwarding preference. There is no explicit signal
-that an Object was not sent because the delivery timeout was exceeded.
+time for the timeout is based on when the Object Headers are received, and does
+not depend upon the forwarding preference. There is no explicit signal that an
+Object was not sent because the delivery timeout was exceeded.
 
 If both the subscriber and publisher specify the parameter, they use the min of
 the two values for the subscription.  The publisher SHOULD always specify the
