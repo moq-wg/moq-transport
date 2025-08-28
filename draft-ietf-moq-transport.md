@@ -632,14 +632,13 @@ This protocol does not specify any semantics on the `path-abempty` and
 `query` portions of the URI.  The contents of those are left up to the
 application.
 
-The client can establish a connection to a MoQ server identified by a
-given URI by setting up a QUIC connection to the host and port
-identified by the `authority` section of the URI. The 'authority' is also
-transmitted to the server in the AUTHORITY parameter, ({{authority}}) which is
-sent in the CLIENT_SETUP message at the start of the session.  The
-`path-abempty` and `query` portions of the URI are similarly communicated to the
-server using the PATH parameter ({{path}}).  The ALPN value {{!RFC7301}} used by
-the protocol is `moq-00`.
+The client can establish a connection to a MoQ server identified by a given URI
+by setting up a QUIC connection to the host and port identified by the
+`authority` section of the URI. The `authority`, `path-abempty` and `query`
+portions of the URI are also transmitted in SETUP parameters (see
+{{setup-params}}).
+
+The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
 ### Connection URL
 
@@ -1780,7 +1779,7 @@ the session soon.  Servers can use GOAWAY to initiate session migration
 
 The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually UNSUBSCRIBE for each existing subscription, while a
-publisher MAY reject new requests while in the draining state.
+publisher MAY reject new requests after sending a GOAWAY.
 
 Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
@@ -1831,8 +1830,8 @@ MAX_REQUEST_ID Message {
 * Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
   equal to or larger than this is received by the endpoint that sent the
   MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE, FETCH, SUBSCRIBE,
-  SUBSCRIBE_NAMESPACE or TRACK_STATUS), the endpoint MUST close the session with
-  an error of `TOO_MANY_REQUESTS`.
+  SUBSCRIBE_NAMESPACE, SUBSCRIBE_UDPATE or TRACK_STATUS), the endpoint MUST
+  close the session with an error of `TOO_MANY_REQUESTS`.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
@@ -1916,7 +1915,8 @@ specified `End Group` is the same group specified in `Start`, the remainder of
 that Group passes the filter. `End Group` MUST specify the same or a larger Group
 than specified in `Start`.
 
-A filter type other than the above MUST be treated as error.
+An endpoint that receives a filter type other than the above MUST be close the
+session with `PROTOCOL_VIOLATION`.
 
 Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
@@ -2169,9 +2169,9 @@ session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
-A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
-longer interested in receiving media for the specified track and requesting that
-the publisher stop sending Objects as soon as possible.
+A Subscriber issues an `UNSUBSCRIBE` message to a Publisher indicating it is no
+longer interested in receiving the specified Track, indicating that the
+Publisher stop sending Objects as soon as possible.
 
 The format of `UNSUBSCRIBE` is as follows:
 
