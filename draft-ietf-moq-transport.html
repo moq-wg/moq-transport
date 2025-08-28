@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 22 February 2026</td>
+<td class="center">Expires 1 March 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-08-21" class="published">21 August 2025</time>
+<time datetime="2025-08-28" class="published">28 August 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-02-22">22 February 2026</time></dd>
+<dd class="expires"><time datetime="2026-03-01">1 March 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 22 February 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 1 March 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1196,16 +1196,19 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.1.2.2.1"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-terms-and-definitions" class="internal xref">Terms and Definitions</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.3">
-                <p id="section-toc.1-1.1.2.3.1"><a href="#section-1.3" class="auto internal xref">1.3</a>.  <a href="#name-notational-conventions" class="internal xref">Notational Conventions</a></p>
+                <p id="section-toc.1-1.1.2.3.1"><a href="#section-1.3" class="auto internal xref">1.3</a>.  <a href="#name-stream-management-terms" class="internal xref">Stream Management Terms</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.4">
+                <p id="section-toc.1-1.1.2.4.1"><a href="#section-1.4" class="auto internal xref">1.4</a>.  <a href="#name-notational-conventions" class="internal xref">Notational Conventions</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.3.2.1">
-                    <p id="section-toc.1-1.1.2.3.2.1.1"><a href="#section-1.3.1" class="auto internal xref">1.3.1</a>.  <a href="#name-location-structure" class="internal xref">Location Structure</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.4.2.1">
+                    <p id="section-toc.1-1.1.2.4.2.1.1"><a href="#section-1.4.1" class="auto internal xref">1.4.1</a>.  <a href="#name-location-structure" class="internal xref">Location Structure</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.3.2.2">
-                    <p id="section-toc.1-1.1.2.3.2.2.1"><a href="#section-1.3.2" class="auto internal xref">1.3.2</a>.  <a href="#name-key-value-pair-structure" class="internal xref">Key-Value-Pair Structure</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.4.2.2">
+                    <p id="section-toc.1-1.1.2.4.2.2.1"><a href="#section-1.4.2" class="auto internal xref">1.4.2</a>.  <a href="#name-key-value-pair-structure" class="internal xref">Key-Value-Pair Structure</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.3.2.3">
-                    <p id="section-toc.1-1.1.2.3.2.3.1"><a href="#section-1.3.3" class="auto internal xref">1.3.3</a>.  <a href="#name-reason-phrase-structure" class="internal xref">Reason Phrase Structure</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.4.2.3">
+                    <p id="section-toc.1-1.1.2.4.2.3.1"><a href="#section-1.4.3" class="auto internal xref">1.4.3</a>.  <a href="#name-reason-phrase-structure" class="internal xref">Reason Phrase Structure</a></p>
 </li>
                 </ul>
 </li>
@@ -1846,74 +1849,82 @@ bytes. Objects form the base element in the MOQT data model. See
 </dl>
 </section>
 </div>
-<div id="notational-conventions">
+<div id="stream-management-terms">
 <section id="section-1.3">
-        <h3 id="name-notational-conventions">
-<a href="#section-1.3" class="section-number selfRef">1.3. </a><a href="#name-notational-conventions" class="section-name selfRef">Notational Conventions</a>
+        <h3 id="name-stream-management-terms">
+<a href="#section-1.3" class="section-number selfRef">1.3. </a><a href="#name-stream-management-terms" class="section-name selfRef">Stream Management Terms</a>
         </h3>
-<p id="section-1.3-1">This document uses the conventions detailed in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-1.3" class="relref">Section 1.3</a></span>)
-when describing the binary encoding.<a href="#section-1.3-1" class="pilcrow">¶</a></p>
-<p id="section-1.3-2">As a quick reference, the following list provides a non normative summary
-of the parts of RFC9000 field syntax that are used in this specification.<a href="#section-1.3-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-1.3-3">
-          <dt id="section-1.3-3.1">x (L):</dt>
-          <dd style="margin-left: 1.5em" id="section-1.3-3.2">
-            <p id="section-1.3-3.2.1">Indicates that x is L bits long<a href="#section-1.3-3.2.1" class="pilcrow">¶</a></p>
+<p id="section-1.3-1">This document uses stream management terms described in <span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-1.3" class="relref">Section 1.3</a></span> including STOP_SENDING, RESET_STREAM and FIN.<a href="#section-1.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="notational-conventions">
+<section id="section-1.4">
+        <h3 id="name-notational-conventions">
+<a href="#section-1.4" class="section-number selfRef">1.4. </a><a href="#name-notational-conventions" class="section-name selfRef">Notational Conventions</a>
+        </h3>
+<p id="section-1.4-1">This document uses the conventions detailed in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-1.3" class="relref">Section 1.3</a></span>)
+when describing the binary encoding.<a href="#section-1.4-1" class="pilcrow">¶</a></p>
+<p id="section-1.4-2">As a quick reference, the following list provides a non normative summary
+of the parts of RFC9000 field syntax that are used in this specification.<a href="#section-1.4-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-1.4-3">
+          <dt id="section-1.4-3.1">x (L):</dt>
+          <dd style="margin-left: 1.5em" id="section-1.4-3.2">
+            <p id="section-1.4-3.2.1">Indicates that x is L bits long<a href="#section-1.4-3.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.3-3.3">x (i):</dt>
-          <dd style="margin-left: 1.5em" id="section-1.3-3.4">
-            <p id="section-1.3-3.4.1">Indicates that x holds an integer value using the variable-length
-encoding as described in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a></span>)<a href="#section-1.3-3.4.1" class="pilcrow">¶</a></p>
+<dt id="section-1.4-3.3">x (i):</dt>
+          <dd style="margin-left: 1.5em" id="section-1.4-3.4">
+            <p id="section-1.4-3.4.1">Indicates that x holds an integer value using the variable-length
+encoding as described in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a></span>)<a href="#section-1.4-3.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.3-3.5">x (..):</dt>
-          <dd style="margin-left: 1.5em" id="section-1.3-3.6">
-            <p id="section-1.3-3.6.1">Indicates that x can be any length including zero bits long.  Values
- in this format always end on a byte boundary.<a href="#section-1.3-3.6.1" class="pilcrow">¶</a></p>
+<dt id="section-1.4-3.5">x (..):</dt>
+          <dd style="margin-left: 1.5em" id="section-1.4-3.6">
+            <p id="section-1.4-3.6.1">Indicates that x can be any length including zero bits long.  Values
+ in this format always end on a byte boundary.<a href="#section-1.4-3.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.3-3.7">[x (L)]:</dt>
-          <dd style="margin-left: 1.5em" id="section-1.3-3.8">
-            <p id="section-1.3-3.8.1">Indicates that x is optional and has a length of L<a href="#section-1.3-3.8.1" class="pilcrow">¶</a></p>
+<dt id="section-1.4-3.7">[x (L)]:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.4-3.8">
+            <p id="section-1.4-3.8.1">Indicates that x is optional and has a length of L<a href="#section-1.4-3.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.3-3.9">x (L) ...:</dt>
-          <dd style="margin-left: 1.5em" id="section-1.3-3.10">
-            <p id="section-1.3-3.10.1">Indicates that x is repeated zero or more times and that each instance
-has a length of L<a href="#section-1.3-3.10.1" class="pilcrow">¶</a></p>
+<dt id="section-1.4-3.9">x (L) ...:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.4-3.10">
+            <p id="section-1.4-3.10.1">Indicates that x is repeated zero or more times and that each instance
+has a length of L<a href="#section-1.4-3.10.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-1.3-4">This document extends the RFC9000 syntax and with the additional field types:<a href="#section-1.3-4" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-1.3-5">
-          <dt id="section-1.3-5.1">x (b):</dt>
-          <dd style="margin-left: 1.5em" id="section-1.3-5.2">
-            <p id="section-1.3-5.2.1">Indicates that x consists of a variable length integer encoding as
+<p id="section-1.4-4">This document extends the RFC9000 syntax and with the additional field types:<a href="#section-1.4-4" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-1.4-5">
+          <dt id="section-1.4-5.1">x (b):</dt>
+          <dd style="margin-left: 1.5em" id="section-1.4-5.2">
+            <p id="section-1.4-5.2.1">Indicates that x consists of a variable length integer encoding as
 described in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a></span>), followed by that many bytes
-of binary data<a href="#section-1.3-5.2.1" class="pilcrow">¶</a></p>
+of binary data<a href="#section-1.4-5.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.3-5.3">x (tuple):</dt>
-          <dd style="margin-left: 1.5em" id="section-1.3-5.4">
-            <p id="section-1.3-5.4.1">Indicates that x is a tuple, consisting of a variable length integer encoded
+<dt id="section-1.4-5.3">x (tuple):</dt>
+          <dd style="margin-left: 1.5em" id="section-1.4-5.4">
+            <p id="section-1.4-5.4.1">Indicates that x is a tuple, consisting of a variable length integer encoded
 as described in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a></span>), followed by that many variable
-length tuple fields, each of which are encoded as (b) above.<a href="#section-1.3-5.4.1" class="pilcrow">¶</a></p>
+length tuple fields, each of which are encoded as (b) above.<a href="#section-1.4-5.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-1.3-6">To reduce unnecessary use of bandwidth, variable length integers <span class="bcp14">SHOULD</span>
+<p id="section-1.4-6">To reduce unnecessary use of bandwidth, variable length integers <span class="bcp14">SHOULD</span>
 be encoded using the least number of bytes possible to represent the
-required value.<a href="#section-1.3-6" class="pilcrow">¶</a></p>
+required value.<a href="#section-1.4-6" class="pilcrow">¶</a></p>
 <div id="location-structure">
-<section id="section-1.3.1">
+<section id="section-1.4.1">
           <h4 id="name-location-structure">
-<a href="#section-1.3.1" class="section-number selfRef">1.3.1. </a><a href="#name-location-structure" class="section-name selfRef">Location Structure</a>
+<a href="#section-1.4.1" class="section-number selfRef">1.4.1. </a><a href="#name-location-structure" class="section-name selfRef">Location Structure</a>
           </h4>
-<p id="section-1.3.1-1">Location identifies a particular Object in a Group within a Track.<a href="#section-1.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.4.1-1">Location identifies a particular Object in a Group within a Track.<a href="#section-1.4.1-1" class="pilcrow">¶</a></p>
 <span id="name-location-structure-2"></span><div id="moq-location">
 <figure id="figure-1">
-            <div class="alignLeft art-text artwork" id="section-1.3.1-2.1">
+            <div class="alignLeft art-text artwork" id="section-1.4.1-2.1">
 <pre>
 Location {
   Group (i),
@@ -1925,26 +1936,26 @@ Location {
 <a href="#name-location-structure-2" class="selfRef">Location structure</a>
             </figcaption></figure>
 </div>
-<p id="section-1.3.1-3">In this document, the constituent parts of any Location A can be referred to
-using A.Group or A.Object.<a href="#section-1.3.1-3" class="pilcrow">¶</a></p>
-<p id="section-1.3.1-4">Location A &lt; Location B if:<a href="#section-1.3.1-4" class="pilcrow">¶</a></p>
-<p id="section-1.3.1-5"><code>A.Group &lt; B.Group || (A.Group == B.Group &amp;&amp; A.Object &lt; B.Object)</code><a href="#section-1.3.1-5" class="pilcrow">¶</a></p>
+<p id="section-1.4.1-3">In this document, the constituent parts of any Location A can be referred to
+using A.Group or A.Object.<a href="#section-1.4.1-3" class="pilcrow">¶</a></p>
+<p id="section-1.4.1-4">Location A &lt; Location B if:<a href="#section-1.4.1-4" class="pilcrow">¶</a></p>
+<p id="section-1.4.1-5"><code>A.Group &lt; B.Group || (A.Group == B.Group &amp;&amp; A.Object &lt; B.Object)</code><a href="#section-1.4.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="key-value-pair-structure">
-<section id="section-1.3.2">
+<section id="section-1.4.2">
           <h4 id="name-key-value-pair-structure">
-<a href="#section-1.3.2" class="section-number selfRef">1.3.2. </a><a href="#name-key-value-pair-structure" class="section-name selfRef">Key-Value-Pair Structure</a>
+<a href="#section-1.4.2" class="section-number selfRef">1.4.2. </a><a href="#name-key-value-pair-structure" class="section-name selfRef">Key-Value-Pair Structure</a>
           </h4>
-<p id="section-1.3.2-1">Key-Value-Pair is a flexible structure designed to carry key/value
+<p id="section-1.4.2-1">Key-Value-Pair is a flexible structure designed to carry key/value
 pairs in which the key is a variable length integer and the value
 is either a variable length integer or a byte field of arbitrary
-length.<a href="#section-1.3.2-1" class="pilcrow">¶</a></p>
-<p id="section-1.3.2-2">Key-Value-Pair is used in both the data plane and control plane, but
-is optimized for use in the data plane.<a href="#section-1.3.2-2" class="pilcrow">¶</a></p>
+length.<a href="#section-1.4.2-1" class="pilcrow">¶</a></p>
+<p id="section-1.4.2-2">Key-Value-Pair is used in both the data plane and control plane, but
+is optimized for use in the data plane.<a href="#section-1.4.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-key-value-pair"></span><div id="moq-key-value-pair">
 <figure id="figure-2">
-            <div class="alignLeft art-text artwork" id="section-1.3.2-3.1">
+            <div class="alignLeft art-text artwork" id="section-1.4.2-3.1">
 <pre>
 Key-Value-Pair {
   Type (i),
@@ -1958,53 +1969,53 @@ Key-Value-Pair {
             </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-1.3.2-4.1">
-              <p id="section-1.3.2-4.1.1">Type: an unsigned integer, encoded as a varint, identifying the
-type of the value and also the subsequent serialization.<a href="#section-1.3.2-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-1.4.2-4.1">
+              <p id="section-1.4.2-4.1.1">Type: an unsigned integer, encoded as a varint, identifying the
+type of the value and also the subsequent serialization.<a href="#section-1.4.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-1.3.2-4.2">
-              <p id="section-1.3.2-4.2.1">Length: Only present when Type is odd. Specifies the length of the Value field.
+            <li class="normal" id="section-1.4.2-4.2">
+              <p id="section-1.4.2-4.2.1">Length: Only present when Type is odd. Specifies the length of the Value field.
 The maximum length of a value is 2^16-1 bytes.  If an endpoint receives a
 length larger than the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol
-Violation.<a href="#section-1.3.2-4.2.1" class="pilcrow">¶</a></p>
+Violation.<a href="#section-1.4.2-4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-1.3.2-4.3">
-              <p id="section-1.3.2-4.3.1">Value: A single varint encoded value when Type is even, otherwise a
-sequence of Length bytes.<a href="#section-1.3.2-4.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-1.4.2-4.3">
+              <p id="section-1.4.2-4.3.1">Value: A single varint encoded value when Type is even, otherwise a
+sequence of Length bytes.<a href="#section-1.4.2-4.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-1.3.2-5">If a receiver understands a Type, and the following Value or Length/Value does
+<p id="section-1.4.2-5">If a receiver understands a Type, and the following Value or Length/Value does
 not match the serialization defined by that Type, the receiver <span class="bcp14">MUST</span> terminate
-the session with error code <code>KEY_VALUE_FORMATTING_ERROR</code>.<a href="#section-1.3.2-5" class="pilcrow">¶</a></p>
+the session with error code <code>KEY_VALUE_FORMATTING_ERROR</code>.<a href="#section-1.4.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="reason-phrase">
-<section id="section-1.3.3">
+<section id="section-1.4.3">
           <h4 id="name-reason-phrase-structure">
-<a href="#section-1.3.3" class="section-number selfRef">1.3.3. </a><a href="#name-reason-phrase-structure" class="section-name selfRef">Reason Phrase Structure</a>
+<a href="#section-1.4.3" class="section-number selfRef">1.4.3. </a><a href="#name-reason-phrase-structure" class="section-name selfRef">Reason Phrase Structure</a>
           </h4>
-<p id="section-1.3.3-1">Reason Phrase provides a way for the sender to encode additional diagnostic
-information about the error condition, where appropriate.<a href="#section-1.3.3-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-1.3.3-2">
+<p id="section-1.4.3-1">Reason Phrase provides a way for the sender to encode additional diagnostic
+information about the error condition, where appropriate.<a href="#section-1.4.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-1.4.3-2">
 <pre>
 Reason Phrase {
   Reason Phrase Length (i),
   Reason Phrase Value (..)
 }
-</pre><a href="#section-1.3.3-2" class="pilcrow">¶</a>
+</pre><a href="#section-1.4.3-2" class="pilcrow">¶</a>
 </div>
 <ul class="normal">
-<li class="normal" id="section-1.3.3-3.1">
-              <p id="section-1.3.3-3.1.1">Reason Phrase Length: A variable-length integer specifying the length of the
+<li class="normal" id="section-1.4.3-3.1">
+              <p id="section-1.4.3-3.1.1">Reason Phrase Length: A variable-length integer specifying the length of the
 reason phrase in bytes. The reason phrase length has a maximum length of
 1024 bytes. If an endpoint receives a length exceeding the maximum, it <span class="bcp14">MUST</span>
-close the session with a <code>PROTOCOL_VIOLATION</code><a href="#section-1.3.3-3.1.1" class="pilcrow">¶</a></p>
+close the session with a <code>PROTOCOL_VIOLATION</code><a href="#section-1.4.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-1.3.3-3.2">
-              <p id="section-1.3.3-3.2.1">Reason Phrase Value: Additional diagnostic information about the error condition.
+            <li class="normal" id="section-1.4.3-3.2">
+              <p id="section-1.4.3-3.2.1">Reason Phrase Value: Additional diagnostic information about the error condition.
 The reason phrase value is encoded as UTF-8 string and does not carry information,
 such as language tags, that would aid comprehension by any entity other than
-the one that created the text.<a href="#section-1.3.3-3.2.1" class="pilcrow">¶</a></p>
+the one that created the text.<a href="#section-1.4.3-3.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -2164,9 +2175,9 @@ close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-2.4.1
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace tuple fields or Track Names is done by
 exact comparison of the bytes. Specifications that use MOQT may constrain the
-information in these fields, for example by restricting them to UTF-8. Any
-specification that does needs to specify the canonicalization into the bytes in
-the Track Namespace or Track Name such that exact comparison works.<a href="#section-2.4.1-5" class="pilcrow">¶</a></p>
+information in these fields, for example by restricting them to UTF-8. Any such
+specification needs to specify the canonicalization into the bytes in the Track
+Namespace or Track Name such that exact comparison works.<a href="#section-2.4.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2177,7 +2188,7 @@ the Track Namespace or Track Name such that exact comparison works.<a href="#sec
 <a href="#section-2.5" class="section-number selfRef">2.5. </a><a href="#name-malformed-tracks" class="section-name selfRef">Malformed Tracks</a>
         </h3>
 <p id="section-2.5-1">There are multiple ways a publisher can transmit a Track that does not conform
-to MoQT constraints. Such a Track is considered malformed.  Some example
+to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:<a href="#section-2.5-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-2.5-2">
@@ -2717,7 +2728,7 @@ uniqueness guarantee described in <a href="#track-scope" class="auto internal xr
 done in the context of an established MOQT session.<a href="#section-6-1" class="pilcrow">¶</a></p>
 <p id="section-6-2">Given sufficient out of band information, it is valid for a subscriber to send a
 SUBSCRIBE or FETCH message to a publisher (including a relay) without any
-previous MoQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, PUBLISH and
+previous MOQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, PUBLISH and
 PUBLISH_NAMESPACE messages provide an in-band means of discovery of publishers
 for a namespace.<a href="#section-6-2" class="pilcrow">¶</a></p>
 <p id="section-6-3">The syntax of these messages is described in <a href="#message" class="auto internal xref">Section 9</a>.<a href="#section-6-3" class="pilcrow">¶</a></p>
@@ -3554,9 +3565,9 @@ to be exceeded, the receiver <span class="bcp14">MUST</span> termiate the Sessio
 TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or
 SUBSCRIBE_UDPATE message.  It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span>
 continue to attempt forwarding Objects after they have been received.  The start
-time for the timeout is based on when the beginning of the Object is received,
-and does not depend upon the forwarding preference. There is no explicit signal
-that an Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.1.2-1" class="pilcrow">¶</a></p>
+time for the timeout is based on when the Object Headers are received, and does
+not depend upon the forwarding preference. There is no explicit signal that an
+Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.2-2">If both the subscriber and publisher specify the parameter, they use the min of
 the two values for the subscription.  The publisher <span class="bcp14">SHOULD</span> always specify the
 value received from an upstream subscription when there is one, and nothing
@@ -3904,7 +3915,7 @@ published or received via a subscription having Locations greater than or
 equal to Start and strictly less than or equal to the End Group (when
 present) pass the filter.<a href="#section-9.7-4" class="pilcrow">¶</a></p>
 <p id="section-9.7-5">The <code>Largest Object</code> is defined to be the object with the largest Location
-(<a href="#location-structure" class="auto internal xref">Section 1.3.1</a>) in the track from the perspective of the endpoint
+(<a href="#location-structure" class="auto internal xref">Section 1.4.1</a>) in the track from the perspective of the endpoint
 processing the SUBSCRIBE message. Largest Object updates when the first byte of
 an Object with a larger Location than the previous value is published or
 received through a subscription.<a href="#section-9.7-5" class="pilcrow">¶</a></p>
@@ -4128,7 +4139,7 @@ SUBSCRIBE_ERROR Message {
             <p id="section-9.9-3.2.1">Error Code: Identifies an integer error code for subscription failure.<a href="#section-9.9-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.9-3.3">
-            <p id="section-9.9-3.3.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-9.9-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.9-3.3.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.9-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.9-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
@@ -4371,7 +4382,7 @@ subscription than specified in Stream Count, it <span class="bcp14">MAY</span> c
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.12-8.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.12-8.4">
-            <p id="section-9.12-8.4.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-9.12-8.4.1" class="pilcrow">¶</a></p>
+            <p id="section-9.12-8.4.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.12-8.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.12-9">The application <span class="bcp14">SHOULD</span> use a relevant status code in PUBLISH_DONE, as defined
@@ -4591,7 +4602,7 @@ PUBLISH_ERROR Message {
             <p id="section-9.15-3.2.1">Error Code: Identifies an integer error code for failure.<a href="#section-9.15-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.15-3.3">
-            <p id="section-9.15-3.3.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-9.15-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.15-3.3.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.15-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.15-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in PUBLISH_ERROR, as defined
@@ -4919,7 +4930,7 @@ FETCH_ERROR Message {
             <p id="section-9.18-3.2.1">Error Code: Identifies an integer error code for fetch failure.<a href="#section-9.18-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.18-3.3">
-            <p id="section-9.18-3.3.1">Error Reason: Provides the reason for fetch error. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-9.18-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.18-3.3.1">Error Reason: Provides the reason for fetch error. See <a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.18-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.18-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in FETCH_ERROR,
@@ -5176,7 +5187,7 @@ to <a href="#message-pub-ns" class="auto internal xref">Section 9.23</a>.<a href
 </li>
           <li class="normal" id="section-9.25-3.3">
             <p id="section-9.25-3.3.1">Error Reason: Provides the reason for publish namespace error. See
-<a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-9.25-3.3.1" class="pilcrow">¶</a></p>
+<a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.25-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.25-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in PUBLISH_NAMESPACE_ERROR, as
@@ -5290,7 +5301,7 @@ PUBLISH_NAMESPACE_CANCEL uses the same error codes as PUBLISH_NAMESPACE_ERROR
 </li>
           <li class="normal" id="section-9.27-3.3">
             <p id="section-9.27-3.3.1">Error Reason: Provides the reason for publish cancelation. See
-<a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-9.27-3.3.1" class="pilcrow">¶</a></p>
+<a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.27-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5424,7 +5435,7 @@ failure.<a href="#section-9.30-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.30-3.3">
             <p id="section-9.30-3.3.1">Error Reason: Provides the reason for the namespace subscription error.
-See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-9.30-3.3.1" class="pilcrow">¶</a></p>
+See <a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.30-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.30-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_NAMESPACE_ERROR,
