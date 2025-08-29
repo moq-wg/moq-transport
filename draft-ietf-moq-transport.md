@@ -235,6 +235,10 @@ Track:
 
 : A track is a collection of groups. See ({{model-track}}).
 
+## Stream Management Terms
+
+This document uses stream management terms described in {{?RFC9000, Section
+1.3}} including STOP_SENDING, RESET_STREAM and FIN.
 
 ## Notational Conventions
 
@@ -503,14 +507,14 @@ In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace tuple fields or Track Names is done by
 exact comparison of the bytes. Specifications that use MOQT may constrain the
-information in these fields, for example by restricting them to UTF-8. Any
-specification that does needs to specify the canonicalization into the bytes in
-the Track Namespace or Track Name such that exact comparison works.
+information in these fields, for example by restricting them to UTF-8. Any such
+specification needs to specify the canonicalization into the bytes in the Track
+Namespace or Track Name such that exact comparison works.
 
 ## Malformed Tracks
 
 There are multiple ways a publisher can transmit a Track that does not conform
-to MoQT constraints. Such a Track is considered malformed.  Some example
+to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
@@ -628,14 +632,13 @@ This protocol does not specify any semantics on the `path-abempty` and
 `query` portions of the URI.  The contents of those are left up to the
 application.
 
-The client can establish a connection to a MoQ server identified by a
-given URI by setting up a QUIC connection to the host and port
-identified by the `authority` section of the URI. The 'authority' is also
-transmitted to the server in the AUTHORITY parameter, ({{authority}}) which is
-sent in the CLIENT_SETUP message at the start of the session.  The
-`path-abempty` and `query` portions of the URI are similarly communicated to the
-server using the PATH parameter ({{path}}).  The ALPN value {{!RFC7301}} used by
-the protocol is `moq-00`.
+The client can establish a connection to a MoQ server identified by a given URI
+by setting up a QUIC connection to the host and port identified by the
+`authority` section of the URI. The `authority`, `path-abempty` and `query`
+portions of the URI are also transmitted in SETUP parameters (see
+{{setup-params}}).
+
+The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
 ### Connection URL
 
@@ -939,7 +942,7 @@ done in the context of an established MOQT session.
 
 Given sufficient out of band information, it is valid for a subscriber to send a
 SUBSCRIBE or FETCH message to a publisher (including a relay) without any
-previous MoQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, PUBLISH and
+previous MOQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, PUBLISH and
 PUBLISH_NAMESPACE messages provide an in-band means of discovery of publishers
 for a namespace.
 
@@ -1584,9 +1587,9 @@ The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
 TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or
 SUBSCRIBE_UDPATE message.  It is the duration in milliseconds the relay SHOULD
 continue to attempt forwarding Objects after they have been received.  The start
-time for the timeout is based on when the beginning of the Object is received,
-and does not depend upon the forwarding preference. There is no explicit signal
-that an Object was not sent because the delivery timeout was exceeded.
+time for the timeout is based on when the Object Headers are received, and does
+not depend upon the forwarding preference. There is no explicit signal that an
+Object was not sent because the delivery timeout was exceeded.
 
 If both the subscriber and publisher specify the parameter, they use the min of
 the two values for the subscription.  The publisher SHOULD always specify the
@@ -1766,7 +1769,7 @@ the session soon.  Servers can use GOAWAY to initiate session migration
 
 The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually UNSUBSCRIBE for each existing subscription, while a
-publisher MAY reject new requests while in the draining state.
+publisher MAY reject new requests after sending a GOAWAY.
 
 Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
@@ -1817,8 +1820,8 @@ MAX_REQUEST_ID Message {
 * Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
   equal to or larger than this is received by the endpoint that sent the
   MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE, FETCH, SUBSCRIBE,
-  SUBSCRIBE_NAMESPACE or TRACK_STATUS), the endpoint MUST close the session with
-  an error of `TOO_MANY_REQUESTS`.
+  SUBSCRIBE_NAMESPACE, SUBSCRIBE_UDPATE or TRACK_STATUS), the endpoint MUST
+  close the session with an error of `TOO_MANY_REQUESTS`.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
@@ -1989,7 +1992,8 @@ specified `End Group` is the same group specified in `Start`, the remainder of
 that Group passes the filter. `End Group` MUST specify the same or a larger Group
 than specified in `Start`.
 
-A filter type other than the above MUST be treated as error.
+An endpoint that receives a filter type other than the above MUST be close the
+session with `PROTOCOL_VIOLATION`.
 
 Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
@@ -2187,9 +2191,9 @@ session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
-A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
-longer interested in receiving media for the specified track and requesting that
-the publisher stop sending Objects as soon as possible.
+A Subscriber issues an `UNSUBSCRIBE` message to a Publisher indicating it is no
+longer interested in receiving the specified Track, indicating that the
+Publisher stop sending Objects as soon as possible.
 
 The format of `UNSUBSCRIBE` is as follows:
 
