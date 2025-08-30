@@ -912,8 +912,7 @@ usually indicate that state can immediately be destroyed, see
 
 The Publisher can destroy subscription state as soon as it has received
 UNSUBSCRIBE. It MUST reset any open streams associated with the SUBSCRIBE.
-
-The publisher can immediately delete subscription state after sending
+The Publisher can also immediately delete subscription state after sending
 PUBLISH_DONE, but MUST NOT send it until it has closed all related streams.
 
 A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
@@ -922,21 +921,35 @@ end with an error.
 
 ### Subscription Filters
 
-The subscriber specifies a filter on the subscription to allow
-the publisher to identify which objects need to be delivered.
+Subscribers can specify a filter on a subscription indicating to the publisher
+which Objects to send.
 
 All filters have a Start Location and an optional End Group.  Only objects
 published or received via a subscription having Locations greater than or
-equal to Start and strictly less than or equal to the End Group (when
+equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.
 
-The `Largest Object` is defined to be the object with the largest Location
-({{location-structure}}) in the track from the perspective of the endpoint
-processing the SUBSCRIBE message. Largest Object updates when the first byte of
-an Object with a larger Location than the previous value is published or
-received through a subscription.
+Some filters are defined to be relative to the `Largest Object`. The `Largest
+Object` is the Object with the largest Location ({{location-structure}}) in the
+Track from the perspective of the publisher processing a SUBSCRIBE
+message. Largest Object updates when the first field of an Object with a larger
+Location than the previous value is published or received through a
+subscription.
 
-There are 4 types of filters:
+A Subscription Filter has the following structure:
+
+~~~
+Subscription Filter {
+  Filter Type (i),
+  [Start Location (Location)],
+  [End Group (i)],
+}
+~~~
+
+There are 5 types of filters:
+
+No Filter (0x0): The subscription is not filtered and all Objects published or
+received via subscription are sent to the Subscriber.
 
 Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
 Largest Object.Object + 1}` and `Largest Object` is communicated in
@@ -946,6 +959,10 @@ to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass the Largest Object filter.
 
+This Filter Type is only allowed in SUBSCRIBE. If a publisher receives this
+Filter Type in PUBLISH_OK or SUBSCRIBE_UDPATE, it MUST close the session with
+`PROTOCOL_VIOLATION`.
+
 Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
 0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
 delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
@@ -953,21 +970,23 @@ the subscription is open ended. For scenarios where the subscriber intends to
 start from more than one group in the future, it can use an AbsoluteStart filter
 instead.
 
-AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
-SUBSCRIBE message. The `Start` specified in the SUBSCRIBE message MAY be less
-than the `Largest Object` observed at the publisher. There is no End Group - the
-subscription is open ended.  To receive all Objects that are published or are
-received after this subscription is processed, a subscriber can use an
-AbsoluteStart filter with `Start` = {0, 0}.
+This Filter Type is only allowed in SUBSCRIBE. If a publisher receives this
+Filter Type in PUBLISH_OK or SUBSCRIBE_UDPATE, it MUST close the session with
+`PROTOCOL_VIOLATION`.
 
-AbsoluteRange (0x4):  The filer Start Location and End Group are specified
-explicitly in the SUBSCRIBE message. The `Start` specified in the SUBSCRIBE
-message MAY be less than the `Largest Object` observed at the publisher. If the
-specified `End Group` is the same group specified in `Start`, the remainder of
-that Group passes the filter. `End Group` MUST specify the same or a larger Group
-than specified in `Start`.
+AbsoluteStart (0x3): The filter Start Location is specified explicitly. The
+specified `Start Location` MAY be less than the `Largest Object` observed at the
+publisher. There is no End Group - the subscription is open ended.  An
+AbsoluteStart filter with `Start` = {0, 0} is equivalent to No Filter.
 
-An endpoint that receives a filter type other than the above MUST be close the
+AbsoluteRange (0x4): The filter Start Location and End Group are specified
+explicitly. The specified `Start Location` MAY be less than the `Largest Object`
+observed at the publisher. If the specified `End Group` is the same group
+specified in `Start Location`, the remainder of that Group passes the
+filter. `End Group` MUST specify the same or a larger Group than specified in
+`Start Location`.
+
+An endpoint that receives a Filter Type other than the above MUST be close the
 session with `PROTOCOL_VIOLATION`.
 
 ## Fetch State Management
@@ -984,7 +1003,7 @@ The Publisher can destroy fetch state as soon as it has received a
 FETCH_CANCEL. It MUST reset any open streams associated with the FETCH. It can
 also destroy state after closing the FETCH data stream.
 
-It can destroy all FETCH state after closing the data stream.
+It can destroy all FETCH state after closing the data stream with a FIN.
 
 A FETCH_ERROR indicates that both endpoints can immediately destroy state.
 Since a relay can start delivering FETCH Objects from cache before determining
@@ -1708,6 +1727,42 @@ multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
 handles a downstream request that includes those Objects re-requests them.
 
+
+#### SUBSCRIBER PRIORITY Parameter {#subscriber-priority)
+
+The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
+SUBSCRIBE, SUBSCRIBE_UPDATE or PUBLISH_OK message. It is an integer expressing
+the priority of a subscription relative to other subscriptions and fetch
+responses in the same session. Lower numbers get higher priority.  See
+{{priorities}}.  The range is restricted to 0-255.  If a publisher receives a
+value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
+
+If omitted from SUBSCRIBE or PUBLISH_OK, the publisher uses the value 128.
+
+#### GROUP ORDER Parameter {#group-order}
+
+The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
+SUBSCRIBE_UPDATE, SUBSCRIBE_OK, PUBLISH or PUBLISH_OK.  It is an enum indicating
+how to prioritize Objects from different groups within the same subscription
+(see {{priorities}}). The allowed values are Ascending (0x1) or Descending (0x2)
+be used. If an endpoint receives a value outside this range, it MUST close the
+session with `PROTOCOL_VIOLATION`.
+
+If omitted from SUBSCRIBE, the publisher's preference is used and communicated
+in SUBSCRIBE_OK.  If omitted from SUBSCRIBE_OK, PUBLISH or PUBLISH_OK, the
+receiver uses Ascending (0x1).  If omitted from SUBSCRIBE_UPDATE, the value is
+unchanged.
+
+#### SUBSCRIPTION FILTER Parameter {#subscription-filter}
+
+The SUBSCRIPTION_FILTER paramter (Parameter Type 0x21) MAY appear in a
+SUBSCRIBE_UDPATE message. It is a length-prefixed Subscription Filter (see
+{{subscription-filters}}).  If the length of the Subscription Filter does not
+match the parameter length, the publisher MUST close the session with
+`PROTOCOL_VIOLATION`.
+
+If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -1937,7 +1992,7 @@ A subscription causes the publisher to send newly published objects for a track.
 A subscriber MUST NOT make multiple active subscriptions for a track within a
 single session and publishers SHOULD treat this as a protocol violation.
 
-Subscribe only delivers newly published or received Objects.  Objects from the
+Subscribe only requests newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
 
 The format of SUBSCRIBE is as follows:
@@ -1950,12 +2005,8 @@ SUBSCRIBE Message {
   Track Namespace (tuple),
   Track Name Length (i),
   Track Name (..),
-  Subscriber Priority (8),
-  Group Order (8),
   Forward (8),
-  Filter Type (i),
-  [Start Location (Location)],
-  [End Group (i)],
+  Subscription Filter (..),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -1965,46 +2016,31 @@ SUBSCRIBE Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
+  ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Subscriber Priority: Specifies the priority of a subscription relative to
-other subscriptions in the same session. Lower numbers get higher priority.
-See {{priorities}}.
+* Forward: If 1, Objects matching the subscription are forwarded to the
+  subscriber. If 0, Objects are not forwarded to the subscriber (see
+  {{subscriptions}}) Any other value is a protocol error and MUST terminate the
+  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
-* Group Order: Allows the subscriber to request Objects be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-A value of 0x0 indicates the original publisher's Group Order SHOULD be
-used. Values larger than 0x2 are a protocol error.
+  Subscribing with Forward=0 allows publisher or relay to prepare to serve the
+  subscription in advance, reducing the time to receive objects in the future.
 
-* Forward: If 1, Objects matching the subscription are forwarded
-to the subscriber. If 0, Objects are not forwarded to the subscriber.
-Any other value is a protocol error and MUST terminate the
-session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-
-Subscribing with Forward=0 allows publisher or relay to prepare to serve the
-subscription in advance, reducing the time to receive objects in the future.
-
-* Filter Type: Identifies the type of filter, which also indicates whether
-the Start and End Group fields will be present.
-
-* Start Location: The starting location for this subscriptions. Only present for
-  "AbsoluteStart" and "AbsoluteRange" filter types.
-
-* End Group: The end Group ID. Only present for the "AbsoluteRange"
-filter type.
+* Subscription Filter: The filter for this subscription, see
+  ({{subscription-filters}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
-specified and the publisher SHOULD start delivering objects.
+specified, and start sending objects.
 
 If a publisher cannot satisfy the requested start or end or if the end has
 already been published it SHOULD send a SUBSCRIBE_ERROR with code
 `INVALID_RANGE`.  A publisher MUST NOT send objects from outside the requested
-start and end.
+range.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
@@ -2018,7 +2054,6 @@ SUBSCRIBE_OK Message {
   Request ID (i),
   Track Alias (i),
   Expires (i),
-  Group Order (8),
   Content Exists (8),
   [Largest Location (Location)],
   Number of Parameters (i),
@@ -2040,10 +2075,6 @@ SUBSCRIBE_OK Message {
 longer valid. A value of 0 indicates that the subscription does not expire
 or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.
-
-* Group Order: Indicates the subscription will be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * Content Exists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
@@ -2113,13 +2144,14 @@ EXPIRED_AUTH_TOKEN (0x12):
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
 A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
-subscription. Subscriptions can only be narrowed, not widened, as an attempt to
-widen could fail. If Objects with Locations smaller than the current
-subscription's Start Location are required, FETCH can be used to retrieve
-them. The Start Location MUST NOT decrease and the End Group MUST NOT increase.
-A publisher MUST terminate the session with a `PROTOCOL_VIOLATION` if the
-SUBSCRIBE_UPDATE violates these rules or if the subscriber specifies a request
-ID that has not existed within the Session.
+subscription.
+
+A Subscription Filter (see {{subscription-filters}}) can only be narrowed, not
+widened, as an attempt to widen could fail. If Objects with Locations smaller
+than the current subscription filter's Start Location are required, FETCH can be
+used to retrieve them. The Start Location MUST NOT decrease and the End Group
+MUST NOT increase.  A publisher MUST terminate the session with a
+`PROTOCOL_VIOLATION` if the SUBSCRIBE_UPDATE violates these rules.
 
 When a subscriber narrows their subscription, it might still receive objects
 outside the new range if the publisher sent them before the update was
@@ -2134,9 +2166,11 @@ Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
 delivered multiple times.  Like SUBSCRIBE, End Group MUST be greater than or
 equal to the Group specified in `Start`.
 
-If a parameter included in `SUBSCRIBE` is not present in
-`SUBSCRIBE_UPDATE`, its value remains unchanged.  There is no mechanism to
-remove a parameter from a subscription.
+If a parameter previously set on the subscription in `SUBSCRIBE`, `PUBLISH_OK`
+or `SUBSCRIBE_UPDATE` is not present in `SUBSCRIBE_UPDATE`, its value remains
+unchanged.
+
+There is no mechanism to remove a parameter from a subscription.
 
 The format of SUBSCRIBE_UPDATE is as follows:
 
@@ -2146,9 +2180,6 @@ SUBSCRIBE_UPDATE Message {
   Length (16),
   Request ID (i),
   Subscription Request ID (i),
-  Start Location (Location),
-  End Group (i),
-  Subscriber Priority (8),
   Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
@@ -2160,23 +2191,17 @@ SUBSCRIBE_UPDATE Message {
 
 * Subscription Request ID: The Request ID of the SUBSCRIBE
   ({{message-subscribe-req}}) this message is updating.  This MUST match an
-  existing Request ID.
+  existing Request ID.  The publisher MUST close the session with `
+  `PROTOCOL_VIOLATION if the subscriber specifies an invalid Subscription
+  Request ID.
 
-* Start Location : The starting location.
-
-* End Group: The end Group ID, plus 1. A value of 0 means the subscription is
-open-ended.
-
-* Subscriber Priority: Specifies the priority of a subscription relative to
-other subscriptions in the same session. Lower numbers get higher priority.
-See {{priorities}}.
-
-* Forward: If 1, Objects matching the subscription are forwarded
-to the subscriber. If 0, Objects are not forwarded to the subscriber.
-Any other value is a protocol error and MUST terminate the
-session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
+* Forward: If 1, Objects matching the subscription are forwarded to the
+  subscriber. If 0, Objects are not forwarded to the subscriber (see
+  {{subscriptions}}) Any other value is a protocol error and MUST terminate the
+  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
+
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
@@ -2281,7 +2306,7 @@ TRACK_ENDED (0x2):
 : The track is no longer being published.
 
 SUBSCRIPTION_ENDED (0x3):
-: The publisher reached the end of an associated Subscribe filter.
+: The publisher reached the end of an associated subscription filter.
 
 GOING_AWAY (0x4):
 : The subscriber or publisher issued a GOAWAY message.
@@ -2312,7 +2337,6 @@ PUBLISH Message {
   Track Name Length (i),
   Track Name (..),
   Track Alias (i),
-  Group Order (8),
   Content Exists (8),
   [Largest Location (Location),]
   Forward (8),
@@ -2334,10 +2358,6 @@ PUBLISH Message {
   uses the same Track Alias as a different track with an active subscription, it
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
-* Group Order: Indicates the subscription will be delivered in
-  Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-  Values of 0x0 and those larger than 0x2 are a protocol error.
-
 * Content Exists: 1 if an object has been published on this track, 0 if not.
   If 0, then the Largest Group ID and Largest Object ID fields will not be
   present. Any other value is a protocol error and MUST terminate the
@@ -2345,10 +2365,10 @@ PUBLISH Message {
 
 * Largest Location: The location of the largest object available for this track.
 
-* Forward: The forward mode for this subscription.  Any value other than 0 or 1
-  is a `PROTOCOL_VIOLATION`.  0 indicates the publisher will not transmit any
-  objects until the subscriber sets the Forward State to 1. 1 indicates the
-  publisher will start transmitting objects immediately, even before PUBLISH_OK.
+* Forward: If 1, the publisher will start transmitting objects immediately, even
+  before PUBLISH_OK. If 0, the publisher will not transmit any objects until the
+  subscriber sets the Forward State to 1 (see {{subscriptions}}). Any value
+  other than 0 or 1 is a `PROTOCOL_VIOLATION`.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2368,11 +2388,7 @@ PUBLISH_OK Message {
   Length (i),
   Request ID (i),
   Forward (8),
-  Subscriber Priority (8),
-  Group Order (8),
-  Filter Type (i),
-  [Start Location (Location)],
-  [End Group (i)],
+  Subscription Filter (..),
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2382,19 +2398,14 @@ PUBLISH_OK Message {
 * Request ID: The Request ID of the PUBLISH this message is replying to
   {{message-publish}}.
 
-* Forward: The Forward State for this subscription, either 0 (don't
-  forward) or 1 (forward).
+* Forward: If 1, Objects matching the subscription are forwarded to the
+  subscriber. If 0, Objects are not forwarded to the subscriber (see
+  {{subscriptions}}) Any other value is a protocol error and MUST terminate the
+  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
-* Subscriber Priority: The Subscriber Priority for this subscription.
+* Subscription Filter: See {{subscription-filters}}.
 
-* Group Order: Indicates the subscription will be delivered in
-  Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-  Values of 0x0 and those larger than 0x2 are a protocol error. This
-  overwrites the GroupOrder specified PUBLISH.
-
-* Filter Type, Start Location, End Group: See {{message-subscribe-req}}.
-
-* Parameters: Parameters associated with this message.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## PUBLISH_ERROR {#message-publish-error}
 
@@ -2529,13 +2540,12 @@ Fields common to all Fetch Types:
 * Request ID: See {{request-id}}.
 
 * Subscriber Priority: Specifies the priority of a fetch request relative to
-other subscriptions or fetches in the same session. Lower numbers get higher
-priority. See {{priorities}}.
+  other subscriptions or fetches in the same session. Lower numbers get higher
+  priority. See {{priorities}}.
 
 * Group Order: Allows the subscriber to request Objects be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-A value of 0x0 indicates the original publisher's Group Order SHOULD be
-used. Values larger than 0x2 are a protocol error.
+  Ascending (0x1) or Descending (0x2) order by group.  Any other value is a
+  `PROTOCOL_VIOLATION`.
 
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
@@ -2619,7 +2629,6 @@ FETCH_OK Message {
   Type (i) = 0x18,
   Length (16),
   Request ID (i),
-  Group Order (8),
   End Of Track (8),
   End Location (Location),
   Number of Parameters (i),
@@ -2630,10 +2639,6 @@ FETCH_OK Message {
 
 * Request ID: The Request ID of the FETCH this message is replying to
   {{message-subscribe-req}}.
-
-* Group Order: Indicates the fetch will be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * End Of Track: 1 if all Objects have been published on this Track, and
   the End Location is the final Object in the Track, 0 if not.
