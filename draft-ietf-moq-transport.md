@@ -875,7 +875,8 @@ Forward State is 1, the publisher sends objects.  The initiator of the
 subscription sets the initial Forward State in either PUBLISH or SUBSCRIBE.  The
 sender of PUBLISH_OK can update the Forward State based on its preference.  Once
 the subscription is established, the subscriber can update the Forward State by
-sending SUBSCRIBE_UPDATE.
+sending SUBSCRIBE_UPDATE.  Control messages, such as PUBLISH_DONE
+({{message-publish-done}}) are still sent on subscriptions in Forward State 0.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -1221,6 +1222,14 @@ duplicate object in this case.
 A cache MUST store all properties of an Object defined in
 {{object-properties}}, with the exception of any extensions
 ({{object-extensions}}) that specify otherwise.
+
+## Forward Handling
+
+Relays SHOULD set the `Forward` flag to 1 when a new subscription needs to be
+sent upstream, regardless of the value of the `Forward` field from the
+downstream subscription. Subscriptions that are not forwarded consume resources
+from the publisher, so a publisher might deprioritize, reject, or close those
+subscriptions to ensure other subscriptions can be delivered.
 
 ## Subscriber Interactions
 
@@ -1931,17 +1940,6 @@ single session and publishers SHOULD treat this as a protocol violation.
 Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
 
-A Subscription can also request a publisher to not forward Objects for a given
-track by setting the `Forward` field to 0. This allows the publisher or relay to
-prepare to serve the subscription in advance, reducing the time to receive
-objects in the future. Relays SHOULD set the `Forward` flag to 1 if a new
-subscription needs to be sent upstream, regardless of the value of the `Forward`
-field from the downstream subscription. Subscriptions that are not forwarded
-consume resources from the publisher, so a publisher might deprioritize, reject,
-or close those subscriptions to ensure other subscriptions can be delivered.
-Control messages, such as SUBCRIBE_DONE ({{message-publish-done}}) are still
-sent.
-
 The format of SUBSCRIBE is as follows:
 
 ~~~
@@ -1984,6 +1982,9 @@ used. Values larger than 0x2 are a protocol error.
 to the subscriber. If 0, Objects are not forwarded to the subscriber.
 Any other value is a protocol error and MUST terminate the
 session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
+
+Subscribing with Forward=0 allows publisher or relay to prepare to serve the
+subscription in advance, reducing the time to receive objects in the future.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the Start and End Group fields will be present.
