@@ -935,6 +935,56 @@ The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
 to alter the payload of the objects it sends, as that would violate the track
 uniqueness guarantee described in {{track-scope}}.
 
+### Subscription Filters
+
+The subscriber specifies a filter on the subscription to allow
+the publisher to identify which objects need to be delivered.
+
+All filters have a Start Location and an optional End Group.  Only objects
+published or received via a subscription having Locations greater than or
+equal to Start and strictly less than or equal to the End Group (when
+present) pass the filter.
+
+The `Largest Object` is defined to be the object with the largest Location
+({{location-structure}}) in the track from the perspective of the endpoint
+processing the SUBSCRIBE message. Largest Object updates when the first byte of
+an Object with a larger Location than the previous value is published or
+received through a subscription.
+
+There are 4 types of filters:
+
+Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
+Largest Object.Object + 1}` and `Largest Object` is communicated in
+SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
+{0, 0}. There is no End Group - the subscription is open ended.  Note that due
+to network reordering or prioritization, relays can receive Objects with
+Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
+these Objects do not pass the Largest Object filter.
+
+Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
+0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
+delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
+the subscription is open ended. For scenarios where the subscriber intends to
+start from more than one group in the future, it can use an AbsoluteStart filter
+instead.
+
+AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
+SUBSCRIBE message. The `Start` specified in the SUBSCRIBE message MAY be less
+than the `Largest Object` observed at the publisher. There is no End Group - the
+subscription is open ended.  To receive all Objects that are published or are
+received after this subscription is processed, a subscriber can use an
+AbsoluteStart filter with `Start` = {0, 0}.
+
+AbsoluteRange (0x4):  The filer Start Location and End Group are specified
+explicitly in the SUBSCRIBE message. The `Start` specified in the SUBSCRIBE
+message MAY be less than the `Largest Object` observed at the publisher. If the
+specified `End Group` is the same group specified in `Start`, the remainder of
+that Group passes the filter. `End Group` MUST specify the same or a larger Group
+than specified in `Start`.
+
+An endpoint that receives a filter type other than the above MUST be close the
+session with `PROTOCOL_VIOLATION`.
+
 # Namespace Discovery {#track-discovery}
 
 Discovery of MOQT servers is always done out-of-band. Namespace discovery can be
@@ -1867,56 +1917,6 @@ REQUESTS_BLOCKED Message {
 A subscription causes the publisher to send newly published objects for a track.
 A subscriber MUST NOT make multiple active subscriptions for a track within a
 single session and publishers SHOULD treat this as a protocol violation.
-
-**Filter Types**
-
-The subscriber specifies a filter on the subscription to allow
-the publisher to identify which objects need to be delivered.
-
-All filters have a Start Location and an optional End Group.  Only objects
-published or received via a subscription having Locations greater than or
-equal to Start and strictly less than or equal to the End Group (when
-present) pass the filter.
-
-The `Largest Object` is defined to be the object with the largest Location
-({{location-structure}}) in the track from the perspective of the endpoint
-processing the SUBSCRIBE message. Largest Object updates when the first byte of
-an Object with a larger Location than the previous value is published or
-received through a subscription.
-
-There are 4 types of filters:
-
-Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
-Largest Object.Object + 1}` and `Largest Object` is communicated in
-SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
-{0, 0}. There is no End Group - the subscription is open ended.  Note that due
-to network reordering or prioritization, relays can receive Objects with
-Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
-these Objects do not pass the Largest Object filter.
-
-Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
-0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
-delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
-the subscription is open ended. For scenarios where the subscriber intends to
-start from more than one group in the future, it can use an AbsoluteStart filter
-instead.
-
-AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
-SUBSCRIBE message. The `Start` specified in the SUBSCRIBE message MAY be less
-than the `Largest Object` observed at the publisher. There is no End Group - the
-subscription is open ended.  To receive all Objects that are published or are
-received after this subscription is processed, a subscriber can use an
-AbsoluteStart filter with `Start` = {0, 0}.
-
-AbsoluteRange (0x4):  The filer Start Location and End Group are specified
-explicitly in the SUBSCRIBE message. The `Start` specified in the SUBSCRIBE
-message MAY be less than the `Largest Object` observed at the publisher. If the
-specified `End Group` is the same group specified in `Start`, the remainder of
-that Group passes the filter. `End Group` MUST specify the same or a larger Group
-than specified in `Start`.
-
-An endpoint that receives a filter type other than the above MUST be close the
-session with `PROTOCOL_VIOLATION`.
 
 Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
