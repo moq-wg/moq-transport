@@ -1166,6 +1166,24 @@ A cache MUST store all properties of an Object defined in
 {{object-properties}}, with the exception of any extensions
 ({{object-extensions}}) that specify otherwise.
 
+## Multiple Publishers
+
+A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or PUBLISH
+messages for the same Track from multiple publishers.  The following sections
+explain how Relays maintain subscriptions to all available publishers for a
+given Track.
+
+There is no specified limit to the number of publishers of a Track Namespace or
+Track.  An implementation can use mechanisms such as PUBLISH_ERROR,
+PUBLISH_NAMESPACE_ERROR, UNSUBSCRIBE or PUBLISH_NAMESPACE_CANCEL if it cannot
+accept an additional publisher due to implementation constraints.
+Implementations can consider the establishment or idle time of the session or
+subscription to determine which publisher to reject or disconnect.
+
+Relays MUST handle Objects for the same Track from multiple publishers and
+forward them to active matching subscriptions. The Relay SHOULD attempt to
+deduplicate Objects before forwarding, subject to implementation constraints.
+
 ## Subscriber Interactions
 
 Subscribers request Tracks by sending a SUBSCRIBE (see
@@ -1188,22 +1206,18 @@ subscription's filter (see {{message-subscribe-req}}), and delivered according
 to the priority (see {{priorities}}) and delivery timeout (see
 {{delivery-timeout}}).
 
-Relays MUST be able to process objects for the same Full Track Name from
-multiple publishers and forward objects to active matching subscriptions.  The
-same object SHOULD NOT be forwarded more than once on the same subscription.
-
 A relay MUST NOT reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
 
-Relays MAY aggregate authorized subscriptions for a given track when
-multiple subscribers request the same track. Subscription aggregation
+Relays MAY aggregate authorized subscriptions for a given Track when
+multiple subscribers request the same Track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
-track. The published content received from the upstream subscription
+Track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
 Because SUBSCRIBE_UPDATE only allows narrowing a subscription, relays that
 aggregate upstream subscriptions can subscribe using the Largest Object
 filter to avoid churn as downstream subscribers with disparate filters
-subscribe and unsubscribe from a track.
+subscribe and unsubscribe from a Track.
 
 A subscriber remains subscribed to a Track at a Relay until it unsubscribes, the
 upstream publisher terminates the subscription, or the subscription expires (see
@@ -1230,24 +1244,20 @@ There are two ways to publish through a relay:
 
 1. Send a PUBLISH message for a specific Track to the relay. The relay MAY
 respond with PUBLISH_OK in Forward State=0 until there are known subscribers for
-new tracks.
+new Tracks.
 
 2. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
 enables the relay to send SUBSCRIBE or FETCH messages to publishers for Tracks
 in this Namespace in response to requests received from subscribers.
 
-Relays MUST verify that publishers are authorized to publish the set of tracks
+Relays MUST verify that publishers are authorized to publish the set of Tracks
 whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
 Track Name in PUBLISH. The authorization and identification of the publisher
 depends on the way the relay is managed and is application specific.
 
-A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or PUBLISH
-messages for the same Track from multiple publishers and is expected to treat
-them uniformly.
-
 When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
-subcribe to tracks in a namespace it previously responded PUBLISH_NAMESPACE_OK
+subcribe to Tracks in a namespace it previously responded PUBLISH_NAMESPACE_OK
 to by sending a PUBLISH_NAMESPACE_CANCEL.
 
 A Relay connects publishers and subscribers by managing sessions based on the
@@ -1272,23 +1282,26 @@ When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
 one publisher is available, the Relay MAY send the FETCH to any of them.
 
-When a relay receives an incoming SUBSCRIBE that triggers an upstream
-subscription, it SHOULD send a SUBSCRIBE request to each publisher that has
-published the subscription's namespace or prefix thereof, unless it already has
-an active subscription for the Objects requested by the incoming SUBSCRIBE
-request from all available publishers.  If it already has a matching upstream
-subscription in Forward State=0, it SHOULD send a SUBSCRIBE_UDPATE with
-Forward=1 to all publishers.
+When a Relay receives an authorized SUBSCRIBE for a Track with one or more
+active upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
+SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
+State=0, the Relay MUST send SUBSCRIBE_UPDATE with Forward=1 to all publishers.
+If there are no active upstream subscriptions for the requested Track, the Relay
+MUST send a SUBSCRIBE request to each publisher that has published the
+subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward
+=1, then the Relay MUST use Forward=1 when subscribing upstream.
 
 When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
 request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
-to the track's namespace or prefix thereof.
+to the Track's namespace or prefix thereof.
 
-When a relay receives an incoming PUBLISH_NAMESPACE for a given namespace, for
-each active upstream subscription that matches that namespace, it SHOULD send a
-SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE.  When it receives an
-incoming PUBLISH message for a track that has active subscribers, it SHOULD
-respond with PUBLISH_OK with Forward State=1.
+When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
+matches one or more existing subscriptions to other upstream sessions, it MUST
+send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
+matching subscription.  When it receives an authorized PUBLISH message for a
+Track that has active subscribers, it MUST respond with PUBLISH_OK.  If at least
+one downstream subscriber for the Track has Forward State=1, the Relay MUST use
+Forward State=1 in the reply.
 
 If a Session is closed due to an unknown or invalid control message or Object,
 the Relay MUST NOT propagate that message or Object to another Session, because
@@ -1305,12 +1318,12 @@ If the original publisher detects it is likely to need to switch networks, for
 example because the WiFi signal is getting weaker, and it does not have QUIC
 connection migration available, it establishes a new session over the new
 interface and sends PUBLISH_NAMESPACE and/or PUBLISH messages. The relay will
-establish subscriptions and the publisher publishes objects on both sessions.
-Once the subscriptions have migrated over to session on the new network, the
-publisher can stop publishing objects on the old network. The relay will drop
-duplicate objects received on both subscriptions.  Ideally, the subscriptions
-downstream from the relay do no observe this change, and keep receiving the
-objects on the same subscription.
+establish subscriptions and the publisher publishes Objects on both sessions.
+Once the subscriptions have migrated over to the session on the new network, the
+publisher can stop publishing Objects on the old network. The relay will attempt
+to deduplicate Objects received on both subscriptions. Ideally, the
+subscriptions downstream from the relay do no observe this change, and keep
+receiving the Objects on the same subscription.
 
 ### Graceful Publisher Relay Switchover
 
@@ -1319,9 +1332,9 @@ to allow for a better user experience when a relay sends them a GOAWAY.
 
 When a publisher receives a GOAWAY, it starts the process of connecting to a new
 relay and sends PUBLISH_NAMESPACE and/or PUBLISH messages, but it does not
-immediately stop publishing objects to the old relay. The new relay will
-establish subscriptions and the publisher can start sending new objects to the
-new relay instead of the old relay. Once objects are going to the new relay, the
+immediately stop publishing Objects to the old Relay. The new Relay will
+establish subscriptions and the publisher can start sending new Objects to the
+new relay instead of the old Relay. Once Objects are going to the new Relay, the
 published namespaces and subscriptions to the old relay can be withdrawn or
 terminated.
 
