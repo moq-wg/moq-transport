@@ -2510,8 +2510,9 @@ Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 The publisher receiving a Joining Fetch sets the End Location to {Subscribe
 Largest Location.Object + 1}.
 
-Note: the last Object requested by the Joining FETCH is Subscribe Largest
-Location, which is encoded by adding one to the Object ID.
+Note: the last Object included in the Joining FETCH response is Subscribe
+Largest Location.  The `+ 1` above indicates the equivalent Standalone Fetch
+encoding.
 
 For a Relative Joining Fetch, the publisher sets the Start Location to
 {Subscribe Largest Location.Group - Joining Start, 0}.
