@@ -891,8 +891,7 @@ forwarded back to the endpoint, subject to priority and congestion response
 rules.
 
 A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
-a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
-FETCH. A subscriber MUST send exactly one PUBLISH_OK or PUBLISH_ERROR in
+a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or PUBLISH_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
@@ -903,37 +902,22 @@ with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 {{datagrams}} and {{subgroup-header}}).
 
+### Subscription State Management
+
 A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
 receipt of a PUBLISH_DONE or SUBSCRIBE_ERROR. Note that PUBLISH_DONE does not
 usually indicate that state can immediately be destroyed, see
 {{message-publish-done}}.
 
-A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
-FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
-data stream is already open, it MAY send STOP_SENDING for the data stream along
-with FETCH_CANCEL, but MUST send FETCH_CANCEL.
-
-The Publisher can destroy subscription or fetch state as soon as it has received
-UNSUBSCRIBE or FETCH_CANCEL, respectively. It MUST reset any open streams
-associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
-the FETCH data stream.
+The Publisher can destroy subscription state as soon as it has received
+UNSUBSCRIBE. It MUST reset any open streams associated with the SUBSCRIBE.
 
 The publisher can immediately delete subscription state after sending
-PUBLISH_DONE, but MUST NOT send it until it has closed all related streams. It
-can destroy all FETCH state after closing the data stream.
+PUBLISH_DONE, but MUST NOT send it until it has closed all related streams.
 
 A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
 immediately destroy relevant state. Objects MUST NOT be sent for requests that
 end with an error.
-
-A FETCH_ERROR indicates that both endpoints can immediately destroy state.
-Since a relay can start delivering FETCH Objects from cache before determining
-the result of the request, some Objects could be received even if the FETCH
-results in error.
-
-The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
-to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in {{track-scope}}.
 
 ### Subscription Filters
 
@@ -984,6 +968,28 @@ than specified in `Start`.
 
 An endpoint that receives a filter type other than the above MUST be close the
 session with `PROTOCOL_VIOLATION`.
+
+## Fetch State Management
+
+The publisher MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
+FETCH.
+
+A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
+FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
+data stream is already open, it MAY send STOP_SENDING for the data stream along
+with FETCH_CANCEL, but MUST send FETCH_CANCEL.
+
+The Publisher can destroy fetch state as soon as it has received a
+FETCH_CANCEL. It MUST reset any open streams associated with the FETCH. It can
+also destroy state after closing the FETCH data stream.
+
+It can destroy all FETCH state after closing the data stream.
+
+A FETCH_ERROR indicates that both endpoints can immediately destroy state.
+Since a relay can start delivering FETCH Objects from cache before determining
+the result of the request, some Objects could be received even if the FETCH
+results in error.
+
 
 # Namespace Discovery {#track-discovery}
 
@@ -1508,6 +1514,10 @@ be sent in a single message. Receivers SHOULD check that there are no
 unauthorized duplicate parameters and close the session as a
 `PROTOCOL_VIOLATION` if found.  Receivers MUST allow duplicates of unknown
 parameters.
+
+The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
+to alter the payload of the objects it sends, as that would violate the track
+uniqueness guarantee described in {{track-scope}}.
 
 Receivers ignore unrecognized parameters.
 
