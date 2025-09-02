@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 3 March 2026                                      I. Swett, Ed.
+Expires: 6 March 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          30 August 2025
+                                                        2 September 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 March 2026.
+   This Internet-Draft will expire on 6 March 2026.
 
 Copyright Notice
 
@@ -2713,8 +2713,10 @@ Table of Contents
    A Joining Fetch is associated with a Subscribe request by specifying
    the Request ID of an active subscription.  A publisher receiving a
    Joining Fetch uses properties of the associated Subscribe to
-   determine the Track Namespace, Track and End Location such that it is
-   contiguous with the associated Subscribe.
+   determine the Track Namespace, Track Name and End Location such that
+   it is contiguous with the associated Subscribe.  The subscriber can
+   set the Start Location to an absolute Location or a Location relative
+   to the current group.
 
    A Subscriber can use a Joining Fetch to, for example, fill a playback
    buffer with a certain number of groups prior to the live edge of a
