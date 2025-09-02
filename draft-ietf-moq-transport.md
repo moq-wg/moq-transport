@@ -3695,6 +3695,50 @@ cannot infer any information about the existence of prior groups (see
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
 
+## Immutable Extensions
+
+The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
+Key-Value-Pairs (see {{moq-key-value-pair}}) which are also Object Extension
+Headers of the Object.
+
+~~~
+Immutable Extensions {
+  Type (0xB),
+  Length (i),
+  Key-Value-Pair (..) ...
+}
+~~~
+
+This extension can be added by the Original Publisher, but MUST NOT be added by
+Relays. This extension MUST NOT be modified or removed. Relays MUST cache this
+extension if the Object is cached and MUST forward this extension if the
+enclosing Object is forwarded. Relays MAY decode and view these extensions.
+
+A Track is considered malformed (see {{malformed-tracks}}) if any of the
+following conditions are detected:
+
+ * An Object contains an Immutable Extensions header that contains another
+   Immutable Extensions key
+ * A Key-Value-Pair cannot be parsed
+
+The following figure shows an example Object structure with a combination of
+mutable and immutable extensions and end to end encrypted metadata in the Object
+payload.
+
+~~~
+                   Object Header                      Object Payload
+<------------------------------------------------> <------------------->
++--------+-------+------------+-------+-----------+--------------------+
+| Object | Ext 1 | Immutable  | Ext N | [Payload] | Private Extensions |
+| Fields |       | Extensions |       | [Length]  | App Payload        |
++--------+-------+------------+-------+-----------+--------------------+
+                  xxxxxxxxxxxx                     xxxxxxxxxxxxxxxxxxxx
+                                                   yyyyyyyyyyyyyyyyyyyy
+x = e2e Authenticated Data
+y = e2e Encrypted Data
+EXT 1 and EXT N can be modified or removed by Relays
+~~~
+
 ## Prior Object ID Gap
 
 Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
