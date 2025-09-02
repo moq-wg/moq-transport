@@ -203,9 +203,10 @@ Table of Contents
      Normative References
      Informative References
    Appendix A.  Change Log
-     A.1.  Since draft-ietf-moq-transport-12
-     A.2.  Since draft-ietf-moq-transport-11
-     A.3.  Since draft-ietf-moq-transport-10
+     A.1.  Since draft-ietf-moq-transport-13
+     A.2.  Since draft-ietf-moq-transport-12
+     A.3.  Since draft-ietf-moq-transport-11
+     A.4.  Since draft-ietf-moq-transport-10
    Authors' Addresses
 
 1.  Introduction
@@ -4473,7 +4474,79 @@ Appendix A.  Change Log
 
    Issue and pull request numbers are listed with a leading octothorp.
 
-A.1.  Since draft-ietf-moq-transport-12
+A.1.  Since draft-ietf-moq-transport-13
+
+   *Setup and Control Plane*
+
+   *  Add an AUTHORITY parameter (#1058)
+
+   *  Add a free-form SETUP parameter identifying the implementation
+      (#1114)
+
+   *  Add a Request ID to SUBSCRIBE_UDPATE (#1106)
+
+   *  Indicate which params can appear PUBLISH* messages (#1071)
+
+   *  Add TRACK_STATUS to the list of request types affected by GOAWAY
+      (#1105)
+
+   *Data Plane Wire Format and Handling*
+
+   *  Delta encode Object IDs within Subgroups (#1042)
+
+   *  Use a bit in Datagram Type to convey Object ID = 0 (#1055)
+
+   *  Corrected missed code point updates to Object Datagram Status
+      (#1082)
+
+   *  Merge OBJECT_DATAGRAM and OBJECT_DATAGRAM_STATUS description
+      (#1179)
+
+   *  Objects are not schedulable if flow-control blocked (#1054)
+
+   *  Clarify DELIVERY_TIMEOUT reordering computation (#1120)
+
+   *  Receiving unrequested Objects (#1112)
+
+   *  Clarify End of Track (#1111)
+
+   *  Malformed tracks apply to FETCH (#1083)
+
+   *  Remove early FIN from the definition of malformed tracks (#1096)
+
+   *  Prior Object ID Gap Extension header (#939)
+
+   *  Add Extension containing immutable extensions (#1025)
+
+   *Relay Handling*
+
+   *  Explain FETCH routing for relays (#1165)
+
+   *  MUST for multi-publisher relay handling (#1115)
+
+   *  Filters don't (usually) determine the end of subscription (#1113)
+
+   *  Allow self-subscriptions (#1110)
+
+   *  Explain Namespace Prefix Matching in more detail (#1116)
+
+   *Explanatory*
+
+   *  Explain Modularity of MOQT (#1107)
+
+   *  Explain how to resume publishing after losing state (#1087)
+
+   *Major Editorial Changes*
+
+   *  Rename ANNOUNCE to PUBLISH_NAMESPACE (#1104)
+
+   *  Rename SUBSCRIBE_DONE to PUBLISH_DONE (#1108)
+
+   *  Major FETCH Reorganization (#1173)
+
+   *  Reformat Error Codes (#1091)
+
+A.2.  Since draft-ietf-moq-transport-12
 
    *  TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly
       mirror SUBSCRIBE/OK/ERROR (#1015)
@@ -4481,7 +4554,7 @@ A.1.  Since draft-ietf-moq-transport-12
    *  SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE
       (#1049)
 
-A.2.  Since draft-ietf-moq-transport-11
+A.3.  Since draft-ietf-moq-transport-11
 
    *  Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
 
@@ -4507,7 +4580,7 @@ A.2.  Since draft-ietf-moq-transport-11
    *  Add PUBLISH for publisher initiated subscriptions (#995) and fix
       the PUBLISH codepoints (#1048, #1051)
 
-A.3.  Since draft-ietf-moq-transport-10
+A.4.  Since draft-ietf-moq-transport-10
 
    *  Added Common Structure definitions - Location, Key-Value-Pair and
       Reason Phrase
