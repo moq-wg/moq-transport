@@ -2469,9 +2469,10 @@ Standalone Fetch {
 A Joining Fetch is associated with a Subscribe request by
 specifying the Request ID of an active subscription.
 A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track
+Subscribe to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
-Subscribe.
+Subscribe.  The subscriber can set the Start Location to an absolute Location or
+a Location relative to the current group.
 
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
