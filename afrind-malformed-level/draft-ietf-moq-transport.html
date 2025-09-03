@@ -17,21 +17,21 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.30.0" name="generator">
+<meta content="xml2rfc 3.30.1" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.30.0
+  xml2rfc 3.30.1
     Python 3.12.11
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.1.0
     Jinja2 3.1.6
     lxml 5.3.1
-    platformdirs 4.3.8
+    platformdirs 4.4.0
     pycountry 24.6.1
     PyYAML 6.0.2
-    requests 2.32.4
+    requests 2.32.5
     setuptools 80.9.0
     wcwidth 0.2.13
 -->
@@ -3786,7 +3786,7 @@ MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
             <h5 id="name-moqt-implementation">
 <a href="#section-9.3.2.6" class="section-number selfRef">9.3.2.6. </a><a href="#name-moqt-implementation" class="section-name selfRef">MOQT IMPLEMENTATION</a>
             </h5>
-<p id="section-9.3.2.6-1">The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) identifies the name and
+<p id="section-9.3.2.6-1">The MOQT_IMPLEMENTATION parameter (Parameter Type 0x07) identifies the name and
 version of the sender's MOQT implementation.  This <span class="bcp14">SHOULD</span> be a UTF-8 encoded
 string [RFC3629], though the message does not carry information, such as
 language tags, that would aid comprehension by any entity other than the one

@@ -2001,7 +2001,7 @@ Table of Contents
 
 9.3.2.6.  MOQT IMPLEMENTATION
 
-   The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) identifies
+   The MOQT_IMPLEMENTATION parameter (Parameter Type 0x07) identifies
    the name and version of the sender's MOQT implementation.  This
    SHOULD be a UTF-8 encoded string [RFC3629], though the message does
    not carry information, such as language tags, that would aid
