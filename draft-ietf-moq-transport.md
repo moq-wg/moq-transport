@@ -527,7 +527,8 @@ include:
 4. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-5. A Subgroup is received with two or more different final Objects.
+5. A Subgroup is received over multiple transport streams terminated by FIN with
+   different final Objects.
 6. An Object is received in a Group whose Object ID is larger than the final
    Object in the Group.  The final Object in a Group is the Object with Status
    END_OF_GROUP or the last Object sent in a FETCH that requested the entire
@@ -1442,7 +1443,7 @@ An endpoint that receives an unknown message type MUST close the session.
 Control messages have a length to make parsing easier, but no control messages
 are intended to be ignored. The length is set to the number of bytes in Message
 Payload, which is defined by each message type.  If the length does not match
-the length of the Message Payload, the receiver MUST close the session with
+the length of the Message Payload, the receiver MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
 ## Request ID
@@ -1928,7 +1929,7 @@ that Group passes the filter. `End Group` MUST specify the same or a larger Grou
 than specified in `Start`.
 
 An endpoint that receives a filter type other than the above MUST be close the
-session with `PROTOCOL_VIOLATION`.
+session with a `PROTOCOL_VIOLATION`.
 
 Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
@@ -2673,7 +2674,7 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
   Location.
 
   If End Location is smaller than the Start Location in the corresponding FETCH
-  the receiver MUST close the session with `PROTOCOL_VIOLATION`.
+  the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2972,7 +2973,7 @@ is a relay that has received PUBLISH_NAMESPACE messages for namespaces
 "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for ("example.com",
 "meeting=123") would match both.  If an endpoint receives a Track Namespace
 Prefix tuple with an N of 0 or more than 32, it MUST close the session with a
-Protocol Violation.
+`PROTOCOL_VIOLATION`.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -3306,7 +3307,7 @@ There are 10 defined Type values for OBJECT_DATAGRAM.
 * Extensions Present: If Extensions Present is "Yes" the Extension Headers
   Length and Extension headers fields are included. If an endpoint receives a
   datagram with Extensions Present as "Yes" and a Extension Headers Length of 0,
-  it MUST close the session with PROTOCOL_VIOLATION.
+  it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 * Object ID Present: If Object ID Present is No, the Object ID field is omitted
   and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
