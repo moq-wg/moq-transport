@@ -176,7 +176,7 @@ Endpoint:
 
 Peer:
 
-: The other endpoint than the one being described
+: The other endpoint than the one being described.
 
 Publisher:
 
@@ -201,11 +201,11 @@ Publisher or End Subscriber, and conforms to all requirements in {{relays-moq}}.
 
 Upstream:
 
-: In the direction of the Original Publisher
+: In the direction of the Original Publisher.
 
 Downstream:
 
-: In the direction of the End Subscriber(s)
+: In the direction of the End Subscriber(s).
 
 Transport Session:
 
@@ -250,12 +250,12 @@ of the parts of RFC9000 field syntax that are used in this specification.
 
 x (L):
 
-: Indicates that x is L bits long
+: Indicates that x is L bits long.
 
 x (i):
 
 : Indicates that x holds an integer value using the variable-length
-  encoding as described in ({{?RFC9000, Section 16}})
+  encoding as described in ({{?RFC9000, Section 16}}).
 
 x (..):
 
@@ -264,12 +264,12 @@ x (..):
 
 [x (L)]:
 
-: Indicates that x is optional and has a length of L
+: Indicates that x is optional and has a length of L.
 
 x (L) ...:
 
 : Indicates that x is repeated zero or more times and that each instance
-  has a length of L
+  has a length of L.
 
 This document extends the RFC9000 syntax and with the additional field types:
 
@@ -277,7 +277,7 @@ x (b):
 
 : Indicates that x consists of a variable length integer encoding as
   described in ({{?RFC9000, Section 16}}), followed by that many bytes
-  of binary data
+  of binary data.
 
 x (tuple):
 
@@ -329,10 +329,10 @@ Key-Value-Pair {
 
 * Type: an unsigned integer, encoded as a varint, identifying the
   type of the value and also the subsequent serialization.
-* Length: Only present when Type is odd. Specifies the length of the Value field.
-  The maximum length of a value is 2^16-1 bytes.  If an endpoint receives a
-  length larger than the maximum, it MUST close the session with a Protocol
-  Violation.
+* Length: Only present when Type is odd. Specifies the length of the Value field
+  in bytes. The maximum length of a value is 2^16-1 bytes.  If an endpoint
+  receives a length larger than the maximum, it MUST close the session with a
+  Protocol Violation.
 * Value: A single varint encoded value when Type is even, otherwise a
   sequence of Length bytes.
 
@@ -353,7 +353,7 @@ Reason Phrase {
 ~~~
 
 * Reason Phrase Length: A variable-length integer specifying the length of the
-  reason phrase in bytes. The reason phrase length has a maximum length of
+  reason phrase in bytes. The reason phrase length has a maximum value of
   1024 bytes. If an endpoint receives a length exceeding the maximum, it MUST
   close the session with a `PROTOCOL_VIOLATION`
 
@@ -498,10 +498,10 @@ Violation.
 Track Name is a sequence of bytes that identifies an individual track within the
 namespace.
 
-The maximum total length of a Full Track Name is 4,096 bytes, computed as the
-sum of the lengths of each Track Namespace tuple field and the Track Name length
-field.  If an endpoint receives a Full Track Name exceeding this length, it MUST
-close the session with a `PROTOCOL_VIOLATION`.
+The maximum total length of a Full Track Name is 4,096 bytes. The length of a Full
+Track Name is computed as the sum of the lengths of each Track Namespace tuple
+field and the Track Name length field.  If an endpoint receives a Full Track Name
+exceeding this length, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -632,8 +632,8 @@ This protocol does not specify any semantics on the `path-abempty` and
 `query` portions of the URI.  The contents of those are left up to the
 application.
 
-The client can establish a connection to a MoQ server identified by a given URI
-by setting up a QUIC connection to the host and port identified by the
+The client can establish a connection to an MOQT server identified by a given
+URI by setting up a QUIC connection to the host and port identified by the
 `authority` section of the URI. The `authority`, `path-abempty` and `query`
 portions of the URI are also transmitted in SETUP parameters (see
 {{setup-params}}).
