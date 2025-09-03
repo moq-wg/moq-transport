@@ -1777,7 +1777,7 @@ MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
 
 #### MOQT IMPLEMENTATION
 
-The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) identifies the name and
+The MOQT_IMPLEMENTATION parameter (Parameter Type 0x07) identifies the name and
 version of the sender's MOQT implementation.  This SHOULD be a UTF-8 encoded
 string [RFC3629], though the message does not carry information, such as
 language tags, that would aid comprehension by any entity other than the one
