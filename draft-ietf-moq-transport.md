@@ -470,9 +470,8 @@ by doing a Fetch upstream, if necessary.
 Applications that cannot produce Group IDs that increase with time are limited
 to the subset of MOQT that does not compare group IDs. Subscribers to these
 Tracks SHOULD NOT use range filters which span multiple Groups in FETCH or
-SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot
-deliver Groups out of order and a subscription could have unexpected delivery
-order if Group IDs do not increase with time.
+SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so so they could have
+an unexpected delivery order if Group IDs do not increase with time.
 
 Note that the increase in time between two groups is not defined by the protocol.
 
