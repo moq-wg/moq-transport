@@ -1928,7 +1928,7 @@ specified `End Group` is the same group specified in `Start`, the remainder of
 that Group passes the filter. `End Group` MUST specify the same or a larger Group
 than specified in `Start`.
 
-An endpoint that receives a filter type other than the above MUST be close the
+An endpoint that receives a filter type other than the above MUST close the
 session with a `PROTOCOL_VIOLATION`.
 
 Subscribe only delivers newly published or received Objects.  Objects from the
