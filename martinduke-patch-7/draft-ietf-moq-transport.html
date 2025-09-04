@@ -3711,12 +3711,12 @@ authority component of the MoQ URI when using native QUIC (<span>[<a href="#QUIC
 parameter is received from a server, or when an AUTHORITY parameter is received
 while WebTransport is used, or when an AUTHORITY parameter is received by a
 server but the server does not support the specified authority, the session <span class="bcp14">MUST</span>
-be closed with INVALID_AUTHORITY.<a href="#section-9.3.2.1-1" class="pilcrow">¶</a></p>
+be closed with <code>INVALID_AUTHORITY</code>.<a href="#section-9.3.2.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.3.2.1-2">The AUTHORITY parameter follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.
 When connecting to a server using a URI with the "moqt" scheme, the
 client <span class="bcp14">MUST</span> set the AUTHORITY parameter to the <code>authority</code> portion of the
 URI. If an AUTHORITY parameter does not conform to
-these rules, the session <span class="bcp14">MUST</span> be closed with MALFORMED_AUTHORITY.<a href="#section-9.3.2.1-2" class="pilcrow">¶</a></p>
+these rules, the session <span class="bcp14">MUST</span> be closed with <code>MALFORMED_AUTHORITY</code>.<a href="#section-9.3.2.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="path">
@@ -3729,13 +3729,13 @@ of the MoQ URI when using native QUIC (<span>[<a href="#QUIC" class="cite xref">
 the server, or when WebTransport is used.  When a PATH parameter is received
 from a server, or when a PATH parameter is received while WebTransport is used,
 or when a PATH parameter is received by a server but the server does not
-support the specified path, the session <span class="bcp14">MUST</span> be closed with INVALID_PATH.<a href="#section-9.3.2.2-1" class="pilcrow">¶</a></p>
+support the specified path, the session <span class="bcp14">MUST</span> be closed with <code>INVALID_PATH</code>.<a href="#section-9.3.2.2-1" class="pilcrow">¶</a></p>
 <p id="section-9.3.2.2-2">The PATH parameter follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.
 When connecting to a server using a URI with the "moqt" scheme, the
 client <span class="bcp14">MUST</span> set the PATH parameter to the <code>path-abempty</code> portion of the
 URI; if <code>query</code> is present, the client <span class="bcp14">MUST</span> concatenate <code>?</code>, followed by
 the <code>query</code> portion of the URI to the parameter. If a PATH does not conform to
-these rules, the session <span class="bcp14">MUST</span> be closed with MALFORMED_PATH.<a href="#section-9.3.2.2-2" class="pilcrow">¶</a></p>
+these rules, the session <span class="bcp14">MUST</span> be closed with <code>MALFORMED_PATH</code>.<a href="#section-9.3.2.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-request-id">
