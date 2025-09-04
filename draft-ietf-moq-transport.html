@@ -5793,8 +5793,8 @@ See <a href="#iana" class="auto internal xref">Section 13</a>.<a href="#section-
 receives a datagram with an unknown Track Alias, it <span class="bcp14">MAY</span> drop the datagram or
 choose to buffer it for a brief period to handle reordering with the control
 message that establishes the Track Alias.<a href="#section-10.3-1" class="pilcrow">¶</a></p>
-<p id="section-10.3-2">An Object received in an <code>OBJECT_DATAGRAM</code> or <code>OBJECT_DATAGRAM_STATUS</code> message
-has an <code>Object Forwarding Preference</code> = <code>Datagram</code>.<a href="#section-10.3-2" class="pilcrow">¶</a></p>
+<p id="section-10.3-2">An Object received in an <code>OBJECT_DATAGRAM</code> message has an <code>Object Forwarding
+Preference</code> = <code>Datagram</code>.<a href="#section-10.3-2" class="pilcrow">¶</a></p>
 <p id="section-10.3-3">To send an Object with <code>Object Forwarding Preference</code> = <code>Datagram</code>, determine
 the length of the header and payload and send the Object as datagram.  When the
 total size is larger than maximum datagram size for the session, the Object will
