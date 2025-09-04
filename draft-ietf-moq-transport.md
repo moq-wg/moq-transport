@@ -1281,7 +1281,7 @@ Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
 Track Name is matched exactly against existing upstream subscriptions.
 
 Namespace Prefix Matching is further used to decide which publishers receive a
-SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the subsets
+SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the fields
 in the Track Namespace are matched sequentially, requiring an exact match for
 each field. If the published or subscribed Track Namespace has the same or fewer
 fields than the Track Namespace in the message, it qualifies as a match.
@@ -2973,7 +2973,7 @@ SUBSCRIBE_NAMESPACE Message {
   Type (i) = 0x11,
   Length (16),
   Request ID (i),
-  Track Namespace Prefix(Track Namespace),
+  Track Namespace Prefix (Track Namespace),
   Number of Parameters (i),
   Parameters (..) ...
 }
