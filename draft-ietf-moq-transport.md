@@ -508,7 +508,7 @@ Namespace and a Track Name.
 
 Track Namespace is an ordered set of between 1 and 32 Track Namespace Fields.
 The structured nature of Track Namespace allows relays and applications to
-manipulate prefixes of a namespace. If an endpoint receives a Track Namespace 
+manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
 consisting of 0 or greater than 32 Track Namespace Fields, it MUST close the
 session with a `PROTOCOL_VIOLATION`.
 
