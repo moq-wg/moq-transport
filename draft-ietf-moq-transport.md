@@ -326,23 +326,37 @@ If a receiver understands a Type, and the following Value or Length/Value does
 not match the serialization defined by that Type, the receiver MUST terminate
 the session with error code `KEY_VALUE_FORMATTING_ERROR`.
 
-### Track Namespace Subset Structure {#track-namespace-subset}
+### Track Namespace Field Structure {#track-namespace-field}
 
-Track Namespace Subset provides a way for the sender to encode subsets of Track
+Track Namespace Field provides a way for the sender to encode components of Track
 Namesapces.
 
 ~~~
-Track Namespace Subset {
-  Track Namespace Subset Length (i),
-  Track Namespace Subset Value (..)
+Track Namespace Field {
+  Track Namespace Field Length (i),
+  Track Namespace Field Value (..)
 }
 ~~~
 
-* Track Namespace Subset Length: A variable-length integer specifying the length
-  of the Track Namespace subset in bytes.
+* Track Namespace Field Length: A variable-length integer specifying the length
+  of the Track Namespace Field in bytes.
 
-* Track Namespace Subset Value: A sequecne of bytes that forms a Track Namespace
-  subset.
+* Track Namespace Field Value: A sequence of bytes that forms a Track Namespace
+  Field.
+
+### Track Namespace Structure {#track-namespace}
+
+Track Namespace provides a way for the sender to encode Track Namesapces.
+
+~~~
+Track Namespace {
+  Number of Track Namespace Fields (i),
+  Track Namespace Field (..) ...
+}
+~~~
+
+*  Number of Track Namespace Fields: A variable-length integer specifying
+   the number of Track Namespace Fields in the Track Namespace.
 
 ### Reason Phrase Structure {#reason-phrase}
 
@@ -492,27 +506,27 @@ active.
 In MOQT, every track is identified by a Full Track Name, consisting of a Track
 Namespace and a Track Name.
 
-Track Namespace is an ordered N subsets of bytes where N can be between 1 and 32.
+Track Namespace is an ordered set of between 1 and 32 Track Namespace Fields.
 The structured nature of Track Namespace allows relays and applications to
-manipulate prefixes of a namespace. If an endpoint receives a Track Namespace of
-N subsets with N equal to 0 or greater than 32, it MUST close the session with a
-`PROTOCOL_VIOLATION`.
+manipulate prefixes of a namespace. If an endpoint receives a Track Namespace 
+consisting of 0 or greater than 32 Track Namespace Fields, it MUST close the
+session with a `PROTOCOL_VIOLATION`.
 
 Track Name is a sequence of bytes that identifies an individual track within the
 namespace.
 
 The maximum total length of a Full Track Name is 4,096 bytes. The length of a Full
-Track Name is computed as the sum of the Track Namespace Subset length fields
-and the Track Name length field.  If an endpoint receives a Full Track Name
+Track Name is computed as the sum of the Track Namespace Field Length fields
+and the Track Name Length field.  If an endpoint receives a Full Track Name
 exceeding this length, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-In this specification, both the Track Namespace Subset fields and the Track Name
+In this specification, both the Track Namespace Fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
-comparison between two Track Namespace Subset fields or Track Names is done by
+comparison between two Track Namespace Fields or Track Names is done by
 exact comparison of the bytes. Specifications that use MOQT may constrain the
 information in these fields, for example by restricting them to UTF-8. Any such
 specification needs to specify the canonicalization into the bytes in the Track
-Namespace or Track Name such that exact comparison works.
+Namespace Fields or Track Name such that exact comparison works.
 
 ### Malformed Tracks
 
@@ -579,7 +593,7 @@ the above requirements.  A publisher can handle this in application specific
 ways, for example:
 
 1. Select a unique Track Name or Track Namespace whenever it resumes
-   publishing. For example, it can base one of the Namespace subset fields on the
+   publishing. For example, it can base one of the Namespace Fields on the
    current time, or select a sufficiently large random value.
 2. Resume publishing under a previous Track Name and Namespace and set the
    initial Group ID to a unique value guaranteed to be larger than all
@@ -1954,8 +1968,7 @@ SUBSCRIBE Message {
   Type (i) = 0x3,
   Length (16),
   Request ID (i),
-  Track Namespace Number of Subsets (i),
-  Track Namespace Subset(..) ...,
+  Track Namespace (..),
   Track Name Length (i),
   Track Name (..),
   Subscriber Priority (8),
@@ -2313,8 +2326,7 @@ PUBLISH Message {
   Type (i) = 0x1D,
   Length (i),
   Request ID (i),
-  Track Namespace Number of Subsets (i),
-  Track Namespace Subset(..) ...,
+  Track Namespace (..),
   Track Name Length (i),
   Track Name (..),
   Track Alias (i),
@@ -2467,8 +2479,7 @@ A Standalone Fetch includes this structure:
 
 ~~~
 Standalone Fetch {
-  Track Namespace Number of Subsets (i),
-  Track Namespace Subset(..) ...,
+  Track Namespace (..),
   Track Name Length (i),
   Track Name (..),
   Start Location (Location),
@@ -2824,8 +2835,7 @@ PUBLISH_NAMESPACE Message {
   Type (i) = 0x6,
   Length (16),
   Request ID (i),
-  Track Namespace Number of Subsets (i),
-  Track Namespace Subset(..) ...,
+  Track Namespace (..),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2917,8 +2927,7 @@ Namespace.
 PUBLISH_NAMESPACE_DONE Message {
   Type (i) = 0x9,
   Length (16),
-  Track Namespace Number of Subsets (i),
-  Track Namespace Subset(..) ...
+  Track Namespace (..)
 }
 ~~~
 {: #moq-transport-pub-ns-done-format title="MOQT PUBLISH_NAMESPACE_DONE Message"}
@@ -2936,8 +2945,7 @@ within the provided Track Namespace.
 PUBLISH_NAMESPACE_CANCEL Message {
   Type (i) = 0xC,
   Length (16),
-  Track Namespace Number of Subsets (i),
-  Track Namespace Subset(..) ...,
+  Track Namespace (..),
   Error Code (i),
   Error Reason (Reason Phrase)
 }
@@ -2965,8 +2973,7 @@ SUBSCRIBE_NAMESPACE Message {
   Type (i) = 0x11,
   Length (16),
   Request ID (i),
-  Track Namespace Prefix Number of Subsets (i),
-  Track Namespace Prefix(Track Namespace Subset) ...,
+  Track Namespace Prefix(Track Namespace),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2975,14 +2982,14 @@ SUBSCRIBE_NAMESPACE Message {
 
 * Request ID: See {{request-id}}.
 
-* Track Namespace Prefix: An ordered N subsets of bytes which are matched
-against track namespaces known to the publisher.  For example, if the publisher
-is a relay that has received PUBLISH_NAMESPACE messages for namespaces
-("example.com", "meeting=123", "participant=100") and ("example.com",
+* Track Namespace Prefix: An ordered set of between 1 and 32 Track Namespace Fields
+which are matched against track namespaces known to the publisher.  For example,
+if the publisher is a relay that has received PUBLISH_NAMESPACE messages for
+namespaces ("example.com", "meeting=123", "participant=100") and ("example.com",
 "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for ("example.com",
 "meeting=123") would match both.  If an endpoint receives a Track Namespace
-Prefix of N subsets where N is equal to 0 or greater than than 32, it MUST close
-the session with a `PROTOCOL_VIOLATION`.
+Prefix consisting of 0 or greater than than 32 Track Namespace Fields, it MUST
+close the session with a `PROTOCOL_VIOLATION`.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -3095,8 +3102,7 @@ The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
 UNSUBSCRIBE_NAMESPACE Message {
   Type (i) = 0x14,
   Length (16),
-  Track Namespace Prefix Number of Subsets (i),
-  Track Namespace Prefix(Track Namespace Subset) ...
+  Track Namespace Prefix (Track Namespace)
 }
 ~~~
 {: #moq-transport-unsub-ann-format title="MOQT UNSUBSCRIBE_NAMESPACE Message"}
