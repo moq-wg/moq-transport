@@ -3250,8 +3250,8 @@ receives a datagram with an unknown Track Alias, it MAY drop the datagram or
 choose to buffer it for a brief period to handle reordering with the control
 message that establishes the Track Alias.
 
-An Object received in an `OBJECT_DATAGRAM` or `OBJECT_DATAGRAM_STATUS` message
-has an `Object Forwarding Preference` = `Datagram`.
+An Object received in an `OBJECT_DATAGRAM` message has an `Object Forwarding
+Preference` = `Datagram`.
 
 To send an Object with `Object Forwarding Preference` = `Datagram`, determine
 the length of the header and payload and send the Object as datagram.  When the
