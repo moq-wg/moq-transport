@@ -912,6 +912,7 @@ usually indicate that state can immediately be destroyed, see
 
 The Publisher can destroy subscription state as soon as it has received
 UNSUBSCRIBE. It MUST reset any open streams associated with the SUBSCRIBE.
+
 The Publisher can also immediately delete subscription state after sending
 PUBLISH_DONE, but MUST NOT send it until it has closed all related streams.
 
@@ -932,8 +933,8 @@ present) pass the filter.
 Some filters are defined to be relative to the `Largest Object`. The `Largest
 Object` is the Object with the largest Location ({{location-structure}}) in the
 Track from the perspective of the publisher processing a SUBSCRIBE
-message. Largest Object updates when the first field of an Object with a larger
-Location than the previous value is published or received through a
+message. Largest Object updates when the first field of an Object with a
+Location larger than the previous value is published or received through a
 subscription.
 
 A Subscription Filter has the following structure:
