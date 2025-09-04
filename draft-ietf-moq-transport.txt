@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 March 2026                                      I. Swett, Ed.
+Expires: 8 March 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        3 September 2025
+                                                        4 September 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 March 2026.
+   This Internet-Draft will expire on 8 March 2026.
 
 Copyright Notice
 
@@ -1936,13 +1936,13 @@ Table of Contents
    an AUTHORITY parameter is received while WebTransport is used, or
    when an AUTHORITY parameter is received by a server but the server
    does not support the specified authority, the session MUST be closed
-   with Invalid Authority.
+   with INVALID_AUTHORITY.
 
    The AUTHORITY parameter follows the URI formatting rules [RFC3986].
    When connecting to a server using a URI with the "moqt" scheme, the
    client MUST set the AUTHORITY parameter to the authority portion of
    the URI.  If an AUTHORITY parameter does not conform to these rules,
-   the session MUST be closed with Malformed Authority.
+   the session MUST be closed with MALFORMED_AUTHORITY.
 
 9.3.2.2.  PATH
 
@@ -1952,15 +1952,15 @@ Table of Contents
    parameter is received from a server, or when a PATH parameter is
    received while WebTransport is used, or when a PATH parameter is
    received by a server but the server does not support the specified
-   path, the session MUST be closed with Invalid Path.
+   path, the session MUST be closed with INVALID_PATH.
 
    The PATH parameter follows the URI formatting rules [RFC3986].  When
    connecting to a server using a URI with the "moqt" scheme, the client
    MUST set the PATH parameter to the path-abempty portion of the URI;
    if query is present, the client MUST concatenate ?, followed by the
    query portion of the URI to the parameter.  If a PATH does not
-   conform to these rules, the session MUST be closed with Malformed
-   Path.
+   conform to these rules, the session MUST be closed with
+   MALFORMED_PATH.
 
 9.3.2.3.  MAX_REQUEST_ID
 
