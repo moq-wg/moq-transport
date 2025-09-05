@@ -1652,6 +1652,65 @@ multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
 handles a downstream request that includes those Objects re-requests them.
 
+#### OBJECT FILTER Parameter
+
+The OBJECT_FILTER parameter(Parameter Type 0x05) MAY appear in SUBSCRIBE,
+SUBSCRIBE_UPDATE, PUBLISH_OK, TRACK_STATUS or FETCH message.  It is a structure
+indicating Objects or ranges of Objects that the Publisher will deliver.
+
+~~~
+Object Filter {
+  Type (0x5),
+  Length (i),
+  Operand (7),
+  Negation Flag (1),
+  [Extension ID (i),
+  Values (i) ...
+}
+~~~
+
+Operand | Meaning
+0x0 | No Filter
+0x1 | Group ID
+0x2 | Subgroup ID
+0x3 | Object ID
+0x4 | Extension ID
+0x5 | Publisher Priority
+
+When Negation Flag is 1, the result of the filter is negated to determine which
+Objects pass the filter.
+
+Extension ID is present only when Operand is Extension ID (value 0x4) and
+indicates the Extension to filter. This MUST indicate an Extension with an
+integer type.  Objects without the Extension do not pass the filter.
+
+Values is an array of integers which encode the values of interest.  The
+remainder of the array is a sequence of pairs indicating the start and length of
+the matching range.  The Start is encoded as a delta from the previous End, or
+from 0 for the first element.  The length indicates the number of elements
+including Start to match.  An odd number of elements indicates the final range
+has no endpoint.  For example [ 10, 3, 1, 1, 20 ] would match values 10, 11, 12,
+14 and 34-max.  Only the first value can be 0.  If an endpoint receives a 0
+value anywhere else or length of the Values array exceeds TBD, it MUST reject
+the request with `INVALID_FILTER`.
+
+All filters can be removed from a Subscription by sending SUBSCRIBE_UPDATE with
+Operand No Filter.
+
+This parameter MAY appear up to TBD2 times in a request, and filters are
+cumulative.  If the parameter appears more than TBD2 times, the endpoint MUST
+reject the request with `INVALID_FILTER`. When filters are applied, delivery
+rules regarding FETCH responses are modified (see {{message-fetch}}).  In a
+filtered FETCH response, the Subscriber can only infer Objects do not exist from
+their absence if they pass all filters.  This is only possible when filtering on
+Group ID and/or Object ID, as the Subscriber lacks other fields needed to
+evaluate the filters.
+
+Publishers MUST respect Subgroup delivery rules even for filtered responses.  If
+an Object in the middle of a Subgroup is filtered out, the Publisher MUST NOT
+place another Object in that Subgroup stream (see {{closing-subgroup-streams}}).
+
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
