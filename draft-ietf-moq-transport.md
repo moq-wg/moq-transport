@@ -3241,7 +3241,7 @@ Object Extension Headers are serialized as Key-Value-Pairs (see
 Key-Value-Pairs, in bytes.
 
 ~~~
-struct Extensions {
+Extensions {
   Extension Headers Length (i),
   Extension headers (..),
 }
@@ -3284,7 +3284,7 @@ OBJECT_DATAGRAM {
   Group ID (i),
   [Object ID (i),]
   Publisher Priority (8),
-  [Extensions (..),]
+  [Extensions (Extensions),]
   [Object Status (i),]
   [Object Payload (..),]
 }
@@ -3445,7 +3445,7 @@ unless there is an Prior Object ID Gap extesnion header (see
 ~~~
 {
   Object ID Delta (i),
-  [Extensions (..)],
+  [Extensions (Extensions)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -3580,7 +3580,7 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
   Subgroup ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extensions (..),
+  Extensions (Extensions),
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
