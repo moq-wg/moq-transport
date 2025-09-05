@@ -3492,7 +3492,7 @@ Table of Contents
    Figure 2), prefixed by the length of the serialized Key-Value-Pairs,
    in bytes.
 
-   struct Extensions {
+   Extensions {
      Extension Headers Length (i),
      Extension headers (..),
    }
@@ -3534,7 +3534,7 @@ Table of Contents
      Group ID (i),
      [Object ID (i),]
      Publisher Priority (8),
-     [Extensions (..),]
+     [Extensions (Extensions),]
      [Object Status (i),]
      [Object Payload (..),]
    }
@@ -3721,7 +3721,7 @@ Table of Contents
 
    {
      Object ID Delta (i),
-     [Extensions (..)],
+     [Extensions (Extensions)],
      Object Payload Length (i),
      [Object Status (i)],
      Object Payload (..),
@@ -3864,7 +3864,7 @@ Table of Contents
      Subgroup ID (i),
      Object ID (i),
      Publisher Priority (8),
-     Extensions (..),
+     Extensions (Extensions),
      Object Payload Length (i),
      [Object Status (i)],
      Object Payload (..),

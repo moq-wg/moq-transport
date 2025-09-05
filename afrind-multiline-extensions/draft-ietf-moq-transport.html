@@ -5778,7 +5778,7 @@ and/or cached by relays.<a href="#section-10.2.1.2-5" class="pilcrow">¶</a></p>
 Key-Value-Pairs, in bytes.<a href="#section-10.2.1.2-6" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-10.2.1.2-7">
 <pre>
-struct Extensions {
+Extensions {
   Extension Headers Length (i),
   Extension headers (..),
 }
@@ -5829,7 +5829,7 @@ OBJECT_DATAGRAM {
   Group ID (i),
   [Object ID (i),]
   Publisher Priority (8),
-  [Extensions (..),]
+  [Extensions (Extensions),]
   [Object Status (i),]
   [Object Payload (..),]
 }
@@ -6165,7 +6165,7 @@ unless there is an Prior Object ID Gap extesnion header (see
 <pre>
 {
   Object ID Delta (i),
-  [Extensions (..)],
+  [Extensions (Extensions)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -6321,7 +6321,7 @@ FETCH_HEADER {
   Subgroup ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extensions (..),
+  Extensions (Extensions),
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
