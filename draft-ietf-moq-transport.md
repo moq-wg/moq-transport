@@ -478,6 +478,18 @@ Track Namespace is an ordered set of between 1 and 32 Track Namespace Fields,
 encoded as follows:
 
 ~~~
+Track Namespace {
+  Number of Track Namespace Fields (i),
+  Track Namespace Field (..) ...
+}
+~~~
+
+*  Number of Track Namespace Fields: A variable-length integer specifying
+   the number of Track Namespace Fields in the Track Namespace.
+
+Each Track Namespace Field is encoded as follows:
+
+~~~
 Track Namespace Field {
   Track Namespace Field Length (i),
   Track Namespace Field Value (..)
@@ -489,16 +501,6 @@ Track Namespace Field {
 
 * Track Namespace Field Value: A sequence of bytes that forms a Track Namespace
   Field.
-
-~~~
-Track Namespace {
-  Number of Track Namespace Fields (i),
-  Track Namespace Field (Track Namespace Field) ...
-}
-~~~
-
-*  Number of Track Namespace Fields: A variable-length integer specifying
-   the number of Track Namespace Fields in the Track Namespace.
 
 The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
