@@ -1734,13 +1734,13 @@ NOT be used by the server, or when WebTransport is used.  When an AUTHORITY
 parameter is received from a server, or when an AUTHORITY parameter is received
 while WebTransport is used, or when an AUTHORITY parameter is received by a
 server but the server does not support the specified authority, the session MUST
-be closed with Invalid Authority.
+be closed with `INVALID_AUTHORITY`.
 
 The AUTHORITY parameter follows the URI formatting rules {{!RFC3986}}.
 When connecting to a server using a URI with the "moqt" scheme, the
 client MUST set the AUTHORITY parameter to the `authority` portion of the
 URI. If an AUTHORITY parameter does not conform to
-these rules, the session MUST be closed with Malformed Authority.
+these rules, the session MUST be closed with `MALFORMED_AUTHORITY`.
 
 #### PATH {#path}
 
@@ -1749,14 +1749,14 @@ of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
 the server, or when WebTransport is used.  When a PATH parameter is received
 from a server, or when a PATH parameter is received while WebTransport is used,
 or when a PATH parameter is received by a server but the server does not
-support the specified path, the session MUST be closed with Invalid Path.
+support the specified path, the session MUST be closed with `INVALID_PATH`.
 
 The PATH parameter follows the URI formatting rules {{!RFC3986}}.
 When connecting to a server using a URI with the "moqt" scheme, the
 client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the parameter. If a PATH does not conform to
-these rules, the session MUST be closed with Malformed Path.
+these rules, the session MUST be closed with `MALFORMED_PATH`.
 
 #### MAX_REQUEST_ID {#max-request-id}
 
@@ -3266,8 +3266,8 @@ receives a datagram with an unknown Track Alias, it MAY drop the datagram or
 choose to buffer it for a brief period to handle reordering with the control
 message that establishes the Track Alias.
 
-An Object received in an `OBJECT_DATAGRAM` or `OBJECT_DATAGRAM_STATUS` message
-has an `Object Forwarding Preference` = `Datagram`.
+An Object received in an `OBJECT_DATAGRAM` message has an `Object Forwarding
+Preference` = `Datagram`.
 
 To send an Object with `Object Forwarding Preference` = `Datagram`, determine
 the length of the header and payload and send the Object as datagram.  When the
