@@ -3588,6 +3588,8 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
 
+The Extensions structure is defined in {{object-extensions}}.
+
 The Object Status field is only sent if the Object Payload Length is zero.
 
 The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
