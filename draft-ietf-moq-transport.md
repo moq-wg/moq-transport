@@ -3284,7 +3284,7 @@ OBJECT_DATAGRAM {
   Group ID (i),
   [Object ID (i),]
   Publisher Priority (8),
-  [Extensions (Extensions),]
+  [Extensions (..),]
   [Object Status (i),]
   [Object Payload (..),]
 }
@@ -3311,10 +3311,10 @@ There are 10 defined Type values for OBJECT_DATAGRAM.
 * End of Group: For Type values where End of Group is "Yes" the Object is the
   last Object in the Group.
 
-* Extensions Present: If Extensions Present is "Yes" the Extensions field is
-  included. If an endpoint receives a datagram with Extensions Present as "Yes"
-  and a Extension Headers Length of 0, it MUST close the session with
-  PROTOCOL_VIOLATION.
+* Extensions Present: If Extensions Present is "Yes" the Extensions structure
+  defined in {{object-extensions}} is included. If an endpoint receives a
+  datagram with Extensions Present as "Yes" and a Extension Headers Length of 0,
+  it MUST close the session with PROTOCOL_VIOLATION.
 
 * Object ID Present: If Object ID Present is No, the Object ID field is omitted
   and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
@@ -3423,8 +3423,8 @@ subgroup (for Types 0x12-13 and 0x1A-1B).
 
 For Type values where Extensions Present is No, the Extensions field is never
 present and all Objects have no extensions.  When Extensions Present is Yes, the
-Extensions field is present in all Objects in this subgroup.  Objects with no
-extensions set Extension Headers Length to 0.
+Extensions structure defined in {{object-extensions}} is present in all Objects
+in this subgroup.  Objects with no extensions set Extension Headers Length to 0.
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
@@ -3445,7 +3445,7 @@ unless there is an Prior Object ID Gap extesnion header (see
 ~~~
 {
   Object ID Delta (i),
-  [Extensions (Extensions)],
+  [Extensions (..)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -3580,7 +3580,7 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
   Subgroup ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extensions (Extensions),
+  Extensions (..),
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
