@@ -3873,6 +3873,8 @@ Table of Contents
 
                     Figure 35: MOQT Fetch Object Fields
 
+   The Extensions structure is defined in Section 10.2.1.2.
+
    The Object Status field is only sent if the Object Payload Length is
    zero.
 
