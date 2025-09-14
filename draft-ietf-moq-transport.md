@@ -2213,106 +2213,6 @@ UNSUBSCRIBE Message {
 * Request ID: The Request ID of the subscription that is being terminated. See
   {{message-subscribe-req}}.
 
-## PUBLISH_DONE {#message-publish-done}
-
-A publisher sends a `PUBLISH_DONE` message to indicate it is done publishing
-Objects for that subscription.  The Status Code indicates why the subscription
-ended, and whether it was an error. Because PUBLISH_DONE is sent on the control
-stream, it is likely to arrive at the receiver before late-arriving objects, and
-often even late-opening streams. However, the receiver uses it as an indication
-that it should receive any late-opening streams in a relatively short time.
-
-Note that some objects in the subscribed track might never be delivered,
-because a stream was reset, or never opened in the first place, due to the
-delivery timeout.
-
-A sender MUST NOT send PUBLISH_DONE until it has closed all streams it will ever
-open, and has no further datagrams to send, for a subscription. After sending
-PUBLISH_DONE, the sender can immediately destroy subscription state, although
-stream state can persist until delivery completes. The sender might persist
-subscription state to enforce the delivery timeout by resetting streams on which
-it has already sent FIN, only deleting it when all such streams have received
-ACK of the FIN.
-
-A sender MUST NOT destroy subscription state until it sends PUBLISH_DONE, though
-it can choose to stop sending objects (and thus send PUBLISH_DONE) for any
-reason.
-
-A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least its
-delivery timeout in case some objects are still inbound due to prioritization or
-packet loss. The subscriber MAY dispense with a timer if it sent UNSUBSCRIBE or
-is otherwise no longer interested in objects from the track. Once the timer has
-expired, the receiver destroys subscription state once all open streams for the
-subscription have closed. A subscriber MAY discard subscription state earlier,
-at the cost of potentially not delivering some late objects to the
-application. The subscriber SHOULD send STOP_SENDING on all streams related to
-the subscription when it deletes subscription state.
-
-The format of `PUBLISH_DONE` is as follows:
-
-~~~
-PUBLISH_DONE Message {
-  Type (i) = 0xB,
-  Length (16),
-  Request ID (i),
-  Status Code (i),
-  Stream Count (i),
-  Error Reason (Reason Phrase)
-}
-~~~
-{: #moq-transport-subscribe-fin-format title="MOQT PUBLISH_DONE Message"}
-
-* Request ID: The Request ID of the subscription that is being terminated. See
-  {{message-subscribe-req}}.
-
-* Status Code: An integer status code indicating why the subscription ended.
-
-* Stream Count: An integer indicating the number of data streams the publisher
-opened for this subscription.  This helps the subscriber know if it has received
-all of the data published in this subscription by comparing the number of
-streams received.  The subscriber can immediately remove all subscription state
-once the same number of streams have been processed.  If the track had
-Forwarding Preference = Datagram, the publisher MUST set Stream Count to 0.  If
-the publisher is unable to set Stream Count to the exact number of streams
-opened for the subscription, it MUST set Stream Count to 2^62 - 1. Subscribers
-SHOULD use a timeout or other mechanism to remove subscription state in case
-the publisher set an incorrect value, reset a stream before the SUBGROUP_HEADER,
-or set the maximum value.  If a subscriber receives more streams for a
-subscription than specified in Stream Count, it MAY close the session with a
-`PROTOCOL_VIOLATION`.
-
-* Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
-
-The application SHOULD use a relevant status code in PUBLISH_DONE, as defined
-below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The subscriber is no longer authorized to subscribe to the given track.
-
-TRACK_ENDED (0x2):
-: The track is no longer being published.
-
-SUBSCRIPTION_ENDED (0x3):
-: The publisher reached the end of an associated Subscribe filter.
-
-GOING_AWAY (0x4):
-: The subscriber or publisher issued a GOAWAY message.
-
-EXPIRED (0x5):
-: The publisher reached the timeout specified in SUBSCRIBE_OK.
-
-TOO_FAR_BEHIND (0x6):
-: The publisher's queue of objects to be sent to the given subscriber exceeds
-  its implementation defined limit.
-
-MALFORMED_TRACK (0x7):
-: A relay publisher detected the track was malformed (see
-  {{malformed-tracks}}).
-
-
 ## PUBLISH {#message-publish}
 
 The publisher sends the PUBLISH control message to initiate a subscription to a
@@ -2453,6 +2353,105 @@ NOT_SUPPORTED (0x3):
 
 UNINTERESTED (0x4):
 : The namespace or track is not of interest to the endpoint.
+
+## PUBLISH_DONE {#message-publish-done}
+
+A publisher sends a `PUBLISH_DONE` message to indicate it is done publishing
+Objects for that subscription.  The Status Code indicates why the subscription
+ended, and whether it was an error. Because PUBLISH_DONE is sent on the control
+stream, it is likely to arrive at the receiver before late-arriving objects, and
+often even late-opening streams. However, the receiver uses it as an indication
+that it should receive any late-opening streams in a relatively short time.
+
+Note that some objects in the subscribed track might never be delivered,
+because a stream was reset, or never opened in the first place, due to the
+delivery timeout.
+
+A sender MUST NOT send PUBLISH_DONE until it has closed all streams it will ever
+open, and has no further datagrams to send, for a subscription. After sending
+PUBLISH_DONE, the sender can immediately destroy subscription state, although
+stream state can persist until delivery completes. The sender might persist
+subscription state to enforce the delivery timeout by resetting streams on which
+it has already sent FIN, only deleting it when all such streams have received
+ACK of the FIN.
+
+A sender MUST NOT destroy subscription state until it sends PUBLISH_DONE, though
+it can choose to stop sending objects (and thus send PUBLISH_DONE) for any
+reason.
+
+A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least its
+delivery timeout in case some objects are still inbound due to prioritization or
+packet loss. The subscriber MAY dispense with a timer if it sent UNSUBSCRIBE or
+is otherwise no longer interested in objects from the track. Once the timer has
+expired, the receiver destroys subscription state once all open streams for the
+subscription have closed. A subscriber MAY discard subscription state earlier,
+at the cost of potentially not delivering some late objects to the
+application. The subscriber SHOULD send STOP_SENDING on all streams related to
+the subscription when it deletes subscription state.
+
+The format of `PUBLISH_DONE` is as follows:
+
+~~~
+PUBLISH_DONE Message {
+  Type (i) = 0xB,
+  Length (16),
+  Request ID (i),
+  Status Code (i),
+  Stream Count (i),
+  Error Reason (Reason Phrase)
+}
+~~~
+{: #moq-transport-subscribe-fin-format title="MOQT PUBLISH_DONE Message"}
+
+* Request ID: The Request ID of the subscription that is being terminated. See
+  {{message-subscribe-req}}.
+
+* Status Code: An integer status code indicating why the subscription ended.
+
+* Stream Count: An integer indicating the number of data streams the publisher
+opened for this subscription.  This helps the subscriber know if it has received
+all of the data published in this subscription by comparing the number of
+streams received.  The subscriber can immediately remove all subscription state
+once the same number of streams have been processed.  If the track had
+Forwarding Preference = Datagram, the publisher MUST set Stream Count to 0.  If
+the publisher is unable to set Stream Count to the exact number of streams
+opened for the subscription, it MUST set Stream Count to 2^62 - 1. Subscribers
+SHOULD use a timeout or other mechanism to remove subscription state in case
+the publisher set an incorrect value, reset a stream before the SUBGROUP_HEADER,
+or set the maximum value.  If a subscriber receives more streams for a
+subscription than specified in Stream Count, it MAY close the session with a
+`PROTOCOL_VIOLATION`.
+
+* Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
+
+The application SHOULD use a relevant status code in PUBLISH_DONE, as defined
+below:
+
+INTERNAL_ERROR (0x0):
+: An implementation specific or generic error occurred.
+
+UNAUTHORIZED (0x1):
+: The subscriber is no longer authorized to subscribe to the given track.
+
+TRACK_ENDED (0x2):
+: The track is no longer being published.
+
+SUBSCRIPTION_ENDED (0x3):
+: The publisher reached the end of an associated Subscribe filter.
+
+GOING_AWAY (0x4):
+: The subscriber or publisher issued a GOAWAY message.
+
+EXPIRED (0x5):
+: The publisher reached the timeout specified in SUBSCRIBE_OK.
+
+TOO_FAR_BEHIND (0x6):
+: The publisher's queue of objects to be sent to the given subscriber exceeds
+  its implementation defined limit.
+
+MALFORMED_TRACK (0x7):
+: A relay publisher detected the track was malformed (see
+  {{malformed-tracks}}).
 
 ## FETCH {#message-fetch}
 
