@@ -1248,6 +1248,37 @@ all active subscriptions to the new relay. The new relay will send a
 response to the subscribes and if they are successful, the subscriptions
 to the old relay can be stopped with an UNSUBSCRIBE.
 
+### Joining an Ongoing Track
+
+The MoQ Object model is designed with the concept that the beginning of
+a Group is a joint point, so in order for a subscriber to join a Track,
+it needs to request an existing or future Group.  Different applications will
+have different approaches for when to begin a new Group.
+
+To join a Track at a past Group, a SUBSCRIBE for Largest Object followed
+by a Joining FETCH for the intended start Group can be sent.  To join a Track
+at the next Group, a SUBSCRIBE for Next Group Start can be sent.
+
+#### Dynamically Starting New Groups
+
+Some applications might want to only begin a new Group when needed, because
+the information needed to join a Track is large relative to the incremental
+information in other Objects.  Additionally, it is ideal to only contact the
+original publisher for a new Group when it's been long enough since a prior
+Group was published to avoid overwhelming the Original Publisher.
+
+This can be achieved by having the subscriber join a Track at the largest Group
+(A Joining Relative Fetch with Joining Start = 0) and Publisher specifying
+a MAX_CACHE_DURATION that is the minimum interval at which it's willing to
+start a new Group.
+
+If there are no subscribers, the subscription will go to the Original Publisher
+and it can begin a Group. If a largest Group has been produced and is still
+cached in a Relay, it is returned and the new subscriber joins.  If a largest
+Group has ben produced, but it is not cached, the subscription will go to the
+Original Publisher and the Original Publisher can begin a new Group and return
+that to the newly joining subcriber.
+
 
 ## Publisher Interactions
 
