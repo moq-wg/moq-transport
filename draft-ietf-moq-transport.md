@@ -3590,25 +3590,25 @@ following code points are defined:
 
 | Code | Group ID | Subgroup<br>ID | Object<br>ID | Publisher<br>Priority | Extension<br>Headers<br>Length |
 |------|----------|----------|-----------|-----------|----------------|
-| 0x0	 | Yes      | Yes      | Yes       | Yes       | Yes            |
+| 0x0  | Yes      | Yes      | Yes       | Yes       | Yes            |
 |------|----------|----------|-----------|-----------|----------------|
-| 0x1	 | Yes      | Yes      | Yes       | Yes       | 0              |
+| 0x1  | Yes      | Yes      | Yes       | Yes       | 0              |
 |------|----------|----------|-----------|-----------|----------------|
-| 0x2	 | Yes      | 0        | 0         | Yes       | Yes            |
+| 0x2  | Yes      | 0        | 0         | Yes       | Yes            |
 |------|----------|----------|-----------|-----------|----------------|
-| 0x3	 | Yes      | 0        | 0         | Yes       | 0              |
+| 0x3  | Yes      | 0        | 0         | Yes       | 0              |
 |------|----------|----------|-----------|-----------|----------------|
-| 0x4	 | Prior    | Prior    | Prior + 1 | Prior     | Yes            |
+| 0x4  | Prior    | Prior    | Prior + 1 | Prior     | Yes            |
 |------|----------|----------|-----------|-----------|----------------|
-| 0x5	 | Prior    | Prior    | Prior + 1 | Prior     | 0              |
+| 0x5  | Prior    | Prior    | Prior + 1 | Prior     | 0              |
 |------|----------|----------|-----------|-----------|----------------|
-| 0x6	 | Prior    | Prior +1 | Prior + 1 | Yes       | Yes            |
+| 0x6  | Prior    | Prior +1 | Prior + 1 | Yes       | Yes            |
 |------|----------|----------|-----------|-----------|----------------|
-| 0x7	 | Prior    | Prior +1 | Prior + 1 | Yes       | 0              |
+| 0x7  | Prior    | Prior +1 | Prior + 1 | Yes       | 0              |
 |------|----------|----------|-----------|-----------|----------------|
-| 0x8	 | Prior    | 0        | Prior + 1 | Yes       | Yes            |
+| 0x8  | Prior    | 0        | Prior + 1 | Yes       | Yes            |
 |------|----------|----------|-----------|-----------|----------------|
-| 0x9	 | Prior    | 0        | Prior + 1 | Yes       | 0              |
+| 0x9  | Prior    | 0        | Prior + 1 | Yes       | 0              |
 |------|----------|----------|-----------|-----------|----------------|
 
 'Yes' indicates that the field is serialized and holds a value.
