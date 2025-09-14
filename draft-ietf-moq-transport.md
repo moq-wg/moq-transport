@@ -2988,7 +2988,7 @@ SUBSCRIBE_NAMESPACE Message {
   Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
- 
+
 * Forward: The Forward value that new subscriptions resulting from this
   SUBSCRIBE_NAMESPACE will have. If 0, the subscriber will be notified of all
   available tracks in the namespace, but not receive Objects unless it changes
