@@ -3000,7 +3000,15 @@ SUBSCRIBE_NAMESPACE Message {
   Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}. Any
+  parameter that is applicable to a subscription, such as DELIVERY TIMEOUT,
+  SHOULD be applied to any subscriptions that result from the
+  SUBSCRIBE_ANNOUNCES.  This enables a user of SUBSCRIBE_ANNOUNCES to specify
+  defaults for any resulting subscriptions. When a PUBLISH is caused by a
+  SUBSCRIBE_ANNOUNCES the publisher SHOULD copy any parameters that are
+  relevant to the subscription into the PUBLISH parameters. The publisher
+  SHOULD NOT copy any parameters it does not understand. The subscriber
+  then has the option to override any specified parameters in PUBLISH_OK.
 
 The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
 SUBSCRIBE_NAMESPACE_ERROR.  If the SUBSCRIBE_NAMESPACE is successful, the
