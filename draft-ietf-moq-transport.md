@@ -3137,11 +3137,11 @@ the type of the stream in question.
 All MOQT datagrams start with a variable-length integer indicating the type of
 the datagram.
 
-|-------------------|-------------------------------------------|
-| ID                | Type                                      |
-|------------------:|:------------------------------------------|
-| 0x00-0x07,0x20-21 | OBJECT_DATAGRAM ({{object-datagram}})     |
-|-------------------|-------------------------------------------|
+|---------------------------|-------------------------------------------|
+| ID                        | Type                                      |
+|--------------------------:|:------------------------------------------|
+| 0x00-0x07,0x20-21,0x24-25 | OBJECT_DATAGRAM ({{object-datagram}})     |
+|---------------------------|-------------------------------------------|
 
 An endpoint that receives an unknown stream or datagram type MUST close the
 session.
@@ -3308,7 +3308,7 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x0-0x7,0x20-21
+  Type (i) = 0x0-0x7,0x20-21,0x24-25
   Track Alias (i),
   Group ID (i),
   [Object ID (i),]
@@ -3336,6 +3336,8 @@ There are 10 defined Type values for OBJECT_DATAGRAM.
 | 0x07 | Yes | Yes | No | Payload |
 | 0x20 | No | No | Yes | Status |
 | 0x21 | No | Yes | Yes | Status |
+| 0x24 | No | No | No | Status |
+| 0x25 | No | Yes | No | Status |
 
 * End of Group: For Type values where End of Group is "Yes" the Object is the
   last Object in the Group.
@@ -3358,7 +3360,7 @@ There are 10 defined Type values for OBJECT_DATAGRAM.
     There is no explicit length field for the Object Payload. The entirety of the
     transport datagram following the Object header fields contains the payload.
 
-  * For Type values 0x20 and 0x21, the Object Status field is present
+  * For Type values 0x20, 0x21, 0x24 and 0x25 the Object Status field is present
     and there is no Object Payload.
 
 
