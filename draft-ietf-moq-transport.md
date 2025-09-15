@@ -887,7 +887,8 @@ Forward State is 1, the publisher sends objects.  The initiator of the
 subscription sets the initial Forward State in either PUBLISH or SUBSCRIBE.  The
 sender of PUBLISH_OK can update the Forward State based on its preference.  Once
 the subscription is established, the subscriber can update the Forward State by
-sending SUBSCRIBE_UPDATE.
+sending SUBSCRIBE_UPDATE.  Control messages, such as PUBLISH_DONE
+({{message-publish-done}}) are still sent on subscriptions in Forward State 0.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -903,8 +904,7 @@ forwarded back to the endpoint, subject to priority and congestion response
 rules.
 
 A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
-a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
-FETCH. A subscriber MUST send exactly one PUBLISH_OK or PUBLISH_ERROR in
+a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or PUBLISH_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
@@ -918,37 +918,94 @@ with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 {{datagrams}} and {{subgroup-header}}).
 
+### Subscription State Management
+
 A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
 receipt of a PUBLISH_DONE or SUBSCRIBE_ERROR. Note that PUBLISH_DONE does not
 usually indicate that state can immediately be destroyed, see
 {{message-publish-done}}.
+
+The Publisher can destroy subscription state as soon as it has received
+UNSUBSCRIBE. It MUST reset any open streams associated with the SUBSCRIBE.
+
+The publisher can immediately delete subscription state after sending
+PUBLISH_DONE, but MUST NOT send it until it has closed all related streams.
+
+A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
+immediately destroy relevant state. Objects MUST NOT be sent for requests that
+end with an error.
+
+### Subscription Filters
+
+The subscriber specifies a filter on the subscription to allow
+the publisher to identify which objects need to be delivered.
+
+All filters have a Start Location and an optional End Group.  Only objects
+published or received via a subscription having Locations greater than or
+equal to Start and strictly less than or equal to the End Group (when
+present) pass the filter.
+
+The `Largest Object` is defined to be the object with the largest Location
+({{location-structure}}) in the track from the perspective of the endpoint
+processing the SUBSCRIBE message. Largest Object updates when the first byte of
+an Object with a larger Location than the previous value is published or
+received through a subscription.
+
+There are 4 types of filters:
+
+Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
+Largest Object.Object + 1}` and `Largest Object` is communicated in
+SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
+{0, 0}. There is no End Group - the subscription is open ended.  Note that due
+to network reordering or prioritization, relays can receive Objects with
+Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
+these Objects do not pass the Largest Object filter.
+
+Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
+0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
+delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
+the subscription is open ended. For scenarios where the subscriber intends to
+start from more than one group in the future, it can use an AbsoluteStart filter
+instead.
+
+AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
+SUBSCRIBE message. The `Start` specified in the SUBSCRIBE message MAY be less
+than the `Largest Object` observed at the publisher. There is no End Group - the
+subscription is open ended.  To receive all Objects that are published or are
+received after this subscription is processed, a subscriber can use an
+AbsoluteStart filter with `Start` = {0, 0}.
+
+AbsoluteRange (0x4):  The filer Start Location and End Group are specified
+explicitly in the SUBSCRIBE message. The `Start` specified in the SUBSCRIBE
+message MAY be less than the `Largest Object` observed at the publisher. If the
+specified `End Group` is the same group specified in `Start`, the remainder of
+that Group passes the filter. `End Group` MUST specify the same or a larger Group
+than specified in `Start`.
+
+An endpoint that receives a filter type other than the above MUST close the
+session with a `PROTOCOL_VIOLATION`.
+
+## Fetch State Management
+
+The publisher MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
+FETCH.
 
 A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
 FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
 data stream is already open, it MAY send STOP_SENDING for the data stream along
 with FETCH_CANCEL, but MUST send FETCH_CANCEL.
 
-The Publisher can destroy subscription or fetch state as soon as it has received
-UNSUBSCRIBE or FETCH_CANCEL, respectively. It MUST reset any open streams
-associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
-the FETCH data stream.
+The Publisher can destroy fetch state as soon as it has received a
+FETCH_CANCEL. It MUST reset any open streams associated with the FETCH. It can
+also destroy state after closing the FETCH data stream.
 
-The publisher can immediately delete subscription state after sending
-PUBLISH_DONE, but MUST NOT send it until it has closed all related streams. It
-can destroy all FETCH state after closing the data stream.
-
-A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
-immediately destroy relevant state. Objects MUST NOT be sent for requests that
-end with an error.
+It can destroy all FETCH state after closing the data stream.
 
 A FETCH_ERROR indicates that both endpoints can immediately destroy state.
 Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
 results in error.
 
-The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
-to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in {{track-scope}}.
 
 # Namespace Discovery {#track-discovery}
 
@@ -1181,6 +1238,14 @@ duplicate object in this case.
 A cache MUST store all properties of an Object defined in
 {{object-properties}}, with the exception of any extensions
 ({{object-extensions}}) that specify otherwise.
+
+## Forward Handling
+
+Relays SHOULD set the `Forward` flag to 1 when a new subscription needs to be
+sent upstream, regardless of the value of the `Forward` field from the
+downstream subscription. Subscriptions that are not forwarded consume resources
+from the publisher, so a publisher might deprioritize, reject, or close those
+subscriptions to ensure other subscriptions can be delivered.
 
 ## Multiple Publishers
 
@@ -1486,6 +1551,10 @@ be sent in a single message. Receivers SHOULD check that there are no
 unauthorized duplicate parameters and close the session as a
 `PROTOCOL_VIOLATION` if found.  Receivers MUST allow duplicates of unknown
 parameters.
+
+The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
+to alter the payload of the objects it sends, as that would violate the track
+uniqueness guarantee described in {{track-scope}}.
 
 Receivers ignore unrecognized parameters.
 
@@ -1896,69 +1965,8 @@ A subscription causes the publisher to send newly published objects for a track.
 A subscriber MUST NOT make multiple active subscriptions for a track within a
 single session and publishers SHOULD treat this as a protocol violation.
 
-**Filter Types**
-
-The subscriber specifies a filter on the subscription to allow
-the publisher to identify which objects need to be delivered.
-
-All filters have a Start Location and an optional End Group.  Only objects
-published or received via a subscription having Locations greater than or
-equal to Start and strictly less than or equal to the End Group (when
-present) pass the filter.
-
-The `Largest Object` is defined to be the object with the largest Location
-({{location-structure}}) in the track from the perspective of the endpoint
-processing the SUBSCRIBE message. Largest Object updates when the first byte of
-an Object with a larger Location than the previous value is published or
-received through a subscription.
-
-There are 4 types of filters:
-
-Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
-Largest Object.Object + 1}` and `Largest Object` is communicated in
-SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
-{0, 0}. There is no End Group - the subscription is open ended.  Note that due
-to network reordering or prioritization, relays can receive Objects with
-Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
-these Objects do not pass the Largest Object filter.
-
-Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
-0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
-delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
-the subscription is open ended. For scenarios where the subscriber intends to
-start from more than one group in the future, it can use an AbsoluteStart filter
-instead.
-
-AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
-SUBSCRIBE message. The `Start` specified in the SUBSCRIBE message MAY be less
-than the `Largest Object` observed at the publisher. There is no End Group - the
-subscription is open ended.  To receive all Objects that are published or are
-received after this subscription is processed, a subscriber can use an
-AbsoluteStart filter with `Start` = {0, 0}.
-
-AbsoluteRange (0x4):  The filer Start Location and End Group are specified
-explicitly in the SUBSCRIBE message. The `Start` specified in the SUBSCRIBE
-message MAY be less than the `Largest Object` observed at the publisher. If the
-specified `End Group` is the same group specified in `Start`, the remainder of
-that Group passes the filter. `End Group` MUST specify the same or a larger Group
-than specified in `Start`.
-
-An endpoint that receives a filter type other than the above MUST close the
-session with a `PROTOCOL_VIOLATION`.
-
 Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
-
-A Subscription can also request a publisher to not forward Objects for a given
-track by setting the `Forward` field to 0. This allows the publisher or relay to
-prepare to serve the subscription in advance, reducing the time to receive
-objects in the future. Relays SHOULD set the `Forward` flag to 1 if a new
-subscription needs to be sent upstream, regardless of the value of the `Forward`
-field from the downstream subscription. Subscriptions that are not forwarded
-consume resources from the publisher, so a publisher might deprioritize, reject,
-or close those subscriptions to ensure other subscriptions can be delivered.
-Control messages, such as SUBCRIBE_DONE ({{message-publish-done}}) are still
-sent.
 
 The format of SUBSCRIBE is as follows:
 
@@ -2002,6 +2010,9 @@ used. Values larger than 0x2 are a protocol error.
 to the subscriber. If 0, Objects are not forwarded to the subscriber.
 Any other value is a protocol error and the subscriber MUST terminate the
 session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
+
+Subscribing with Forward=0 allows publisher or relay to prepare to serve the
+subscription in advance, reducing the time to receive objects in the future.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the Start and End Group fields will be present.
