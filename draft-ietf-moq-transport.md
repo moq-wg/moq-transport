@@ -3249,7 +3249,15 @@ definition of the extension, Extension Headers MAY be modified, added, removed,
 and/or cached by relays.
 
 Object Extension Headers are serialized as Key-Value-Pairs (see
-{{moq-key-value-pair}}).
+{{moq-key-value-pair}}), prefixed by the length of the serialized
+Key-Value-Pairs, in bytes.
+
+~~~
+Extensions {
+  Extension Headers Length (i),
+  Extension headers (..),
+}
+~~~
 
 Header types are registered in the IANA table 'MOQ Extension Headers'.
 See {{iana}}.
@@ -3288,8 +3296,7 @@ OBJECT_DATAGRAM {
   Group ID (i),
   [Object ID (i),]
   Publisher Priority (8),
-  [Extension Headers Length (i),
-  Extension headers (...)],
+  [Extensions (..),]
   [Object Status (i),]
   [Object Payload (..),]
 }
@@ -3316,8 +3323,8 @@ There are 10 defined Type values for OBJECT_DATAGRAM.
 * End of Group: For Type values where End of Group is "Yes" the Object is the
   last Object in the Group.
 
-* Extensions Present: If Extensions Present is "Yes" the Extension Headers
-  Length and Extension headers fields are included. If an endpoint receives a
+* Extensions Present: If Extensions Present is "Yes" the Extensions structure
+  defined in {{object-extensions}} is included. If an endpoint receives a
   datagram with Extensions Present as "Yes" and a Extension Headers Length of 0,
   it MUST close the session with a `PROTOCOL_VIOLATION`.
 
@@ -3426,10 +3433,10 @@ Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
 0x10-11 and 0x18-19) or the Object ID of the first object transmitted in this
 subgroup (for Types 0x12-13 and 0x1A-1B).
 
-For Type values where Extensions Present is No, Extensions Headers Length is
-not present and all Objects have no extensions.  When Extensions Present is
-Yes, Extension Headers Length is present in all Objects in this subgroup.
-Objects with no extensions set Extension Headers Length to 0.
+For Type values where Extensions Present is No, the Extensions field is never
+present and all Objects have no extensions.  When Extensions Present is Yes, the
+Extensions structure defined in {{object-extensions}} is present in all Objects
+in this subgroup.  Objects with no extensions set Extension Headers Length to 0.
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
@@ -3450,8 +3457,7 @@ unless there is an Prior Object ID Gap extesnion header (see
 ~~~
 {
   Object ID Delta (i),
-  [Extension Headers Length (i),
-  Extension headers (...)],
+  [Extensions (..)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -3586,14 +3592,15 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
   Subgroup ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extension Headers Length (i),
-  [Extension headers (...)],
+  Extensions (..),
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
 }
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
+
+The Extensions structure is defined in {{object-extensions}}.
 
 The Object Status field is only sent if the Object Payload Length is zero.
 
