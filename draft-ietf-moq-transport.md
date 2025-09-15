@@ -410,7 +410,7 @@ scheduling of sending data on active streams.
 
 Every object within a Group belongs to exactly one Subgroup.
 
-When Objects are transported in a stream that is not a response to a FETCH, Objects
+When Objects are sent in a subscription (see {{subscriptions}}),  Objects
 from two subgroups cannot be sent on the same stream, and Objects from the
 same Subgroup MUST NOT be sent on different streams, unless one of the streams
 was reset prematurely, or upstream conditions have forced objects from a Subgroup
@@ -1471,8 +1471,9 @@ increments by 2 with each FETCH, SUBSCRIBE, SUBSCRIBE_UPDATE,
 SUBSCRIBE_NAMESPACE, PUBLISH, PUBLISH_NAMESPACE or TRACK_STATUS request.
 Other messages with a Request ID field reference the Request ID of another
 message for correlation. If an endpoint receives a Request ID that is not valid
-for the peer, or a new request with a Request ID that is not expected, it MUST
-close the session with `INVALID_REQUEST_ID`.
+for the peer, or a new request with a Request ID that is not the next in
+sequence or exceeds the received MAX_REQUEST_ID, it MUST close the session with
+`INVALID_REQUEST_ID`.
 
 ## Parameters {#params}
 
@@ -1557,10 +1558,10 @@ Token {
 |------|------------|------------------------------------------------------|
 
 
-* Token Alias - a Session-and-endpoint-specific integer identifier that references
-  a Token Value. There are separate Alias spaces for the client and server (e.g.:
-  they can each register Alias=1). Once a Token Alias has been registered, it
-  cannot be re-registered by the same endpoint in the Session without first being
+* Token Alias - a Session-specific integer identifier that references a Token
+  Value. There are separate Alias spaces for the client and server (e.g.: they
+  can each register Alias=1). Once a Token Alias has been registered, it cannot
+  be re-registered by the same endpoint in the Session without first being
   deleted. Use of the Token Alias is optional.
 
 * Token Type - a numeric identifier for the type of Token payload being
@@ -2305,8 +2306,7 @@ PUBLISH_OK Message {
 * Group Order: Indicates the subscription will be delivered in
   Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
   Values of 0x0 and those larger than 0x2 are a protocol error. This
-  overwrites the GroupOrder specified in the PUBLISH this message is
-  replying to.
+  overwrites the GroupOrder specified in the corresponding PUBLISH message.
 
 * Filter Type, Start Location, End Group: See {{message-subscribe-req}}.
 
@@ -3177,6 +3177,8 @@ Publisher determines the Forwarding Preference for the entire Track, and is a
 Track property that is implicitly signaled by the delivery of any Object using
 either Subgroups or Datagrams. Once the property is established for one Object
 of a Track, the same value MUST be used for all Objects of the Track.
+In a subscription, an Object MUST be sent according to its `Object Forwarding
+Preference`.
 
 * Subgroup ID: The object is a member of the indicated subgroup ID ({{model-subgroup}})
 within the group. This field is omitted if the Object Forwarding Preference is
