@@ -112,6 +112,9 @@ Table of Contents
    4.  Modularity
    5.  Publishing and Retrieving Tracks
      5.1.  Subscriptions
+       5.1.1.  Subscription State Management
+       5.1.2.  Subscription Filters
+     5.2.  Fetch State Management
    6.  Namespace Discovery
      6.1.  Subscribing to Namespaces
      6.2.  Publishing Namespaces
@@ -121,13 +124,14 @@ Table of Contents
      7.3.  Considerations for Setting Priorities
    8.  Relays
      8.1.  Caching Relays
-     8.2.  Multiple Publishers
-     8.3.  Subscriber Interactions
-       8.3.1.  Graceful Subscriber Relay Switchover
-     8.4.  Publisher Interactions
-       8.4.1.  Graceful Publisher Network Switchover
-       8.4.2.  Graceful Publisher Relay Switchover
-     8.5.  Relay Object Handling
+     8.2.  Forward Handling
+     8.3.  Multiple Publishers
+     8.4.  Subscriber Interactions
+       8.4.1.  Graceful Subscriber Relay Switchover
+     8.5.  Publisher Interactions
+       8.5.1.  Graceful Publisher Network Switchover
+       8.5.2.  Graceful Publisher Relay Switchover
+     8.6.  Relay Object Handling
    9.  Control Messages
      9.1.  Request ID
      9.2.  Parameters
@@ -1017,7 +1021,9 @@ Table of Contents
    State in either PUBLISH or SUBSCRIBE.  The sender of PUBLISH_OK can
    update the Forward State based on its preference.  Once the
    subscription is established, the subscriber can update the Forward
-   State by sending SUBSCRIBE_UPDATE.
+   State by sending SUBSCRIBE_UPDATE.  Control messages, such as
+   PUBLISH_DONE (Section 9.15) are still sent on subscriptions in
+   Forward State 0.
 
    Either endpoint can initiate a subscription to a track without
    exchanging any prior messages other than SETUP.  Relays MUST NOT send
@@ -1033,9 +1039,8 @@ Table of Contents
    endpoint, subject to priority and congestion response rules.
 
    A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in
-   response to a SUBSCRIBE.  It MUST send exactly one FETCH_OK or
-   FETCH_ERROR in response to a FETCH.  A subscriber MUST send exactly
-   one PUBLISH_OK or PUBLISH_ERROR in response to a PUBLISH.  The peer
+   response to a SUBSCRIBE.  A subscriber MUST send exactly one
+   PUBLISH_OK or PUBLISH_ERROR in response to a PUBLISH.  The peer
    SHOULD close the session with a protocol error if it receives more
    than one.
 
@@ -1050,10 +1055,83 @@ Table of Contents
    dropping Objects if its buffering limits are exceeded (see
    Section 10.3 and Section 10.4.2).
 
+5.1.1.  Subscription State Management
+
    A subscriber keeps subscription state until it sends UNSUBSCRIBE, or
    after receipt of a PUBLISH_DONE or SUBSCRIBE_ERROR.  Note that
    PUBLISH_DONE does not usually indicate that state can immediately be
    destroyed, see Section 9.15.
+
+   The Publisher can destroy subscription state as soon as it has
+   received UNSUBSCRIBE.  It MUST reset any open streams associated with
+   the SUBSCRIBE.
+
+   The publisher can immediately delete subscription state after sending
+   PUBLISH_DONE, but MUST NOT send it until it has closed all related
+   streams.
+
+   A SUBSCRIBE_ERROR indicates no objects will be delivered, and both
+   endpoints can immediately destroy relevant state.  Objects MUST NOT
+   be sent for requests that end with an error.
+
+5.1.2.  Subscription Filters
+
+   The subscriber specifies a filter on the subscription to allow the
+   publisher to identify which objects need to be delivered.
+
+   All filters have a Start Location and an optional End Group.  Only
+   objects published or received via a subscription having Locations
+   greater than or equal to Start and strictly less than or equal to the
+   End Group (when present) pass the filter.
+
+   The Largest Object is defined to be the object with the largest
+   Location (Section 1.4.1) in the track from the perspective of the
+   endpoint processing the SUBSCRIBE message.  Largest Object updates
+   when the first byte of an Object with a larger Location than the
+   previous value is published or received through a subscription.
+
+   There are 4 types of filters:
+
+   Largest Object (0x2): The filter Start Location is {Largest
+   Object.Group, Largest Object.Object + 1} and Largest Object is
+   communicated in SUBSCRIBE_OK.  If no content has been delivered yet,
+   the filter Start Location is {0, 0}. There is no End Group - the
+   subscription is open ended.  Note that due to network reordering or
+   prioritization, relays can receive Objects with Locations smaller
+   than Largest Object after the SUBSCRIBE is processed, but these
+   Objects do not pass the Largest Object filter.
+
+   Next Group Start (0x1): The filter Start Location is {Largest
+   Object.Group + 1, 0} and Largest Object is communicated in
+   SUBSCRIBE_OK.  If no content has been delivered yet, the filter Start
+   Location is {0, 0}.  There is no End Group - the subscription is open
+   ended.  For scenarios where the subscriber intends to start from more
+   than one group in the future, it can use an AbsoluteStart filter
+   instead.
+
+   AbsoluteStart (0x3): The filter Start Location is specified
+   explicitly in the SUBSCRIBE message.  The Start specified in the
+   SUBSCRIBE message MAY be less than the Largest Object observed at the
+   publisher.  There is no End Group - the subscription is open ended.
+   To receive all Objects that are published or are received after this
+   subscription is processed, a subscriber can use an AbsoluteStart
+   filter with Start = {0, 0}.
+
+   AbsoluteRange (0x4): The filer Start Location and End Group are
+   specified explicitly in the SUBSCRIBE message.  The Start specified
+   in the SUBSCRIBE message MAY be less than the Largest Object observed
+   at the publisher.  If the specified End Group is the same group
+   specified in Start, the remainder of that Group passes the filter.
+   End Group MUST specify the same or a larger Group than specified in
+   Start.
+
+   An endpoint that receives a filter type other than the above MUST
+   close the session with a PROTOCOL_VIOLATION.
+
+5.2.  Fetch State Management
+
+   The publisher MUST send exactly one FETCH_OK or FETCH_ERROR in
+   response to a FETCH.
 
    A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
    FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data
@@ -1061,28 +1139,17 @@ Table of Contents
    for the data stream along with FETCH_CANCEL, but MUST send
    FETCH_CANCEL.
 
-   The Publisher can destroy subscription or fetch state as soon as it
-   has received UNSUBSCRIBE or FETCH_CANCEL, respectively.  It MUST
-   reset any open streams associated with the SUBSCRIBE or FETCH.  It
-   can also destroy state after closing the FETCH data stream.
-
-   The publisher can immediately delete subscription state after sending
-   PUBLISH_DONE, but MUST NOT send it until it has closed all related
-   streams.  It can destroy all FETCH state after closing the data
+   The Publisher can destroy fetch state as soon as it has received a
+   FETCH_CANCEL.  It MUST reset any open streams associated with the
+   FETCH.  It can also destroy state after closing the FETCH data
    stream.
 
-   A SUBSCRIBE_ERROR indicates no objects will be delivered, and both
-   endpoints can immediately destroy relevant state.  Objects MUST NOT
-   be sent for requests that end with an error.
+   It can destroy all FETCH state after closing the data stream.
 
    A FETCH_ERROR indicates that both endpoints can immediately destroy
    state.  Since a relay can start delivering FETCH Objects from cache
    before determining the result of the request, some Objects could be
    received even if the FETCH results in error.
-
-   The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
-   publisher to alter the payload of the objects it sends, as that would
-   violate the track uniqueness guarantee described in Section 2.4.3.
 
 6.  Namespace Discovery
 
@@ -1341,7 +1408,16 @@ Table of Contents
    Section 10.2.1, with the exception of any extensions
    (Section 10.2.1.2) that specify otherwise.
 
-8.2.  Multiple Publishers
+8.2.  Forward Handling
+
+   Relays SHOULD set the Forward flag to 1 when a new subscription needs
+   to be sent upstream, regardless of the value of the Forward field
+   from the downstream subscription.  Subscriptions that are not
+   forwarded consume resources from the publisher, so a publisher might
+   deprioritize, reject, or close those subscriptions to ensure other
+   subscriptions can be delivered.
+
+8.3.  Multiple Publishers
 
    A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or
    PUBLISH messages for the same Track from multiple publishers.  The
@@ -1361,7 +1437,7 @@ Table of Contents
    Relay SHOULD attempt to deduplicate Objects before forwarding,
    subject to implementation constraints.
 
-8.3.  Subscriber Interactions
+8.4.  Subscriber Interactions
 
    Subscribers request Tracks by sending a SUBSCRIBE (see Section 9.7)
    or FETCH (see Section 9.16) control message for each Track of
@@ -1408,7 +1484,7 @@ Table of Contents
    can be prohibitively expensive, Relays are not required or expected
    to do so.
 
-8.3.1.  Graceful Subscriber Relay Switchover
+8.4.1.  Graceful Subscriber Relay Switchover
 
    This section describes behavior a subscriber MAY implement to allow
    for a better user experience when a relay sends a GOAWAY.
@@ -1419,7 +1495,7 @@ Table of Contents
    response to the subscribes and if they are successful, the
    subscriptions to the old relay can be stopped with an UNSUBSCRIBE.
 
-8.4.  Publisher Interactions
+8.5.  Publisher Interactions
 
    There are two ways to publish through a relay:
 
@@ -1499,7 +1575,7 @@ Table of Contents
    force an unrelated Session, which might be handling other
    subscriptions, to be closed.
 
-8.4.1.  Graceful Publisher Network Switchover
+8.5.1.  Graceful Publisher Network Switchover
 
    This section describes a behavior that a publisher MAY choose to
    implement to allow for a better user experience when switching
@@ -1517,7 +1593,7 @@ Table of Contents
    Ideally, the subscriptions downstream from the relay do not observe
    this change, and keep receiving the Objects on the same subscription.
 
-8.4.2.  Graceful Publisher Relay Switchover
+8.5.2.  Graceful Publisher Relay Switchover
 
    This section describes a behavior that a publisher MAY choose to
    implement to allow for a better user experience when a relay sends
@@ -1532,7 +1608,7 @@ Table of Contents
    published namespaces and subscriptions to the old relay can be
    withdrawn or terminated.
 
-8.5.  Relay Object Handling
+8.6.  Relay Object Handling
 
    MOQT encodes the delivery information via Object headers
    (Section 10.2).  A relay MUST NOT modify Object properties when
@@ -1668,6 +1744,10 @@ Table of Contents
    there are no unauthorized duplicate parameters and close the session
    as a PROTOCOL_VIOLATION if found.  Receivers MUST allow duplicates of
    unknown parameters.
+
+   The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
+   publisher to alter the payload of the objects it sends, as that would
+   violate the track uniqueness guarantee described in Section 2.4.3.
 
    Receivers ignore unrecognized parameters.
 
@@ -2120,74 +2200,8 @@ Table of Contents
    subscriptions for a track within a single session and publishers
    SHOULD treat this as a protocol violation.
 
-   *Filter Types*
-
-   The subscriber specifies a filter on the subscription to allow the
-   publisher to identify which objects need to be delivered.
-
-   All filters have a Start Location and an optional End Group.  Only
-   objects published or received via a subscription having Locations
-   greater than or equal to Start and strictly less than or equal to the
-   End Group (when present) pass the filter.
-
-   The Largest Object is defined to be the object with the largest
-   Location (Section 1.4.1) in the track from the perspective of the
-   endpoint processing the SUBSCRIBE message.  Largest Object updates
-   when the first byte of an Object with a larger Location than the
-   previous value is published or received through a subscription.
-
-   There are 4 types of filters:
-
-   Largest Object (0x2): The filter Start Location is {Largest
-   Object.Group, Largest Object.Object + 1} and Largest Object is
-   communicated in SUBSCRIBE_OK.  If no content has been delivered yet,
-   the filter Start Location is {0, 0}. There is no End Group - the
-   subscription is open ended.  Note that due to network reordering or
-   prioritization, relays can receive Objects with Locations smaller
-   than Largest Object after the SUBSCRIBE is processed, but these
-   Objects do not pass the Largest Object filter.
-
-   Next Group Start (0x1): The filter Start Location is {Largest
-   Object.Group + 1, 0} and Largest Object is communicated in
-   SUBSCRIBE_OK.  If no content has been delivered yet, the filter Start
-   Location is {0, 0}.  There is no End Group - the subscription is open
-   ended.  For scenarios where the subscriber intends to start from more
-   than one group in the future, it can use an AbsoluteStart filter
-   instead.
-
-   AbsoluteStart (0x3): The filter Start Location is specified
-   explicitly in the SUBSCRIBE message.  The Start specified in the
-   SUBSCRIBE message MAY be less than the Largest Object observed at the
-   publisher.  There is no End Group - the subscription is open ended.
-   To receive all Objects that are published or are received after this
-   subscription is processed, a subscriber can use an AbsoluteStart
-   filter with Start = {0, 0}.
-
-   AbsoluteRange (0x4): The filer Start Location and End Group are
-   specified explicitly in the SUBSCRIBE message.  The Start specified
-   in the SUBSCRIBE message MAY be less than the Largest Object observed
-   at the publisher.  If the specified End Group is the same group
-   specified in Start, the remainder of that Group passes the filter.
-   End Group MUST specify the same or a larger Group than specified in
-   Start.
-
-   An endpoint that receives a filter type other than the above MUST
-   close the session with a PROTOCOL_VIOLATION.
-
    Subscribe only delivers newly published or received Objects.  Objects
    from the past are retrieved using FETCH (Section 9.16).
-
-   A Subscription can also request a publisher to not forward Objects
-   for a given track by setting the Forward field to 0.  This allows the
-   publisher or relay to prepare to serve the subscription in advance,
-   reducing the time to receive objects in the future.  Relays SHOULD
-   set the Forward flag to 1 if a new subscription needs to be sent
-   upstream, regardless of the value of the Forward field from the
-   downstream subscription.  Subscriptions that are not forwarded
-   consume resources from the publisher, so a publisher might
-   deprioritize, reject, or close those subscriptions to ensure other
-   subscriptions can be delivered.  Control messages, such as
-   SUBCRIBE_DONE (Section 9.15) are still sent.
 
    The format of SUBSCRIBE is as follows:
 
@@ -2233,6 +2247,10 @@ Table of Contents
       subscriber.  Any other value is a protocol error and the
       subscriber MUST terminate the session with a PROTOCOL_VIOLATION
       (Section 3.4).
+
+   Subscribing with Forward=0 allows publisher or relay to prepare to
+   serve the subscription in advance, reducing the time to receive
+   objects in the future.
 
    *  Filter Type: Identifies the type of filter, which also indicates
       whether the Start and End Group fields will be present.
@@ -3049,7 +3067,7 @@ Table of Contents
    downstream subscription state or send any Objects.  Relays without an
    active subscription MAY forward TRACK_STATUS to one or more
    publishers, or MAY initiate a subscription (subject to authorization)
-   as described in Section 8.4 to determine the response.  The publisher
+   as described in Section 8.5 to determine the response.  The publisher
    does not send PUBLISH_DONE for this request, and the subscriber
    cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
 
