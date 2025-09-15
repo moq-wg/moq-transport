@@ -3392,11 +3392,11 @@ Table of Contents
    All MOQT datagrams start with a variable-length integer indicating
    the type of the datagram.
 
-         +===================+==================================+
-         |                ID | Type                             |
-         +===================+==================================+
-         | 0x00-0x07,0x20-21 | OBJECT_DATAGRAM (Section 10.3.1) |
-         +-------------------+----------------------------------+
+     +===========================+==================================+
+     |                        ID | Type                             |
+     +===========================+==================================+
+     | 0x00-0x07,0x20-21,0x24-25 | OBJECT_DATAGRAM (Section 10.3.1) |
+     +---------------------------+----------------------------------+
 
                                  Table 5
 
@@ -3570,7 +3570,7 @@ Table of Contents
    An OBJECT_DATAGRAM carries a single object in a datagram.
 
    OBJECT_DATAGRAM {
-     Type (i) = 0x0-0x7,0x20-21
+     Type (i) = 0x0-0x7,0x20-21,0x24-25
      Track Alias (i),
      Group ID (i),
      [Object ID (i),]
@@ -3611,6 +3611,10 @@ Table of Contents
     +------+--------------+------------+-----------+------------------+
     | 0x21 | No           | Yes        | Yes       | Status           |
     +------+--------------+------------+-----------+------------------+
+    | 0x24 | No           | No         | No        | Status           |
+    +------+--------------+------------+-----------+------------------+
+    | 0x25 | No           | Yes        | No        | Status           |
+    +------+--------------+------------+-----------+------------------+
 
                                   Table 6
 
@@ -3637,8 +3641,8 @@ Table of Contents
          entirety of the transport datagram following the Object header
          fields contains the payload.
 
-      -  For Type values 0x20 and 0x21, the Object Status field is
-         present and there is no Object Payload.
+      -  For Type values 0x20, 0x21, 0x24 and 0x25 the Object Status
+         field is present and there is no Object Payload.
 
 10.4.  Streams
 
