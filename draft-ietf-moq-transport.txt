@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 17 March 2026                                     I. Swett, Ed.
+Expires: 19 March 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                       13 September 2025
+                                                       15 September 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 March 2026.
+   This Internet-Draft will expire on 19 March 2026.
 
 Copyright Notice
 
@@ -3504,7 +3504,13 @@ Table of Contents
    be modified, added, removed, and/or cached by relays.
 
    Object Extension Headers are serialized as Key-Value-Pairs (see
-   Figure 2).
+   Figure 2), prefixed by the length of the serialized Key-Value-Pairs,
+   in bytes.
+
+   Extensions {
+     Extension Headers Length (i),
+     Extension headers (..),
+   }
 
    Header types are registered in the IANA table 'MOQ Extension
    Headers'.  See Section 13.
@@ -3543,8 +3549,7 @@ Table of Contents
      Group ID (i),
      [Object ID (i),]
      Publisher Priority (8),
-     [Extension Headers Length (i),
-     Extension headers (...)],
+     [Extensions (..),]
      [Object Status (i),]
      [Object Payload (..),]
    }
@@ -3586,10 +3591,10 @@ Table of Contents
    *  End of Group: For Type values where End of Group is "Yes" the
       Object is the last Object in the Group.
 
-   *  Extensions Present: If Extensions Present is "Yes" the Extension
-      Headers Length and Extension headers fields are included.  If an
-      endpoint receives a datagram with Extensions Present as "Yes" and
-      a Extension Headers Length of 0, it MUST close the session with a
+   *  Extensions Present: If Extensions Present is "Yes" the Extensions
+      structure defined in Section 10.2.1.2 is included.  If an endpoint
+      receives a datagram with Extensions Present as "Yes" and a
+      Extension Headers Length of 0, it MUST close the session with a
       PROTOCOL_VIOLATION.
 
    *  Object ID Present: If Object ID Present is No, the Object ID field
@@ -3707,11 +3712,11 @@ Table of Contents
    first object transmitted in this subgroup (for Types 0x12-13 and
    0x1A-1B).
 
-   For Type values where Extensions Present is No, Extensions Headers
-   Length is not present and all Objects have no extensions.  When
-   Extensions Present is Yes, Extension Headers Length is present in all
-   Objects in this subgroup.  Objects with no extensions set Extension
-   Headers Length to 0.
+   For Type values where Extensions Present is No, the Extensions field
+   is never present and all Objects have no extensions.  When Extensions
+   Present is Yes, the Extensions structure defined in Section 10.2.1.2
+   is present in all Objects in this subgroup.  Objects with no
+   extensions set Extension Headers Length to 0.
 
    To send an Object with Object Forwarding Preference = Subgroup, find
    the open stream that is associated with the subscription, Group ID
@@ -3732,8 +3737,7 @@ Table of Contents
 
    {
      Object ID Delta (i),
-     [Extension Headers Length (i),
-     Extension headers (...)],
+     [Extensions (..)],
      Object Payload Length (i),
      [Object Status (i)],
      Object Payload (..),
@@ -3876,14 +3880,15 @@ Table of Contents
      Subgroup ID (i),
      Object ID (i),
      Publisher Priority (8),
-     Extension Headers Length (i),
-     [Extension headers (...)],
+     Extensions (..),
      Object Payload Length (i),
      [Object Status (i)],
      Object Payload (..),
    }
 
                     Figure 35: MOQT Fetch Object Fields
+
+   The Extensions structure is defined in Section 10.2.1.2.
 
    The Object Status field is only sent if the Object Payload Length is
    zero.
