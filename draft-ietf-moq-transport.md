@@ -3122,7 +3122,7 @@ UNSUBSCRIBE_NAMESPACE Message {
 # Data Streams and Datagrams {#data-streams}
 
 A publisher sends Objects matching a subscription on Data Streams or Datagrams
-and sends Objects matching a fetch request on one Data Stream.
+and sends Objects matching a FETCH request on one Data Stream.
 
 All unidirectional MOQT streams start with a variable-length integer indicating
 the type of the stream in question.
@@ -3175,8 +3175,8 @@ A canonical MoQ Object has the following information:
 
 * Track Namespace and Track Name: The track this object belongs to.
 
-* Group ID: The object is a member of the Group with the indicated group ID
-({{model-group}}) within the track.
+* Group ID: The identifier of the Object's Group (see {{model-group}}) within
+  the Track.
 
 * Object ID: The order of the object within the group.
 
@@ -3192,9 +3192,9 @@ of a Track, the same value MUST be used for all Objects of the Track.
 In a subscription, an Object MUST be sent according to its `Object Forwarding
 Preference`.
 
-* Subgroup ID: The object is a member of the Subgroup with the indicated subgroup
-ID ({{model-subgroup}}) within the group. This field is omitted if the `Object
-Forwarding Preference` is Datagram.
+* Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}})
+  within the Group. This field is omitted if the `Object Forwarding Preference`
+  is Datagram.
 
 * Object Status: An enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
@@ -3249,9 +3249,9 @@ Does Not Exist'.  If an endpoint receives a non-existent Object containing
 extension headers it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 Object Extension Headers are visible to relays and allow the transmission of
-future metadata relevant to MOQT Object distribution. Any Object metadata
-intended never accessed by the transport or relays SHOULD be serialized as
-part of the Object payload and not as an extension header.
+future metadata relevant to MOQT Object distribution. Any Object metadata never
+intended to be accessed by the transport or Relays SHOULD be serialized as part
+of the Object payload and not as an extension header.
 
 Extension Headers are defined in external specifications and registered in an
 IANA table {{iana}}. These specifications define the type and value of the
@@ -3387,7 +3387,7 @@ effect on outstanding subscriptions.
 
 All Objects on a Subgroup stream belong to the track identified by `Track Alias`
 (see {{track-alias}}) and the Subgroup indicated by 'Group ID' and `Subgroup
-ID` present in and/or inferred for the SUBGROUP_HEADER.
+ID` indicated by the SUBGROUP_HEADER.
 
 If an endpoint receives a subgroup with an unknown Track Alias, it MAY abandon
 the stream, or choose to buffer it for a brief period to handle reordering with
@@ -3522,7 +3522,7 @@ with a reliable_size equal to the length of the stream header. This explicitly
 tells the receiver there is an unsent Subgroup.
 
 A relay MUST NOT forward an Object on an existing Subgroup stream unless it is
-the next Object in that Subgroup.  A relay knows that an Object is the next
+the next Object in that Subgroup.  A relay determines that an Object is the next
 Object in the Subgroup if at least one of the following is true:
 
  * The Object ID is one greater than the previous Object sent on this Subgroup
@@ -3530,7 +3530,7 @@ Object in the Subgroup if at least one of the following is true:
  * The Object was received on the same upstream Subgroup stream as the
    previously sent Object on the downstream Subgroup stream, with no other
    Objects in between.
- * It knows all Object IDs between the current and previous Object IDs
+ * It determined all Object IDs between the current and previous Object IDs
    on the Subgroup stream belong to different Subgroups or do not exist.
 
 If the relay does not know if an Object is the next Object, it MUST reset the
