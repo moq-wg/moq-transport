@@ -1130,7 +1130,7 @@ scheduled.
 _Publisher Priority_ is a priority number associated with an individual
 schedulable object.  A default can be specified in the parameters of PUBLISH, or
 SUBSCRIBE_OK. Publisher priority can also be specified in a subgroup header or
-datagram
+datagram (see {{data-streams}}).
 
 _Group Order_ is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
