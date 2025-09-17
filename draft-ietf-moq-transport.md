@@ -3660,7 +3660,8 @@ FETCH_HEADER {
 {: #fetch-header-format title="MOQT FETCH_HEADER"}
 
 
-Each Object sent on a FETCH stream after the FETCH_HEADER has the following format:
+Each Object sent on a FETCH stream after the FETCH_HEADER has the following
+format:
 
 ~~~
 {
@@ -3677,7 +3678,7 @@ Each Object sent on a FETCH stream after the FETCH_HEADER has the following form
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
 
-The Serialization Flags field defines the serialization of the Object. 
+The Serialization Flags field defines the serialization of the Object.
 
 The two least significant bits (LSBs) of the Serialization Flags form a two-bit
 field that defines the encoding of the Subgroup.  To extract this value, the
@@ -3685,8 +3686,8 @@ Subscriber performs a bitwise AND operation with the mask 0x03.
 
 Bitmask Result (Byte & 0x03)	| Meaning
 0x00	| Subgroup ID is zero
-0x01	| Subgroup ID is the same as the Subgroup ID of the prior Object
-0x02	| Subgroup ID is one more than the Subgroup ID of the prior Object
+0x01	| Subgroup ID is the prior Object's Subgroup ID
+0x02	| Subgroup ID is the prior Object's Subgroup ID plus one
 0x03	| The Subgroup ID field is present
 
 The following table defines additional flags within the Serialization Flags
@@ -3701,6 +3702,8 @@ Bitmask |	Condition if set	| Condition if not set
 0x40 | Undefined | Undefined
 0x80 | Undefined | Undefined
 
+If the first Object in the FETCH response uses a flag that references the prior
+Object, the Subscriber MUST close the session with a `PROTOCOL_VIOLATION`.
 When the Priority field is not present, the Publisher Priority of the Object
 is determined as follows:
 
@@ -3720,7 +3723,7 @@ The Extensions structure is defined in {{object-extensions}}.
 
 The Object Status field is only present if the Object Payload Length is zero.
 
-When encoding an Objects with a Forwarding Preference of "Datagram" (see
+When encoding an Object with a Forwarding Preference of "Datagram" (see
 {{object-properties}}), the Publisher treats it as having a Subgroup ID equal to
 the Object ID.
 
