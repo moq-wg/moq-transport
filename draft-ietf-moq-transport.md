@@ -3660,11 +3660,11 @@ FETCH_HEADER {
 {: #fetch-header-format title="MOQT FETCH_HEADER"}
 
 
-Each object sent on a fetch stream after the FETCH_HEADER has the following format:
+Each Object sent on a FETCH stream after the FETCH_HEADER has the following format:
 
 ~~~
 {
-  Serialization (8),
+  Serialization Flags (8),
   [Group ID (i),]
   [Subgroup ID (i),]
   [Object ID (i),]
@@ -3677,45 +3677,52 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
 
-The Serialization field defines the serialization of the object. The
-following code points are defined:
+The Serialization Flags field defines the serialization of the Object. 
 
-| Code | Group ID | Subgroup<br>ID | Object<br>ID | Publisher<br>Priority | Extension<br>Headers<br>Length |
-|------|----------|----------|-----------|-----------|----------------|
-| 0x0  | Yes      | Yes      | Yes       | Yes       | Yes            |
-|------|----------|----------|-----------|-----------|----------------|
-| 0x1  | Yes      | Yes      | Yes       | Yes       | 0              |
-|------|----------|----------|-----------|-----------|----------------|
-| 0x2  | Yes      | 0        | 0         | Yes       | Yes            |
-|------|----------|----------|-----------|-----------|----------------|
-| 0x3  | Yes      | 0        | 0         | Yes       | 0              |
-|------|----------|----------|-----------|-----------|----------------|
-| 0x4  | Prior    | Prior    | Prior + 1 | Prior     | Yes            |
-|------|----------|----------|-----------|-----------|----------------|
-| 0x5  | Prior    | Prior    | Prior + 1 | Prior     | 0              |
-|------|----------|----------|-----------|-----------|----------------|
-| 0x6  | Prior    | Prior +1 | Prior + 1 | Yes       | Yes            |
-|------|----------|----------|-----------|-----------|----------------|
-| 0x7  | Prior    | Prior +1 | Prior + 1 | Yes       | 0              |
-|------|----------|----------|-----------|-----------|----------------|
-| 0x8  | Prior    | 0        | Prior + 1 | Yes       | Yes            |
-|------|----------|----------|-----------|-----------|----------------|
-| 0x9  | Prior    | 0        | Prior + 1 | Yes       | 0              |
-|------|----------|----------|-----------|-----------|----------------|
+The two least significant bits (LSBs) of the Serialization Flags form a two-bit
+field that defines the encoding of the Subgroup.  To extract this value, the
+Subscriber performs a bitwise AND operation with the mask 0x03.
 
-'Yes' indicates that the field is serialized and holds a value.
-'Prior' indicates that the field is not serialized and that the attribute
-value is identical to that of the prior Object.
-'Prior + 1' indicates that the field is not serialized and that the attribute
-value is 1 more than that of the prior Object.
-'0' indicates that the field is not serialized and that is has a value of 0.
+Bitmask Result (Byte & 0x03)	| Meaning
+0x00	| Subgroup ID is zero
+0x01	| Subgroup ID is the same as the Subgroup ID of the prior Object
+0x02	| Subgroup ID is one more than the Subgroup ID of the prior Object
+0x03	| The Subgroup ID field is present
+
+The following table defines additional flags within the Serialization Flags
+field. Each flag is an independent boolean value, where a set bit (1) indicates
+the corresponding condition is true.
+
+Bitmask |	Condition if set	| Condition if not set
+0x04	| Object ID field is present	| Object ID is the prior Object's ID plus one
+0x08	| Group ID field is present |	Group ID is the prior Object's Group ID
+0x10	| Priority field is present	| See below
+0x20	| Extensions field is present |	Extensions field is not present
+0x40 | Undefined | Undefined
+0x80 | Undefined | Undefined
+
+When the Priority field is not present, the Publisher Priority of the Object
+is determined as follows:
+
+1. If the Object is the first in the FETCH response, the Publisher Prioirty is
+128.
+2. If the Object is the first Object in a Group and Subgroup included in the
+FETCH response, the Publisher Priority is the same as the previous Object in the
+response.
+3. Otherwise the Object has the same Publisher Priority as the first Object in
+the Group and Subgroup included in the FETCH response.
+
+To decode a FETCH response, a Subscriber maintains a map of priorities for each
+Subgroup in the current Group.  The Publisher MUST NOT encode a FETCH response
+that would cause the size of the Subscriber's map to exceed 64 entries.
 
 The Extensions structure is defined in {{object-extensions}}.
 
-The Object Status field is only sent if the Object Payload Length is zero.
+The Object Status field is only present if the Object Payload Length is zero.
 
-The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
-(see {{object-properties}}) is set to the Object ID.
+When encoding an Objects with a Forwarding Preference of "Datagram" (see
+{{object-properties}}), the Publisher treats it as having a Subgroup ID equal to
+the Object ID.
 
 ## Examples
 
