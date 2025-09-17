@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 March 2026                                     I. Swett, Ed.
+Expires: 21 March 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                       15 September 2025
+                                                       17 September 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 March 2026.
+   This Internet-Draft will expire on 21 March 2026.
 
 Copyright Notice
 
@@ -2216,8 +2216,8 @@ Table of Contents
      Group Order (8),
      Forward (8),
      Filter Type (i),
-     [Start Location (Location)],
-     [End Group (i)],
+     [Start Location (Location),]
+     [End Group (i),]
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -2286,7 +2286,7 @@ Table of Contents
      Expires (i),
      Group Order (8),
      Content Exists (8),
-     [Largest Location (Location)],
+     [Largest Location (Location),]
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -2544,8 +2544,8 @@ Table of Contents
      Subscriber Priority (8),
      Group Order (8),
      Filter Type (i),
-     [Start Location (Location)],
-     [End Group (i)],
+     [Start Location (Location),]
+     [End Group (i),]
      Number of Parameters (i),
      Parameters (..) ...,
    }
@@ -2831,8 +2831,8 @@ Table of Contents
      Subscriber Priority (8),
      Group Order (8),
      Fetch Type (i),
-     [Standalone (Standalone Fetch)],
-     [Joining (Joining Fetch)],
+     [Standalone (Standalone Fetch),]
+     [Joining (Joining Fetch),]
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -3374,7 +3374,8 @@ Table of Contents
 10.  Data Streams and Datagrams
 
    A publisher sends Objects matching a subscription on Data Streams or
-   Datagrams.
+   Datagrams and sends Objects matching a FETCH request on one Data
+   Stream.
 
    All unidirectional MOQT streams start with a variable-length integer
    indicating the type of the stream in question.
@@ -3431,13 +3432,13 @@ Table of Contents
 
    *  Track Namespace and Track Name: The track this object belongs to.
 
-   *  Group ID: The object is a member of the indicated group ID
-      Section 2.3 within the track.
+   *  Group ID: The identifier of the Object's Group (see Section 2.3)
+      within the Track.
 
    *  Object ID: The order of the object within the group.
 
    *  Publisher Priority: An 8 bit integer indicating the publisher's
-      priority for the Object Section 7.
+      priority for the Object (Section 7).
 
    *  Object Forwarding Preference: An enumeration indicating how a
       publisher sends an object.  The preferences are Subgroup and
@@ -3449,11 +3450,11 @@ Table of Contents
       for all Objects of the Track.  In a subscription, an Object MUST
       be sent according to its Object Forwarding Preference.
 
-   *  Subgroup ID: The object is a member of the indicated subgroup ID
-      (Section 2.2) within the group.  This field is omitted if the
+   *  Subgroup ID: The identifier of the Object's Subgroup (see
+      Section 2.2) within the Group.  This field is omitted if the
       Object Forwarding Preference is Datagram.
 
-   *  Object Status: As enumeration used to indicate missing objects or
+   *  Object Status: An enumeration used to indicate missing objects or
       mark the end of a group or track.  See Section 10.2.1.1 below.
 
    *  Object Extension Length: The total length of the Object Extension
@@ -3512,9 +3513,9 @@ Table of Contents
 
    Object Extension Headers are visible to relays and allow the
    transmission of future metadata relevant to MOQT Object distribution.
-   Any Object metadata never accessed by the transport or relays SHOULD
-   be serialized as part of the Object payload and not as an extension
-   header.
+   Any Object metadata never intended to be accessed by the transport or
+   Relays SHOULD be serialized as part of the Object payload and not as
+   an extension header.
 
    Extension Headers are defined in external specifications and
    registered in an IANA table Section 13.  These specifications define
@@ -3544,7 +3545,7 @@ Table of Contents
 10.3.  Datagrams
 
    A single object can be conveyed in a datagram.  The Track Alias field
-   Section 10.1 indicates the track this Datagram belongs to.  If an
+   (Section 10.1) indicates the track this Datagram belongs to.  If an
    endpoint receives a datagram with an unknown Track Alias, it MAY drop
    the datagram or choose to buffer it for a brief period to handle
    reordering with the control message that establishes the Track Alias.
@@ -3554,8 +3555,8 @@ Table of Contents
 
    To send an Object with Object Forwarding Preference = Datagram,
    determine the length of the header and payload and send the Object as
-   datagram.  When the total size is larger than maximum datagram size
-   for the session, the Object will be dropped without any explicit
+   datagram.  When the total size is larger than the maximum datagram
+   size for the session, the Object will be dropped without any explicit
    notification.
 
    Each session along the path between the Original Publisher and End
@@ -3666,7 +3667,7 @@ Table of Contents
 
    All Objects on a Subgroup stream belong to the track identified by
    Track Alias (see Section 10.1) and the Subgroup indicated by 'Group
-   ID' and Subgroup ID in the SUBGROUP_HEADER.
+   ID' and Subgroup ID indicated by the SUBGROUP_HEADER.
 
    If an endpoint receives a subgroup with an unknown Track Alias, it
    MAY abandon the stream, or choose to buffer it for a brief period to
@@ -3767,10 +3768,10 @@ Table of Contents
 
    {
      Object ID Delta (i),
-     [Extensions (..)],
+     [Extensions (..),]
      Object Payload Length (i),
-     [Object Status (i)],
-     Object Payload (..),
+     [Object Status (i),]
+     [Object Payload (..),]
    }
 
                    Figure 33: MOQT Subgroup Object Fields
@@ -3815,20 +3816,20 @@ Table of Contents
    Subgroup.
 
    A relay MUST NOT forward an Object on an existing Subgroup stream
-   unless it is the next Object in that Subgroup.  A relay knows that an
-   Object is the next Object in the Subgroup if at least one of the
-   following is true:
+   unless it is the next Object in that Subgroup.  A relay determines
+   that an Object is the next Object in the Subgroup if at least one of
+   the following is true:
 
-   *  the Object ID is one greater than the previous Object sent on this
+   *  The Object ID is one greater than the previous Object sent on this
       Subgroup stream.
 
-   *  the Object was received on the same upstream Subgroup stream as
+   *  The Object was received on the same upstream Subgroup stream as
       the previously sent Object on the downstream Subgroup stream, with
       no other Objects in between.
 
-   *  it knows all Object IDs between the current and previous Object
-      IDs on the Subgroup stream belong to different Subgroups or do not
-      exist.
+   *  It determined all Object IDs between the current and previous
+      Object IDs on the Subgroup stream belong to different Subgroups or
+      do not exist.
 
    If the relay does not know if an Object is the next Object, it MUST
    reset the Subgroup stream and open a new one to forward it.
@@ -3844,10 +3845,9 @@ Table of Contents
    received all objects in a subgroup from the start of the
    subscription.  If a relay, it can forward stream FINs to its own
    subscribers once those objects have been sent.  A relay MAY treat
-   receipt of EndOfGroup, GroupDoesNotExist, or EndOfTrack objects as a
-   signal to close corresponding streams even if the FIN has not
-   arrived, as further objects on the stream would be a protocol
-   violation.
+   receipt of EndOfGroup or EndOfTrack objects as a signal to close
+   corresponding streams even if the FIN has not arrived, as further
+   objects on the stream would be a protocol violation.
 
    Similarly, an EndOfGroup message indicates the maximum Object ID in
    the Group, so if all Objects in the Group have been received, a FIN
@@ -3912,8 +3912,8 @@ Table of Contents
      Publisher Priority (8),
      Extensions (..),
      Object Payload Length (i),
-     [Object Status (i)],
-     Object Payload (..),
+     [Object Status (i),]
+     [Object Payload (..),]
    }
 
                     Figure 35: MOQT Fetch Object Fields
@@ -3998,18 +3998,18 @@ Table of Contents
    10, as it sees fit.  A Track is considered malformed (see
    Section 2.4.2) if any of the following conditions are detected:
 
-   *  An Object contains more than one instance of Prior Group ID Gap
+   *  An Object contains more than one instance of Prior Group ID Gap.
 
    *  A Group contains more than one Object with different values for
-      Prior Group ID Gap
+      Prior Group ID Gap.
 
-   *  An Object has a Prior Group ID Gap larger than the Group ID
+   *  An Object has a Prior Group ID Gap larger than the Group ID.
 
    *  An endpoint receives an Object with a Prior Group ID Gap covering
-      an Object it previously received
+      an Object it previously received.
 
    *  An endpoint receives an Object with a Group ID within a previously
-      communicated gap
+      communicated gap.
 
    This extension is optional, as publishers might not know the prior
    gap gize, or there may not be a gap.  If Prior Group ID Gap is not
@@ -4041,9 +4041,9 @@ Table of Contents
    following conditions are detected:
 
    *  An Object contains an Immutable Extensions header that contains
-      another Immutable Extensions key
+      another Immutable Extensions key.
 
-   *  A Key-Value-Pair cannot be parsed
+   *  A Key-Value-Pair cannot be parsed.
 
    The following figure shows an example Object structure with a
    combination of mutable and immutable extensions and end to end
@@ -4072,15 +4072,15 @@ EXT 1 and EXT N can be modified or removed by Relays
    include Prior Object ID Gap = 2.  A Track is considered malformed
    (see Section 2.4.2) if any of the following conditions are detected:
 
-   *  An Object contains more than one instance of Prior Object ID Gap
+   *  An Object contains more than one instance of Prior Object ID Gap.
 
-   *  An Object has a Prior Object ID Gap larger than the Object ID
+   *  An Object has a Prior Object ID Gap larger than the Object ID.
 
    *  An endpoint receives an Object with a Prior Object ID Gap covering
-      an Object it previously received
+      an Object it previously received.
 
    *  An endpoint receives an Object with an Object ID within a
-      previously communicated gap
+      previously communicated gap.
 
    This extension is optional, as publishers might not know the prior
    gap gize, or there may not be a gap.  If Prior Object ID Gap is not
@@ -4111,15 +4111,15 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    The publisher prioritizes and transmits streams out of order.
    Streams might be starved indefinitely during congestion.  The
-   publisher and subscriber MUST cancel a stream, preferably the lowest
-   priority, after reaching a resource limit.
+   publisher and subscriber MUST cancel a stream, preferably the one
+   with the lowest priority, after reaching a resource limit.
 
 12.2.  Timeouts
 
    Implementations are advised to use timeouts to prevent resource
    exhaustion attacks by a peer that does not send expected data within
    an expected time.  Each implementation is expected to set its own
-   limits.
+   timeouts.
 
 12.3.  Relay security considerations
 
