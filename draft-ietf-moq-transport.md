@@ -1128,8 +1128,9 @@ implementation dependent what happens to objects that have already been
 scheduled.
 
 _Publisher Priority_ is a priority number associated with an individual
-schedulable object.  It is specified in the header of the respective subgroup or
-datagram, or in each object in a FETCH response.
+schedulable object.  A default can be specified in the parameters of PUBLISH, or
+SUBSCRIBE_OK. Publisher priority can also be specified in a subgroup header or
+datagram (see {{data-streams}}).
 
 _Group Order_ is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
@@ -1735,6 +1736,17 @@ since the beginning of the Object was received.  This means Objects earlier in a
 multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
 handles a downstream request that includes those Objects re-requests them.
+
+#### PUBLISHER PRIORITY Parameter {#subscriber-priority}
+
+The PUBLISHER PRIORITY parameter (Parameter Type 0x0E) specifies the priority of
+a subscription relative to other subscriptions in the same session.  The value
+is from 0 to 255 and lower numbers get higher priority.  See
+{{priorities}}. Priorities above 255 are invalid. The PUBLISHER PRIORITY
+parameter is valid in SUBSCRIBE_OK and PUBLISH. Subgroups and Datagrams for this
+subscription inherit this priority, unless they specifically override it.
+
+The subscription has Publisher Priorty 128 if this parameter is omitted.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -3313,7 +3325,7 @@ OBJECT_DATAGRAM {
   Track Alias (i),
   Group ID (i),
   [Object ID (i),]
-  Publisher Priority (8),
+  [Publisher Priority (8),]
   [Extensions (..),]
   [Object Status (i),]
   [Object Payload (..),]
@@ -3324,21 +3336,31 @@ OBJECT_DATAGRAM {
 The Type value determines which fields are present in the OBJECT_DATAGRAM.
 There are 10 defined Type values for OBJECT_DATAGRAM.
 
-|------|---------------|------------|-----------|------------------|
-| Type | End Of Group  | Extensions | Object ID | Status / Payload |
-| | | Present | Present | |
-| 0x00 | No | No | Yes | Payload |
-| 0x01 | No | Yes | Yes | Payload |
-| 0x02 | Yes | No | Yes | Payload |
-| 0x03 | Yes | Yes | Yes | Payload |
-| 0x04 | No | No | No | Payload |
-| 0x05 | No | Yes | No | Payload |
-| 0x06 | Yes | No | No | Payload |
-| 0x07 | Yes | Yes | No | Payload |
-| 0x20 | No | No | Yes | Status |
-| 0x21 | No | Yes | Yes | Status |
-| 0x24 | No | No | No | Status |
-| 0x25 | No | Yes | No | Status |
+| Type | End Of Group | Extensions | Object ID | Priority Present | Status / Payload |
+| 0x00 | No | No | Yes | Yes | Payload |
+| 0x01 | No | Yes | Yes | Yes | Payload |
+| 0x02 | Yes | No | Yes | Yes | Payload |
+| 0x03 | Yes | Yes | Yes | Yes | Payload |
+| 0x04 | No | No | No | Yes | Payload |
+| 0x05 | No | Yes | No | Yes | Payload |
+| 0x06 | Yes | No | No | Yes | Payload |
+| 0x07 | Yes | Yes | No | Yes | Payload |
+| 0x20 | No | No | Yes | Yes | Status |
+| 0x21 | No | Yes | Yes | Yes | Status |
+| 0x24 | No | No | No | Yes | Status |
+| 0x25 | No | Yes | No | Yes | Status |
+| 0x08 | No | No | Yes | No | Payload |
+| 0x09 | No | Yes | Yes | No | Payload |
+| 0x0A | Yes | No | Yes | No | Payload |
+| 0x0B | Yes | Yes | Yes | No | Payload |
+| 0x0C | No | No | No | No | Payload |
+| 0x0D | No | Yes | No | No | Payload |
+| 0x0E | Yes | No | No | No | Payload |
+| 0x0F | Yes | Yes | No | No | Payload |
+| 0x28 | No | No | Yes | No | Status |
+| 0x29 | No | Yes | Yes | No | Status |
+| 0x2C | No | No | Yes | No | Status |
+| 0x2D | No | Yes | Yes | No | Status |
 
 * End of Group: For Type values where End of Group is "Yes" the Object is the
   last Object in the Group.
@@ -3351,6 +3373,11 @@ There are 10 defined Type values for OBJECT_DATAGRAM.
 * Object ID Present: If Object ID Present is No, the Object ID field is omitted
   and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
   present and encodes the Object ID.
+
+* Priority Present: If Priority Present is No, Priority is not present and this
+  Object inherits the Publisher Priority specified in the control message that
+  established the subscription.  When Priority Present is Yes, the Priority field
+  is present.
 
 * Payload and Status: The Object Status field and Object Payload are mutually
   exclusive.
@@ -3404,7 +3431,7 @@ SUBGROUP_HEADER {
   Track Alias (i),
   Group ID (i),
   [Subgroup ID (i),]
-  Publisher Priority (8),
+  [Publisher Priority (8),]
 }
 ~~~
 {: #object-header-format title="MOQT SUBGROUP_HEADER"}
@@ -3412,36 +3439,60 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-There are 12 defined Type values for SUBGROUP_HEADER:
+There are 24 defined Type values for SUBGROUP_HEADER:
 
-|------|---------------|-----------------|------------|--------------|
-| Type | Subgroup ID   | Subgroup ID     | Extensions | Contains End |
-|      | Field Present | Value           | Present    | of Group     |
-|------|---------------|-----------------|------------|--------------|
-| 0x10 | No            | 0               | No         | No           |
-|------|---------------|-----------------|------------|--------------|
-| 0x11 | No            | 0               | Yes        | No           |
-|------|---------------|-----------------|------------|--------------|
-| 0x12 | No            | First Object ID | No         | No           |
-|------|---------------|-----------------|------------|--------------|
-| 0x13 | No            | First Object ID | Yes        | No           |
-|------|---------------|-----------------|------------|--------------|
-| 0x14 | Yes           | N/A             | No         | No           |
-|------|---------------|-----------------|------------|--------------|
-| 0x15 | Yes           | N/A             | Yes        | No           |
-|------|---------------|-----------------|------------|--------------|
-| 0x18 | No            | 0               | No         | Yes          |
-|------|---------------|-----------------|------------|--------------|
-| 0x19 | No            | 0               | Yes        | Yes          |
-|------|---------------|-----------------|------------|--------------|
-| 0x1A | No            | First Object ID | No         | Yes          |
-|------|---------------|-----------------|------------|--------------|
-| 0x1B | No            | First Object ID | Yes        | Yes          |
-|------|---------------|-----------------|------------|--------------|
-| 0x1C | Yes           | N/A             | No         | Yes          |
-|------|---------------|-----------------|------------|--------------|
-| 0x1D | Yes           | N/A             | Yes        | Yes          |
-|------|---------------|-----------------|------------|--------------|
+|------|---------------|-----------------|------------|--------------|---------------|
+| Type | Subgroup ID   | Subgroup ID     | Extensions | Contains End | Priority      |
+|      | Field Present | Value           | Present    | of Group     | Present       |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x10 | No            | 0               | No         | No           | Yes           |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x11 | No            | 0               | Yes        | No           | Yes           |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x12 | No            | First Object ID | No         | No           | Yes           |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x13 | No            | First Object ID | Yes        | No           | Yes           |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x14 | Yes           | N/A             | No         | No           | Yes           |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x15 | Yes           | N/A             | Yes        | No           | Yes           |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x18 | No            | 0               | No         | Yes          | Yes           |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x19 | No            | 0               | Yes        | Yes          | Yes           |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x1A | No            | First Object ID | No         | Yes          | Yes           |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x1B | No            | First Object ID | Yes        | Yes          | Yes           |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x1C | Yes           | N/A             | No         | Yes          | Yes           |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x1D | Yes           | N/A             | Yes        | Yes          | Yes           |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x30 | No            | 0               | No         | No           | No            |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x31 | No            | 0               | Yes        | No           | No            |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x32 | No            | First Object ID | No         | No           | No            |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x33 | No            | First Object ID | Yes        | No           | No            |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x34 | Yes           | N/A             | No         | No           | No            |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x35 | Yes           | N/A             | Yes        | No           | No            |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x38 | No            | 0               | No         | Yes          | No            |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x39 | No            | 0               | Yes        | Yes          | No            |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x3A | No            | First Object ID | No         | Yes          | No            |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x3B | No            | First Object ID | Yes        | Yes          | No            |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x3C | Yes           | N/A             | No         | Yes          | No            |
+|------|---------------|-----------------|------------|--------------|---------------|
+| 0x3D | Yes           | N/A             | Yes        | Yes          | No            |
+|------|---------------|-----------------|------------|--------------|---------------|
 
 For Type values where Contains End of Group is Yes, the last Object in this
 Subgroup stream before a FIN is the last Object in the Group.  If the Subgroup
@@ -3457,6 +3508,11 @@ For Type values where Extensions Present is No, the Extensions field is never
 present and all Objects have no extensions.  When Extensions Present is Yes, the
 Extensions structure defined in {{object-extensions}} is present in all Objects
 in this subgroup.  Objects with no extensions set Extension Headers Length to 0.
+
+For Type values where Priority Present is No, Priority is not present and this
+Subgroup inherits the Publisher Priority specified in the control message that
+established the subscription.  When Priority Present is Yes, the Priority field
+is present in the Subgroup header.
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
@@ -3639,7 +3695,7 @@ SUBGROUP_HEADER {
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
-  Publisher Priority = 0
+  Priority = 0
 }
 {
   Object ID = 0
@@ -3660,11 +3716,10 @@ Extension Headers.
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 0x15
+  Type = 0x35
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
-  Publisher Priority = 0
 }
 {
   Object ID Delta = 0 (Object ID is 0)
