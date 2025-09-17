@@ -3704,6 +3704,7 @@ Bitmask |	Condition if set	| Condition if not set
 
 If the first Object in the FETCH response uses a flag that references the prior
 Object, the Subscriber MUST close the session with a `PROTOCOL_VIOLATION`.
+
 When the Priority field is not present, the Publisher Priority of the Object
 is determined as follows:
 
