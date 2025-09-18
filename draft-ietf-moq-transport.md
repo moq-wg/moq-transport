@@ -1646,7 +1646,7 @@ Object Filter {
   Operand (7),
   Negation Flag (1),
   [Extension ID (i),]
-  Values (i) ...
+  Values (..) ...
 }
 ~~~
 
