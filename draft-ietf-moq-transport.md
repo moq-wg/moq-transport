@@ -942,15 +942,15 @@ A Subscription Filter has the following structure:
 ~~~
 Subscription Filter {
   Filter Type (i),
-  [Start Location (Location)],
-  [End Group (i)],
+ [Start Location (Location),]
+ [End Group (i),]
 }
 ~~~
 
 There are 5 types of filters:
 
 No Filter (0x0): The subscription is not filtered and all Objects published or
-received via subscription are sent to the Subscriber.
+received via a subscription are sent to the Subscriber.
 
 Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
 Largest Object.Object + 1}` and `Largest Object` is communicated in
@@ -960,20 +960,12 @@ to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass the Largest Object filter.
 
-This Filter Type is only allowed in SUBSCRIBE. If a publisher receives this
-Filter Type in PUBLISH_OK or SUBSCRIBE_UDPATE, it MUST close the session with
-`PROTOCOL_VIOLATION`.
-
 Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
 0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
 delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
 the subscription is open ended. For scenarios where the subscriber intends to
 start from more than one group in the future, it can use an AbsoluteStart filter
 instead.
-
-This Filter Type is only allowed in SUBSCRIBE. If a publisher receives this
-Filter Type in PUBLISH_OK or SUBSCRIBE_UDPATE, it MUST close the session with
-`PROTOCOL_VIOLATION`.
 
 AbsoluteStart (0x3): The filter Start Location is specified explicitly. The
 specified `Start Location` MAY be less than the `Largest Object` observed at the
