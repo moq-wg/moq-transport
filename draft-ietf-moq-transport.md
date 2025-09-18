@@ -942,8 +942,8 @@ A Subscription Filter has the following structure:
 ~~~
 Subscription Filter {
   Filter Type (i),
- [Start Location (Location),]
- [End Group (i),]
+  [Start Location (Location),]
+  [End Group (i),]
 }
 ~~~
 
