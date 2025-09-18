@@ -1665,8 +1665,8 @@ Extension ID is present only when Operand is Extension ID (value 0x4) and
 indicates the Extension to filter. This MUST indicate an Extension with an
 integer type.  Objects without the Extension do not pass the filter.
 
-Values is an array of integers which encode the values of interest.  The
-array is a sequence of pairs indicating the start and length of
+Values is an array of variable-length integers (i) which encode the values of
+interest.  The array is a sequence of pairs indicating the start and length of
 the matching range.  The Start is encoded as a delta from the previous End, or
 from 0 for the first element.  The length indicates the number of elements
 including Start to match.  An odd number of elements indicates the final range
