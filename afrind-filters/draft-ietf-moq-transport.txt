@@ -1853,7 +1853,7 @@ Table of Contents
      Operand (7),
      Negation Flag (1),
      [Extension ID (i),]
-     Values (i) ...
+     Values (..) ...
    }
 
                      +=========+====================+
