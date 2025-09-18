@@ -3670,7 +3670,7 @@ format:
   [Subgroup ID (i),]
   [Object ID (i),]
   [Publisher Priority (8),]
-  [Extensions (..)],
+  [Extensions (..),]
   Object Payload Length (i),
   [Object Status (i),]
   [Object Payload (..),]
@@ -3710,11 +3710,11 @@ is determined as follows:
 
 1. If the Object is the first in the FETCH response, the Publisher Prioirty is
 128.
-2. If the Object is the first Object in a Group and Subgroup included in the
+2. Otherwise, if the Object is the first Object in its Subgroup included in the
 FETCH response, the Publisher Priority is the same as the previous Object in the
 response.
 3. Otherwise the Object has the same Publisher Priority as the first Object in
-the Group and Subgroup included in the FETCH response.
+its Subgroup included in the FETCH response.
 
 To decode a FETCH response, a Subscriber maintains a map of priorities for each
 Subgroup in the current Group.  The Publisher MUST NOT encode a FETCH response
