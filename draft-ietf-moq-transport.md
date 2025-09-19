@@ -3684,7 +3684,7 @@ The two least significant bits (LSBs) of the Serialization Flags form a two-bit
 field that defines the encoding of the Subgroup.  To extract this value, the
 Subscriber performs a bitwise AND operation with the mask 0x03.
 
-Bitmask Result (Byte & 0x03)	| Meaning
+Bitmask Result (Serialization Flags & 0x03)	| Meaning
 0x00	| Subgroup ID is zero
 0x01	| Subgroup ID is the prior Object's Subgroup ID
 0x02	| Subgroup ID is the prior Object's Subgroup ID plus one
@@ -3694,7 +3694,8 @@ The following table defines additional flags within the Serialization Flags
 field. Each flag is an independent boolean value, where a set bit (1) indicates
 the corresponding condition is true.
 
-Bitmask |	Condition if set	| Condition if not set
+Bitmask | Condition if set | Condition if not set
+--------|------------------|---------------------
 0x04	| Object ID field is present	| Object ID is the prior Object's ID plus one
 0x08	| Group ID field is present |	Group ID is the prior Object's Group ID
 0x10	| Priority field is present	| See below
@@ -3718,7 +3719,9 @@ its Subgroup included in the FETCH response.
 
 To decode a FETCH response, a Subscriber maintains a map of priorities for each
 Subgroup in the current Group.  The Publisher MUST NOT encode a FETCH response
-that would cause the size of the Subscriber's map to exceed 64 entries.
+that would cause the size of the Subscriber's map to exceed 64 entries. The
+Publisher can only set the Priority field flag (0x10) to 0 for the first 64
+Subgroups in a Group in the response.
 
 The Extensions structure is defined in {{object-extensions}}.
 
