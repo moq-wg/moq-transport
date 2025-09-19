@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 18 March 2026                                     I. Swett, Ed.
+Expires: 23 March 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                       14 September 2025
+                                                       19 September 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 March 2026.
+   This Internet-Draft will expire on 23 March 2026.
 
 Copyright Notice
 
@@ -3241,9 +3241,11 @@ Table of Contents
 
    *  Forward: The Forward value that new subscriptions resulting from
       this SUBSCRIBE_NAMESPACE will have.  If 0, the subscriber will be
-      notified of all available tracks in the namespace, but not receive
-      Objects unless it changes Forward to 1 in PUBLISH_OK or
-      SUBSCRIBE_UPDATE.
+      notified of all available tracks in the namespace via PUBLISH
+      messages with Forward set to
+
+      1.  The subscriber can elect to receive Objects by setting Forward
+          to 1 in PUBLISH_OK or SUBSCRIBE_UPDATE.
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
