@@ -1885,7 +1885,8 @@ INTERNAL_ERROR (0x0):
 : An implementation specific or generic error occurred.
 
 UNAUTHORIZED (0x1):
-: The subscriber is not authorized to subscribe to the given track.
+: The subscriber is not authorized to perform the requested action on the given
+track.
 
 TIMEOUT (0x2):
 : The subscription could not be completed before an implementation specific
@@ -1909,8 +1910,8 @@ DOES_NOT_EXIST (0x10):
 : The track or namespace is not available at the publisher.
 
 INVALID_RANGE (0x11):
-: In response to SUBSCRIBE or FETCH, specified range of Locations cannot be
-accessed with the request type.
+: In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
+cannot be satisfied.
 
 MALFORMED_TRACK (0x12):
 : In response to a SUBSCRIBE, FETCH, or TRACK_STATUS, a relay publisher detected
