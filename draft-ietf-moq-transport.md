@@ -1606,27 +1606,23 @@ Token {
 * Alias Type - an integer defining both the serialization and the processing
   behavior of the receiver. This Alias type has the following code points:
 
-|------|------------|------------------------------------------------------|
-| Code | Name       | Serialization and behavior                           |
-|-----:|:-----------|------------------------------------------------------|
-| 0x0  | DELETE     | There is an Alias but no Type or Value. This Alias   |
-|      |            | and the Token Value it was previously associated with|
-|      |            | MUST be retired. Retiring removes them from the pool |
-|      |            | of actively registered tokens.                       |
-|------|------------|------------------------------------------------------|
-| 0x1  | REGISTER   | There is an Alias, a Type and a Value. This Alias    |
-|      |            | MUST be associated with the Token Value for the      |
-|      |            | duration of the Session or it is deleted. This action|
-|      |            | is termed "registering" the Token.                   |
-|------|------------|------------------------------------------------------|
-| 0x2  | USE_ALIAS  | There is an Alias but no Type or Value. Use the Token|
-|      |            | Type and Value previously registered with this Alias.|
-|------|------------|------------------------------------------------------|
-| 0x3  | USE_VALUE  | There is no Alias and there is a Type and Value. Use |
-|      |            | the Token Value as provided. The Token Value may be  |
-|      |            | discarded after processing.                          |
-|------|------------|------------------------------------------------------|
+DELETE (0x0):
+: There is an Alias but no Type or Value. This Alias and the Token Value it was
+previously associated with| MUST be retired. Retiring removes them from the pool
+of actively registered tokens.
 
+REGISTER (0x1):
+: There is an Alias, a Type and a Value. This Alias MUST be associated with the
+Token Value for the duration of the Session or it is deleted. This action is
+termed "registering" the Token.
+
+USE_ALIAS (0x2):
+: There is an Alias but no Type or Value. Use the Token Type and Value
+previously registered with this Alias.
+
+USE_VALUE (0x3):
+: There is no Alias and there is a Type and Value. Use the Token Value as
+provided. The Token Value may be discarded after processing.
 
 * Token Alias - a Session-specific integer identifier that references a Token
   Value. There are separate Alias spaces for the client and server (e.g.: they
@@ -3915,6 +3911,16 @@ TODO: fill out currently missing registries:
 * MOQT Auth Token Type
 
 TODO: register the URI scheme and the ALPN and grease the Extension types
+
+## Authorization Token Alias Type
+
+| Code | Name       | Specification
+|-----:|:-----------|------------------------|
+| 0x0  | DELETE     | {{authorization-token}}
+| 0x1  | REGISTER   | {{authorization-token}}
+| 0x2  | USE_ALIAS  | {{authorization-token}}
+| 0x3  | USE_VALUE  | {{authorization-token}}
+
 
 ## Error Codes {#iana-error-codes}
 
