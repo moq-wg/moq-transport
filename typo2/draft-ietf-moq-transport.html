@@ -2433,8 +2433,8 @@ separate Setup parameters for that information in each version.<a href="#section
 <p id="section-3.3-1">The first stream opened is a client-initiated bidirectional control stream where
 the endpoints exchange Setup messages (<a href="#message-setup" class="auto internal xref">Section 9.3</a>), followed by other
 messages defined in <a href="#message" class="auto internal xref">Section 9</a>.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.3-2">This specification only specifies a single use of bidirectional streams. Objects are
-sent on unidirectional streams.  Because there are no other uses of
+<p id="section-3.3-2">This specification only specifies a single use of bidirectional streams. Objects
+are sent on unidirectional streams.  Because there are no other uses of
 bidirectional streams, a peer <span class="bcp14">MAY</span> close the session as a <code>PROTOCOL_VIOLATION</code> if
 it receives a second bidirectional stream.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">The control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer while the
