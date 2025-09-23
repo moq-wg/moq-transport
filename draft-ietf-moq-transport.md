@@ -2561,7 +2561,6 @@ FETCH Message {
   Type (i) = 0x16,
   Length (16),
   Request ID (i),
-  Subscriber Priority (8),
   Group Order (8),
   Fetch Type (i),
   [Standalone (Standalone Fetch)],
@@ -2573,10 +2572,6 @@ FETCH Message {
 {: #moq-transport-fetch-format title="MOQT FETCH Message"}
 
 * Request ID: See {{request-id}}.
-
-* Subscriber Priority: Specifies the priority of a fetch request relative to
-  other subscriptions or fetches in the same session. Lower numbers get higher
-  priority. See {{priorities}}.
 
 * Group Order: Allows the subscriber to request Objects be delivered in
   Ascending (0x1) or Descending (0x2) order by group.  Any other value is a
