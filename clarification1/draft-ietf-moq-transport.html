@@ -2087,10 +2087,10 @@ typically with a one-to-one mapping between Subgroups and streams.<a href="#sect
 <p id="section-2.2-2">When a Track's forwarding preference (see <a href="#object-properties" class="auto internal xref">Section 10.2.1</a>) is
 "Datagram", Objects are not sent in Subgroups and the
 description in the remainder of this section does not apply.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
-<p id="section-2.2-3">Streams offer in-order reliable delivery and the ability to cancel sending
-and retransmission of data. Furthermore, many QUIC implementations offer the ability
-to control the relative priority of streams, which allows control over the
-scheduling of sending data on active streams.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
+<p id="section-2.2-3">Streams offer in-order reliable delivery and the ability to cancel sending and
+retransmission of data. Furthermore, many QUIC and WebTransport implementations
+offer the ability to control the relative priority of streams, which allows
+control over the scheduling of sending data on active streams.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
 <p id="section-2.2-4">Every object within a Group belongs to exactly one Subgroup.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
 <p id="section-2.2-5">When Objects are sent in a subscription (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>),  Objects
 from two subgroups cannot be sent on the same stream, and Objects from the
