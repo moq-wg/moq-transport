@@ -2019,7 +2019,7 @@ INVALID_RANGE (0x11):
 cannot be satisfied.
 
 MALFORMED_TRACK (0x12):
-: In response to a SUBSCRIBE, FETCH, or TRACK_STATUS, a relay publisher detected
+: In response to a FETCH, a relay publisher detected
 the track was malformed (see {{malformed-tracks}}).
 
 The following are errors for use by the subscriber. They can appear in response
