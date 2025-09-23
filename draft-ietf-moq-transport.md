@@ -933,9 +933,8 @@ present) pass the filter.
 Some filters are defined to be relative to the `Largest Object`. The `Largest
 Object` is the Object with the largest Location ({{location-structure}}) in the
 Track from the perspective of the publisher processing a SUBSCRIBE
-message. Largest Object updates when the first field of an Object with a
-Location larger than the previous value is published or received through a
-subscription.
+message. Largest Object updates when the first byte of an Object with a Location
+larger than the previous value is published or received through a subscription.
 
 A Subscription Filter has the following structure:
 
@@ -947,7 +946,7 @@ Subscription Filter {
 }
 ~~~
 
-There are 5 types of filters:
+Filter Type can have one of the following values:
 
 No Filter (0x0): The subscription is not filtered and all Objects published or
 received via a subscription are sent to the Subscriber.
@@ -1737,9 +1736,9 @@ handles a downstream request that includes those Objects re-requests them.
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority)
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
-SUBSCRIBE, SUBSCRIBE_UPDATE or PUBLISH_OK message. It is an integer expressing
-the priority of a subscription relative to other subscriptions and fetch
-responses in the same session. Lower numbers get higher priority.  See
+SUBSCRIBE, SUBSCRIBE_UPDATE, PUBLISH_OK or FETCH message. It is an integer
+expressing the priority of a subscription relative to other subscriptions and
+fetch responses in the same session. Lower numbers get higher priority.  See
 {{priorities}}.  The range is restricted to 0-255.  If a publisher receives a
 value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
 
@@ -1748,21 +1747,20 @@ If omitted from SUBSCRIBE or PUBLISH_OK, the publisher uses the value 128.
 #### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_UPDATE, SUBSCRIBE_OK, PUBLISH or PUBLISH_OK.  It is an enum indicating
-how to prioritize Objects from different groups within the same subscription
-(see {{priorities}}). The allowed values are Ascending (0x1) or Descending (0x2)
-be used. If an endpoint receives a value outside this range, it MUST close the
+SUBSCRIBE_OK, PUBLISH or PUBLISH_OK.  It is an enum indicating how to prioritize
+Objects from different groups within the same subscription (see
+{{priorities}}). The allowed values are Ascending (0x1) or Descending (0x2) be
+used. If an endpoint receives a value outside this range, it MUST close the
 session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE, the publisher's preference is used and communicated
-in SUBSCRIBE_OK.  If omitted from SUBSCRIBE_OK, PUBLISH or PUBLISH_OK, the
-receiver uses Ascending (0x1).  If omitted from SUBSCRIBE_UPDATE, the value is
-unchanged.
+If omitted from SUBSCRIBE or PUBLISH_OK, the publisher's preference is used and
+communicated in SUBSCRIBE_OK.  If omitted from SUBSCRIBE_OK or PUBLISH, the
+receiver uses Ascending (0x1).
 
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
 The SUBSCRIPTION_FILTER paramter (Parameter Type 0x21) MAY appear in a
-SUBSCRIBE_UDPATE message. It is a length-prefixed Subscription Filter (see
+SUBSCRIBE_UPDATE message. It is a length-prefixed Subscription Filter (see
 {{subscription-filters}}).  If the length of the Subscription Filter does not
 match the parameter length, the publisher MUST close the session with
 `PROTOCOL_VIOLATION`.
