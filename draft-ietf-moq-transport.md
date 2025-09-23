@@ -403,10 +403,10 @@ When a Track's forwarding preference (see {{object-properties}}) is
 "Datagram", Objects are not sent in Subgroups and the
 description in the remainder of this section does not apply.
 
-Streams offer in-order reliable delivery and the ability to cancel sending
-and retransmission of data. Furthermore, many implementations offer the ability
-to control the relative priority of streams, which allows control over the
-scheduling of sending data on active streams.
+Streams offer in-order reliable delivery and the ability to cancel sending and
+retransmission of data. Furthermore, many QUIC and WebTransport implementations
+offer the ability to control the relative priority of streams, which allows
+control over the scheduling of sending data on active streams.
 
 Every object within a Group belongs to exactly one Subgroup.
 
