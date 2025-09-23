@@ -1931,16 +1931,16 @@ value is a `PROTOCOL_VIOLATION`.
 MAX_REQUEST_ID Message {
   Type (i) = 0x15,
   Length (16),
-  Request ID (i),
+  Max Request ID (i),
 }
 ~~~
 {: #moq-transport-max-request-id format title="MOQT MAX_REQUEST_ID Message"}
 
-* Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
-  equal to or larger than this is received by the endpoint that sent the
-  MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE, FETCH, SUBSCRIBE,
-  SUBSCRIBE_NAMESPACE, SUBSCRIBE_UDPATE or TRACK_STATUS), the endpoint MUST
-  close the session with an error of `TOO_MANY_REQUESTS`.
+* Max Request ID: The new Maximum Request ID for the session plus 1. If a
+  Request ID equal to or larger than this is received by the endpoint that sent
+  the MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE, FETCH,
+  SUBSCRIBE, SUBSCRIBE_NAMESPACE, SUBSCRIBE_UDPATE or TRACK_STATUS), the
+  endpoint MUST close the session with an error of `TOO_MANY_REQUESTS`.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
