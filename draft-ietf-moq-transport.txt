@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 21 March 2026                                     I. Swett, Ed.
+Expires: 27 March 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                       17 September 2025
+                                                       23 September 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 March 2026.
+   This Internet-Draft will expire on 27 March 2026.
 
 Copyright Notice
 
@@ -193,15 +193,16 @@ Table of Contents
        12.3.1.  State maintenance
        12.3.2.  SUBSCRIBE_NAMESPACE with short prefixes
    13. IANA Considerations
-     13.1.  Error Codes
-       13.1.1.  Session Termination Error Codes
-       13.1.2.  SUBSCRIBE_ERROR Codes
-       13.1.3.  PUBLISH_DONE Codes
-       13.1.4.  PUBLISH_ERROR Codes
-       13.1.5.  FETCH_ERROR Codes
-       13.1.6.  ANNOUNCE_ERROR Codes
-       13.1.7.  SUBSCRIBE_NAMESPACE_ERROR Codes
-       13.1.8.  Data Stream Reset Error Codes
+     13.1.  Authorization Token Alias Type
+     13.2.  Error Codes
+       13.2.1.  Session Termination Error Codes
+       13.2.2.  SUBSCRIBE_ERROR Codes
+       13.2.3.  PUBLISH_DONE Codes
+       13.2.4.  PUBLISH_ERROR Codes
+       13.2.5.  FETCH_ERROR Codes
+       13.2.6.  ANNOUNCE_ERROR Codes
+       13.2.7.  SUBSCRIBE_NAMESPACE_ERROR Codes
+       13.2.8.  Data Stream Reset Error Codes
    Contributors
    References
      Normative References
@@ -1799,49 +1800,22 @@ Table of Contents
       processing behavior of the receiver.  This Alias type has the
       following code points:
 
-           +======+===========+===============================+
-           | Code | Name      | Serialization and behavior    |
-           +======+===========+===============================+
-           |  0x0 | DELETE    | There is an Alias but no Type |
-           |      |           | or Value.  This Alias         |
-           +------+-----------+-------------------------------+
-           |      |           | and the Token Value it was    |
-           |      |           | previously associated with    |
-           +------+-----------+-------------------------------+
-           |      |           | MUST be retired.  Retiring    |
-           |      |           | removes them from the pool    |
-           +------+-----------+-------------------------------+
-           |      |           | of actively registered        |
-           |      |           | tokens.                       |
-           +------+-----------+-------------------------------+
-           |  0x1 | REGISTER  | There is an Alias, a Type and |
-           |      |           | a Value.  This Alias          |
-           +------+-----------+-------------------------------+
-           |      |           | MUST be associated with the   |
-           |      |           | Token Value for the           |
-           +------+-----------+-------------------------------+
-           |      |           | duration of the Session or it |
-           |      |           | is deleted.  This action      |
-           +------+-----------+-------------------------------+
-           |      |           | is termed "registering" the   |
-           |      |           | Token.                        |
-           +------+-----------+-------------------------------+
-           |  0x2 | USE_ALIAS | There is an Alias but no Type |
-           |      |           | or Value.  Use the Token      |
-           +------+-----------+-------------------------------+
-           |      |           | Type and Value previously     |
-           |      |           | registered with this Alias.   |
-           +------+-----------+-------------------------------+
-           |  0x3 | USE_VALUE | There is no Alias and there   |
-           |      |           | is a Type and Value.  Use     |
-           +------+-----------+-------------------------------+
-           |      |           | the Token Value as provided.  |
-           |      |           | The Token Value may be        |
-           +------+-----------+-------------------------------+
-           |      |           | discarded after processing.   |
-           +------+-----------+-------------------------------+
+   DELETE (0x0):  There is an Alias but no Type or Value.  This Alias
+      and the Token Value it was previously associated with| MUST be
+      retired.  Retiring removes them from the pool of actively
+      registered tokens.
 
-                                 Table 2
+   REGISTER (0x1):  There is an Alias, a Type and a Value.  This Alias
+      MUST be associated with the Token Value for the duration of the
+      Session or it is deleted.  This action is termed "registering" the
+      Token.
+
+   USE_ALIAS (0x2):  There is an Alias but no Type or Value.  Use the
+      Token Type and Value previously registered with this Alias.
+
+   USE_VALUE (0x3):  There is no Alias and there is a Type and Value.
+      Use the Token Value as provided.  The Token Value may be discarded
+      after processing.
 
    *  Token Alias - a Session-specific integer identifier that
       references a Token Value.  There are separate Alias spaces for the
@@ -2165,13 +2139,13 @@ Table of Contents
    MAX_REQUEST_ID Message {
      Type (i) = 0x15,
      Length (16),
-     Request ID (i),
+     Max Request ID (i),
    }
 
                    Figure 7: MOQT MAX_REQUEST_ID Message
 
-   *  Request ID: The new Maximum Request ID for the session plus 1.  If
-      a Request ID equal to or larger than this is received by the
+   *  Max Request ID: The new Maximum Request ID for the session plus 1.
+      If a Request ID equal to or larger than this is received by the
       endpoint that sent the MAX_REQUEST_ID in any request message
       (PUBLISH_NAMESPACE, FETCH, SUBSCRIBE, SUBSCRIBE_NAMESPACE,
       SUBSCRIBE_UDPATE or TRACK_STATUS), the endpoint MUST close the
@@ -2746,7 +2720,7 @@ Table of Contents
                      | 0x3  | Absolute Joining Fetch |
                      +------+------------------------+
 
-                                  Table 3
+                                  Table 2
 
    An endpoint that receives a Fetch Type other than 0x1, 0x2 or 0x3
    MUST close the session with a PROTOCOL_VIOLATION.
@@ -3401,7 +3375,7 @@ Table of Contents
              |      0x05 | FETCH_HEADER (Section 10.4.4)    |
              +-----------+----------------------------------+
 
-                                 Table 4
+                                 Table 3
 
    All MOQT datagrams start with a variable-length integer indicating
    the type of the datagram.
@@ -3412,7 +3386,7 @@ Table of Contents
      | 0x00-0x07,0x20-21,0x24-25 | OBJECT_DATAGRAM (Section 10.3.1) |
      +---------------------------+----------------------------------+
 
-                                 Table 5
+                                 Table 4
 
    An endpoint that receives an unknown stream or datagram type MUST
    close the session.
@@ -3653,7 +3627,7 @@ Table of Contents
     | 0x2D | No           | Yes        | Yes    | No       | Status   |
     +------+--------------+------------+--------+----------+----------+
 
-                                  Table 6
+                                  Table 5
 
    *  End of Group: For Type values where End of Group is "Yes" the
       Object is the last Object in the Group.
@@ -3800,7 +3774,7 @@ Table of Contents
    | 0x3D | Yes         | N/A       | Yes        | Yes      | No       |
    +------+-------------+-----------+------------+----------+----------+
 
-                                  Table 7
+                                  Table 6
 
    For Type values where Contains End of Group is Yes, the last Object
    in this Subgroup stream before a FIN is the last Object in the Group.
@@ -4246,9 +4220,25 @@ EXT 1 and EXT N can be modified or removed by Relays
    TODO: register the URI scheme and the ALPN and grease the Extension
    types
 
-13.1.  Error Codes
+13.1.  Authorization Token Alias Type
 
-13.1.1.  Session Termination Error Codes
+                  +======+===========+=================+
+                  | Code | Name      | Specification   |
+                  +======+===========+=================+
+                  |  0x0 | DELETE    | Section 9.2.1.1 |
+                  +------+-----------+-----------------+
+                  |  0x1 | REGISTER  | Section 9.2.1.1 |
+                  +------+-----------+-----------------+
+                  |  0x2 | USE_ALIAS | Section 9.2.1.1 |
+                  +------+-----------+-----------------+
+                  |  0x3 | USE_VALUE | Section 9.2.1.1 |
+                  +------+-----------+-----------------+
+
+                                 Table 7
+
+13.2.  Error Codes
+
+13.2.1.  Session Termination Error Codes
 
            +============================+======+===============+
            | Name                       | Code | Specification |
@@ -4298,7 +4288,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 8
 
-13.1.2.  SUBSCRIBE_ERROR Codes
+13.2.2.  SUBSCRIBE_ERROR Codes
 
               +======================+======+===============+
               | Name                 | Code | Specification |
@@ -4322,7 +4312,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 9
 
-13.1.3.  PUBLISH_DONE Codes
+13.2.3.  PUBLISH_DONE Codes
 
                +====================+======+===============+
                | Name               | Code | Specification |
@@ -4346,7 +4336,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 10
 
-13.1.4.  PUBLISH_ERROR Codes
+13.2.4.  PUBLISH_ERROR Codes
 
                  +================+======+===============+
                  | Name           | Code | Specification |
@@ -4364,7 +4354,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 11
 
-13.1.5.  FETCH_ERROR Codes
+13.2.5.  FETCH_ERROR Codes
 
            +============================+======+===============+
            | Name                       | Code | Specification |
@@ -4396,7 +4386,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 12
 
-13.1.6.  ANNOUNCE_ERROR Codes
+13.2.6.  ANNOUNCE_ERROR Codes
 
               +======================+======+===============+
               | Name                 | Code | Specification |
@@ -4418,7 +4408,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 13
 
-13.1.7.  SUBSCRIBE_NAMESPACE_ERROR Codes
+13.2.7.  SUBSCRIBE_NAMESPACE_ERROR Codes
 
             +==========================+======+===============+
             | Name                     | Code | Specification |
@@ -4442,7 +4432,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 14
 
-13.1.8.  Data Stream Reset Error Codes
+13.2.8.  Data Stream Reset Error Codes
 
                +==================+======+================+
                | Name             | Code | Specification  |
