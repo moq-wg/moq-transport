@@ -2868,9 +2868,9 @@ the corresponding PUBLISH_NAMESPACE or PUBLISH_NAMESPACE_DONE message.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
 session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
-Track Namespace Prefix that overlaps with (is equal to, a prefix of, or
-contained within) an active SUBSCRIBE_NAMESPACE, it MUST respond with
-REQUEST_ERROR, with error code PREFIX_OVERLAP.
+Track Namespace Prefix that shares a common prefix with an active namespace
+subscription, it MUST respond with REQUEST_ERROR with error code
+`PREFIX_OVERLAP`.
 
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
