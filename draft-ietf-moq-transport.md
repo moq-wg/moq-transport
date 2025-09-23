@@ -3694,22 +3694,23 @@ The following table defines additional flags within the Serialization Flags
 field. Each flag is an independent boolean value, where a set bit (1) indicates
 the corresponding condition is true.
 
-Bitmask | Condition if set | Condition if not set
+Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
 0x04	| Object ID field is present	| Object ID is the prior Object's ID plus one
 0x08	| Group ID field is present |	Group ID is the prior Object's Group ID
 0x10	| Priority field is present	| See below
 0x20	| Extensions field is present |	Extensions field is not present
-0x40 | Undefined | Undefined
-0x80 | Undefined | Undefined
+0x40 | `PROTOCOL_VIOLATION` | N/A
+0x80 | `PROTOCOL_VIOLATION` | N/A
 
-If the first Object in the FETCH response uses a flag that references the prior
-Object, the Subscriber MUST close the session with a `PROTOCOL_VIOLATION`.
+If the first Object in the FETCH response uses a flag that references fields in
+the prior Object, the Subscriber MUST close the session with a
+`PROTOCOL_VIOLATION`.
 
 When the Priority field is not present, the Publisher Priority of the Object
 is determined as follows:
 
-1. If the Object is the first in the FETCH response, the Publisher Prioirty is
+1. If the Object is the first in the FETCH response, the Publisher Priority is
 128.
 2. Otherwise, if the Object is the first Object in its Subgroup included in the
 FETCH response, the Publisher Priority is the same as the previous Object in the
