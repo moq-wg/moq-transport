@@ -5188,9 +5188,9 @@ If the set of matching PUBLISH_NAMESPACE messages changes, the publisher sends
 the corresponding PUBLISH_NAMESPACE or PUBLISH_NAMESPACE_DONE message.<a href="#section-9.24-4" class="pilcrow">¶</a></p>
 <p id="section-9.24-5">A subscriber cannot make overlapping namespace subscriptions on a single
 session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
-Track Namespace Prefix that overlaps with (is equal to, a prefix of, or
-contained within) an active SUBSCRIBE_NAMESPACE, it <span class="bcp14">MUST</span> respond with
-REQUEST_ERROR, with error code PREFIX_OVERLAP.<a href="#section-9.24-5" class="pilcrow">¶</a></p>
+Track Namespace Prefix that shares a common prefix with an active namespace
+subscription, it <span class="bcp14">MUST</span> respond with REQUEST_ERROR with error code
+<code>PREFIX_OVERLAP</code>.<a href="#section-9.24-5" class="pilcrow">¶</a></p>
 <p id="section-9.24-6">The publisher <span class="bcp14">MUST</span> ensure the subscriber is authorized to perform this
 namespace subscription.<a href="#section-9.24-6" class="pilcrow">¶</a></p>
 <p id="section-9.24-7">SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE,
