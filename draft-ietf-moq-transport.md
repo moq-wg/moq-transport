@@ -914,7 +914,7 @@ incurring additional latency.
 Publishers MAY start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
+with REQUEST_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 {{datagrams}} and {{subgroup-header}}).
 
@@ -1256,8 +1256,8 @@ explain how Relays maintain subscriptions to all available publishers for a
 given Track.
 
 There is no specified limit to the number of publishers of a Track Namespace or
-Track.  An implementation can use mechanisms such as PUBLISH_ERROR,
-PUBLISH_NAMESPACE_ERROR, UNSUBSCRIBE or PUBLISH_NAMESPACE_CANCEL if it cannot
+Track.  An implementation can use mechanisms such as REQUEST_ERROR,
+UNSUBSCRIBE or PUBLISH_NAMESPACE_CANCEL if it cannot
 accept an additional publisher due to implementation constraints.
 Implementations can consider the establishment or idle time of the session or
 subscription to determine which publisher to reject or disconnect.
@@ -2311,7 +2311,7 @@ PUBLISH Message {
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
-send PUBLISH_ERROR with error code `UNINTERESTED`, and abandon reading any
+send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.
 
@@ -2870,7 +2870,7 @@ A subscriber cannot make overlapping namespace subscriptions on a single
 session.  Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
 Track Namespace Prefix that is a prefix of, suffix of, or equal to an active
 SUBSCRIBE_NAMESPACE, it MUST respond with REQUEST_ERROR, with error code
-`NAMESPACE_PREFIX_OVERLAP`.
+`PREFIX_OVERLAP`.
 
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
