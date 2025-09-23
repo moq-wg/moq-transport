@@ -2990,10 +2990,7 @@ SUBSCRIBE_NAMESPACE Message {
 
 
 * Forward: The Forward value that new subscriptions resulting from this
-  SUBSCRIBE_NAMESPACE will have. If 0, the subscriber will be notified of all
-  available tracks in the namespace via PUBLISH messages with Forward set to
-  0. The subscriber can elect to receive Objects by setting Forward to 1 in
-  PUBLISH_OK or SUBSCRIBE_UPDATE.
+  SUBSCRIBE_NAMESPACE will have (see {{subscriptions}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
