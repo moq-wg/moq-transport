@@ -507,10 +507,10 @@ Table of Contents
    the remainder of this section does not apply.
 
    Streams offer in-order reliable delivery and the ability to cancel
-   sending and retransmission of data.  Furthermore, many
-   implementations offer the ability to control the relative priority of
-   streams, which allows control over the scheduling of sending data on
-   active streams.
+   sending and retransmission of data.  Furthermore, many QUIC and
+   WebTransport implementations offer the ability to control the
+   relative priority of streams, which allows control over the
+   scheduling of sending data on active streams.
 
    Every object within a Group belongs to exactly one Subgroup.
 
