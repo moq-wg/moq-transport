@@ -403,10 +403,10 @@ When a Track's forwarding preference (see {{object-properties}}) is
 "Datagram", Objects are not sent in Subgroups and the
 description in the remainder of this section does not apply.
 
-Streams offer in-order reliable delivery and the ability to cancel sending
-and retransmission of data. Furthermore, many implementations offer the ability
-to control the relative priority of streams, which allows control over the
-scheduling of sending data on active streams.
+Streams offer in-order reliable delivery and the ability to cancel sending and
+retransmission of data. Furthermore, many QUIC and WebTransport implementations
+offer the ability to control the relative priority of streams, which allows
+control over the scheduling of sending data on active streams.
 
 Every object within a Group belongs to exactly one Subgroup.
 
@@ -874,9 +874,9 @@ processing rules described in {{relays-moq}}.
 A subscription can be initiated by either a publisher or a subscriber.  A
 publisher initiates a subscription to a track by sending the PUBLISH message.
 The subscriber either accepts or rejects the subscription using PUBLISH_OK or
-PUBLISH_ERROR.  A subscriber initiates a subscription to a track by sending the
+REQUEST_ERROR.  A subscriber initiates a subscription to a track by sending the
 SUBSCRIBE message.  The publisher either accepts or rejects the subscription
-using SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once either of these sequences is
+using SUBSCRIBE_OK or REQUEST_ERROR.  Once either of these sequences is
 successful, the subscription can be updated by the subscriber using
 SUBSCRIBE_UPDATE, terminated by the subscriber using UNSUBSCRIBE, or terminated
 by the publisher using PUBLISH_DONE.
@@ -903,8 +903,8 @@ subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
 rules.
 
-A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
-a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or PUBLISH_ERROR in
+A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
+a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
@@ -914,14 +914,14 @@ incurring additional latency.
 Publishers MAY start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
+with REQUEST_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 {{datagrams}} and {{subgroup-header}}).
 
 ### Subscription State Management
 
 A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
-receipt of a PUBLISH_DONE or SUBSCRIBE_ERROR. Note that PUBLISH_DONE does not
+receipt of a PUBLISH_DONE or REQUEST_ERROR. Note that PUBLISH_DONE does not
 usually indicate that state can immediately be destroyed, see
 {{message-publish-done}}.
 
@@ -931,7 +931,7 @@ UNSUBSCRIBE. It MUST reset any open streams associated with the SUBSCRIBE.
 The publisher can immediately delete subscription state after sending
 PUBLISH_DONE, but MUST NOT send it until it has closed all related streams.
 
-A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
+A REQUEST_ERROR indicates no objects will be delivered, and both endpoints can
 immediately destroy relevant state. Objects MUST NOT be sent for requests that
 end with an error.
 
@@ -987,11 +987,11 @@ session with a `PROTOCOL_VIOLATION`.
 
 ## Fetch State Management
 
-The publisher MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
+The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
 FETCH.
 
 A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
-FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
+REQUEST_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
 data stream is already open, it MAY send STOP_SENDING for the data stream along
 with FETCH_CANCEL, but MUST send FETCH_CANCEL.
 
@@ -1001,7 +1001,7 @@ also destroy state after closing the FETCH data stream.
 
 It can destroy all FETCH state after closing the data stream.
 
-A FETCH_ERROR indicates that both endpoints can immediately destroy state.
+A REQUEST_ERROR indicates that both endpoints can immediately destroy state.
 Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
 results in error.
@@ -1032,11 +1032,11 @@ messages to the endpoint that sent them.  If an endpoint accepts its own
 PUBLISH, this behaves as self-subscription described in {{subscriptions}}.
 
 A publisher MUST send exactly one SUBSCRIBE_NAMESPACE_OK or
-SUBSCRIBE_NAMESPACE_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
+REQUEST_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
 SHOULD close the session with a protocol error if it detects receiving more than
 one.
 
-The receiver of a SUBSCRIBE_NAMESPACE_OK or SUBSCRIBE_NAMESPACE_ERROR ought to
+The receiver of a SUBSCRIBE_NAMESPACE_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
@@ -1060,10 +1060,10 @@ subscribed via SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
 
 An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
-PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
+REQUEST_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
 namespace. This might be especially useful in upload or chat applications. A
-subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR
+subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or REQUEST_ERROR
 in response to a PUBLISH_NAMESPACE. The publisher SHOULD close the session with
 a protocol error if it receives more than one.
 
@@ -1256,8 +1256,8 @@ explain how Relays maintain subscriptions to all available publishers for a
 given Track.
 
 There is no specified limit to the number of publishers of a Track Namespace or
-Track.  An implementation can use mechanisms such as PUBLISH_ERROR,
-PUBLISH_NAMESPACE_ERROR, UNSUBSCRIBE or PUBLISH_NAMESPACE_CANCEL if it cannot
+Track.  An implementation can use mechanisms such as REQUEST_ERROR,
+UNSUBSCRIBE or PUBLISH_NAMESPACE_CANCEL if it cannot
 accept an additional publisher due to implementation constraints.
 Implementations can consider the establishment or idle time of the session or
 subscription to determine which publisher to reject or disconnect.
@@ -1467,11 +1467,11 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x1A  | REQUESTS_BLOCKED ({{message-requests-blocked}})     |
 |-------|-----------------------------------------------------|
+| 0x5   | REQUEST_ERROR  ({{message-request-error}})          |
+|-------|-----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
 |-------|-----------------------------------------------------|
 | 0x4   | SUBSCRIBE_OK ({{message-subscribe-ok}})             |
-|-------|-----------------------------------------------------|
-| 0x5   | SUBSCRIBE_ERROR ({{message-subscribe-error}})       |
 |-------|-----------------------------------------------------|
 | 0x2   | SUBSCRIBE_UPDATE ({{message-subscribe-update}})     |
 |-------|-----------------------------------------------------|
@@ -1481,15 +1481,11 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x1E  | PUBLISH_OK ({{message-publish-ok}})                 |
 |-------|-----------------------------------------------------|
-| 0x1F  | PUBLISH_ERROR ({{message-publish-error}})           |
-|-------|-----------------------------------------------------|
 | 0xB   | PUBLISH_DONE ({{message-publish-done}})             |
 |-------|-----------------------------------------------------|
 | 0x16  | FETCH ({{message-fetch}})                           |
 |-------|-----------------------------------------------------|
 | 0x18  | FETCH_OK ({{message-fetch-ok}})                     |
-|-------|-----------------------------------------------------|
-| 0x19  | FETCH_ERROR ({{message-fetch-error}})               |
 |-------|-----------------------------------------------------|
 | 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})             |
 |-------|-----------------------------------------------------|
@@ -1497,13 +1493,9 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xE   | TRACK_STATUS_OK ({{message-track-status-ok}}        |
 |-------|-----------------------------------------------------|
-| 0xF   | TRACK_STATUS_ERROR ({{message-track-status-error}}) |
-|-------|-----------------------------------------------------|
 | 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
 |-------|-----------------------------------------------------|
 | 0x7   | PUBLISH_NAMESPACE_OK ({{message-pub-ns-ok}})        |
-|-------|-----------------------------------------------------|
-| 0x8   | PUBLISH_NAMESPACE_ERROR ({{message-pub-ns-error}})  |
 |-------|-----------------------------------------------------|
 | 0x9   | PUBLISH_NAMESPACE_DONE  ({{message-pub-ns-done}})   |
 |-------|-----------------------------------------------------|
@@ -1512,8 +1504,6 @@ The following Message Types are defined:
 | 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
 |-------|-----------------------------------------------------|
 | 0x12  | SUBSCRIBE_NAMESPACE_OK ({{message-sub-ns-ok}})      |
-|-------|-----------------------------------------------------|
-| 0x13  | SUBSCRIBE_NAMESPACE_ERROR ({{message-sub-ns-error}} |
 |-------|-----------------------------------------------------|
 | 0x14  | UNSUBSCRIBE_NAMESPACE ({{message-unsub-ns}})        |
 |-------|-----------------------------------------------------|
@@ -1967,6 +1957,94 @@ REQUESTS_BLOCKED Message {
 * Maximum Request ID: The Maximum Request ID for the session on which the
   endpoint is blocked. More on Request ID in {{request-id}}.
 
+## REQUEST_ERROR {#message-request-error}
+
+The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
+PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS). The unique
+request ID in the REQUEST_ERROR is used to associate it with the correct type of
+request.
+
+~~~
+REQUEST_ERROR Message {
+  Type (i) = 0x5,
+  Length (16),
+  Request ID (i),
+  Error Code (i),
+  Error Reason (Reason Phrase),
+}
+~~~
+{: #moq-transport-request-error format title="MOQT REQUEST_ERROR Message"}
+
+* Request ID: The Request ID to which this message is replying.
+
+* Error Code: Identifies an integer error code for request failure.
+
+* Error Reason: Provides a text description of the request error. See
+ {{reason-phrase}}.
+
+The application SHOULD use a relevant error code in REQUEST_ERROR,
+as defined below. Most codepoints have identical meanings for various request
+types, but some have request-specific meanings.
+
+INTERNAL_ERROR (0x0):
+: An implementation specific or generic error occurred.
+
+UNAUTHORIZED (0x1):
+: The subscriber is not authorized to perform the requested action on the given
+track.
+
+TIMEOUT (0x2):
+: The subscription could not be completed before an implementation specific
+  timeout. For example, a relay could not establish an upstream subscription
+  within the timeout.
+
+NOT_SUPPORTED (0x3):
+: The endpoint does not support the type of request.
+
+MALFORMED_AUTH_TOKEN (0x4):
+: Invalid Auth Token serialization during registration (see
+  {{authorization-token}}).
+
+EXPIRED_AUTH_TOKEN (0x5):
+: Authorization token has expired ({{authorization-token}}).
+
+Below are errors for use by the publisher. They can appear in response to
+SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
+
+DOES_NOT_EXIST (0x10):
+: The track or namespace is not available at the publisher.
+
+INVALID_RANGE (0x11):
+: In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
+cannot be satisfied.
+
+MALFORMED_TRACK (0x12):
+: In response to a FETCH, a relay publisher detected
+the track was malformed (see {{malformed-tracks}}).
+
+The following are errors for use by the subscriber. They can appear in response
+to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
+
+UNINTERESTED (0x20):
+: The subscriber is not interested in the track or namespace.
+
+Errors below can only be used in response to one message type.
+
+PREFIX_OVERLAP (0x30):
+: In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
+SUBSCRIBE_NAMESPACE in the same session.
+
+NO_OBJECTS (0x31):
+: In response to FETCH, no objects exist between the Start and End Locations.
+
+INVALID_JOINING_REQUEST_ID(0x32):
+: In response to a Joining FETCH, the referenced Request ID is not an active
+Subscription.
+
+UNKNOWN_STATUS_IN_RANGE(0x33):
+: In response to a FETCH, the requested range contains an object with unknown
+status.
+
 ## SUBSCRIBE {#message-subscribe-req}
 
 A subscription causes the publisher to send newly published objects for a track.
@@ -2038,7 +2116,7 @@ allowing the subscriber to determine the start group/object when not explicitly
 specified and the publisher SHOULD start delivering objects.
 
 If a publisher cannot satisfy the requested start or end or if the end has
-already been published it SHOULD send a SUBSCRIBE_ERROR with code
+already been published it SHOULD send a REQUEST_ERROR with code
 `INVALID_RANGE`.  A publisher MUST NOT send objects from outside the requested
 start and end.
 
@@ -2090,61 +2168,6 @@ session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
   field is only present if Content Exists has a value of 1.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
-
-## SUBSCRIBE_ERROR {#message-subscribe-error}
-
-A publisher sends a SUBSCRIBE_ERROR control message in response to a
-failed SUBSCRIBE.
-
-~~~
-SUBSCRIBE_ERROR Message {
-  Type (i) = 0x5,
-  Length (16),
-  Request ID (i),
-  Error Code (i),
-  Error Reason (Reason Phrase),
-}
-~~~
-{: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
-
-* Request ID: The Request ID of the SUBSCRIBE this message is replying to
-  {{message-subscribe-req}}.
-
-* Error Code: Identifies an integer error code for subscription failure.
-
-* Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
-
-The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
-as defined below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The subscriber is not authorized to subscribe to the given track.
-
-TIMEOUT (0x2):
-: The subscription could not be completed before an implementation specific
-  timeout. For example, a relay could not establish an upstream subscription
-  within the timeout.
-
-NOT_SUPPORTED (0x3):
-: The endpoint does not support the SUBSCRIBE method.
-
-TRACK_DOES_NOT_EXIST (0x4):
-: The requested track is not available at the publisher.
-
-INVALID_RANGE (0x5):
-: The end of the SUBSCRIBE range is earlier than the beginning, or the end of
-  the range has already been published.
-
-MALFORMED_AUTH_TOKEN (0x10):
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN (0x12):
-: Authorization token has expired ({{authorization-token}}).
-
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
@@ -2288,7 +2311,7 @@ PUBLISH Message {
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
-send PUBLISH_ERROR with error code `UNINTERESTED`, and abandon reading any
+send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.
 
@@ -2330,48 +2353,6 @@ PUBLISH_OK Message {
 * Filter Type, Start Location, End Group: See {{message-subscribe-req}}.
 
 * Parameters: Parameters associated with this message.
-
-## PUBLISH_ERROR {#message-publish-error}
-
-The subscriber sends a PUBLISH_ERROR control message to reject
-a subscription initiated by PUBLISH.
-
-~~~
-PUBLISH_ERROR Message {
-  Type (i) = 0x1F,
-  Length (i),
-  Request ID (i),
-  Error Code (i),
-  Error Reason (Reason Phrase),
-}
-~~~
-{: #moq-transport-publish-error format title="MOQT PUBLISH_ERROR Message"}
-
-* Request ID: The Request ID of the PUBLISH this message is replying to
-  {{message-publish}}.
-
-* Error Code: Identifies an integer error code for failure.
-
-* Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
-
-The application SHOULD use a relevant error code in PUBLISH_ERROR, as defined
-below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The publisher is not authorized to publish the given namespace or track.
-
-TIMEOUT (0x2):
-: The subscription could not be established before an implementation specific
-  timeout.
-
-NOT_SUPPORTED (0x3):
-: The endpoint does not support the PUBLISH method.
-
-UNINTERESTED (0x4):
-: The namespace or track is not of interest to the endpoint.
 
 ## PUBLISH_DONE {#message-publish-done}
 
@@ -2531,7 +2512,7 @@ Type Largest Object; any other value results in closing the session with a
 `PROTOCOL_VIOLATION`.
 
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
-Content Exists value of 0, the publisher MUST respond with a FETCH_ERROR with
+Content Exists value of 0, the publisher MUST respond with a REQUEST_ERROR with
 error code `INVALID_RANGE`.
 
 A Joining Fetch includes this structure:
@@ -2546,7 +2527,7 @@ Joining Fetch {
 * Joining Request ID: The Request ID of the existing subscription to be
   joined. If a publisher receives a Joining Fetch with a Request ID that does
   not correspond to an existing Subscribe in the same session, it MUST return
-  a FETCH_ERROR with error code `INVALID_JOINING_REQUEST_ID`
+  a REQUEST_ERROR with error code `INVALID_JOINING_REQUEST_ID`
 
 * Joining Start : A relative or absolute value used to determing the Start
   Location, described below.
@@ -2611,9 +2592,9 @@ FETCH Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
+A publisher responds to a FETCH request with either a FETCH_OK or a REQUEST_ERROR
 message.  The publisher creates a new unidirectional stream that is used to send the
-Objects.  The FETCH_OK or FETCH_ERROR can come at any time relative to object
+Objects.  The FETCH_OK or REQUEST_ERROR can come at any time relative to object
 delivery.
 
 The publisher responding to a FETCH is
@@ -2626,13 +2607,13 @@ between the first requested object and the first object in the stream; between
 objects in the stream; and between the last object in the stream and the Largest
 Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
 a FIN.  If no Objects exist in the requested range, the publisher returns
-FETCH_ERROR with code `NO_OBJECTS`.
+REQUEST_ERROR with code `NO_OBJECTS`.
 
 A relay that has cached objects from the beginning of the range MAY start
 sending objects immediately in response to a FETCH.  If it encounters an object
 in the requested range that is not cached and has unknown status, the relay MUST
 pause subsequent delivery until it has confirmed the object's status upstream.
-If the upstream FETCH fails, the relay sends a FETCH_ERROR and can reset the
+If the upstream FETCH fails, the relay sends a REQUEST_ERROR and can reset the
 unidirectional stream.  It can choose to do so immediately or wait until the
 cached objects have been delivered before resetting the stream.
 
@@ -2648,7 +2629,7 @@ and is the last Object a fetch will return if the End Location have not yet been
 published.
 
 If Start Location is greater than the `Largest Object`
-({{message-subscribe-req}}) the publisher MUST return FETCH_ERROR with error
+({{message-subscribe-req}}) the publisher MUST return REQUEST_ERROR with error
 code `INVALID_RANGE`.
 
 A publisher MUST send fetched groups in the determined group order, either
@@ -2656,7 +2637,7 @@ ascending or descending. Within each group, objects are sent in ascending Object
 ID order; subgroup ID is not used for ordering.
 
 If an Original Publisher receives a FETCH with a range that includes an object with
-unknown status, it MUST return FETCH_ERROR with code UNKNOWN_STATUS_IN_RANGE.
+unknown status, it MUST return REQUEST_ERROR with code UNKNOWN_STATUS_IN_RANGE.
 
 
 ## FETCH_OK {#message-fetch-ok}
@@ -2710,75 +2691,6 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-## FETCH_ERROR {#message-fetch-error}
-
-A publisher sends a FETCH_ERROR control message in response to a
-failed FETCH.
-
-~~~
-FETCH_ERROR Message {
-  Type (i) = 0x19,
-  Length (16),
-  Request ID (i),
-  Error Code (i),
-  Error Reason (Reason Phrase)
-}
-~~~
-{: #moq-transport-fetch-error format title="MOQT FETCH_ERROR Message"}
-
-* Request ID: The Request ID of the FETCH this message is replying to
-  {{message-subscribe-req}}.
-
-* Error Code: Identifies an integer error code for fetch failure.
-
-* Error Reason: Provides the reason for fetch error. See {{reason-phrase}}.
-
-The application SHOULD use a relevant error code in FETCH_ERROR,
-as defined below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The subscriber is not authorized to fetch from the given track.
-
-TIMEOUT (0x2):
-: The fetch could not be completed before an implementation specific timeout.
-  For example, a relay could not FETCH missing objects within the timeout.
-
-NOT_SUPPORTED (0x3):
-: The endpoint does not support the FETCH method.
-
-TRACK_DOES_NOT_EXIST (0x4):
-: The requested track is not available at the publisher.
-
-INVALID_RANGE (0x5):
-: The end of the requested range is earlier than the beginning, the start of
-  the requested range is beyond the Largest Location, or the track has not
-  published any Objects yet.
-
-NO_OBJECTS (0x6):
-: No Objects exist between the requested Start and End Locations.
-
-INVALID_JOINING_REQUEST_ID (0x7):
-: The joining Fetch referenced a Request ID that did not belong to an active
-  Subscription.
-
-UNKNOWN_STATUS_IN_RANGE (0x8):
-: The requested range contains objects with unknown status.
-
-MALFORMED_TRACK (0x9):
-: A relay publisher detected the track was malformed (see
-  {{malformed-tracks}}).
-
-MALFORMED_AUTH_TOKEN (0x10):
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN (0x12):
-: Authorization token has expired ({{authorization-token}}).
-
-
 ## FETCH_CANCEL {#message-fetch-cancel}
 
 A subscriber sends a FETCH_CANCEL message to a publisher to indicate it is no
@@ -2828,18 +2740,6 @@ The publisher populates the fields of TRACK_STATUS_OK exactly as it would have
 populated a SUBSCRIBE_OK, setting Track Alias to 0. It is not considered an error
 if Track Alias 0 is already in use by an active subscription.
 
-
-## TRACK_STATUS_ERROR {#message-track-status-error}
-
-The publisher sends a TRACK_STATUS_ERROR control message in response
-to a failed TRACK_STATUS message.
-
-The TRACK_STATUS_ERROR message format is identical to the SUBSCRIBE_ERROR
-message ({{message-subscribe-error}}).
-
-The publisher populates the fields of TRACK_STATUS_ERROR exactly as it would
-have populated a SUBSCRIBE_ERROR.
-
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 
 The publisher sends the PUBLISH_NAMESPACE control message to advertise that it
@@ -2882,57 +2782,6 @@ PUBLISH_NAMESPACE_OK Message {
 * Request ID: The Request ID of the PUBLISH_NAMESPACE ({{message-pub-ns}}) this
   message is replying to.
 
-## PUBLISH_NAMESPACE_ERROR {#message-pub-ns-error}
-
-The subscriber sends a PUBLISH_NAMESPACE_ERROR control message for tracks that
-failed authorization.
-
-~~~
-PUBLISH_NAMESPACE_ERROR Message {
-  Type (i) = 0x8,
-  Length (16),
-  Request ID (i),
-  Error Code (i),
-  Error Reason (Reason Phrase)
-}
-~~~
-{: #moq-transport-pub-ns-error format title="MOQT PUBLISH_NAMESPACE_ERROR Message"}
-
-* Request ID: The Request ID of the PUBLISH_NAMESPACE ({{message-pub-ns}}) this
-  message is replying to.
-
-* Error Code: Identifies an integer error code for publish namespace failure.
-
-* Error Reason: Provides the reason for publish namespace error. See
-  {{reason-phrase}}.
-
-The application SHOULD use a relevant error code in PUBLISH_NAMESPACE_ERROR, as
-defined below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The subscriber is not authorized to announce the given namespace.
-
-TIMEOUT (0x2):
-: The announce could not be completed before an implementation specific
-  timeout.
-
-NOT_SUPPORTED (0x3):
-: The endpoint does not support the PUBLISH_NAMESPACE method.
-
-UNINTERESTED (0x4):
-: The namespace is not of interest to the endpoint.
-
-MALFORMED_AUTH_TOKEN (0x10):
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN (0x12):
-: Authorization token has expired ({{authorization-token}}).
-
-
 ## PUBLISH_NAMESPACE_DONE {#message-pub-ns-done}
 
 The publisher sends the `PUBLISH_NAMESPACE_DONE` control message to indicate its
@@ -2972,8 +2821,8 @@ PUBLISH_NAMESPACE_CANCEL Message {
   {{track-name}}.
 
 * Error Code: Identifies an integer error code for canceling the publish.
-  PUBLISH_NAMESPACE_CANCEL uses the same error codes as PUBLISH_NAMESPACE_ERROR
-  ({{message-pub-ns-error}}).
+  PUBLISH_NAMESPACE_CANCEL uses the same error codes as REQUEST_ERROR
+  ({{message-request-error}}) that responds to PUBLISH_NAMESPACE.
 
 * Error Reason: Provides the reason for publish cancelation. See
   {{reason-phrase}}.
@@ -3011,18 +2860,17 @@ SUBSCRIBE_NAMESPACE Message {
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
-SUBSCRIBE_NAMESPACE_ERROR.  If the SUBSCRIBE_NAMESPACE is successful, the
-publisher will immediately forward existing PUBLISH_NAMESPACE and PUBLISH
-messages that match the Track Namespace Prefix that have not already been sent
-to this subscriber.  If the set of matching PUBLISH_NAMESPACE messages changes,
-the publisher sends the corresponding PUBLISH_NAMESPACE or
-PUBLISH_NAMESPACE_DONE message.
+REQUEST_ERROR.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
+immediately forward existing PUBLISH_NAMESPACE and PUBLISH messages that match
+the Track Namespace Prefix that have not already been sent to this subscriber.
+If the set of matching PUBLISH_NAMESPACE messages changes, the publisher sends
+the corresponding PUBLISH_NAMESPACE or PUBLISH_NAMESPACE_DONE message.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
 session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
 Track Namespace Prefix that overlaps with (is equal to, a prefix of, or
 contained within) an active SUBSCRIBE_NAMESPACE, it MUST respond with
-SUBSCRIBE_NAMESPACE_ERROR, with error code NAMESPACE_PREFIX_OVERLAP.
+REQUEST_ERROR, with error code PREFIX_OVERLAP.
 
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
@@ -3049,62 +2897,6 @@ Message"}
 
 * Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
   ({{message-subscribe-ns}}) this message is replying to.
-
-## SUBSCRIBE_NAMESPACE_ERROR {#message-sub-ns-error}
-
-A publisher sends a SUBSCRIBE_NAMESPACE_ERROR control message in response to
-a failed SUBSCRIBE_NAMESPACE.
-
-~~~
-SUBSCRIBE_NAMESPACE_ERROR Message {
-  Type (i) = 0x13,
-  Length (16),
-  Request ID (i),
-  Error Code (i),
-  Error Reason (Reason Phrase)
-}
-~~~
-{: #moq-transport-sub-ann-error format
-title="MOQT SUBSCRIBE_NAMESPACE_ERROR Message"}
-
-* Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
-  ({{message-subscribe-ns}}) this message is replying to.
-
-* Error Code: Identifies an integer error code for the namespace subscription
-failure.
-
-* Error Reason: Provides the reason for the namespace subscription error.
-  See {{reason-phrase}}.
-
-The application SHOULD use a relevant error code in SUBSCRIBE_NAMESPACE_ERROR,
-as defined below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The subscriber is not authorized to subscribe to the given namespace prefix.
-
-TIMEOUT (0x2):
-: The operation could not be completed before an implementation specific
-  timeout.
-
-NOT_SUPPORTED (0x3):
-: The endpoint does not support the SUBSCRIBE_NAMESPACE method.
-
-NAMESPACE_PREFIX_UNKNOWN (0x4):
-: The namespace prefix is not available for subscription.
-
-NAMESPACE_PREFIX_OVERLAP (0x5):
-: The namespace prefix overlaps with another SUBSCRIBE_NAMESPACE in the same
-  session.
-
-MALFORMED_AUTH_TOKEN (0x10):
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN (0x12):
-: Authorization token has expired ({{authorization-token}}).
 
 
 ## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
@@ -3950,18 +3742,24 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | INVALID_AUTHORITY          | 0x19 | {{session-termination}} |
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination}} |
 
-### SUBSCRIBE_ERROR Codes {#iana-subscribe-error}
+### REQUEST_ERROR Codes {#iana-request-error}
 
-| Name                  | Code | Specification               |
-|:----------------------|:----:|:----------------------------|
-| INTERNAL_ERROR        | 0x0  | {{message-subscribe-error}} |
-| UNAUTHORIZED          | 0x1  | {{message-subscribe-error}} |
-| TIMEOUT               | 0x2  | {{message-subscribe-error}} |
-| NOT_SUPPORTED         | 0x3  | {{message-subscribe-error}} |
-| TRACK_DOES_NOT_EXIST  | 0x4  | {{message-subscribe-error}} |
-| INVALID_RANGE         | 0x5  | {{message-subscribe-error}} |
-| MALFORMED_AUTH_TOKEN  | 0x10 | {{message-subscribe-error}} |
-| EXPIRED_AUTH_TOKEN    | 0x12 | {{message-subscribe-error}} |
+| Name                       | Code | Specification              |
+|:---------------------------|:----:|:--------------------------|
+| INTERNAL_ERROR             | 0x0  | {{message-request-error}} |
+| UNAUTHORIZED               | 0x1  | {{message-request-error}} |
+| TIMEOUT                    | 0x2  | {{message-request-error}} |
+| NOT_SUPPORTED              | 0x3  | {{message-request-error}} |
+| MALFORMED_AUTH_TOKEN       | 0x4  | {{message-request-error}} |
+| EXPIRED_AUTH_TOKEN         | 0x5  | {{message-request-error}} |
+| DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
+| INVALID_RANGE              | 0x11 | {{message-request-error}} |
+| MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
+| UINTERESTED                | 0x20 | {{message-request-error}} |
+| PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
+| NO_OBJECTS                 | 0x31 | {{message-request-error}} |
+| INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
@@ -3975,58 +3773,6 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | EXPIRED            | 0x5  | {{message-publish-done}} |
 | TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
 | MALFORMED_TRACK    | 0x7  | {{message-publish-done}} |
-
-### PUBLISH_ERROR Codes {#iana-publish-error}
-
-| Name           | Code | Specification             |
-|:---------------|:----:|:--------------------------|
-| INTERNAL_ERROR | 0x0  | {{message-publish-error}} |
-| UNAUTHORIZED   | 0x1  | {{message-publish-error}} |
-| TIMEOUT        | 0x2  | {{message-publish-error}} |
-| NOT_SUPPORTED  | 0x3  | {{message-publish-error}} |
-| UNINTERESTED   | 0x4  | {{message-publish-error}} |
-
-### FETCH_ERROR Codes {#iana-fetch-error}
-
-| Name                       | Code | Specification           |
-|:---------------------------|:----:|:------------------------|
-| INTERNAL_ERROR             | 0x0  | {{message-fetch-error}} |
-| UNAUTHORIZED               | 0x1  | {{message-fetch-error}} |
-| TIMEOUT                    | 0x2  | {{message-fetch-error}} |
-| NOT_SUPPORTED              | 0x3  | {{message-fetch-error}} |
-| TRACK_DOES_NOT_EXIST       | 0x4  | {{message-fetch-error}} |
-| INVALID_RANGE              | 0x5  | {{message-fetch-error}} |
-| NO_OBJECTS                 | 0x6  | {{message-fetch-error}} |
-| INVALID_JOINING_REQUEST_ID | 0x7  | {{message-fetch-error}} |
-| UNKNOWN_STATUS_IN_RANGE    | 0x8  | {{message-fetch-error}} |
-| MALFORMED_TRACK            | 0x9  | {{message-fetch-error}} |
-| MALFORMED_AUTH_TOKEN       | 0x10 | {{message-fetch-error}} |
-| EXPIRED_AUTH_TOKEN         | 0x12 | {{message-fetch-error}} |
-
-### ANNOUNCE_ERROR Codes {#iana-announce-error}
-
-| Name                  | Code | Specification            |
-|:----------------------|:----:|:-------------------------|
-| INTERNAL_ERROR        | 0x0  | {{message-pub-ns-error}} |
-| UNAUTHORIZED          | 0x1  | {{message-pub-ns-error}} |
-| TIMEOUT               | 0x2  | {{message-pub-ns-error}} |
-| NOT_SUPPORTED         | 0x3  | {{message-pub-ns-error}} |
-| UNINTERESTED          | 0x4  | {{message-pub-ns-error}} |
-| MALFORMED_AUTH_TOKEN  | 0x10 | {{message-pub-ns-error}} |
-| EXPIRED_AUTH_TOKEN    | 0x12 | {{message-pub-ns-error}} |
-
-### SUBSCRIBE_NAMESPACE_ERROR Codes {#iana-subscribe-namespace-error}
-
-| Name                     | Code | Specification            |
-|:-------------------------|:----:|:-------------------------|
-| INTERNAL_ERROR           | 0x0  | {{message-sub-ns-error}} |
-| UNAUTHORIZED             | 0x1  | {{message-sub-ns-error}} |
-| TIMEOUT                  | 0x2  | {{message-sub-ns-error}} |
-| NOT_SUPPORTED            | 0x3  | {{message-sub-ns-error}} |
-| NAMESPACE_PREFIX_UNKNOWN | 0x4  | {{message-sub-ns-error}} |
-| NAMESPACE_PREFIX_OVERLAP | 0x5  | {{message-sub-ns-error}} |
-| MALFORMED_AUTH_TOKEN     | 0x10 | {{message-sub-ns-error}} |
-| EXPIRED_AUTH_TOKEN       | 0x12 | {{message-sub-ns-error}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
 
