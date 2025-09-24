@@ -3045,7 +3045,7 @@ Any object with a status code other than zero MUST have an empty payload.
 
 #### Object Extension Header {#object-extensions}
 Any Object with status Normal may have extension headers.  If an endpoint
-receives a non-Normal Object containing extension headers, it MUST close the
+receives extension headers on Objects with status that is not Normal, it MUST close the
 session with a `PROTOCOL_VIOLATION`.
 
 Object Extension Headers are visible to relays and allow the transmission of
