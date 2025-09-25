@@ -3665,8 +3665,12 @@ subscription inherit this priority, unless they specifically override it.<a href
 or PUBLISH_OK (TOOD: or REQUEST_OK).  It is a variable length integer encoding
 the time in milliseconds after which the sender of the parameter will terminate
 the subscription.  The receiver of the parameter can extend the subscription by
-sending a SUBSCRIBE_UPDATE (TODO: SUBSCRIPTION_UPDATE).  This value is advisory
-and the sender can terminate the subscription prior to or after the expiry time.<a href="#section-9.2.1.5-1" class="pilcrow">¶</a></p>
+sending a SUBSCRIBE_UPDATE (TODO: SUBSCRIPTION_UPDATE). If the receiver of the
+parameter has one or more updated AUTHORIZATION_TOKENs, it <span class="bcp14">SHOULD</span> include those
+in the SUBSCRIBE_UPDATE. Relays that send this parameter and applications that
+receive it <span class="bcp14">MAY</span> introduce jitter to prevent many endpoints from updating
+simultaneously. This value is advisory and the sender can terminate the
+subscription prior to or after the expiry time.<a href="#section-9.2.1.5-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.5-2">If the EXPIRES parameter is 0 or is not present in a message, the subscription
 does not expire or expires at an unknown time.<a href="#section-9.2.1.5-2" class="pilcrow">¶</a></p>
 </section>
