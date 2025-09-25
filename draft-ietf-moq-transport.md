@@ -264,7 +264,7 @@ x (..):
 x (L) ...:
 
 : Indicates that x is repeated zero or more times and that each instance
-  has a length of L
+  has a length of L.
 
 x (vi64):
 
