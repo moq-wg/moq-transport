@@ -1761,7 +1761,7 @@ the receiver uses Ascending (0x1).
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
 The SUBSCRIPTION_FILTER paramter (Parameter Type 0x21) MAY appear in a
-SUBSCRIBE, PUBLISH_OK and SUBSCRIBE_UPDATE message. It is a length-prefixed
+SUBSCRIBE, PUBLISH_OK or SUBSCRIBE_UPDATE message. It is a length-prefixed
 Subscription Filter (see {{subscription-filters}}).  If the length of the
 Subscription Filter does not match the parameter length, the publisher MUST
 close the session with `PROTOCOL_VIOLATION`.
