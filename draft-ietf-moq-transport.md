@@ -1734,6 +1734,13 @@ subscription inherit this priority, unless they specifically override it.
 
 The subscription has Publisher Priorty 128 if this parameter is omitted.
 
+### Application-specific Parameters {#application-specific-params}
+
+Applications may want to define parameters with semantics specific to that
+application. For this purpose, applications are free to use parameter types within
+the range 0xff0000 to 0xffffff, as those will not be used by any future versions of
+the MoQ specification.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -3632,6 +3639,13 @@ cannot infer any information about the existence of prior objects (see
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
+
+## Application-specific extension headers
+
+Applications may want to define extension headers with semantics specific to that
+application. For this purpose, applications are free to use extension header types
+within the range 0xff0000 to 0xffffff, as those will not be used by any future
+versions of the MoQ specification.
 
 # Security Considerations {#security}
 
