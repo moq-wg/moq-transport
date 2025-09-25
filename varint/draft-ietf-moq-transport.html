@@ -1605,27 +1605,24 @@ networks and is designed for high scale and low latency distribution.<a href="#s
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16">
-            <p id="section-toc.1-1.16.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-sample-variable-length-inte" class="internal xref">Sample Variable-Length Integer Encoding and Decoding</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.17">
-            <p id="section-toc.1-1.17.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-change-log" class="internal xref">Change Log</a></p>
+            <p id="section-toc.1-1.16.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-change-log" class="internal xref">Change Log</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.17.2.1">
-                <p id="section-toc.1-1.17.2.1.1"><a href="#appendix-B.1" class="auto internal xref">B.1</a>.  <a href="#name-since-draft-ietf-moq-transp" class="internal xref">Since draft-ietf-moq-transport-13</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.1">
+                <p id="section-toc.1-1.16.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-since-draft-ietf-moq-transp" class="internal xref">Since draft-ietf-moq-transport-13</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.17.2.2">
-                <p id="section-toc.1-1.17.2.2.1"><a href="#appendix-B.2" class="auto internal xref">B.2</a>.  <a href="#name-since-draft-ietf-moq-transpo" class="internal xref">Since draft-ietf-moq-transport-12</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.2">
+                <p id="section-toc.1-1.16.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-since-draft-ietf-moq-transpo" class="internal xref">Since draft-ietf-moq-transport-12</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.17.2.3">
-                <p id="section-toc.1-1.17.2.3.1"><a href="#appendix-B.3" class="auto internal xref">B.3</a>.  <a href="#name-since-draft-ietf-moq-transpor" class="internal xref">Since draft-ietf-moq-transport-11</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.3">
+                <p id="section-toc.1-1.16.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-since-draft-ietf-moq-transpor" class="internal xref">Since draft-ietf-moq-transport-11</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.17.2.4">
-                <p id="section-toc.1-1.17.2.4.1"><a href="#appendix-B.4" class="auto internal xref">B.4</a>.  <a href="#name-since-draft-ietf-moq-transport" class="internal xref">Since draft-ietf-moq-transport-10</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.4">
+                <p id="section-toc.1-1.16.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-since-draft-ietf-moq-transport" class="internal xref">Since draft-ietf-moq-transport-10</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18">
-            <p id="section-toc.1-1.18.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.17">
+            <p id="section-toc.1-1.17.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
 </li>
         </ul>
 </nav>
@@ -1898,7 +1895,7 @@ has a length of L<a href="#section-1.4-3.8.1" class="pilcrow">¶</a></p>
           <dt id="section-1.4-5.1">x (vi64):</dt>
           <dd style="margin-left: 1.5em" id="section-1.4-5.2">
             <p id="section-1.4-5.2.1">Indicates that x holds an integer value using the variable-length
-encoding as described in <a href="#variable-length-integers" class="auto internal xref">Section 1.4.1</a>.<a href="#section-1.4-5.2.1" class="pilcrow">¶</a></p>
+encoding as described below.<a href="#section-1.4-5.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -1964,19 +1961,25 @@ properties.<a href="#section-1.4.1-4" class="pilcrow">¶</a></p>
                 <td class="text-left" rowspan="1" colspan="1">0-2^60-1</td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">1111XXXX</td>
+                <td class="text-left" rowspan="1" colspan="1">11110000</td>
                 <td class="text-left" rowspan="1" colspan="1">9</td>
                 <td class="text-left" rowspan="1" colspan="1">64</td>
                 <td class="text-left" rowspan="1" colspan="1">0-2^64-1</td>
               </tr>
             </tbody>
           </table>
-<p id="section-1.4.1-6">The four least significant bits of the first byte are ignored in 9-byte
-encodings.  Senders <span class="bcp14">SHOULD</span> set these bits to 0000.<a href="#section-1.4.1-6" class="pilcrow">¶</a></p>
-<p id="section-1.4.1-7">To reduce unnecessary use of bandwidth, variable length integers <span class="bcp14">SHOULD</span>
-be encoded using the least number of bytes possible to represent the
-required value.<a href="#section-1.4.1-7" class="pilcrow">¶</a></p>
-<p id="section-1.4.1-8">A sample encoding and decoding algorithm is in <a href="#sample-varint" class="auto internal xref">Appendix A</a>.<a href="#section-1.4.1-8" class="pilcrow">¶</a></p>
+<p id="section-1.4.1-6">For example, the nine-byte sequence 0xf0ffffffffffffffff decodes to the decimal
+value 18,446,744,073,709,551,615; the eight-byte sequence 0xe2197c5eff14e88c
+decodes to the decimal value 151,288,809,941,952,652; the four-byte sequence
+0xdd7f3e7d decodes to 494,878,333; the two-byte sequence 0xbbbd decodes to
+15,293; and the single byte 0x25 decodes to 37 (as does the two-byte sequence
+0x8025).<a href="#section-1.4.1-6" class="pilcrow">¶</a></p>
+<p id="section-1.4.1-7">The four least significant bits of the first byte in 9-byte encodings <span class="bcp14">MUST</span> be
+set to 0000.  An endpoint that receives any other value <span class="bcp14">MUST</span> close the session
+with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-1.4.1-7" class="pilcrow">¶</a></p>
+<p id="section-1.4.1-8">To reduce unnecessary use of bandwidth, variable length integers <span class="bcp14">SHOULD</span> be
+encoded using the least number of bytes possible to represent the required
+value.<a href="#section-1.4.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="location-structure">
@@ -7250,301 +7253,245 @@ document:<a href="#section-14-1" class="pilcrow">¶</a></p>
 </div>
 </section>
 </div>
-<div id="sample-varint">
-<section id="appendix-A">
-      <h2 id="name-sample-variable-length-inte">
-<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-sample-variable-length-inte" class="section-name selfRef">Sample Variable-Length Integer Encoding and Decoding</a>
-      </h2>
-<p id="appendix-A-1">The WriteVarint function takes two parameters, a 64 bit integer and an
-output buffer with an append operation.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
-<div class="lang-pseudocode sourcecode" id="appendix-A-2">
-<pre>
-Function WriteVarint(value, output):
-    if value &lt;= 127:
-        output.append(value, 1)
-    else if value &lt;= 16383:
-        output.append(networkByteOrder(uint16_t(value | 0x8000)), 2)
-    else if value &lt;= 536870911:
-        output.append(networkByteOrder(
-            uint32_t(value | 0xC0000000)), 4)
-    else if value &lt;= 1152921504606846975:
-        output.append(networkByteOrder(
-            uint64_t(value | 0xE000000000000000)), 8)
-    else:
-        output.append(0xF0, 1)
-        output.append(networkByteOrder(value), 8)
-</pre><a href="#appendix-A-2" class="pilcrow">¶</a>
-</div>
-<p id="appendix-A-3">The function ReadVarint takes a single argument -- a sequence of bytes, which
-can be read in network byte order.<a href="#appendix-A-3" class="pilcrow">¶</a></p>
-<div class="lang-pseudocode sourcecode" id="appendix-A-4">
-<pre>
-ReadVarint(data):
-  lengths = [ 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 8, 9 ]
-  masks = [ 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
-            0x3f, 0x3f, 0x3f, 0x3f, 0x1f, 0x1f, 0x0f, 0x00 ]
-  // The length of variable-length integers is encoded in the
-  // first one to four bits of the first byte.
-  v = data.next_byte()
-  prefix = v &gt;&gt; 4
-  length = lengths[prefix]
-  mask = masks[prefix]
-
-  // Once the length is known, remove these bits and read any
-  // remaining bytes.
-  v = v &amp; mask
-  repeat length-1 times:
-    v = (v &lt;&lt; 8) + data.next_byte()
-  return v
-</pre><a href="#appendix-A-4" class="pilcrow">¶</a>
-</div>
-<p id="appendix-A-5">For example, the nine-byte sequence 0xf0ffffffffffffffff decodes to the decimal
-value 18,446,744,073,709,551,615; the eight-byte sequence 0xe2197c5eff14e88c
-decodes to the decimal value 151,288,809,941,952,652; the four-byte sequence
-0xdd7f3e7d decodes to 494,878,333; the two-byte sequence 0xbbbd decodes to
-15,293; and the single byte 0x25 decodes to 37 (as does the two-byte sequence
-0x8025).<a href="#appendix-A-5" class="pilcrow">¶</a></p>
-</section>
-</div>
 <div id="change-log">
-<section id="appendix-B">
+<section id="appendix-A">
       <h2 id="name-change-log">
-<a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-change-log" class="section-name selfRef">Change Log</a>
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-change-log" class="section-name selfRef">Change Log</a>
       </h2>
-<p id="appendix-B-1">RFC Editor's Note: Please remove this section prior to publication of a final version of this document.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
-<p id="appendix-B-2">Issue and pull request numbers are listed with a leading octothorp.<a href="#appendix-B-2" class="pilcrow">¶</a></p>
+<p id="appendix-A-1">RFC Editor's Note: Please remove this section prior to publication of a final version of this document.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-2">Issue and pull request numbers are listed with a leading octothorp.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
 <div id="since-draft-ietf-moq-transport-13">
-<section id="appendix-B.1">
+<section id="appendix-A.1">
         <h3 id="name-since-draft-ietf-moq-transp">
-<a href="#appendix-B.1" class="section-number selfRef">B.1. </a><a href="#name-since-draft-ietf-moq-transp" class="section-name selfRef">Since draft-ietf-moq-transport-13</a>
+<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-since-draft-ietf-moq-transp" class="section-name selfRef">Since draft-ietf-moq-transport-13</a>
         </h3>
-<p id="appendix-B.1-1"><strong>Setup and Control Plane</strong><a href="#appendix-B.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-1"><strong>Setup and Control Plane</strong><a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-B.1-2.1">
-            <p id="appendix-B.1-2.1.1">Add an AUTHORITY parameter (#1058)<a href="#appendix-B.1-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.1-2.1">
+            <p id="appendix-A.1-2.1.1">Add an AUTHORITY parameter (#1058)<a href="#appendix-A.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-2.2">
-            <p id="appendix-B.1-2.2.1">Add a free-form SETUP parameter identifying the implementation (#1114)<a href="#appendix-B.1-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-2.2">
+            <p id="appendix-A.1-2.2.1">Add a free-form SETUP parameter identifying the implementation (#1114)<a href="#appendix-A.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-2.3">
-            <p id="appendix-B.1-2.3.1">Add a Request ID to SUBSCRIBE_UDPATE (#1106)<a href="#appendix-B.1-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-2.3">
+            <p id="appendix-A.1-2.3.1">Add a Request ID to SUBSCRIBE_UDPATE (#1106)<a href="#appendix-A.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-2.4">
-            <p id="appendix-B.1-2.4.1">Indicate which params can appear PUBLISH* messages (#1071)<a href="#appendix-B.1-2.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-2.4">
+            <p id="appendix-A.1-2.4.1">Indicate which params can appear PUBLISH* messages (#1071)<a href="#appendix-A.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-2.5">
-            <p id="appendix-B.1-2.5.1">Add TRACK_STATUS to the list of request types affected by GOAWAY (#1105)<a href="#appendix-B.1-2.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-2.5">
+            <p id="appendix-A.1-2.5.1">Add TRACK_STATUS to the list of request types affected by GOAWAY (#1105)<a href="#appendix-A.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="appendix-B.1-3"><strong>Data Plane Wire Format and Handling</strong><a href="#appendix-B.1-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-3"><strong>Data Plane Wire Format and Handling</strong><a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-B.1-4.1">
-            <p id="appendix-B.1-4.1.1">Delta encode Object IDs within Subgroups (#1042)<a href="#appendix-B.1-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.1-4.1">
+            <p id="appendix-A.1-4.1.1">Delta encode Object IDs within Subgroups (#1042)<a href="#appendix-A.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-4.2">
-            <p id="appendix-B.1-4.2.1">Use a bit in Datagram Type to convey Object ID = 0 (#1055)<a href="#appendix-B.1-4.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-4.2">
+            <p id="appendix-A.1-4.2.1">Use a bit in Datagram Type to convey Object ID = 0 (#1055)<a href="#appendix-A.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-4.3">
-            <p id="appendix-B.1-4.3.1">Corrected missed code point updates to Object Datagram Status (#1082)<a href="#appendix-B.1-4.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-4.3">
+            <p id="appendix-A.1-4.3.1">Corrected missed code point updates to Object Datagram Status (#1082)<a href="#appendix-A.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-4.4">
-            <p id="appendix-B.1-4.4.1">Merge OBJECT_DATAGRAM and OBJECT_DATAGRAM_STATUS description (#1179)<a href="#appendix-B.1-4.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-4.4">
+            <p id="appendix-A.1-4.4.1">Merge OBJECT_DATAGRAM and OBJECT_DATAGRAM_STATUS description (#1179)<a href="#appendix-A.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-4.5">
-            <p id="appendix-B.1-4.5.1">Objects are not schedulable if flow-control blocked (#1054)<a href="#appendix-B.1-4.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-4.5">
+            <p id="appendix-A.1-4.5.1">Objects are not schedulable if flow-control blocked (#1054)<a href="#appendix-A.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-4.6">
-            <p id="appendix-B.1-4.6.1">Clarify DELIVERY_TIMEOUT reordering computation (#1120)<a href="#appendix-B.1-4.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-4.6">
+            <p id="appendix-A.1-4.6.1">Clarify DELIVERY_TIMEOUT reordering computation (#1120)<a href="#appendix-A.1-4.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-4.7">
-            <p id="appendix-B.1-4.7.1">Receiving unrequested Objects (#1112)<a href="#appendix-B.1-4.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-4.7">
+            <p id="appendix-A.1-4.7.1">Receiving unrequested Objects (#1112)<a href="#appendix-A.1-4.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-4.8">
-            <p id="appendix-B.1-4.8.1">Clarify End of Track (#1111)<a href="#appendix-B.1-4.8.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-4.8">
+            <p id="appendix-A.1-4.8.1">Clarify End of Track (#1111)<a href="#appendix-A.1-4.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-4.9">
-            <p id="appendix-B.1-4.9.1">Malformed tracks apply to FETCH (#1083)<a href="#appendix-B.1-4.9.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-4.9">
+            <p id="appendix-A.1-4.9.1">Malformed tracks apply to FETCH (#1083)<a href="#appendix-A.1-4.9.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-4.10">
-            <p id="appendix-B.1-4.10.1">Remove early FIN from the definition of malformed tracks (#1096)<a href="#appendix-B.1-4.10.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-4.10">
+            <p id="appendix-A.1-4.10.1">Remove early FIN from the definition of malformed tracks (#1096)<a href="#appendix-A.1-4.10.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-4.11">
-            <p id="appendix-B.1-4.11.1">Prior Object ID Gap Extension header (#939)<a href="#appendix-B.1-4.11.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-4.11">
+            <p id="appendix-A.1-4.11.1">Prior Object ID Gap Extension header (#939)<a href="#appendix-A.1-4.11.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-4.12">
-            <p id="appendix-B.1-4.12.1">Add Extension containing immutable extensions (#1025)<a href="#appendix-B.1-4.12.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-4.12">
+            <p id="appendix-A.1-4.12.1">Add Extension containing immutable extensions (#1025)<a href="#appendix-A.1-4.12.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="appendix-B.1-5"><strong>Relay Handling</strong><a href="#appendix-B.1-5" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-5"><strong>Relay Handling</strong><a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-B.1-6.1">
-            <p id="appendix-B.1-6.1.1">Explain FETCH routing for relays (#1165)<a href="#appendix-B.1-6.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.1-6.1">
+            <p id="appendix-A.1-6.1.1">Explain FETCH routing for relays (#1165)<a href="#appendix-A.1-6.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-6.2">
-            <p id="appendix-B.1-6.2.1"><span class="bcp14">MUST</span> for multi-publisher relay handling (#1115)<a href="#appendix-B.1-6.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-6.2">
+            <p id="appendix-A.1-6.2.1"><span class="bcp14">MUST</span> for multi-publisher relay handling (#1115)<a href="#appendix-A.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-6.3">
-            <p id="appendix-B.1-6.3.1">Filters don't (usually) determine the end of subscription (#1113)<a href="#appendix-B.1-6.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-6.3">
+            <p id="appendix-A.1-6.3.1">Filters don't (usually) determine the end of subscription (#1113)<a href="#appendix-A.1-6.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-6.4">
-            <p id="appendix-B.1-6.4.1">Allow self-subscriptions (#1110)<a href="#appendix-B.1-6.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-6.4">
+            <p id="appendix-A.1-6.4.1">Allow self-subscriptions (#1110)<a href="#appendix-A.1-6.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-6.5">
-            <p id="appendix-B.1-6.5.1">Explain Namespace Prefix Matching in more detail (#1116)<a href="#appendix-B.1-6.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-6.5">
+            <p id="appendix-A.1-6.5.1">Explain Namespace Prefix Matching in more detail (#1116)<a href="#appendix-A.1-6.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="appendix-B.1-7"><strong>Explanatory</strong><a href="#appendix-B.1-7" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-7"><strong>Explanatory</strong><a href="#appendix-A.1-7" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-B.1-8.1">
-            <p id="appendix-B.1-8.1.1">Explain Modularity of MOQT (#1107)<a href="#appendix-B.1-8.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.1-8.1">
+            <p id="appendix-A.1-8.1.1">Explain Modularity of MOQT (#1107)<a href="#appendix-A.1-8.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-8.2">
-            <p id="appendix-B.1-8.2.1">Explain how to resume publishing after losing state (#1087)<a href="#appendix-B.1-8.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-8.2">
+            <p id="appendix-A.1-8.2.1">Explain how to resume publishing after losing state (#1087)<a href="#appendix-A.1-8.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="appendix-B.1-9"><strong>Major Editorial Changes</strong><a href="#appendix-B.1-9" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-9"><strong>Major Editorial Changes</strong><a href="#appendix-A.1-9" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-B.1-10.1">
-            <p id="appendix-B.1-10.1.1">Rename ANNOUNCE to PUBLISH_NAMESPACE (#1104)<a href="#appendix-B.1-10.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.1-10.1">
+            <p id="appendix-A.1-10.1.1">Rename ANNOUNCE to PUBLISH_NAMESPACE (#1104)<a href="#appendix-A.1-10.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-10.2">
-            <p id="appendix-B.1-10.2.1">Rename SUBSCRIBE_DONE to PUBLISH_DONE (#1108)<a href="#appendix-B.1-10.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-10.2">
+            <p id="appendix-A.1-10.2.1">Rename SUBSCRIBE_DONE to PUBLISH_DONE (#1108)<a href="#appendix-A.1-10.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-10.3">
-            <p id="appendix-B.1-10.3.1">Major FETCH Reorganization (#1173)<a href="#appendix-B.1-10.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-10.3">
+            <p id="appendix-A.1-10.3.1">Major FETCH Reorganization (#1173)<a href="#appendix-A.1-10.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.1-10.4">
-            <p id="appendix-B.1-10.4.1">Reformat Error Codes (#1091)<a href="#appendix-B.1-10.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-10.4">
+            <p id="appendix-A.1-10.4.1">Reformat Error Codes (#1091)<a href="#appendix-A.1-10.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="since-draft-ietf-moq-transport-12">
-<section id="appendix-B.2">
+<section id="appendix-A.2">
         <h3 id="name-since-draft-ietf-moq-transpo">
-<a href="#appendix-B.2" class="section-number selfRef">B.2. </a><a href="#name-since-draft-ietf-moq-transpo" class="section-name selfRef">Since draft-ietf-moq-transport-12</a>
+<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-since-draft-ietf-moq-transpo" class="section-name selfRef">Since draft-ietf-moq-transport-12</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="appendix-B.2-1.1">
-            <p id="appendix-B.2-1.1.1">TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly mirror
-SUBSCRIBE/OK/ERROR (#1015)<a href="#appendix-B.2-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.2-1.1">
+            <p id="appendix-A.2-1.1.1">TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly mirror
+SUBSCRIBE/OK/ERROR (#1015)<a href="#appendix-A.2-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.2-1.2">
-            <p id="appendix-B.2-1.2.1">SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE (#1049)<a href="#appendix-B.2-1.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.2-1.2">
+            <p id="appendix-A.2-1.2.1">SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE (#1049)<a href="#appendix-A.2-1.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="since-draft-ietf-moq-transport-11">
-<section id="appendix-B.3">
+<section id="appendix-A.3">
         <h3 id="name-since-draft-ietf-moq-transpor">
-<a href="#appendix-B.3" class="section-number selfRef">B.3. </a><a href="#name-since-draft-ietf-moq-transpor" class="section-name selfRef">Since draft-ietf-moq-transport-11</a>
+<a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-since-draft-ietf-moq-transpor" class="section-name selfRef">Since draft-ietf-moq-transport-11</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="appendix-B.3-1.1">
-            <p id="appendix-B.3-1.1.1">Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)<a href="#appendix-B.3-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.3-1.1">
+            <p id="appendix-A.3-1.1.1">Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)<a href="#appendix-A.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.3-1.2">
-            <p id="appendix-B.3-1.2.1">Expand cases FETCH_OK returns Invalid Range (#946) and clarify fields (#936)<a href="#appendix-B.3-1.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.3-1.2">
+            <p id="appendix-A.3-1.2.1">Expand cases FETCH_OK returns Invalid Range (#946) and clarify fields (#936)<a href="#appendix-A.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.3-1.3">
-            <p id="appendix-B.3-1.3.1">Add an error code to FETCH_ERROR when an Object status is unknown (#825)<a href="#appendix-B.3-1.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.3-1.3">
+            <p id="appendix-A.3-1.3.1">Add an error code to FETCH_ERROR when an Object status is unknown (#825)<a href="#appendix-A.3-1.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.3-1.4">
-            <p id="appendix-B.3-1.4.1">Rename Latest Object to Largest Object (#1024) and clarify what to
-do when it's incomplete (#937)<a href="#appendix-B.3-1.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.3-1.4">
+            <p id="appendix-A.3-1.4.1">Rename Latest Object to Largest Object (#1024) and clarify what to
+do when it's incomplete (#937)<a href="#appendix-A.3-1.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.3-1.5">
-            <p id="appendix-B.3-1.5.1">Explain Malformed Tracks and what to do with them (#938)<a href="#appendix-B.3-1.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.3-1.5">
+            <p id="appendix-A.3-1.5.1">Explain Malformed Tracks and what to do with them (#938)<a href="#appendix-A.3-1.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.3-1.6">
-            <p id="appendix-B.3-1.6.1">Allow End of Group to be indicated in a normal Object (#1011)<a href="#appendix-B.3-1.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.3-1.6">
+            <p id="appendix-A.3-1.6.1">Allow End of Group to be indicated in a normal Object (#1011)<a href="#appendix-A.3-1.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.3-1.7">
-            <p id="appendix-B.3-1.7.1">Relays <span class="bcp14">MUST</span> have an upstream subscription to send SUBSCRIBE_OK (#1017)<a href="#appendix-B.3-1.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.3-1.7">
+            <p id="appendix-A.3-1.7.1">Relays <span class="bcp14">MUST</span> have an upstream subscription to send SUBSCRIBE_OK (#1017)<a href="#appendix-A.3-1.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.3-1.8">
-            <p id="appendix-B.3-1.8.1">Allow AUTHORIZATION TOKEN in CLIENT_SETUP, SERVER_SETUP and
-other fixes (#1013)<a href="#appendix-B.3-1.8.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.3-1.8">
+            <p id="appendix-A.3-1.8.1">Allow AUTHORIZATION TOKEN in CLIENT_SETUP, SERVER_SETUP and
+other fixes (#1013)<a href="#appendix-A.3-1.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.3-1.9">
-            <p id="appendix-B.3-1.9.1">Add PUBLISH for publisher initiated subscriptions (#995) and
-fix the PUBLISH codepoints (#1048, #1051)<a href="#appendix-B.3-1.9.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.3-1.9">
+            <p id="appendix-A.3-1.9.1">Add PUBLISH for publisher initiated subscriptions (#995) and
+fix the PUBLISH codepoints (#1048, #1051)<a href="#appendix-A.3-1.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="since-draft-ietf-moq-transport-10">
-<section id="appendix-B.4">
+<section id="appendix-A.4">
         <h3 id="name-since-draft-ietf-moq-transport">
-<a href="#appendix-B.4" class="section-number selfRef">B.4. </a><a href="#name-since-draft-ietf-moq-transport" class="section-name selfRef">Since draft-ietf-moq-transport-10</a>
+<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-since-draft-ietf-moq-transport" class="section-name selfRef">Since draft-ietf-moq-transport-10</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="appendix-B.4-1.1">
-            <p id="appendix-B.4-1.1.1">Added Common Structure definitions - Location, Key-Value-Pair and Reason
-Phrase<a href="#appendix-B.4-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.4-1.1">
+            <p id="appendix-A.4-1.1.1">Added Common Structure definitions - Location, Key-Value-Pair and Reason
+Phrase<a href="#appendix-A.4-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.2">
-            <p id="appendix-B.4-1.2.1">Limit lengths of all variable length fields, including Track Namespace and Name<a href="#appendix-B.4-1.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.2">
+            <p id="appendix-A.4-1.2.1">Limit lengths of all variable length fields, including Track Namespace and Name<a href="#appendix-A.4-1.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.3">
-            <p id="appendix-B.4-1.3.1">Control Message length is now 16 bits instead of variable length<a href="#appendix-B.4-1.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.3">
+            <p id="appendix-A.4-1.3.1">Control Message length is now 16 bits instead of variable length<a href="#appendix-A.4-1.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.4">
-            <p id="appendix-B.4-1.4.1">Subscribe ID became Request ID, and was added to most control messages. Request ID
+          <li class="normal" id="appendix-A.4-1.4">
+            <p id="appendix-A.4-1.4.1">Subscribe ID became Request ID, and was added to most control messages. Request ID
 is used to correlate OK/ERROR responses for ANNOUNCE, SUBSCRIBE_NAMESPACE,
-and TRACK_STATUS.  Like Subscribe ID, Request IDs are flow controlled.<a href="#appendix-B.4-1.4.1" class="pilcrow">¶</a></p>
+and TRACK_STATUS.  Like Subscribe ID, Request IDs are flow controlled.<a href="#appendix-A.4-1.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.5">
-            <p id="appendix-B.4-1.5.1">Explain rules for caching in more detail<a href="#appendix-B.4-1.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.5">
+            <p id="appendix-A.4-1.5.1">Explain rules for caching in more detail<a href="#appendix-A.4-1.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.6">
-            <p id="appendix-B.4-1.6.1">Changed the SETUP parameter format for even number parameters to match the
-Object Header Extension format<a href="#appendix-B.4-1.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.6">
+            <p id="appendix-A.4-1.6.1">Changed the SETUP parameter format for even number parameters to match the
+Object Header Extension format<a href="#appendix-A.4-1.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.7">
-            <p id="appendix-B.4-1.7.1">Rotated SETUP code points<a href="#appendix-B.4-1.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.7">
+            <p id="appendix-A.4-1.7.1">Rotated SETUP code points<a href="#appendix-A.4-1.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.8">
-            <p id="appendix-B.4-1.8.1">Added Parameters to TRACK_STATUS and TRACK_STATUS_REQUEST<a href="#appendix-B.4-1.8.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.8">
+            <p id="appendix-A.4-1.8.1">Added Parameters to TRACK_STATUS and TRACK_STATUS_REQUEST<a href="#appendix-A.4-1.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.9">
-            <p id="appendix-B.4-1.9.1">Clarified how subscribe filters work<a href="#appendix-B.4-1.9.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.9">
+            <p id="appendix-A.4-1.9.1">Clarified how subscribe filters work<a href="#appendix-A.4-1.9.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.10">
-            <p id="appendix-B.4-1.10.1">Added Next Group Filter to SUBSCRIBE<a href="#appendix-B.4-1.10.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.10">
+            <p id="appendix-A.4-1.10.1">Added Next Group Filter to SUBSCRIBE<a href="#appendix-A.4-1.10.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.11">
-            <p id="appendix-B.4-1.11.1">Added Forward flag to SUBSCRIBE<a href="#appendix-B.4-1.11.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.11">
+            <p id="appendix-A.4-1.11.1">Added Forward flag to SUBSCRIBE<a href="#appendix-A.4-1.11.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.12">
-            <p id="appendix-B.4-1.12.1">Renamed FETCH_OK field to End and clarified how to set it<a href="#appendix-B.4-1.12.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.12">
+            <p id="appendix-A.4-1.12.1">Renamed FETCH_OK field to End and clarified how to set it<a href="#appendix-A.4-1.12.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.13">
-            <p id="appendix-B.4-1.13.1">Added Absolute Joining Fetch<a href="#appendix-B.4-1.13.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.13">
+            <p id="appendix-A.4-1.13.1">Added Absolute Joining Fetch<a href="#appendix-A.4-1.13.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.14">
-            <p id="appendix-B.4-1.14.1">Clarified No Error vs Invalid Range FETCH_ERROR cases<a href="#appendix-B.4-1.14.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.14">
+            <p id="appendix-A.4-1.14.1">Clarified No Error vs Invalid Range FETCH_ERROR cases<a href="#appendix-A.4-1.14.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.15">
-            <p id="appendix-B.4-1.15.1">Use bits in SUBGROUP_HEADER and DATAGRAM* types to compress subgroup ID and
-extensions<a href="#appendix-B.4-1.15.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.15">
+            <p id="appendix-A.4-1.15.1">Use bits in SUBGROUP_HEADER and DATAGRAM* types to compress subgroup ID and
+extensions<a href="#appendix-A.4-1.15.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.16">
-            <p id="appendix-B.4-1.16.1">Coalesced END_OF_GROUP and END_OF_TRACK_AND_GROUP status<a href="#appendix-B.4-1.16.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.16">
+            <p id="appendix-A.4-1.16.1">Coalesced END_OF_GROUP and END_OF_TRACK_AND_GROUP status<a href="#appendix-A.4-1.16.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.17">
-            <p id="appendix-B.4-1.17.1">Objects that Do Not Exist cannot have extensions when sent on the wire<a href="#appendix-B.4-1.17.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.17">
+            <p id="appendix-A.4-1.17.1">Objects that Do Not Exist cannot have extensions when sent on the wire<a href="#appendix-A.4-1.17.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.18">
-            <p id="appendix-B.4-1.18.1">Specified error codes for resetting data streams<a href="#appendix-B.4-1.18.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.18">
+            <p id="appendix-A.4-1.18.1">Specified error codes for resetting data streams<a href="#appendix-A.4-1.18.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.19">
-            <p id="appendix-B.4-1.19.1">Defined an Object Header Extension for communicating a known Group ID gap<a href="#appendix-B.4-1.19.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.19">
+            <p id="appendix-A.4-1.19.1">Defined an Object Header Extension for communicating a known Group ID gap<a href="#appendix-A.4-1.19.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.4-1.20">
-            <p id="appendix-B.4-1.20.1">Replaced AUTHORIZATION_INFO with AUTHORIZATION_TOKEN, which has more structure,
-compression, and additional Auth related error codes (#760)<a href="#appendix-B.4-1.20.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.20">
+            <p id="appendix-A.4-1.20.1">Replaced AUTHORIZATION_INFO with AUTHORIZATION_TOKEN, which has more structure,
+compression, and additional Auth related error codes (#760)<a href="#appendix-A.4-1.20.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -7552,7 +7499,7 @@ compression, and additional Auth related error codes (#760)<a href="#appendix-B.
 </section>
 </div>
 <div id="authors-addresses">
-<section id="appendix-C">
+<section id="appendix-B">
       <h2 id="name-authors-addresses">
 <a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
       </h2>
