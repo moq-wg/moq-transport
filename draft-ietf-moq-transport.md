@@ -266,8 +266,6 @@ x (L) ...:
 : Indicates that x is repeated zero or more times and that each instance
   has a length of L
 
-This document redefines the following RFC9000 syntax:
-
 x (vi64):
 
 : Indicates that x holds an integer value using the variable-length
