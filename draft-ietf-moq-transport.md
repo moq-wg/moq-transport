@@ -3698,7 +3698,7 @@ Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
 0x04	| Object ID field is present	| Object ID is the prior Object's ID plus one
 0x08	| Group ID field is present |	Group ID is the prior Object's Group ID
-0x10	| Priority field is present	| See below
+0x10	| Priority field is present	| Priority is the prior Object's Priority
 0x20	| Extensions field is present |	Extensions field is not present
 0x40 | `PROTOCOL_VIOLATION` | N/A
 0x80 | `PROTOCOL_VIOLATION` | N/A
@@ -3706,23 +3706,6 @@ Bitmask | Condition if set | Condition if not set (0)
 If the first Object in the FETCH response uses a flag that references fields in
 the prior Object, the Subscriber MUST close the session with a
 `PROTOCOL_VIOLATION`.
-
-When the Priority field is not present, the Publisher Priority of the Object
-is determined as follows:
-
-1. If the Object is the first in the FETCH response, the Publisher Priority is
-128.
-2. Otherwise, if the Object is the first Object in its Subgroup included in the
-FETCH response, the Publisher Priority is the same as the previous Object in the
-response.
-3. Otherwise the Object has the same Publisher Priority as the first Object in
-its Subgroup included in the FETCH response.
-
-To decode a FETCH response, a Subscriber maintains a map of priorities for each
-Subgroup in the current Group.  The Publisher MUST NOT encode a FETCH response
-that would cause the size of the Subscriber's map to exceed 64 entries. The
-Publisher can only set the Priority field flag (0x10) to 0 for the first 64
-Subgroups in a Group in the response.
 
 The Extensions structure is defined in {{object-extensions}}.
 
