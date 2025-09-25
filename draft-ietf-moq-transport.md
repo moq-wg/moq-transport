@@ -271,8 +271,7 @@ This document redefines the following RFC9000 syntax:
 x (vi64):
 
 : Indicates that x holds an integer value using the variable-length
-  encoding as described in {{variable-length-integers}}.
-
+  encoding as described below.
 
 ### Variable-Length Integers
 
@@ -301,18 +300,24 @@ properties.
 |--------------|----------------|-------------|---------------|
 | 1110         | 8              | 60          | 0-2^60-1      |
 |--------------|----------------|-------------|---------------|
-| 1111XXXX     | 9              | 64          | 0-2^64-1      |
+| 11110000     | 9              | 64          | 0-2^64-1      |
 |--------------|----------------|-------------|---------------|
 {: format title="Summary of Integer Encodings"}
 
-The four least significant bits of the first byte are ignored in 9-byte
-encodings.  Senders SHOULD set these bits to 0000.
+For example, the nine-byte sequence 0xf0ffffffffffffffff decodes to the decimal
+value 18,446,744,073,709,551,615; the eight-byte sequence 0xe2197c5eff14e88c
+decodes to the decimal value 151,288,809,941,952,652; the four-byte sequence
+0xdd7f3e7d decodes to 494,878,333; the two-byte sequence 0xbbbd decodes to
+15,293; and the single byte 0x25 decodes to 37 (as does the two-byte sequence
+0x8025).
 
-To reduce unnecessary use of bandwidth, variable length integers SHOULD
-be encoded using the least number of bytes possible to represent the
-required value.
+The four least significant bits of the first byte in 9-byte encodings MUST be
+set to 0000.  An endpoint that receives any other value MUST close the session
+with a `PROTOCOL_VIOLATION`.
 
-A sample encoding and decoding algorithm is in {{sample-varint}}.
+To reduce unnecessary use of bandwidth, variable length integers SHOULD be
+encoded using the least number of bytes possible to represent the required
+value.
 
 ### Location Structure
 
@@ -3850,58 +3855,6 @@ document:
 - Will Law
 
 --- back
-
-# Sample Variable-Length Integer Encoding and Decoding {#sample-varint}
-
-The WriteVarint function takes two parameters, a 64 bit integer and an
-output buffer with an append operation.
-
-~~~pseudocode
-Function WriteVarint(value, output):
-    if value <= 127:
-        output.append(value, 1)
-    else if value <= 16383:
-        output.append(networkByteOrder(uint16_t(value | 0x8000)), 2)
-    else if value <= 536870911:
-        output.append(networkByteOrder(
-            uint32_t(value | 0xC0000000)), 4)
-    else if value <= 1152921504606846975:
-        output.append(networkByteOrder(
-            uint64_t(value | 0xE000000000000000)), 8)
-    else:
-        output.append(0xF0, 1)
-        output.append(networkByteOrder(value), 8)
-~~~
-
-
-The function ReadVarint takes a single argument -- a sequence of bytes, which
-can be read in network byte order.
-
-~~~pseudocode
-ReadVarint(data):
-  lengths = [ 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 8, 9 ]
-  masks = [ 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
-            0x3f, 0x3f, 0x3f, 0x3f, 0x1f, 0x1f, 0x0f, 0x00 ]
-  // The length of variable-length integers is encoded in the
-  // first one to four bits of the first byte.
-  v = data.next_byte()
-  prefix = v >> 4
-  length = lengths[prefix]
-  mask = masks[prefix]
-
-  // Once the length is known, remove these bits and read any
-  // remaining bytes.
-  v = v & mask
-  repeat length-1 times:
-    v = (v << 8) + data.next_byte()
-  return v
-~~~
-For example, the nine-byte sequence 0xf0ffffffffffffffff decodes to the decimal
-value 18,446,744,073,709,551,615; the eight-byte sequence 0xe2197c5eff14e88c
-decodes to the decimal value 151,288,809,941,952,652; the four-byte sequence
-0xdd7f3e7d decodes to 494,878,333; the two-byte sequence 0xbbbd decodes to
-15,293; and the single byte 0x25 decodes to 37 (as does the two-byte sequence
-0x8025).
 
 # Change Log
 
