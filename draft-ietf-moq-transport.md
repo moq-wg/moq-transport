@@ -2039,10 +2039,10 @@ On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
 specified, and start sending objects.
 
-If a publisher cannot satisfy the requested start or end or if the end has
-already been published it SHOULD send a SUBSCRIBE_ERROR with code
-`INVALID_RANGE`.  A publisher MUST NOT send objects from outside the requested
-range.
+If the publisher cannot satisfy the requested Subscription Filter (see
+{{subscription-filter}}) or if the entire End Group has already been published
+it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
+NOT send objects from outside the requested range.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
@@ -2405,6 +2405,9 @@ PUBLISH_OK Message {
   session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
+
+TODO: A similar section to SUBSCRIBE about how the publisher handles a
+filter that is entirely behind Largest Object or is otherwise invalid.
 
 ## PUBLISH_ERROR {#message-publish-error}
 
