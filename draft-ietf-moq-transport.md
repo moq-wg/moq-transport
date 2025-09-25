@@ -519,7 +519,7 @@ encoded as follows:
 
 ~~~
 Track Namespace {
-  Number of Track Namespace Fields (i),
+  Number of Track Namespace Fields (vi64),
   Track Namespace Field (..) ...
 }
 ~~~
@@ -531,7 +531,7 @@ Each Track Namespace Field is encoded as follows:
 
 ~~~
 Track Namespace Field {
-  Track Namespace Field Length (i),
+  Track Namespace Field Length (vi64),
   Track Namespace Field Value (..)
 }
 ~~~
@@ -1624,9 +1624,9 @@ follows:
 
 ~~~
 Token {
-  Alias Type (i),
-  [Token Alias (i),]
-  [Token Type (i),]
+  Alias Type (vi64),
+  [Token Alias (vi64),]
+  [Token Type (vi64),]
   [Token Value (..)]
 }
 ~~~
@@ -1956,7 +1956,7 @@ value is a `PROTOCOL_VIOLATION`.
 MAX_REQUEST_ID Message {
   Type (vi64) = 0x15,
   Length (16),
-  Max Request ID (i),
+  Max Request ID (vi64),
 }
 ~~~
 {: #moq-transport-max-request-id format title="MOQT MAX_REQUEST_ID Message"}
@@ -2005,10 +2005,10 @@ request.
 
 ~~~
 REQUEST_ERROR Message {
-  Type (i) = 0x5,
+  Type (vi64) = 0x5,
   Length (16),
-  Request ID (i),
-  Error Code (i),
+  Request ID (vi64),
+  Error Code (vi64),
   Error Reason (Reason Phrase),
 }
 ~~~
@@ -2099,17 +2099,17 @@ The format of SUBSCRIBE is as follows:
 SUBSCRIBE Message {
   Type (vi64) = 0x3,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (..),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
   Subscriber Priority (8),
   Group Order (8),
   Forward (8),
-  Filter Type (i),
+  Filter Type (vi64),
   [Start Location (Location),]
-  [End Group (i),]
-  Number of Parameters (i),
+  [End Group (vi64),]
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2168,13 +2168,13 @@ subscriptions.
 SUBSCRIBE_OK Message {
   Type (vi64) = 0x4,
   Length (16),
-  Request ID (i),
-  Track Alias (i),
-  Expires (i),
+  Request ID (vi64),
+  Track Alias (vi64),
+  Expires (vi64),
   Group Order (8),
   Content Exists (8),
   [Largest Location (Location),]
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2242,12 +2242,12 @@ SUBSCRIBE_UPDATE Message {
   Type (vi64) = 0x2,
   Length (16),
   Request ID (vi64),
-  Subscription Request ID (i),
+  Subscription Request ID (vi64),
   Start Location (Location),
   End Group (vi64),
   Subscriber Priority (8),
   Forward (8),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2302,18 +2302,18 @@ track. The receiver verifies the publisher is authorized to publish this track.
 
 ~~~
 PUBLISH Message {
-  Type (i) = 0x1D,
+  Type (vi64) = 0x1D,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (..),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
-  Track Alias (i),
+  Track Alias (vi64),
   Group Order (8),
   Content Exists (8),
   [Largest Location (Location),]
   Forward (8),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2361,16 +2361,16 @@ authorization and acceptance of a PUBLISH message, and establish a subscription.
 
 ~~~
 PUBLISH_OK Message {
-  Type (i) = 0x1E,
+  Type (vi64) = 0x1E,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Forward (8),
   Subscriber Priority (8),
   Group Order (8),
-  Filter Type (i),
+  Filter Type (vi64),
   [Start Location (Location),]
-  [End Group (i),]
-  Number of Parameters (i),
+  [End Group (vi64),]
+  Number of Parameters (vi64),
   Parameters (..) ...,
 }
 ~~~
@@ -2432,7 +2432,7 @@ The format of `PUBLISH_DONE` is as follows:
 
 ~~~
 PUBLISH_DONE Message {
-  Type (i) = 0xB,
+  Type (vi64) = 0xB,
   Length (16),
   Request ID (vi64),
   Status Code (vi64),
@@ -2516,7 +2516,7 @@ A Standalone Fetch includes this structure:
 ~~~
 Standalone Fetch {
   Track Namespace (..),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
   Start Location (Location),
   End Location (Location)
@@ -2558,8 +2558,8 @@ A Joining Fetch includes this structure:
 
 ~~~
 Joining Fetch {
-  Joining Request ID (i),
-  Joining Start (i)
+  Joining Request ID (vi64),
+  Joining Start (vi64)
 }
 ~~~
 
@@ -2602,10 +2602,10 @@ FETCH Message {
   Request ID (vi64),
   Subscriber Priority (8),
   Group Order (8),
-  Fetch Type (i),
+  Fetch Type (vi64),
   [Standalone (Standalone Fetch),]
   [Joining (Joining Fetch),]
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2693,7 +2693,7 @@ FETCH_OK Message {
   Group Order (8),
   End Of Track (8),
   End Location (Location),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2787,11 +2787,11 @@ publisher is authorized to publish tracks under this namespace.
 
 ~~~
 PUBLISH_NAMESPACE Message {
-  Type (i) = 0x6,
+  Type (vi64) = 0x6,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (..),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2848,10 +2848,10 @@ within the provided Track Namespace.
 
 ~~~
 PUBLISH_NAMESPACE_CANCEL Message {
-  Type (i) = 0xC,
+  Type (vi64) = 0xC,
   Length (16),
   Track Namespace (..),
-  Error Code (i),
+  Error Code (vi64),
   Error Reason (Reason Phrase)
 }
 ~~~
@@ -2875,11 +2875,11 @@ subscriptions, as well as future updates to the set.
 
 ~~~
 SUBSCRIBE_NAMESPACE Message {
-  Type (i) = 0x11,
+  Type (vi64) = 0x11,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace Prefix (..),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -3112,7 +3112,7 @@ Key-Value-Pairs, in bytes.
 
 ~~~
 Extensions {
-  Extension Headers Length (i),
+  Extension Headers Length (vi64),
   Extension headers (..),
 }
 ~~~
@@ -3149,13 +3149,13 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x0-0x7,0x20-21,0x24-25
-  Track Alias (i),
-  Group ID (i),
-  [Object ID (i),]
+  Type (vi64) = 0x0-0x7,0x20-21,0x24-25
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Object ID (vi64),]
   [Publisher Priority (8),]
   [Extensions (..),]
-  [Object Status (i),]
+  [Object Status (vi64),]
   [Object Payload (..),]
 }
 ~~~
@@ -3255,10 +3255,10 @@ flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i) = 0x10..0x1D,
-  Track Alias (i),
-  Group ID (i),
-  [Subgroup ID (i),]
+  Type (vi64) = 0x10..0x1D,
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Subgroup ID (vi64),]
   [Publisher Priority (8),]
 }
 ~~~
@@ -3360,10 +3360,10 @@ unless there is an Prior Object ID Gap extesnion header (see
 
 ~~~
 {
-  Object ID Delta (i),
+  Object ID Delta (vi64),
   [Extensions (..),]
-  Object Payload Length (i),
-  [Object Status (i),]
+  Object Payload Length (vi64),
+  [Object Status (vi64),]
   [Object Payload (..),]
 }
 ~~~
@@ -3497,8 +3497,8 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
   Object ID (vi64),
   Publisher Priority (8),
   Extensions (..),
-  Object Payload Length (i),
-  [Object Status (i),]
+  Object Payload Length (vi64),
+  [Object Status (vi64),]
   [Object Payload (..),]
 }
 ~~~
@@ -3612,7 +3612,7 @@ Headers of the Object.
 ~~~
 Immutable Extensions {
   Type (0xB),
-  Length (i),
+  Length (vi64),
   Key-Value-Pair (..) ...
 }
 ~~~
