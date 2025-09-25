@@ -2194,7 +2194,7 @@ SUBSCRIBE_UPDATE Message {
 * Subscription Request ID: The Request ID of the SUBSCRIBE
   ({{message-subscribe-req}}) this message is updating.  This MUST match an
   existing Request ID.  The publisher MUST close the session with `
-  `PROTOCOL_VIOLATION if the subscriber specifies an invalid Subscription
+  `PROTOCOL_VIOLATION` if the subscriber specifies an invalid Subscription
   Request ID.
 
 * Forward: If 1, Objects matching the subscription are forwarded to the
