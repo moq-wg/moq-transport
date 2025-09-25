@@ -993,8 +993,8 @@ specified in `Start Location`, the remainder of that Group passes the
 filter. `End Group` MUST specify the same or a larger Group than specified in
 `Start Location`.
 
-An endpoint that receives a Filter Type other than the above MUST be close the
-session with a `PROTOCOL_VIOLATION`.
+An endpoint that receives a filter type other than the above MUST close the
+session with `PROTOCOL_VIOLATION`.
 
 ## Fetch State Management
 
