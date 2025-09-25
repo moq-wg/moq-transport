@@ -1479,14 +1479,15 @@ re-requests them.
 
 #### EXPIRES Parameter {#expires}
 
-The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK,
-SUBSCRIBE_ANNOUNCES_OK, ANNOUNCE_OK or TRACK_STATUS_OK.  It is a variable length
-integer encoding the time in milliseconds after which the sender will terminate
-the subscription or announcement.  This value is advisory and can terminate the
-subscription or announcement prior to or after the expiry time.
+The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH
+or PUBLISH_OK (TOOD: or REQUEST_OK).  It is a variable length integer encoding
+the time in milliseconds after which the sender of the parameter will terminate
+the subscription.  The receiver of the parameter can extend the subscription by
+sending a SUBSCRIBE_UPDATE (TODO: SUBSCRIPTION_UPDATE).  This value is advisory
+and the sender can terminate the subscription prior to or after the expiry time.
 
 If the EXPIRES parameter is 0 or is not present in a message, the subscription
-or announcement does not expire or expires at an unknown time.
+does not expire or expires at an unknown time.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
