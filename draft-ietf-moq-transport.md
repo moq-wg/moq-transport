@@ -1747,25 +1747,27 @@ If omitted from SUBSCRIBE or PUBLISH_OK, the publisher uses the value 128.
 #### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_OK, PUBLISH or PUBLISH_OK.  It is an enum indicating how to prioritize
-Objects from different groups within the same subscription (see
-{{priorities}}). The allowed values are Ascending (0x1) or Descending (0x2) be
-used. If an endpoint receives a value outside this range, it MUST close the
+SUBSCRIBE_OK, PUBLISH, PUBLISH_OK or FETCH.  It is an enum indicating how to
+prioritize Objects from different groups within the same subscription (see
+{{priorities}}), or how to order Groups in a Fetch response (see
+{{fetch-handling}}). The allowed values are Ascending (0x1) or Descending (0x2)
+be used. If an endpoint receives a value outside this range, it MUST close the
 session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE or PUBLISH_OK, the publisher's preference is used and
-communicated in SUBSCRIBE_OK.  If omitted from SUBSCRIBE_OK or PUBLISH, the
-receiver uses Ascending (0x1).
+If omitted from SUBSCRIBE,  or PUBLISH_OK, the publisher's preference is used and
+communicated in SUBSCRIBE_OK.  If omitted from SUBSCRIBE_OK, PUBLISH or FETCH,
+the receiver uses Ascending (0x1).
 
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
 The SUBSCRIPTION_FILTER paramter (Parameter Type 0x21) MAY appear in a
-SUBSCRIBE_UPDATE message. It is a length-prefixed Subscription Filter (see
-{{subscription-filters}}).  If the length of the Subscription Filter does not
-match the parameter length, the publisher MUST close the session with
-`PROTOCOL_VIOLATION`.
+SUBSCRIBE, PUBLISH_OK and SUBSCRIBE_UPDATE message. It is a length-prefixed
+Subscription Filter (see {{subscription-filters}}).  If the length of the
+Subscription Filter does not match the parameter length, the publisher MUST
+close the session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
+If omitted from SUBSCRIBE_OK or PUBLISH, the value is Filter Type=No Filter
+(0x0).  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -2010,7 +2012,6 @@ SUBSCRIBE Message {
   Track Name Length (i),
   Track Name (..),
   Forward (8),
-  Subscription Filter (..),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2031,9 +2032,6 @@ SUBSCRIBE Message {
 
   Subscribing with Forward=0 allows publisher or relay to prepare to serve the
   subscription in advance, reducing the time to receive objects in the future.
-
-* Subscription Filter: The filter for this subscription, see
-  ({{subscription-filters}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2392,7 +2390,6 @@ PUBLISH_OK Message {
   Length (i),
   Request ID (i),
   Forward (8),
-  Subscription Filter (..),
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2406,8 +2403,6 @@ PUBLISH_OK Message {
   subscriber. If 0, Objects are not forwarded to the subscriber (see
   {{subscriptions}}) Any other value is a protocol error and MUST terminate the
   session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-
-* Subscription Filter: See {{subscription-filters}}.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2561,7 +2556,6 @@ FETCH Message {
   Type (i) = 0x16,
   Length (16),
   Request ID (i),
-  Group Order (8),
   Fetch Type (i),
   [Standalone (Standalone Fetch)],
   [Joining (Joining Fetch)],
@@ -2572,10 +2566,6 @@ FETCH Message {
 {: #moq-transport-fetch-format title="MOQT FETCH Message"}
 
 * Request ID: See {{request-id}}.
-
-* Group Order: Allows the subscriber to request Objects be delivered in
-  Ascending (0x1) or Descending (0x2) order by group.  Any other value is a
-  `PROTOCOL_VIOLATION`.
 
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
@@ -2593,7 +2583,7 @@ delivery.
 
 The publisher responding to a FETCH is
 responsible for delivering all available Objects in the requested range in the
-requested order. The Objects in the response are delivered on a single
+requested order (see {{group-order}}). The Objects in the response are delivered on a single
 unidirectional stream. Any gaps in the Group and Object IDs in the response
 stream indicate objects that do not exist (eg: they implicitly have status
 `Object Does Not Exist`).  For Ascending Group Order this includes ranges
@@ -2626,7 +2616,7 @@ If Start Location is greater than the `Largest Object`
 ({{message-subscribe-req}}) the publisher MUST return FETCH_ERROR with error
 code `INVALID_RANGE`.
 
-A publisher MUST send fetched groups in the determined group order, either
+A publisher MUST send fetched groups in the requested group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
