@@ -3044,7 +3044,7 @@ be terminated with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
 #### Object Extension Header {#object-extensions}
-Any Object with status Normal may have extension headers.  If an endpoint
+Any Object with status Normal can have extension headers.  If an endpoint
 receives extension headers on Objects with status that is not Normal, it MUST close the
 session with a `PROTOCOL_VIOLATION`.
 
