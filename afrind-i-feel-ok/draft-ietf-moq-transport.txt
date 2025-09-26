@@ -2173,8 +2173,7 @@ Table of Contents
 
                      Figure 9: MOQT REQUEST_OK Message
 
-   *  Request ID: The Request ID of the PUBLISH_NAMESPACE (Section 9.21)
-      this message is replying to.
+   *  Request ID: The Request ID to which this message is replying.
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 

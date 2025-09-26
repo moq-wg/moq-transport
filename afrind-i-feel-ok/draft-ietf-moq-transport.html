@@ -3949,7 +3949,7 @@ endpoint is blocked. More on Request ID in <a href="#request-id" class="auto int
 <p id="section-9.7-1">The REQUEST_OK message is sent to a response to SUBSCRIBE_NAMESPACE and
 PUBLISH_NAMESPACE requests. The unique request ID in the REQUEST_OK is used to
 associate it with the correct type of request.<a href="#section-9.7-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-request_ok-message"></span><div id="moq-transport-pub-ns-ok">
+<span id="name-moqt-request_ok-message"></span><div id="moq-transport-request-ok">
 <figure id="figure-9">
           <div class="alignLeft art-text artwork" id="section-9.7-2.1">
 <pre>
@@ -3968,8 +3968,7 @@ REQUEST_OK Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-9.7-3.1">
-            <p id="section-9.7-3.1.1">Request ID: The Request ID of the PUBLISH_NAMESPACE (<a href="#message-pub-ns" class="auto internal xref">Section 9.21</a>) this
-message is replying to.<a href="#section-9.7-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-9.7-3.1.1">Request ID: The Request ID to which this message is replying.<a href="#section-9.7-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.7-3.2">
             <p id="section-9.7-3.2.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.7-3.2.1" class="pilcrow">¶</a></p>
