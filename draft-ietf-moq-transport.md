@@ -1614,6 +1614,9 @@ USE_VALUE (0x3):
 : There is no Alias and there is a Type and Value. Use the Token Value as
 provided. The Token Value may be discarded after processing.
 
+If a serve receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a CLIENT_SETUP
+message, it MUST close the session with a `PROTOCOL_VIOLATION`.
+
 * Token Alias - a Session-specific integer identifier that references a Token
   Value. There are separate Alias spaces for the client and server (e.g.: they
   can each register Alias=1). Once a Token Alias has been registered, it cannot
