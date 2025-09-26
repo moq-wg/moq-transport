@@ -2184,10 +2184,10 @@ When a subscriber narrows their subscription, it might still receive objects
 outside the new range if the publisher sent them before the update was
 processed.
 
-There is no control message in response to a SUBSCRIBE_UPDATE, because it is
-expected that it will always succeed and the worst outcome is that it is not
-processed promptly and some extra objects from the existing subscription are
-delivered.
+The receiver of a SUBSCRIBE_UPDATE MUST respond with exactly one REQUEST_OK
+or REQUEST_ERROR message indicating if the update was successful.  When an
+update is unsuccessful, the publisher MUST also terminate the subscription with
+PUBLISH_DONE.
 
 Like SUBSCRIBE, End Group MUST be greater than or equal to the Group specified
 in `Start`.
