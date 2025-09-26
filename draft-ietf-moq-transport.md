@@ -1970,10 +1970,9 @@ REQUEST_OK Message {
   Parameters (..) ...
 }
 ~~~
-{: #moq-transport-pub-ns-ok format title="MOQT REQUEST_OK Message"}
+{: #moq-transport-request-ok format title="MOQT REQUEST_OK Message"}
 
-* Request ID: The Request ID of the PUBLISH_NAMESPACE ({{message-pub-ns}}) this
-  message is replying to.
+* Request ID: The Request ID to which this message is replying.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
