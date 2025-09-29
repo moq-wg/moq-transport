@@ -1766,7 +1766,7 @@ prioritize Objects from different groups within the same subscription (see
 be used. If an endpoint receives a value outside this range, it MUST close the
 session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE,  or PUBLISH_OK, the publisher's preference is used and
+If omitted from SUBSCRIBE or PUBLISH_OK, the publisher's preference is used and
 communicated in SUBSCRIBE_OK.  If omitted from SUBSCRIBE_OK, PUBLISH or FETCH,
 the receiver uses Ascending (0x1).
 
