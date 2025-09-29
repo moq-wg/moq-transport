@@ -2839,6 +2839,7 @@ SUBSCRIBE_NAMESPACE Message {
   Length (16),
   Request ID (i),
   Track Namespace Prefix (..),
+  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2856,6 +2857,10 @@ SUBSCRIBE_NAMESPACE Message {
   ("example.com", "meeting=123") would match both.  If an endpoint receives a
   Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
+
+
+* Forward: The Forward value that new subscriptions resulting from this
+  SUBSCRIBE_NAMESPACE will have (see {{subscriptions}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
