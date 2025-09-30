@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 29 March 2026                                     I. Swett, Ed.
+Expires: 3 April 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                       25 September 2025
+                                                       30 September 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 March 2026.
+   This Internet-Draft will expire on 3 April 2026.
 
 Copyright Notice
 
@@ -395,19 +395,20 @@ Table of Contents
    14-, 29-, 60-, or 64-bit values, respectively.  The following table
    summarizes the encoding properties.
 
-      +==============+================+=============+===============+
-      | Leading Bits | Length (bytes) | Usable Bits | Range         |
-      +==============+================+=============+===============+
-      | 0            | 1              | 7           | 0-127         |
-      +--------------+----------------+-------------+---------------+
-      | 10           | 2              | 14          | 0-16,383      |
-      +--------------+----------------+-------------+---------------+
-      | 110          | 4              | 29          | 0-536,870,911 |
-      +--------------+----------------+-------------+---------------+
-      | 1110         | 8              | 60          | 0-2^60-1      |
-      +--------------+----------------+-------------+---------------+
-      | 11110000     | 9              | 64          | 0-2^64-1      |
-      +--------------+----------------+-------------+---------------+
+    +==============+================+========+========================+
+    | Leading Bits | Length (bytes) | Usable | Range                  |
+    |              |                | Bits   |                        |
+    +==============+================+========+========================+
+    | 0            | 1              | 7      | 0-127                  |
+    +--------------+----------------+--------+------------------------+
+    | 10           | 2              | 14     | 0-16383                |
+    +--------------+----------------+--------+------------------------+
+    | 110          | 4              | 29     | 0-536870911            |
+    +--------------+----------------+--------+------------------------+
+    | 1110         | 8              | 60     | 0-1152921504606846975  |
+    +--------------+----------------+--------+------------------------+
+    | 11110000     | 9              | 64     | 0-18446744073709551615 |
+    +--------------+----------------+--------+------------------------+
 
                    Table 1: Summary of Integer Encodings
 
