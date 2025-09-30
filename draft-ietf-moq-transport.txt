@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 2 April 2026                                      I. Swett, Ed.
+Expires: 3 April 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                       29 September 2025
+                                                       30 September 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 April 2026.
+   This Internet-Draft will expire on 3 April 2026.
 
 Copyright Notice
 
@@ -515,7 +515,7 @@ Table of Contents
    Every object within a Group belongs to exactly one Subgroup.
 
    When Objects are sent in a subscription (see Section 5.1), Objects
-   from two subgroups cannot be sent on the same stream, and Objects
+   from two subgroups MUST NOT be sent on the same stream, and Objects
    from the same Subgroup MUST NOT be sent on different streams, unless
    one of the streams was reset prematurely, or upstream conditions have
    forced objects from a Subgroup to be sent out of Object ID order.
