@@ -411,7 +411,7 @@ control over the scheduling of sending data on active streams.
 Every object within a Group belongs to exactly one Subgroup.
 
 When Objects are sent in a subscription (see {{subscriptions}}),  Objects
-from two subgroups cannot be sent on the same stream, and Objects from the
+from two subgroups MUST NOT be sent on the same stream, and Objects from the
 same Subgroup MUST NOT be sent on different streams, unless one of the streams
 was reset prematurely, or upstream conditions have forced objects from a Subgroup
 to be sent out of Object ID order.
