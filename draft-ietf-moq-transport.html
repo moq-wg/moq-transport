@@ -3566,9 +3566,11 @@ in the token cache, even if the message fails for other reasons, including
 previously registered tokens without potentially terminating the entire Session.
 A receiver <span class="bcp14">MAY</span> store an error code (eg: <code>UNAUTHORIZED</code> or
 <code>MALFORMED_AUTH_TOKEN</code>) in place of the Token Type and Token Alias if any future
-message referencing the Token Alias will result in that error. The size of a
-registered cache entry includes the length of the Token Value, regardless of
-whether it is stored.<a href="#section-9.2.1.1-10" class="pilcrow">¶</a></p>
+message referencing the Token Alias will result in that error. However, it is
+important to not store an error code for a token that might be valid in the
+future or due to some other property becoming fulfilled which currently
+isn't. The size of a registered cache entry includes the length of the Token
+Value, regardless of whether it is stored.<a href="#section-9.2.1.1-10" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.1-11">If a receiver detects that an authorization token has expired, it <span class="bcp14">MUST</span> retain
 the registered Alias until it is deleted by the sender, though it <span class="bcp14">MAY</span> discard
 other state associated with the token that is no longer needed.  Expiration does
