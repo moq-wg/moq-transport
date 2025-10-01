@@ -1657,7 +1657,7 @@ previously registered tokens without potentially terminating the entire Session.
 A receiver MAY store an error code (eg: `UNAUTHORIZED` or
 `MALFORMED_AUTH_TOKEN`) in place of the Token Type and Token Alias if any future
 message referencing the Token Alias will result in that error. However, it is
-important to no store an error code for a token that might be valid in the
+important to not store an error code for a token that might be valid in the
 future or due to some other property becoming fulfilled which currently
 isn't. The size of a registered cache entry includes the length of the Token
 Value, regardless of whether it is stored.
