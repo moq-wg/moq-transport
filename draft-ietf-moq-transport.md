@@ -938,7 +938,8 @@ end with an error.
 ### Subscription Filters
 
 Subscribers can specify a filter on a subscription indicating to the publisher
-which Objects to send.
+which Objects to send.  Subscriptions without a filter pass all Objects
+published or received via upstream subscriptions.
 
 All filters have a Start Location and an optional End Group.  Only objects
 published or received via a subscription having Locations greater than or
@@ -947,9 +948,9 @@ present) pass the filter.
 
 Some filters are defined to be relative to the `Largest Object`. The `Largest
 Object` is the Object with the largest Location ({{location-structure}}) in the
-Track from the perspective of the publisher processing a SUBSCRIBE
-message. Largest Object updates when the first byte of an Object with a Location
-larger than the previous value is published or received through a subscription.
+Track from the perspective of the publisher processing the message. Largest
+Object updates when the first byte of an Object with a Location larger than the
+previous value is published or received through a subscription.
 
 A Subscription Filter has the following structure:
 
@@ -962,9 +963,6 @@ Subscription Filter {
 ~~~
 
 Filter Type can have one of the following values:
-
-No Filter (0x0): The subscription is not filtered and all Objects published or
-received via a subscription are sent to the Subscriber.
 
 Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
 Largest Object.Object + 1}` and `Largest Object` is communicated in
@@ -984,7 +982,8 @@ instead.
 AbsoluteStart (0x3): The filter Start Location is specified explicitly. The
 specified `Start Location` MAY be less than the `Largest Object` observed at the
 publisher. There is no End Group - the subscription is open ended.  An
-AbsoluteStart filter with `Start` = {0, 0} is equivalent to No Filter.
+AbsoluteStart filter with `Start` = {0, 0} is equivalent to an unfiltered
+subscription.
 
 AbsoluteRange (0x4): The filter Start Location and End Group are specified
 explicitly. The specified `Start Location` MAY be less than the `Largest Object`
@@ -1778,8 +1777,8 @@ Subscription Filter (see {{subscription-filters}}).  If the length of the
 Subscription Filter does not match the parameter length, the publisher MUST
 close the session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE_OK or PUBLISH, the value is Filter Type=No Filter
-(0x0).  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
+If omitted from SUBSCRIBE_OK or PUBLISH, the subscription is unfiltered.  If
+omitted from SUBSCRIBE_UDPATE, the value is unchanged.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
