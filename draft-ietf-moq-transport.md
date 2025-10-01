@@ -1734,6 +1734,26 @@ subscription inherit this priority, unless they specifically override it.
 
 The subscription has Publisher Priorty 128 if this parameter is omitted.
 
+
+#### EXPIRES Parameter {#expires}
+
+The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH
+or PUBLISH_OK (TOOD: or REQUEST_OK).  It is a variable length integer encoding
+the time in milliseconds after which the sender of the parameter will terminate
+the subscription. The sender will terminate the subscription using PUBLISH_DONE
+or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
+can terminate the subscription prior to or after the expiry time.
+
+The receiver of the parameter can extend the subscription by sending a
+SUBSCRIBE_UPDATE (TODO: SUBSCRIPTION_UPDATE). If the receiver of the parameter
+has one or more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
+SUBSCRIBE_UPDATE. Relays that send this parameter and applications that receive
+it MAY introduce jitter to prevent many endpoints from updating
+simultaneously.
+
+If the EXPIRES parameter is 0 or is not present in a message, the subscription
+does not expire or expires at an unknown time.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -2149,11 +2169,6 @@ SUBSCRIBE_OK Message {
   different Tracks simultaneously. If a subscriber receives a SUBSCRIBE_OK that
   uses the same Track Alias as a different track with an active subscription, it
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
-
-* Expires: Time in milliseconds after which the subscription is no
-longer valid. A value of 0 indicates that the subscription does not expire
-or expires at an unknown time.  Expires is advisory and a subscription can
-end prior to the expiry time or last longer.
 
 * Group Order: Indicates the subscription will be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
