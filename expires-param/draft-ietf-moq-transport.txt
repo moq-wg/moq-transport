@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 29 March 2026                                     I. Swett, Ed.
+Expires: 4 April 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                       25 September 2025
+                                                          1 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 March 2026.
+   This Internet-Draft will expire on 4 April 2026.
 
 Copyright Notice
 
@@ -515,7 +515,7 @@ Table of Contents
    Every object within a Group belongs to exactly one Subgroup.
 
    When Objects are sent in a subscription (see Section 5.1), Objects
-   from two subgroups cannot be sent on the same stream, and Objects
+   from two subgroups MUST NOT be sent on the same stream, and Objects
    from the same Subgroup MUST NOT be sent on different streams, unless
    one of the streams was reset prematurely, or upstream conditions have
    forced objects from a Subgroup to be sent out of Object ID order.
@@ -3092,6 +3092,7 @@ Table of Contents
      Length (16),
      Request ID (i),
      Track Namespace Prefix (..),
+     Forward (8),
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -3111,6 +3112,9 @@ Table of Contents
       receives a Track Namespace Prefix consisting of 0 or greater than
       than 32 Track Namespace Fields, it MUST close the session with a
       PROTOCOL_VIOLATION.
+
+   *  Forward: The Forward value that new subscriptions resulting from
+      this SUBSCRIBE_NAMESPACE will have (see Section 5.1).
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
