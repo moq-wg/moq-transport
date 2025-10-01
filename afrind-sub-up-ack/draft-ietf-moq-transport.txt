@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 30 March 2026                                     I. Swett, Ed.
+Expires: 4 April 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                       26 September 2025
+                                                          1 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 March 2026.
+   This Internet-Draft will expire on 4 April 2026.
 
 Copyright Notice
 
@@ -2394,7 +2394,8 @@ Table of Contents
    The receiver of a SUBSCRIBE_UPDATE MUST respond with exactly one
    REQUEST_OK or REQUEST_ERROR message indicating if the update was
    successful.  When an update is unsuccessful, the publisher MUST also
-   terminate the subscription with PUBLISH_DONE.
+   terminate the subscription with PUBLISH_DONE with error code
+   UPDATE_FAILED.
 
    Like SUBSCRIBE, End Group MUST be greater than or equal to the Group
    specified in Start.
@@ -2672,6 +2673,9 @@ Table of Contents
 
    MALFORMED_TRACK (0x7):  A relay publisher detected the track was
       malformed (see Section 2.4.2).
+
+   UPDATE_FAILED (0x8):  SUBSCRIBE_UPDATE failed on this subscription
+      (see Section 9.10).
 
 9.15.  FETCH
 
@@ -4142,6 +4146,8 @@ EXT 1 and EXT N can be modified or removed by Relays
                | TOO_FAR_BEHIND     | 0x6  | Section 9.14  |
                +--------------------+------+---------------+
                | MALFORMED_TRACK    | 0x7  | Section 9.14  |
+               +--------------------+------+---------------+
+               | UPDATE_FAILED      | 0x8  | Section 9.14  |
                +--------------------+------+---------------+
 
                                   Table 10
