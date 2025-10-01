@@ -411,7 +411,7 @@ control over the scheduling of sending data on active streams.
 Every object within a Group belongs to exactly one Subgroup.
 
 When Objects are sent in a subscription (see {{subscriptions}}),  Objects
-from two subgroups cannot be sent on the same stream, and Objects from the
+from two subgroups MUST NOT be sent on the same stream, and Objects from the
 same Subgroup MUST NOT be sent on different streams, unless one of the streams
 was reset prematurely, or upstream conditions have forced objects from a Subgroup
 to be sent out of Object ID order.
@@ -2854,6 +2854,7 @@ SUBSCRIBE_NAMESPACE Message {
   Length (16),
   Request ID (i),
   Track Namespace Prefix (..),
+  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2871,6 +2872,10 @@ SUBSCRIBE_NAMESPACE Message {
   ("example.com", "meeting=123") would match both.  If an endpoint receives a
   Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
+
+
+* Forward: The Forward value that new subscriptions resulting from this
+  SUBSCRIBE_NAMESPACE will have (see {{subscriptions}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
