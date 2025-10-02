@@ -1576,8 +1576,6 @@ SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
 parameter conveys information to authorize the sender to perform the operation
 carrying the parameter.
 
-The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
-
 The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
 Type and Token Value in future messages. The Token structure is serialized as
@@ -1676,6 +1674,9 @@ willing to accept. If a registration is attempted which would cause this limit
 to be exceeded, the receiver MUST termiate the Session with a
 `AUTH_TOKEN_CACHE_OVERFLOW` error.
 
+The AUTHORIZATION TOKEN parameter MAY be repeated within a message as long as
+the combination of Token Type and Token Value are unique after resolving any
+aliases.
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
