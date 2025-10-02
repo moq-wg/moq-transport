@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 4 April 2026                                      I. Swett, Ed.
+Expires: 5 April 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          1 October 2025
+                                                          2 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 April 2026.
+   This Internet-Draft will expire on 5 April 2026.
 
 Copyright Notice
 
@@ -1762,8 +1762,6 @@ Table of Contents
    message.  This parameter conveys information to authorize the sender
    to perform the operation carrying the parameter.
 
-   The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
-
    The parameter value is a Token structure containing an optional
    Session-specific Alias.  The Alias allows the sender to reference a
    previously transmitted Token Type and Token Value in future messages.
@@ -1798,6 +1796,10 @@ Table of Contents
    USE_VALUE (0x3):  There is no Alias and there is a Type and Value.
       Use the Token Value as provided.  The Token Value may be discarded
       after processing.
+
+   If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a
+   CLIENT_SETUP message, it MUST close the session with a
+   PROTOCOL_VIOLATION.
 
    *  Token Alias - a Session-specific integer identifier that
       references a Token Value.  There are separate Alias spaces for the
@@ -1865,6 +1867,10 @@ Table of Contents
    Section 9.3.2.4) it is willing to accept.  If a registration is
    attempted which would cause this limit to be exceeded, the receiver
    MUST termiate the Session with a AUTH_TOKEN_CACHE_OVERFLOW error.
+
+   The AUTHORIZATION TOKEN parameter MAY be repeated within a message as
+   long as the combination of Token Type and Token Value are unique
+   after resolving any aliases.
 
 9.2.1.2.  DELIVERY TIMEOUT Parameter
 
