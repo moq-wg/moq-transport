@@ -1760,17 +1760,17 @@ the value 128.
 #### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_OK, TRACK_STATUS, PUBLISH, PUBLISH_OK or FETCH.  It is an enum
-indicating how to prioritize Objects from different groups within the same
-subscription (see {{priorities}}), or how to order Groups in a Fetch response
-(see {{fetch-handling}}). The allowed values are Ascending (0x1) or Descending
-(0x2) be used. If an endpoint receives a value outside this range, it MUST close
-the session with `PROTOCOL_VIOLATION`.
+SUBSCRIBE_OK, TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK or FETCH.  It
+is an enum indicating how to prioritize Objects from different groups within the
+same subscription (see {{priorities}}), or how to order Groups in a Fetch
+response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
+Descending (0x2) be used. If an endpoint receives a value outside this range, it
+MUST close the session with `PROTOCOL_VIOLATION`.
 
 If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference from
 SUBSCRIBE_OK or TRACK_STATUS_OK is used. If omitted in PUBLISH_OK, the
 publisher's preference from PUBLISH is used. If omitted from SUBSCRIBE_OK,
-PUBLISH or FETCH, the receiver uses Ascending (0x1).
+TRACK_STATUS_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
 
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
