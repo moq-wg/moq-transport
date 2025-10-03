@@ -2157,7 +2157,6 @@ SUBSCRIBE_OK Message {
   Length (16),
   Request ID (i),
   Track Alias (i),
-  Expires (i),
   Group Order (8),
   Content Exists (8),
   [Largest Location (Location),]
