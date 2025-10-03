@@ -1747,38 +1747,41 @@ The subscription has Publisher Priorty 128 if this parameter is omitted.
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority)
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
-SUBSCRIBE, SUBSCRIBE_UPDATE, PUBLISH_OK or FETCH message. It is an integer
-expressing the priority of a subscription relative to other subscriptions and
-fetch responses in the same session. Lower numbers get higher priority.  See
-{{priorities}}.  The range is restricted to 0-255.  If a publisher receives a
-value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
+SUBSCRIBE, SUBSCRIBE_UPDATE, TRACK_STATUS, PUBLISH_OK or FETCH message. It is an
+integer expressing the priority of a subscription relative to other
+subscriptions and fetch responses in the same session. Lower numbers get higher
+priority.  See {{priorities}}.  The range is restricted to 0-255.  If a
+publisher receives a value outside this range, it MUST close the session with
+`PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE or PUBLISH_OK, the publisher uses the value 128.
+If omitted from SUBSCRIBE, TRACK_STATUS, PUBLISH_OK or FETCH, the publisher uses
+the value 128.
 
 #### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_OK, PUBLISH, PUBLISH_OK or FETCH.  It is an enum indicating how to
+SUBSCRIBE_OK, TRACK_STATUS, PUBLISH, PUBLISH_OK or FETCH.  It is an enum indicating how to
 prioritize Objects from different groups within the same subscription (see
 {{priorities}}), or how to order Groups in a Fetch response (see
 {{fetch-handling}}). The allowed values are Ascending (0x1) or Descending (0x2)
 be used. If an endpoint receives a value outside this range, it MUST close the
 session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE or PUBLISH_OK, the publisher's preference is used and
-communicated in SUBSCRIBE_OK.  If omitted from SUBSCRIBE_OK, PUBLISH or FETCH,
-the receiver uses Ascending (0x1).
+If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference from
+SUBSCRIBE_OK or TRACK_STATUS_OK is used. If omitted in PUBLISH_OK, the
+publisher's preference from PUBLISH is used. If omitted from SUBSCRIBE_OK,
+PUBLISH or FETCH, the receiver uses Ascending (0x1).
 
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
-The SUBSCRIPTION_FILTER paramter (Parameter Type 0x21) MAY appear in a
-SUBSCRIBE, PUBLISH_OK or SUBSCRIBE_UPDATE message. It is a length-prefixed
-Subscription Filter (see {{subscription-filters}}).  If the length of the
-Subscription Filter does not match the parameter length, the publisher MUST
-close the session with `PROTOCOL_VIOLATION`.
+The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) MAY appear in a
+SUBSCRIBE, TRACK_STATUS, PUBLISH_OK or SUBSCRIBE_UPDATE message. It is a
+length-prefixed Subscription Filter (see {{subscription-filters}}).  If the
+length of the Subscription Filter does not match the parameter length, the
+publisher MUST close the session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE_OK or PUBLISH, the subscription is unfiltered.  If
-omitted from SUBSCRIBE_UDPATE, the value is unchanged.
+If omitted from SUBSCRIBE, TRACK_STATUS or PUBLISH_OK, the subscription is
+unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
