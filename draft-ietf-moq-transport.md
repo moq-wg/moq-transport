@@ -411,7 +411,7 @@ control over the scheduling of sending data on active streams.
 Every object within a Group belongs to exactly one Subgroup.
 
 When Objects are sent in a subscription (see {{subscriptions}}),  Objects
-from two subgroups cannot be sent on the same stream, and Objects from the
+from two subgroups MUST NOT be sent on the same stream, and Objects from the
 same Subgroup MUST NOT be sent on different streams, unless one of the streams
 was reset prematurely, or upstream conditions have forced objects from a Subgroup
 to be sent out of Object ID order.
@@ -1586,8 +1586,6 @@ SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
 parameter conveys information to authorize the sender to perform the operation
 carrying the parameter.
 
-The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
-
 The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
 Type and Token Value in future messages. The Token structure is serialized as
@@ -1624,6 +1622,9 @@ USE_VALUE (0x3):
 : There is no Alias and there is a Type and Value. Use the Token Value as
 provided. The Token Value may be discarded after processing.
 
+If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a CLIENT_SETUP
+message, it MUST close the session with a `PROTOCOL_VIOLATION`.
+
 * Token Alias - a Session-specific integer identifier that references a Token
   Value. There are separate Alias spaces for the client and server (e.g.: they
   can each register Alias=1). Once a Token Alias has been registered, it cannot
@@ -1656,9 +1657,11 @@ in the token cache, even if the message fails for other reasons, including
 previously registered tokens without potentially terminating the entire Session.
 A receiver MAY store an error code (eg: `UNAUTHORIZED` or
 `MALFORMED_AUTH_TOKEN`) in place of the Token Type and Token Alias if any future
-message referencing the Token Alias will result in that error. The size of a
-registered cache entry includes the length of the Token Value, regardless of
-whether it is stored.
+message referencing the Token Alias will result in that error. However, it is
+important to not store an error code for a token that might be valid in the
+future or due to some other property becoming fulfilled which currently
+isn't. The size of a registered cache entry includes the length of the Token
+Value, regardless of whether it is stored.
 
 If a receiver detects that an authorization token has expired, it MUST retain
 the registered Alias until it is deleted by the sender, though it MAY discard
@@ -1684,6 +1687,9 @@ willing to accept. If a registration is attempted which would cause this limit
 to be exceeded, the receiver MUST termiate the Session with a
 `AUTH_TOKEN_CACHE_OVERFLOW` error.
 
+The AUTHORIZATION TOKEN parameter MAY be repeated within a message as long as
+the combination of Token Type and Token Value are unique after resolving any
+aliases.
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
@@ -1782,6 +1788,25 @@ publisher MUST close the session with `PROTOCOL_VIOLATION`.
 
 If omitted from SUBSCRIBE, TRACK_STATUS or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
+
+#### EXPIRES Parameter {#expires}
+
+The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH
+or PUBLISH_OK (TOOD: or REQUEST_OK).  It is a variable length integer encoding
+the time in milliseconds after which the sender of the parameter will terminate
+the subscription. The sender will terminate the subscription using PUBLISH_DONE
+or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
+can terminate the subscription prior to or after the expiry time.
+
+The receiver of the parameter can extend the subscription by sending a
+SUBSCRIBE_UPDATE (TODO: SUBSCRIPTION_UPDATE). If the receiver of the parameter
+has one or more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
+SUBSCRIBE_UPDATE. Relays that send this parameter and applications that receive
+it MAY introduce jitter to prevent many endpoints from updating
+simultaneously.
+
+If the EXPIRES parameter is 0 or is not present in a message, the subscription
+does not expire or expires at an unknown time.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -2174,11 +2199,6 @@ SUBSCRIBE_OK Message {
   different Tracks simultaneously. If a subscriber receives a SUBSCRIBE_OK that
   uses the same Track Alias as a different track with an active subscription, it
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
-
-* Expires: Time in milliseconds after which the subscription is no
-longer valid. A value of 0 indicates that the subscription does not expire
-or expires at an unknown time.  Expires is advisory and a subscription can
-end prior to the expiry time or last longer.
 
 * Content Exists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
@@ -2824,6 +2844,7 @@ SUBSCRIBE_NAMESPACE Message {
   Length (16),
   Request ID (i),
   Track Namespace Prefix (..),
+  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2841,6 +2862,10 @@ SUBSCRIBE_NAMESPACE Message {
   ("example.com", "meeting=123") would match both.  If an endpoint receives a
   Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
+
+
+* Forward: The Forward value that new subscriptions resulting from this
+  SUBSCRIBE_NAMESPACE will have (see {{subscriptions}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
