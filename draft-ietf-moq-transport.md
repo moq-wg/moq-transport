@@ -985,6 +985,38 @@ than specified in `Start`.
 An endpoint that receives a filter type other than the above MUST close the
 session with a `PROTOCOL_VIOLATION`.
 
+### Joining an Ongoing Track
+
+The MOQT Object model is designed with the concept that the beginning of a Group
+is a joint point, so in order for a subscriber to join a Track, it needs to
+request an existing or future Group.  Different applications will have different
+approaches for when to begin a new Group.
+
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE with Filter
+Type `Largest Object` followed by a Joining FETCH (see {{joining-fetches}}) for
+the intended start Group, which can be relative.  To join a Track at the next
+Group, the subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
+
+#### Dynamically Starting New Groups
+
+While some publishers will deterministically create new Groups, other
+applications might want to only begin a new Group when needed.  A subscriber
+joining a Track might detect that it is more efficient to request the Original
+Publisher create a new group than issue a Joining FETCH.  Publishers indicate a
+Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
+({{dynamic-groups}}).
+
+One possible subscriber pattern is to SUBSCRIBE to a Track using Filter Type
+`Largest Object` and observe the `Largest Location` in the response.  If the
+Object ID is below the application's threshold, the subscriber sends a FETCH for
+the beginning of the Group.  If the Object ID is above the threshold and the
+Track supports dynamic groups, it sends a SUBSCRIBE_UPDATE message with the
+NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
+{{new-group-request}}).
+
+Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
+`Next Group Start` and NEW_GROUP_REQUEST equal to 0.
+
 ## Fetch State Management
 
 The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
