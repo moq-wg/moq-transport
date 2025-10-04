@@ -1307,6 +1307,9 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.2">
                     <p id="section-toc.1-1.5.2.1.2.2.1"><a href="#section-5.1.2" class="auto internal xref">5.1.2</a>.  <a href="#name-subscription-filters" class="internal xref">Subscription Filters</a></p>
 </li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.3">
+                    <p id="section-toc.1-1.5.2.1.2.3.1"><a href="#section-5.1.3" class="auto internal xref">5.1.3</a>.  <a href="#name-joining-an-ongoing-track" class="internal xref">Joining an Ongoing Track</a></p>
+</li>
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
@@ -2765,6 +2768,43 @@ that Group passes the filter. <code>End Group</code> <span class="bcp14">MUST</s
 than specified in <code>Start</code>.<a href="#section-5.1.2-8" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-9">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> close the
 session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="joining-an-ongoing-track">
+<section id="section-5.1.3">
+          <h4 id="name-joining-an-ongoing-track">
+<a href="#section-5.1.3" class="section-number selfRef">5.1.3. </a><a href="#name-joining-an-ongoing-track" class="section-name selfRef">Joining an Ongoing Track</a>
+          </h4>
+<p id="section-5.1.3-1">The MOQT Object model is designed with the concept that the beginning of a Group
+is a joint point, so in order for a subscriber to join a Track, it needs to
+request an existing or future Group.  Different applications will have different
+approaches for when to begin a new Group.<a href="#section-5.1.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.3-2">To join a Track at a past Group, the subscriber sends a SUBSCRIBE with Filter
+Type <code>Largest Object</code> followed by a Joining FETCH (see <a href="#joining-fetches" class="auto internal xref">Section 9.15.2</a>) for
+the intended start Group, which can be relative.  To join a Track at the next
+Group, the subscriber sends a SUBSCRIBE with Filter Type <code>Next Group Start</code>.<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
+<div id="dynamically-starting-new-groups">
+<section id="section-5.1.3.1">
+            <h5 id="name-dynamically-starting-new-gr">
+<a href="#section-5.1.3.1" class="section-number selfRef">5.1.3.1. </a><a href="#name-dynamically-starting-new-gr" class="section-name selfRef">Dynamically Starting New Groups</a>
+            </h5>
+<p id="section-5.1.3.1-1">While some publishers will deterministically create new Groups, other
+applications might want to only begin a new Group when needed.  A subscriber
+joining a Track might detect that it is more efficient to request the Original
+Publisher create a new group than issue a Joining FETCH.  Publishers indicate a
+Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
+(<a href="#dynamic-groups" class="auto internal xref">Section 9.2.1.6</a>).<a href="#section-5.1.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.3.1-2">One possible subscriber pattern is to SUBSCRIBE to a Track using Filter Type
+<code>Largest Object</code> and observe the <code>Largest Location</code> in the response.  If the
+Object ID is below the application's threshold, the subscriber sends a FETCH for
+the beginning of the Group.  If the Object ID is above the threshold and the
+Track supports dynamic groups, it sends a SUBSCRIBE_UPDATE message with the
+NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
+<a href="#new-group-request" class="auto internal xref">Section 9.2.1.7</a>).<a href="#section-5.1.3.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1.3.1-3">Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
+<code>Next Group Start</code> and NEW_GROUP_REQUEST equal to 0.<a href="#section-5.1.3.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 </section>
