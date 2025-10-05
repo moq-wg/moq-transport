@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 April 2026                                      I. Swett, Ed.
+Expires: 8 April 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          4 October 2025
+                                                          5 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 April 2026.
+   This Internet-Draft will expire on 8 April 2026.
 
 Copyright Notice
 
@@ -491,7 +491,7 @@ Table of Contents
    any end-to-end encryption, or authentication.  A relay MUST NOT
    combine, split, or otherwise modify object payloads.
 
-   Objects within a Group are ordered numerically by their Object ID.
+   Objects within a Group are in ascending order by Object ID.
 
 2.2.  Subgroups
 
