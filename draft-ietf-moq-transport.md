@@ -1010,12 +1010,14 @@ One possible subscriber pattern is to SUBSCRIBE to a Track using Filter Type
 `Largest Object` and observe the `Largest Location` in the response.  If the
 Object ID is below the application's threshold, the subscriber sends a FETCH for
 the beginning of the Group.  If the Object ID is above the threshold and the
-Track supports dynamic groups, it sends a SUBSCRIBE_UPDATE message with the
+Track supports dynamic groups, the subscriber sends a SUBSCRIBE_UPDATE message with the
 NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
 {{new-group-request}}).
 
 Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
-`Next Group Start` and NEW_GROUP_REQUEST equal to 0.
+`Next Group Start` and NEW_GROUP_REQUEST equal to 0.  The value of
+DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
+groups. A publisher that does will begin the next group as soon as practical.
 
 ## Fetch State Management
 
@@ -1796,8 +1798,9 @@ does not expire or expires at an unknown time.
 
 The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in PUBLISH or
 SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
-1, it indicates that the subscriber can send a NEW_GROUP_REQUEST parameter in
-PUBLISH_OK or SUBSCRIBE_UPDATE for this Track.
+1, it indicates that the subscriber can request the Original Publisher to start
+a new Group by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or
+SUBSCRIBE_UPDATE for this Track.
 
 Relays MUST preserve the value of this parameter received from an upstream
 publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
