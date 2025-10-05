@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 April 2026                                      I. Swett, Ed.
+Expires: 8 April 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          4 October 2025
+                                                          5 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 April 2026.
+   This Internet-Draft will expire on 8 April 2026.
 
 Copyright Notice
 
@@ -1150,12 +1150,15 @@ Table of Contents
    response.  If the Object ID is below the application's threshold, the
    subscriber sends a FETCH for the beginning of the Group.  If the
    Object ID is above the threshold and the Track supports dynamic
-   groups, it sends a SUBSCRIBE_UPDATE message with the
+   groups, the subscriber sends a SUBSCRIBE_UPDATE message with the
    NEW_GROUP_REQUEST parameter equal to the Largest Location's Group,
    plus one (see Section 9.2.1.7).
 
    Another possible subscriber pattern is to send a SUBSCRIBE with
-   Filter Type Next Group Start and NEW_GROUP_REQUEST equal to 0.
+   Filter Type Next Group Start and NEW_GROUP_REQUEST equal to 0.  The
+   value of DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the
+   publisher supports dynamic groups.  A publisher that does will begin
+   the next group as soon as practical.
 
 5.2.  Fetch State Management
 
@@ -2000,8 +2003,9 @@ Table of Contents
    The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in
    PUBLISH or SUBSCRIBE_OK.  Values larger than 1 are a Protocol
    Violation.  When the value is 1, it indicates that the subscriber can
-   send a NEW_GROUP_REQUEST parameter in PUBLISH_OK or SUBSCRIBE_UPDATE
-   for this Track.
+   request the Original Publisher to start a new Group by including the
+   NEW_GROUP_REQUEST parameter in PUBLISH_OK or SUBSCRIBE_UPDATE for
+   this Track.
 
    Relays MUST preserve the value of this parameter received from an
    upstream publisher in SUBSCRIBE_OK or PUBLISH when sending these
