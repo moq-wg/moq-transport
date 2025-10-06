@@ -1770,8 +1770,8 @@ SUBSCRIBE_OK, TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK or FETCH.  It
 is an enum indicating how to prioritize Objects from different groups within the
 same subscription (see {{priorities}}), or how to order Groups in a Fetch
 response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
-Descending (0x2) be used. If an endpoint receives a value outside this range, it
-MUST close the session with `PROTOCOL_VIOLATION`.
+Descending (0x2). If an endpoint receives a value outside this range, it MUST
+close the session with `PROTOCOL_VIOLATION`.
 
 If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference from
 SUBSCRIBE_OK or TRACK_STATUS_OK is used. If omitted in PUBLISH_OK, the
