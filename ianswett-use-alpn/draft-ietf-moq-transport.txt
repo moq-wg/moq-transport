@@ -741,8 +741,10 @@ Table of Contents
    TCP, and applications using MoQ might need to fallback to another
    protocol when QUIC or WebTransport aren't available.
 
-   MoQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-   ([WebTransport], Section 3.4) to negotiate the version of MoQ.
+   MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
+   ([WebTransport], Section 3.4) to perform version negotiation.  [[RFC
+   editor: please remove the remainder of this section before
+   publication.]]
 
    The ALPN value [RFC7301] for the final version of this specification
    is moq.  ALPNs used to identify IETF drafts are created by appending
@@ -794,7 +796,7 @@ Table of Contents
    extensions to use.
 
    The client includes all Setup Parameters Section 9.3.1 required for
-   the negotiated MoQ version in CLIENT_SETUP.
+   the negotiated MOQT version in CLIENT_SETUP.
 
    Within any MOQT version, clients request the use of extensions by
    adding Setup parameters corresponding to that extension.  No

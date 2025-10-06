@@ -2322,8 +2322,9 @@ designed to work correctly when the extension is not supported.<a href="#section
 <p id="section-3.1-2">There is no definition of the protocol over other transports,
 such as TCP, and applications using MoQ might need to fallback to
 another protocol when QUIC or WebTransport aren't available.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.1-3">MoQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-13#section-3.4" class="relref">Section 3.4</a></span>) to negotiate the version of MoQ.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.1-3">MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
+(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-13#section-3.4" class="relref">Section 3.4</a></span>) to perform version negotiation.
+[[RFC editor: please remove the remainder of this section before publication.]]<a href="#section-3.1-3" class="pilcrow">¶</a></p>
 <p id="section-3.1-4">The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> for the final version of this specification
 is <code>moq</code>.  ALPNs used to identify IETF drafts are created by appending
 the draft number to "moq-". For example, draft-ietf-moq-transport-13
@@ -2388,7 +2389,7 @@ specific to the underlying transport protocol usage (see <a href="#session" clas
 <p id="section-3.2-1">Endpoints use the exchange of Setup messages to negotiate any MOQT extensions
 to use.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.2-2">The client includes all Setup Parameters <a href="#setup-params" class="auto internal xref">Section 9.3.1</a> required for the
-negotiated MoQ version in CLIENT_SETUP.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+negotiated MOQT version in CLIENT_SETUP.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
 <p id="section-3.2-3">Within any MOQT version, clients request the use of extensions by adding Setup
 parameters corresponding to that extension. No extensions are defined in this
 document.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
