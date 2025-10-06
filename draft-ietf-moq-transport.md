@@ -1774,7 +1774,7 @@ by the client and the server; they allow the peers to agree on the initial
 configuration before any objects are exchanged. It is a sequence of key-value
 pairs called Setup parameters; the semantics and format of which can vary based
 on whether the client or server is sending.  To ensure future extensibility of
-MOQT, the peers MUST ignore unknown setup parameters. 
+MOQT, the peers MUST ignore unknown setup parameters.
 TODO: describe GREASE for Setup Parameters.
 
 The wire format of the Setup messages are as follows:
