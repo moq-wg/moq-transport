@@ -5007,10 +5007,11 @@ subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.<a href="#section-9.18-3"
 to a successful TRACK_STATUS message.<a href="#section-9.19-1" class="pilcrow">¶</a></p>
 <p id="section-9.19-2">The TRACK_STATUS_OK message format is identical to the SUBSCRIBE_OK message
 (<a href="#message-subscribe-ok" class="auto internal xref">Section 9.9</a>).<a href="#section-9.19-2" class="pilcrow">¶</a></p>
-<p id="section-9.19-3">The publisher populates the fields of TRACK_STATUS_OK exactly as it would have
-populated a SUBSCRIBE_OK. The Track Alias <span class="bcp14">MUST</span> be set to 0. It is not
+<p id="section-9.19-3">The publisher populates the fields of TRACK_STATUS_OK in the same way as
+SUBSCRIBE_OK. The Track Alias <span class="bcp14">MUST</span> be set to 0. It is not
 considered an error if Track Alias 0 is already in use by an active
-subscription.<a href="#section-9.19-3" class="pilcrow">¶</a></p>
+subscription. However, the subscriber <span class="bcp14">MUST</span> terminate the session with
+a <code>PROTOCOL_VIOLATION</code> if the Track Alias is not set to 0.<a href="#section-9.19-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-pub-ns">
