@@ -1925,9 +1925,9 @@ Table of Contents
    unknown, and a relay that handles a downstream request that includes
    those Objects re-requests them.
 
-   If the MAX_CACHE_DURATION parameter is not present in a message, the
-   Objects never expires until implementation constraints cause them to
-   be evicted from the cache.
+   If the MAX_CACHE_DURATION parameter is not sent by the publisher, the
+   Objects can be cached until implementation constraints cause them to
+   be evicted.
 
 9.2.1.4.  PUBLISHER PRIORITY Parameter
 
