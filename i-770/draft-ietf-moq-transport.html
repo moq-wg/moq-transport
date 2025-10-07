@@ -4275,7 +4275,7 @@ subscription. The Start Location <span class="bcp14">MUST</span> not decrease, a
 to do so could fail. If Objects with Locations smaller than the current
 subscription's Start Location are required, FETCH can be used to retrieve
 them. A publisher <span class="bcp14">MUST</span> terminate the session with a <code>PROTOCOL_VIOLATION</code> if the
-SUBSCRIBE_UPDATE violates these rules or if the subscriber specifies a request
+SUBSCRIBE_UPDATE violates this rule or if the subscriber specifies a request
 ID that has not existed within the Session.<a href="#section-9.10-1" class="pilcrow">¶</a></p>
 <p id="section-9.10-2">When a subscriber narrows their subscription (increase the Start Location and/or
 decrease the End Group), it might still receive objects
