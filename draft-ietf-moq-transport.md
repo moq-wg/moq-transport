@@ -1767,8 +1767,8 @@ or PUBLISH (TODO: or REQUEST_OK).  It is a length-prefixed Location structure
 (see {{location-structure}}) containing the largest Location in the Track observed
 by the sending endpoint (see {{subscription-filters}}.
 
-If omitted from a message, the sending endpoint has not observed any Objects in
-the Track.
+If omitted from a message, the sending endpoint has not published or received
+any Objects in the Track.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
