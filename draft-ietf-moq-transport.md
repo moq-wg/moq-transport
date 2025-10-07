@@ -1815,7 +1815,7 @@ subscriber has no Group information for the Track.  A subscriber MUST NOT send
 this parameter in PUBLISH_OK or SUBSCRIBE_UPDATE if the publisher did not
 include DYNAMIC_GROUPS=1 when establishing the subscription.  A subscriber MAY
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
-publisher does not support dynamic Groups, it ignores the parameter in that
+original publisher does not support dynamic Groups, it ignores the parameter in that
 case.
 
 When an Original Publisher that supports dynamic Groups receives a
