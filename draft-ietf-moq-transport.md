@@ -563,7 +563,7 @@ subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
 SHOULD deliver an error to the application.  If a relay detects a Malformed
 Track, it MUST immediately terminate downstream subscriptions with PUBLISH_DONE
 and reset any fetch streams with Status Code `MALFORMED_TRACK`. Object(s)
-triggering Malformed Track status MUST NOT be cached either.
+triggering Malformed Track status MUST NOT be cached.
 
 ### Scope {#track-scope}
 
