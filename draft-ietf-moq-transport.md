@@ -2192,15 +2192,15 @@ session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
 A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
-subscription. Subscriptions can only be narrowed, not widened, as an attempt to
-widen could fail. If Objects with Locations smaller than the current
+subscription. The Start Location MUST not decrease, as an attempt to
+to do so could fail. If Objects with Locations smaller than the current
 subscription's Start Location are required, FETCH can be used to retrieve
-them. The Start Location MUST NOT decrease and the End Group MUST NOT increase.
-A publisher MUST terminate the session with a `PROTOCOL_VIOLATION` if the
+them. A publisher MUST terminate the session with a `PROTOCOL_VIOLATION` if the
 SUBSCRIBE_UPDATE violates these rules or if the subscriber specifies a request
 ID that has not existed within the Session.
 
-When a subscriber narrows their subscription, it might still receive objects
+When a subscriber narrows their subscription (increase the Start Location and/or
+decrease the End Group), it might still receive objects
 outside the new range if the publisher sent them before the update was
 processed.
 
