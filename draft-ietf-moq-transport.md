@@ -3069,7 +3069,7 @@ be terminated with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
 #### Object Extension Header {#object-extensions}
-Any Object may have extension headers except those with Object Status 'Object
+Any Object MAY have extension headers except those with Object Status 'Object
 Does Not Exist'.  If an endpoint receives a non-existent Object containing
 extension headers it MUST close the session with a `PROTOCOL_VIOLATION`.
 
@@ -3080,9 +3080,10 @@ of the Object payload and not as an extension header.
 
 Extension Headers are defined in external specifications and registered in an
 IANA table {{iana}}. These specifications define the type and value of the
-header, along with any rules concerning processing, modification, caching and
-forwarding. A relay which is coded to implement these rules is said to
-"support" the extension.
+header, as well as the rules for duplication, processing,
+modification, caching and forwarding. Unless explicitly restricted by the
+extension's specification, extension headers are duplicable by default.
+A relay designed to enforce these rules is considered to "support" the extension.
 
 If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
 cached as part of the Object and MUST be forwarded by relays.
@@ -3585,8 +3586,8 @@ there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
 {{group-ids}}).
 
-This extension can be added by the Original Publisher, but MUST NOT be added by
-relays. This extension MUST NOT be modified or removed.
+Only a single extension of this type can be added by the Original Publisher,
+but MUST NOT be added by relays. This extension MUST NOT be modified or removed.
 
 ## Immutable Extensions
 
@@ -3655,8 +3656,8 @@ there may not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
 {{model-object}}).
 
-This extension can be added by the Original Publisher, but MUST NOT be added by
-relays. This extension MUST NOT be modified or removed.
+Only a single extension of this type can be added by the Original Publisher,
+but MUST NOT be added by relays. This extension MUST NOT be modified or removed.
 
 # Security Considerations {#security}
 
