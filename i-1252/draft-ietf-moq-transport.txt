@@ -2789,7 +2789,7 @@ Table of Contents
 
    The publisher receiving a Joining Fetch sets the End Location to
    {Subscribe Largest Location.Object + 1}. Here Subscribe Largest
-   Location is saved value when the subscription started.
+   Location is the saved value from when the subscription started.
 
    Note: the last Object included in the Joining FETCH response is
    Subscribe Largest Location.  The + 1 above indicates the equivalent

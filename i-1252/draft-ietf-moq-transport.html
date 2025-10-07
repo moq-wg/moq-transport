@@ -4760,8 +4760,8 @@ Location, described below.<a href="#section-9.15.2-7.2.1" class="pilcrow">¶</a>
 subscription, is used to calculate the end of a Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.<a href="#section-9.15.2.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.15.2.1-2">The publisher receiving a Joining Fetch sets the End Location to {Subscribe
-Largest Location.Object + 1}. Here Subscribe Largest Location is
-saved value when the subscription started.<a href="#section-9.15.2.1-2" class="pilcrow">¶</a></p>
+Largest Location.Object + 1}. Here Subscribe Largest Location is the
+saved value from when the subscription started.<a href="#section-9.15.2.1-2" class="pilcrow">¶</a></p>
 <p id="section-9.15.2.1-3">Note: the last Object included in the Joining FETCH response is Subscribe
 Largest Location.  The <code>+ 1</code> above indicates the equivalent Standalone Fetch
 encoding.<a href="#section-9.15.2.1-3" class="pilcrow">¶</a></p>
