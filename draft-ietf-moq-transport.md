@@ -1771,11 +1771,11 @@ does not expire or expires at an unknown time.
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
-by the client and the server; they allow the peers to agree on the initial
-configuration before any objects are exchanged. It is a sequence of key-value
-pairs called Setup parameters; the semantics and format of which can vary based
-on whether the client or server is sending.  To ensure future extensibility of
-MOQT, the peers MUST ignore unknown setup parameters.
+by the client and the server; they allow the endpoints to agree on the initial
+configuration before any control messsages are exchanged. The messages contain
+a sequence of key-value pairs called Setup parameters; the semantics and format
+of which can vary based on whether the client or server is sending.  To ensure
+future extensibility of MOQT, endpoints MUST ignore unknown setup parameters.
 TODO: describe GREASE for Setup Parameters.
 
 The wire format of the Setup messages are as follows:
