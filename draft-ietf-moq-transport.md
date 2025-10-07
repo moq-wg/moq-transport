@@ -2942,8 +2942,7 @@ UNSUBSCRIBE_NAMESPACE Message {
 {: #moq-transport-unsub-ann-format title="MOQT UNSUBSCRIBE_NAMESPACE Message"}
 
 * Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
-  ({{message-subscribe-ns}}) associated with the Track Namespace Prefix being
-  unsusbcribed by this message.
+  ({{message-subscribe-ns}}) being cancelled by this message.
 
 
 # Data Streams and Datagrams {#data-streams}
