@@ -3182,8 +3182,7 @@ Table of Contents
                Figure 26: MOQT UNSUBSCRIBE_NAMESPACE Message
 
    *  Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
-      (Section 9.24) associated with the Track Namespace Prefix being
-      unsusbcribed by this message.
+      (Section 9.24) being cancelled by this message.
 
 10.  Data Streams and Datagrams
 
