@@ -1729,9 +1729,8 @@ multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
 handles a downstream request that includes those Objects re-requests them.
 
-If the MAX_CACHE_DURATION parameter is not present in a message, the Objects
-never expires until implementation constraints cause them to be
-evicted from the cache.
+If the MAX_CACHE_DURATION parameter is not sent by the publisher, the Objects
+can be cached until implementation constraints cause them to be evicted.
 
 #### PUBLISHER PRIORITY Parameter {#subscriber-priority}
 
