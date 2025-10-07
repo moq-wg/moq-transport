@@ -2936,12 +2936,14 @@ The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
 UNSUBSCRIBE_NAMESPACE Message {
   Type (i) = 0x14,
   Length (16),
-  Track Namespace Prefix (..)
+  Request ID (i),
 }
 ~~~
 {: #moq-transport-unsub-ann-format title="MOQT UNSUBSCRIBE_NAMESPACE Message"}
 
-* Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
+* Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
+  ({{message-subscribe-ns}}) associated with the Track Namespace Prefix being
+  unsusbcribed by this message.
 
 
 # Data Streams and Datagrams {#data-streams}
