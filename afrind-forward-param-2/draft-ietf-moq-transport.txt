@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 9 April 2026                                      I. Swett, Ed.
+Expires: 11 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          6 October 2025
+                                                          8 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 April 2026.
+   This Internet-Draft will expire on 11 April 2026.
 
 Copyright Notice
 
@@ -2549,7 +2549,7 @@ Table of Contents
    to 0, or omits it, indicates that it will not transmit any objects
    until the subscriber sets the Forward State to 1.  A FORWARD
    parameter equal to 1 indicates the publisher will start transmitting
-   objects immediately, even before PUBLISH_OK.
+   objects immediately, possibly before PUBLISH_OK.
 
 9.13.  PUBLISH_OK
 
