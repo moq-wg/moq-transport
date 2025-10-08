@@ -988,9 +988,9 @@ session with a `PROTOCOL_VIOLATION`.
 ### Joining an Ongoing Track
 
 The MOQT Object model is designed with the concept that the beginning of a Group
-is a joint point, so in order for a subscriber to join a Track, it needs to
-request an existing or future Group.  Different applications will have different
-approaches for when to begin a new Group.
+is a join point, so in order for a subscriber to join a Track, it needs to
+request an existing Group or wait for a future Group.  Different applications
+will have different approaches for when to begin a new Group.
 
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE with Filter
 Type `Largest Object` followed by a Joining FETCH (see {{joining-fetches}}) for
