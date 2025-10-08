@@ -5432,9 +5432,9 @@ Any object with a status code other than zero <span class="bcp14">MUST</span> ha
             <h5 id="name-object-extension-header">
 <a href="#section-10.2.1.2" class="section-number selfRef">10.2.1.2. </a><a href="#name-object-extension-header" class="section-name selfRef">Object Extension Header</a>
             </h5>
-<p id="section-10.2.1.2-1">Any Object may have extension headers except those with Object Status 'Object
-Does Not Exist'.  If an endpoint receives a non-existent Object containing
-extension headers it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-10.2.1.2-1">Any Object with status Normal can have extension headers.  If an endpoint
+receives extension headers on Objects with status that is not Normal, it <span class="bcp14">MUST</span> close the
+session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.1.2-2">Object Extension Headers are visible to relays and allow the transmission of
 future metadata relevant to MOQT Object distribution. Any Object metadata never
 intended to be accessed by the transport or Relays <span class="bcp14">SHOULD</span> be serialized as part
