@@ -2334,7 +2334,7 @@ STOP_SENDING frame.
 A publisher that sends the FORWARD parameter ({{forward-parameter}}) equal to 0,
 or omits it, indicates that it will not transmit any objects until the
 subscriber sets the Forward State to 1. A FORWARD parameter equal to 1 indicates
-the publisher will start transmitting objects immediately, even before
+the publisher will start transmitting objects immediately, possibly before
 PUBLISH_OK.
 
 
