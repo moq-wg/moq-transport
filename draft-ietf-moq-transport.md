@@ -995,6 +995,40 @@ filter. `End Group` MUST specify the same or a larger Group than specified in
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
 
+### Joining an Ongoing Track
+
+The MOQT Object model is designed with the concept that the beginning of a Group
+is a join point, so in order for a subscriber to join a Track, it needs to
+request an existing Group or wait for a future Group.  Different applications
+will have different approaches for when to begin a new Group.
+
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE with Filter
+Type `Largest Object` followed by a Joining FETCH (see {{joining-fetches}}) for
+the intended start Group, which can be relative.  To join a Track at the next
+Group, the subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
+
+#### Dynamically Starting New Groups
+
+While some publishers will deterministically create new Groups, other
+applications might want to only begin a new Group when needed.  A subscriber
+joining a Track might detect that it is more efficient to request the Original
+Publisher create a new group than issue a Joining FETCH.  Publishers indicate a
+Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
+({{dynamic-groups}}).
+
+One possible subscriber pattern is to SUBSCRIBE to a Track using Filter Type
+`Largest Object` and observe the `Largest Location` in the response.  If the
+Object ID is below the application's threshold, the subscriber sends a FETCH for
+the beginning of the Group.  If the Object ID is above the threshold and the
+Track supports dynamic groups, the subscriber sends a SUBSCRIBE_UPDATE message with the
+NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
+{{new-group-request}}).
+
+Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
+`Next Group Start` and NEW_GROUP_REQUEST equal to 0.  The value of
+DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
+groups. A publisher that does will begin the next group as soon as practical.
+
 ## Fetch State Management
 
 The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
@@ -1807,6 +1841,57 @@ simultaneously.
 
 If the EXPIRES parameter is 0 or is not present in a message, the subscription
 does not expire or expires at an unknown time.
+
+#### DYNAMIC GROUPS Parameter {#dynamic-groups}
+
+The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in PUBLISH or
+SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
+1, it indicates that the subscriber can request the Original Publisher to start
+a new Group by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or
+SUBSCRIBE_UPDATE for this Track.
+
+Relays MUST preserve the value of this parameter received from an upstream
+publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
+subscribers.
+
+#### NEW GROUP_REQUEST Parameter {#new-group-request}
+
+The NEW_GROUP_REQUEST parameter (parameter type 0x22) MAY appear in PUBLISH_OK,
+SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer representing the largest Group
+ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
+subscriber has no Group information for the Track.  A subscriber MUST NOT send
+this parameter in PUBLISH_OK or SUBSCRIBE_UPDATE if the publisher did not
+include DYNAMIC_GROUPS=1 when establishing the subscription.  A subscriber MAY
+include this parameter in SUBSCRIBE without foreknowledge of support.  If the
+original publisher does not support dynamic Groups, it ignores the parameter in that
+case.
+
+When an Original Publisher that supports dynamic Groups receives a
+NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
+it SHOULD end the current Group and begin a new Group as soon as practical.  The
+Original Publisher MAY delay the NEW_GROUP_REQUEST subject to
+implementation specific concerns, for example, acheiving a minimum duration for
+each Group. The Original Publisher chooses the next Group ID; there are no
+requirements that it be equal to the NEW_GROUP_REQUEST parameter value.
+
+Relay Handling:
+
+A relay that receives a NEW_GROUP_REQUEST for a Track without an active
+subscription MUST include the NEW_GROUP_REQUEST when subscribing upstream.
+
+A relay that receives a NEW_GROUP_REQUEST for an established subscription with a
+value of 0 or a value larger than the Largest Group MUST send a SUBSCRIBE_UPDATE
+including the NEW_GROUP_REQUEST to the publisher unless:
+
+1. The Track does not support dynamic Groups
+2. There is already an outstanding NEW_GROUP_REQUEST from this Relay with a
+   greater or equal value
+
+If a relay receives a NEW_GROUP_REQUEST with a non-zero value less than or equal
+to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
+
+After sending a NEW_GROUP_REQUEST upstream, the request is considered
+outstanding until the Largest Group increases.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
