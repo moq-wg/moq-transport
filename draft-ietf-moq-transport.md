@@ -909,7 +909,7 @@ This diagram shows the subscription state machine:
               +----| (Subscriber) | | (Publisher)  |----+
               |    +--------------+ +--------------+    |
               |                 |    |                  |
-REQUEST_ERROR |      REQUEST_OK |    | REQUEST_OK       | REQUEST_ERROR
+REQUEST_ERROR |    SUBSCRINE_OK |    | PUBLISH_OK       | REQUEST_ERROR
               |      (publisher)|    | (subscriber)     |
               |                 V    V                  |
               |            +-------------+              |
