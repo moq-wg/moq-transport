@@ -822,13 +822,12 @@ When the server is a subscriber, it SHOULD send a GOAWAY message to downstream
 subscribers prior to any UNSUBSCRIBE messages to upstream publishers.
 
 After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
-there are no more Established subscriptions before closing the session with
-NO_ERROR.  Ideally this is transparent to the application using MOQT, which
-involves establishing a new session in the background and migrating Established
-subscriptions and published namespaces. The client can choose to delay closing
-the session if it expects more OBJECTs to be delivered. The server closes the
-session with a `GOAWAY_TIMEOUT` if the client doesn't close the session quickly
-enough.
+there are no more Established subscriptions before closing the session with NO_ERROR.
+Ideally this is transparent to the application using MOQT, which involves
+establishing a new session in the background and migrating Established subscriptions
+and published namespaces. The client can choose to delay closing the session if
+it expects more OBJECTs to be delivered. The server closes the session with a
+`GOAWAY_TIMEOUT` if the client doesn't close the session quickly enough.```
 
 ## Congestion Control
 
@@ -1457,9 +1456,9 @@ When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 Established upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
 SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
 State=0, the Relay MUST send SUBSCRIBE_UPDATE with Forward=1 to all publishers.
-If there are no Established upstream subscriptions for the requested Track, the
-Relay MUST send a SUBSCRIBE request to each publisher that has published the
-subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward =1,
+If there are no Established upstream subscriptions for the requested Track, the Relay
+MUST send a SUBSCRIBE request to each publisher that has published the
+subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
 then the Relay MUST use Forward=1 when subscribing upstream.
 
 When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
@@ -2320,8 +2319,8 @@ SUBSCRIBE_OK Message {
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
   {{track-alias}}). The same Track Alias MUST NOT be used to refer to two
   different Tracks simultaneously. If a subscriber receives a SUBSCRIBE_OK that
-  uses the same Track Alias as a different track with an Established
-  subscription, it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
+  uses the same Track Alias as a different track with an Established subscription,
+  it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
 * Content Exists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
@@ -2445,8 +2444,8 @@ PUBLISH Message {
 
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
   {{track-alias}}). The same Track Alias MUST NOT be used to refer to two
-  different Tracks simultaneously. If a subscriber receives a PUBLISH that uses
-  the same Track Alias as a different track with an Established subscription, it
+  different Tracks simultaneously. If a subscriber receives a PUBLISH that
+  uses the same Track Alias as a different track with an Established subscription, it
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
 * Content Exists: 1 if an object has been published on this track, 0 if not.
@@ -2854,11 +2853,11 @@ The TRACK_STATUS message format is identical to the SUBSCRIBE message
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
-state or send any Objects.  Relays without an Established subscription MAY
-forward TRACK_STATUS to one or more publishers, or MAY initiate a subscription
-(subject to authorization) as described in {{publisher-interactions}} to
-determine the response. The publisher does not send PUBLISH_DONE for this
-request, and the subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
+state or send any Objects.  Relays without an Established subscription MAY forward
+TRACK_STATUS to one or more publishers, or MAY initiate a subscription (subject
+to authorization) as described in {{publisher-interactions}} to determine the
+response. The publisher does not send PUBLISH_DONE for this request, and the
+subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
 
 ## TRACK_STATUS_OK {#message-track-status-ok}
 
