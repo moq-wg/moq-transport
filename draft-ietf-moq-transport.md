@@ -1167,10 +1167,10 @@ scheduling subgroups or datagrams instead of individual objects on them.
 FETCH responses however can contain objects with different publisher
 priorities.
 
-A _priority number_ is an unsigned integer with a value between 0 and 255.
+A `priority number`is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.
 
-_Subscriber Priority_ is a priority number associated with an individual
+`Subscriber Priority` is a priority number associated with an individual
 request.  It is specified in the SUBSCRIBE or FETCH message, and can be
 updated via SUBSCRIBE_UPDATE message.  The subscriber priority of an individual
 schedulable object is the subscriber priority of the request that caused that
@@ -1179,12 +1179,12 @@ made to apply the change to all objects that have not been scheduled, but it is
 implementation dependent what happens to objects that have already been
 scheduled.
 
-_Publisher Priority_ is a priority number associated with an individual
+`Publisher Priority` is a priority number associated with an individual
 schedulable object.  A default can be specified in the parameters of PUBLISH, or
 SUBSCRIBE_OK. Publisher priority can also be specified in a subgroup header or
 datagram (see {{data-streams}}).
 
-_Group Order_ is a property of an individual subscription.  It can be either
+`Group Order` is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
