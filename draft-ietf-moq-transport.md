@@ -1851,7 +1851,7 @@ it MUST close the session with `PROTOCOL_VIOLATION`.
 
 If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
-message, the default value is 0.
+message, the default value is 1.
 
 #### DYNAMIC GROUPS Parameter {#dynamic-groups}
 
