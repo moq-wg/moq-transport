@@ -2651,10 +2651,10 @@ The Largest Location value from the corresponding
 subscription is used to calculate the end of a Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
-The publisher receiving a Joining Fetch sets the End Location Group to 
+The publisher receiving a Joining Fetch sets the End Location Group to
 `Largest Location.Group` and End Location Object to `Largest Location.Object` plus
 one. `Largest Location` refers to the value sent in the `PUBLISH` or `SUBSCRIBE_OK`
-message used to establish the subscription being joined..
+message used to establish the subscription being joined.
 
 Note: the last Object included in the Joining FETCH response is Subscribe
 Largest Location.  The "plus one" above indicates the equivalent Standalone Fetch
