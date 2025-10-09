@@ -2245,8 +2245,8 @@ status.
 ## SUBSCRIBE {#message-subscribe-req}
 
 A subscription causes the publisher to send newly published objects for a track.
-A subscriber MUST NOT establish multiple concurrent subscriptions for a track
-within a single session and publishers MUST treat this as a protocol violation.
+A subscriber MUST NOT establish multiple concurrent subscriptions for a track within a
+single session and publishers SHOULD treat this as a protocol violation.
 
 Subscribe only requests newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
