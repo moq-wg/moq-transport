@@ -2056,7 +2056,7 @@ Table of Contents
 
    If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
    subscription remains unchanged.  If the parameter is omitted from any
-   other message, the default value is 0.
+   other message, the default value is 1.
 
 9.2.1.10.  DYNAMIC GROUPS Parameter
 
