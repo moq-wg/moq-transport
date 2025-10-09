@@ -972,16 +972,18 @@ Subscription Filter {
 
 Filter Type can have one of the following values:
 
-Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
-Largest Object.Object + 1}` and `Largest Object` is communicated in
+Largest Object (0x2): The filter Start Location Group is `Largest Object.Group`
+and the Start Location Object is the `Largest Object.Object` plus one;
+`Largest Object` is communicated in
 SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
 {0, 0}. There is no End Group - the subscription is open ended.  Note that due
 to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass the Largest Object filter.
 
-Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
-0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
+Next Group Start (0x1): The filter Start Location Group is `Largest Object.Group`
+plus one and the Start Location Object is 0;
+`Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
 delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
 the subscription is open ended. For scenarios where the subscriber intends to
 start from more than one group in the future, it can use an AbsoluteStart filter
@@ -2649,18 +2651,20 @@ The Largest Location value from the corresponding
 subscription is used to calculate the end of a Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
-The publisher receiving a Joining Fetch sets the End Location to {Subscribe
-Largest Location.Object + 1}.
+The publisher receiving a Joining Fetch sets the End Location Group to 
+`Largest Location.Group` and End Location Object to `Largest Location.Object` plus
+one. `Largest Location` refers to the value sent in the `PUBLISH` or `SUBSCRIBE_OK`
+message used to establish the subscription being joined..
 
 Note: the last Object included in the Joining FETCH response is Subscribe
-Largest Location.  The `+ 1` above indicates the equivalent Standalone Fetch
+Largest Location.  The "plus one" above indicates the equivalent Standalone Fetch
 encoding.
 
-For a Relative Joining Fetch, the publisher sets the Start Location to
-{Subscribe Largest Location.Group - Joining Start, 0}.
+For a Relative Joining Fetch, the publisher sets the Start Location Group to
+`Largest Location.Group - Joining Start` and the Start Location Object to 0.
 
-For an Absolute Joining Fetch, the publisher sets the Start Location to
-{Joining Start, 0}.
+For an Absolute Joining Fetch, the publisher sets the Start Location Group to
+Joining Start and the Start Location Object to 0.
 
 
 ### Fetch Handling
@@ -2768,15 +2772,17 @@ FETCH_OK Message {
 * End Location: The largest object covered by the FETCH response.
   The End Location is determined as follows:
    - If the requested FETCH End Location was beyond the Largest known (possibly
-     final) Object, End Location is {Largest.Group, Largest.Object + 1}
+     final) Object, the End Location Group is the group of the Largest known Object
+     and the End Location Object ID is the Object ID of the Largest known Object plus one.
    - If End Location.Object in the FETCH request was 0 and the response covers
-     the last Object in the Group, End Location is {Fetch.End Location.Group, 0}
+     the last Object in the Group, End Location Group is `Fetch.End Location.Group` and
+     the End Location Object is 0.
    - Otherwise, End Location is Fetch.End Location
   Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
   End Location described in {{joining-fetch-range-calculation}}.
 
   If the relay is subscribed to the track, it uses its knowledge of the largest
-  {Group, Object} to set End Location.  If it is not subscribed and the
+  Location to set End Location.  If it is not subscribed and the
   requested End Location exceeds its cached data, the relay makes an upstream
   request to complete the FETCH, and uses the upstream response to set End
   Location.
