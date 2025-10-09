@@ -623,9 +623,9 @@ MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 [[RFC editor: please remove the remainder of this section before publication.]]
 
 The ALPN value {{!RFC7301}} for the final version of this specification
-is `moq`.  ALPNs used to identify IETF drafts are created by appending
-the draft number to "moq-". For example, draft-ietf-moq-transport-13
-would be identified as "moq-13".
+is `moqt`.  ALPNs used to identify IETF drafts are created by appending
+the draft number to "moqt-". For example, draft-ietf-moq-transport-13
+would be identified as "moqt-13".
 
 Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
 negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
@@ -660,8 +660,6 @@ URI by setting up a QUIC connection to the host and port identified by the
 `authority` section of the URI. The `authority`, `path-abempty` and `query`
 portions of the URI are also transmitted in SETUP parameters (see
 {{setup-params}}).
-
-The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
 ### Connection URL
 
