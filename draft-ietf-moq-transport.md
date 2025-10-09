@@ -827,7 +827,7 @@ Ideally this is transparent to the application using MOQT, which involves
 establishing a new session in the background and migrating Established subscriptions
 and published namespaces. The client can choose to delay closing the session if
 it expects more OBJECTs to be delivered. The server closes the session with a
-`GOAWAY_TIMEOUT` if the client doesn't close the session quickly enough.```
+`GOAWAY_TIMEOUT` if the client doesn't close the session quickly enough.
 
 ## Congestion Control
 
