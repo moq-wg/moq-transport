@@ -1852,7 +1852,7 @@ allowed values are 0 or 1. If an endpoint receives a value outside this range,
 it MUST close the session with `PROTOCOL_VIOLATION`.
 
 If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
-subscription remains unchanges.  If the parameter is omitted from any other
+subscription remains unchanged.  If the parameter is omitted from any other
 message, the default value is 0.
 
 #### DYNAMIC GROUPS Parameter {#dynamic-groups}
