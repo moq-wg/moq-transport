@@ -1021,7 +1021,7 @@ Table of Contents
    (subscriber)| | (publisher) V V +--------------+ +--------------+ |
    Pending | | Pending | +----| (Subscriber) | | (Publisher) |----+ |
    +--------------+ +--------------+ | | | | | REQUEST_ERROR |
-   SUBSCRINE_OK | | PUBLISH_OK | REQUEST_ERROR | (publisher)| |
+   SUBSCRIBE_OK | | PUBLISH_OK | REQUEST_ERROR | (publisher)| |
    (subscriber) | | V V | | +-------------+ | | | Established |
    ------+ | | | | SUBSCRIBE_UPDATE | +-------------+ <-----+ | | | | |
    UNSUBSCRIBE | | PUBLISH_DONE | | (subscriber)| | (publisher) | | V
