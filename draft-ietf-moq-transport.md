@@ -627,6 +627,8 @@ is `moq`.  ALPNs used to identify IETF drafts are created by appending
 the draft number to "moq-". For example, draft-ietf-moq-transport-13
 would be identified as "moq-13".
 
+Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
+negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
 ### WebTransport
 
 An MOQT server that is accessible via WebTransport can be identified
