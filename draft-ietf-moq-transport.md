@@ -915,7 +915,7 @@ REQUEST_ERROR |      REQUEST_OK |    | REQUEST_OK       | REQUEST_ERROR
               |            +-------------+              |
               |            | Established | ------+
               |            |             |       | SUBSCRIBE_UPDATE
-              |            +-------------+ <-----+ 
+              |            +-------------+ <-----+
               |                 |    |                  |
               |     UNSUBSCRIBE |    | PUBLISH_DONE     |
               |     (subscriber)|    | (publisher)      |
