@@ -2329,10 +2329,10 @@ When a subscriber narrows their subscription, it might still receive objects
 outside the new range if the publisher sent them before the update was
 processed.
 
-There is no control message in response to a SUBSCRIBE_UPDATE, because it is
-expected that it will always succeed and the worst outcome is that it is not
-processed promptly and some extra objects from the existing subscription are
-delivered.
+The receiver of a SUBSCRIBE_UPDATE MUST respond with exactly one REQUEST_OK
+or REQUEST_ERROR message indicating if the update was successful.  When an
+update is unsuccessful, the publisher MUST also terminate the subscription with
+PUBLISH_DONE with error code `UPDATE_FAILED`.
 
 Like SUBSCRIBE, End Group MUST be greater than or equal to the Group specified
 in `Start`.
@@ -2576,6 +2576,10 @@ TOO_FAR_BEHIND (0x6):
 MALFORMED_TRACK (0x7):
 : A relay publisher detected the track was malformed (see
   {{malformed-tracks}}).
+
+UPDATE_FAILED (0x8):
+: SUBSCRIBE_UPDATE failed on this subscription (see
+  {{message-subscribe-update}}).
 
 ## FETCH {#message-fetch}
 
@@ -3882,6 +3886,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | EXPIRED            | 0x5  | {{message-publish-done}} |
 | TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
 | MALFORMED_TRACK    | 0x7  | {{message-publish-done}} |
+| UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
 
