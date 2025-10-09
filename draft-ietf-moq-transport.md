@@ -1075,12 +1075,12 @@ part of that namespace.  This includes echoing back PUBLISH or PUBLISH_NAMESPACE
 messages to the endpoint that sent them.  If an endpoint accepts its own
 PUBLISH, this behaves as self-subscription described in {{subscriptions}}.
 
-A publisher MUST send exactly one SUBSCRIBE_NAMESPACE_OK or
+A publisher MUST send exactly one REQUEST_OK or
 REQUEST_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
 SHOULD close the session with a protocol error if it detects receiving more than
 one.
 
-The receiver of a SUBSCRIBE_NAMESPACE_OK or REQUEST_ERROR ought to
+The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
@@ -1103,11 +1103,11 @@ publisher, it MUST send a PUBLISH_NAMESPACE to any subscriber that has
 subscribed via SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
 
-An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
+An endpoint SHOULD report the reception of a REQUEST_OK or
 REQUEST_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
 namespace. This might be especially useful in upload or chat applications. A
-subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or REQUEST_ERROR
+subscriber MUST send exactly one REQUEST_OK or REQUEST_ERROR
 in response to a PUBLISH_NAMESPACE. The publisher SHOULD close the session with
 a protocol error if it receives more than one.
 
@@ -1383,7 +1383,7 @@ depends on the way the relay is managed and is application specific.
 
 When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
-subcribe to Tracks in a namespace it previously responded PUBLISH_NAMESPACE_OK
+subcribe to Tracks in a namespace it previously responded REQUEST_OK
 to by sending a PUBLISH_NAMESPACE_CANCEL.
 
 A Relay connects publishers and subscribers by managing sessions based on the
@@ -1511,6 +1511,8 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x1A  | REQUESTS_BLOCKED ({{message-requests-blocked}})     |
 |-------|-----------------------------------------------------|
+| 0x7   | REQUEST_OK ({{message-request-ok}})                 |
+|-------|-----------------------------------------------------|
 | 0x5   | REQUEST_ERROR  ({{message-request-error}})          |
 |-------|-----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
@@ -1539,15 +1541,11 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
 |-------|-----------------------------------------------------|
-| 0x7   | PUBLISH_NAMESPACE_OK ({{message-pub-ns-ok}})        |
-|-------|-----------------------------------------------------|
 | 0x9   | PUBLISH_NAMESPACE_DONE  ({{message-pub-ns-done}})   |
 |-------|-----------------------------------------------------|
 | 0xC   | PUBLISH_NAMESPACE_CANCEL ({{message-pub-ns-cancel}})|
 |-------|-----------------------------------------------------|
 | 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
-|-------|-----------------------------------------------------|
-| 0x12  | SUBSCRIBE_NAMESPACE_OK ({{message-sub-ns-ok}})      |
 |-------|-----------------------------------------------------|
 | 0x14  | UNSUBSCRIBE_NAMESPACE ({{message-unsub-ns}})        |
 |-------|-----------------------------------------------------|
@@ -2115,6 +2113,27 @@ REQUESTS_BLOCKED Message {
 
 * Maximum Request ID: The Maximum Request ID for the session on which the
   endpoint is blocked. More on Request ID in {{request-id}}.
+
+## REQUEST_OK {#message-request-ok}
+
+The REQUEST_OK message is sent to a response to SUBSCRIBE_NAMESPACE and
+PUBLISH_NAMESPACE requests. The unique request ID in the REQUEST_OK is used to
+associate it with the correct type of request.
+
+~~~
+REQUEST_OK Message {
+  Type (i) = 0x7,
+  Length (16),
+  Request ID (i),
+  Number of Parameters (i),
+  Parameters (..) ...
+}
+~~~
+{: #moq-transport-request-ok format title="MOQT REQUEST_OK Message"}
+
+* Request ID: The Request ID to which this message is replying.
+
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## REQUEST_ERROR {#message-request-error}
 
@@ -2854,23 +2873,6 @@ PUBLISH_NAMESPACE Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-## PUBLISH_NAMESPACE_OK {#message-pub-ns-ok}
-
-The subscriber sends a PUBLISH_NAMESPACE_OK control message to acknowledge the
-successful authorization and acceptance of a PUBLISH_NAMESPACE message.
-
-~~~
-PUBLISH_NAMESPACE_OK Message {
-  Type (i) = 0x7,
-  Length (16),
-  Request ID (i)
-}
-~~~
-{: #moq-transport-pub-ns-ok format title="MOQT PUBLISH_NAMESPACE_OK Message"}
-
-* Request ID: The Request ID of the PUBLISH_NAMESPACE ({{message-pub-ns}}) this
-  message is replying to.
-
 ## PUBLISH_NAMESPACE_DONE {#message-pub-ns-done}
 
 The publisher sends the `PUBLISH_NAMESPACE_DONE` control message to indicate its
@@ -2953,7 +2955,7 @@ SUBSCRIBE_NAMESPACE Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
+The publisher will respond with REQUEST_OK or
 REQUEST_ERROR.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
 immediately forward existing PUBLISH_NAMESPACE and PUBLISH messages that match
 the Track Namespace Prefix that have not already been sent to this subscriber.
@@ -2973,25 +2975,6 @@ SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE,
 PUBLISH_NAMESPACE_DONE or PUBLISH messages to a subscriber.  It is useful in
 applications or relays where subscribers are only interested in or authorized to
 access a subset of available namespaces and tracks.
-
-## SUBSCRIBE_NAMESPACE_OK {#message-sub-ns-ok}
-
-A publisher sends a SUBSCRIBE_NAMESPACE_OK control message for successful
-namespace subscriptions.
-
-~~~
-SUBSCRIBE_NAMESPACE_OK Message {
-  Type (i) = 0x12,
-  Length (16),
-  Request ID (i),
-}
-~~~
-{: #moq-transport-sub-ann-ok format title="MOQT SUBSCRIBE_NAMESPACE_OK
-Message"}
-
-* Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
-  ({{message-subscribe-ns}}) this message is replying to.
-
 
 ## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
 
