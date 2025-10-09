@@ -618,6 +618,17 @@ There is no definition of the protocol over other transports,
 such as TCP, and applications using MoQ might need to fallback to
 another protocol when QUIC or WebTransport aren't available.
 
+MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
+({{WebTransport, Section 3.4}}) to perform version negotiation.
+[[RFC editor: please remove the remainder of this section before publication.]]
+
+The ALPN value {{!RFC7301}} for the final version of this specification
+is `moqt`.  ALPNs used to identify IETF drafts are created by appending
+the draft number to "moqt-". For example, draft-ietf-moq-transport-13
+would be identified as "moqt-13".
+
+Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
+negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
 ### WebTransport
 
 An MOQT server that is accessible via WebTransport can be identified
@@ -650,8 +661,6 @@ URI by setting up a QUIC connection to the host and port identified by the
 portions of the URI are also transmitted in SETUP parameters (see
 {{setup-params}}).
 
-The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
-
 ### Connection URL
 
 Each track MAY have one or more associated connection URLs specifying
@@ -659,22 +668,21 @@ network hosts through which a track may be accessed. The syntax of the
 Connection URL and the associated connection setup procedures are
 specific to the underlying transport protocol usage (see {{session}}).
 
-## Version and Extension Negotiation {#version-negotiation}
+## Extension Negotiation {#extension-negotiation}
 
-Endpoints use the exchange of Setup messages to negotiate the MOQT version and
-any extensions to use.
+Endpoints use the exchange of Setup messages to negotiate any MOQT extensions
+to use.
 
-The client indicates the MOQT versions it supports in the CLIENT_SETUP message
-(see {{message-setup}}). It also includes the union of all Setup Parameters
-(see {{setup-params}}) required for a handshake by any of those versions.
+The client includes all Setup Parameters {{setup-params}} required for the
+negotiated MOQT version in CLIENT_SETUP.
 
 Within any MOQT version, clients request the use of extensions by adding Setup
 parameters corresponding to that extension. No extensions are defined in this
 document.
 
-The server replies with a SERVER_SETUP message that indicates the chosen
-version, includes all parameters required for a handshake in that version, and
-parameters for every extension requested by the client that it supports.
+The server replies with a SERVER_SETUP message that includes all parameters
+required for a handshake in that version, and parameters for every extension
+requested by the client that it supports.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
@@ -705,7 +713,7 @@ The Transport Session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION\_CLOSE frame
 ({{QUIC, Section 19.19}}).  When WebTransport is used, the session is
 closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
-Section 5}}).
+Section 6}}).
 
 When terminating the Session, the application MAY use any error message
 and SHOULD use a relevant code, as defined below:
@@ -1894,21 +1902,19 @@ outstanding until the Largest Group increases.
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
-by the client and the server; they allow the endpoints to establish the mutually
-supported version and agree on the initial configuration before any objects are
-exchanged. It is a sequence of key-value pairs called Setup parameters; the
-semantics and format of which can vary based on whether the client or server is
-sending.  To ensure future extensibility of MOQT, endpoints MUST ignore unknown
-setup parameters. TODO: describe GREASE for those.
+by the client and the server; they allow the endpoints to agree on the initial
+configuration before any control messsages are exchanged. The messages contain
+a sequence of key-value pairs called Setup parameters; the semantics and format
+of which can vary based on whether the client or server is sending.  To ensure
+future extensibility of MOQT, endpoints MUST ignore unknown setup parameters.
+TODO: describe GREASE for Setup Parameters.
 
 The wire format of the Setup messages are as follows:
 
 ~~~
 CLIENT_SETUP Message {
   Type (i) = 0x20,
-  Length (16),
-  Number of Supported Versions (i),
-  Supported Versions (i) ...,
+  Length (i),
   Number of Parameters (i),
   Setup Parameters (..) ...,
 }
@@ -1916,36 +1922,13 @@ CLIENT_SETUP Message {
 SERVER_SETUP Message {
   Type (i) = 0x21,
   Length (16),
-  Selected Version (i),
   Number of Parameters (i),
   Setup Parameters (..) ...,
 }
 ~~~
 {: #moq-transport-setup-format title="MOQT Setup Messages"}
 
-The available versions and Setup parameters are detailed in the next sections.
-
-### Versions {#setup-versions}
-
-MOQT versions are a 32-bit unsigned integer, encoded as a varint.
-This version of the specification is identified by the number 0x00000001.
-Versions with the most significant 16 bits of the version number cleared are
-reserved for use in future IETF consensus documents.
-
-The client offers the list of the protocol versions it supports; the
-server MUST reply with one of the versions offered by the client. If the
-server does not support any of the versions offered by the client, or
-the client receives a server version that it did not offer, the
-corresponding peer MUST close the session with `VERSION_NEGOTIATION_FAILED`.
-
-\[\[RFC editor: please remove the remainder of this section before
-publication.]]
-
-The version number for the final version of this specification (0x00000001), is
-reserved for the version of the protocol that is published as an RFC.
-Version numbers used to identify IETF drafts are created by adding the draft
-number to 0xff000000. For example, draft-ietf-moq-transport-13 would be
-identified as 0xff00000D.
+The available Setup parameters are detailed in the next sections.
 
 ### Setup Parameters {#setup-params}
 
@@ -3804,7 +3787,7 @@ TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 
 TODO: fill out currently missing registries:
 
-* MOQT version numbers
+* MOQT ALPN values
 * Setup parameters
 * Non-setup Parameters - List which params can be repeated in the table.
 * Message types
