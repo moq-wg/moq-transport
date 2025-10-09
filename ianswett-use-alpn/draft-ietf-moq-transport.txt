@@ -746,9 +746,9 @@ Table of Contents
    publication.]]
 
    The ALPN value [RFC7301] for the final version of this specification
-   is moq.  ALPNs used to identify IETF drafts are created by appending
-   the draft number to "moq-".  For example, draft-ietf-moq-transport-13
-   would be identified as "moq-13".
+   is moqt.  ALPNs used to identify IETF drafts are created by appending
+   the draft number to "moqt-".  For example, draft-ietf-moq-
+   transport-13 would be identified as "moqt-13".
 
    Note: Draft versions prior to -15 all used moq-00 ALPN, followed by
    version negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
@@ -781,8 +781,6 @@ Table of Contents
    identified by the authority section of the URI.  The authority, path-
    abempty and query portions of the URI are also transmitted in SETUP
    parameters (see Section 9.3.1).
-
-   The ALPN value [RFC7301] used by the protocol is moq-00.
 
 3.1.2.  Connection URL
 
