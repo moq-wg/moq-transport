@@ -1149,7 +1149,7 @@ congestion.
 
 ## Definitions
 
-MOQT maintains priorities between different _schedulable objects_.
+MOQT maintains priorities between different schedulable objects.
 A schedulable object in MOQT is either:
 
 1. The first or next Object in a Subgroup that is in response to a subscription.
