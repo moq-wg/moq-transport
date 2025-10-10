@@ -245,32 +245,6 @@ This document uses stream management terms described in {{?RFC9000, Section
 This document uses the conventions detailed in ({{?RFC9000, Section 1.3}})
 when describing the binary encoding.
 
-As a quick reference, the following list provides a non normative summary
-of the parts of RFC9000 field syntax that are used in this specification.
-
-x (L):
-
-: Indicates that x is L bits long.
-
-x (i):
-
-: Indicates that x holds an integer value using the variable-length
-  encoding as described in ({{?RFC9000, Section 16}}).
-
-x (..):
-
-: Indicates that x can be any length including zero bits long.  Values
- in this format always end on a byte boundary.
-
-[x (L)]:
-
-: Indicates that x is optional and has a length of L.
-
-x (L) ...:
-
-: Indicates that x is repeated zero or more times and that each instance
-  has a length of L.
-
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
@@ -618,6 +592,17 @@ There is no definition of the protocol over other transports,
 such as TCP, and applications using MoQ might need to fallback to
 another protocol when QUIC or WebTransport aren't available.
 
+MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
+({{WebTransport, Section 3.4}}) to perform version negotiation.
+[[RFC editor: please remove the remainder of this section before publication.]]
+
+The ALPN value {{!RFC7301}} for the final version of this specification
+is `moqt`.  ALPNs used to identify IETF drafts are created by appending
+the draft number to "moqt-". For example, draft-ietf-moq-transport-13
+would be identified as "moqt-13".
+
+Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
+negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
 ### WebTransport
 
 An MOQT server that is accessible via WebTransport can be identified
@@ -650,8 +635,6 @@ URI by setting up a QUIC connection to the host and port identified by the
 portions of the URI are also transmitted in SETUP parameters (see
 {{setup-params}}).
 
-The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
-
 ### Connection URL
 
 Each track MAY have one or more associated connection URLs specifying
@@ -659,22 +642,21 @@ network hosts through which a track may be accessed. The syntax of the
 Connection URL and the associated connection setup procedures are
 specific to the underlying transport protocol usage (see {{session}}).
 
-## Version and Extension Negotiation {#version-negotiation}
+## Extension Negotiation {#extension-negotiation}
 
-Endpoints use the exchange of Setup messages to negotiate the MOQT version and
-any extensions to use.
+Endpoints use the exchange of Setup messages to negotiate any MOQT extensions
+to use.
 
-The client indicates the MOQT versions it supports in the CLIENT_SETUP message
-(see {{message-setup}}). It also includes the union of all Setup Parameters
-(see {{setup-params}}) required for a handshake by any of those versions.
+The client includes all Setup Parameters {{setup-params}} required for the
+negotiated MOQT version in CLIENT_SETUP.
 
 Within any MOQT version, clients request the use of extensions by adding Setup
 parameters corresponding to that extension. No extensions are defined in this
 document.
 
-The server replies with a SERVER_SETUP message that indicates the chosen
-version, includes all parameters required for a handshake in that version, and
-parameters for every extension requested by the client that it supports.
+The server replies with a SERVER_SETUP message that includes all parameters
+required for a handshake in that version, and parameters for every extension
+requested by the client that it supports.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
@@ -705,7 +687,7 @@ The Transport Session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION\_CLOSE frame
 ({{QUIC, Section 19.19}}).  When WebTransport is used, the session is
 closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
-Section 5}}).
+Section 6}}).
 
 When terminating the Session, the application MAY use any error message
 and SHOULD use a relevant code, as defined below:
@@ -1075,12 +1057,12 @@ part of that namespace.  This includes echoing back PUBLISH or PUBLISH_NAMESPACE
 messages to the endpoint that sent them.  If an endpoint accepts its own
 PUBLISH, this behaves as self-subscription described in {{subscriptions}}.
 
-A publisher MUST send exactly one SUBSCRIBE_NAMESPACE_OK or
+A publisher MUST send exactly one REQUEST_OK or
 REQUEST_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
 SHOULD close the session with a protocol error if it detects receiving more than
 one.
 
-The receiver of a SUBSCRIBE_NAMESPACE_OK or REQUEST_ERROR ought to
+The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
@@ -1103,11 +1085,11 @@ publisher, it MUST send a PUBLISH_NAMESPACE to any subscriber that has
 subscribed via SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
 
-An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
+An endpoint SHOULD report the reception of a REQUEST_OK or
 REQUEST_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
 namespace. This might be especially useful in upload or chat applications. A
-subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or REQUEST_ERROR
+subscriber MUST send exactly one REQUEST_OK or REQUEST_ERROR
 in response to a PUBLISH_NAMESPACE. The publisher SHOULD close the session with
 a protocol error if it receives more than one.
 
@@ -1141,7 +1123,7 @@ congestion.
 
 ## Definitions
 
-MOQT maintains priorities between different _schedulable objects_.
+MOQT maintains priorities between different schedulable objects.
 A schedulable object in MOQT is either:
 
 1. The first or next Object in a Subgroup that is in response to a subscription.
@@ -1159,10 +1141,10 @@ scheduling subgroups or datagrams instead of individual objects on them.
 FETCH responses however can contain objects with different publisher
 priorities.
 
-A _priority number_ is an unsigned integer with a value between 0 and 255.
+A `priority number`is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.
 
-_Subscriber Priority_ is a priority number associated with an individual
+`Subscriber Priority` is a priority number associated with an individual
 request.  It is specified in the SUBSCRIBE or FETCH message, and can be
 updated via SUBSCRIBE_UPDATE message.  The subscriber priority of an individual
 schedulable object is the subscriber priority of the request that caused that
@@ -1171,12 +1153,12 @@ made to apply the change to all objects that have not been scheduled, but it is
 implementation dependent what happens to objects that have already been
 scheduled.
 
-_Publisher Priority_ is a priority number associated with an individual
+`Publisher Priority` is a priority number associated with an individual
 schedulable object.  A default can be specified in the parameters of PUBLISH, or
 SUBSCRIBE_OK. Publisher priority can also be specified in a subgroup header or
 datagram (see {{data-streams}}).
 
-_Group Order_ is a property of an individual subscription.  It can be either
+`Group Order` is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
@@ -1383,7 +1365,7 @@ depends on the way the relay is managed and is application specific.
 
 When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
-subcribe to Tracks in a namespace it previously responded PUBLISH_NAMESPACE_OK
+subcribe to Tracks in a namespace it previously responded REQUEST_OK
 to by sending a PUBLISH_NAMESPACE_CANCEL.
 
 A Relay connects publishers and subscribers by managing sessions based on the
@@ -1511,6 +1493,8 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x1A  | REQUESTS_BLOCKED ({{message-requests-blocked}})     |
 |-------|-----------------------------------------------------|
+| 0x7   | REQUEST_OK ({{message-request-ok}})                 |
+|-------|-----------------------------------------------------|
 | 0x5   | REQUEST_ERROR  ({{message-request-error}})          |
 |-------|-----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
@@ -1539,15 +1523,11 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
 |-------|-----------------------------------------------------|
-| 0x7   | PUBLISH_NAMESPACE_OK ({{message-pub-ns-ok}})        |
-|-------|-----------------------------------------------------|
 | 0x9   | PUBLISH_NAMESPACE_DONE  ({{message-pub-ns-done}})   |
 |-------|-----------------------------------------------------|
 | 0xC   | PUBLISH_NAMESPACE_CANCEL ({{message-pub-ns-cancel}})|
 |-------|-----------------------------------------------------|
 | 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
-|-------|-----------------------------------------------------|
-| 0x12  | SUBSCRIBE_NAMESPACE_OK ({{message-sub-ns-ok}})      |
 |-------|-----------------------------------------------------|
 | 0x14  | UNSUBSCRIBE_NAMESPACE ({{message-unsub-ns}})        |
 |-------|-----------------------------------------------------|
@@ -1907,21 +1887,19 @@ outstanding until the Largest Group increases.
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
-by the client and the server; they allow the endpoints to establish the mutually
-supported version and agree on the initial configuration before any objects are
-exchanged. It is a sequence of key-value pairs called Setup parameters; the
-semantics and format of which can vary based on whether the client or server is
-sending.  To ensure future extensibility of MOQT, endpoints MUST ignore unknown
-setup parameters. TODO: describe GREASE for those.
+by the client and the server; they allow the endpoints to agree on the initial
+configuration before any control messsages are exchanged. The messages contain
+a sequence of key-value pairs called Setup parameters; the semantics and format
+of which can vary based on whether the client or server is sending.  To ensure
+future extensibility of MOQT, endpoints MUST ignore unknown setup parameters.
+TODO: describe GREASE for Setup Parameters.
 
 The wire format of the Setup messages are as follows:
 
 ~~~
 CLIENT_SETUP Message {
   Type (i) = 0x20,
-  Length (16),
-  Number of Supported Versions (i),
-  Supported Versions (i) ...,
+  Length (i),
   Number of Parameters (i),
   Setup Parameters (..) ...,
 }
@@ -1929,36 +1907,13 @@ CLIENT_SETUP Message {
 SERVER_SETUP Message {
   Type (i) = 0x21,
   Length (16),
-  Selected Version (i),
   Number of Parameters (i),
   Setup Parameters (..) ...,
 }
 ~~~
 {: #moq-transport-setup-format title="MOQT Setup Messages"}
 
-The available versions and Setup parameters are detailed in the next sections.
-
-### Versions {#setup-versions}
-
-MOQT versions are a 32-bit unsigned integer, encoded as a varint.
-This version of the specification is identified by the number 0x00000001.
-Versions with the most significant 16 bits of the version number cleared are
-reserved for use in future IETF consensus documents.
-
-The client offers the list of the protocol versions it supports; the
-server MUST reply with one of the versions offered by the client. If the
-server does not support any of the versions offered by the client, or
-the client receives a server version that it did not offer, the
-corresponding peer MUST close the session with `VERSION_NEGOTIATION_FAILED`.
-
-\[\[RFC editor: please remove the remainder of this section before
-publication.]]
-
-The version number for the final version of this specification (0x00000001), is
-reserved for the version of the protocol that is published as an RFC.
-Version numbers used to identify IETF drafts are created by adding the draft
-number to 0xff000000. For example, draft-ietf-moq-transport-13 would be
-identified as 0xff00000D.
+The available Setup parameters are detailed in the next sections.
 
 ### Setup Parameters {#setup-params}
 
@@ -2126,6 +2081,27 @@ REQUESTS_BLOCKED Message {
 
 * Maximum Request ID: The Maximum Request ID for the session on which the
   endpoint is blocked. More on Request ID in {{request-id}}.
+
+## REQUEST_OK {#message-request-ok}
+
+The REQUEST_OK message is sent to a response to SUBSCRIBE_NAMESPACE and
+PUBLISH_NAMESPACE requests. The unique request ID in the REQUEST_OK is used to
+associate it with the correct type of request.
+
+~~~
+REQUEST_OK Message {
+  Type (i) = 0x7,
+  Length (16),
+  Request ID (i),
+  Number of Parameters (i),
+  Parameters (..) ...
+}
+~~~
+{: #moq-transport-request-ok format title="MOQT REQUEST_OK Message"}
+
+* Request ID: The Request ID to which this message is replying.
+
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## REQUEST_ERROR {#message-request-error}
 
@@ -2311,10 +2287,10 @@ When a subscriber narrows their subscription, it might still receive objects
 outside the new range if the publisher sent them before the update was
 processed.
 
-There is no control message in response to a SUBSCRIBE_UPDATE, because it is
-expected that it will always succeed and the worst outcome is that it is not
-processed promptly and some extra objects from the existing subscription are
-delivered.
+The receiver of a SUBSCRIBE_UPDATE MUST respond with exactly one REQUEST_OK
+or REQUEST_ERROR message indicating if the update was successful.  When an
+update is unsuccessful, the publisher MUST also terminate the subscription with
+PUBLISH_DONE with error code `UPDATE_FAILED`.
 
 Like SUBSCRIBE, End Group MUST be greater than or equal to the Group specified
 in `Start`.
@@ -2549,6 +2525,10 @@ TOO_FAR_BEHIND (0x6):
 MALFORMED_TRACK (0x7):
 : A relay publisher detected the track was malformed (see
   {{malformed-tracks}}).
+
+UPDATE_FAILED (0x8):
+: SUBSCRIBE_UPDATE failed on this subscription (see
+  {{message-subscribe-update}}).
 
 ## FETCH {#message-fetch}
 
@@ -2846,23 +2826,6 @@ PUBLISH_NAMESPACE Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-## PUBLISH_NAMESPACE_OK {#message-pub-ns-ok}
-
-The subscriber sends a PUBLISH_NAMESPACE_OK control message to acknowledge the
-successful authorization and acceptance of a PUBLISH_NAMESPACE message.
-
-~~~
-PUBLISH_NAMESPACE_OK Message {
-  Type (i) = 0x7,
-  Length (16),
-  Request ID (i)
-}
-~~~
-{: #moq-transport-pub-ns-ok format title="MOQT PUBLISH_NAMESPACE_OK Message"}
-
-* Request ID: The Request ID of the PUBLISH_NAMESPACE ({{message-pub-ns}}) this
-  message is replying to.
-
 ## PUBLISH_NAMESPACE_DONE {#message-pub-ns-done}
 
 The publisher sends the `PUBLISH_NAMESPACE_DONE` control message to indicate its
@@ -2945,7 +2908,7 @@ SUBSCRIBE_NAMESPACE Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
+The publisher will respond with REQUEST_OK or
 REQUEST_ERROR.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
 immediately forward existing PUBLISH_NAMESPACE and PUBLISH messages that match
 the Track Namespace Prefix that have not already been sent to this subscriber.
@@ -2965,25 +2928,6 @@ SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE,
 PUBLISH_NAMESPACE_DONE or PUBLISH messages to a subscriber.  It is useful in
 applications or relays where subscribers are only interested in or authorized to
 access a subset of available namespaces and tracks.
-
-## SUBSCRIBE_NAMESPACE_OK {#message-sub-ns-ok}
-
-A publisher sends a SUBSCRIBE_NAMESPACE_OK control message for successful
-namespace subscriptions.
-
-~~~
-SUBSCRIBE_NAMESPACE_OK Message {
-  Type (i) = 0x12,
-  Length (16),
-  Request ID (i),
-}
-~~~
-{: #moq-transport-sub-ann-ok format title="MOQT SUBSCRIBE_NAMESPACE_OK
-Message"}
-
-* Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
-  ({{message-subscribe-ns}}) this message is replying to.
-
 
 ## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
 
@@ -3809,7 +3753,7 @@ TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 
 TODO: fill out currently missing registries:
 
-* MOQT version numbers
+* MOQT ALPN values
 * Setup parameters
 * Non-setup Parameters - List which params can be repeated in the table.
 * Message types
@@ -3891,6 +3835,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | EXPIRED            | 0x5  | {{message-publish-done}} |
 | TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
 | MALFORMED_TRACK    | 0x7  | {{message-publish-done}} |
+| UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
 
