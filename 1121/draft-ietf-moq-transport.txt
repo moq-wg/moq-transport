@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 April 2026                                     I. Swett, Ed.
+Expires: 13 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          9 October 2025
+                                                         10 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 April 2026.
+   This Internet-Draft will expire on 13 April 2026.
 
 Copyright Notice
 
@@ -98,10 +98,9 @@ Table of Contents
        2.4.3.  Scope
    3.  Sessions
      3.1.  Session establishment
-       3.1.1.  WebTransport
-       3.1.2.  QUIC
-       3.1.3.  Connection URL
-     3.2.  Version and Extension Negotiation
+       3.1.1.  QUIC
+       3.1.2.  Connection URL
+     3.2.  Extension Negotiation
      3.3.  Session initialization
      3.4.  Termination
      3.5.  Migration
@@ -138,8 +137,7 @@ Table of Contents
      9.2.  Parameters
        9.2.1.  Version Specific Parameters
      9.3.  CLIENT_SETUP and SERVER_SETUP
-       9.3.1.  Versions
-       9.3.2.  Setup Parameters
+       9.3.1.  Setup Parameters
      9.4.  GOAWAY
      9.5.  MAX_REQUEST_ID
      9.6.  REQUESTS_BLOCKED
@@ -742,7 +740,19 @@ Table of Contents
    TCP, and applications using MoQ might need to fallback to another
    protocol when QUIC or WebTransport aren't available.
 
-3.1.1.  WebTransport
+   MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
+   ([WebTransport], Section 3.4) to perform version negotiation.  [[RFC
+   editor: please remove the remainder of this section before
+   publication.]]
+
+   The ALPN value [RFC7301] for the final version of this specification
+   is moqt.  ALPNs used to identify IETF drafts are created by appending
+   the draft number to "moqt-".  For example, draft-ietf-moq-
+   transport-13 would be identified as "moqt-13".
+
+   Note: Draft versions prior to -15 all used moq-00 ALPN, followed by
+   version negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
+   ### WebTransport
 
    An MOQT server that is accessible via WebTransport can be identified
    using an HTTPS URI ([RFC9110], Section 4.2.2).  An MOQT session can
@@ -750,7 +760,7 @@ Table of Contents
    the path indicated by the URI, as described in ([WebTransport],
    Section 3).
 
-3.1.2.  QUIC
+3.1.1.  QUIC
 
    An MOQT server that is accessible via native QUIC can be identified
    by a URI with a "moqt" scheme.  The "moqt" URI scheme is defined as
@@ -770,35 +780,30 @@ Table of Contents
    a given URI by setting up a QUIC connection to the host and port
    identified by the authority section of the URI.  The authority, path-
    abempty and query portions of the URI are also transmitted in SETUP
-   parameters (see Section 9.3.2).
+   parameters (see Section 9.3.1).
 
-   The ALPN value [RFC7301] used by the protocol is moq-00.
-
-3.1.3.  Connection URL
+3.1.2.  Connection URL
 
    Each track MAY have one or more associated connection URLs specifying
    network hosts through which a track may be accessed.  The syntax of
    the Connection URL and the associated connection setup procedures are
    specific to the underlying transport protocol usage (see Section 3).
 
-3.2.  Version and Extension Negotiation
+3.2.  Extension Negotiation
 
-   Endpoints use the exchange of Setup messages to negotiate the MOQT
-   version and any extensions to use.
+   Endpoints use the exchange of Setup messages to negotiate any MOQT
+   extensions to use.
 
-   The client indicates the MOQT versions it supports in the
-   CLIENT_SETUP message (see Section 9.3).  It also includes the union
-   of all Setup Parameters (see Section 9.3.2) required for a handshake
-   by any of those versions.
+   The client includes all Setup Parameters Section 9.3.1 required for
+   the negotiated MOQT version in CLIENT_SETUP.
 
    Within any MOQT version, clients request the use of extensions by
    adding Setup parameters corresponding to that extension.  No
    extensions are defined in this document.
 
-   The server replies with a SERVER_SETUP message that indicates the
-   chosen version, includes all parameters required for a handshake in
-   that version, and parameters for every extension requested by the
-   client that it supports.
+   The server replies with a SERVER_SETUP message that includes all
+   parameters required for a handshake in that version, and parameters
+   for every extension requested by the client that it supports.
 
    New versions of MOQT MUST specify which existing extensions can be
    used with that version.  New extensions MUST specify the existing
@@ -831,7 +836,7 @@ Table of Contents
    QUIC is used, the session is closed using the CONNECTION_CLOSE frame
    ([QUIC], Section 19.19).  When WebTransport is used, the session is
    closed using the CLOSE_WEBTRANSPORT_SESSION capsule ([WebTransport],
-   Section 5).
+   Section 6).
 
    When terminating the Session, the application MAY use any error
    message and SHOULD use a relevant code, as defined below:
@@ -865,7 +870,7 @@ Table of Contents
       WebTransport session, or the server does not support the path.
 
    MALFORMED_PATH (0x9):  The PATH parameter does not conform to the
-      rules in Section 9.3.2.2.
+      rules in Section 9.3.1.2.
 
    GOAWAY_TIMEOUT (0x10):  The session was closed because the peer took
       too long to close the session in response to a GOAWAY
@@ -881,7 +886,7 @@ Table of Contents
       a new object header on an open subgroup stream, it MAY send a
       STOP_SENDING on that stream or terminate the subscription.
 
-   AUTH_TOKEN_CACHE_OVERFLOW (0x13):  The Session limit Section 9.3.2.4
+   AUTH_TOKEN_CACHE_OVERFLOW (0x13):  The Session limit Section 9.3.1.4
       of the size of all registered Authorization tokens has been
       exceeded.
 
@@ -1785,7 +1790,7 @@ Table of Contents
    MOQT versions.  All other messages use a version-specific namespace.
    For example, the integer '1' can refer to different parameters for
    Setup messages and for all other message types.  SETUP message
-   parameter types are defined in Section 9.3.2.  Version-specific
+   parameter types are defined in Section 9.3.1.  Version-specific
    parameter types are defined in Section 9.2.1.
 
 9.2.1.  Version Specific Parameters
@@ -1906,7 +1911,7 @@ Table of Contents
    the Token Alias and Token Value until they are deleted, or the
    Session ends.  The receiver can protect its resources by sending a
    SETUP parameter defining the MAX_AUTH_TOKEN_CACHE_SIZE limit (see
-   Section 9.3.2.4) it is willing to accept.  If a registration is
+   Section 9.3.1.4) it is willing to accept.  If a registration is
    attempted which would cause this limit to be exceeded, the receiver
    MUST termiate the Session with a AUTH_TOKEN_CACHE_OVERFLOW error.
 
@@ -2106,20 +2111,18 @@ Table of Contents
 
    The CLIENT_SETUP and SERVER_SETUP messages are the first messages
    exchanged by the client and the server; they allow the endpoints to
-   establish the mutually supported version and agree on the initial
-   configuration before any objects are exchanged.  It is a sequence of
-   key-value pairs called Setup parameters; the semantics and format of
-   which can vary based on whether the client or server is sending.  To
-   ensure future extensibility of MOQT, endpoints MUST ignore unknown
-   setup parameters.  TODO: describe GREASE for those.
+   agree on the initial configuration before any control messsages are
+   exchanged.  The messages contain a sequence of key-value pairs called
+   Setup parameters; the semantics and format of which can vary based on
+   whether the client or server is sending.  To ensure future
+   extensibility of MOQT, endpoints MUST ignore unknown setup
+   parameters.  TODO: describe GREASE for Setup Parameters.
 
    The wire format of the Setup messages are as follows:
 
    CLIENT_SETUP Message {
      Type (i) = 0x20,
-     Length (16),
-     Number of Supported Versions (i),
-     Supported Versions (i) ...,
+     Length (i),
      Number of Parameters (i),
      Setup Parameters (..) ...,
    }
@@ -2127,43 +2130,17 @@ Table of Contents
    SERVER_SETUP Message {
      Type (i) = 0x21,
      Length (16),
-     Selected Version (i),
      Number of Parameters (i),
      Setup Parameters (..) ...,
    }
 
                        Figure 5: MOQT Setup Messages
 
-   The available versions and Setup parameters are detailed in the next
-   sections.
+   The available Setup parameters are detailed in the next sections.
 
-9.3.1.  Versions
+9.3.1.  Setup Parameters
 
-   MOQT versions are a 32-bit unsigned integer, encoded as a varint.
-   This version of the specification is identified by the number
-   0x00000001.  Versions with the most significant 16 bits of the
-   version number cleared are reserved for use in future IETF consensus
-   documents.
-
-   The client offers the list of the protocol versions it supports; the
-   server MUST reply with one of the versions offered by the client.  If
-   the server does not support any of the versions offered by the
-   client, or the client receives a server version that it did not
-   offer, the corresponding peer MUST close the session with
-   VERSION_NEGOTIATION_FAILED.
-
-   [[RFC editor: please remove the remainder of this section before
-   publication.]]
-
-   The version number for the final version of this specification
-   (0x00000001), is reserved for the version of the protocol that is
-   published as an RFC.  Version numbers used to identify IETF drafts
-   are created by adding the draft number to 0xff000000.  For example,
-   draft-ietf-moq-transport-13 would be identified as 0xff00000D.
-
-9.3.2.  Setup Parameters
-
-9.3.2.1.  AUTHORITY
+9.3.1.1.  AUTHORITY
 
    The AUTHORITY parameter (Parameter Type 0x05) allows the client to
    specify the authority component of the MoQ URI when using native QUIC
@@ -2180,7 +2157,7 @@ Table of Contents
    the URI.  If an AUTHORITY parameter does not conform to these rules,
    the session MUST be closed with MALFORMED_AUTHORITY.
 
-9.3.2.2.  PATH
+9.3.1.2.  PATH
 
    The PATH parameter (Parameter Type 0x01) allows the client to specify
    the path of the MoQ URI when using native QUIC ([QUIC]).  It MUST NOT
@@ -2198,14 +2175,14 @@ Table of Contents
    conform to these rules, the session MUST be closed with
    MALFORMED_PATH.
 
-9.3.2.3.  MAX_REQUEST_ID
+9.3.1.3.  MAX_REQUEST_ID
 
    The MAX_REQUEST_ID parameter (Parameter Type 0x02) communicates an
    initial value for the Maximum Request ID to the receiving endpoint.
    The default value is 0, so if not specified, the peer MUST NOT send
    requests.
 
-9.3.2.4.  MAX_AUTH_TOKEN_CACHE_SIZE
+9.3.1.4.  MAX_AUTH_TOKEN_CACHE_SIZE
 
    The MAX_AUTH_TOKEN_CACHE_SIZE parameter (Parameter Type 0x04)
    communicates the maximum size in bytes of all actively registered
@@ -2220,7 +2197,7 @@ Table of Contents
    minus the sum of the token sizes for all deregistered tokens (Alias
    Type value of 0x00), since Session initiation.
 
-9.3.2.5.  AUTHORIZATION TOKEN
+9.3.1.5.  AUTHORIZATION TOKEN
 
    See Section 9.2.1.1.  The endpoint can specify one or more tokens in
    CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT
@@ -2235,7 +2212,7 @@ Table of Contents
    MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default
    value of 0).
 
-9.3.2.6.  MOQT IMPLEMENTATION
+9.3.1.6.  MOQT IMPLEMENTATION
 
    The MOQT_IMPLEMENTATION parameter (Parameter Type 0x07) identifies
    the name and version of the sender's MOQT implementation.  This
@@ -4149,7 +4126,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    TODO: fill out currently missing registries:
 
-   *  MOQT version numbers
+   *  MOQT ALPN values
 
    *  Setup parameters
 
