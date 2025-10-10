@@ -1368,7 +1368,7 @@ SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
 MUST withhold sending FETCH_OK until it does.
 
-For successful subscriptions, the publisher maintains a list of subscribers for
+Publishers maintain a list of Established downstream subscriptions for
 each Track. Relays use the Track Alias ({{track-alias}}) of an incoming Object
 to identify its Track and find the current subscribers.  Each new Object
 belonging to the Track is forwarded to each subscriber, as allowed by the
