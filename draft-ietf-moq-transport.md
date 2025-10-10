@@ -2444,10 +2444,10 @@ send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.
 
-A publisher that sends the FORWARD parameter ({{forward-parameter}}) equal to 0,
-or omits it, indicates that it will not transmit any objects until the
-subscriber sets the Forward State to 1. A FORWARD parameter equal to 1 indicates
-the publisher will start transmitting objects immediately, possibly before
+A publisher that sends the FORWARD parameter ({{forward-parameter}}) equal to 0
+indicates that it will not transmit any objects until the subscriber sets the
+Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
+publisher will start transmitting objects immediately, possibly before
 PUBLISH_OK.
 
 
@@ -2973,9 +2973,12 @@ PUBLISH_NAMESPACE_DONE or PUBLISH messages to a subscriber.  It is useful in
 applications or relays where subscribers are only interested in or authorized to
 access a subset of available namespaces and tracks.
 
-PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set a FORWARD
-parameter ({{forward-parameter}}) equal to the value of the FORWARD parameter
-included in this message if any.
+If the FORWARD parameter ({{forward-parameter}}) is present in this message and
+equal to 0, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set
+the FORWARD parameter ({{forward-parameter}}) to 0. If the FORWARD parameter is
+equal to 1 or omitted from this message, PUBLISH messages resulting from this
+SUBSCRIBE_NAMESPACE will set the FORWARD parameter to 1, or indicate that value
+by omitting the parameter.
 
 
 ## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
