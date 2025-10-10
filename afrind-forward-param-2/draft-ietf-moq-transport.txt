@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 April 2026                                     I. Swett, Ed.
+Expires: 13 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          9 October 2025
+                                                         10 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 April 2026.
+   This Internet-Draft will expire on 13 April 2026.
 
 Copyright Notice
 
@@ -2666,10 +2666,10 @@ Table of Contents
    subscription using a STOP_SENDING frame.
 
    A publisher that sends the FORWARD parameter (Section 9.2.1.9) equal
-   to 0, or omits it, indicates that it will not transmit any objects
-   until the subscriber sets the Forward State to 1.  A FORWARD
-   parameter equal to 1 indicates the publisher will start transmitting
-   objects immediately, possibly before PUBLISH_OK.
+   to 0 indicates that it will not transmit any objects until the
+   subscriber sets the Forward State to 1.  If the FORWARD parameter is
+   omitted or equal to 1, the publisher will start transmitting objects
+   immediately, possibly before PUBLISH_OK.
 
 9.14.  PUBLISH_OK
 
@@ -3217,9 +3217,13 @@ Table of Contents
    are only interested in or authorized to access a subset of available
    namespaces and tracks.
 
-   PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set a
-   FORWARD parameter (Section 9.2.1.9) equal to the value of the FORWARD
-   parameter included in this message if any.
+   If the FORWARD parameter (Section 9.2.1.9) is present in this message
+   and equal to 0, PUBLISH messages resulting from this
+   SUBSCRIBE_NAMESPACE will set the FORWARD parameter (Section 9.2.1.9)
+   to 0.  If the FORWARD parameter is equal to 1 or omitted from this
+   message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE
+   will set the FORWARD parameter to 1, or indicate that value by
+   omitting the parameter.
 
 9.25.  UNSUBSCRIBE_NAMESPACE
 
