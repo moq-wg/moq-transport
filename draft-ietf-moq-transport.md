@@ -594,7 +594,8 @@ another protocol when QUIC or WebTransport aren't available.
 
 MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 ({{WebTransport, Section 3.4}}) to perform version negotiation.
-[[RFC editor: please remove the remainder of this section before publication.]]
+
+\[\[RFC editor: please remove the remainder of this section before publication.]]
 
 The ALPN value {{!RFC7301}} for the final version of this specification
 is `moqt`.  ALPNs used to identify IETF drafts are created by appending
@@ -603,6 +604,7 @@ would be identified as "moqt-13".
 
 Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
 negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
+
 ### WebTransport
 
 An MOQT server that is accessible via WebTransport can be identified
