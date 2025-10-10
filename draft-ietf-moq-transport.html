@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 12 April 2026</td>
+<td class="center">Expires 13 April 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-10-09" class="published">9 October 2025</time>
+<time datetime="2025-10-10" class="published">10 October 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-04-12">12 April 2026</time></dd>
+<dd class="expires"><time datetime="2026-04-13">13 April 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 12 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 13 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2930,7 +2930,7 @@ congestion.<a href="#section-7-1" class="pilcrow">¶</a></p>
         <h3 id="name-definitions">
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-definitions" class="section-name selfRef">Definitions</a>
         </h3>
-<p id="section-7.1-1">MOQT maintains priorities between different <em>schedulable objects</em>.
+<p id="section-7.1-1">MOQT maintains priorities between different schedulable objects.
 A schedulable object in MOQT is either:<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-7.1-2">
 <li id="section-7.1-2.1">
@@ -2952,9 +2952,9 @@ response to SUBSCRIBE, it can be useful to conceptualize this process as
 scheduling subgroups or datagrams instead of individual objects on them.
 FETCH responses however can contain objects with different publisher
 priorities.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
-<p id="section-7.1-5">A <em>priority number</em> is an unsigned integer with a value between 0 and 255.
+<p id="section-7.1-5">A <code>priority number</code>is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.<a href="#section-7.1-5" class="pilcrow">¶</a></p>
-<p id="section-7.1-6"><em>Subscriber Priority</em> is a priority number associated with an individual
+<p id="section-7.1-6"><code>Subscriber Priority</code> is a priority number associated with an individual
 request.  It is specified in the SUBSCRIBE or FETCH message, and can be
 updated via SUBSCRIBE_UPDATE message.  The subscriber priority of an individual
 schedulable object is the subscriber priority of the request that caused that
@@ -2962,11 +2962,11 @@ object to be sent. When subscriber priority is changed, a best effort <span clas
 made to apply the change to all objects that have not been scheduled, but it is
 implementation dependent what happens to objects that have already been
 scheduled.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
-<p id="section-7.1-7"><em>Publisher Priority</em> is a priority number associated with an individual
+<p id="section-7.1-7"><code>Publisher Priority</code> is a priority number associated with an individual
 schedulable object.  A default can be specified in the parameters of PUBLISH, or
 SUBSCRIBE_OK. Publisher priority can also be specified in a subgroup header or
 datagram (see <a href="#data-streams" class="auto internal xref">Section 10</a>).<a href="#section-7.1-7" class="pilcrow">¶</a></p>
-<p id="section-7.1-8"><em>Group Order</em> is a property of an individual subscription.  It can be either
+<p id="section-7.1-8"><code>Group Order</code> is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
