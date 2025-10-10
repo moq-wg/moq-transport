@@ -1855,41 +1855,9 @@ bytes. Objects form the base element in the MOQT data model. See
         </h3>
 <p id="section-1.4-1">This document uses the conventions detailed in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-1.3" class="relref">Section 1.3</a></span>)
 when describing the binary encoding.<a href="#section-1.4-1" class="pilcrow">¶</a></p>
-<p id="section-1.4-2">As a quick reference, the following list provides a non normative summary
-of the parts of RFC9000 field syntax that are used in this specification.<a href="#section-1.4-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-1.4-3">
-          <dt id="section-1.4-3.1">x (L):</dt>
-          <dd style="margin-left: 1.5em" id="section-1.4-3.2">
-            <p id="section-1.4-3.2.1">Indicates that x is L bits long.<a href="#section-1.4-3.2.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-1.4-3.3">x (i):</dt>
-          <dd style="margin-left: 1.5em" id="section-1.4-3.4">
-            <p id="section-1.4-3.4.1">Indicates that x holds an integer value using the variable-length
-encoding as described in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a></span>).<a href="#section-1.4-3.4.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-1.4-3.5">x (..):</dt>
-          <dd style="margin-left: 1.5em" id="section-1.4-3.6">
-            <p id="section-1.4-3.6.1">Indicates that x can be any length including zero bits long.  Values
- in this format always end on a byte boundary.<a href="#section-1.4-3.6.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-1.4-3.7">[x (L)]:</dt>
-          <dd style="margin-left: 1.5em" id="section-1.4-3.8">
-            <p id="section-1.4-3.8.1">Indicates that x is optional and has a length of L.<a href="#section-1.4-3.8.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-1.4-3.9">x (L) ...:</dt>
-          <dd style="margin-left: 1.5em" id="section-1.4-3.10">
-            <p id="section-1.4-3.10.1">Indicates that x is repeated zero or more times and that each instance
-has a length of L.<a href="#section-1.4-3.10.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-</dl>
-<p id="section-1.4-4">To reduce unnecessary use of bandwidth, variable length integers <span class="bcp14">SHOULD</span>
+<p id="section-1.4-2">To reduce unnecessary use of bandwidth, variable length integers <span class="bcp14">SHOULD</span>
 be encoded using the least number of bytes possible to represent the
-required value.<a href="#section-1.4-4" class="pilcrow">¶</a></p>
+required value.<a href="#section-1.4-2" class="pilcrow">¶</a></p>
 <div id="location-structure">
 <section id="section-1.4.1">
           <h4 id="name-location-structure">
