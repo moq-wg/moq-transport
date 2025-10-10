@@ -2807,9 +2807,11 @@ to a successful TRACK_STATUS message.
 The TRACK_STATUS_OK message format is identical to the SUBSCRIBE_OK message
 ({{message-subscribe-ok}}).
 
-The publisher populates the fields of TRACK_STATUS_OK exactly as it would have
-populated a SUBSCRIBE_OK, setting Track Alias to 0. It is not considered an error
-if Track Alias 0 is already in use by an active subscription.
+The publisher populates the fields of TRACK_STATUS_OK in the same way as
+SUBSCRIBE_OK. The Track Alias MUST be set to 0. It is not
+considered an error if Track Alias 0 is already in use by an active
+subscription. However, the subscriber MUST terminate the session with
+a `PROTOCOL_VIOLATION` if the Track Alias is not set to 0.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 
