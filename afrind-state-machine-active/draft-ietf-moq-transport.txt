@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 April 2026                                     I. Swett, Ed.
+Expires: 13 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          9 October 2025
+                                                         10 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 April 2026.
+   This Internet-Draft will expire on 13 April 2026.
 
 Copyright Notice
 
@@ -1512,13 +1512,13 @@ Table of Contents
    immediately in response to a FETCH, it MUST withhold sending FETCH_OK
    until it does.
 
-   For successful subscriptions, the publisher maintains a list of
-   subscribers for each Track.  Relays use the Track Alias
-   (Section 10.1) of an incoming Object to identify its Track and find
-   the current subscribers.  Each new Object belonging to the Track is
-   forwarded to each subscriber, as allowed by the subscription's filter
-   (see Section 9.9), and delivered according to the priority (see
-   Section 7) and delivery timeout (see Section 9.2.1.2).
+   Publishers maintain a list of Established downstream subscriptions
+   for each Track.  Relays use the Track Alias (Section 10.1) of an
+   incoming Object to identify its Track and find the current
+   subscribers.  Each new Object belonging to the Track is forwarded to
+   each subscriber, as allowed by the subscription's filter (see
+   Section 9.9), and delivered according to the priority (see Section 7)
+   and delivery timeout (see Section 9.2.1.2).
 
    A relay MUST NOT reorder or drop objects received on a multi-object
    stream when forwarding to subscribers, unless it has application
