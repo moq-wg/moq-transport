@@ -1254,10 +1254,13 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-session-establishment" class="internal xref">Session establishment</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.1">
-                    <p id="section-toc.1-1.3.2.1.2.1.1"><a href="#section-3.1.1" class="auto internal xref">3.1.1</a>.  <a href="#name-quic" class="internal xref">QUIC</a></p>
+                    <p id="section-toc.1-1.3.2.1.2.1.1"><a href="#section-3.1.1" class="auto internal xref">3.1.1</a>.  <a href="#name-webtransport" class="internal xref">WebTransport</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.2">
-                    <p id="section-toc.1-1.3.2.1.2.2.1"><a href="#section-3.1.2" class="auto internal xref">3.1.2</a>.  <a href="#name-connection-url" class="internal xref">Connection URL</a></p>
+                    <p id="section-toc.1-1.3.2.1.2.2.1"><a href="#section-3.1.2" class="auto internal xref">3.1.2</a>.  <a href="#name-quic" class="internal xref">QUIC</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.3">
+                    <p id="section-toc.1-1.3.2.1.2.3.1"><a href="#section-3.1.3" class="auto internal xref">3.1.3</a>.  <a href="#name-connection-url" class="internal xref">Connection URL</a></p>
 </li>
                 </ul>
 </li>
@@ -2288,55 +2291,61 @@ designed to work correctly when the extension is not supported.<a href="#section
 such as TCP, and applications using MoQ might need to fallback to
 another protocol when QUIC or WebTransport aren't available.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.1-3">MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-13#section-3.4" class="relref">Section 3.4</a></span>) to perform version negotiation.
-[[RFC editor: please remove the remainder of this section before publication.]]<a href="#section-3.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.1-4">The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> for the final version of this specification
+(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-13#section-3.4" class="relref">Section 3.4</a></span>) to perform version negotiation.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.1-4">[[RFC editor: please remove the remainder of this section before publication.]]<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+<p id="section-3.1-5">The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> for the final version of this specification
 is <code>moqt</code>.  ALPNs used to identify IETF drafts are created by appending
 the draft number to "moqt-". For example, draft-ietf-moq-transport-13
-would be identified as "moqt-13".<a href="#section-3.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.1-5">Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
-negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
-### WebTransport<a href="#section-3.1-5" class="pilcrow">¶</a></p>
-<p id="section-3.1-6">An MOQT server that is accessible via WebTransport can be identified
+would be identified as "moqt-13".<a href="#section-3.1-5" class="pilcrow">¶</a></p>
+<p id="section-3.1-6">Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
+negotiation in the CLIENT_SETUP and SERVER_SETUP messages.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+<div id="webtransport">
+<section id="section-3.1.1">
+          <h4 id="name-webtransport">
+<a href="#section-3.1.1" class="section-number selfRef">3.1.1. </a><a href="#name-webtransport" class="section-name selfRef">WebTransport</a>
+          </h4>
+<p id="section-3.1.1-1">An MOQT server that is accessible via WebTransport can be identified
 using an HTTPS URI (<span>[<a href="#RFC9110" class="cite xref">RFC9110</a>], <a href="https://rfc-editor.org/rfc/rfc9110#section-4.2.2" class="relref">Section 4.2.2</a></span>).  An MOQT session can be
 established by sending an extended CONNECT request to the host and the
 path indicated by the URI, as described in
-(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-13#section-3" class="relref">Section 3</a></span>).<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-13#section-3" class="relref">Section 3</a></span>).<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
 <div id="quic">
-<section id="section-3.1.1">
+<section id="section-3.1.2">
           <h4 id="name-quic">
-<a href="#section-3.1.1" class="section-number selfRef">3.1.1. </a><a href="#name-quic" class="section-name selfRef">QUIC</a>
+<a href="#section-3.1.2" class="section-number selfRef">3.1.2. </a><a href="#name-quic" class="section-name selfRef">QUIC</a>
           </h4>
-<p id="section-3.1.1-1">An MOQT server that is accessible via native QUIC can be identified by a
+<p id="section-3.1.2-1">An MOQT server that is accessible via native QUIC can be identified by a
 URI with a "moqt" scheme.  The "moqt" URI scheme is defined as follows,
-using definitions from <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>:<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.1.1-2">
+using definitions from <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>:<a href="#section-3.1.2-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1.2-2">
 <pre>
 moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
-</pre><a href="#section-3.1.1-2" class="pilcrow">¶</a>
+</pre><a href="#section-3.1.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-3.1.1-3">The <code>authority</code> portion <span class="bcp14">MUST NOT</span> contain an empty <code>host</code> portion.
+<p id="section-3.1.2-3">The <code>authority</code> portion <span class="bcp14">MUST NOT</span> contain an empty <code>host</code> portion.
 The <code>moqt</code> URI scheme supports the <code>/.well-known/</code> path prefix defined in
-<span>[<a href="#RFC8615" class="cite xref">RFC8615</a>]</span>.<a href="#section-3.1.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.1.1-4">This protocol does not specify any semantics on the <code>path-abempty</code> and
+<span>[<a href="#RFC8615" class="cite xref">RFC8615</a>]</span>.<a href="#section-3.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.1.2-4">This protocol does not specify any semantics on the <code>path-abempty</code> and
 <code>query</code> portions of the URI.  The contents of those are left up to the
-application.<a href="#section-3.1.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.1.1-5">The client can establish a connection to an MOQT server identified by a given
+application.<a href="#section-3.1.2-4" class="pilcrow">¶</a></p>
+<p id="section-3.1.2-5">The client can establish a connection to an MOQT server identified by a given
 URI by setting up a QUIC connection to the host and port identified by the
 <code>authority</code> section of the URI. The <code>authority</code>, <code>path-abempty</code> and <code>query</code>
 portions of the URI are also transmitted in SETUP parameters (see
-<a href="#setup-params" class="auto internal xref">Section 9.3.1</a>).<a href="#section-3.1.1-5" class="pilcrow">¶</a></p>
+<a href="#setup-params" class="auto internal xref">Section 9.3.1</a>).<a href="#section-3.1.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="connection-url">
-<section id="section-3.1.2">
+<section id="section-3.1.3">
           <h4 id="name-connection-url">
-<a href="#section-3.1.2" class="section-number selfRef">3.1.2. </a><a href="#name-connection-url" class="section-name selfRef">Connection URL</a>
+<a href="#section-3.1.3" class="section-number selfRef">3.1.3. </a><a href="#name-connection-url" class="section-name selfRef">Connection URL</a>
           </h4>
-<p id="section-3.1.2-1">Each track <span class="bcp14">MAY</span> have one or more associated connection URLs specifying
+<p id="section-3.1.3-1">Each track <span class="bcp14">MAY</span> have one or more associated connection URLs specifying
 network hosts through which a track may be accessed. The syntax of the
 Connection URL and the associated connection setup procedures are
-specific to the underlying transport protocol usage (see <a href="#session" class="auto internal xref">Section 3</a>).<a href="#section-3.1.2-1" class="pilcrow">¶</a></p>
+specific to the underlying transport protocol usage (see <a href="#session" class="auto internal xref">Section 3</a>).<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

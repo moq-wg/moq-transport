@@ -98,8 +98,9 @@ Table of Contents
        2.4.3.  Scope
    3.  Sessions
      3.1.  Session establishment
-       3.1.1.  QUIC
-       3.1.2.  Connection URL
+       3.1.1.  WebTransport
+       3.1.2.  QUIC
+       3.1.3.  Connection URL
      3.2.  Extension Negotiation
      3.3.  Session initialization
      3.4.  Termination
@@ -724,8 +725,9 @@ Table of Contents
    protocol when QUIC or WebTransport aren't available.
 
    MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-   ([WebTransport], Section 3.4) to perform version negotiation.  [[RFC
-   editor: please remove the remainder of this section before
+   ([WebTransport], Section 3.4) to perform version negotiation.
+
+   [[RFC editor: please remove the remainder of this section before
    publication.]]
 
    The ALPN value [RFC7301] for the final version of this specification
@@ -735,7 +737,8 @@ Table of Contents
 
    Note: Draft versions prior to -15 all used moq-00 ALPN, followed by
    version negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
-   ### WebTransport
+
+3.1.1.  WebTransport
 
    An MOQT server that is accessible via WebTransport can be identified
    using an HTTPS URI ([RFC9110], Section 4.2.2).  An MOQT session can
@@ -743,7 +746,7 @@ Table of Contents
    the path indicated by the URI, as described in ([WebTransport],
    Section 3).
 
-3.1.1.  QUIC
+3.1.2.  QUIC
 
    An MOQT server that is accessible via native QUIC can be identified
    by a URI with a "moqt" scheme.  The "moqt" URI scheme is defined as
@@ -765,7 +768,7 @@ Table of Contents
    abempty and query portions of the URI are also transmitted in SETUP
    parameters (see Section 9.3.1).
 
-3.1.2.  Connection URL
+3.1.3.  Connection URL
 
    Each track MAY have one or more associated connection URLs specifying
    network hosts through which a track may be accessed.  The syntax of
