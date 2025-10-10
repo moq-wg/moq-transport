@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 April 2026                                     I. Swett, Ed.
+Expires: 13 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          9 October 2025
+                                                         10 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 April 2026.
+   This Internet-Draft will expire on 13 April 2026.
 
 Copyright Notice
 
@@ -3706,7 +3706,7 @@ Table of Contents
    [I-D.draft-ietf-quic-reliable-stream-reset] frame.  This includes,
    but is not limited to:
 
-   *  An open Subgroup exceeding its Delivery Timeout
+   *  An Object in an open Subgroup exceeding its Delivery Timeout
 
    *  Early termination of subscription due to an UNSUBSCRIBE message
 
