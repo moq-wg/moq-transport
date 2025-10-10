@@ -713,12 +713,12 @@ Table of Contents
    [WebTransport].  Both provide streams and datagrams with similar
    semantics (see [I-D.ietf-webtrans-overview], Section 4); thus, the
    main difference lies in how the servers are identified and how the
-   connection is established.  The [QUIC-DATAGRAM] extension MUST be
-   supported and negotiated in the QUIC connection used for MOQT, which
-   is already a requirement for WebTransport over HTTP/3.  The
-   RESET_STREAM_AT [I-D.draft-ietf-quic-reliable-stream-reset] extension
-   to QUIC can be used by MOQT, but the protocol is also designed to
-   work correctly when the extension is not supported.
+   connection is established.  The QUIC DATAGRAM extension ([RFC9221])
+   MUST be supported and negotiated in the QUIC connection used for
+   MOQT, which is already a requirement for WebTransport over HTTP/3.
+   The RESET_STREAM_AT [I-D.draft-ietf-quic-reliable-stream-reset]
+   extension to QUIC can be used by MOQT, but the protocol is also
+   designed to work correctly when the extension is not supported.
 
    There is no definition of the protocol over other transports, such as
    TCP, and applications using MoQ might need to fallback to another
@@ -4331,6 +4331,10 @@ Normative References
               DOI 10.17487/RFC2119, March 1997,
               <https://www.rfc-editor.org/rfc/rfc2119>.
 
+   [RFC3629]  Yergeau, F., "UTF-8, a transformation format of ISO
+              10646", STD 63, RFC 3629, DOI 10.17487/RFC3629, November
+              2003, <https://www.rfc-editor.org/rfc/rfc3629>.
+
    [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
               Resource Identifier (URI): Generic Syntax", STD 66,
               RFC 3986, DOI 10.17487/RFC3986, January 2005,
@@ -4353,6 +4357,11 @@ Normative References
               Ed., "HTTP Semantics", STD 97, RFC 9110,
               DOI 10.17487/RFC9110, June 2022,
               <https://www.rfc-editor.org/rfc/rfc9110>.
+
+   [RFC9221]  Pauly, T., Kinnear, E., and D. Schinazi, "An Unreliable
+              Datagram Extension to QUIC", RFC 9221,
+              DOI 10.17487/RFC9221, March 2022,
+              <https://www.rfc-editor.org/rfc/rfc9221>.
 
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
