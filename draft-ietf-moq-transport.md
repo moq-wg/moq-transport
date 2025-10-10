@@ -3510,11 +3510,11 @@ The two least significant bits (LSBs) of the Serialization Flags form a two-bit
 field that defines the encoding of the Subgroup.  To extract this value, the
 Subscriber performs a bitwise AND operation with the mask 0x03.
 
-Bitmask Result (Serialization Flags & 0x03)	| Meaning
-0x00	| Subgroup ID is zero
-0x01	| Subgroup ID is the prior Object's Subgroup ID
-0x02	| Subgroup ID is the prior Object's Subgroup ID plus one
-0x03	| The Subgroup ID field is present
+Bitmask Result (Serialization Flags & 0x03) | Meaning
+0x00 | Subgroup ID is zero
+0x01 | Subgroup ID is the prior Object's Subgroup ID
+0x02 | Subgroup ID is the prior Object's Subgroup ID plus one
+0x03 | The Subgroup ID field is present
 
 The following table defines additional flags within the Serialization Flags
 field. Each flag is an independent boolean value, where a set bit (1) indicates
@@ -3522,10 +3522,10 @@ the corresponding condition is true.
 
 Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
-0x04	| Object ID field is present	| Object ID is the prior Object's ID plus one
-0x08	| Group ID field is present |	Group ID is the prior Object's Group ID
-0x10	| Priority field is present	| Priority is the prior Object's Priority
-0x20	| Extensions field is present |	Extensions field is not present
+0x04 | Object ID field is present | Object ID is the prior Object's ID plus one
+0x08 | Group ID field is present | Group ID is the prior Object's Group ID
+0x10 | Priority field is present | Priority is the prior Object's Priority
+0x20 | Extensions field is present | Extensions field is not present
 0x40 | `PROTOCOL_VIOLATION` | N/A
 0x80 | `PROTOCOL_VIOLATION` | N/A
 
