@@ -3411,7 +3411,7 @@ stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
 {{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes, but is
 not limited to:
 
-* An open Subgroup exceeding its Delivery Timeout
+* An Object in an open Subgroup exceeding its Delivery Timeout
 * Early termination of subscription due to an UNSUBSCRIBE message
 * A publisher's decision to end the subscription early
 * A SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
