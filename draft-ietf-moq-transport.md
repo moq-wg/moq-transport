@@ -1824,6 +1824,17 @@ simultaneously.
 If the EXPIRES parameter is 0 or is not present in a message, the subscription
 does not expire or expires at an unknown time.
 
+#### LARGEST OBJECT Parameter {#largest-param}
+
+The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in SUBSCRIBE_OK,
+PUBLISH or in REQUEST_OK in response to SUBSCRIBE_UPDATE.  It is a
+length-prefixed Location structure (see {{location-structure}}) containing the
+largest Location in the Track observed by the sending endpoint (see
+{{subscription-filters}}.
+
+If omitted from a message, the sending endpoint has not published or received
+any Objects in the Track.
+
 #### DYNAMIC GROUPS Parameter {#dynamic-groups}
 
 The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in PUBLISH or
@@ -2245,8 +2256,6 @@ SUBSCRIBE_OK Message {
   Length (16),
   Request ID (i),
   Track Alias (i),
-  Content Exists (8),
-  [Largest Location (Location),]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2261,14 +2270,6 @@ SUBSCRIBE_OK Message {
   different Tracks simultaneously. If a subscriber receives a SUBSCRIBE_OK that
   uses the same Track Alias as a different track with an active subscription, it
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
-
-* Content Exists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present. Any other value is a protocol error and MUST terminate the
-session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-
-* Largest Location: The location of the largest object available for this track. This
-  field is only present if Content Exists has a value of 1.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2367,8 +2368,6 @@ PUBLISH Message {
   Track Name Length (i),
   Track Name (..),
   Track Alias (i),
-  Content Exists (8),
-  [Largest Location (Location),]
   Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
@@ -2387,13 +2386,6 @@ PUBLISH Message {
   different Tracks simultaneously. If a subscriber receives a PUBLISH that
   uses the same Track Alias as a different track with an active subscription, it
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
-
-* Content Exists: 1 if an object has been published on this track, 0 if not.
-  If 0, then the Largest Group ID and Largest Object ID fields will not be
-  present. Any other value is a protocol error and MUST terminate the
-  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-
-* Largest Location: The location of the largest object available for this track.
 
 * Forward: If 1, the publisher will start transmitting objects immediately, even
   before PUBLISH_OK. If 0, the publisher will not transmit any objects until the
@@ -2598,9 +2590,9 @@ A Joining Fetch is only permitted when the associated Subscribe has the Filter
 Type Largest Object; any other value results in closing the session with a
 `PROTOCOL_VIOLATION`.
 
-If no Objects have been published for the track, and the SUBSCRIBE_OK has a
-Content Exists value of 0, the publisher MUST respond with a REQUEST_ERROR with
-error code `INVALID_RANGE`.
+If no Objects have been published for the track, and the SUBSCRIBE_OK did not
+include a Largest Object parameter ({{largest-param}}), the publisher MUST
+respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
 
 A Joining Fetch includes this structure:
 
