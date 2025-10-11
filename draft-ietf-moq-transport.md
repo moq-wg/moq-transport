@@ -1890,7 +1890,7 @@ The wire format of the Setup messages are as follows:
 ~~~
 CLIENT_SETUP Message {
   Type (i) = 0x20,
-  Length (i),
+  Length (16),
   Number of Parameters (i),
   Setup Parameters (..) ...,
 }
