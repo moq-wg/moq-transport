@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 April 2026                                     I. Swett, Ed.
+Expires: 15 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         10 October 2025
+                                                         12 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 April 2026.
+   This Internet-Draft will expire on 15 April 2026.
 
 Copyright Notice
 
@@ -2108,7 +2108,7 @@ Table of Contents
 
    CLIENT_SETUP Message {
      Type (i) = 0x20,
-     Length (i),
+     Length (16),
      Number of Parameters (i),
      Setup Parameters (..) ...,
    }
