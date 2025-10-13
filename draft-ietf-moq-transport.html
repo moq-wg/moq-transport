@@ -2217,7 +2217,8 @@ End of Track.<a href="#section-2.4.2-2.7.1" class="pilcrow">¶</a></p>
 subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
 <span class="bcp14">SHOULD</span> deliver an error to the application.  If a relay detects a Malformed
 Track, it <span class="bcp14">MUST</span> immediately terminate downstream subscriptions with PUBLISH_DONE
-and reset any fetch streams with Status Code <code>MALFORMED_TRACK</code>.<a href="#section-2.4.2-4" class="pilcrow">¶</a></p>
+and reset any fetch streams with Status Code <code>MALFORMED_TRACK</code>. Object(s)
+triggering Malformed Track status <span class="bcp14">MUST NOT</span> be cached.<a href="#section-2.4.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="track-scope">
