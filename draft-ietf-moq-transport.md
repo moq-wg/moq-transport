@@ -635,7 +635,8 @@ The client can establish a connection to an MOQT server identified by a given
 URI by setting up a QUIC connection to the host and port identified by the
 `authority` section of the URI. The `authority`, `path-abempty` and `query`
 portions of the URI are also transmitted in SETUP parameters (see
-{{setup-params}}).
+{{setup-params}}). If the port is omitted in the URI, a default port of 443 is
+used for setting up the QUIC connection.
 
 ### Connection URL
 
