@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 15 April 2026                                     I. Swett, Ed.
+Expires: 16 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         12 October 2025
+                                                         13 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 April 2026.
+   This Internet-Draft will expire on 16 April 2026.
 
 Copyright Notice
 
@@ -766,7 +766,8 @@ Table of Contents
    a given URI by setting up a QUIC connection to the host and port
    identified by the authority section of the URI.  The authority, path-
    abempty and query portions of the URI are also transmitted in SETUP
-   parameters (see Section 9.3.1).
+   parameters (see Section 9.3.1).  If the port is omitted in the URI, a
+   default port of 443 is used for setting up the QUIC connection.
 
 3.1.3.  Connection URL
 
