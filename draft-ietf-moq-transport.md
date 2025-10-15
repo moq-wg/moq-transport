@@ -3109,9 +3109,9 @@ Any object with a status code other than zero MUST have an empty payload.
 
 #### Object Extension Header {#object-extensions}
 
-Any Object MAY have extension headers except those with Object Status 'Object
-Does Not Exist'.  If an endpoint receives a non-existent Object containing
-extension headers it MUST close the session with a `PROTOCOL_VIOLATION`.
+Any Object with status Normal can have extension headers.  If an endpoint
+receives extension headers on Objects with status that is not Normal, it MUST close the
+session with a `PROTOCOL_VIOLATION`.
 
 Object Extension Headers are visible to relays and allow the transmission of
 future metadata relevant to MOQT Object distribution. Any Object metadata never
