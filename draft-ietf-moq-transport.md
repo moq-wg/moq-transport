@@ -1844,10 +1844,10 @@ does not expire or expires at an unknown time.
 
 The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
 SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK, and
-SUBSCRIBE_NAMESPACE.  It is a variable length integer indicating the sender's
-preference for sending Objects on a subscription (see {{subscriptions}}).  The
-allowed values are 0 or 1. If an endpoint receives a value outside this range,
-it MUST close the session with `PROTOCOL_VIOLATION`.
+SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying the
+Forwarding State on affected subscriptions (see {{subscriptions}}).  The
+allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives a
+value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
 
 If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
@@ -2975,10 +2975,10 @@ access a subset of available namespaces and tracks.
 
 If the FORWARD parameter ({{forward-parameter}}) is present in this message and
 equal to 0, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set
-the FORWARD parameter ({{forward-parameter}}) to 0. If the FORWARD parameter is
-equal to 1 or omitted from this message, PUBLISH messages resulting from this
-SUBSCRIBE_NAMESPACE will set the FORWARD parameter to 1, or indicate that value
-by omitting the parameter.
+the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
+from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
+set the FORWARD parameter to 1, or indicate that value by omitting the parameter
+(see {{subscriptions}}).
 
 
 ## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
