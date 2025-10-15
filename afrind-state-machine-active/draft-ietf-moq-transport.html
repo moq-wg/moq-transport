@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 13 April 2026</td>
+<td class="center">Expires 18 April 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-10-10" class="published">10 October 2025</time>
+<time datetime="2025-10-15" class="published">15 October 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-04-13">13 April 2026</time></dd>
+<dd class="expires"><time datetime="2026-04-18">18 April 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 13 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 18 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2565,7 +2565,7 @@ provider needs the ability to shutdown/restart a server without waiting for all
 sessions to drain naturally, as that can take days for long-form media.
 MOQT enables proactively draining sessions via the GOAWAY message (<a href="#message-goaway" class="auto internal xref">Section 9.4</a>).<a href="#section-3.5-1" class="pilcrow">¶</a></p>
 <p id="section-3.5-2">The server sends a GOAWAY message, signaling the client to establish a new
-session and migrate any Established subscriptions. The GOAWAY message optionally
+session and migrate any <code>Established</code> subscriptions. The GOAWAY message optionally
 contains a new URI for the new session, otherwise the current URI is
 reused. The server <span class="bcp14">SHOULD</span> terminate the session with <code>GOAWAY_TIMEOUT</code> after a
 sufficient timeout if there are still open subscriptions or fetches on a
@@ -2573,9 +2573,9 @@ connection.<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 <p id="section-3.5-3">When the server is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message to downstream
 subscribers prior to any UNSUBSCRIBE messages to upstream publishers.<a href="#section-3.5-3" class="pilcrow">¶</a></p>
 <p id="section-3.5-4">After the client receives a GOAWAY, it's <span class="bcp14">RECOMMENDED</span> that the client waits until
-there are no more Established subscriptions before closing the session with NO_ERROR.
+there are no more <code>Established</code> subscriptions before closing the session with NO_ERROR.
 Ideally this is transparent to the application using MOQT, which involves
-establishing a new session in the background and migrating Established subscriptions
+establishing a new session in the background and migrating <code>Established</code> subscriptions
 and published namespaces. The client can choose to delay closing the session if
 it expects more OBJECTs to be delivered. The server closes the session with a
 <code>GOAWAY_TIMEOUT</code> if the client doesn't close the session quickly enough.<a href="#section-3.5-4" class="pilcrow">¶</a></p>
@@ -2705,7 +2705,7 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
 a SUBSCRIBE. A subscriber <span class="bcp14">MUST</span> send exactly one PUBLISH_OK or REQUEST_ERROR in
 response to a PUBLISH. The peer <span class="bcp14">SHOULD</span> close the session with a protocol error
 if it receives more than one.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.1-5">All Established subscriptions have a Forward State which is either 0 or 1.  If the Forward
+<p id="section-5.1-5">All <code>Established</code> subscriptions have a Forward State which is either 0 or 1.  If the Forward
 State is 0, the publisher does not send objects for the subscription.  If the
 Forward State is 1, the publisher sends objects.  The initiator of the
 subscription sets the initial Forward State in either PUBLISH or SUBSCRIBE.  The
@@ -3157,7 +3157,7 @@ accept an additional publisher due to implementation constraints.
 Implementations can consider the establishment or idle time of the session or
 subscription to determine which publisher to reject or disconnect.<a href="#section-8.3-2" class="pilcrow">¶</a></p>
 <p id="section-8.3-3">Relays <span class="bcp14">MUST</span> handle Objects for the same Track from multiple publishers and
-forward them to matching Established subscriptions. The Relay <span class="bcp14">SHOULD</span> attempt to
+forward them to matching <code>Established</code> subscriptions. The Relay <span class="bcp14">SHOULD</span> attempt to
 deduplicate Objects before forwarding, subject to implementation constraints.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3176,7 +3176,7 @@ relay authorizes a user are outside the scope of this specification.<a href="#se
 SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
 <span class="bcp14">MUST</span> withhold sending FETCH_OK until it does.<a href="#section-8.4-2" class="pilcrow">¶</a></p>
-<p id="section-8.4-3">Publishers maintain a list of Established downstream subscriptions for
+<p id="section-8.4-3">Publishers maintain a list of <code>Established</code> downstream subscriptions for
 each Track. Relays use the Track Alias (<a href="#track-alias" class="auto internal xref">Section 10.1</a>) of an incoming Object
 to identify its Track and find the current subscribers.  Each new Object
 belonging to the Track is forwarded to each subscriber, as allowed by the
@@ -3209,7 +3209,7 @@ expected to do so.<a href="#section-8.4-6" class="pilcrow">¶</a></p>
 to allow for a better user experience when a relay sends a GOAWAY.<a href="#section-8.4.1-1" class="pilcrow">¶</a></p>
 <p id="section-8.4.1-2">When a subscriber receives the GOAWAY message, it starts the process
 of connecting to a new relay and sending the SUBSCRIBE requests for
-all Established subscriptions to the new relay. The new relay will send a
+all <code>Established</code> subscriptions to the new relay. The new relay will send a
 response to the subscribes and if they are successful, the subscriptions
 to the old relay can be stopped with an UNSUBSCRIBE.<a href="#section-8.4.1-2" class="pilcrow">¶</a></p>
 </section>
@@ -3260,10 +3260,10 @@ PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.<a href="#sect
 available publishers using the same matching rules as SUBSCRIBE. When more than
 one publisher is available, the Relay <span class="bcp14">MAY</span> send the FETCH to any of them.<a href="#section-8.5-9" class="pilcrow">¶</a></p>
 <p id="section-8.5-10">When a Relay receives an authorized SUBSCRIBE for a Track with one or more
-Established upstream subscriptions, it <span class="bcp14">MUST</span> reply with SUBSCRIBE_OK.  If the
+<code>Established</code> upstream subscriptions, it <span class="bcp14">MUST</span> reply with SUBSCRIBE_OK.  If the
 SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
 State=0, the Relay <span class="bcp14">MUST</span> send SUBSCRIBE_UPDATE with Forward=1 to all publishers.
-If there are no Established upstream subscriptions for the requested Track, the Relay
+If there are no <code>Established</code> upstream subscriptions for the requested Track, the Relay
 <span class="bcp14">MUST</span> send a SUBSCRIBE request to each publisher that has published the
 subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
 then the Relay <span class="bcp14">MUST</span> use Forward=1 when subscribing upstream.<a href="#section-8.5-10" class="pilcrow">¶</a></p>
@@ -3274,7 +3274,7 @@ to the Track's namespace or prefix thereof.<a href="#section-8.5-11" class="pilc
 matches one or more existing subscriptions to other upstream sessions, it <span class="bcp14">MUST</span>
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
 matching subscription.  When it receives an authorized PUBLISH message for a
-Track that has Established downstream subscriptions, it <span class="bcp14">MUST</span> respond with PUBLISH_OK.  If at least
+Track that has <code>Established</code> downstream subscriptions, it <span class="bcp14">MUST</span> respond with PUBLISH_OK.  If at least
 one downstream subscriber for the Track has Forward State=1, the Relay <span class="bcp14">MUST</span> use
 Forward State=1 in the reply.<a href="#section-8.5-12" class="pilcrow">¶</a></p>
 <p id="section-8.5-13">If a Session is closed due to an unknown or invalid control message or Object,
@@ -3842,7 +3842,7 @@ implementation specific concerns, for example, acheiving a minimum duration for
 each Group. The Original Publisher chooses the next Group ID; there are no
 requirements that it be equal to the NEW_GROUP_REQUEST parameter value.<a href="#section-9.2.1.10-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.10-3">Relay Handling:<a href="#section-9.2.1.10-3" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.10-4">A relay that receives a NEW_GROUP_REQUEST for a Track without an Established
+<p id="section-9.2.1.10-4">A relay that receives a NEW_GROUP_REQUEST for a Track without an <code>Established</code>
 subscription <span class="bcp14">MUST</span> include the NEW_GROUP_REQUEST when subscribing upstream.<a href="#section-9.2.1.10-4" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.10-5">A relay that receives a NEW_GROUP_REQUEST for an established subscription with a
 value of 0 or a value larger than the Largest Group <span class="bcp14">MUST</span> send a SUBSCRIBE_UPDATE
@@ -4286,7 +4286,7 @@ SUBSCRIBE_NAMESPACE in the same session.<a href="#section-9.8-11.2.1" class="pil
 <dt id="section-9.8-11.5">INVALID_JOINING_REQUEST_ID(0x32):</dt>
           <dd style="margin-left: 1.5em" id="section-9.8-11.6">
             <p id="section-9.8-11.6.1">In response to a Joining FETCH, the referenced Request ID is not an
-Established Subscription.<a href="#section-9.8-11.6.1" class="pilcrow">¶</a></p>
+<code>Established</code> Subscription.<a href="#section-9.8-11.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-9.8-11.7">UNKNOWN_STATUS_IN_RANGE(0x33):</dt>
@@ -4399,7 +4399,7 @@ SUBSCRIBE_OK Message {
             <p id="section-9.10-3.2.1">Track Alias: The identifer used for this track in Subgroups or Datagrams (see
 <a href="#track-alias" class="auto internal xref">Section 10.1</a>). The same Track Alias <span class="bcp14">MUST NOT</span> be used to refer to two
 different Tracks simultaneously. If a subscriber receives a SUBSCRIBE_OK that
-uses the same Track Alias as a different track with an Established subscription,
+uses the same Track Alias as a different track with an <code>Established</code> subscription,
 it <span class="bcp14">MUST</span> close the session with error <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-9.10-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.10-3.3">
@@ -4564,7 +4564,7 @@ PUBLISH Message {
             <p id="section-9.13-3.4.1">Track Alias: The identifer used for this track in Subgroups or Datagrams (see
 <a href="#track-alias" class="auto internal xref">Section 10.1</a>). The same Track Alias <span class="bcp14">MUST NOT</span> be used to refer to two
 different Tracks simultaneously. If a subscriber receives a PUBLISH that
-uses the same Track Alias as a different track with an Established subscription, it
+uses the same Track Alias as a different track with an <code>Established</code> subscription, it
 <span class="bcp14">MUST</span> close the session with error <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-9.13-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.13-3.5">
@@ -4844,7 +4844,7 @@ means the entire group is requested.<a href="#section-9.16.1-4.4.1" class="pilcr
 <a href="#section-9.16.2" class="section-number selfRef">9.16.2. </a><a href="#name-joining-fetches" class="section-name selfRef">Joining Fetches</a>
           </h4>
 <p id="section-9.16.2-1">A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of an Established subscription.
+specifying the Request ID of an <code>Established</code> subscription.
 A publisher receiving a Joining Fetch uses properties of the associated
 Subscribe to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
@@ -5100,7 +5100,7 @@ stream to obtain information about the current status of a given track.<a href="
 (<a href="#message-subscribe-req" class="auto internal xref">Section 9.9</a>).<a href="#section-9.19-2" class="pilcrow">¶</a></p>
 <p id="section-9.19-3">The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
-state or send any Objects.  Relays without an Established subscription <span class="bcp14">MAY</span> forward
+state or send any Objects.  Relays without an <code>Established</code> subscription <span class="bcp14">MAY</span> forward
 TRACK_STATUS to one or more publishers, or <span class="bcp14">MAY</span> initiate a subscription (subject
 to authorization) as described in <a href="#publisher-interactions" class="auto internal xref">Section 8.5</a> to determine the
 response. The publisher does not send PUBLISH_DONE for this request, and the
@@ -5118,7 +5118,7 @@ to a successful TRACK_STATUS message.<a href="#section-9.20-1" class="pilcrow">�
 (<a href="#message-subscribe-ok" class="auto internal xref">Section 9.10</a>).<a href="#section-9.20-2" class="pilcrow">¶</a></p>
 <p id="section-9.20-3">The publisher populates the fields of TRACK_STATUS_OK exactly as it would have
 populated a SUBSCRIBE_OK, setting Track Alias to 0. It is not considered an error
-if Track Alias 0 is already in use by an Established subscription.<a href="#section-9.20-3" class="pilcrow">¶</a></p>
+if Track Alias 0 is already in use by an <code>Established</code> subscription.<a href="#section-9.20-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-pub-ns">
