@@ -245,32 +245,6 @@ This document uses stream management terms described in {{?RFC9000, Section
 This document uses the conventions detailed in ({{?RFC9000, Section 1.3}})
 when describing the binary encoding.
 
-As a quick reference, the following list provides a non normative summary
-of the parts of RFC9000 field syntax that are used in this specification.
-
-x (L):
-
-: Indicates that x is L bits long.
-
-x (i):
-
-: Indicates that x holds an integer value using the variable-length
-  encoding as described in ({{?RFC9000, Section 16}}).
-
-x (..):
-
-: Indicates that x can be any length including zero bits long.  Values
- in this format always end on a byte boundary.
-
-[x (L)]:
-
-: Indicates that x is optional and has a length of L.
-
-x (L) ...:
-
-: Indicates that x is repeated zero or more times and that each instance
-  has a length of L.
-
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
@@ -562,8 +536,8 @@ When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE any
 subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
 SHOULD deliver an error to the application.  If a relay detects a Malformed
 Track, it MUST immediately terminate downstream subscriptions with PUBLISH_DONE
-and reset any fetch streams with Status Code `MALFORMED_TRACK`.
-
+and reset any fetch streams with Status Code `MALFORMED_TRACK`. Object(s)
+triggering Malformed Track status MUST NOT be cached.
 
 ### Scope {#track-scope}
 
@@ -607,7 +581,7 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established. The [QUIC-DATAGRAM] extension
+connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
 MUST be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3. The
 RESET_STREAM_AT {{!I-D.draft-ietf-quic-reliable-stream-reset}}
@@ -617,6 +591,19 @@ designed to work correctly when the extension is not supported.
 There is no definition of the protocol over other transports,
 such as TCP, and applications using MoQ might need to fallback to
 another protocol when QUIC or WebTransport aren't available.
+
+MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
+({{WebTransport, Section 3.4}}) to perform version negotiation.
+
+\[\[RFC editor: please remove the remainder of this section before publication.]]
+
+The ALPN value {{!RFC7301}} for the final version of this specification
+is `moqt`.  ALPNs used to identify IETF drafts are created by appending
+the draft number to "moqt-". For example, draft-ietf-moq-transport-13
+would be identified as "moqt-13".
+
+Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
+negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
 
 ### WebTransport
 
@@ -648,9 +635,8 @@ The client can establish a connection to an MOQT server identified by a given
 URI by setting up a QUIC connection to the host and port identified by the
 `authority` section of the URI. The `authority`, `path-abempty` and `query`
 portions of the URI are also transmitted in SETUP parameters (see
-{{setup-params}}).
-
-The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
+{{setup-params}}). If the port is omitted in the URI, a default port of 443 is
+used for setting up the QUIC connection.
 
 ### Connection URL
 
@@ -659,22 +645,21 @@ network hosts through which a track may be accessed. The syntax of the
 Connection URL and the associated connection setup procedures are
 specific to the underlying transport protocol usage (see {{session}}).
 
-## Version and Extension Negotiation {#version-negotiation}
+## Extension Negotiation {#extension-negotiation}
 
-Endpoints use the exchange of Setup messages to negotiate the MOQT version and
-any extensions to use.
+Endpoints use the exchange of Setup messages to negotiate any MOQT extensions
+to use.
 
-The client indicates the MOQT versions it supports in the CLIENT_SETUP message
-(see {{message-setup}}). It also includes the union of all Setup Parameters
-(see {{setup-params}}) required for a handshake by any of those versions.
+The client includes all Setup Parameters {{setup-params}} required for the
+negotiated MOQT version in CLIENT_SETUP.
 
 Within any MOQT version, clients request the use of extensions by adding Setup
 parameters corresponding to that extension. No extensions are defined in this
 document.
 
-The server replies with a SERVER_SETUP message that indicates the chosen
-version, includes all parameters required for a handshake in that version, and
-parameters for every extension requested by the client that it supports.
+The server replies with a SERVER_SETUP message that includes all parameters
+required for a handshake in that version, and parameters for every extension
+requested by the client that it supports.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
@@ -705,7 +690,7 @@ The Transport Session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION\_CLOSE frame
 ({{QUIC, Section 19.19}}).  When WebTransport is used, the session is
 closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
-Section 5}}).
+Section 6}}).
 
 When terminating the Session, the application MAY use any error message
 and SHOULD use a relevant code, as defined below:
@@ -1141,7 +1126,7 @@ congestion.
 
 ## Definitions
 
-MOQT maintains priorities between different _schedulable objects_.
+MOQT maintains priorities between different schedulable objects.
 A schedulable object in MOQT is either:
 
 1. The first or next Object in a Subgroup that is in response to a subscription.
@@ -1159,10 +1144,10 @@ scheduling subgroups or datagrams instead of individual objects on them.
 FETCH responses however can contain objects with different publisher
 priorities.
 
-A _priority number_ is an unsigned integer with a value between 0 and 255.
+A `priority number`is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.
 
-_Subscriber Priority_ is a priority number associated with an individual
+`Subscriber Priority` is a priority number associated with an individual
 request.  It is specified in the SUBSCRIBE or FETCH message, and can be
 updated via SUBSCRIBE_UPDATE message.  The subscriber priority of an individual
 schedulable object is the subscriber priority of the request that caused that
@@ -1171,12 +1156,12 @@ made to apply the change to all objects that have not been scheduled, but it is
 implementation dependent what happens to objects that have already been
 scheduled.
 
-_Publisher Priority_ is a priority number associated with an individual
+`Publisher Priority` is a priority number associated with an individual
 schedulable object.  A default can be specified in the parameters of PUBLISH, or
 SUBSCRIBE_OK. Publisher priority can also be specified in a subgroup header or
 datagram (see {{data-streams}}).
 
-_Group Order_ is a property of an individual subscription.  It can be either
+`Group Order` is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
@@ -1761,13 +1746,16 @@ any other relevant information.
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a PUBLISH,
 SUBSCRIBE_OK, FETCH_OK or REQUEST_OK message.  It is an integer expressing
-the number of milliseconds an object can be served from a cache. If present, the
+the number of milliseconds an Object can be served from a cache. If present, the
 relay MUST NOT start forwarding any individual Object received through this
 subscription or fetch after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier in a
 multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
 handles a downstream request that includes those Objects re-requests them.
+
+If the MAX_CACHE_DURATION parameter is not sent by the publisher, the Objects
+can be cached until implementation constraints cause them to be evicted.
 
 #### PUBLISHER PRIORITY Parameter {#subscriber-priority}
 
@@ -1892,12 +1880,12 @@ outstanding until the Largest Group increases.
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
-by the client and the server; they allow the endpoints to establish the mutually
-supported version and agree on the initial configuration before any objects are
-exchanged. It is a sequence of key-value pairs called Setup parameters; the
-semantics and format of which can vary based on whether the client or server is
-sending.  To ensure future extensibility of MOQT, endpoints MUST ignore unknown
-setup parameters. TODO: describe GREASE for those.
+by the client and the server; they allow the endpoints to agree on the initial
+configuration before any control messsages are exchanged. The messages contain
+a sequence of key-value pairs called Setup parameters; the semantics and format
+of which can vary based on whether the client or server is sending.  To ensure
+future extensibility of MOQT, endpoints MUST ignore unknown setup parameters.
+TODO: describe GREASE for Setup Parameters.
 
 The wire format of the Setup messages are as follows:
 
@@ -1905,8 +1893,6 @@ The wire format of the Setup messages are as follows:
 CLIENT_SETUP Message {
   Type (i) = 0x20,
   Length (16),
-  Number of Supported Versions (i),
-  Supported Versions (i) ...,
   Number of Parameters (i),
   Setup Parameters (..) ...,
 }
@@ -1914,36 +1900,13 @@ CLIENT_SETUP Message {
 SERVER_SETUP Message {
   Type (i) = 0x21,
   Length (16),
-  Selected Version (i),
   Number of Parameters (i),
   Setup Parameters (..) ...,
 }
 ~~~
 {: #moq-transport-setup-format title="MOQT Setup Messages"}
 
-The available versions and Setup parameters are detailed in the next sections.
-
-### Versions {#setup-versions}
-
-MOQT versions are a 32-bit unsigned integer, encoded as a varint.
-This version of the specification is identified by the number 0x00000001.
-Versions with the most significant 16 bits of the version number cleared are
-reserved for use in future IETF consensus documents.
-
-The client offers the list of the protocol versions it supports; the
-server MUST reply with one of the versions offered by the client. If the
-server does not support any of the versions offered by the client, or
-the client receives a server version that it did not offer, the
-corresponding peer MUST close the session with `VERSION_NEGOTIATION_FAILED`.
-
-\[\[RFC editor: please remove the remainder of this section before
-publication.]]
-
-The version number for the final version of this specification (0x00000001), is
-reserved for the version of the protocol that is published as an RFC.
-Version numbers used to identify IETF drafts are created by adding the draft
-number to 0xff000000. For example, draft-ietf-moq-transport-13 would be
-identified as 0xff00000D.
+The available Setup parameters are detailed in the next sections.
 
 ### Setup Parameters {#setup-params}
 
@@ -2016,7 +1979,7 @@ MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
 
 The MOQT_IMPLEMENTATION parameter (Parameter Type 0x07) identifies the name and
 version of the sender's MOQT implementation.  This SHOULD be a UTF-8 encoded
-string [RFC3629], though the message does not carry information, such as
+string {{!RFC3629}}, though the message does not carry information, such as
 language tags, that would aid comprehension by any entity other than the one
 that created the text.
 
@@ -3544,11 +3507,11 @@ The two least significant bits (LSBs) of the Serialization Flags form a two-bit
 field that defines the encoding of the Subgroup.  To extract this value, the
 Subscriber performs a bitwise AND operation with the mask 0x03.
 
-Bitmask Result (Serialization Flags & 0x03)	| Meaning
-0x00	| Subgroup ID is zero
-0x01	| Subgroup ID is the prior Object's Subgroup ID
-0x02	| Subgroup ID is the prior Object's Subgroup ID plus one
-0x03	| The Subgroup ID field is present
+Bitmask Result (Serialization Flags & 0x03) | Meaning
+0x00 | Subgroup ID is zero
+0x01 | Subgroup ID is the prior Object's Subgroup ID
+0x02 | Subgroup ID is the prior Object's Subgroup ID plus one
+0x03 | The Subgroup ID field is present
 
 The following table defines additional flags within the Serialization Flags
 field. Each flag is an independent boolean value, where a set bit (1) indicates
@@ -3556,10 +3519,10 @@ the corresponding condition is true.
 
 Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
-0x04	| Object ID field is present	| Object ID is the prior Object's ID plus one
-0x08	| Group ID field is present |	Group ID is the prior Object's Group ID
-0x10	| Priority field is present	| Priority is the prior Object's Priority
-0x20	| Extensions field is present |	Extensions field is not present
+0x04 | Object ID field is present | Object ID is the prior Object's ID plus one
+0x08 | Group ID field is present | Group ID is the prior Object's Group ID
+0x10 | Priority field is present | Priority is the prior Object's Priority
+0x20 | Extensions field is present | Extensions field is not present
 0x40 | `PROTOCOL_VIOLATION` | N/A
 0x80 | `PROTOCOL_VIOLATION` | N/A
 
@@ -3795,7 +3758,7 @@ TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 
 TODO: fill out currently missing registries:
 
-* MOQT version numbers
+* MOQT ALPN values
 * Setup parameters
 * Non-setup Parameters - List which params can be repeated in the table.
 * Message types
