@@ -4382,7 +4382,9 @@ ID that has not existed within the Session.<a href="#section-9.11-2" class="pilc
 <p id="section-9.11-3">When a subscriber narrows their subscription (increase the Start Location and/or
 decrease the End Group), it might still receive objects
 outside the new range if the publisher sent them before the update was
-processed.<a href="#section-9.11-3" class="pilcrow">¶</a></p>
+processed. When a subscriber increases the End Location, the Largest Object
+might be larger than the old End Location, in which case some Objects would
+need to be fetched.<a href="#section-9.11-3" class="pilcrow">¶</a></p>
 <p id="section-9.11-4">The receiver of a SUBSCRIBE_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful.  When an
 update is unsuccessful, the publisher <span class="bcp14">MUST</span> also terminate the subscription with
