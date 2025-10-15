@@ -2589,7 +2589,7 @@ Type Largest Object; any other value results in closing the session with a
 `PROTOCOL_VIOLATION`.
 
 If no Objects have been published for the track, and the SUBSCRIBE_OK did not
-include a Largest Object parameter ({{largest-param}}), the publisher MUST
+include a LARGEST_OBJECT parameter ({{largest-param}}), the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
 
 A Joining Fetch includes this structure:
