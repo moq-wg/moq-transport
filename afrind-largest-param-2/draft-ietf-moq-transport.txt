@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 April 2026                                     I. Swett, Ed.
+Expires: 18 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         10 October 2025
+                                                         15 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 April 2026.
+   This Internet-Draft will expire on 18 April 2026.
 
 Copyright Notice
 
@@ -2822,7 +2822,7 @@ Table of Contents
    the session with a PROTOCOL_VIOLATION.
 
    If no Objects have been published for the track, and the SUBSCRIBE_OK
-   did not include a Largest Object parameter (Section 9.2.1.9), the
+   did not include a LARGEST_OBJECT parameter (Section 9.2.1.9), the
    publisher MUST respond with a REQUEST_ERROR with error code
    INVALID_RANGE.
 
