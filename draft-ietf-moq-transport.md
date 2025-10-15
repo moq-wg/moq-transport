@@ -2626,12 +2626,12 @@ Joining Fetch {
 #### Joining Fetch Range Calculation
 
 The Largest Location value from the corresponding
-subscription, is used to calculate the end of a Joining Fetch so the
+subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
 The publisher receiving a Joining Fetch sets the End Location to {Subscribe
-Largest Location.Object + 1}. Here Subscribe Largest Location is
-saved value when the subscription started.
+Largest Location.Object + 1}. Here Subscribe Largest Location is the
+saved value from when the subscription started.
 
 Note: the last Object included in the Joining FETCH response is Subscribe
 Largest Location.  The `+ 1` above indicates the equivalent Standalone Fetch
