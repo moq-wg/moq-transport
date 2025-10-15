@@ -812,7 +812,7 @@ sessions to drain naturally, as that can take days for long-form media.
 MOQT enables proactively draining sessions via the GOAWAY message ({{message-goaway}}).
 
 The server sends a GOAWAY message, signaling the client to establish a new
-session and migrate any Established subscriptions. The GOAWAY message optionally
+session and migrate any `Established` subscriptions. The GOAWAY message optionally
 contains a new URI for the new session, otherwise the current URI is
 reused. The server SHOULD terminate the session with `GOAWAY_TIMEOUT` after a
 sufficient timeout if there are still open subscriptions or fetches on a
@@ -822,9 +822,9 @@ When the server is a subscriber, it SHOULD send a GOAWAY message to downstream
 subscribers prior to any UNSUBSCRIBE messages to upstream publishers.
 
 After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
-there are no more Established subscriptions before closing the session with NO_ERROR.
+there are no more `Established` subscriptions before closing the session with NO_ERROR.
 Ideally this is transparent to the application using MOQT, which involves
-establishing a new session in the background and migrating Established subscriptions
+establishing a new session in the background and migrating `Established` subscriptions
 and published namespaces. The client can choose to delay closing the session if
 it expects more OBJECTs to be delivered. The server closes the session with a
 `GOAWAY_TIMEOUT` if the client doesn't close the session quickly enough.
@@ -930,7 +930,7 @@ a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
-All Established subscriptions have a Forward State which is either 0 or 1.  If the Forward
+All `Established` subscriptions have a Forward State which is either 0 or 1.  If the Forward
 State is 0, the publisher does not send objects for the subscription.  If the
 Forward State is 1, the publisher sends objects.  The initiator of the
 subscription sets the initial Forward State in either PUBLISH or SUBSCRIBE.  The
@@ -1351,7 +1351,7 @@ Implementations can consider the establishment or idle time of the session or
 subscription to determine which publisher to reject or disconnect.
 
 Relays MUST handle Objects for the same Track from multiple publishers and
-forward them to matching Established subscriptions. The Relay SHOULD attempt to
+forward them to matching `Established` subscriptions. The Relay SHOULD attempt to
 deduplicate Objects before forwarding, subject to implementation constraints.
 
 ## Subscriber Interactions
@@ -1368,7 +1368,7 @@ SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
 MUST withhold sending FETCH_OK until it does.
 
-Publishers maintain a list of Established downstream subscriptions for
+Publishers maintain a list of `Established` downstream subscriptions for
 each Track. Relays use the Track Alias ({{track-alias}}) of an incoming Object
 to identify its Track and find the current subscribers.  Each new Object
 belonging to the Track is forwarded to each subscriber, as allowed by the
@@ -1403,7 +1403,7 @@ to allow for a better user experience when a relay sends a GOAWAY.
 
 When a subscriber receives the GOAWAY message, it starts the process
 of connecting to a new relay and sending the SUBSCRIBE requests for
-all Established subscriptions to the new relay. The new relay will send a
+all `Established` subscriptions to the new relay. The new relay will send a
 response to the subscribes and if they are successful, the subscriptions
 to the old relay can be stopped with an UNSUBSCRIBE.
 
@@ -1453,10 +1453,10 @@ available publishers using the same matching rules as SUBSCRIBE. When more than
 one publisher is available, the Relay MAY send the FETCH to any of them.
 
 When a Relay receives an authorized SUBSCRIBE for a Track with one or more
-Established upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
+`Established` upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
 SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
 State=0, the Relay MUST send SUBSCRIBE_UPDATE with Forward=1 to all publishers.
-If there are no Established upstream subscriptions for the requested Track, the Relay
+If there are no `Established` upstream subscriptions for the requested Track, the Relay
 MUST send a SUBSCRIBE request to each publisher that has published the
 subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
 then the Relay MUST use Forward=1 when subscribing upstream.
@@ -1469,7 +1469,7 @@ When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it MUST
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
 matching subscription.  When it receives an authorized PUBLISH message for a
-Track that has Established downstream subscriptions, it MUST respond with PUBLISH_OK.  If at least
+Track that has `Established` downstream subscriptions, it MUST respond with PUBLISH_OK.  If at least
 one downstream subscriber for the Track has Forward State=1, the Relay MUST use
 Forward State=1 in the reply.
 
@@ -1918,7 +1918,7 @@ requirements that it be equal to the NEW_GROUP_REQUEST parameter value.
 
 Relay Handling:
 
-A relay that receives a NEW_GROUP_REQUEST for a Track without an Established
+A relay that receives a NEW_GROUP_REQUEST for a Track without an `Established`
 subscription MUST include the NEW_GROUP_REQUEST when subscribing upstream.
 
 A relay that receives a NEW_GROUP_REQUEST for an established subscription with a
@@ -2236,7 +2236,7 @@ NO_OBJECTS (0x31):
 
 INVALID_JOINING_REQUEST_ID(0x32):
 : In response to a Joining FETCH, the referenced Request ID is not an
-Established Subscription.
+`Established` Subscription.
 
 UNKNOWN_STATUS_IN_RANGE(0x33):
 : In response to a FETCH, the requested range contains an object with unknown
@@ -2319,7 +2319,7 @@ SUBSCRIBE_OK Message {
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
   {{track-alias}}). The same Track Alias MUST NOT be used to refer to two
   different Tracks simultaneously. If a subscriber receives a SUBSCRIBE_OK that
-  uses the same Track Alias as a different track with an Established subscription,
+  uses the same Track Alias as a different track with an `Established` subscription,
   it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
 * Content Exists: 1 if an object has been published on this track, 0 if not.
@@ -2445,7 +2445,7 @@ PUBLISH Message {
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
   {{track-alias}}). The same Track Alias MUST NOT be used to refer to two
   different Tracks simultaneously. If a subscriber receives a PUBLISH that
-  uses the same Track Alias as a different track with an Established subscription, it
+  uses the same Track Alias as a different track with an `Established` subscription, it
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
 * Content Exists: 1 if an object has been published on this track, 0 if not.
@@ -2644,7 +2644,7 @@ Standalone Fetch {
 ### Joining Fetches
 
 A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of an Established subscription.
+specifying the Request ID of an `Established` subscription.
 A publisher receiving a Joining Fetch uses properties of the associated
 Subscribe to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
@@ -2853,7 +2853,7 @@ The TRACK_STATUS message format is identical to the SUBSCRIBE message
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
-state or send any Objects.  Relays without an Established subscription MAY forward
+state or send any Objects.  Relays without an `Established` subscription MAY forward
 TRACK_STATUS to one or more publishers, or MAY initiate a subscription (subject
 to authorization) as described in {{publisher-interactions}} to determine the
 response. The publisher does not send PUBLISH_DONE for this request, and the
@@ -2869,7 +2869,7 @@ The TRACK_STATUS_OK message format is identical to the SUBSCRIBE_OK message
 
 The publisher populates the fields of TRACK_STATUS_OK exactly as it would have
 populated a SUBSCRIBE_OK, setting Track Alias to 0. It is not considered an error
-if Track Alias 0 is already in use by an Established subscription.
+if Track Alias 0 is already in use by an `Established` subscription.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 
