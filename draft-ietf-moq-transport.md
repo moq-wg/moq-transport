@@ -2292,7 +2292,9 @@ ID that has not existed within the Session.
 When a subscriber narrows their subscription (increase the Start Location and/or
 decrease the End Group), it might still receive objects
 outside the new range if the publisher sent them before the update was
-processed.
+processed. When a subscriber increases the End Location, the Largest Object
+might be larger than the old End Location, in which case some Objects would
+need to be fetched.
 
 The receiver of a SUBSCRIBE_UPDATE MUST respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful.  When an
