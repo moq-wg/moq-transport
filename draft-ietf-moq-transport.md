@@ -854,7 +854,7 @@ processing rules described in {{relays-moq}}.
 
 # Publishing and Retrieving Tracks
 
-## Subscriptions
+## Subscriptions {#subscriptions}
 
 A subscription can be initiated by either a publisher or a subscriber.  A
 publisher initiates a subscription to a track by sending the PUBLISH message.
@@ -892,6 +892,11 @@ A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
 a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
+
+A publisher MUST save the Largest Location communicated in PUBLISH or
+SUBSCRIBE_OK when establishing a subscription. This value can be used in a
+Joining FETCH (see {{joining-fetches}}) at any time while the subscription is
+active.
 
 A publisher SHOULD begin sending incomplete objects when available to avoid
 incurring additional latency.
@@ -2631,7 +2636,7 @@ Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
 The publisher receiving a Joining Fetch sets the End Location to {Subscribe
 Largest Location.Object + 1}. Here Subscribe Largest Location is the
-saved value from when the subscription started.
+saved value from when the subscription started (see {{subscriptions}}).
 
 Note: the last Object included in the Joining FETCH response is Subscribe
 Largest Location.  The `+ 1` above indicates the equivalent Standalone Fetch
