@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 April 2026                                     I. Swett, Ed.
+Expires: 18 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         10 October 2025
+                                                         15 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 April 2026.
+   This Internet-Draft will expire on 18 April 2026.
 
 Copyright Notice
 
@@ -2048,11 +2048,11 @@ Table of Contents
 
    The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
    SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK,
-   and SUBSCRIBE_NAMESPACE.  It is a variable length integer indicating
-   the sender's preference for sending Objects on a subscription (see
-   Section 5.1).  The allowed values are 0 or 1.  If an endpoint
-   receives a value outside this range, it MUST close the session with
-   PROTOCOL_VIOLATION.
+   and SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying
+   the Forwarding State on affected subscriptions (see Section 5.1).
+   The allowed values are 0 (don't forward) or 1 (forward).  If an
+   endpoint receives a value outside this range, it MUST close the
+   session with PROTOCOL_VIOLATION.
 
    If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
    subscription remains unchanged.  If the parameter is omitted from any
@@ -3219,11 +3219,11 @@ Table of Contents
 
    If the FORWARD parameter (Section 9.2.1.9) is present in this message
    and equal to 0, PUBLISH messages resulting from this
-   SUBSCRIBE_NAMESPACE will set the FORWARD parameter (Section 9.2.1.9)
-   to 0.  If the FORWARD parameter is equal to 1 or omitted from this
-   message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE
-   will set the FORWARD parameter to 1, or indicate that value by
-   omitting the parameter.
+   SUBSCRIBE_NAMESPACE will set the FORWARD parameter to 0.  If the
+   FORWARD parameter is equal to 1 or omitted from this message, PUBLISH
+   messages resulting from this SUBSCRIBE_NAMESPACE will set the FORWARD
+   parameter to 1, or indicate that value by omitting the parameter (see
+   Section 5.1).
 
 9.25.  UNSUBSCRIBE_NAMESPACE
 
