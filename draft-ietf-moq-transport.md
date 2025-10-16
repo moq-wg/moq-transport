@@ -1828,7 +1828,8 @@ The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in SUBSCRIBE_OK,
 PUBLISH or in REQUEST_OK in response to SUBSCRIBE_UPDATE.  It is a
 length-prefixed Location structure (see {{location-structure}}) containing the
 largest Location in the Track observed by the sending endpoint (see
-{{subscription-filters}}.
+{{subscription-filters}}.  If Objects have been published on this Track the
+Publisher MUST include this parameter.
 
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
