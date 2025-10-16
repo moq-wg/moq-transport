@@ -2284,7 +2284,7 @@ subscription.
 When updating the Subscription Filter (see {{subscription-filters}}),
 the Start Location MUST not decrease, as an attempt to
 to do so could fail. If Objects with Locations smaller than the current
-subscription's Start Location are required, FETCH can be used to retrieve
+subscription's Largest Location are required, FETCH can be used to retrieve
 them. A publisher MUST terminate the session with a `PROTOCOL_VIOLATION` if the
 SUBSCRIBE_UPDATE violates this rule.
 
