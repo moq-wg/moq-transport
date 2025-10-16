@@ -2291,9 +2291,11 @@ SUBSCRIBE_UPDATE violates this rule.
 When a subscriber narrows their subscription (increase the Start Location and/or
 decrease the End Group), it might still receive objects
 outside the new range if the publisher sent them before the update was
-processed. When a subscriber increases the End Location, the Largest Object
-might be larger than the old End Location, in which case some Objects would
-need to be fetched.
+processed. When a subscriber increases the End Location, the Largest Object at
+the publisher might already be larger than the previous End Location. This will
+create a gap in the subscription. The REQUEST_OK in response to the
+SUBSCRIBE_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
+can issue a FETCH to retrieve the omitted Objects, if any.
 
 The receiver of a SUBSCRIBE_UPDATE MUST respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful.  When an
