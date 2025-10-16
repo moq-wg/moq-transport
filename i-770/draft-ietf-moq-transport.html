@@ -4375,7 +4375,7 @@ subscription.<a href="#section-9.11-1" class="pilcrow">¶</a></p>
 <p id="section-9.11-2">When updating the Subscription Filter (see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>),
 the Start Location <span class="bcp14">MUST</span> not decrease, as an attempt to
 to do so could fail. If Objects with Locations smaller than the current
-subscription's Start Location are required, FETCH can be used to retrieve
+subscription's Largest Location are required, FETCH can be used to retrieve
 them. A publisher <span class="bcp14">MUST</span> terminate the session with a <code>PROTOCOL_VIOLATION</code> if the
 SUBSCRIBE_UPDATE violates this rule.<a href="#section-9.11-2" class="pilcrow">¶</a></p>
 <p id="section-9.11-3">When a subscriber narrows their subscription (increase the Start Location and/or
