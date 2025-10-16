@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 April 2026                                     I. Swett, Ed.
+Expires: 19 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         13 October 2025
+                                                         16 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 April 2026.
+   This Internet-Draft will expire on 19 April 2026.
 
 Copyright Notice
 
@@ -1029,6 +1029,11 @@ Table of Contents
    PUBLISH_OK or REQUEST_ERROR in response to a PUBLISH.  The peer
    SHOULD close the session with a protocol error if it receives more
    than one.
+
+   A publisher MUST save the Largest Location communicated in PUBLISH or
+   SUBSCRIBE_OK when establishing a subscription.  This value can be
+   used in a Joining FETCH (see Section 9.16.2) at any time while the
+   subscription is active.
 
    A publisher SHOULD begin sending incomplete objects when available to
    avoid incurring additional latency.
@@ -2865,11 +2870,14 @@ Table of Contents
 9.16.2.1.  Joining Fetch Range Calculation
 
    The Largest Location value from the corresponding subscription is
-   used to calculate the end of a Joining Fetch so the Objects retrieved
-   by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
+   used to calculate the end of a Joining Fetch, so the Objects
+   retrieved by the FETCH and SUBSCRIBE are contiguous and non-
+   overlapping.
 
    The publisher receiving a Joining Fetch sets the End Location to
-   {Subscribe Largest Location.Object + 1}.
+   {Subscribe Largest Location.Object + 1}. Here Subscribe Largest
+   Location is the saved value from when the subscription started (see
+   Section 5.1).
 
    Note: the last Object included in the Joining FETCH response is
    Subscribe Largest Location.  The + 1 above indicates the equivalent
