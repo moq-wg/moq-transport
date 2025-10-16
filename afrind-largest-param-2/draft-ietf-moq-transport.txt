@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 18 April 2026                                     I. Swett, Ed.
+Expires: 19 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         15 October 2025
+                                                         16 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 April 2026.
+   This Internet-Draft will expire on 19 April 2026.
 
 Copyright Notice
 
@@ -2038,7 +2038,8 @@ Table of Contents
    SUBSCRIBE_OK, PUBLISH or in REQUEST_OK in response to
    SUBSCRIBE_UPDATE.  It is a length-prefixed Location structure (see
    Section 1.4.1) containing the largest Location in the Track observed
-   by the sending endpoint (see Section 5.1.2.
+   by the sending endpoint (see Section 5.1.2.  If Objects have been
+   published on this Track the Publisher MUST include this parameter.
 
    If omitted from a message, the sending endpoint has not published or
    received any Objects in the Track.
