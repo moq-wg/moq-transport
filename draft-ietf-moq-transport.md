@@ -2180,9 +2180,6 @@ PREFIX_OVERLAP (0x30):
 : In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
 SUBSCRIBE_NAMESPACE in the same session.
 
-NO_OBJECTS (0x31):
-: In response to FETCH, no objects exist between the Start and End Locations.
-
 INVALID_JOINING_REQUEST_ID(0x32):
 : In response to a Joining FETCH, the referenced Request ID is not an active
 Subscription.
@@ -2692,8 +2689,9 @@ stream indicate objects that do not exist (eg: they implicitly have status
 between the first requested object and the first object in the stream; between
 objects in the stream; and between the last object in the stream and the Largest
 Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
-a FIN.  If no Objects exist in the requested range, the publisher returns
-REQUEST_ERROR with code `NO_OBJECTS`.
+a FIN.  If no Objects exist in the requested range, the publisher opens the
+unidirectional stream, sends the FETCH_HEADER (see {{fetch-header}}) and closes
+the stream with a FIN.
 
 A relay that has cached objects from the beginning of the range MAY start
 sending objects immediately in response to a FETCH.  If it encounters an object
@@ -3839,7 +3837,6 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
 | UINTERESTED                | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
-| NO_OBJECTS                 | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
 
