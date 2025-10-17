@@ -177,8 +177,7 @@ Table of Contents
      10.5.  Examples
    11. Extension Headers
      11.1.  Prior Group ID Gap
-     11.2.  Immutable Extensions
-     11.3.  Prior Object ID Gap
+     11.2.  Prior Object ID Gap
    12. Security Considerations
      12.1.  Resource Exhaustion
      12.2.  Timeouts
@@ -3681,7 +3680,7 @@ Table of Contents
    Object ID Delta values.  A consumer cannot infer information about
    the existence of Objects between the current and previous Object ID
    in the Subgroup (e.g. when Object ID Delta is non-zero) unless there
-   is an Prior Object ID Gap extesnion header (see Section 11.3).
+   is an Prior Object ID Gap extesnion header (see Section 11.2).
 
    {
      Object ID Delta (i),
@@ -3990,11 +3989,11 @@ Table of Contents
    present, the receiver cannot infer any information about the
    existence of prior groups (see Section 2.3.1).
 
-   Only a single extension of this type can be added by the Original
-   Publisher, but MUST NOT be added by relays.  This extension MUST NOT
-   be modified or removed.
+   This extension can be added by the Original Publisher, but MUST NOT
+   be added by relays.  This extension MUST NOT be modified or removed.
 
-11.2.  Immutable Extensions
+   An Object MUST NOT contain more than one instance of this extension
+   header. ## Immutable Extensions
 
    The Immutable Extensions (Extension Header Type 0xB) contains a
    sequence of Key-Value-Pairs (see Figure 2) which are also Object
@@ -4036,7 +4035,7 @@ x = e2e Authenticated Data
 y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
 
-11.3.  Prior Object ID Gap
+11.2.  Prior Object ID Gap
 
    Prior Object ID Gap (Extension Header Type 0x3E) is a variable length
    integer containing the number of Objects prior to the current Object
@@ -4062,9 +4061,11 @@ EXT 1 and EXT N can be modified or removed by Relays
    present, the receiver cannot infer any information about the
    existence of prior objects (see Section 2.1).
 
-   Only a single extension of this type can be added by the Original
-   Publisher, but MUST NOT be added by relays.  This extension MUST NOT
-   be modified or removed.
+   This extension can be added by the Original Publisher, but MUST NOT
+   be added by relays.  This extension MUST NOT be modified or removed.
+
+   An Object MUST NOT contain more than one instance of this extension
+   header.
 
 12.  Security Considerations
 
