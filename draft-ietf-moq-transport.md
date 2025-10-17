@@ -3120,10 +3120,11 @@ of the Object payload and not as an extension header.
 
 Extension Headers are defined in external specifications and registered in an
 IANA table {{iana}}. These specifications define the type and value of the
-header, as well as the rules for duplication, processing,
-modification, caching and forwarding. Unless explicitly restricted by the
-extension's specification, extension headers are duplicable by default.
-A relay designed to enforce these rules is considered to "support" the extension.
+header, as well as the rules for processing, modification, caching and
+forwarding. All such specifications MUST specify whether multiple values of the
+same extension are allowed on a single Object.  A relay that enforces these
+rules is considered to "support" the extension.  If a Relay does not support an
+extension header, it MUST assume multiple values are allowed.
 
 If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
 cached as part of the Object and MUST be forwarded by relays.
