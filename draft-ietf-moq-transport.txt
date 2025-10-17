@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 April 2026                                     I. Swett, Ed.
+Expires: 20 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         16 October 2025
+                                                         17 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 April 2026.
+   This Internet-Draft will expire on 20 April 2026.
 
 Copyright Notice
 
@@ -2400,9 +2400,6 @@ Table of Contents
       namespace prefix overlaps with another SUBSCRIBE_NAMESPACE in the
       same session.
 
-   NO_OBJECTS (0x31):  In response to FETCH, no objects exist between
-      the Start and End Locations.
-
    INVALID_JOINING_REQUEST_ID(0x32):  In response to a Joining FETCH,
       the referenced Request ID is not an active Subscription.
 
@@ -2934,8 +2931,9 @@ Table of Contents
    first object in the stream; between objects in the stream; and
    between the last object in the stream and the Largest Group/Object
    indicated in FETCH_OK, so long as the fetch stream is terminated by a
-   FIN.  If no Objects exist in the requested range, the publisher
-   returns REQUEST_ERROR with code NO_OBJECTS.
+   FIN.  If no Objects exist in the requested range, the publisher opens
+   the unidirectional stream, sends the FETCH_HEADER (see
+   Section 10.4.4) and closes the stream with a FIN.
 
    A relay that has cached objects from the beginning of the range MAY
    start sending objects immediately in response to a FETCH.  If it
@@ -4235,8 +4233,6 @@ EXT 1 and EXT N can be modified or removed by Relays
            | UINTERESTED                | 0x20 | Section 9.8   |
            +----------------------------+------+---------------+
            | PREFIX_OVERLAP             | 0x30 | Section 9.8   |
-           +----------------------------+------+---------------+
-           | NO_OBJECTS                 | 0x31 | Section 9.8   |
            +----------------------------+------+---------------+
            | INVALID_JOINING_REQUEST_ID | 0x32 | Section 9.8   |
            +----------------------------+------+---------------+
