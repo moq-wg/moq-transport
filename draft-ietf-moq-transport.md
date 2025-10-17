@@ -273,22 +273,25 @@ Location A < Location B if:
 Key-Value-Pair is a flexible structure designed to carry key/value
 pairs in which the key is a variable length integer and the value
 is either a variable length integer or a byte field of arbitrary
-length.
+length. Key-Value-Pairs encode a Type value as a delta from the
+previous Type value. If there is no previous Type value, it's an
+absolute Type.
 
 Key-Value-Pair is used in both the data plane and control plane, but
 is optimized for use in the data plane.
 
 ~~~
 Key-Value-Pair {
-  Type (i),
+  Delta Type (i),
   [Length (i),]
   Value (..)
 }
 ~~~
 {: #moq-key-value-pair format title="MOQT Key-Value-Pair"}
 
-* Type: an unsigned integer, encoded as a varint, identifying the
-  type of the value and also the subsequent serialization.
+* Delta Type: an unsigned integer, encoded as a varint, identifying the Type
+  as a delta encoded value from the previous Type, if any. The Type identifies
+  the type of value and also the subsequent serialization.
 * Length: Only present when Type is odd. Specifies the length of the Value field
   in bytes. The maximum length of a value is 2^16-1 bytes.  If an endpoint
   receives a length larger than the maximum, it MUST close the session with a
@@ -1584,7 +1587,10 @@ Receivers ignore unrecognized parameters.
 The number of parameters in a message is not specifically limited, but the
 total length of a control message is limited to 2^16-1 bytes.
 
-Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
+Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}} in
+increasing Parameter ID order with a delta encoding. This is efficient on the
+wire and makes it easy to ensure there is only one instance of parameters
+that cannot be repeated.
 
 Setup message parameters use a namespace that is constant across all MOQT
 versions. All other messages use a version-specific namespace.
