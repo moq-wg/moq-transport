@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 18 April 2026</td>
+<td class="center">Expires 20 April 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-10-15" class="published">15 October 2025</time>
+<time datetime="2025-10-17" class="published">17 October 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-04-18">18 April 2026</time></dd>
+<dd class="expires"><time datetime="2026-04-20">20 April 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 18 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 20 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3614,33 +3614,34 @@ aliases.<a href="#section-9.2.1.1-15" class="pilcrow">¶</a></p>
 <a href="#section-9.2.1.2" class="section-number selfRef">9.2.1.2. </a><a href="#name-delivery-timeout-parameter" class="section-name selfRef">DELIVERY TIMEOUT Parameter</a>
             </h5>
 <p id="section-9.2.1.2-1">The DELIVERY TIMEOUT parameter (Parameter Type 0x02) <span class="bcp14">MAY</span> appear in a
-TRACK_STATUS, REQUEST_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or
-SUBSCRIBE_UDPATE message.  It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span>
+TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH, PUBLISH_OK,
+SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.<a href="#section-9.2.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-2">It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span>
 continue to attempt forwarding Objects after they have been received.  The start
 time for the timeout is based on when the Object Headers are received, and does
 not depend upon the forwarding preference. There is no explicit signal that an
-Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.2-2">If both the subscriber and publisher specify the parameter, they use the min of
+Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-3">If both the subscriber and publisher specify the parameter, they use the min of
 the two values for the subscription.  The publisher <span class="bcp14">SHOULD</span> always specify the
 value received from an upstream subscription when there is one, and nothing
-otherwise.<a href="#section-9.2.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.2-3">Publishers can, at their discretion, discontinue forwarding Objects earlier than
+otherwise.<a href="#section-9.2.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-4">Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
 constraints described in <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>.  However, if neither the
 subscriber nor publisher specifies DELIVERY TIMEOUT, all Objects in the track
 matching the subscription filter are delivered as indicated by their Group Order
 and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher <span class="bcp14">MAY</span> terminate
-the subscription with error <code>TOO_FAR_BEHIND</code>.<a href="#section-9.2.1.2-3" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.2-4">If an object in a subgroup exceeds the delivery timeout, the publisher <span class="bcp14">MUST</span>
-reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>).<a href="#section-9.2.1.2-4" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.2-5">When sent by a subscriber, this parameter is intended to be specific to a
+the subscription with error <code>TOO_FAR_BEHIND</code>.<a href="#section-9.2.1.2-4" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-5">If an object in a subgroup exceeds the delivery timeout, the publisher <span class="bcp14">MUST</span>
+reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>).<a href="#section-9.2.1.2-5" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-6">When sent by a subscriber, this parameter is intended to be specific to a
 subscription, so it <span class="bcp14">SHOULD NOT</span> be forwarded upstream by a relay that intends
-to serve multiple subscriptions for the same track.<a href="#section-9.2.1.2-5" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.2-6">Publishers <span class="bcp14">SHOULD</span> consider whether the entire Object can likely be
+to serve multiple subscriptions for the same track.<a href="#section-9.2.1.2-6" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-7">Publishers <span class="bcp14">SHOULD</span> consider whether the entire Object can likely be
 successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
-any other relevant information.<a href="#section-9.2.1.2-6" class="pilcrow">¶</a></p>
+any other relevant information.<a href="#section-9.2.1.2-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-cache-duration">
@@ -3649,16 +3650,17 @@ any other relevant information.<a href="#section-9.2.1.2-6" class="pilcrow">¶</
 <a href="#section-9.2.1.3" class="section-number selfRef">9.2.1.3. </a><a href="#name-max-cache-duration-paramete" class="section-name selfRef">MAX CACHE DURATION Parameter</a>
             </h5>
 <p id="section-9.2.1.3-1">The MAX_CACHE_DURATION parameter (Parameter Type 0x04) <span class="bcp14">MAY</span> appear in a PUBLISH,
-SUBSCRIBE_OK, FETCH_OK or REQUEST_OK message.  It is an integer expressing
+SUBSCRIBE_OK, FETCH_OK or REQUEST_OK (in response to TRACK_STATUS) message.<a href="#section-9.2.1.3-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.3-2">It is an integer expressing
 the number of milliseconds an Object can be served from a cache. If present, the
 relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through this
 subscription or fetch after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier in a
 multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
-handles a downstream request that includes those Objects re-requests them.<a href="#section-9.2.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.3-2">If the MAX_CACHE_DURATION parameter is not sent by the publisher, the Objects
-can be cached until implementation constraints cause them to be evicted.<a href="#section-9.2.1.3-2" class="pilcrow">¶</a></p>
+handles a downstream request that includes those Objects re-requests them.<a href="#section-9.2.1.3-2" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.3-3">If the MAX_CACHE_DURATION parameter is not sent by the publisher, the Objects
+can be cached until implementation constraints cause them to be evicted.<a href="#section-9.2.1.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscriber-priority">
@@ -3697,16 +3699,18 @@ the value 128.<a href="#section-9.2.1.5-2" class="pilcrow">¶</a></p>
 <a href="#section-9.2.1.6" class="section-number selfRef">9.2.1.6. </a><a href="#name-group-order-parameter" class="section-name selfRef">GROUP ORDER Parameter</a>
             </h5>
 <p id="section-9.2.1.6-1">The GROUP_ORDER parameter (Parameter Type 0x22) <span class="bcp14">MAY</span> appear in a SUBSCRIBE,
-SUBSCRIBE_OK, TRACK_STATUS, REQUEST_OK, PUBLISH, PUBLISH_OK or FETCH.  It
+SUBSCRIBE_OK, TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
+PUBLISH_OK or FETCH.<a href="#section-9.2.1.6-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.6-2">It
 is an enum indicating how to prioritize Objects from different groups within the
 same subscription (see <a href="#priorities" class="auto internal xref">Section 7</a>), or how to order Groups in a Fetch
 response (see <a href="#fetch-handling" class="auto internal xref">Section 9.16.3</a>). The allowed values are Ascending (0x1) or
 Descending (0x2). If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span>
-close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.6-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.6-2">If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference from
+close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.6-2" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.6-3">If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference from
 SUBSCRIBE_OK or REQUEST_OK is used. If omitted in PUBLISH_OK, the
 publisher's preference from PUBLISH is used. If omitted from SUBSCRIBE_OK,
-REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).<a href="#section-9.2.1.6-2" class="pilcrow">¶</a></p>
+REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).<a href="#section-9.2.1.6-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscription-filter">

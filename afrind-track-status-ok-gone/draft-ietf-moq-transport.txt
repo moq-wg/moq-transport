@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 18 April 2026                                     I. Swett, Ed.
+Expires: 20 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         15 October 2025
+                                                         17 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 April 2026.
+   This Internet-Draft will expire on 20 April 2026.
 
 Copyright Notice
 
@@ -1907,13 +1907,15 @@ Table of Contents
 9.2.1.2.  DELIVERY TIMEOUT Parameter
 
    The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-   TRACK_STATUS, REQUEST_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE,
-   SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.  It is the duration in
-   milliseconds the relay SHOULD continue to attempt forwarding Objects
-   after they have been received.  The start time for the timeout is
-   based on when the Object Headers are received, and does not depend
-   upon the forwarding preference.  There is no explicit signal that an
-   Object was not sent because the delivery timeout was exceeded.
+   TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
+   PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
+
+   It is the duration in milliseconds the relay SHOULD continue to
+   attempt forwarding Objects after they have been received.  The start
+   time for the timeout is based on when the Object Headers are
+   received, and does not depend upon the forwarding preference.  There
+   is no explicit signal that an Object was not sent because the
+   delivery timeout was exceeded.
 
    If both the subscriber and publisher specify the parameter, they use
    the min of the two values for the subscription.  The publisher SHOULD
@@ -1946,16 +1948,18 @@ Table of Contents
 9.2.1.3.  MAX CACHE DURATION Parameter
 
    The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in
-   a PUBLISH, SUBSCRIBE_OK, FETCH_OK or REQUEST_OK message.  It is an
-   integer expressing the number of milliseconds an Object can be served
-   from a cache.  If present, the relay MUST NOT start forwarding any
-   individual Object received through this subscription or fetch after
-   the specified number of milliseconds has elapsed since the beginning
-   of the Object was received.  This means Objects earlier in a multi-
-   object stream will expire earlier than Objects later in the stream.
-   Once Objects have expired from cache, their state becomes unknown,
-   and a relay that handles a downstream request that includes those
-   Objects re-requests them.
+   a PUBLISH, SUBSCRIBE_OK, FETCH_OK or REQUEST_OK (in response to
+   TRACK_STATUS) message.
+
+   It is an integer expressing the number of milliseconds an Object can
+   be served from a cache.  If present, the relay MUST NOT start
+   forwarding any individual Object received through this subscription
+   or fetch after the specified number of milliseconds has elapsed since
+   the beginning of the Object was received.  This means Objects earlier
+   in a multi-object stream will expire earlier than Objects later in
+   the stream.  Once Objects have expired from cache, their state
+   becomes unknown, and a relay that handles a downstream request that
+   includes those Objects re-requests them.
 
    If the MAX_CACHE_DURATION parameter is not sent by the publisher, the
    Objects can be cached until implementation constraints cause them to
@@ -1991,13 +1995,15 @@ Table of Contents
 9.2.1.6.  GROUP ORDER Parameter
 
    The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a
-   SUBSCRIBE, SUBSCRIBE_OK, TRACK_STATUS, REQUEST_OK, PUBLISH,
-   PUBLISH_OK or FETCH.  It is an enum indicating how to prioritize
-   Objects from different groups within the same subscription (see
-   Section 7), or how to order Groups in a Fetch response (see
-   Section 9.16.3).  The allowed values are Ascending (0x1) or
-   Descending (0x2).  If an endpoint receives a value outside this
-   range, it MUST close the session with PROTOCOL_VIOLATION.
+   SUBSCRIBE, SUBSCRIBE_OK, TRACK_STATUS, REQUEST_OK (in response to
+   TRACK_STATUS), PUBLISH, PUBLISH_OK or FETCH.
+
+   It is an enum indicating how to prioritize Objects from different
+   groups within the same subscription (see Section 7), or how to order
+   Groups in a Fetch response (see Section 9.16.3).  The allowed values
+   are Ascending (0x1) or Descending (0x2).  If an endpoint receives a
+   value outside this range, it MUST close the session with
+   PROTOCOL_VIOLATION.
 
    If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference
    from SUBSCRIBE_OK or REQUEST_OK is used.  If omitted in PUBLISH_OK,
