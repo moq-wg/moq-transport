@@ -3707,6 +3707,8 @@ y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
 ~~~
 
+An Object MUST NOT contain more than one instance of this extension header.
+
 ## Prior Object ID Gap
 
 Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
