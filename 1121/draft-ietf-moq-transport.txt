@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 18 April 2026                                     I. Swett, Ed.
+Expires: 20 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         15 October 2025
+                                                         17 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 April 2026.
+   This Internet-Draft will expire on 20 April 2026.
 
 Copyright Notice
 
@@ -3370,10 +3370,12 @@ Table of Contents
    Extension Headers are defined in external specifications and
    registered in an IANA table Section 13.  These specifications define
    the type and value of the header, as well as the rules for
-   duplication, processing, modification, caching and forwarding.
-   Unless explicitly restricted by the extension's specification,
-   extension headers are duplicable by default.  A relay designed to
-   enforce these rules is considered to "support" the extension.
+   processing, modification, caching and forwarding.  All such
+   specifications MUST specify whether multiple values of the same
+   extension are allowed on a single Object.  A relay that enforces
+   these rules is considered to "support" the extension.  If a Relay
+   does not support an extension header, it MUST assume multiple values
+   are allowed.
 
    If unsupported by the relay, Extension Headers MUST NOT be modified,
    MUST be cached as part of the Object and MUST be forwarded by relays.
