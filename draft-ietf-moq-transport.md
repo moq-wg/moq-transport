@@ -3659,9 +3659,10 @@ there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
 {{group-ids}}).
 
-Only a single extension of this type can be added by the Original Publisher,
-but MUST NOT be added by relays. This extension MUST NOT be modified or removed.
+This extension can be added by the Original Publisher, but MUST NOT be added by
+relays. This extension MUST NOT be modified or removed.
 
+An Object MUST NOT contain more than one instance of this extension header.
 ## Immutable Extensions
 
 The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
@@ -3729,8 +3730,10 @@ there may not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
 {{model-object}}).
 
-Only a single extension of this type can be added by the Original Publisher,
-but MUST NOT be added by relays. This extension MUST NOT be modified or removed.
+This extension can be added by the Original Publisher, but MUST NOT be added by
+relays. This extension MUST NOT be modified or removed.
+
+An Object MUST NOT contain more than one instance of this extension header.
 
 # Security Considerations {#security}
 
