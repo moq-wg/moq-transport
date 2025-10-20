@@ -498,7 +498,7 @@ information in these fields, for example by restricting them to UTF-8. Any such
 specification needs to specify the canonicalization into the bytes in the Track
 Namespace Fields or Track Name such that exact comparison works.
 
-### Malformed Tracks
+### Malformed Tracks {#malformed_tracks}
 
 There are multiple ways a publisher can transmit a Track that does not conform
 to MOQT constraints. Such a Track is considered malformed.  Some example
@@ -2169,9 +2169,7 @@ cannot be satisfied.
 
 MALFORMED_TRACK (0x12):
 : In response to a FETCH, a relay publisher detected the track was
-malformed (see {{malformed-tracks}}). This error code may also
-be used when sending a PUBLISH_DONE message (see {{message-publish-done}})
-or  resetting a fetch stream upon the detection of a malformed track.
+malformed (see {{malformed-tracks}}).
 
 The following are errors for use by the subscriber. They can appear in response
 to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
@@ -2545,9 +2543,7 @@ TOO_FAR_BEHIND (0x6):
 
 MALFORMED_TRACK (0x12):
 : A relay publisher detected the track was malformed (see
-  {{malformed-tracks}}). This error code may also be used when sending a
-  REQUEST_ERROR message (see {{message-request-error}}) or resetting a fetch
-  stream upon the detection of a malformed track.
+  {{malformed-tracks}}).
 
 UPDATE_FAILED (0x8):
 : SUBSCRIBE_UPDATE failed on this subscription (see
@@ -3869,6 +3865,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | CANCELLED        | 0x1  | {{closing-subgroup-streams}} |
 | DELIVERY_TIMEOUT | 0x2  | {{closing-subgroup-streams}} |
 | SESSION_CLOSED   | 0x3  | {{closing-subgroup-streams}} |
+| MALFORMED_TRACK  | 0x12 | {{malformed_tracks}}         |
 
 # Contributors
 {:numbered="false"}
