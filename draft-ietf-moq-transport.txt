@@ -1147,7 +1147,7 @@ Table of Contents
    subscriber joining a Track might detect that it is more efficient to
    request the Original Publisher create a new group than issue a
    Joining FETCH.  Publishers indicate a Track supports dynamic group
-   creation using the DYNAMIC_GROUPS parameter (Section 9.2.1.10).
+   creation using the DYNAMIC_GROUPS parameter (Section 9.2.1.11).
 
    One possible subscriber pattern is to SUBSCRIBE to a Track using
    Filter Type Largest Object and observe the Largest Location in the
@@ -1156,7 +1156,7 @@ Table of Contents
    Object ID is above the threshold and the Track supports dynamic
    groups, the subscriber sends a SUBSCRIBE_UPDATE message with the
    NEW_GROUP_REQUEST parameter equal to the Largest Location's Group,
-   plus one (see Section 9.2.1.11).
+   plus one (see Section 9.2.1.12).
 
    Another possible subscriber pattern is to send a SUBSCRIBE with
    Filter Type Next Group Start and NEW_GROUP_REQUEST equal to 0.  The
@@ -2046,7 +2046,19 @@ Table of Contents
    If the EXPIRES parameter is 0 or is not present in a message, the
    subscription does not expire or expires at an unknown time.
 
-9.2.1.9.  FORWARD Parameter
+9.2.1.9.  LARGEST OBJECT Parameter
+
+   The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in
+   SUBSCRIBE_OK, PUBLISH or in REQUEST_OK in response to
+   SUBSCRIBE_UPDATE.  It is a length-prefixed Location structure (see
+   Section 1.4.1) containing the largest Location in the Track observed
+   by the sending endpoint (see Section 5.1.2.  If Objects have been
+   published on this Track the Publisher MUST include this parameter.
+
+   If omitted from a message, the sending endpoint has not published or
+   received any Objects in the Track.
+
+9.2.1.10.  FORWARD Parameter
 
    The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
    SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK,
@@ -2060,7 +2072,7 @@ Table of Contents
    subscription remains unchanged.  If the parameter is omitted from any
    other message, the default value is 1.
 
-9.2.1.10.  DYNAMIC GROUPS Parameter
+9.2.1.11.  DYNAMIC GROUPS Parameter
 
    The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in
    PUBLISH or SUBSCRIBE_OK.  Values larger than 1 are a Protocol
@@ -2073,7 +2085,7 @@ Table of Contents
    upstream publisher in SUBSCRIBE_OK or PUBLISH when sending these
    messages to downstream subscribers.
 
-9.2.1.11.  NEW GROUP_REQUEST Parameter
+9.2.1.12.  NEW GROUP_REQUEST Parameter
 
    The NEW_GROUP_REQUEST parameter (parameter type 0x22) MAY appear in
    PUBLISH_OK, SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer
@@ -2464,7 +2476,7 @@ Table of Contents
    published it SHOULD send a REQUEST_ERROR with code INVALID_RANGE.  A
    publisher MUST NOT send objects from outside the requested range.
 
-   Subscribing with the FORWARD parameter (Section 9.2.1.9) equal to 0
+   Subscribing with the FORWARD parameter (Section 9.2.1.10) equal to 0
    allows publisher or relay to prepare to serve the subscription in
    advance, reducing the time to receive objects in the future.
 
@@ -2478,8 +2490,6 @@ Table of Contents
      Length (16),
      Request ID (i),
      Track Alias (i),
-     Content Exists (8),
-     [Largest Location (Location),]
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -2495,16 +2505,6 @@ Table of Contents
       subscriber receives a SUBSCRIBE_OK that uses the same Track Alias
       as a different track with an active subscription, it MUST close
       the session with error DUPLICATE_TRACK_ALIAS.
-
-   *  Content Exists: 1 if an object has been published on this track, 0
-      if not.  If 0, then the Largest Group ID and Largest Object ID
-      fields will not be present.  Any other value is a protocol error
-      and MUST terminate the session with a PROTOCOL_VIOLATION
-      (Section 3.4).
-
-   *  Largest Location: The location of the largest object available for
-      this track.  This field is only present if Content Exists has a
-      value of 1.
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
@@ -2597,8 +2597,6 @@ Table of Contents
      Track Name Length (i),
      Track Name (..),
      Track Alias (i),
-     Content Exists (8),
-     [Largest Location (Location),]
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -2620,15 +2618,6 @@ Table of Contents
       different track with an active subscription, it MUST close the
       session with error DUPLICATE_TRACK_ALIAS.
 
-   *  Content Exists: 1 if an object has been published on this track, 0
-      if not.  If 0, then the Largest Group ID and Largest Object ID
-      fields will not be present.  Any other value is a protocol error
-      and MUST terminate the session with a PROTOCOL_VIOLATION
-      (Section 3.4).
-
-   *  Largest Location: The location of the largest object available for
-      this track.
-
    *  Parameters: The parameters are defined in Section 9.2.1.
 
    A subscriber receiving a PUBLISH for a Track it does not wish to
@@ -2636,7 +2625,7 @@ Table of Contents
    abandon reading any publisher initiated streams associated with that
    subscription using a STOP_SENDING frame.
 
-   A publisher that sends the FORWARD parameter (Section 9.2.1.9) equal
+   A publisher that sends the FORWARD parameter (Section 9.2.1.10) equal
    to 0 indicates that it will not transmit any objects until the
    subscriber sets the Forward State to 1.  If the FORWARD parameter is
    omitted or equal to 1, the publisher will start transmitting objects
@@ -2840,8 +2829,9 @@ Table of Contents
    the session with a PROTOCOL_VIOLATION.
 
    If no Objects have been published for the track, and the SUBSCRIBE_OK
-   has a Content Exists value of 0, the publisher MUST respond with a
-   REQUEST_ERROR with error code INVALID_RANGE.
+   did not include a LARGEST_OBJECT parameter (Section 9.2.1.9), the
+   publisher MUST respond with a REQUEST_ERROR with error code
+   INVALID_RANGE.
 
    A Joining Fetch includes this structure:
 
@@ -3192,8 +3182,8 @@ Table of Contents
    are only interested in or authorized to access a subset of available
    namespaces and tracks.
 
-   If the FORWARD parameter (Section 9.2.1.9) is present in this message
-   and equal to 0, PUBLISH messages resulting from this
+   If the FORWARD parameter (Section 9.2.1.10) is present in this
+   message and equal to 0, PUBLISH messages resulting from this
    SUBSCRIBE_NAMESPACE will set the FORWARD parameter to 0.  If the
    FORWARD parameter is equal to 1 or omitted from this message, PUBLISH
    messages resulting from this SUBSCRIBE_NAMESPACE will set the FORWARD

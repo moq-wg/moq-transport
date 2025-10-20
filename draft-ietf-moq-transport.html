@@ -2777,14 +2777,14 @@ applications might want to only begin a new Group when needed.  A subscriber
 joining a Track might detect that it is more efficient to request the Original
 Publisher create a new group than issue a Joining FETCH.  Publishers indicate a
 Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
-(<a href="#dynamic-groups" class="auto internal xref">Section 9.2.1.10</a>).<a href="#section-5.1.3.1-1" class="pilcrow">¶</a></p>
+(<a href="#dynamic-groups" class="auto internal xref">Section 9.2.1.11</a>).<a href="#section-5.1.3.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1.3.1-2">One possible subscriber pattern is to SUBSCRIBE to a Track using Filter Type
 <code>Largest Object</code> and observe the <code>Largest Location</code> in the response.  If the
 Object ID is below the application's threshold, the subscriber sends a FETCH for
 the beginning of the Group.  If the Object ID is above the threshold and the
 Track supports dynamic groups, the subscriber sends a SUBSCRIBE_UPDATE message with the
 NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
-<a href="#new-group-request" class="auto internal xref">Section 9.2.1.11</a>).<a href="#section-5.1.3.1-2" class="pilcrow">¶</a></p>
+<a href="#new-group-request" class="auto internal xref">Section 9.2.1.12</a>).<a href="#section-5.1.3.1-2" class="pilcrow">¶</a></p>
 <p id="section-5.1.3.1-3">Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
 <code>Next Group Start</code> and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
@@ -3755,43 +3755,58 @@ simultaneously.<a href="#section-9.2.1.8-2" class="pilcrow">¶</a></p>
 does not expire or expires at an unknown time.<a href="#section-9.2.1.8-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="forward-parameter">
+<div id="largest-param">
 <section id="section-9.2.1.9">
-            <h5 id="name-forward-parameter">
-<a href="#section-9.2.1.9" class="section-number selfRef">9.2.1.9. </a><a href="#name-forward-parameter" class="section-name selfRef">FORWARD Parameter</a>
+            <h5 id="name-largest-object-parameter">
+<a href="#section-9.2.1.9" class="section-number selfRef">9.2.1.9. </a><a href="#name-largest-object-parameter" class="section-name selfRef">LARGEST OBJECT Parameter</a>
             </h5>
-<p id="section-9.2.1.9-1">The FORWARD parameter (Parameter Type 0x10) <span class="bcp14">MAY</span> appear in SUBSCRIBE,
+<p id="section-9.2.1.9-1">The LARGEST_OBJECT parameter (Parameter Type 0x9) <span class="bcp14">MAY</span> appear in SUBSCRIBE_OK,
+PUBLISH or in REQUEST_OK in response to SUBSCRIBE_UPDATE.  It is a
+length-prefixed Location structure (see <a href="#location-structure" class="auto internal xref">Section 1.4.1</a>) containing the
+largest Location in the Track observed by the sending endpoint (see
+<a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>.  If Objects have been published on this Track the
+Publisher <span class="bcp14">MUST</span> include this parameter.<a href="#section-9.2.1.9-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.9-2">If omitted from a message, the sending endpoint has not published or received
+any Objects in the Track.<a href="#section-9.2.1.9-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="forward-parameter">
+<section id="section-9.2.1.10">
+            <h5 id="name-forward-parameter">
+<a href="#section-9.2.1.10" class="section-number selfRef">9.2.1.10. </a><a href="#name-forward-parameter" class="section-name selfRef">FORWARD Parameter</a>
+            </h5>
+<p id="section-9.2.1.10-1">The FORWARD parameter (Parameter Type 0x10) <span class="bcp14">MAY</span> appear in SUBSCRIBE,
 SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK, and
 SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying the
 Forwarding State on affected subscriptions (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).  The
 allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives a
-value outside this range, it <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.9-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.9-2">If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
+value outside this range, it <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.10-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.10-2">If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
-message, the default value is 1.<a href="#section-9.2.1.9-2" class="pilcrow">¶</a></p>
+message, the default value is 1.<a href="#section-9.2.1.10-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="dynamic-groups">
-<section id="section-9.2.1.10">
+<section id="section-9.2.1.11">
             <h5 id="name-dynamic-groups-parameter">
-<a href="#section-9.2.1.10" class="section-number selfRef">9.2.1.10. </a><a href="#name-dynamic-groups-parameter" class="section-name selfRef">DYNAMIC GROUPS Parameter</a>
+<a href="#section-9.2.1.11" class="section-number selfRef">9.2.1.11. </a><a href="#name-dynamic-groups-parameter" class="section-name selfRef">DYNAMIC GROUPS Parameter</a>
             </h5>
-<p id="section-9.2.1.10-1">The DYNAMIC_GROUPS parameter (parameter type 0x20) <span class="bcp14">MAY</span> appear in PUBLISH or
+<p id="section-9.2.1.11-1">The DYNAMIC_GROUPS parameter (parameter type 0x20) <span class="bcp14">MAY</span> appear in PUBLISH or
 SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
 1, it indicates that the subscriber can request the Original Publisher to start
 a new Group by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or
-SUBSCRIBE_UPDATE for this Track.<a href="#section-9.2.1.10-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.10-2">Relays <span class="bcp14">MUST</span> preserve the value of this parameter received from an upstream
+SUBSCRIBE_UPDATE for this Track.<a href="#section-9.2.1.11-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.11-2">Relays <span class="bcp14">MUST</span> preserve the value of this parameter received from an upstream
 publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
-subscribers.<a href="#section-9.2.1.10-2" class="pilcrow">¶</a></p>
+subscribers.<a href="#section-9.2.1.11-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="new-group-request">
-<section id="section-9.2.1.11">
+<section id="section-9.2.1.12">
             <h5 id="name-new-group_request-parameter">
-<a href="#section-9.2.1.11" class="section-number selfRef">9.2.1.11. </a><a href="#name-new-group_request-parameter" class="section-name selfRef">NEW GROUP_REQUEST Parameter</a>
+<a href="#section-9.2.1.12" class="section-number selfRef">9.2.1.12. </a><a href="#name-new-group_request-parameter" class="section-name selfRef">NEW GROUP_REQUEST Parameter</a>
             </h5>
-<p id="section-9.2.1.11-1">The NEW_GROUP_REQUEST parameter (parameter type 0x22) <span class="bcp14">MAY</span> appear in PUBLISH_OK,
+<p id="section-9.2.1.12-1">The NEW_GROUP_REQUEST parameter (parameter type 0x22) <span class="bcp14">MAY</span> appear in PUBLISH_OK,
 SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer representing the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber <span class="bcp14">MUST NOT</span> send
@@ -3799,33 +3814,33 @@ this parameter in PUBLISH_OK or SUBSCRIBE_UPDATE if the publisher did not
 include DYNAMIC_GROUPS=1 when establishing the subscription.  A subscriber <span class="bcp14">MAY</span>
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
-case.<a href="#section-9.2.1.11-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.11-2">When an Original Publisher that supports dynamic Groups receives a
+case.<a href="#section-9.2.1.12-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.12-2">When an Original Publisher that supports dynamic Groups receives a
 NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
 it <span class="bcp14">SHOULD</span> end the current Group and begin a new Group as soon as practical.  The
 Original Publisher <span class="bcp14">MAY</span> delay the NEW_GROUP_REQUEST subject to
 implementation specific concerns, for example, acheiving a minimum duration for
 each Group. The Original Publisher chooses the next Group ID; there are no
-requirements that it be equal to the NEW_GROUP_REQUEST parameter value.<a href="#section-9.2.1.11-2" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.11-3">Relay Handling:<a href="#section-9.2.1.11-3" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.11-4">A relay that receives a NEW_GROUP_REQUEST for a Track without an active
-subscription <span class="bcp14">MUST</span> include the NEW_GROUP_REQUEST when subscribing upstream.<a href="#section-9.2.1.11-4" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.11-5">A relay that receives a NEW_GROUP_REQUEST for an established subscription with a
+requirements that it be equal to the NEW_GROUP_REQUEST parameter value.<a href="#section-9.2.1.12-2" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.12-3">Relay Handling:<a href="#section-9.2.1.12-3" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.12-4">A relay that receives a NEW_GROUP_REQUEST for a Track without an active
+subscription <span class="bcp14">MUST</span> include the NEW_GROUP_REQUEST when subscribing upstream.<a href="#section-9.2.1.12-4" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.12-5">A relay that receives a NEW_GROUP_REQUEST for an established subscription with a
 value of 0 or a value larger than the Largest Group <span class="bcp14">MUST</span> send a SUBSCRIBE_UPDATE
-including the NEW_GROUP_REQUEST to the publisher unless:<a href="#section-9.2.1.11-5" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-9.2.1.11-6">
-<li id="section-9.2.1.11-6.1">
-                <p id="section-9.2.1.11-6.1.1">The Track does not support dynamic Groups<a href="#section-9.2.1.11-6.1.1" class="pilcrow">¶</a></p>
+including the NEW_GROUP_REQUEST to the publisher unless:<a href="#section-9.2.1.12-5" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-9.2.1.12-6">
+<li id="section-9.2.1.12-6.1">
+                <p id="section-9.2.1.12-6.1.1">The Track does not support dynamic Groups<a href="#section-9.2.1.12-6.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-9.2.1.11-6.2">
-                <p id="section-9.2.1.11-6.2.1">There is already an outstanding NEW_GROUP_REQUEST from this Relay with a
-greater or equal value<a href="#section-9.2.1.11-6.2.1" class="pilcrow">¶</a></p>
+              <li id="section-9.2.1.12-6.2">
+                <p id="section-9.2.1.12-6.2.1">There is already an outstanding NEW_GROUP_REQUEST from this Relay with a
+greater or equal value<a href="#section-9.2.1.12-6.2.1" class="pilcrow">¶</a></p>
 </li>
             </ol>
-<p id="section-9.2.1.11-7">If a relay receives a NEW_GROUP_REQUEST with a non-zero value less than or equal
-to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.<a href="#section-9.2.1.11-7" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.11-8">After sending a NEW_GROUP_REQUEST upstream, the request is considered
-outstanding until the Largest Group increases.<a href="#section-9.2.1.11-8" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.12-7">If a relay receives a NEW_GROUP_REQUEST with a non-zero value less than or equal
+to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.<a href="#section-9.2.1.12-7" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.12-8">After sending a NEW_GROUP_REQUEST upstream, the request is considered
+outstanding until the Largest Group increases.<a href="#section-9.2.1.12-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4311,7 +4326,7 @@ specified, and start sending objects.<a href="#section-9.9-6" class="pilcrow">¶
 <p id="section-9.9-7">If the publisher cannot satisfy the requested Subscription Filter (see
 <a href="#subscription-filter" class="auto internal xref">Section 9.2.1.7</a>) or if the entire End Group has already been published
 it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR with code <code>INVALID_RANGE</code>.  A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range.<a href="#section-9.9-7" class="pilcrow">¶</a></p>
-<p id="section-9.9-8">Subscribing with the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.2.1.9</a>) equal to 0 allows
+<p id="section-9.9-8">Subscribing with the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.2.1.10</a>) equal to 0 allows
 publisher or relay to prepare to serve the subscription in advance, reducing the
 time to receive objects in the future.<a href="#section-9.9-8" class="pilcrow">¶</a></p>
 </section>
@@ -4332,8 +4347,6 @@ SUBSCRIBE_OK Message {
   Length (16),
   Request ID (i),
   Track Alias (i),
-  Content Exists (8),
-  [Largest Location (Location),]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -4356,17 +4369,7 @@ uses the same Track Alias as a different track with an active subscription, it
 <span class="bcp14">MUST</span> close the session with error <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-9.10-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.10-3.3">
-            <p id="section-9.10-3.3.1">Content Exists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present. Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the
-session with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-9.10-3.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-9.10-3.4">
-            <p id="section-9.10-3.4.1">Largest Location: The location of the largest object available for this track. This
-field is only present if Content Exists has a value of 1.<a href="#section-9.10-3.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-9.10-3.5">
-            <p id="section-9.10-3.5.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.10-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-9.10-3.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.10-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4484,8 +4487,6 @@ PUBLISH Message {
   Track Name Length (i),
   Track Name (..),
   Track Alias (i),
-  Content Exists (8),
-  [Largest Location (Location),]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -4513,23 +4514,14 @@ uses the same Track Alias as a different track with an active subscription, it
 <span class="bcp14">MUST</span> close the session with error <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-9.13-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.13-3.5">
-            <p id="section-9.13-3.5.1">Content Exists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present. Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the
-session with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-9.13-3.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-9.13-3.6">
-            <p id="section-9.13-3.6.1">Largest Location: The location of the largest object available for this track.<a href="#section-9.13-3.6.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-9.13-3.7">
-            <p id="section-9.13-3.7.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.13-3.7.1" class="pilcrow">¶</a></p>
+            <p id="section-9.13-3.5.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.13-3.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.13-4">A subscriber receiving a PUBLISH for a Track it does not wish to receive <span class="bcp14">SHOULD</span>
 send REQUEST_ERROR with error code <code>UNINTERESTED</code>, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.<a href="#section-9.13-4" class="pilcrow">¶</a></p>
-<p id="section-9.13-5">A publisher that sends the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.2.1.9</a>) equal to 0
+<p id="section-9.13-5">A publisher that sends the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.2.1.10</a>) equal to 0
 indicates that it will not transmit any objects until the subscriber sets the
 Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
 publisher will start transmitting objects immediately, possibly before
@@ -4792,9 +4784,9 @@ certain number of groups prior to the live edge of a track.<a href="#section-9.1
 <p id="section-9.16.2-3">A Joining Fetch is only permitted when the associated Subscribe has the Filter
 Type Largest Object; any other value results in closing the session with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.16.2-3" class="pilcrow">¶</a></p>
-<p id="section-9.16.2-4">If no Objects have been published for the track, and the SUBSCRIBE_OK has a
-Content Exists value of 0, the publisher <span class="bcp14">MUST</span> respond with a REQUEST_ERROR with
-error code <code>INVALID_RANGE</code>.<a href="#section-9.16.2-4" class="pilcrow">¶</a></p>
+<p id="section-9.16.2-4">If no Objects have been published for the track, and the SUBSCRIBE_OK did not
+include a LARGEST_OBJECT parameter (<a href="#largest-param" class="auto internal xref">Section 9.2.1.9</a>), the publisher <span class="bcp14">MUST</span>
+respond with a REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-9.16.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.16.2-5">A Joining Fetch includes this structure:<a href="#section-9.16.2-5" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.16.2-6">
 <pre>
@@ -5235,7 +5227,7 @@ namespace subscription.<a href="#section-9.24-6" class="pilcrow">¶</a></p>
 PUBLISH_NAMESPACE_DONE or PUBLISH messages to a subscriber.  It is useful in
 applications or relays where subscribers are only interested in or authorized to
 access a subset of available namespaces and tracks.<a href="#section-9.24-7" class="pilcrow">¶</a></p>
-<p id="section-9.24-8">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.2.1.9</a>) is present in this message and
+<p id="section-9.24-8">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.2.1.10</a>) is present in this message and
 equal to 0, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set
 the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
 from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
