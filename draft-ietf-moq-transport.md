@@ -536,8 +536,8 @@ When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE any
 subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
 SHOULD deliver an error to the application.  If a relay detects a Malformed
 Track, it MUST immediately terminate downstream subscriptions with PUBLISH_DONE
-and reset any fetch streams with Status Code `MALFORMED_TRACK`.
-
+and reset any fetch streams with Status Code `MALFORMED_TRACK`. Object(s)
+triggering Malformed Track status MUST NOT be cached.
 
 ### Scope {#track-scope}
 
@@ -581,7 +581,7 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established. The [QUIC-DATAGRAM] extension
+connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
 MUST be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3. The
 RESET_STREAM_AT {{!I-D.draft-ietf-quic-reliable-stream-reset}}
@@ -594,7 +594,8 @@ another protocol when QUIC or WebTransport aren't available.
 
 MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 ({{WebTransport, Section 3.4}}) to perform version negotiation.
-[[RFC editor: please remove the remainder of this section before publication.]]
+
+\[\[RFC editor: please remove the remainder of this section before publication.]]
 
 The ALPN value {{!RFC7301}} for the final version of this specification
 is `moqt`.  ALPNs used to identify IETF drafts are created by appending
@@ -603,6 +604,7 @@ would be identified as "moqt-13".
 
 Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
 negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
+
 ### WebTransport
 
 An MOQT server that is accessible via WebTransport can be identified
@@ -633,7 +635,8 @@ The client can establish a connection to an MOQT server identified by a given
 URI by setting up a QUIC connection to the host and port identified by the
 `authority` section of the URI. The `authority`, `path-abempty` and `query`
 portions of the URI are also transmitted in SETUP parameters (see
-{{setup-params}}).
+{{setup-params}}). If the port is omitted in the URI, a default port of 443 is
+used for setting up the QUIC connection.
 
 ### Connection URL
 
@@ -851,7 +854,7 @@ processing rules described in {{relays-moq}}.
 
 # Publishing and Retrieving Tracks
 
-## Subscriptions
+## Subscriptions {#subscriptions}
 
 A subscription can be initiated by either a publisher or a subscriber.  A
 publisher initiates a subscription to a track by sending the PUBLISH message.
@@ -889,6 +892,11 @@ A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
 a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
+
+A publisher MUST save the Largest Location communicated in PUBLISH or
+SUBSCRIBE_OK when establishing a subscription. This value can be used in a
+Joining FETCH (see {{joining-fetches}}) at any time while the subscription is
+active.
 
 A publisher SHOULD begin sending incomplete objects when available to avoid
 incurring additional latency.
@@ -1745,13 +1753,16 @@ any other relevant information.
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a PUBLISH,
 SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS_OK message.  It is an integer expressing
-the number of milliseconds an object can be served from a cache. If present, the
+the number of milliseconds an Object can be served from a cache. If present, the
 relay MUST NOT start forwarding any individual Object received through this
 subscription or fetch after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier in a
 multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
 handles a downstream request that includes those Objects re-requests them.
+
+If the MAX_CACHE_DURATION parameter is not sent by the publisher, the Objects
+can be cached until implementation constraints cause them to be evicted.
 
 #### PUBLISHER PRIORITY Parameter {#subscriber-priority}
 
@@ -1834,6 +1845,19 @@ Publisher MUST include this parameter.
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
 
+#### FORWARD Parameter
+
+The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
+SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK, and
+SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying the
+Forwarding State on affected subscriptions (see {{subscriptions}}).  The
+allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives a
+value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
+
+If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
+subscription remains unchanged.  If the parameter is omitted from any other
+message, the default value is 1.
+
 #### DYNAMIC GROUPS Parameter {#dynamic-groups}
 
 The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in PUBLISH or
@@ -1900,7 +1924,7 @@ The wire format of the Setup messages are as follows:
 ~~~
 CLIENT_SETUP Message {
   Type (i) = 0x20,
-  Length (i),
+  Length (16),
   Number of Parameters (i),
   Setup Parameters (..) ...,
 }
@@ -1987,7 +2011,7 @@ MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
 
 The MOQT_IMPLEMENTATION parameter (Parameter Type 0x07) identifies the name and
 version of the sender's MOQT implementation.  This SHOULD be a UTF-8 encoded
-string [RFC3629], though the message does not carry information, such as
+string {{!RFC3629}}, though the message does not carry information, such as
 language tags, that would aid comprehension by any entity other than the one
 that created the text.
 
@@ -2181,9 +2205,6 @@ PREFIX_OVERLAP (0x30):
 : In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
 SUBSCRIBE_NAMESPACE in the same session.
 
-NO_OBJECTS (0x31):
-: In response to FETCH, no objects exist between the Start and End Locations.
-
 INVALID_JOINING_REQUEST_ID(0x32):
 : In response to a Joining FETCH, the referenced Request ID is not an active
 Subscription.
@@ -2211,7 +2232,6 @@ SUBSCRIBE Message {
   Track Namespace (..),
   Track Name Length (i),
   Track Name (..),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2225,14 +2245,6 @@ SUBSCRIBE Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Forward: If 1, Objects matching the subscription are forwarded to the
-  subscriber. If 0, Objects are not forwarded to the subscriber (see
-  {{subscriptions}}) Any other value is a protocol error and MUST terminate the
-  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-
-Subscribing with Forward=0 allows publisher or relay to prepare to serve the
-subscription in advance, reducing the time to receive objects in the future.
-
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
@@ -2243,6 +2255,10 @@ If the publisher cannot satisfy the requested Subscription Filter (see
 {{subscription-filter}}) or if the entire End Group has already been published
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
+
+Subscribing with the FORWARD parameter ({{forward-parameter}}) equal to 0 allows
+publisher or relay to prepare to serve the subscription in advance, reducing the
+time to receive objects in the future.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
@@ -2310,7 +2326,6 @@ SUBSCRIBE_UPDATE Message {
   Length (16),
   Request ID (i),
   Subscription Request ID (i),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2324,11 +2339,6 @@ SUBSCRIBE_UPDATE Message {
   existing Request ID.  The publisher MUST close the session with `
   `PROTOCOL_VIOLATION` if the subscriber specifies an invalid Subscription
   Request ID.
-
-* Forward: If 1, Objects matching the subscription are forwarded to the
-  subscriber. If 0, Objects are not forwarded to the subscriber (see
-  {{subscriptions}}) Any other value is a protocol error and MUST terminate the
-  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2367,7 +2377,6 @@ PUBLISH Message {
   Track Name Length (i),
   Track Name (..),
   Track Alias (i),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2386,17 +2395,19 @@ PUBLISH Message {
   uses the same Track Alias as a different track with an active subscription, it
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
-* Forward: If 1, the publisher will start transmitting objects immediately, even
-  before PUBLISH_OK. If 0, the publisher will not transmit any objects until the
-  subscriber sets the Forward State to 1 (see {{subscriptions}}). Any value
-  other than 0 or 1 is a `PROTOCOL_VIOLATION`.
-
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
 send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.
+
+A publisher that sends the FORWARD parameter ({{forward-parameter}}) equal to 0
+indicates that it will not transmit any objects until the subscriber sets the
+Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
+publisher will start transmitting objects immediately, possibly before
+PUBLISH_OK.
+
 
 ## PUBLISH_OK {#message-publish-ok}
 
@@ -2408,7 +2419,6 @@ PUBLISH_OK Message {
   Type (i) = 0x1E,
   Length (16),
   Request ID (i),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2417,11 +2427,6 @@ PUBLISH_OK Message {
 
 * Request ID: The Request ID of the PUBLISH this message is replying to
   {{message-publish}}.
-
-* Forward: If 1, Objects matching the subscription are forwarded to the
-  subscriber. If 0, Objects are not forwarded to the subscriber (see
-  {{subscriptions}}) Any other value is a protocol error and MUST terminate the
-  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2613,11 +2618,12 @@ Joining Fetch {
 #### Joining Fetch Range Calculation
 
 The Largest Location value from the corresponding
-subscription is used to calculate the end of a Joining Fetch so the
+subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
 The publisher receiving a Joining Fetch sets the End Location to {Subscribe
-Largest Location.Object + 1}.
+Largest Location.Object + 1}. Here Subscribe Largest Location is the
+saved value from when the subscription started (see {{subscriptions}}).
 
 Note: the last Object included in the Joining FETCH response is Subscribe
 Largest Location.  The `+ 1` above indicates the equivalent Standalone Fetch
@@ -2673,8 +2679,9 @@ stream indicate objects that do not exist (eg: they implicitly have status
 between the first requested object and the first object in the stream; between
 objects in the stream; and between the last object in the stream and the Largest
 Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
-a FIN.  If no Objects exist in the requested range, the publisher returns
-REQUEST_ERROR with code `NO_OBJECTS`.
+a FIN.  If no Objects exist in the requested range, the publisher opens the
+unidirectional stream, sends the FETCH_HEADER (see {{fetch-header}}) and closes
+the stream with a FIN.
 
 A relay that has cached objects from the beginning of the range MAY start
 sending objects immediately in response to a FETCH.  If it encounters an object
@@ -2884,7 +2891,6 @@ SUBSCRIBE_NAMESPACE Message {
   Length (16),
   Request ID (i),
   Track Namespace Prefix (..),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2903,9 +2909,6 @@ SUBSCRIBE_NAMESPACE Message {
   Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-
-* Forward: The Forward value that new subscriptions resulting from this
-  SUBSCRIBE_NAMESPACE will have (see {{subscriptions}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2929,6 +2932,14 @@ SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE,
 PUBLISH_NAMESPACE_DONE or PUBLISH messages to a subscriber.  It is useful in
 applications or relays where subscribers are only interested in or authorized to
 access a subset of available namespaces and tracks.
+
+If the FORWARD parameter ({{forward-parameter}}) is present in this message and
+equal to 0, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set
+the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
+from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
+set the FORWARD parameter to 1, or indicate that value by omitting the parameter
+(see {{subscriptions}}).
+
 
 ## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
 
@@ -3503,11 +3514,11 @@ The two least significant bits (LSBs) of the Serialization Flags form a two-bit
 field that defines the encoding of the Subgroup.  To extract this value, the
 Subscriber performs a bitwise AND operation with the mask 0x03.
 
-Bitmask Result (Serialization Flags & 0x03)	| Meaning
-0x00	| Subgroup ID is zero
-0x01	| Subgroup ID is the prior Object's Subgroup ID
-0x02	| Subgroup ID is the prior Object's Subgroup ID plus one
-0x03	| The Subgroup ID field is present
+Bitmask Result (Serialization Flags & 0x03) | Meaning
+0x00 | Subgroup ID is zero
+0x01 | Subgroup ID is the prior Object's Subgroup ID
+0x02 | Subgroup ID is the prior Object's Subgroup ID plus one
+0x03 | The Subgroup ID field is present
 
 The following table defines additional flags within the Serialization Flags
 field. Each flag is an independent boolean value, where a set bit (1) indicates
@@ -3515,10 +3526,10 @@ the corresponding condition is true.
 
 Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
-0x04	| Object ID field is present	| Object ID is the prior Object's ID plus one
-0x08	| Group ID field is present |	Group ID is the prior Object's Group ID
-0x10	| Priority field is present	| Priority is the prior Object's Priority
-0x20	| Extensions field is present |	Extensions field is not present
+0x04 | Object ID field is present | Object ID is the prior Object's ID plus one
+0x08 | Group ID field is present | Group ID is the prior Object's Group ID
+0x10 | Priority field is present | Priority is the prior Object's Priority
+0x20 | Extensions field is present | Extensions field is not present
 0x40 | `PROTOCOL_VIOLATION` | N/A
 0x80 | `PROTOCOL_VIOLATION` | N/A
 
@@ -3820,7 +3831,6 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
 | UINTERESTED                | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
-| NO_OBJECTS                 | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
 
