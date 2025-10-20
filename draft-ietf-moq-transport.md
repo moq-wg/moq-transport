@@ -437,7 +437,10 @@ Tracks SHOULD NOT use range filters which span multiple Groups in FETCH or
 SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so they could have
 an unexpected delivery order if Group IDs do not increase with time.
 
-Note that the increase in time between two groups is not defined by the protocol.
+The amount of time elapsed between publishing an Object in Group ID N and in a
+Group ID > N, or even which will be published first, is not defined by this
+specification and is defined by the applications using MOQT.
+
 
 ## Track {#model-track}
 
@@ -1530,8 +1533,6 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xD   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
-| 0xE   | TRACK_STATUS_OK ({{message-track-status-ok}}        |
-|-------|-----------------------------------------------------|
 | 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
 |-------|-----------------------------------------------------|
 | 0x9   | PUBLISH_NAMESPACE_DONE  ({{message-pub-ns-done}})   |
@@ -1722,8 +1723,10 @@ aliases.
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or
-SUBSCRIBE_UDPATE message.  It is the duration in milliseconds the relay SHOULD
+TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH, PUBLISH_OK,
+SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
+
+It is the duration in milliseconds the relay SHOULD
 continue to attempt forwarding Objects after they have been received.  The start
 time for the timeout is based on when the Object Headers are received, and does
 not depend upon the forwarding preference. There is no explicit signal that an
@@ -1758,7 +1761,9 @@ any other relevant information.
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a PUBLISH,
-SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS_OK message.  It is an integer expressing
+SUBSCRIBE_OK, FETCH_OK or REQUEST_OK (in response to TRACK_STATUS) message.
+
+It is an integer expressing
 the number of milliseconds an Object can be served from a cache. If present, the
 relay MUST NOT start forwarding any individual Object received through this
 subscription or fetch after the specified number of milliseconds has elapsed
@@ -1797,7 +1802,10 @@ the value 128.
 #### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_OK, TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK or FETCH.  It
+SUBSCRIBE_OK, TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
+PUBLISH_OK or FETCH.
+
+It
 is an enum indicating how to prioritize Objects from different groups within the
 same subscription (see {{priorities}}), or how to order Groups in a Fetch
 response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
@@ -1805,9 +1813,9 @@ Descending (0x2). If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
 
 If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference from
-SUBSCRIBE_OK or TRACK_STATUS_OK is used. If omitted in PUBLISH_OK, the
+SUBSCRIBE_OK or REQUEST_OK is used. If omitted in PUBLISH_OK, the
 publisher's preference from PUBLISH is used. If omitted from SUBSCRIBE_OK,
-TRACK_STATUS_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
+REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
 
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
@@ -1838,6 +1846,31 @@ simultaneously.
 
 If the EXPIRES parameter is 0 or is not present in a message, the subscription
 does not expire or expires at an unknown time.
+
+#### LARGEST OBJECT Parameter {#largest-param}
+
+The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in SUBSCRIBE_OK,
+PUBLISH or in REQUEST_OK in response to SUBSCRIBE_UPDATE.  It is a
+length-prefixed Location structure (see {{location-structure}}) containing the
+largest Location in the Track observed by the sending endpoint (see
+{{subscription-filters}}.  If Objects have been published on this Track the
+Publisher MUST include this parameter.
+
+If omitted from a message, the sending endpoint has not published or received
+any Objects in the Track.
+
+#### FORWARD Parameter
+
+The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
+SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK, and
+SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying the
+Forwarding State on affected subscriptions (see {{subscriptions}}).  The
+allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives a
+value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
+
+If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
+subscription remains unchanged.  If the parameter is omitted from any other
+message, the default value is 1.
 
 #### DYNAMIC GROUPS Parameter {#dynamic-groups}
 
@@ -2090,9 +2123,9 @@ REQUESTS_BLOCKED Message {
 
 ## REQUEST_OK {#message-request-ok}
 
-The REQUEST_OK message is sent to a response to SUBSCRIBE_NAMESPACE and
-PUBLISH_NAMESPACE requests. The unique request ID in the REQUEST_OK is used to
-associate it with the correct type of request.
+The REQUEST_OK message is sent to a response to SUBSCRIBE_UPDATE, TRACK_STATUS,
+SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests. The unique request ID in the
+REQUEST_OK is used to associate it with the correct type of request.
 
 ~~~
 REQUEST_OK Message {
@@ -2186,9 +2219,6 @@ PREFIX_OVERLAP (0x30):
 : In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
 SUBSCRIBE_NAMESPACE in the same session.
 
-NO_OBJECTS (0x31):
-: In response to FETCH, no objects exist between the Start and End Locations.
-
 INVALID_JOINING_REQUEST_ID(0x32):
 : In response to a Joining FETCH, the referenced Request ID is not an active
 Subscription.
@@ -2216,7 +2246,6 @@ SUBSCRIBE Message {
   Track Namespace (..),
   Track Name Length (i),
   Track Name (..),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2230,14 +2259,6 @@ SUBSCRIBE Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Forward: If 1, Objects matching the subscription are forwarded to the
-  subscriber. If 0, Objects are not forwarded to the subscriber (see
-  {{subscriptions}}) Any other value is a protocol error and MUST terminate the
-  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-
-Subscribing with Forward=0 allows publisher or relay to prepare to serve the
-subscription in advance, reducing the time to receive objects in the future.
-
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
@@ -2248,6 +2269,10 @@ If the publisher cannot satisfy the requested Subscription Filter (see
 {{subscription-filter}}) or if the entire End Group has already been published
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
+
+Subscribing with the FORWARD parameter ({{forward-parameter}}) equal to 0 allows
+publisher or relay to prepare to serve the subscription in advance, reducing the
+time to receive objects in the future.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
@@ -2260,8 +2285,6 @@ SUBSCRIBE_OK Message {
   Length (16),
   Request ID (i),
   Track Alias (i),
-  Content Exists (8),
-  [Largest Location (Location),]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2277,14 +2300,6 @@ SUBSCRIBE_OK Message {
   uses the same Track Alias as a different track with an active subscription, it
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
-* Content Exists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present. Any other value is a protocol error and MUST terminate the
-session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-
-* Largest Location: The location of the largest object available for this track. This
-  field is only present if Content Exists has a value of 1.
-
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
@@ -2292,16 +2307,21 @@ session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
 subscription.
 
-A Subscription Filter (see {{subscription-filters}}) can only be narrowed, not
-widened, as an attempt to widen could fail. If Objects with Locations smaller
-than the current subscription filter's Start Location are required, FETCH can be
-used to retrieve them. The Start Location MUST NOT decrease and the End Group
-MUST NOT increase.  A publisher MUST terminate the session with a
-`PROTOCOL_VIOLATION` if the SUBSCRIBE_UPDATE violates these rules.
+When updating the Subscription Filter (see {{subscription-filters}}),
+the Start Location MUST not decrease, as an attempt to
+to do so could fail. If Objects with Locations smaller than the current
+subscription's Largest Location are required, FETCH can be used to retrieve
+them. A publisher MUST terminate the session with a `PROTOCOL_VIOLATION` if the
+SUBSCRIBE_UPDATE violates this rule.
 
-When a subscriber narrows their subscription, it might still receive objects
+When a subscriber narrows their subscription (increase the Start Location and/or
+decrease the End Group), it might still receive objects
 outside the new range if the publisher sent them before the update was
-processed.
+processed. When a subscriber increases the End Location, the Largest Object at
+the publisher might already be larger than the previous End Location. This will
+create a gap in the subscription. The REQUEST_OK in response to the
+SUBSCRIBE_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
+can issue a FETCH to retrieve the omitted Objects, if any.
 
 The receiver of a SUBSCRIBE_UPDATE MUST respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful.  When an
@@ -2325,7 +2345,6 @@ SUBSCRIBE_UPDATE Message {
   Length (16),
   Request ID (i),
   Subscription Request ID (i),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2339,11 +2358,6 @@ SUBSCRIBE_UPDATE Message {
   existing Request ID.  The publisher MUST close the session with `
   `PROTOCOL_VIOLATION` if the subscriber specifies an invalid Subscription
   Request ID.
-
-* Forward: If 1, Objects matching the subscription are forwarded to the
-  subscriber. If 0, Objects are not forwarded to the subscriber (see
-  {{subscriptions}}) Any other value is a protocol error and MUST terminate the
-  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2382,9 +2396,6 @@ PUBLISH Message {
   Track Name Length (i),
   Track Name (..),
   Track Alias (i),
-  Content Exists (8),
-  [Largest Location (Location),]
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2403,24 +2414,19 @@ PUBLISH Message {
   uses the same Track Alias as a different track with an active subscription, it
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
-* Content Exists: 1 if an object has been published on this track, 0 if not.
-  If 0, then the Largest Group ID and Largest Object ID fields will not be
-  present. Any other value is a protocol error and MUST terminate the
-  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-
-* Largest Location: The location of the largest object available for this track.
-
-* Forward: If 1, the publisher will start transmitting objects immediately, even
-  before PUBLISH_OK. If 0, the publisher will not transmit any objects until the
-  subscriber sets the Forward State to 1 (see {{subscriptions}}). Any value
-  other than 0 or 1 is a `PROTOCOL_VIOLATION`.
-
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
 send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.
+
+A publisher that sends the FORWARD parameter ({{forward-parameter}}) equal to 0
+indicates that it will not transmit any objects until the subscriber sets the
+Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
+publisher will start transmitting objects immediately, possibly before
+PUBLISH_OK.
+
 
 ## PUBLISH_OK {#message-publish-ok}
 
@@ -2432,7 +2438,6 @@ PUBLISH_OK Message {
   Type (i) = 0x1E,
   Length (16),
   Request ID (i),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2441,11 +2446,6 @@ PUBLISH_OK Message {
 
 * Request ID: The Request ID of the PUBLISH this message is replying to
   {{message-publish}}.
-
-* Forward: If 1, Objects matching the subscription are forwarded to the
-  subscriber. If 0, Objects are not forwarded to the subscriber (see
-  {{subscriptions}}) Any other value is a protocol error and MUST terminate the
-  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2613,9 +2613,9 @@ A Joining Fetch is only permitted when the associated Subscribe has the Filter
 Type Largest Object; any other value results in closing the session with a
 `PROTOCOL_VIOLATION`.
 
-If no Objects have been published for the track, and the SUBSCRIBE_OK has a
-Content Exists value of 0, the publisher MUST respond with a REQUEST_ERROR with
-error code `INVALID_RANGE`.
+If no Objects have been published for the track, and the SUBSCRIBE_OK did not
+include a LARGEST_OBJECT parameter ({{largest-param}}), the publisher MUST
+respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
 
 A Joining Fetch includes this structure:
 
@@ -2698,8 +2698,9 @@ stream indicate objects that do not exist (eg: they implicitly have status
 between the first requested object and the first object in the stream; between
 objects in the stream; and between the last object in the stream and the Largest
 Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
-a FIN.  If no Objects exist in the requested range, the publisher returns
-REQUEST_ERROR with code `NO_OBJECTS`.
+a FIN.  If no Objects exist in the requested range, the publisher opens the
+unidirectional stream, sends the FETCH_HEADER (see {{fetch-header}}) and closes
+the stream with a FIN.
 
 A relay that has cached objects from the beginning of the range MAY start
 sending objects immediately in response to a FETCH.  If it encounters an object
@@ -2809,23 +2810,16 @@ The TRACK_STATUS message format is identical to the SUBSCRIBE message
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
-state or send any Objects.  Relays without an active subscription MAY forward
-TRACK_STATUS to one or more publishers, or MAY initiate a subscription (subject
-to authorization) as described in {{publisher-interactions}} to determine the
-response. The publisher does not send PUBLISH_DONE for this request, and the
-subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
+state or send any Objects.  If successful, the publisher responds with a
+REQUEST_OK message with the same parameters it would have set in a SUBSCRIBE_OK.
+Track Alias is not used.  A publisher responds to a failed TRACK_STATUS with an
+appropriate REQUEST_ERROR message.
 
-## TRACK_STATUS_OK {#message-track-status-ok}
-
-The publisher sends a TRACK_STATUS_OK control message in response
-to a successful TRACK_STATUS message.
-
-The TRACK_STATUS_OK message format is identical to the SUBSCRIBE_OK message
-({{message-subscribe-ok}}).
-
-The publisher populates the fields of TRACK_STATUS_OK exactly as it would have
-populated a SUBSCRIBE_OK, setting Track Alias to 0. It is not considered an error
-if Track Alias 0 is already in use by an active subscription.
+Relays without an active subscription MAY forward TRACK_STATUS to one or more
+publishers, or MAY initiate a subscription (subject to authorization) as
+described in {{publisher-interactions}} to determine the response. The publisher
+does not send PUBLISH_DONE for this request, and the subscriber cannot send
+SUBSCRIBE_UPDATE or UNSUBSCRIBE.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 
@@ -2909,7 +2903,6 @@ SUBSCRIBE_NAMESPACE Message {
   Length (16),
   Request ID (i),
   Track Namespace Prefix (..),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2928,9 +2921,6 @@ SUBSCRIBE_NAMESPACE Message {
   Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-
-* Forward: The Forward value that new subscriptions resulting from this
-  SUBSCRIBE_NAMESPACE will have (see {{subscriptions}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2955,6 +2945,14 @@ PUBLISH_NAMESPACE_DONE or PUBLISH messages to a subscriber.  It is useful in
 applications or relays where subscribers are only interested in or authorized to
 access a subset of available namespaces and tracks.
 
+If the FORWARD parameter ({{forward-parameter}}) is present in this message and
+equal to 0, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set
+the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
+from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
+set the FORWARD parameter to 1, or indicate that value by omitting the parameter
+(see {{subscriptions}}).
+
+
 ## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
 
 A subscriber issues a `UNSUBSCRIBE_NAMESPACE` message to a publisher indicating
@@ -2967,12 +2965,13 @@ The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
 UNSUBSCRIBE_NAMESPACE Message {
   Type (i) = 0x14,
   Length (16),
-  Track Namespace Prefix (..)
+  Request ID (i),
 }
 ~~~
 {: #moq-transport-unsub-ann-format title="MOQT UNSUBSCRIBE_NAMESPACE Message"}
 
-* Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
+* Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
+  ({{message-subscribe-ns}}) being cancelled by this message.
 
 
 # Data Streams and Datagrams {#data-streams}
@@ -3100,6 +3099,7 @@ be terminated with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
 #### Object Extension Header {#object-extensions}
+
 Any Object with status Normal can have extension headers.  If an endpoint
 receives extension headers on Objects with status that is not Normal, it MUST close the
 session with a `PROTOCOL_VIOLATION`.
@@ -3111,9 +3111,11 @@ of the Object payload and not as an extension header.
 
 Extension Headers are defined in external specifications and registered in an
 IANA table {{iana}}. These specifications define the type and value of the
-header, along with any rules concerning processing, modification, caching and
-forwarding. A relay which is coded to implement these rules is said to
-"support" the extension.
+header, as well as the rules for processing, modification, caching and
+forwarding. All such specifications MUST specify whether multiple values of the
+same extension are allowed on a single Object.  A relay that enforces these
+rules is considered to "support" the extension.  If a Relay does not support an
+extension header, it MUST assume multiple values are allowed.
 
 If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
 cached as part of the Object and MUST be forwarded by relays.
@@ -3400,11 +3402,17 @@ MUST close the stream with a FIN.
 
 If a sender closes the stream before delivering all such objects to the QUIC
 stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
-{{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes an open
-Subgroup exceeding its Delivery Timeout, early termination of subscription due
-to an UNSUBSCRIBE message, a publisher's decision to end the subscription early,
-or a SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
-the Start Location to a larger Location.  When RESET_STREAM_AT is used, the
+{{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes, but is
+not limited to:
+
+* An Object in an open Subgroup exceeding its Delivery Timeout
+* Early termination of subscription due to an UNSUBSCRIBE message
+* A publisher's decision to end the subscription early
+* A SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
+  the Start Location to a larger Location
+* Omitting a Subgroup Object due to the subcriber's Forward State
+
+When RESET_STREAM_AT is used, the
 reliable_size SHOULD include the stream header so the receiver can identify the
 corresponding subscription and accurately account for reset data streams when
 handling PUBLISH_DONE (see {{message-publish-done}}).  Publishers that reset
@@ -3651,6 +3659,7 @@ cannot infer any information about the existence of prior groups (see
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
 
+An Object MUST NOT contain more than one instance of this extension header.
 ## Immutable Extensions
 
 The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
@@ -3695,6 +3704,8 @@ y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
 ~~~
 
+An Object MUST NOT contain more than one instance of this extension header.
+
 ## Prior Object ID Gap
 
 Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
@@ -3720,6 +3731,8 @@ cannot infer any information about the existence of prior objects (see
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
+
+An Object MUST NOT contain more than one instance of this extension header.
 
 # Security Considerations {#security}
 
@@ -3845,7 +3858,6 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
 | UINTERESTED                | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
-| NO_OBJECTS                 | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
 
