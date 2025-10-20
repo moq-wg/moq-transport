@@ -3382,8 +3382,8 @@ Table of Contents
    be modified, added, removed, and/or cached by relays.
 
    Object Extension Headers are serialized as Key-Value-Pairs (see
-   Figure 2), prefixed by the length of the serialized Key-Value-Pairs,
-   in bytes.
+   Figure 2) in increasing extension type order with a delta encoding,
+   prefixed by the length of the serialized Key-Value-Pairs, in bytes.
 
    Extensions {
      Extension Headers Length (i),

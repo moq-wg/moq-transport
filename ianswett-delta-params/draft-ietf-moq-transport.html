@@ -5437,8 +5437,8 @@ Any object with a status code other than zero <span class="bcp14">MUST</span> ha
 <a href="#section-10.2.1.2" class="section-number selfRef">10.2.1.2. </a><a href="#name-object-extension-header" class="section-name selfRef">Object Extension Header</a>
             </h5>
 <p id="section-10.2.1.2-1">Any Object with status Normal can have extension headers.  If an endpoint
-receives extension headers on Objects with status that is not Normal, it <span class="bcp14">MUST</span> close the
-session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.1.2-1" class="pilcrow">¶</a></p>
+receives extension headers on Objects with status that is not Normal, it <span class="bcp14">MUST</span> close
+the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.1.2-2">Object Extension Headers are visible to relays and allow the transmission of
 future metadata relevant to MOQT Object distribution. Any Object metadata never
 intended to be accessed by the transport or Relays <span class="bcp14">SHOULD</span> be serialized as part
@@ -5456,8 +5456,8 @@ cached as part of the Object and <span class="bcp14">MUST</span> be forwarded by
 definition of the extension, Extension Headers <span class="bcp14">MAY</span> be modified, added, removed,
 and/or cached by relays.<a href="#section-10.2.1.2-5" class="pilcrow">¶</a></p>
 <p id="section-10.2.1.2-6">Object Extension Headers are serialized as Key-Value-Pairs (see
-<a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>), prefixed by the length of the serialized
-Key-Value-Pairs, in bytes.<a href="#section-10.2.1.2-6" class="pilcrow">¶</a></p>
+<a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>) in increasing extension type order with a delta encoding,
+prefixed by the length of the serialized Key-Value-Pairs, in bytes.<a href="#section-10.2.1.2-6" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-10.2.1.2-7">
 <pre>
 Extensions {
