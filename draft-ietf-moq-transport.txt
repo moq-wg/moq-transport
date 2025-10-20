@@ -197,10 +197,11 @@ Table of Contents
      Normative References
      Informative References
    Appendix A.  Change Log
-     A.1.  Since draft-ietf-moq-transport-13
-     A.2.  Since draft-ietf-moq-transport-12
-     A.3.  Since draft-ietf-moq-transport-11
-     A.4.  Since draft-ietf-moq-transport-10
+     A.1.  Since draft-ietf-moq-transport-14
+     A.2.  Since draft-ietf-moq-transport-13
+     A.3.  Since draft-ietf-moq-transport-12
+     A.4.  Since draft-ietf-moq-transport-11
+     A.5.  Since draft-ietf-moq-transport-10
    Authors' Addresses
 
 1.  Introduction
@@ -1811,7 +1812,7 @@ Table of Contents
    separate namespace, it is impossible for these parameters to appear
    in Setup messages.
 
-9.2.1.1.  AUTHORIZATION TOKEN
+9.2.1.1.  AUTHORIZATION TOKEN Parameter
 
    The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in
    a CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
@@ -2051,7 +2052,7 @@ Table of Contents
 9.2.1.8.  EXPIRES Parameter
 
    The EXPIRES parameter (Parameter Type 0x8) MAY appear in
-   SUBSCRIBE_OK, PUBLISH or PUBLISH_OK (TOOD: or REQUEST_OK).  It is a
+   SUBSCRIBE_OK, PUBLISH or PUBLISH_OK (TODO: or REQUEST_OK).  It is a
    variable length integer encoding the time in milliseconds after which
    the sender of the parameter will terminate the subscription.  The
    sender will terminate the subscription using PUBLISH_DONE or
@@ -2108,7 +2109,7 @@ Table of Contents
    upstream publisher in SUBSCRIBE_OK or PUBLISH when sending these
    messages to downstream subscribers.
 
-9.2.1.12.  NEW GROUP_REQUEST Parameter
+9.2.1.12.  NEW GROUP REQUEST Parameter
 
    The NEW_GROUP_REQUEST parameter (parameter type 0x32) MAY appear in
    PUBLISH_OK, SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer
@@ -4293,7 +4294,7 @@ EXT 1 and EXT N can be modified or removed by Relays
            +----------------------------+------+---------------+
            | MALFORMED_TRACK            | 0x12 | Section 9.8   |
            +----------------------------+------+---------------+
-           | UINTERESTED                | 0x20 | Section 9.8   |
+           | UNINTERESTED               | 0x20 | Section 9.8   |
            +----------------------------+------+---------------+
            | PREFIX_OVERLAP             | 0x30 | Section 9.8   |
            +----------------------------+------+---------------+
@@ -4496,7 +4497,70 @@ Appendix A.  Change Log
 
    Issue and pull request numbers are listed with a leading octothorp.
 
-A.1.  Since draft-ietf-moq-transport-13
+A.1.  Since draft-ietf-moq-transport-14
+
+   *Setup and Control Plane*
+
+   *  Always use ALPN for version negotiation (#499)
+
+   *  Consolidate all the Error Message types (#1159)
+
+   *  Change MOQT IMPLEMENTATION code point to 0x7 (#1191)
+
+   *  Add Forward to SUBSCRIBE_NAMESPACE (#1220)
+
+   *  Parameters for Group Order, Subscribe Priority and Subscription
+      Filter (redo) (#1273)
+
+   *  REQUEST_OK message (#1274)
+
+   *  Subscribe Update Acknowledgements (#1275)
+
+   *  Disallow DELETE and USE_ALIAS in CLIENT_SETUP (#1277)
+
+   *  Remove Expires field from SUBSCRIBE_OK (#1282)
+
+   *  Make Forward a Parameter (#1283)
+
+   *  Allow SUBSCRIBE_UPDATE to increase the end location (#1288)
+
+   *  Add default port for raw QUIC (#1289)
+
+   *  Unsubscribe Namespace should be linked to Subscribe Namespace
+      (#1292)
+
+   *Data Plane Wire Format and Handling*
+
+   *  Fetch Object serialization optimization (#949)
+
+   *  Make default PUBLISHER PRIORITY a parameter, optional in Subgroup/
+      Datagram (#1056)
+
+   *  Allow datagram status with object ID=0 (#1197)
+
+   *  Disallow object extension headers in all non-Normal status objects
+      (#1266)
+
+   *  Objects for malformed track must not be cached (#1290)
+
+   *  Remove NO_OBJECTS fetch error code (#1303)
+
+   *  Clarify what happens when max_cache_duration parameter is omitted
+      (#1287)
+
+   *Notable Editorial Changes*
+
+   *  Rename Request ID field in MAX_REQUEST_ID (#1250)
+
+   *  Define and draw subscription state machine (#1296)
+
+   *  Omitting a subgroup object necessitates reset (#1295)
+
+   *  Define duplication rules for header extensions (#1293)
+
+   *  Clarify joining fetch end location (#1286)
+
+A.2.  Since draft-ietf-moq-transport-13
 
    *Setup and Control Plane*
 
@@ -4568,7 +4632,7 @@ A.1.  Since draft-ietf-moq-transport-13
 
    *  Reformat Error Codes (#1091)
 
-A.2.  Since draft-ietf-moq-transport-12
+A.3.  Since draft-ietf-moq-transport-12
 
    *  TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly
       mirror SUBSCRIBE/OK/ERROR (#1015)
@@ -4576,7 +4640,7 @@ A.2.  Since draft-ietf-moq-transport-12
    *  SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE
       (#1049)
 
-A.3.  Since draft-ietf-moq-transport-11
+A.4.  Since draft-ietf-moq-transport-11
 
    *  Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
 
@@ -4602,7 +4666,7 @@ A.3.  Since draft-ietf-moq-transport-11
    *  Add PUBLISH for publisher initiated subscriptions (#995) and fix
       the PUBLISH codepoints (#1048, #1051)
 
-A.4.  Since draft-ietf-moq-transport-10
+A.5.  Since draft-ietf-moq-transport-10
 
    *  Added Common Structure definitions - Location, Key-Value-Pair and
       Reason Phrase

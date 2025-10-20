@@ -1598,16 +1598,19 @@ networks and is designed for high scale and low latency distribution.<a href="#s
             <p id="section-toc.1-1.16.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-change-log" class="internal xref">Change Log</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.1">
-                <p id="section-toc.1-1.16.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-since-draft-ietf-moq-transp" class="internal xref">Since draft-ietf-moq-transport-13</a></p>
+                <p id="section-toc.1-1.16.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-since-draft-ietf-moq-transp" class="internal xref">Since draft-ietf-moq-transport-14</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.2">
-                <p id="section-toc.1-1.16.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-since-draft-ietf-moq-transpo" class="internal xref">Since draft-ietf-moq-transport-12</a></p>
+                <p id="section-toc.1-1.16.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-since-draft-ietf-moq-transpo" class="internal xref">Since draft-ietf-moq-transport-13</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.3">
-                <p id="section-toc.1-1.16.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-since-draft-ietf-moq-transpor" class="internal xref">Since draft-ietf-moq-transport-11</a></p>
+                <p id="section-toc.1-1.16.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-since-draft-ietf-moq-transpor" class="internal xref">Since draft-ietf-moq-transport-12</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.4">
-                <p id="section-toc.1-1.16.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-since-draft-ietf-moq-transport" class="internal xref">Since draft-ietf-moq-transport-10</a></p>
+                <p id="section-toc.1-1.16.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-since-draft-ietf-moq-transport" class="internal xref">Since draft-ietf-moq-transport-11</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.5">
+                <p id="section-toc.1-1.16.2.5.1"><a href="#appendix-A.5" class="auto internal xref">A.5</a>.  <a href="#name-since-draft-ietf-moq-transport-" class="internal xref">Since draft-ietf-moq-transport-10</a></p>
 </li>
             </ul>
 </li>
@@ -3520,8 +3523,8 @@ Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.<a href="#section-9.2.1-1" class="pilcrow">¶</a></p>
 <div id="authorization-token">
 <section id="section-9.2.1.1">
-            <h5 id="name-authorization-token">
-<a href="#section-9.2.1.1" class="section-number selfRef">9.2.1.1. </a><a href="#name-authorization-token" class="section-name selfRef">AUTHORIZATION TOKEN</a>
+            <h5 id="name-authorization-token-paramet">
+<a href="#section-9.2.1.1" class="section-number selfRef">9.2.1.1. </a><a href="#name-authorization-token-paramet" class="section-name selfRef">AUTHORIZATION TOKEN Parameter</a>
             </h5>
 <p id="section-9.2.1.1-1">The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) <span class="bcp14">MAY</span> appear in a
 CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
@@ -3774,7 +3777,7 @@ unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.<a href="#
 <a href="#section-9.2.1.8" class="section-number selfRef">9.2.1.8. </a><a href="#name-expires-parameter" class="section-name selfRef">EXPIRES Parameter</a>
             </h5>
 <p id="section-9.2.1.8-1">The EXPIRES parameter (Parameter Type 0x8) <span class="bcp14">MAY</span> appear in SUBSCRIBE_OK, PUBLISH
-or PUBLISH_OK (TOOD: or REQUEST_OK).  It is a variable length integer encoding
+or PUBLISH_OK (TODO: or REQUEST_OK).  It is a variable length integer encoding
 the time in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
@@ -3837,8 +3840,8 @@ subscribers.<a href="#section-9.2.1.11-2" class="pilcrow">¶</a></p>
 </div>
 <div id="new-group-request">
 <section id="section-9.2.1.12">
-            <h5 id="name-new-group_request-parameter">
-<a href="#section-9.2.1.12" class="section-number selfRef">9.2.1.12. </a><a href="#name-new-group_request-parameter" class="section-name selfRef">NEW GROUP_REQUEST Parameter</a>
+            <h5 id="name-new-group-request-parameter">
+<a href="#section-9.2.1.12" class="section-number selfRef">9.2.1.12. </a><a href="#name-new-group-request-parameter" class="section-name selfRef">NEW GROUP REQUEST Parameter</a>
             </h5>
 <p id="section-9.2.1.12-1">The NEW_GROUP_REQUEST parameter (parameter type 0x32) <span class="bcp14">MAY</span> appear in PUBLISH_OK,
 SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer representing the largest Group
@@ -3989,8 +3992,8 @@ initiation.<a href="#section-9.3.1.4-2" class="pilcrow">¶</a></p>
 </div>
 <div id="setup-auth-token">
 <section id="section-9.3.1.5">
-            <h5 id="name-authorization-token-2">
-<a href="#section-9.3.1.5" class="section-number selfRef">9.3.1.5. </a><a href="#name-authorization-token-2" class="section-name selfRef">AUTHORIZATION TOKEN</a>
+            <h5 id="name-authorization-token">
+<a href="#section-9.3.1.5" class="section-number selfRef">9.3.1.5. </a><a href="#name-authorization-token" class="section-name selfRef">AUTHORIZATION TOKEN</a>
             </h5>
 <p id="section-9.3.1.5-1">See <a href="#authorization-token" class="auto internal xref">Section 9.2.1.1</a>.  The endpoint can specify one or more tokens in
 CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT session
@@ -7100,7 +7103,7 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
 </td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">UINTERESTED</td>
+                <td class="text-left" rowspan="1" colspan="1">UNINTERESTED</td>
                 <td class="text-center" rowspan="1" colspan="1">0x20</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#message-request-error" class="auto internal xref">Section 9.8</a>
@@ -7422,238 +7425,329 @@ document:<a href="#section-14-1" class="pilcrow">¶</a></p>
       </h2>
 <p id="appendix-A-1">RFC Editor's Note: Please remove this section prior to publication of a final version of this document.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 <p id="appendix-A-2">Issue and pull request numbers are listed with a leading octothorp.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
-<div id="since-draft-ietf-moq-transport-13">
+<div id="since-draft-ietf-moq-transport-14">
 <section id="appendix-A.1">
         <h3 id="name-since-draft-ietf-moq-transp">
-<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-since-draft-ietf-moq-transp" class="section-name selfRef">Since draft-ietf-moq-transport-13</a>
+<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-since-draft-ietf-moq-transp" class="section-name selfRef">Since draft-ietf-moq-transport-14</a>
         </h3>
 <p id="appendix-A.1-1"><strong>Setup and Control Plane</strong><a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-A.1-2.1">
-            <p id="appendix-A.1-2.1.1">Add an AUTHORITY parameter (#1058)<a href="#appendix-A.1-2.1.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.1.1">Always use ALPN for version negotiation (#499)<a href="#appendix-A.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.2">
-            <p id="appendix-A.1-2.2.1">Add a free-form SETUP parameter identifying the implementation (#1114)<a href="#appendix-A.1-2.2.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.2.1">Consolidate all the Error Message types (#1159)<a href="#appendix-A.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.3">
-            <p id="appendix-A.1-2.3.1">Add a Request ID to SUBSCRIBE_UDPATE (#1106)<a href="#appendix-A.1-2.3.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.3.1">Change MOQT IMPLEMENTATION code point to 0x7 (#1191)<a href="#appendix-A.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.4">
-            <p id="appendix-A.1-2.4.1">Indicate which params can appear PUBLISH* messages (#1071)<a href="#appendix-A.1-2.4.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.4.1">Add Forward to SUBSCRIBE_NAMESPACE (#1220)<a href="#appendix-A.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.5">
-            <p id="appendix-A.1-2.5.1">Add TRACK_STATUS to the list of request types affected by GOAWAY (#1105)<a href="#appendix-A.1-2.5.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.5.1">Parameters for Group Order, Subscribe Priority and Subscription Filter (redo) (#1273)<a href="#appendix-A.1-2.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.1-2.6">
+            <p id="appendix-A.1-2.6.1">REQUEST_OK message (#1274)<a href="#appendix-A.1-2.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.1-2.7">
+            <p id="appendix-A.1-2.7.1">Subscribe Update Acknowledgements (#1275)<a href="#appendix-A.1-2.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.1-2.8">
+            <p id="appendix-A.1-2.8.1">Disallow DELETE and USE_ALIAS in CLIENT_SETUP (#1277)<a href="#appendix-A.1-2.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.1-2.9">
+            <p id="appendix-A.1-2.9.1">Remove Expires field from SUBSCRIBE_OK (#1282)<a href="#appendix-A.1-2.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.1-2.10">
+            <p id="appendix-A.1-2.10.1">Make Forward a Parameter (#1283)<a href="#appendix-A.1-2.10.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.1-2.11">
+            <p id="appendix-A.1-2.11.1">Allow SUBSCRIBE_UPDATE to increase the end location (#1288)<a href="#appendix-A.1-2.11.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.1-2.12">
+            <p id="appendix-A.1-2.12.1">Add default port for raw QUIC (#1289)<a href="#appendix-A.1-2.12.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.1-2.13">
+            <p id="appendix-A.1-2.13.1">Unsubscribe Namespace should be linked to Subscribe Namespace (#1292)<a href="#appendix-A.1-2.13.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="appendix-A.1-3"><strong>Data Plane Wire Format and Handling</strong><a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-A.1-4.1">
-            <p id="appendix-A.1-4.1.1">Delta encode Object IDs within Subgroups (#1042)<a href="#appendix-A.1-4.1.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-4.1.1">Fetch Object serialization optimization (#949)<a href="#appendix-A.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-4.2">
-            <p id="appendix-A.1-4.2.1">Use a bit in Datagram Type to convey Object ID = 0 (#1055)<a href="#appendix-A.1-4.2.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-4.2.1">Make default PUBLISHER PRIORITY a parameter, optional in Subgroup/Datagram (#1056)<a href="#appendix-A.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-4.3">
-            <p id="appendix-A.1-4.3.1">Corrected missed code point updates to Object Datagram Status (#1082)<a href="#appendix-A.1-4.3.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-4.3.1">Allow datagram status with object ID=0 (#1197)<a href="#appendix-A.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-4.4">
-            <p id="appendix-A.1-4.4.1">Merge OBJECT_DATAGRAM and OBJECT_DATAGRAM_STATUS description (#1179)<a href="#appendix-A.1-4.4.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-4.4.1">Disallow object extension headers in all non-Normal status objects (#1266)<a href="#appendix-A.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-4.5">
-            <p id="appendix-A.1-4.5.1">Objects are not schedulable if flow-control blocked (#1054)<a href="#appendix-A.1-4.5.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-4.5.1">Objects for malformed track must not be cached (#1290)<a href="#appendix-A.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-4.6">
-            <p id="appendix-A.1-4.6.1">Clarify DELIVERY_TIMEOUT reordering computation (#1120)<a href="#appendix-A.1-4.6.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-4.6.1">Remove NO_OBJECTS fetch error code (#1303)<a href="#appendix-A.1-4.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-4.7">
-            <p id="appendix-A.1-4.7.1">Receiving unrequested Objects (#1112)<a href="#appendix-A.1-4.7.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-A.1-4.8">
-            <p id="appendix-A.1-4.8.1">Clarify End of Track (#1111)<a href="#appendix-A.1-4.8.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-A.1-4.9">
-            <p id="appendix-A.1-4.9.1">Malformed tracks apply to FETCH (#1083)<a href="#appendix-A.1-4.9.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-A.1-4.10">
-            <p id="appendix-A.1-4.10.1">Remove early FIN from the definition of malformed tracks (#1096)<a href="#appendix-A.1-4.10.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-A.1-4.11">
-            <p id="appendix-A.1-4.11.1">Prior Object ID Gap Extension header (#939)<a href="#appendix-A.1-4.11.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-A.1-4.12">
-            <p id="appendix-A.1-4.12.1">Add Extension containing immutable extensions (#1025)<a href="#appendix-A.1-4.12.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-4.7.1">Clarify what happens when max_cache_duration parameter is omitted (#1287)<a href="#appendix-A.1-4.7.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="appendix-A.1-5"><strong>Relay Handling</strong><a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-5"><strong>Notable Editorial Changes</strong><a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-A.1-6.1">
-            <p id="appendix-A.1-6.1.1">Explain FETCH routing for relays (#1165)<a href="#appendix-A.1-6.1.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-6.1.1">Rename Request ID field in MAX_REQUEST_ID (#1250)<a href="#appendix-A.1-6.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-6.2">
-            <p id="appendix-A.1-6.2.1"><span class="bcp14">MUST</span> for multi-publisher relay handling (#1115)<a href="#appendix-A.1-6.2.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-6.2.1">Define and draw subscription state machine (#1296)<a href="#appendix-A.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-6.3">
-            <p id="appendix-A.1-6.3.1">Filters don't (usually) determine the end of subscription (#1113)<a href="#appendix-A.1-6.3.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-6.3.1">Omitting a subgroup object necessitates reset (#1295)<a href="#appendix-A.1-6.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-6.4">
-            <p id="appendix-A.1-6.4.1">Allow self-subscriptions (#1110)<a href="#appendix-A.1-6.4.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-6.4.1">Define duplication rules for header extensions (#1293)<a href="#appendix-A.1-6.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-6.5">
-            <p id="appendix-A.1-6.5.1">Explain Namespace Prefix Matching in more detail (#1116)<a href="#appendix-A.1-6.5.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-6.5.1">Clarify joining fetch end location (#1286)<a href="#appendix-A.1-6.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="appendix-A.1-7"><strong>Explanatory</strong><a href="#appendix-A.1-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="since-draft-ietf-moq-transport-13">
+<section id="appendix-A.2">
+        <h3 id="name-since-draft-ietf-moq-transpo">
+<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-since-draft-ietf-moq-transpo" class="section-name selfRef">Since draft-ietf-moq-transport-13</a>
+        </h3>
+<p id="appendix-A.2-1"><strong>Setup and Control Plane</strong><a href="#appendix-A.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-A.1-8.1">
-            <p id="appendix-A.1-8.1.1">Explain Modularity of MOQT (#1107)<a href="#appendix-A.1-8.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.2-2.1">
+            <p id="appendix-A.2-2.1.1">Add an AUTHORITY parameter (#1058)<a href="#appendix-A.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.1-8.2">
-            <p id="appendix-A.1-8.2.1">Explain how to resume publishing after losing state (#1087)<a href="#appendix-A.1-8.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.2-2.2">
+            <p id="appendix-A.2-2.2.1">Add a free-form SETUP parameter identifying the implementation (#1114)<a href="#appendix-A.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-2.3">
+            <p id="appendix-A.2-2.3.1">Add a Request ID to SUBSCRIBE_UDPATE (#1106)<a href="#appendix-A.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-2.4">
+            <p id="appendix-A.2-2.4.1">Indicate which params can appear PUBLISH* messages (#1071)<a href="#appendix-A.2-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-2.5">
+            <p id="appendix-A.2-2.5.1">Add TRACK_STATUS to the list of request types affected by GOAWAY (#1105)<a href="#appendix-A.2-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="appendix-A.1-9"><strong>Major Editorial Changes</strong><a href="#appendix-A.1-9" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-3"><strong>Data Plane Wire Format and Handling</strong><a href="#appendix-A.2-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-A.1-10.1">
-            <p id="appendix-A.1-10.1.1">Rename ANNOUNCE to PUBLISH_NAMESPACE (#1104)<a href="#appendix-A.1-10.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.2-4.1">
+            <p id="appendix-A.2-4.1.1">Delta encode Object IDs within Subgroups (#1042)<a href="#appendix-A.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.1-10.2">
-            <p id="appendix-A.1-10.2.1">Rename SUBSCRIBE_DONE to PUBLISH_DONE (#1108)<a href="#appendix-A.1-10.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.2-4.2">
+            <p id="appendix-A.2-4.2.1">Use a bit in Datagram Type to convey Object ID = 0 (#1055)<a href="#appendix-A.2-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.1-10.3">
-            <p id="appendix-A.1-10.3.1">Major FETCH Reorganization (#1173)<a href="#appendix-A.1-10.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.2-4.3">
+            <p id="appendix-A.2-4.3.1">Corrected missed code point updates to Object Datagram Status (#1082)<a href="#appendix-A.2-4.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.1-10.4">
-            <p id="appendix-A.1-10.4.1">Reformat Error Codes (#1091)<a href="#appendix-A.1-10.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.2-4.4">
+            <p id="appendix-A.2-4.4.1">Merge OBJECT_DATAGRAM and OBJECT_DATAGRAM_STATUS description (#1179)<a href="#appendix-A.2-4.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-4.5">
+            <p id="appendix-A.2-4.5.1">Objects are not schedulable if flow-control blocked (#1054)<a href="#appendix-A.2-4.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-4.6">
+            <p id="appendix-A.2-4.6.1">Clarify DELIVERY_TIMEOUT reordering computation (#1120)<a href="#appendix-A.2-4.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-4.7">
+            <p id="appendix-A.2-4.7.1">Receiving unrequested Objects (#1112)<a href="#appendix-A.2-4.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-4.8">
+            <p id="appendix-A.2-4.8.1">Clarify End of Track (#1111)<a href="#appendix-A.2-4.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-4.9">
+            <p id="appendix-A.2-4.9.1">Malformed tracks apply to FETCH (#1083)<a href="#appendix-A.2-4.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-4.10">
+            <p id="appendix-A.2-4.10.1">Remove early FIN from the definition of malformed tracks (#1096)<a href="#appendix-A.2-4.10.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-4.11">
+            <p id="appendix-A.2-4.11.1">Prior Object ID Gap Extension header (#939)<a href="#appendix-A.2-4.11.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-4.12">
+            <p id="appendix-A.2-4.12.1">Add Extension containing immutable extensions (#1025)<a href="#appendix-A.2-4.12.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.2-5"><strong>Relay Handling</strong><a href="#appendix-A.2-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.2-6.1">
+            <p id="appendix-A.2-6.1.1">Explain FETCH routing for relays (#1165)<a href="#appendix-A.2-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-6.2">
+            <p id="appendix-A.2-6.2.1"><span class="bcp14">MUST</span> for multi-publisher relay handling (#1115)<a href="#appendix-A.2-6.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-6.3">
+            <p id="appendix-A.2-6.3.1">Filters don't (usually) determine the end of subscription (#1113)<a href="#appendix-A.2-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-6.4">
+            <p id="appendix-A.2-6.4.1">Allow self-subscriptions (#1110)<a href="#appendix-A.2-6.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-6.5">
+            <p id="appendix-A.2-6.5.1">Explain Namespace Prefix Matching in more detail (#1116)<a href="#appendix-A.2-6.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.2-7"><strong>Explanatory</strong><a href="#appendix-A.2-7" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.2-8.1">
+            <p id="appendix-A.2-8.1.1">Explain Modularity of MOQT (#1107)<a href="#appendix-A.2-8.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-8.2">
+            <p id="appendix-A.2-8.2.1">Explain how to resume publishing after losing state (#1087)<a href="#appendix-A.2-8.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.2-9"><strong>Major Editorial Changes</strong><a href="#appendix-A.2-9" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.2-10.1">
+            <p id="appendix-A.2-10.1.1">Rename ANNOUNCE to PUBLISH_NAMESPACE (#1104)<a href="#appendix-A.2-10.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-10.2">
+            <p id="appendix-A.2-10.2.1">Rename SUBSCRIBE_DONE to PUBLISH_DONE (#1108)<a href="#appendix-A.2-10.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-10.3">
+            <p id="appendix-A.2-10.3.1">Major FETCH Reorganization (#1173)<a href="#appendix-A.2-10.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-10.4">
+            <p id="appendix-A.2-10.4.1">Reformat Error Codes (#1091)<a href="#appendix-A.2-10.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="since-draft-ietf-moq-transport-12">
-<section id="appendix-A.2">
-        <h3 id="name-since-draft-ietf-moq-transpo">
-<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-since-draft-ietf-moq-transpo" class="section-name selfRef">Since draft-ietf-moq-transport-12</a>
+<section id="appendix-A.3">
+        <h3 id="name-since-draft-ietf-moq-transpor">
+<a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-since-draft-ietf-moq-transpor" class="section-name selfRef">Since draft-ietf-moq-transport-12</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="appendix-A.2-1.1">
-            <p id="appendix-A.2-1.1.1">TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly mirror
-SUBSCRIBE/OK/ERROR (#1015)<a href="#appendix-A.2-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.3-1.1">
+            <p id="appendix-A.3-1.1.1">TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly mirror
+SUBSCRIBE/OK/ERROR (#1015)<a href="#appendix-A.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.2-1.2">
-            <p id="appendix-A.2-1.2.1">SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE (#1049)<a href="#appendix-A.2-1.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.3-1.2">
+            <p id="appendix-A.3-1.2.1">SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE (#1049)<a href="#appendix-A.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="since-draft-ietf-moq-transport-11">
-<section id="appendix-A.3">
-        <h3 id="name-since-draft-ietf-moq-transpor">
-<a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-since-draft-ietf-moq-transpor" class="section-name selfRef">Since draft-ietf-moq-transport-11</a>
+<section id="appendix-A.4">
+        <h3 id="name-since-draft-ietf-moq-transport">
+<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-since-draft-ietf-moq-transport" class="section-name selfRef">Since draft-ietf-moq-transport-11</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="appendix-A.3-1.1">
-            <p id="appendix-A.3-1.1.1">Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)<a href="#appendix-A.3-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.4-1.1">
+            <p id="appendix-A.4-1.1.1">Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)<a href="#appendix-A.4-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.3-1.2">
-            <p id="appendix-A.3-1.2.1">Expand cases FETCH_OK returns Invalid Range (#946) and clarify fields (#936)<a href="#appendix-A.3-1.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.2">
+            <p id="appendix-A.4-1.2.1">Expand cases FETCH_OK returns Invalid Range (#946) and clarify fields (#936)<a href="#appendix-A.4-1.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.3-1.3">
-            <p id="appendix-A.3-1.3.1">Add an error code to FETCH_ERROR when an Object status is unknown (#825)<a href="#appendix-A.3-1.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.3">
+            <p id="appendix-A.4-1.3.1">Add an error code to FETCH_ERROR when an Object status is unknown (#825)<a href="#appendix-A.4-1.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.3-1.4">
-            <p id="appendix-A.3-1.4.1">Rename Latest Object to Largest Object (#1024) and clarify what to
-do when it's incomplete (#937)<a href="#appendix-A.3-1.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.4">
+            <p id="appendix-A.4-1.4.1">Rename Latest Object to Largest Object (#1024) and clarify what to
+do when it's incomplete (#937)<a href="#appendix-A.4-1.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.3-1.5">
-            <p id="appendix-A.3-1.5.1">Explain Malformed Tracks and what to do with them (#938)<a href="#appendix-A.3-1.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.5">
+            <p id="appendix-A.4-1.5.1">Explain Malformed Tracks and what to do with them (#938)<a href="#appendix-A.4-1.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.3-1.6">
-            <p id="appendix-A.3-1.6.1">Allow End of Group to be indicated in a normal Object (#1011)<a href="#appendix-A.3-1.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.6">
+            <p id="appendix-A.4-1.6.1">Allow End of Group to be indicated in a normal Object (#1011)<a href="#appendix-A.4-1.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.3-1.7">
-            <p id="appendix-A.3-1.7.1">Relays <span class="bcp14">MUST</span> have an upstream subscription to send SUBSCRIBE_OK (#1017)<a href="#appendix-A.3-1.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.7">
+            <p id="appendix-A.4-1.7.1">Relays <span class="bcp14">MUST</span> have an upstream subscription to send SUBSCRIBE_OK (#1017)<a href="#appendix-A.4-1.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.3-1.8">
-            <p id="appendix-A.3-1.8.1">Allow AUTHORIZATION TOKEN in CLIENT_SETUP, SERVER_SETUP and
-other fixes (#1013)<a href="#appendix-A.3-1.8.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.8">
+            <p id="appendix-A.4-1.8.1">Allow AUTHORIZATION TOKEN in CLIENT_SETUP, SERVER_SETUP and
+other fixes (#1013)<a href="#appendix-A.4-1.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.3-1.9">
-            <p id="appendix-A.3-1.9.1">Add PUBLISH for publisher initiated subscriptions (#995) and
-fix the PUBLISH codepoints (#1048, #1051)<a href="#appendix-A.3-1.9.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-1.9">
+            <p id="appendix-A.4-1.9.1">Add PUBLISH for publisher initiated subscriptions (#995) and
+fix the PUBLISH codepoints (#1048, #1051)<a href="#appendix-A.4-1.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="since-draft-ietf-moq-transport-10">
-<section id="appendix-A.4">
-        <h3 id="name-since-draft-ietf-moq-transport">
-<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-since-draft-ietf-moq-transport" class="section-name selfRef">Since draft-ietf-moq-transport-10</a>
+<section id="appendix-A.5">
+        <h3 id="name-since-draft-ietf-moq-transport-">
+<a href="#appendix-A.5" class="section-number selfRef">A.5. </a><a href="#name-since-draft-ietf-moq-transport-" class="section-name selfRef">Since draft-ietf-moq-transport-10</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="appendix-A.4-1.1">
-            <p id="appendix-A.4-1.1.1">Added Common Structure definitions - Location, Key-Value-Pair and Reason
-Phrase<a href="#appendix-A.4-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.5-1.1">
+            <p id="appendix-A.5-1.1.1">Added Common Structure definitions - Location, Key-Value-Pair and Reason
+Phrase<a href="#appendix-A.5-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.2">
-            <p id="appendix-A.4-1.2.1">Limit lengths of all variable length fields, including Track Namespace and Name<a href="#appendix-A.4-1.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.2">
+            <p id="appendix-A.5-1.2.1">Limit lengths of all variable length fields, including Track Namespace and Name<a href="#appendix-A.5-1.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.3">
-            <p id="appendix-A.4-1.3.1">Control Message length is now 16 bits instead of variable length<a href="#appendix-A.4-1.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.3">
+            <p id="appendix-A.5-1.3.1">Control Message length is now 16 bits instead of variable length<a href="#appendix-A.5-1.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.4">
-            <p id="appendix-A.4-1.4.1">Subscribe ID became Request ID, and was added to most control messages. Request ID
+          <li class="normal" id="appendix-A.5-1.4">
+            <p id="appendix-A.5-1.4.1">Subscribe ID became Request ID, and was added to most control messages. Request ID
 is used to correlate OK/ERROR responses for ANNOUNCE, SUBSCRIBE_NAMESPACE,
-and TRACK_STATUS.  Like Subscribe ID, Request IDs are flow controlled.<a href="#appendix-A.4-1.4.1" class="pilcrow">¶</a></p>
+and TRACK_STATUS.  Like Subscribe ID, Request IDs are flow controlled.<a href="#appendix-A.5-1.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.5">
-            <p id="appendix-A.4-1.5.1">Explain rules for caching in more detail<a href="#appendix-A.4-1.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.5">
+            <p id="appendix-A.5-1.5.1">Explain rules for caching in more detail<a href="#appendix-A.5-1.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.6">
-            <p id="appendix-A.4-1.6.1">Changed the SETUP parameter format for even number parameters to match the
-Object Header Extension format<a href="#appendix-A.4-1.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.6">
+            <p id="appendix-A.5-1.6.1">Changed the SETUP parameter format for even number parameters to match the
+Object Header Extension format<a href="#appendix-A.5-1.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.7">
-            <p id="appendix-A.4-1.7.1">Rotated SETUP code points<a href="#appendix-A.4-1.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.7">
+            <p id="appendix-A.5-1.7.1">Rotated SETUP code points<a href="#appendix-A.5-1.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.8">
-            <p id="appendix-A.4-1.8.1">Added Parameters to TRACK_STATUS and TRACK_STATUS_REQUEST<a href="#appendix-A.4-1.8.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.8">
+            <p id="appendix-A.5-1.8.1">Added Parameters to TRACK_STATUS and TRACK_STATUS_REQUEST<a href="#appendix-A.5-1.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.9">
-            <p id="appendix-A.4-1.9.1">Clarified how subscribe filters work<a href="#appendix-A.4-1.9.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.9">
+            <p id="appendix-A.5-1.9.1">Clarified how subscribe filters work<a href="#appendix-A.5-1.9.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.10">
-            <p id="appendix-A.4-1.10.1">Added Next Group Filter to SUBSCRIBE<a href="#appendix-A.4-1.10.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.10">
+            <p id="appendix-A.5-1.10.1">Added Next Group Filter to SUBSCRIBE<a href="#appendix-A.5-1.10.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.11">
-            <p id="appendix-A.4-1.11.1">Added Forward flag to SUBSCRIBE<a href="#appendix-A.4-1.11.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.11">
+            <p id="appendix-A.5-1.11.1">Added Forward flag to SUBSCRIBE<a href="#appendix-A.5-1.11.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.12">
-            <p id="appendix-A.4-1.12.1">Renamed FETCH_OK field to End and clarified how to set it<a href="#appendix-A.4-1.12.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.12">
+            <p id="appendix-A.5-1.12.1">Renamed FETCH_OK field to End and clarified how to set it<a href="#appendix-A.5-1.12.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.13">
-            <p id="appendix-A.4-1.13.1">Added Absolute Joining Fetch<a href="#appendix-A.4-1.13.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.13">
+            <p id="appendix-A.5-1.13.1">Added Absolute Joining Fetch<a href="#appendix-A.5-1.13.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.14">
-            <p id="appendix-A.4-1.14.1">Clarified No Error vs Invalid Range FETCH_ERROR cases<a href="#appendix-A.4-1.14.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.14">
+            <p id="appendix-A.5-1.14.1">Clarified No Error vs Invalid Range FETCH_ERROR cases<a href="#appendix-A.5-1.14.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.15">
-            <p id="appendix-A.4-1.15.1">Use bits in SUBGROUP_HEADER and DATAGRAM* types to compress subgroup ID and
-extensions<a href="#appendix-A.4-1.15.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.15">
+            <p id="appendix-A.5-1.15.1">Use bits in SUBGROUP_HEADER and DATAGRAM* types to compress subgroup ID and
+extensions<a href="#appendix-A.5-1.15.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.16">
-            <p id="appendix-A.4-1.16.1">Coalesced END_OF_GROUP and END_OF_TRACK_AND_GROUP status<a href="#appendix-A.4-1.16.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.16">
+            <p id="appendix-A.5-1.16.1">Coalesced END_OF_GROUP and END_OF_TRACK_AND_GROUP status<a href="#appendix-A.5-1.16.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.17">
-            <p id="appendix-A.4-1.17.1">Objects that Do Not Exist cannot have extensions when sent on the wire<a href="#appendix-A.4-1.17.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.17">
+            <p id="appendix-A.5-1.17.1">Objects that Do Not Exist cannot have extensions when sent on the wire<a href="#appendix-A.5-1.17.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.18">
-            <p id="appendix-A.4-1.18.1">Specified error codes for resetting data streams<a href="#appendix-A.4-1.18.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.18">
+            <p id="appendix-A.5-1.18.1">Specified error codes for resetting data streams<a href="#appendix-A.5-1.18.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.19">
-            <p id="appendix-A.4-1.19.1">Defined an Object Header Extension for communicating a known Group ID gap<a href="#appendix-A.4-1.19.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.19">
+            <p id="appendix-A.5-1.19.1">Defined an Object Header Extension for communicating a known Group ID gap<a href="#appendix-A.5-1.19.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-1.20">
-            <p id="appendix-A.4-1.20.1">Replaced AUTHORIZATION_INFO with AUTHORIZATION_TOKEN, which has more structure,
-compression, and additional Auth related error codes (#760)<a href="#appendix-A.4-1.20.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.5-1.20">
+            <p id="appendix-A.5-1.20.1">Replaced AUTHORIZATION_INFO with AUTHORIZATION_TOKEN, which has more structure,
+compression, and additional Auth related error codes (#760)<a href="#appendix-A.5-1.20.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
