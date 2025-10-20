@@ -1527,8 +1527,6 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xD   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
-| 0xE   | TRACK_STATUS_OK ({{message-track-status-ok}}        |
-|-------|-----------------------------------------------------|
 | 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
 |-------|-----------------------------------------------------|
 | 0x9   | PUBLISH_NAMESPACE_DONE  ({{message-pub-ns-done}})   |
@@ -1716,8 +1714,10 @@ aliases.
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or
-SUBSCRIBE_UDPATE message.  It is the duration in milliseconds the relay SHOULD
+TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH, PUBLISH_OK,
+SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
+
+It is the duration in milliseconds the relay SHOULD
 continue to attempt forwarding Objects after they have been received.  The start
 time for the timeout is based on when the Object Headers are received, and does
 not depend upon the forwarding preference. There is no explicit signal that an
@@ -1752,7 +1752,9 @@ any other relevant information.
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a PUBLISH,
-SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS_OK message.  It is an integer expressing
+SUBSCRIBE_OK, FETCH_OK or REQUEST_OK (in response to TRACK_STATUS) message.
+
+It is an integer expressing
 the number of milliseconds an Object can be served from a cache. If present, the
 relay MUST NOT start forwarding any individual Object received through this
 subscription or fetch after the specified number of milliseconds has elapsed
@@ -1791,7 +1793,10 @@ the value 128.
 #### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_OK, TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK or FETCH.  It
+SUBSCRIBE_OK, TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
+PUBLISH_OK or FETCH.
+
+It
 is an enum indicating how to prioritize Objects from different groups within the
 same subscription (see {{priorities}}), or how to order Groups in a Fetch
 response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
@@ -1799,9 +1804,9 @@ Descending (0x2). If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
 
 If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference from
-SUBSCRIBE_OK or TRACK_STATUS_OK is used. If omitted in PUBLISH_OK, the
+SUBSCRIBE_OK or REQUEST_OK is used. If omitted in PUBLISH_OK, the
 publisher's preference from PUBLISH is used. If omitted from SUBSCRIBE_OK,
-TRACK_STATUS_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
+REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
 
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
@@ -2109,9 +2114,9 @@ REQUESTS_BLOCKED Message {
 
 ## REQUEST_OK {#message-request-ok}
 
-The REQUEST_OK message is sent to a response to SUBSCRIBE_NAMESPACE and
-PUBLISH_NAMESPACE requests. The unique request ID in the REQUEST_OK is used to
-associate it with the correct type of request.
+The REQUEST_OK message is sent to a response to SUBSCRIBE_UPDATE, TRACK_STATUS,
+SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests. The unique request ID in the
+REQUEST_OK is used to associate it with the correct type of request.
 
 ~~~
 REQUEST_OK Message {
@@ -2796,23 +2801,16 @@ The TRACK_STATUS message format is identical to the SUBSCRIBE message
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
-state or send any Objects.  Relays without an active subscription MAY forward
-TRACK_STATUS to one or more publishers, or MAY initiate a subscription (subject
-to authorization) as described in {{publisher-interactions}} to determine the
-response. The publisher does not send PUBLISH_DONE for this request, and the
-subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
+state or send any Objects.  If successful, the publisher responds with a
+REQUEST_OK message with the same parameters it would have set in a SUBSCRIBE_OK.
+Track Alias is not used.  A publisher responds to a failed TRACK_STATUS with an
+appropriate REQUEST_ERROR message.
 
-## TRACK_STATUS_OK {#message-track-status-ok}
-
-The publisher sends a TRACK_STATUS_OK control message in response
-to a successful TRACK_STATUS message.
-
-The TRACK_STATUS_OK message format is identical to the SUBSCRIBE_OK message
-({{message-subscribe-ok}}).
-
-The publisher populates the fields of TRACK_STATUS_OK exactly as it would have
-populated a SUBSCRIBE_OK, setting Track Alias to 0. It is not considered an error
-if Track Alias 0 is already in use by an active subscription.
+Relays without an active subscription MAY forward TRACK_STATUS to one or more
+publishers, or MAY initiate a subscription (subject to authorization) as
+described in {{publisher-interactions}} to determine the response. The publisher
+does not send PUBLISH_DONE for this request, and the subscriber cannot send
+SUBSCRIBE_UPDATE or UNSUBSCRIBE.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 
