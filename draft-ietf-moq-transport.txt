@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 20 April 2026                                     I. Swett, Ed.
+Expires: 23 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         17 October 2025
+                                                         20 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 April 2026.
+   This Internet-Draft will expire on 23 April 2026.
 
 Copyright Notice
 
@@ -1147,7 +1147,7 @@ Table of Contents
    subscriber joining a Track might detect that it is more efficient to
    request the Original Publisher create a new group than issue a
    Joining FETCH.  Publishers indicate a Track supports dynamic group
-   creation using the DYNAMIC_GROUPS parameter (Section 9.2.1.9).
+   creation using the DYNAMIC_GROUPS parameter (Section 9.2.1.10).
 
    One possible subscriber pattern is to SUBSCRIBE to a Track using
    Filter Type Largest Object and observe the Largest Location in the
@@ -1156,7 +1156,7 @@ Table of Contents
    Object ID is above the threshold and the Track supports dynamic
    groups, the subscriber sends a SUBSCRIBE_UPDATE message with the
    NEW_GROUP_REQUEST parameter equal to the Largest Location's Group,
-   plus one (see Section 9.2.1.10).
+   plus one (see Section 9.2.1.11).
 
    Another possible subscriber pattern is to send a SUBSCRIBE with
    Filter Type Next Group Start and NEW_GROUP_REQUEST equal to 0.  The
@@ -2046,7 +2046,21 @@ Table of Contents
    If the EXPIRES parameter is 0 or is not present in a message, the
    subscription does not expire or expires at an unknown time.
 
-9.2.1.9.  DYNAMIC GROUPS Parameter
+9.2.1.9.  FORWARD Parameter
+
+   The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
+   SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK,
+   and SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying
+   the Forwarding State on affected subscriptions (see Section 5.1).
+   The allowed values are 0 (don't forward) or 1 (forward).  If an
+   endpoint receives a value outside this range, it MUST close the
+   session with PROTOCOL_VIOLATION.
+
+   If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
+   subscription remains unchanged.  If the parameter is omitted from any
+   other message, the default value is 1.
+
+9.2.1.10.  DYNAMIC GROUPS Parameter
 
    The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in
    PUBLISH or SUBSCRIBE_OK.  Values larger than 1 are a Protocol
@@ -2059,7 +2073,7 @@ Table of Contents
    upstream publisher in SUBSCRIBE_OK or PUBLISH when sending these
    messages to downstream subscribers.
 
-9.2.1.10.  NEW GROUP_REQUEST Parameter
+9.2.1.11.  NEW GROUP_REQUEST Parameter
 
    The NEW_GROUP_REQUEST parameter (parameter type 0x22) MAY appear in
    PUBLISH_OK, SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer
@@ -2425,7 +2439,6 @@ Table of Contents
      Track Namespace (..),
      Track Name Length (i),
      Track Name (..),
-     Forward (8),
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -2440,15 +2453,6 @@ Table of Contents
    *  Track Name: Identifies the track name as defined in
       (Section 2.4.1).
 
-   *  Forward: If 1, Objects matching the subscription are forwarded to
-      the subscriber.  If 0, Objects are not forwarded to the subscriber
-      (see Section 5.1) Any other value is a protocol error and MUST
-      terminate the session with a PROTOCOL_VIOLATION (Section 3.4).
-
-   Subscribing with Forward=0 allows publisher or relay to prepare to
-   serve the subscription in advance, reducing the time to receive
-   objects in the future.
-
    *  Parameters: The parameters are defined in Section 9.2.1.
 
    On successful subscription, the publisher MUST reply with a
@@ -2459,6 +2463,10 @@ Table of Contents
    (see Section 9.2.1.7) or if the entire End Group has already been
    published it SHOULD send a REQUEST_ERROR with code INVALID_RANGE.  A
    publisher MUST NOT send objects from outside the requested range.
+
+   Subscribing with the FORWARD parameter (Section 9.2.1.9) equal to 0
+   allows publisher or relay to prepare to serve the subscription in
+   advance, reducing the time to receive objects in the future.
 
 9.10.  SUBSCRIBE_OK
 
@@ -2539,7 +2547,6 @@ Table of Contents
      Length (16),
      Request ID (i),
      Subscription Request ID (i),
-     Forward (8),
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -2553,11 +2560,6 @@ Table of Contents
       existing Request ID.  The publisher MUST close the session with `
       PROTOCOL_VIOLATION if the subscriber specifies an invalid
       Subscription Request ID.
-
-   *  Forward: If 1, Objects matching the subscription are forwarded to
-      the subscriber.  If 0, Objects are not forwarded to the subscriber
-      (see Section 5.1) Any other value is a protocol error and MUST
-      terminate the session with a PROTOCOL_VIOLATION (Section 3.4).
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
@@ -2597,7 +2599,6 @@ Table of Contents
      Track Alias (i),
      Content Exists (8),
      [Largest Location (Location),]
-     Forward (8),
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -2628,18 +2629,18 @@ Table of Contents
    *  Largest Location: The location of the largest object available for
       this track.
 
-   *  Forward: If 1, the publisher will start transmitting objects
-      immediately, even before PUBLISH_OK.  If 0, the publisher will not
-      transmit any objects until the subscriber sets the Forward State
-      to 1 (see Section 5.1).  Any value other than 0 or 1 is a
-      PROTOCOL_VIOLATION.
-
    *  Parameters: The parameters are defined in Section 9.2.1.
 
    A subscriber receiving a PUBLISH for a Track it does not wish to
    receive SHOULD send REQUEST_ERROR with error code UNINTERESTED, and
    abandon reading any publisher initiated streams associated with that
    subscription using a STOP_SENDING frame.
+
+   A publisher that sends the FORWARD parameter (Section 9.2.1.9) equal
+   to 0 indicates that it will not transmit any objects until the
+   subscriber sets the Forward State to 1.  If the FORWARD parameter is
+   omitted or equal to 1, the publisher will start transmitting objects
+   immediately, possibly before PUBLISH_OK.
 
 9.14.  PUBLISH_OK
 
@@ -2651,7 +2652,6 @@ Table of Contents
      Type (i) = 0x1E,
      Length (16),
      Request ID (i),
-     Forward (8),
      Number of Parameters (i),
      Parameters (..) ...,
    }
@@ -2660,11 +2660,6 @@ Table of Contents
 
    *  Request ID: The Request ID of the PUBLISH this message is replying
       to Section 9.13.
-
-   *  Forward: If 1, Objects matching the subscription are forwarded to
-      the subscriber.  If 0, Objects are not forwarded to the subscriber
-      (see Section 5.1) Any other value is a protocol error and MUST
-      terminate the session with a PROTOCOL_VIOLATION (Section 3.4).
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
@@ -3152,7 +3147,6 @@ Table of Contents
      Length (16),
      Request ID (i),
      Track Namespace Prefix (..),
-     Forward (8),
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -3172,9 +3166,6 @@ Table of Contents
       receives a Track Namespace Prefix consisting of 0 or greater than
       than 32 Track Namespace Fields, it MUST close the session with a
       PROTOCOL_VIOLATION.
-
-   *  Forward: The Forward value that new subscriptions resulting from
-      this SUBSCRIBE_NAMESPACE will have (see Section 5.1).
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
@@ -3200,6 +3191,14 @@ Table of Contents
    subscriber.  It is useful in applications or relays where subscribers
    are only interested in or authorized to access a subset of available
    namespaces and tracks.
+
+   If the FORWARD parameter (Section 9.2.1.9) is present in this message
+   and equal to 0, PUBLISH messages resulting from this
+   SUBSCRIBE_NAMESPACE will set the FORWARD parameter to 0.  If the
+   FORWARD parameter is equal to 1 or omitted from this message, PUBLISH
+   messages resulting from this SUBSCRIBE_NAMESPACE will set the FORWARD
+   parameter to 1, or indicate that value by omitting the parameter (see
+   Section 5.1).
 
 9.25.  UNSUBSCRIBE_NAMESPACE
 
