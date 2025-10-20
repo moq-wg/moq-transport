@@ -177,8 +177,7 @@ Table of Contents
      10.5.  Examples
    11. Extension Headers
      11.1.  Prior Group ID Gap
-     11.2.  Immutable Extensions
-     11.3.  Prior Object ID Gap
+     11.2.  Prior Object ID Gap
    12. Security Considerations
      12.1.  Resource Exhaustion
      12.2.  Timeouts
@@ -3358,9 +3357,13 @@ Table of Contents
 
    Extension Headers are defined in external specifications and
    registered in an IANA table Section 13.  These specifications define
-   the type and value of the header, along with any rules concerning
-   processing, modification, caching and forwarding.  A relay which is
-   coded to implement these rules is said to "support" the extension.
+   the type and value of the header, as well as the rules for
+   processing, modification, caching and forwarding.  All such
+   specifications MUST specify whether multiple values of the same
+   extension are allowed on a single Object.  A relay that enforces
+   these rules is considered to "support" the extension.  If a Relay
+   does not support an extension header, it MUST assume multiple values
+   are allowed.
 
    If unsupported by the relay, Extension Headers MUST NOT be modified,
    MUST be cached as part of the Object and MUST be forwarded by relays.
@@ -3666,7 +3669,7 @@ Table of Contents
    Object ID Delta values.  A consumer cannot infer information about
    the existence of Objects between the current and previous Object ID
    in the Subgroup (e.g. when Object ID Delta is non-zero) unless there
-   is an Prior Object ID Gap extesnion header (see Section 11.3).
+   is an Prior Object ID Gap extesnion header (see Section 11.2).
 
    {
      Object ID Delta (i),
@@ -3978,7 +3981,8 @@ Table of Contents
    This extension can be added by the Original Publisher, but MUST NOT
    be added by relays.  This extension MUST NOT be modified or removed.
 
-11.2.  Immutable Extensions
+   An Object MUST NOT contain more than one instance of this extension
+   header. ## Immutable Extensions
 
    The Immutable Extensions (Extension Header Type 0xB) contains a
    sequence of Key-Value-Pairs (see Figure 2) which are also Object
@@ -4020,7 +4024,10 @@ x = e2e Authenticated Data
 y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
 
-11.3.  Prior Object ID Gap
+   An Object MUST NOT contain more than one instance of this extension
+   header.
+
+11.2.  Prior Object ID Gap
 
    Prior Object ID Gap (Extension Header Type 0x3E) is a variable length
    integer containing the number of Objects prior to the current Object
@@ -4048,6 +4055,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    This extension can be added by the Original Publisher, but MUST NOT
    be added by relays.  This extension MUST NOT be modified or removed.
+
+   An Object MUST NOT contain more than one instance of this extension
+   header.
 
 12.  Security Considerations
 

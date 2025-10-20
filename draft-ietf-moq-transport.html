@@ -1526,10 +1526,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-prior-group-id-gap" class="internal xref">Prior Group ID Gap</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
-                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-immutable-extensions" class="internal xref">Immutable Extensions</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.3">
-                <p id="section-toc.1-1.11.2.3.1"><a href="#section-11.3" class="auto internal xref">11.3</a>.  <a href="#name-prior-object-id-gap" class="internal xref">Prior Object ID Gap</a></p>
+                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-prior-object-id-gap" class="internal xref">Prior Object ID Gap</a></p>
 </li>
             </ul>
 </li>
@@ -5441,9 +5438,11 @@ intended to be accessed by the transport or Relays <span class="bcp14">SHOULD</s
 of the Object payload and not as an extension header.<a href="#section-10.2.1.2-2" class="pilcrow">¶</a></p>
 <p id="section-10.2.1.2-3">Extension Headers are defined in external specifications and registered in an
 IANA table <a href="#iana" class="auto internal xref">Section 13</a>. These specifications define the type and value of the
-header, along with any rules concerning processing, modification, caching and
-forwarding. A relay which is coded to implement these rules is said to
-"support" the extension.<a href="#section-10.2.1.2-3" class="pilcrow">¶</a></p>
+header, as well as the rules for processing, modification, caching and
+forwarding. All such specifications <span class="bcp14">MUST</span> specify whether multiple values of the
+same extension are allowed on a single Object.  A relay that enforces these
+rules is considered to "support" the extension.  If a Relay does not support an
+extension header, it <span class="bcp14">MUST</span> assume multiple values are allowed.<a href="#section-10.2.1.2-3" class="pilcrow">¶</a></p>
 <p id="section-10.2.1.2-4">If unsupported by the relay, Extension Headers <span class="bcp14">MUST NOT</span> be modified, <span class="bcp14">MUST</span> be
 cached as part of the Object and <span class="bcp14">MUST</span> be forwarded by relays.<a href="#section-10.2.1.2-4" class="pilcrow">¶</a></p>
 <p id="section-10.2.1.2-5">If supported by the relay and subject to the processing rules specified in the
@@ -6070,7 +6069,7 @@ starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
 unless there is an Prior Object ID Gap extesnion header (see
-<a href="#prior-object-id-gap" class="auto internal xref">Section 11.3</a>).<a href="#section-10.4.2-13" class="pilcrow">¶</a></p>
+<a href="#prior-object-id-gap" class="auto internal xref">Section 11.2</a>).<a href="#section-10.4.2-13" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
 <figure id="figure-28">
             <div class="alignLeft art-text artwork" id="section-10.4.2-14.1">
@@ -6450,44 +6449,39 @@ cannot infer any information about the existence of prior groups (see
 <a href="#group-ids" class="auto internal xref">Section 2.3.1</a>).<a href="#section-11.1-3" class="pilcrow">¶</a></p>
 <p id="section-11.1-4">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
 relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed.<a href="#section-11.1-4" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="immutable-extensions">
-<section id="section-11.2">
-        <h3 id="name-immutable-extensions">
-<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-immutable-extensions" class="section-name selfRef">Immutable Extensions</a>
-        </h3>
-<p id="section-11.2-1">The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
+<p id="section-11.1-5">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.
+## Immutable Extensions<a href="#section-11.1-5" class="pilcrow">¶</a></p>
+<p id="section-11.1-6">The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
 Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>) which are also Object Extension
-Headers of the Object.<a href="#section-11.2-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-11.2-2">
+Headers of the Object.<a href="#section-11.1-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-11.1-7">
 <pre>
 Immutable Extensions {
   Type (0xB),
   Length (i),
   Key-Value-Pair (..) ...
 }
-</pre><a href="#section-11.2-2" class="pilcrow">¶</a>
+</pre><a href="#section-11.1-7" class="pilcrow">¶</a>
 </div>
-<p id="section-11.2-3">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
+<p id="section-11.1-8">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
 Relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed. Relays <span class="bcp14">MUST</span> cache this
 extension if the Object is cached and <span class="bcp14">MUST</span> forward this extension if the
-enclosing Object is forwarded. Relays <span class="bcp14">MAY</span> decode and view these extensions.<a href="#section-11.2-3" class="pilcrow">¶</a></p>
-<p id="section-11.2-4">A Track is considered malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the
-following conditions are detected:<a href="#section-11.2-4" class="pilcrow">¶</a></p>
+enclosing Object is forwarded. Relays <span class="bcp14">MAY</span> decode and view these extensions.<a href="#section-11.1-8" class="pilcrow">¶</a></p>
+<p id="section-11.1-9">A Track is considered malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the
+following conditions are detected:<a href="#section-11.1-9" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.2-5.1">
-            <p id="section-11.2-5.1.1">An Object contains an Immutable Extensions header that contains another
-Immutable Extensions key.<a href="#section-11.2-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.1-10.1">
+            <p id="section-11.1-10.1.1">An Object contains an Immutable Extensions header that contains another
+Immutable Extensions key.<a href="#section-11.1-10.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.2-5.2">
-            <p id="section-11.2-5.2.1">A Key-Value-Pair cannot be parsed.<a href="#section-11.2-5.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.1-10.2">
+            <p id="section-11.1-10.2.1">A Key-Value-Pair cannot be parsed.<a href="#section-11.1-10.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.2-6">The following figure shows an example Object structure with a combination of
+<p id="section-11.1-11">The following figure shows an example Object structure with a combination of
 mutable and immutable extensions and end to end encrypted metadata in the Object
-payload.<a href="#section-11.2-6" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-11.2-7">
+payload.<a href="#section-11.1-11" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-11.1-12">
 <pre>
                    Object Header                      Object Payload
 &lt;------------------------------------------------&gt; &lt;-------------------&gt;
@@ -6500,45 +6494,47 @@ payload.<a href="#section-11.2-6" class="pilcrow">¶</a></p>
 x = e2e Authenticated Data
 y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
-</pre><a href="#section-11.2-7" class="pilcrow">¶</a>
+</pre><a href="#section-11.1-12" class="pilcrow">¶</a>
 </div>
+<p id="section-11.1-13">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.1-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="prior-object-id-gap">
-<section id="section-11.3">
+<section id="section-11.2">
         <h3 id="name-prior-object-id-gap">
-<a href="#section-11.3" class="section-number selfRef">11.3. </a><a href="#name-prior-object-id-gap" class="section-name selfRef">Prior Object ID Gap</a>
+<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-prior-object-id-gap" class="section-name selfRef">Prior Object ID Gap</a>
         </h3>
-<p id="section-11.3-1">Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
+<p id="section-11.2-1">Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
 containing the number of Objects prior to the current Object that do not and
 will never exist. This is equivalent to receiving an <code>Object Does Not Exist</code>
 status for each skipped Object ID. For example, if the Original Publisher is
 publishing Object 10 in Group 3 and knows it will never publish Objects 8 or 9
 in this Group, it can include Prior Object ID Gap = 2.  A Track is considered
 malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the following conditions are
-detected:<a href="#section-11.3-1" class="pilcrow">¶</a></p>
+detected:<a href="#section-11.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.3-2.1">
-            <p id="section-11.3-2.1.1">An Object contains more than one instance of Prior Object ID Gap.<a href="#section-11.3-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.2-2.1">
+            <p id="section-11.2-2.1.1">An Object contains more than one instance of Prior Object ID Gap.<a href="#section-11.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.3-2.2">
-            <p id="section-11.3-2.2.1">An Object has a Prior Object ID Gap larger than the Object ID.<a href="#section-11.3-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.2-2.2">
+            <p id="section-11.2-2.2.1">An Object has a Prior Object ID Gap larger than the Object ID.<a href="#section-11.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.3-2.3">
-            <p id="section-11.3-2.3.1">An endpoint receives an Object with a Prior Object ID Gap covering an Object
-it previously received.<a href="#section-11.3-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.2-2.3">
+            <p id="section-11.2-2.3.1">An endpoint receives an Object with a Prior Object ID Gap covering an Object
+it previously received.<a href="#section-11.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.3-2.4">
-            <p id="section-11.3-2.4.1">An endpoint receives an Object with an Object ID within a previously
-communicated gap.<a href="#section-11.3-2.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.2-2.4">
+            <p id="section-11.2-2.4.1">An endpoint receives an Object with an Object ID within a previously
+communicated gap.<a href="#section-11.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.3-3">This extension is optional, as publishers might not know the prior gap gize, or
+<p id="section-11.2-3">This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
-<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-11.3-3" class="pilcrow">¶</a></p>
-<p id="section-11.3-4">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
-relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed.<a href="#section-11.3-4" class="pilcrow">¶</a></p>
+<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-11.2-3" class="pilcrow">¶</a></p>
+<p id="section-11.2-4">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
+relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed.<a href="#section-11.2-4" class="pilcrow">¶</a></p>
+<p id="section-11.2-5">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
