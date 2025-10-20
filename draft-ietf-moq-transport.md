@@ -2293,16 +2293,21 @@ SUBSCRIBE_OK Message {
 A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
 subscription.
 
-A Subscription Filter (see {{subscription-filters}}) can only be narrowed, not
-widened, as an attempt to widen could fail. If Objects with Locations smaller
-than the current subscription filter's Start Location are required, FETCH can be
-used to retrieve them. The Start Location MUST NOT decrease and the End Group
-MUST NOT increase.  A publisher MUST terminate the session with a
-`PROTOCOL_VIOLATION` if the SUBSCRIBE_UPDATE violates these rules.
+When updating the Subscription Filter (see {{subscription-filters}}),
+the Start Location MUST not decrease, as an attempt to
+to do so could fail. If Objects with Locations smaller than the current
+subscription's Largest Location are required, FETCH can be used to retrieve
+them. A publisher MUST terminate the session with a `PROTOCOL_VIOLATION` if the
+SUBSCRIBE_UPDATE violates this rule.
 
-When a subscriber narrows their subscription, it might still receive objects
+When a subscriber narrows their subscription (increase the Start Location and/or
+decrease the End Group), it might still receive objects
 outside the new range if the publisher sent them before the update was
-processed.
+processed. When a subscriber increases the End Location, the Largest Object at
+the publisher might already be larger than the previous End Location. This will
+create a gap in the subscription. The REQUEST_OK in response to the
+SUBSCRIBE_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
+can issue a FETCH to retrieve the omitted Objects, if any.
 
 The receiver of a SUBSCRIBE_UPDATE MUST respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful.  When an
