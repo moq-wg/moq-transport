@@ -3695,18 +3695,27 @@ Table of Contents
 
    If a sender closes the stream before delivering all such objects to
    the QUIC stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
-   [I-D.draft-ietf-quic-reliable-stream-reset] frame.  This includes an
-   open Subgroup exceeding its Delivery Timeout, early termination of
-   subscription due to an UNSUBSCRIBE message, a publisher's decision to
-   end the subscription early, or a SUBSCRIBE_UPDATE moving the
-   subscription's End Group to a smaller Group or the Start Location to
-   a larger Location.  When RESET_STREAM_AT is used, the reliable_size
-   SHOULD include the stream header so the receiver can identify the
-   corresponding subscription and accurately account for reset data
-   streams when handling PUBLISH_DONE (see Section 9.15).  Publishers
-   that reset data streams without using RESET_STREAM_AT with an
-   appropriate reliable_size can cause subscribers to hold on to
-   subscription state until a timeout expires.
+   [I-D.draft-ietf-quic-reliable-stream-reset] frame.  This includes,
+   but is not limited to:
+
+   *  An Object in an open Subgroup exceeding its Delivery Timeout
+
+   *  Early termination of subscription due to an UNSUBSCRIBE message
+
+   *  A publisher's decision to end the subscription early
+
+   *  A SUBSCRIBE_UPDATE moving the subscription's End Group to a
+      smaller Group or the Start Location to a larger Location
+
+   *  Omitting a Subgroup Object due to the subcriber's Forward State
+
+   When RESET_STREAM_AT is used, the reliable_size SHOULD include the
+   stream header so the receiver can identify the corresponding
+   subscription and accurately account for reset data streams when
+   handling PUBLISH_DONE (see Section 9.15).  Publishers that reset data
+   streams without using RESET_STREAM_AT with an appropriate
+   reliable_size can cause subscribers to hold on to subscription state
+   until a timeout expires.
 
    A sender might send all objects in a Subgroup and the FIN on a QUIC
    stream, and then reset the stream.  In this case, the receiving

@@ -6104,98 +6104,114 @@ any Objects with Locations smaller than the subscription's Start Location, it
 <span class="bcp14">MUST</span> close the stream with a FIN.<a href="#section-10.4.3-2" class="pilcrow">¶</a></p>
 <p id="section-10.4.3-3">If a sender closes the stream before delivering all such objects to the QUIC
 stream, it <span class="bcp14">MUST</span> use a RESET_STREAM or RESET_STREAM_AT
-<span>[<a href="#I-D.draft-ietf-quic-reliable-stream-reset" class="cite xref">I-D.draft-ietf-quic-reliable-stream-reset</a>]</span> frame. This includes an open
-Subgroup exceeding its Delivery Timeout, early termination of subscription due
-to an UNSUBSCRIBE message, a publisher's decision to end the subscription early,
-or a SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
-the Start Location to a larger Location.  When RESET_STREAM_AT is used, the
+<span>[<a href="#I-D.draft-ietf-quic-reliable-stream-reset" class="cite xref">I-D.draft-ietf-quic-reliable-stream-reset</a>]</span> frame. This includes, but is
+not limited to:<a href="#section-10.4.3-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-10.4.3-4.1">
+              <p id="section-10.4.3-4.1.1">An Object in an open Subgroup exceeding its Delivery Timeout<a href="#section-10.4.3-4.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-10.4.3-4.2">
+              <p id="section-10.4.3-4.2.1">Early termination of subscription due to an UNSUBSCRIBE message<a href="#section-10.4.3-4.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-10.4.3-4.3">
+              <p id="section-10.4.3-4.3.1">A publisher's decision to end the subscription early<a href="#section-10.4.3-4.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-10.4.3-4.4">
+              <p id="section-10.4.3-4.4.1">A SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
+the Start Location to a larger Location<a href="#section-10.4.3-4.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-10.4.3-4.5">
+              <p id="section-10.4.3-4.5.1">Omitting a Subgroup Object due to the subcriber's Forward State<a href="#section-10.4.3-4.5.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-10.4.3-5">When RESET_STREAM_AT is used, the
 reliable_size <span class="bcp14">SHOULD</span> include the stream header so the receiver can identify the
 corresponding subscription and accurately account for reset data streams when
 handling PUBLISH_DONE (see <a href="#message-publish-done" class="auto internal xref">Section 9.15</a>).  Publishers that reset
 data streams without using RESET_STREAM_AT with an appropriate reliable_size can
-cause subscribers to hold on to subscription state until a timeout expires.<a href="#section-10.4.3-3" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-4">A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
+cause subscribers to hold on to subscription state until a timeout expires.<a href="#section-10.4.3-5" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-6">A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
-all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.<a href="#section-10.4.3-4" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-5">If a sender will not deliver any objects from a Subgroup, it <span class="bcp14">MAY</span> send
+all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.<a href="#section-10.4.3-6" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-7">If a sender will not deliver any objects from a Subgroup, it <span class="bcp14">MAY</span> send
 a SUBGROUP_HEADER on a new stream, with no objects, and then send RESET_STREAM_AT
 with a reliable_size equal to the length of the stream header. This explicitly
-tells the receiver there is an unsent Subgroup.<a href="#section-10.4.3-5" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-6">A relay <span class="bcp14">MUST NOT</span> forward an Object on an existing Subgroup stream unless it is
+tells the receiver there is an unsent Subgroup.<a href="#section-10.4.3-7" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-8">A relay <span class="bcp14">MUST NOT</span> forward an Object on an existing Subgroup stream unless it is
 the next Object in that Subgroup.  A relay determines that an Object is the next
-Object in the Subgroup if at least one of the following is true:<a href="#section-10.4.3-6" class="pilcrow">¶</a></p>
+Object in the Subgroup if at least one of the following is true:<a href="#section-10.4.3-8" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-10.4.3-7.1">
-              <p id="section-10.4.3-7.1.1">The Object ID is one greater than the previous Object sent on this Subgroup
-stream.<a href="#section-10.4.3-7.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-10.4.3-9.1">
+              <p id="section-10.4.3-9.1.1">The Object ID is one greater than the previous Object sent on this Subgroup
+stream.<a href="#section-10.4.3-9.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-10.4.3-7.2">
-              <p id="section-10.4.3-7.2.1">The Object was received on the same upstream Subgroup stream as the
+            <li class="normal" id="section-10.4.3-9.2">
+              <p id="section-10.4.3-9.2.1">The Object was received on the same upstream Subgroup stream as the
 previously sent Object on the downstream Subgroup stream, with no other
-Objects in between.<a href="#section-10.4.3-7.2.1" class="pilcrow">¶</a></p>
+Objects in between.<a href="#section-10.4.3-9.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-10.4.3-7.3">
-              <p id="section-10.4.3-7.3.1">It determined all Object IDs between the current and previous Object IDs
-on the Subgroup stream belong to different Subgroups or do not exist.<a href="#section-10.4.3-7.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-10.4.3-9.3">
+              <p id="section-10.4.3-9.3.1">It determined all Object IDs between the current and previous Object IDs
+on the Subgroup stream belong to different Subgroups or do not exist.<a href="#section-10.4.3-9.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-10.4.3-8">If the relay does not know if an Object is the next Object, it <span class="bcp14">MUST</span> reset the
-Subgroup stream and open a new one to forward it.<a href="#section-10.4.3-8" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-9">Since SUBSCRIBEs always end on a group boundary, an ending subscription can
+<p id="section-10.4.3-10">If the relay does not know if an Object is the next Object, it <span class="bcp14">MUST</span> reset the
+Subgroup stream and open a new one to forward it.<a href="#section-10.4.3-10" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-11">Since SUBSCRIBEs always end on a group boundary, an ending subscription can
 always cleanly close all its subgroups. A sender that terminates a stream
 early for any other reason (e.g., to handoff to a different sender) <span class="bcp14">MUST</span>
 use RESET_STREAM or RESET_STREAM_AT. Senders <span class="bcp14">SHOULD</span> terminate a stream on
-Group boundaries to avoid doing so.<a href="#section-10.4.3-9" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-10">An MOQT implementation that processes a stream FIN is assured it has received
+Group boundaries to avoid doing so.<a href="#section-10.4.3-11" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-12">An MOQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
 can forward stream FINs to its own subscribers once those objects have been
 sent. A relay <span class="bcp14">MAY</span> treat receipt of EndOfGroup or EndOfTrack objects as a signal
 to close corresponding streams even if the FIN has not arrived, as further
-objects on the stream would be a protocol violation.<a href="#section-10.4.3-10" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-11">Similarly, an EndOfGroup message indicates the maximum Object ID in the
+objects on the stream would be a protocol violation.<a href="#section-10.4.3-12" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-13">Similarly, an EndOfGroup message indicates the maximum Object ID in the
 Group, so if all Objects in the Group have been received, a FIN can be sent on
 any stream where the entire subgroup has been sent. This might be complex to
-implement.<a href="#section-10.4.3-11" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-12">Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
+implement.<a href="#section-10.4.3-13" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-14">Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
 reset the corresponding downstream stream, or it might attempt to recover the
 missing Objects in an effort to send all the Objects in the subgroups and the FIN.
 It also might send RESET_STREAM_AT with reliable_size set to the last Object it
 has, so as to reliably deliver the Objects it has while signaling that other
-Objects might exist.<a href="#section-10.4.3-12" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-13">A subscriber <span class="bcp14">MAY</span> send a QUIC STOP_SENDING frame for a subgroup stream if the Group
+Objects might exist.<a href="#section-10.4.3-14" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-15">A subscriber <span class="bcp14">MAY</span> send a QUIC STOP_SENDING frame for a subgroup stream if the Group
 or Subgroup is no longer of interest to it. The publisher <span class="bcp14">SHOULD</span> respond with
 RESET_STREAM or RESET_STREAM_AT. If RESET_STREAM_AT is sent, note that the receiver
 has indicated no interest in the objects, so setting a reliable_size beyond the
-stream header is of questionable utility.<a href="#section-10.4.3-13" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-14">RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
+stream header is of questionable utility.<a href="#section-10.4.3-15" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-16">RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
-Subgroups in a Group at once.<a href="#section-10.4.3-14" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-15">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
-RESET_STREAM_AT, as defined below:<a href="#section-10.4.3-15" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-10.4.3-16">
-            <dt id="section-10.4.3-16.1">INTERNAL_ERROR (0x0):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-16.2">
-              <p id="section-10.4.3-16.2.1">An implementation specific error.<a href="#section-10.4.3-16.2.1" class="pilcrow">¶</a></p>
+Subgroups in a Group at once.<a href="#section-10.4.3-16" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-17">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
+RESET_STREAM_AT, as defined below:<a href="#section-10.4.3-17" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-10.4.3-18">
+            <dt id="section-10.4.3-18.1">INTERNAL_ERROR (0x0):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-18.2">
+              <p id="section-10.4.3-18.2.1">An implementation specific error.<a href="#section-10.4.3-18.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-16.3">CANCELLED (0x1):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-16.4">
-              <p id="section-10.4.3-16.4.1">The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
+<dt id="section-10.4.3-18.3">CANCELLED (0x1):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-18.4">
+              <p id="section-10.4.3-18.4.1">The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
 STOP_SENDING, or the publisher ended the subscription, in which case
 PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.15</a>) will have a more detailed status
-code.<a href="#section-10.4.3-16.4.1" class="pilcrow">¶</a></p>
+code.<a href="#section-10.4.3-18.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-16.5">DELIVERY_TIMEOUT (0x2):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-16.6">
-              <p id="section-10.4.3-16.6.1">The DELIVERY TIMEOUT <a href="#delivery-timeout" class="auto internal xref">Section 9.2.1.2</a> was exceeded for this stream.<a href="#section-10.4.3-16.6.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-18.5">DELIVERY_TIMEOUT (0x2):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-18.6">
+              <p id="section-10.4.3-18.6.1">The DELIVERY TIMEOUT <a href="#delivery-timeout" class="auto internal xref">Section 9.2.1.2</a> was exceeded for this stream.<a href="#section-10.4.3-18.6.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-16.7">SESSION_CLOSED (0x3):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-16.8">
-              <p id="section-10.4.3-16.8.1">The publisher session is being closed.<a href="#section-10.4.3-16.8.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-18.7">SESSION_CLOSED (0x3):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-18.8">
+              <p id="section-10.4.3-18.8.1">The publisher session is being closed.<a href="#section-10.4.3-18.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
