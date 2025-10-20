@@ -5256,7 +5256,7 @@ PUBLISH messages for the specified track namespace prefix.<a href="#section-9.25
 UNSUBSCRIBE_NAMESPACE Message {
   Type (i) = 0x14,
   Length (16),
-  Track Namespace Prefix (..)
+  Request ID (i),
 }
 </pre>
 </div>
@@ -5266,7 +5266,8 @@ UNSUBSCRIBE_NAMESPACE Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-9.25-4.1">
-            <p id="section-9.25-4.1.1">Track Namespace Prefix: As defined in <a href="#message-subscribe-ns" class="auto internal xref">Section 9.24</a>.<a href="#section-9.25-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-9.25-4.1.1">Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
+(<a href="#message-subscribe-ns" class="auto internal xref">Section 9.24</a>) being cancelled by this message.<a href="#section-9.25-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
