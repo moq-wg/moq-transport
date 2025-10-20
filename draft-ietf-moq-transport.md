@@ -1639,7 +1639,7 @@ it can appear. If it appears in some other type of message, it MUST be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.
 
-#### AUTHORIZATION TOKEN {#authorization-token}
+#### AUTHORIZATION TOKEN Parameter {#authorization-token}
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
 CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
@@ -1863,7 +1863,7 @@ unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
 #### EXPIRES Parameter {#expires}
 
 The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH
-or PUBLISH_OK (TOOD: or REQUEST_OK).  It is a variable length integer encoding
+or PUBLISH_OK (TODO: or REQUEST_OK).  It is a variable length integer encoding
 the time in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
@@ -1916,7 +1916,7 @@ Relays MUST preserve the value of this parameter received from an upstream
 publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
 subscribers.
 
-#### NEW GROUP_REQUEST Parameter {#new-group-request}
+#### NEW GROUP REQUEST Parameter {#new-group-request}
 
 The NEW_GROUP_REQUEST parameter (parameter type 0x32) MAY appear in PUBLISH_OK,
 SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer representing the largest Group
@@ -3904,7 +3904,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
 | INVALID_RANGE              | 0x11 | {{message-request-error}} |
 | MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
-| UINTERESTED                | 0x20 | {{message-request-error}} |
+| UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
