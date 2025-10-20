@@ -3100,8 +3100,8 @@ Any object with a status code other than zero MUST have an empty payload.
 #### Object Extension Header {#object-extensions}
 
 Any Object with status Normal can have extension headers.  If an endpoint
-receives extension headers on Objects with status that is not Normal, it MUST close the
-session with a `PROTOCOL_VIOLATION`.
+receives extension headers on Objects with status that is not Normal, it MUST close
+the session with a `PROTOCOL_VIOLATION`.
 
 Object Extension Headers are visible to relays and allow the transmission of
 future metadata relevant to MOQT Object distribution. Any Object metadata never
@@ -3124,8 +3124,8 @@ definition of the extension, Extension Headers MAY be modified, added, removed,
 and/or cached by relays.
 
 Object Extension Headers are serialized as Key-Value-Pairs (see
-{{moq-key-value-pair}}), prefixed by the length of the serialized
-Key-Value-Pairs, in bytes.
+{{moq-key-value-pair}}) in increasing extension type order with a delta encoding,
+prefixed by the length of the serialized Key-Value-Pairs, in bytes.
 
 ~~~
 Extensions {
