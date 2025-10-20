@@ -870,7 +870,7 @@ initiates a subscription to a track by sending the SUBSCRIBE message.
 The publisher either accepts or rejects the subscription using
 SUBSCRIBE_OK or REQUEST_ERROR.  Once either of these sequences is
 successful, the subscription moves to the `Established` state and can
-be updated by the subscriber using SUBSCRIBE_UPDATE.  Either endpoint
+be updated by the subscriber using .  Either endpoint
 can terminate an `Established` subscription, moving it to the
 `Terminated` state.  The subscriber terminates a subscription using
 UNSUBSCRIBE, the publisher terminates a subscription using
@@ -896,7 +896,7 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
               |                 V    V                  |
               |            +-------------+              |
               |            | Established | ------+
-              |            |             |       | SUBSCRIBE_UPDATE
+              |            |             |       | 
               |            +-------------+ <-----+
               |                 |    |                  |
               |     UNSUBSCRIBE |    | PUBLISH_DONE     |
@@ -923,7 +923,7 @@ Forward State is 1, the publisher sends objects.  The initiator of the
 subscription sets the initial Forward State in either PUBLISH or SUBSCRIBE.  The
 sender of PUBLISH_OK can update the Forward State based on its preference.  Once
 the subscription is established, the subscriber can update the Forward State by
-sending SUBSCRIBE_UPDATE.  Control messages, such as PUBLISH_DONE
+sending .  Control messages, such as PUBLISH_DONE
 ({{message-publish-done}}) are still sent on subscriptions in Forward State 0.
 
 Either endpoint can initiate a subscription to a track without exchanging any
@@ -1051,7 +1051,7 @@ One possible subscriber pattern is to SUBSCRIBE to a Track using Filter Type
 `Largest Object` and observe the `Largest Location` in the response.  If the
 Object ID is below the application's threshold, the subscriber sends a FETCH for
 the beginning of the Group.  If the Object ID is above the threshold and the
-Track supports dynamic groups, the subscriber sends a SUBSCRIBE_UPDATE message with the
+Track supports dynamic groups, the subscriber sends a  message with the
 NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
 {{new-group-request}}).
 
@@ -1195,7 +1195,7 @@ A lower priority number indicates higher priority; the highest priority is 0.
 
 `Subscriber Priority` is a priority number associated with an individual
 request.  It is specified in the SUBSCRIBE or FETCH message, and can be
-updated via SUBSCRIBE_UPDATE message.  The subscriber priority of an individual
+updated via  message.  The subscriber priority of an individual
 schedulable object is the subscriber priority of the request that caused that
 object to be sent. When subscriber priority is changed, a best effort SHOULD be
 made to apply the change to all objects that have not been scheduled, but it is
@@ -1371,7 +1371,7 @@ multiple subscribers request the same Track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 Track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
-Because SUBSCRIBE_UPDATE only allows narrowing a subscription, relays that
+Because  only allows narrowing a subscription, relays that
 aggregate upstream subscriptions can subscribe using the Largest Object
 filter to avoid churn as downstream subscribers with disparate filters
 subscribe and unsubscribe from a Track.
@@ -1442,7 +1442,7 @@ one publisher is available, the Relay MAY send the FETCH to any of them.
 When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 `Established` upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
 SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
-State=0, the Relay MUST send SUBSCRIBE_UPDATE with Forward=1 to all publishers.
+State=0, the Relay MUST send  with Forward=1 to all publishers.
 If there are no `Established` upstream subscriptions for the requested Track, the Relay
 MUST send a SUBSCRIBE request to each publisher that has published the
 subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
@@ -1550,7 +1550,7 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x4   | SUBSCRIBE_OK ({{message-subscribe-ok}})             |
 |-------|-----------------------------------------------------|
-| 0x2   | SUBSCRIBE_UPDATE ({{message-subscribe-update}})     |
+| 0x2   |  ({{message-subscribe-update}})     |
 |-------|-----------------------------------------------------|
 | 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
 |-------|-----------------------------------------------------|
@@ -1594,7 +1594,7 @@ ongoing requests, and supports the endpoint's ability to limit the concurrency
 and frequency of requests.  Request IDs for one endpoint increment independently
 from those sent by the peer endpoint.  The client's Request ID starts at 0 and
 are even and the server's Request ID starts at 1 and are odd.  The Request ID
-increments by 2 with each FETCH, SUBSCRIBE, SUBSCRIBE_UPDATE,
+increments by 2 with each FETCH, SUBSCRIBE, ,
 SUBSCRIBE_NAMESPACE, PUBLISH, PUBLISH_NAMESPACE or TRACK_STATUS request.
 Other messages with a Request ID field reference the Request ID of another
 message for correlation. If an endpoint receives a Request ID that is not valid
@@ -1642,7 +1642,7 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION TOKEN {#authorization-token}
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
-CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
+CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, ,
 SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
 parameter conveys information to authorize the sender to perform the operation
 carrying the parameter.
@@ -1821,7 +1821,7 @@ The subscription has Publisher Priorty 128 if this parameter is omitted.
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority)
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
-SUBSCRIBE, SUBSCRIBE_UPDATE, TRACK_STATUS, PUBLISH_OK or FETCH message. It is an
+SUBSCRIBE, , TRACK_STATUS, PUBLISH_OK or FETCH message. It is an
 integer expressing the priority of a subscription relative to other
 subscriptions and fetch responses in the same session. Lower numbers get higher
 priority.  See {{priorities}}.  The range is restricted to 0-255.  If a
@@ -1852,7 +1852,7 @@ REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
 The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) MAY appear in a
-SUBSCRIBE, TRACK_STATUS, PUBLISH_OK or SUBSCRIBE_UPDATE message. It is a
+SUBSCRIBE, TRACK_STATUS, PUBLISH_OK or  message. It is a
 length-prefixed Subscription Filter (see {{subscription-filters}}).  If the
 length of the Subscription Filter does not match the parameter length, the
 publisher MUST close the session with `PROTOCOL_VIOLATION`.
@@ -1870,9 +1870,9 @@ or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
 can terminate the subscription prior to or after the expiry time.
 
 The receiver of the parameter can extend the subscription by sending a
-SUBSCRIBE_UPDATE (TODO: SUBSCRIPTION_UPDATE). If the receiver of the parameter
+ (TODO: SUBSCRIPTION_UPDATE). If the receiver of the parameter
 has one or more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
-SUBSCRIBE_UPDATE. Relays that send this parameter and applications that receive
+. Relays that send this parameter and applications that receive
 it MAY introduce jitter to prevent many endpoints from updating
 simultaneously.
 
@@ -1882,7 +1882,7 @@ does not expire or expires at an unknown time.
 #### LARGEST OBJECT Parameter {#largest-param}
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in SUBSCRIBE_OK,
-PUBLISH or in REQUEST_OK in response to SUBSCRIBE_UPDATE.  It is a
+PUBLISH or in REQUEST_OK in response to .  It is a
 length-prefixed Location structure (see {{location-structure}}) containing the
 largest Location in the Track observed by the sending endpoint (see
 {{subscription-filters}}.  If Objects have been published on this Track the
@@ -1894,13 +1894,13 @@ any Objects in the Track.
 #### FORWARD Parameter
 
 The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
-SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK, and
+, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK, and
 SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying the
 Forwarding State on affected subscriptions (see {{subscriptions}}).  The
 allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives a
 value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
 
-If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
+If the parameter is omitted from , the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
 message, the default value is 1.
 
@@ -1910,7 +1910,7 @@ The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in PUBLISH or
 SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
 1, it indicates that the subscriber can request the Original Publisher to start
 a new Group by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or
-SUBSCRIBE_UPDATE for this Track.
+ for this Track.
 
 Relays MUST preserve the value of this parameter received from an upstream
 publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
@@ -1919,10 +1919,10 @@ subscribers.
 #### NEW GROUP_REQUEST Parameter {#new-group-request}
 
 The NEW_GROUP_REQUEST parameter (parameter type 0x22) MAY appear in PUBLISH_OK,
-SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer representing the largest Group
+SUBSCRIBE or .  It is an integer representing the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
-this parameter in PUBLISH_OK or SUBSCRIBE_UPDATE if the publisher did not
+this parameter in PUBLISH_OK or  if the publisher did not
 include DYNAMIC_GROUPS=1 when establishing the subscription.  A subscriber MAY
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
@@ -1942,7 +1942,7 @@ A relay that receives a NEW_GROUP_REQUEST for a Track without an `Established`
 subscription MUST include the NEW_GROUP_REQUEST when subscribing upstream.
 
 A relay that receives a NEW_GROUP_REQUEST for an established subscription with a
-value of 0 or a value larger than the Largest Group MUST send a SUBSCRIBE_UPDATE
+value of 0 or a value larger than the Largest Group MUST send a 
 including the NEW_GROUP_REQUEST to the publisher unless:
 
 1. The Track does not support dynamic Groups
@@ -2155,7 +2155,7 @@ REQUESTS_BLOCKED Message {
 
 ## REQUEST_OK {#message-request-ok}
 
-The REQUEST_OK message is sent to a response to SUBSCRIBE_UPDATE, TRACK_STATUS,
+The REQUEST_OK message is sent to a response to , TRACK_STATUS,
 SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests. The unique request ID in the
 REQUEST_OK is used to associate it with the correct type of request.
 
@@ -2339,21 +2339,22 @@ SUBSCRIBE_OK Message {
 A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
 subscription.
 
-When updating the Subscription Filter (see {{subscription-filters}}),
-the Start Location MUST not decrease, as an attempt to
-to do so could fail. If Objects with Locations smaller than the current
-subscription's Largest Location are required, FETCH can be used to retrieve
-them. A publisher MUST terminate the session with a `PROTOCOL_VIOLATION` if the
-SUBSCRIBE_UPDATE violates this rule.
+When a subscriber decreases the Start Location of the Subscription Filter
+(see {{subscription-filters}}), if the Start Location is less than the Track's
+Largest Location, the Start Location is increased to Largest Location,
+similar to SUBSCRIBE. If Objects with Locations smaller than the current
+subscription's Largest Location are required, FETCH can be used to retrieve them.
 
-When a subscriber narrows their subscription (increase the Start Location and/or
-decrease the End Group), it might still receive objects
-outside the new range if the publisher sent them before the update was
-processed. When a subscriber increases the End Location, the Largest Object at
+When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
 create a gap in the subscription. The REQUEST_OK in response to the
 SUBSCRIBE_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
 can issue a FETCH to retrieve the omitted Objects, if any.
+
+When a subscriber narrows their subscription (increase the Start Location and/or
+decrease the End Group), it might still receive objects
+outside the new range if the publisher sent them before the update was
+processed. 
 
 The receiver of a SUBSCRIBE_UPDATE MUST respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful.  When an
