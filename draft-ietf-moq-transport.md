@@ -1807,7 +1807,7 @@ handles a downstream request that includes those Objects re-requests them.
 If the MAX_CACHE_DURATION parameter is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
 
-#### PUBLISHER PRIORITY Parameter {#subscriber-priority}
+#### PUBLISHER PRIORITY Parameter {#publisher-priority}
 
 The PUBLISHER PRIORITY parameter (Parameter Type 0x0E) specifies the priority of
 a subscription relative to other subscriptions in the same session.  The value
