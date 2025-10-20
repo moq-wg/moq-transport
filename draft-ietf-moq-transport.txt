@@ -369,8 +369,10 @@ Table of Contents
 
                         Figure 1: Location structure
 
-   In this document, the constituent parts of any Location A can be
-   referred to using A.Group or A.Object.
+   In this document, a Location can be expressed in the form of
+   {GroupID, ObjectID}, where GroupID and ObjectID indicate the Group ID
+   and Object ID of the Location, respectively.  The constituent parts
+   of any Location A can be referred to using A.Group or A.Object.
 
    Location A < Location B if:
 
