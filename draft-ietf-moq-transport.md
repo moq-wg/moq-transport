@@ -2168,7 +2168,7 @@ INVALID_RANGE (0x11):
 cannot be satisfied.
 
 MALFORMED_TRACK (0x12):
-: In response to a FETCH, a relay publisher detected the track was
+: In response to a FETCH, a relay publisher detected that the track was
 malformed (see {{malformed-tracks}}).
 
 The following are errors for use by the subscriber. They can appear in response
@@ -2542,7 +2542,7 @@ TOO_FAR_BEHIND (0x6):
   its implementation defined limit.
 
 MALFORMED_TRACK (0x12):
-: A relay publisher detected the track was malformed (see
+: A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
 
 UPDATE_FAILED (0x8):
@@ -3865,7 +3865,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | CANCELLED        | 0x1  | {{closing-subgroup-streams}} |
 | DELIVERY_TIMEOUT | 0x2  | {{closing-subgroup-streams}} |
 | SESSION_CLOSED   | 0x3  | {{closing-subgroup-streams}} |
-| MALFORMED_TRACK  | 0x12 | {{malformed_tracks}}         |
+| MALFORMED_TRACK  | 0x12 | {{malformed-tracks}}         |
 
 # Contributors
 {:numbered="false"}
