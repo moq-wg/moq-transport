@@ -1889,8 +1889,7 @@ using A.Group or A.Object.<a href="#section-1.4.1-3" class="pilcrow">¶</a></p>
 pairs in which the key is a variable length integer and the value
 is either a variable length integer or a byte field of arbitrary
 length. Key-Value-Pairs encode a Type value as a delta from the
-previous Type value. If there is no previous Type value, it's an
-absolute Type.<a href="#section-1.4.2-1" class="pilcrow">¶</a></p>
+previous Type value, or from 0 if there is no previous Type value.<a href="#section-1.4.2-1" class="pilcrow">¶</a></p>
 <p id="section-1.4.2-2">Key-Value-Pair is used in both the data plane and control plane, but
 is optimized for use in the data plane.<a href="#section-1.4.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-key-value-pair"></span><div id="moq-key-value-pair">
