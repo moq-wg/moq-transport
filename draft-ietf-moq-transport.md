@@ -274,8 +274,7 @@ Key-Value-Pair is a flexible structure designed to carry key/value
 pairs in which the key is a variable length integer and the value
 is either a variable length integer or a byte field of arbitrary
 length. Key-Value-Pairs encode a Type value as a delta from the
-previous Type value. If there is no previous Type value, it's an
-absolute Type.
+previous Type value, or from 0 if there is no previous Type value.
 
 Key-Value-Pair is used in both the data plane and control plane, but
 is optimized for use in the data plane.
