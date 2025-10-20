@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 April 2026                                     I. Swett, Ed.
+Expires: 23 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         16 October 2025
+                                                         20 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 April 2026.
+   This Internet-Draft will expire on 23 April 2026.
 
 Copyright Notice
 
@@ -158,12 +158,11 @@ Table of Contents
      9.17. FETCH_OK
      9.18. FETCH_CANCEL
      9.19. TRACK_STATUS
-     9.20. TRACK_STATUS_OK
-     9.21. PUBLISH_NAMESPACE
-     9.22. PUBLISH_NAMESPACE_DONE
-     9.23. PUBLISH_NAMESPACE_CANCEL
-     9.24. SUBSCRIBE_NAMESPACE
-     9.25. UNSUBSCRIBE_NAMESPACE
+     9.20. PUBLISH_NAMESPACE
+     9.21. PUBLISH_NAMESPACE_DONE
+     9.22. PUBLISH_NAMESPACE_CANCEL
+     9.23. SUBSCRIBE_NAMESPACE
+     9.24. UNSUBSCRIBE_NAMESPACE
    10. Data Streams and Datagrams
      10.1.  Track Alias
      10.2.  Objects
@@ -178,8 +177,7 @@ Table of Contents
      10.5.  Examples
    11. Extension Headers
      11.1.  Prior Group ID Gap
-     11.2.  Immutable Extensions
-     11.3.  Prior Object ID Gap
+     11.2.  Prior Object ID Gap
    12. Security Considerations
      12.1.  Resource Exhaustion
      12.2.  Timeouts
@@ -556,8 +554,10 @@ Table of Contents
    use Group Order, so they could have an unexpected delivery order if
    Group IDs do not increase with time.
 
-   Note that the increase in time between two groups is not defined by
-   the protocol.
+   The amount of time elapsed between publishing an Object in Group ID N
+   and in a Group ID > N, or even which will be published first, is not
+   defined by this specification and is defined by the applications
+   using MOQT.
 
 2.4.  Track
 
@@ -1151,7 +1151,7 @@ Table of Contents
    subscriber joining a Track might detect that it is more efficient to
    request the Original Publisher create a new group than issue a
    Joining FETCH.  Publishers indicate a Track supports dynamic group
-   creation using the DYNAMIC_GROUPS parameter (Section 9.2.1.9).
+   creation using the DYNAMIC_GROUPS parameter (Section 9.2.1.11).
 
    One possible subscriber pattern is to SUBSCRIBE to a Track using
    Filter Type Largest Object and observe the Largest Location in the
@@ -1160,7 +1160,7 @@ Table of Contents
    Object ID is above the threshold and the Track supports dynamic
    groups, the subscriber sends a SUBSCRIBE_UPDATE message with the
    NEW_GROUP_REQUEST parameter equal to the Largest Location's Group,
-   plus one (see Section 9.2.1.10).
+   plus one (see Section 9.2.1.12).
 
    Another possible subscriber pattern is to send a SUBSCRIBE with
    Filter Type Next Group Start and NEW_GROUP_REQUEST equal to 0.  The
@@ -1719,17 +1719,15 @@ Table of Contents
            +------+--------------------------------------------+
            |  0xD | TRACK_STATUS (Section 9.19)                |
            +------+--------------------------------------------+
-           |  0xE | TRACK_STATUS_OK (Section 9.20              |
+           |  0x6 | PUBLISH_NAMESPACE (Section 9.20)           |
            +------+--------------------------------------------+
-           |  0x6 | PUBLISH_NAMESPACE (Section 9.21)           |
+           |  0x9 | PUBLISH_NAMESPACE_DONE (Section 9.21)      |
            +------+--------------------------------------------+
-           |  0x9 | PUBLISH_NAMESPACE_DONE (Section 9.22)      |
+           |  0xC | PUBLISH_NAMESPACE_CANCEL (Section 9.22)    |
            +------+--------------------------------------------+
-           |  0xC | PUBLISH_NAMESPACE_CANCEL (Section 9.23)    |
+           | 0x11 | SUBSCRIBE_NAMESPACE (Section 9.23)         |
            +------+--------------------------------------------+
-           | 0x11 | SUBSCRIBE_NAMESPACE (Section 9.24)         |
-           +------+--------------------------------------------+
-           | 0x14 | UNSUBSCRIBE_NAMESPACE (Section 9.25)       |
+           | 0x14 | UNSUBSCRIBE_NAMESPACE (Section 9.24)       |
            +------+--------------------------------------------+
 
                                   Table 1
@@ -1922,13 +1920,15 @@ Table of Contents
 9.2.1.2.  DELIVERY TIMEOUT Parameter
 
    The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-   TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE,
-   SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.  It is the duration in
-   milliseconds the relay SHOULD continue to attempt forwarding Objects
-   after they have been received.  The start time for the timeout is
-   based on when the Object Headers are received, and does not depend
-   upon the forwarding preference.  There is no explicit signal that an
-   Object was not sent because the delivery timeout was exceeded.
+   TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
+   PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
+
+   It is the duration in milliseconds the relay SHOULD continue to
+   attempt forwarding Objects after they have been received.  The start
+   time for the timeout is based on when the Object Headers are
+   received, and does not depend upon the forwarding preference.  There
+   is no explicit signal that an Object was not sent because the
+   delivery timeout was exceeded.
 
    If both the subscriber and publisher specify the parameter, they use
    the min of the two values for the subscription.  The publisher SHOULD
@@ -1961,16 +1961,18 @@ Table of Contents
 9.2.1.3.  MAX CACHE DURATION Parameter
 
    The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in
-   a PUBLISH, SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS_OK message.  It is
-   an integer expressing the number of milliseconds an Object can be
-   served from a cache.  If present, the relay MUST NOT start forwarding
-   any individual Object received through this subscription or fetch
-   after the specified number of milliseconds has elapsed since the
-   beginning of the Object was received.  This means Objects earlier in
-   a multi-object stream will expire earlier than Objects later in the
-   stream.  Once Objects have expired from cache, their state becomes
-   unknown, and a relay that handles a downstream request that includes
-   those Objects re-requests them.
+   a PUBLISH, SUBSCRIBE_OK, FETCH_OK or REQUEST_OK (in response to
+   TRACK_STATUS) message.
+
+   It is an integer expressing the number of milliseconds an Object can
+   be served from a cache.  If present, the relay MUST NOT start
+   forwarding any individual Object received through this subscription
+   or fetch after the specified number of milliseconds has elapsed since
+   the beginning of the Object was received.  This means Objects earlier
+   in a multi-object stream will expire earlier than Objects later in
+   the stream.  Once Objects have expired from cache, their state
+   becomes unknown, and a relay that handles a downstream request that
+   includes those Objects re-requests them.
 
    If the MAX_CACHE_DURATION parameter is not sent by the publisher, the
    Objects can be cached until implementation constraints cause them to
@@ -2006,19 +2008,21 @@ Table of Contents
 9.2.1.6.  GROUP ORDER Parameter
 
    The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a
-   SUBSCRIBE, SUBSCRIBE_OK, TRACK_STATUS, TRACK_STATUS_OK, PUBLISH,
-   PUBLISH_OK or FETCH.  It is an enum indicating how to prioritize
-   Objects from different groups within the same subscription (see
-   Section 7), or how to order Groups in a Fetch response (see
-   Section 9.16.3).  The allowed values are Ascending (0x1) or
-   Descending (0x2).  If an endpoint receives a value outside this
-   range, it MUST close the session with PROTOCOL_VIOLATION.
+   SUBSCRIBE, SUBSCRIBE_OK, TRACK_STATUS, REQUEST_OK (in response to
+   TRACK_STATUS), PUBLISH, PUBLISH_OK or FETCH.
+
+   It is an enum indicating how to prioritize Objects from different
+   groups within the same subscription (see Section 7), or how to order
+   Groups in a Fetch response (see Section 9.16.3).  The allowed values
+   are Ascending (0x1) or Descending (0x2).  If an endpoint receives a
+   value outside this range, it MUST close the session with
+   PROTOCOL_VIOLATION.
 
    If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference
-   from SUBSCRIBE_OK or TRACK_STATUS_OK is used.  If omitted in
-   PUBLISH_OK, the publisher's preference from PUBLISH is used.  If
-   omitted from SUBSCRIBE_OK, TRACK_STATUS_OK, PUBLISH or FETCH, the
-   receiver uses Ascending (0x1).
+   from SUBSCRIBE_OK or REQUEST_OK is used.  If omitted in PUBLISH_OK,
+   the publisher's preference from PUBLISH is used.  If omitted from
+   SUBSCRIBE_OK, REQUEST_OK, PUBLISH or FETCH, the receiver uses
+   Ascending (0x1).
 
 9.2.1.7.  SUBSCRIPTION FILTER Parameter
 
@@ -2053,7 +2057,33 @@ Table of Contents
    If the EXPIRES parameter is 0 or is not present in a message, the
    subscription does not expire or expires at an unknown time.
 
-9.2.1.9.  DYNAMIC GROUPS Parameter
+9.2.1.9.  LARGEST OBJECT Parameter
+
+   The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in
+   SUBSCRIBE_OK, PUBLISH or in REQUEST_OK in response to
+   SUBSCRIBE_UPDATE.  It is a length-prefixed Location structure (see
+   Section 1.4.1) containing the largest Location in the Track observed
+   by the sending endpoint (see Section 5.1.2.  If Objects have been
+   published on this Track the Publisher MUST include this parameter.
+
+   If omitted from a message, the sending endpoint has not published or
+   received any Objects in the Track.
+
+9.2.1.10.  FORWARD Parameter
+
+   The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
+   SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK,
+   and SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying
+   the Forwarding State on affected subscriptions (see Section 5.1).
+   The allowed values are 0 (don't forward) or 1 (forward).  If an
+   endpoint receives a value outside this range, it MUST close the
+   session with PROTOCOL_VIOLATION.
+
+   If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
+   subscription remains unchanged.  If the parameter is omitted from any
+   other message, the default value is 1.
+
+9.2.1.11.  DYNAMIC GROUPS Parameter
 
    The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in
    PUBLISH or SUBSCRIBE_OK.  Values larger than 1 are a Protocol
@@ -2066,7 +2096,7 @@ Table of Contents
    upstream publisher in SUBSCRIBE_OK or PUBLISH when sending these
    messages to downstream subscribers.
 
-9.2.1.10.  NEW GROUP_REQUEST Parameter
+9.2.1.12.  NEW GROUP_REQUEST Parameter
 
    The NEW_GROUP_REQUEST parameter (parameter type 0x22) MAY appear in
    PUBLISH_OK, SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer
@@ -2317,9 +2347,10 @@ Table of Contents
 
 9.7.  REQUEST_OK
 
-   The REQUEST_OK message is sent to a response to SUBSCRIBE_NAMESPACE
-   and PUBLISH_NAMESPACE requests.  The unique request ID in the
-   REQUEST_OK is used to associate it with the correct type of request.
+   The REQUEST_OK message is sent to a response to SUBSCRIBE_UPDATE,
+   TRACK_STATUS, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests.
+   The unique request ID in the REQUEST_OK is used to associate it with
+   the correct type of request.
 
    REQUEST_OK Message {
      Type (i) = 0x7,
@@ -2407,9 +2438,6 @@ Table of Contents
       namespace prefix overlaps with another SUBSCRIBE_NAMESPACE in the
       same session.
 
-   NO_OBJECTS (0x31):  In response to FETCH, no objects exist between
-      the Start and End Locations.
-
    INVALID_JOINING_REQUEST_ID(0x32):  In response to a Joining FETCH,
       the referenced Request ID is not an active Subscription.
 
@@ -2435,7 +2463,6 @@ Table of Contents
      Track Namespace (..),
      Track Name Length (i),
      Track Name (..),
-     Forward (8),
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -2450,15 +2477,6 @@ Table of Contents
    *  Track Name: Identifies the track name as defined in
       (Section 2.4.1).
 
-   *  Forward: If 1, Objects matching the subscription are forwarded to
-      the subscriber.  If 0, Objects are not forwarded to the subscriber
-      (see Section 5.1) Any other value is a protocol error and MUST
-      terminate the session with a PROTOCOL_VIOLATION (Section 3.4).
-
-   Subscribing with Forward=0 allows publisher or relay to prepare to
-   serve the subscription in advance, reducing the time to receive
-   objects in the future.
-
    *  Parameters: The parameters are defined in Section 9.2.1.
 
    On successful subscription, the publisher MUST reply with a
@@ -2470,6 +2488,10 @@ Table of Contents
    published it SHOULD send a REQUEST_ERROR with code INVALID_RANGE.  A
    publisher MUST NOT send objects from outside the requested range.
 
+   Subscribing with the FORWARD parameter (Section 9.2.1.10) equal to 0
+   allows publisher or relay to prepare to serve the subscription in
+   advance, reducing the time to receive objects in the future.
+
 9.10.  SUBSCRIBE_OK
 
    A publisher sends a SUBSCRIBE_OK control message for successful
@@ -2480,8 +2502,6 @@ Table of Contents
      Length (16),
      Request ID (i),
      Track Alias (i),
-     Content Exists (8),
-     [Largest Location (Location),]
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -2498,16 +2518,6 @@ Table of Contents
       as a different track with an active subscription, it MUST close
       the session with error DUPLICATE_TRACK_ALIAS.
 
-   *  Content Exists: 1 if an object has been published on this track, 0
-      if not.  If 0, then the Largest Group ID and Largest Object ID
-      fields will not be present.  Any other value is a protocol error
-      and MUST terminate the session with a PROTOCOL_VIOLATION
-      (Section 3.4).
-
-   *  Largest Location: The location of the largest object available for
-      this track.  This field is only present if Content Exists has a
-      value of 1.
-
    *  Parameters: The parameters are defined in Section 9.2.1.
 
 9.11.  SUBSCRIBE_UPDATE
@@ -2515,17 +2525,22 @@ Table of Contents
    A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an
    existing subscription.
 
-   A Subscription Filter (see Section 5.1.2) can only be narrowed, not
-   widened, as an attempt to widen could fail.  If Objects with
-   Locations smaller than the current subscription filter's Start
-   Location are required, FETCH can be used to retrieve them.  The Start
-   Location MUST NOT decrease and the End Group MUST NOT increase.  A
+   When updating the Subscription Filter (see Section 5.1.2), the Start
+   Location MUST not decrease, as an attempt to to do so could fail.  If
+   Objects with Locations smaller than the current subscription's
+   Largest Location are required, FETCH can be used to retrieve them.  A
    publisher MUST terminate the session with a PROTOCOL_VIOLATION if the
-   SUBSCRIBE_UPDATE violates these rules.
+   SUBSCRIBE_UPDATE violates this rule.
 
-   When a subscriber narrows their subscription, it might still receive
+   When a subscriber narrows their subscription (increase the Start
+   Location and/or decrease the End Group), it might still receive
    objects outside the new range if the publisher sent them before the
-   update was processed.
+   update was processed.  When a subscriber increases the End Location,
+   the Largest Object at the publisher might already be larger than the
+   previous End Location.  This will create a gap in the subscription.
+   The REQUEST_OK in response to the SUBSCRIBE_UPDATE will include the
+   LARGEST_OBJECT parameter, and the subscriber can issue a FETCH to
+   retrieve the omitted Objects, if any.
 
    The receiver of a SUBSCRIBE_UPDATE MUST respond with exactly one
    REQUEST_OK or REQUEST_ERROR message indicating if the update was
@@ -2549,7 +2564,6 @@ Table of Contents
      Length (16),
      Request ID (i),
      Subscription Request ID (i),
-     Forward (8),
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -2563,11 +2577,6 @@ Table of Contents
       existing Request ID.  The publisher MUST close the session with `
       PROTOCOL_VIOLATION if the subscriber specifies an invalid
       Subscription Request ID.
-
-   *  Forward: If 1, Objects matching the subscription are forwarded to
-      the subscriber.  If 0, Objects are not forwarded to the subscriber
-      (see Section 5.1) Any other value is a protocol error and MUST
-      terminate the session with a PROTOCOL_VIOLATION (Section 3.4).
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
@@ -2605,9 +2614,6 @@ Table of Contents
      Track Name Length (i),
      Track Name (..),
      Track Alias (i),
-     Content Exists (8),
-     [Largest Location (Location),]
-     Forward (8),
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -2629,27 +2635,18 @@ Table of Contents
       different track with an active subscription, it MUST close the
       session with error DUPLICATE_TRACK_ALIAS.
 
-   *  Content Exists: 1 if an object has been published on this track, 0
-      if not.  If 0, then the Largest Group ID and Largest Object ID
-      fields will not be present.  Any other value is a protocol error
-      and MUST terminate the session with a PROTOCOL_VIOLATION
-      (Section 3.4).
-
-   *  Largest Location: The location of the largest object available for
-      this track.
-
-   *  Forward: If 1, the publisher will start transmitting objects
-      immediately, even before PUBLISH_OK.  If 0, the publisher will not
-      transmit any objects until the subscriber sets the Forward State
-      to 1 (see Section 5.1).  Any value other than 0 or 1 is a
-      PROTOCOL_VIOLATION.
-
    *  Parameters: The parameters are defined in Section 9.2.1.
 
    A subscriber receiving a PUBLISH for a Track it does not wish to
    receive SHOULD send REQUEST_ERROR with error code UNINTERESTED, and
    abandon reading any publisher initiated streams associated with that
    subscription using a STOP_SENDING frame.
+
+   A publisher that sends the FORWARD parameter (Section 9.2.1.10) equal
+   to 0 indicates that it will not transmit any objects until the
+   subscriber sets the Forward State to 1.  If the FORWARD parameter is
+   omitted or equal to 1, the publisher will start transmitting objects
+   immediately, possibly before PUBLISH_OK.
 
 9.14.  PUBLISH_OK
 
@@ -2661,7 +2658,6 @@ Table of Contents
      Type (i) = 0x1E,
      Length (16),
      Request ID (i),
-     Forward (8),
      Number of Parameters (i),
      Parameters (..) ...,
    }
@@ -2670,11 +2666,6 @@ Table of Contents
 
    *  Request ID: The Request ID of the PUBLISH this message is replying
       to Section 9.13.
-
-   *  Forward: If 1, Objects matching the subscription are forwarded to
-      the subscriber.  If 0, Objects are not forwarded to the subscriber
-      (see Section 5.1) Any other value is a protocol error and MUST
-      terminate the session with a PROTOCOL_VIOLATION (Section 3.4).
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
@@ -2855,8 +2846,9 @@ Table of Contents
    the session with a PROTOCOL_VIOLATION.
 
    If no Objects have been published for the track, and the SUBSCRIBE_OK
-   has a Content Exists value of 0, the publisher MUST respond with a
-   REQUEST_ERROR with error code INVALID_RANGE.
+   did not include a LARGEST_OBJECT parameter (Section 9.2.1.9), the
+   publisher MUST respond with a REQUEST_ERROR with error code
+   INVALID_RANGE.
 
    A Joining Fetch includes this structure:
 
@@ -2941,8 +2933,9 @@ Table of Contents
    first object in the stream; between objects in the stream; and
    between the last object in the stream and the Largest Group/Object
    indicated in FETCH_OK, so long as the fetch stream is terminated by a
-   FIN.  If no Objects exist in the requested range, the publisher
-   returns REQUEST_ERROR with code NO_OBJECTS.
+   FIN.  If no Objects exist in the requested range, the publisher opens
+   the unidirectional stream, sends the FETCH_HEADER (see
+   Section 10.4.4) and closes the stream with a FIN.
 
    A relay that has cached objects from the beginning of the range MAY
    start sending objects immediately in response to a FETCH.  If it
@@ -3062,27 +3055,19 @@ Table of Contents
 
    The receiver of a TRACK_STATUS message treats it identically as if it
    had received a SUBSCRIBE message, except it does not create
-   downstream subscription state or send any Objects.  Relays without an
-   active subscription MAY forward TRACK_STATUS to one or more
-   publishers, or MAY initiate a subscription (subject to authorization)
-   as described in Section 8.5 to determine the response.  The publisher
-   does not send PUBLISH_DONE for this request, and the subscriber
-   cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
+   downstream subscription state or send any Objects.  If successful,
+   the publisher responds with a REQUEST_OK message with the same
+   parameters it would have set in a SUBSCRIBE_OK.  Track Alias is not
+   used.  A publisher responds to a failed TRACK_STATUS with an
+   appropriate REQUEST_ERROR message.
 
-9.20.  TRACK_STATUS_OK
+   Relays without an active subscription MAY forward TRACK_STATUS to one
+   or more publishers, or MAY initiate a subscription (subject to
+   authorization) as described in Section 8.5 to determine the response.
+   The publisher does not send PUBLISH_DONE for this request, and the
+   subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
 
-   The publisher sends a TRACK_STATUS_OK control message in response to
-   a successful TRACK_STATUS message.
-
-   The TRACK_STATUS_OK message format is identical to the SUBSCRIBE_OK
-   message (Section 9.10).
-
-   The publisher populates the fields of TRACK_STATUS_OK exactly as it
-   would have populated a SUBSCRIBE_OK, setting Track Alias to 0.  It is
-   not considered an error if Track Alias 0 is already in use by an
-   active subscription.
-
-9.21.  PUBLISH_NAMESPACE
+9.20.  PUBLISH_NAMESPACE
 
    The publisher sends the PUBLISH_NAMESPACE control message to
    advertise that it has tracks available within a Track Namespace.  The
@@ -3107,7 +3092,7 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
-9.22.  PUBLISH_NAMESPACE_DONE
+9.21.  PUBLISH_NAMESPACE_DONE
 
    The publisher sends the PUBLISH_NAMESPACE_DONE control message to
    indicate its intent to stop serving new subscriptions for tracks
@@ -3124,7 +3109,7 @@ Table of Contents
    *  Track Namespace: Identifies a track's namespace as defined in
       Section 2.4.1.
 
-9.23.  PUBLISH_NAMESPACE_CANCEL
+9.22.  PUBLISH_NAMESPACE_CANCEL
 
    The subscriber sends an PUBLISH_NAMESPACE_CANCEL control message to
    indicate it will stop sending new subscriptions for tracks within the
@@ -3150,7 +3135,7 @@ Table of Contents
    *  Error Reason: Provides the reason for publish cancelation.  See
       Section 1.4.3.
 
-9.24.  SUBSCRIBE_NAMESPACE
+9.23.  SUBSCRIBE_NAMESPACE
 
    The subscriber sends the SUBSCRIBE_NAMESPACE control message to a
    publisher to request the current set of matching published namespaces
@@ -3161,7 +3146,6 @@ Table of Contents
      Length (16),
      Request ID (i),
      Track Namespace Prefix (..),
-     Forward (8),
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -3181,9 +3165,6 @@ Table of Contents
       receives a Track Namespace Prefix consisting of 0 or greater than
       than 32 Track Namespace Fields, it MUST close the session with a
       PROTOCOL_VIOLATION.
-
-   *  Forward: The Forward value that new subscriptions resulting from
-      this SUBSCRIBE_NAMESPACE will have (see Section 5.1).
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
@@ -3210,7 +3191,15 @@ Table of Contents
    are only interested in or authorized to access a subset of available
    namespaces and tracks.
 
-9.25.  UNSUBSCRIBE_NAMESPACE
+   If the FORWARD parameter (Section 9.2.1.10) is present in this
+   message and equal to 0, PUBLISH messages resulting from this
+   SUBSCRIBE_NAMESPACE will set the FORWARD parameter to 0.  If the
+   FORWARD parameter is equal to 1 or omitted from this message, PUBLISH
+   messages resulting from this SUBSCRIBE_NAMESPACE will set the FORWARD
+   parameter to 1, or indicate that value by omitting the parameter (see
+   Section 5.1).
+
+9.24.  UNSUBSCRIBE_NAMESPACE
 
    A subscriber issues a UNSUBSCRIBE_NAMESPACE message to a publisher
    indicating it is no longer interested in PUBLISH_NAMESPACE,
@@ -3222,12 +3211,13 @@ Table of Contents
    UNSUBSCRIBE_NAMESPACE Message {
      Type (i) = 0x14,
      Length (16),
-     Track Namespace Prefix (..)
+     Request ID (i),
    }
 
                Figure 25: MOQT UNSUBSCRIBE_NAMESPACE Message
 
-   *  Track Namespace Prefix: As defined in Section 9.24.
+   *  Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
+      (Section 9.23) being cancelled by this message.
 
 10.  Data Streams and Datagrams
 
@@ -3376,9 +3366,13 @@ Table of Contents
 
    Extension Headers are defined in external specifications and
    registered in an IANA table Section 13.  These specifications define
-   the type and value of the header, along with any rules concerning
-   processing, modification, caching and forwarding.  A relay which is
-   coded to implement these rules is said to "support" the extension.
+   the type and value of the header, as well as the rules for
+   processing, modification, caching and forwarding.  All such
+   specifications MUST specify whether multiple values of the same
+   extension are allowed on a single Object.  A relay that enforces
+   these rules is considered to "support" the extension.  If a Relay
+   does not support an extension header, it MUST assume multiple values
+   are allowed.
 
    If unsupported by the relay, Extension Headers MUST NOT be modified,
    MUST be cached as part of the Object and MUST be forwarded by relays.
@@ -3684,7 +3678,7 @@ Table of Contents
    Object ID Delta values.  A consumer cannot infer information about
    the existence of Objects between the current and previous Object ID
    in the Subgroup (e.g. when Object ID Delta is non-zero) unless there
-   is an Prior Object ID Gap extesnion header (see Section 11.3).
+   is an Prior Object ID Gap extesnion header (see Section 11.2).
 
    {
      Object ID Delta (i),
@@ -3710,18 +3704,27 @@ Table of Contents
 
    If a sender closes the stream before delivering all such objects to
    the QUIC stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
-   [I-D.draft-ietf-quic-reliable-stream-reset] frame.  This includes an
-   open Subgroup exceeding its Delivery Timeout, early termination of
-   subscription due to an UNSUBSCRIBE message, a publisher's decision to
-   end the subscription early, or a SUBSCRIBE_UPDATE moving the
-   subscription's End Group to a smaller Group or the Start Location to
-   a larger Location.  When RESET_STREAM_AT is used, the reliable_size
-   SHOULD include the stream header so the receiver can identify the
-   corresponding subscription and accurately account for reset data
-   streams when handling PUBLISH_DONE (see Section 9.15).  Publishers
-   that reset data streams without using RESET_STREAM_AT with an
-   appropriate reliable_size can cause subscribers to hold on to
-   subscription state until a timeout expires.
+   [I-D.draft-ietf-quic-reliable-stream-reset] frame.  This includes,
+   but is not limited to:
+
+   *  An Object in an open Subgroup exceeding its Delivery Timeout
+
+   *  Early termination of subscription due to an UNSUBSCRIBE message
+
+   *  A publisher's decision to end the subscription early
+
+   *  A SUBSCRIBE_UPDATE moving the subscription's End Group to a
+      smaller Group or the Start Location to a larger Location
+
+   *  Omitting a Subgroup Object due to the subcriber's Forward State
+
+   When RESET_STREAM_AT is used, the reliable_size SHOULD include the
+   stream header so the receiver can identify the corresponding
+   subscription and accurately account for reset data streams when
+   handling PUBLISH_DONE (see Section 9.15).  Publishers that reset data
+   streams without using RESET_STREAM_AT with an appropriate
+   reliable_size can cause subscribers to hold on to subscription state
+   until a timeout expires.
 
    A sender might send all objects in a Subgroup and the FIN on a QUIC
    stream, and then reset the stream.  In this case, the receiving
@@ -3996,7 +3999,8 @@ Table of Contents
    This extension can be added by the Original Publisher, but MUST NOT
    be added by relays.  This extension MUST NOT be modified or removed.
 
-11.2.  Immutable Extensions
+   An Object MUST NOT contain more than one instance of this extension
+   header. ## Immutable Extensions
 
    The Immutable Extensions (Extension Header Type 0xB) contains a
    sequence of Key-Value-Pairs (see Figure 2) which are also Object
@@ -4038,7 +4042,10 @@ x = e2e Authenticated Data
 y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
 
-11.3.  Prior Object ID Gap
+   An Object MUST NOT contain more than one instance of this extension
+   header.
+
+11.2.  Prior Object ID Gap
 
    Prior Object ID Gap (Extension Header Type 0x3E) is a variable length
    integer containing the number of Objects prior to the current Object
@@ -4066,6 +4073,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    This extension can be added by the Original Publisher, but MUST NOT
    be added by relays.  This extension MUST NOT be modified or removed.
+
+   An Object MUST NOT contain more than one instance of this extension
+   header.
 
 12.  Security Considerations
 
@@ -4242,8 +4252,6 @@ EXT 1 and EXT N can be modified or removed by Relays
            | UINTERESTED                | 0x20 | Section 9.8   |
            +----------------------------+------+---------------+
            | PREFIX_OVERLAP             | 0x30 | Section 9.8   |
-           +----------------------------+------+---------------+
-           | NO_OBJECTS                 | 0x31 | Section 9.8   |
            +----------------------------+------+---------------+
            | INVALID_JOINING_REQUEST_ID | 0x32 | Section 9.8   |
            +----------------------------+------+---------------+
