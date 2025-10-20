@@ -3966,6 +3966,43 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 
 Issue and pull request numbers are listed with a leading octothorp.
 
+## Since draft-ietf-moq-transport-14
+
+**Setup and Control Plane**
+
+* Always use ALPN for version negotiation (#499)
+* Consolidate all the Error Message types (#1159)
+* Change MOQT IMPLEMENTATION code point to 0x7 (#1191)
+* Add Forward to SUBSCRIBE_NAMESPACE (#1220)
+* Parameters for Group Order, Subscribe Priority and Subscription Filter (redo) (#1273)
+* REQUEST_OK message (#1274)
+* Subscribe Update Acknowledgements (#1275)
+* Disallow DELETE and USE_ALIAS in CLIENT_SETUP (#1277)
+* Remove Expires field from SUBSCRIBE_OK (#1282)
+* Make Forward a Parameter (#1283)
+* Allow SUBSCRIBE_UPDATE to increase the end location (#1288)
+* Add default port for raw QUIC (#1289)
+* Unsubscribe Namespace should be linked to Subscribe Namespace (#1292)
+
+**Data Plane Wire Format and Handling**
+
+* Fetch Object serialization optimization (#949)
+* Make default PUBLISHER PRIORITY a parameter, optional in Subgroup/Datagram (#1056)
+* Allow datagram status with object ID=0 (#1197)
+* Disallow object extension headers in all non-Normal status objects (#1266)
+* Objects for malformed track must not be cached (#1290)
+* Remove NO_OBJECTS fetch error code (#1303)
+* Clarify what happens when max_cache_duration parameter is omitted (#1287)
+
+**Notable Editorial Changes**
+
+* Rename Request ID field in MAX_REQUEST_ID (#1250)
+* Define and draw subscription state machine (#1296)
+* Omitting a subgroup object necessitates reset (#1295)
+* Define duplication rules for header extensions (#1293)
+* Clarify joining fetch end location (#1286)
+
+
 ## Since draft-ietf-moq-transport-13
 
 **Setup and Control Plane**
