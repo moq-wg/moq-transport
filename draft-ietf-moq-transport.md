@@ -434,7 +434,10 @@ Tracks SHOULD NOT use range filters which span multiple Groups in FETCH or
 SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so they could have
 an unexpected delivery order if Group IDs do not increase with time.
 
-Note that the increase in time between two groups is not defined by the protocol.
+The amount of time elapsed between publishing an Object in Group ID N and in a
+Group ID > N, or even which will be published first, is not defined by this
+specification and is defined by the applications using MOQT.
+
 
 ## Track {#model-track}
 
