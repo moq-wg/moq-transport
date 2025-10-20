@@ -2837,9 +2837,9 @@ The TRACK_STATUS message format is identical to the SUBSCRIBE message
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
-state or send any Objects. If successful, the publisher responds with a
+state or send any Objects.  If successful, the publisher responds with a
 REQUEST_OK message with the same parameters it would have set in a SUBSCRIBE_OK.
-Track Alias is not used. A publisher responds to a failed TRACK_STATUS with an
+Track Alias is not used.  A publisher responds to a failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.
 
 Relays without an `Established` subscription MAY forward TRACK_STATUS to one or more
@@ -2847,7 +2847,6 @@ publishers, or MAY initiate a subscription (subject to authorization) as
 described in {{publisher-interactions}} to determine the response. The publisher
 does not send PUBLISH_DONE for this request, and the subscriber cannot send
 SUBSCRIBE_UPDATE or UNSUBSCRIBE.
-
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 
