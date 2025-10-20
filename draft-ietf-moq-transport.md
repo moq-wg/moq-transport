@@ -1807,7 +1807,7 @@ handles a downstream request that includes those Objects re-requests them.
 If the MAX_CACHE_DURATION parameter is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
 
-#### PUBLISHER PRIORITY Parameter {#subscriber-priority}
+#### PUBLISHER PRIORITY Parameter {#publisher-priority}
 
 The PUBLISHER PRIORITY parameter (Parameter Type 0x0E) specifies the priority of
 a subscription relative to other subscriptions in the same session.  The value
@@ -1818,7 +1818,7 @@ subscription inherit this priority, unless they specifically override it.
 
 The subscription has Publisher Priorty 128 if this parameter is omitted.
 
-#### SUBSCRIBER PRIORITY Parameter {#subscriber-priority)
+#### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
 SUBSCRIBE, SUBSCRIBE_UPDATE, TRACK_STATUS, PUBLISH_OK or FETCH message. It is an
@@ -1906,7 +1906,7 @@ message, the default value is 1.
 
 #### DYNAMIC GROUPS Parameter {#dynamic-groups}
 
-The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in PUBLISH or
+The DYNAMIC_GROUPS parameter (parameter type 0x30) MAY appear in PUBLISH or
 SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
 1, it indicates that the subscriber can request the Original Publisher to start
 a new Group by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or
@@ -1918,7 +1918,7 @@ subscribers.
 
 #### NEW GROUP_REQUEST Parameter {#new-group-request}
 
-The NEW_GROUP_REQUEST parameter (parameter type 0x22) MAY appear in PUBLISH_OK,
+The NEW_GROUP_REQUEST parameter (parameter type 0x32) MAY appear in PUBLISH_OK,
 SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer representing the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
@@ -3846,6 +3846,22 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x2  | USE_ALIAS  | {{authorization-token}}
 | 0x3  | USE_VALUE  | {{authorization-token}}
 
+## Version Specific Parameters
+
+| Parameter Type | Parameter Name | Specification |
+|----------------|----------------|---------------|
+| 0x02 | DELIVERY_TIMEOUT | {{delivery-timeout}} |
+| 0x03 | AUTHORIZATION_TOKEN | {{authorization-token}} |
+| 0x04 | MAX_CACHE_DURATION | {{max-cache-duration}} |
+| 0x08 | EXPIRES | {{expires}} |
+| 0x09 | LARGEST_OBJECT | {{largest-param}} |
+| 0x0E | PUBLISHER_PRIORITY | {{publisher-priority}} |
+| 0x10 | FORWARD | {{forward-parameter}} |
+| 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
+| 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
+| 0x22 | GROUP_ORDER | {{group-order}} |
+| 0x30 | DYNAMIC_GROUPS | {{dynamic-groups}} |
+| 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 
 ## Error Codes {#iana-error-codes}
 
