@@ -3850,18 +3850,18 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 | Parameter Type | Parameter Name | Specification |
 |----------------|----------------|---------------|
-| 0x02 | DELIVERY_TIMEOUT | {{delivery-timeout-parameter}} |
+| 0x02 | DELIVERY_TIMEOUT | {{delivery-timeout}} |
 | 0x03 | AUTHORIZATION_TOKEN | {{authorization-token}} |
-| 0x04 | MAX_CACHE_DURATION | {{max-cache-duration-parameter}} |
-| 0x08 | EXPIRES | {{expires-parameter}} |
-| 0x09 | LARGEST_OBJECT | {{largest-object-parameter}} |
-| 0x0E | PUBLISHER_PRIORITY | {{publisher-priority-parameter}} |
+| 0x04 | MAX_CACHE_DURATION | {{max-cache-duration}} |
+| 0x08 | EXPIRES | {{expires}} |
+| 0x09 | LARGEST_OBJECT | {{largest-param}} |
+| 0x0E | PUBLISHER_PRIORITY | {{publisher-priority}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
-| 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority-parameter}} |
-| 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter-parameter}} |
-| 0x22 | GROUP_ORDER | {{group-order-parameter}} |
-| 0x30 | DYNAMIC_GROUPS | {{dynamic-groups-parameter}} |
-| 0x32 | NEW_GROUP_REQUEST | {{new-group-request-parameter}} |
+| 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
+| 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
+| 0x22 | GROUP_ORDER | {{group-order}} |
+| 0x30 | DYNAMIC_GROUPS | {{dynamic-groups}} |
+| 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 
 ## Error Codes {#iana-error-codes}
 
