@@ -3393,11 +3393,17 @@ MUST close the stream with a FIN.
 
 If a sender closes the stream before delivering all such objects to the QUIC
 stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
-{{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes an open
-Subgroup exceeding its Delivery Timeout, early termination of subscription due
-to an UNSUBSCRIBE message, a publisher's decision to end the subscription early,
-or a SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
-the Start Location to a larger Location.  When RESET_STREAM_AT is used, the
+{{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes, but is
+not limited to:
+
+* An Object in an open Subgroup exceeding its Delivery Timeout
+* Early termination of subscription due to an UNSUBSCRIBE message
+* A publisher's decision to end the subscription early
+* A SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
+  the Start Location to a larger Location
+* Omitting a Subgroup Object due to the subcriber's Forward State
+
+When RESET_STREAM_AT is used, the
 reliable_size SHOULD include the stream header so the receiver can identify the
 corresponding subscription and accurately account for reset data streams when
 handling PUBLISH_DONE (see {{message-publish-done}}).  Publishers that reset
