@@ -435,7 +435,7 @@ SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so they could have
 an unexpected delivery order if Group IDs do not increase with time.
 
 The amount of time elapsed between publishing an Object in Group ID N and in a
-Group ID > N, or even which will be published first is not defined by this
+Group ID > N, or even which will be published first, is not defined by this
 specification and is defined by the applications using MOQT.
 
 
