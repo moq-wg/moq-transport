@@ -1559,19 +1559,22 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.13.2.1.1"><a href="#section-13.1" class="auto internal xref">13.1</a>.  <a href="#name-authorization-token-alias-t" class="internal xref">Authorization Token Alias Type</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2">
-                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
+                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-version-specific-parameters-2" class="internal xref">Version Specific Parameters</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3">
+                <p id="section-toc.1-1.13.2.3.1"><a href="#section-13.3" class="auto internal xref">13.3</a>.  <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2.2.1">
-                    <p id="section-toc.1-1.13.2.2.2.1.1"><a href="#section-13.2.1" class="auto internal xref">13.2.1</a>.  <a href="#name-session-termination-error-c" class="internal xref">Session Termination Error Codes</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3.2.1">
+                    <p id="section-toc.1-1.13.2.3.2.1.1"><a href="#section-13.3.1" class="auto internal xref">13.3.1</a>.  <a href="#name-session-termination-error-c" class="internal xref">Session Termination Error Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2.2.2">
-                    <p id="section-toc.1-1.13.2.2.2.2.1"><a href="#section-13.2.2" class="auto internal xref">13.2.2</a>.  <a href="#name-request_error-codes" class="internal xref">REQUEST_ERROR Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3.2.2">
+                    <p id="section-toc.1-1.13.2.3.2.2.1"><a href="#section-13.3.2" class="auto internal xref">13.3.2</a>.  <a href="#name-request_error-codes" class="internal xref">REQUEST_ERROR Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2.2.3">
-                    <p id="section-toc.1-1.13.2.2.2.3.1"><a href="#section-13.2.3" class="auto internal xref">13.2.3</a>.  <a href="#name-publish_done-codes" class="internal xref">PUBLISH_DONE Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3.2.3">
+                    <p id="section-toc.1-1.13.2.3.2.3.1"><a href="#section-13.3.3" class="auto internal xref">13.3.3</a>.  <a href="#name-publish_done-codes" class="internal xref">PUBLISH_DONE Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2.2.4">
-                    <p id="section-toc.1-1.13.2.2.2.4.1"><a href="#section-13.2.4" class="auto internal xref">13.2.4</a>.  <a href="#name-data-stream-reset-error-cod" class="internal xref">Data Stream Reset Error Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3.2.4">
+                    <p id="section-toc.1-1.13.2.3.2.4.1"><a href="#section-13.3.4" class="auto internal xref">13.3.4</a>.  <a href="#name-data-stream-reset-error-cod" class="internal xref">Data Stream Reset Error Codes</a></p>
 </li>
                 </ul>
 </li>
@@ -3701,7 +3704,7 @@ handles a downstream request that includes those Objects re-requests them.<a hre
 can be cached until implementation constraints cause them to be evicted.<a href="#section-9.2.1.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="subscriber-priority">
+<div id="publisher-priority">
 <section id="section-9.2.1.4">
             <h5 id="name-publisher-priority-paramete">
 <a href="#section-9.2.1.4" class="section-number selfRef">9.2.1.4. </a><a href="#name-publisher-priority-paramete" class="section-name selfRef">PUBLISHER PRIORITY Parameter</a>
@@ -3715,10 +3718,10 @@ subscription inherit this priority, unless they specifically override it.<a href
 <p id="section-9.2.1.4-2">The subscription has Publisher Priorty 128 if this parameter is omitted.<a href="#section-9.2.1.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="subscriber-priority-parameter-subscriber-priority">
+<div id="subscriber-priority">
 <section id="section-9.2.1.5">
             <h5 id="name-subscriber-priority-paramet">
-<a href="#section-9.2.1.5" class="section-number selfRef">9.2.1.5. </a><a href="#name-subscriber-priority-paramet" class="section-name selfRef">SUBSCRIBER PRIORITY Parameter {#subscriber-priority)</a>
+<a href="#section-9.2.1.5" class="section-number selfRef">9.2.1.5. </a><a href="#name-subscriber-priority-paramet" class="section-name selfRef">SUBSCRIBER PRIORITY Parameter</a>
             </h5>
 <p id="section-9.2.1.5-1">The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) <span class="bcp14">MAY</span> appear in a
 SUBSCRIBE, SUBSCRIBE_UPDATE, TRACK_STATUS, PUBLISH_OK or FETCH message. It is an
@@ -3822,7 +3825,7 @@ message, the default value is 1.<a href="#section-9.2.1.10-2" class="pilcrow">¶
             <h5 id="name-dynamic-groups-parameter">
 <a href="#section-9.2.1.11" class="section-number selfRef">9.2.1.11. </a><a href="#name-dynamic-groups-parameter" class="section-name selfRef">DYNAMIC GROUPS Parameter</a>
             </h5>
-<p id="section-9.2.1.11-1">The DYNAMIC_GROUPS parameter (parameter type 0x20) <span class="bcp14">MAY</span> appear in PUBLISH or
+<p id="section-9.2.1.11-1">The DYNAMIC_GROUPS parameter (parameter type 0x30) <span class="bcp14">MAY</span> appear in PUBLISH or
 SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
 1, it indicates that the subscriber can request the Original Publisher to start
 a new Group by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or
@@ -3837,7 +3840,7 @@ subscribers.<a href="#section-9.2.1.11-2" class="pilcrow">¶</a></p>
             <h5 id="name-new-group_request-parameter">
 <a href="#section-9.2.1.12" class="section-number selfRef">9.2.1.12. </a><a href="#name-new-group_request-parameter" class="section-name selfRef">NEW GROUP_REQUEST Parameter</a>
             </h5>
-<p id="section-9.2.1.12-1">The NEW_GROUP_REQUEST parameter (parameter type 0x22) <span class="bcp14">MAY</span> appear in PUBLISH_OK,
+<p id="section-9.2.1.12-1">The NEW_GROUP_REQUEST parameter (parameter type 0x32) <span class="bcp14">MAY</span> appear in PUBLISH_OK,
 SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer representing the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber <span class="bcp14">MUST NOT</span> send
@@ -6744,18 +6747,121 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
         </table>
 </section>
 </div>
-<div id="iana-error-codes">
+<div id="version-specific-parameters">
 <section id="section-13.2">
+        <h3 id="name-version-specific-parameters-2">
+<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-version-specific-parameters-2" class="section-name selfRef">Version Specific Parameters</a>
+        </h3>
+<table class="center" id="table-10">
+          <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Parameter Type</th>
+              <th class="text-left" rowspan="1" colspan="1">Parameter Name</th>
+              <th class="text-left" rowspan="1" colspan="1">Specification</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x02</td>
+              <td class="text-left" rowspan="1" colspan="1">DELIVERY_TIMEOUT</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#delivery-timeout" class="auto internal xref">Section 9.2.1.2</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x03</td>
+              <td class="text-left" rowspan="1" colspan="1">AUTHORIZATION_TOKEN</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#authorization-token" class="auto internal xref">Section 9.2.1.1</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x04</td>
+              <td class="text-left" rowspan="1" colspan="1">MAX_CACHE_DURATION</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#max-cache-duration" class="auto internal xref">Section 9.2.1.3</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x08</td>
+              <td class="text-left" rowspan="1" colspan="1">EXPIRES</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#expires" class="auto internal xref">Section 9.2.1.8</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x09</td>
+              <td class="text-left" rowspan="1" colspan="1">LARGEST_OBJECT</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#largest-param" class="auto internal xref">Section 9.2.1.9</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x0E</td>
+              <td class="text-left" rowspan="1" colspan="1">PUBLISHER_PRIORITY</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#publisher-priority" class="auto internal xref">Section 9.2.1.4</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x10</td>
+              <td class="text-left" rowspan="1" colspan="1">FORWARD</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#forward-parameter" class="auto internal xref">Section 9.2.1.10</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x20</td>
+              <td class="text-left" rowspan="1" colspan="1">SUBSCRIBER_PRIORITY</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#subscriber-priority" class="auto internal xref">Section 9.2.1.5</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x21</td>
+              <td class="text-left" rowspan="1" colspan="1">SUBSCRIPTION_FILTER</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#subscription-filter" class="auto internal xref">Section 9.2.1.7</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x22</td>
+              <td class="text-left" rowspan="1" colspan="1">GROUP_ORDER</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#group-order" class="auto internal xref">Section 9.2.1.6</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x30</td>
+              <td class="text-left" rowspan="1" colspan="1">DYNAMIC_GROUPS</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#dynamic-groups" class="auto internal xref">Section 9.2.1.11</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x32</td>
+              <td class="text-left" rowspan="1" colspan="1">NEW_GROUP_REQUEST</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#new-group-request" class="auto internal xref">Section 9.2.1.12</a>
+</td>
+            </tr>
+          </tbody>
+        </table>
+</section>
+</div>
+<div id="iana-error-codes">
+<section id="section-13.3">
         <h3 id="name-error-codes">
-<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
+<a href="#section-13.3" class="section-number selfRef">13.3. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
         </h3>
 <div id="iana-session-termination">
-<section id="section-13.2.1">
+<section id="section-13.3.1">
           <h4 id="name-session-termination-error-c">
-<a href="#section-13.2.1" class="section-number selfRef">13.2.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
+<a href="#section-13.3.1" class="section-number selfRef">13.3.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
           </h4>
-<table class="center" id="table-10">
-            <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
+<table class="center" id="table-11">
+            <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -6916,12 +7022,12 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
 </section>
 </div>
 <div id="iana-request-error">
-<section id="section-13.2.2">
+<section id="section-13.3.2">
           <h4 id="name-request_error-codes">
-<a href="#section-13.2.2" class="section-number selfRef">13.2.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
+<a href="#section-13.3.2" class="section-number selfRef">13.3.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
           </h4>
-<table class="center" id="table-11">
-            <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
+<table class="center" id="table-12">
+            <caption><a href="#table-12" class="selfRef">Table 12</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -7026,12 +7132,12 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
 </section>
 </div>
 <div id="iana-publish-done">
-<section id="section-13.2.3">
+<section id="section-13.3.3">
           <h4 id="name-publish_done-codes">
-<a href="#section-13.2.3" class="section-number selfRef">13.2.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
+<a href="#section-13.3.3" class="section-number selfRef">13.3.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
           </h4>
-<table class="center" id="table-12">
-            <caption><a href="#table-12" class="selfRef">Table 12</a></caption>
+<table class="center" id="table-13">
+            <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -7108,12 +7214,12 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
 </section>
 </div>
 <div id="iana-reset-stream">
-<section id="section-13.2.4">
+<section id="section-13.3.4">
           <h4 id="name-data-stream-reset-error-cod">
-<a href="#section-13.2.4" class="section-number selfRef">13.2.4. </a><a href="#name-data-stream-reset-error-cod" class="section-name selfRef">Data Stream Reset Error Codes</a>
+<a href="#section-13.3.4" class="section-number selfRef">13.3.4. </a><a href="#name-data-stream-reset-error-cod" class="section-name selfRef">Data Stream Reset Error Codes</a>
           </h4>
-<table class="center" id="table-13">
-            <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
+<table class="center" id="table-14">
+            <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
