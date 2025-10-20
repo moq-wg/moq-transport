@@ -1833,6 +1833,19 @@ simultaneously.
 If the EXPIRES parameter is 0 or is not present in a message, the subscription
 does not expire or expires at an unknown time.
 
+#### FORWARD Parameter
+
+The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
+SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK, and
+SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying the
+Forwarding State on affected subscriptions (see {{subscriptions}}).  The
+allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives a
+value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
+
+If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
+subscription remains unchanged.  If the parameter is omitted from any other
+message, the default value is 1.
+
 #### DYNAMIC GROUPS Parameter {#dynamic-groups}
 
 The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in PUBLISH or
@@ -2207,7 +2220,6 @@ SUBSCRIBE Message {
   Track Namespace (..),
   Track Name Length (i),
   Track Name (..),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2221,14 +2233,6 @@ SUBSCRIBE Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Forward: If 1, Objects matching the subscription are forwarded to the
-  subscriber. If 0, Objects are not forwarded to the subscriber (see
-  {{subscriptions}}) Any other value is a protocol error and MUST terminate the
-  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-
-Subscribing with Forward=0 allows publisher or relay to prepare to serve the
-subscription in advance, reducing the time to receive objects in the future.
-
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
@@ -2239,6 +2243,10 @@ If the publisher cannot satisfy the requested Subscription Filter (see
 {{subscription-filter}}) or if the entire End Group has already been published
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
+
+Subscribing with the FORWARD parameter ({{forward-parameter}}) equal to 0 allows
+publisher or relay to prepare to serve the subscription in advance, reducing the
+time to receive objects in the future.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
@@ -2316,7 +2324,6 @@ SUBSCRIBE_UPDATE Message {
   Length (16),
   Request ID (i),
   Subscription Request ID (i),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2330,11 +2337,6 @@ SUBSCRIBE_UPDATE Message {
   existing Request ID.  The publisher MUST close the session with `
   `PROTOCOL_VIOLATION` if the subscriber specifies an invalid Subscription
   Request ID.
-
-* Forward: If 1, Objects matching the subscription are forwarded to the
-  subscriber. If 0, Objects are not forwarded to the subscriber (see
-  {{subscriptions}}) Any other value is a protocol error and MUST terminate the
-  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2375,7 +2377,6 @@ PUBLISH Message {
   Track Alias (i),
   Content Exists (8),
   [Largest Location (Location),]
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2401,17 +2402,19 @@ PUBLISH Message {
 
 * Largest Location: The location of the largest object available for this track.
 
-* Forward: If 1, the publisher will start transmitting objects immediately, even
-  before PUBLISH_OK. If 0, the publisher will not transmit any objects until the
-  subscriber sets the Forward State to 1 (see {{subscriptions}}). Any value
-  other than 0 or 1 is a `PROTOCOL_VIOLATION`.
-
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
 send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.
+
+A publisher that sends the FORWARD parameter ({{forward-parameter}}) equal to 0
+indicates that it will not transmit any objects until the subscriber sets the
+Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
+publisher will start transmitting objects immediately, possibly before
+PUBLISH_OK.
+
 
 ## PUBLISH_OK {#message-publish-ok}
 
@@ -2423,7 +2426,6 @@ PUBLISH_OK Message {
   Type (i) = 0x1E,
   Length (16),
   Request ID (i),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2432,11 +2434,6 @@ PUBLISH_OK Message {
 
 * Request ID: The Request ID of the PUBLISH this message is replying to
   {{message-publish}}.
-
-* Forward: If 1, Objects matching the subscription are forwarded to the
-  subscriber. If 0, Objects are not forwarded to the subscriber (see
-  {{subscriptions}}) Any other value is a protocol error and MUST terminate the
-  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2901,7 +2898,6 @@ SUBSCRIBE_NAMESPACE Message {
   Length (16),
   Request ID (i),
   Track Namespace Prefix (..),
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2920,9 +2916,6 @@ SUBSCRIBE_NAMESPACE Message {
   Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-
-* Forward: The Forward value that new subscriptions resulting from this
-  SUBSCRIBE_NAMESPACE will have (see {{subscriptions}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2946,6 +2939,14 @@ SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE,
 PUBLISH_NAMESPACE_DONE or PUBLISH messages to a subscriber.  It is useful in
 applications or relays where subscribers are only interested in or authorized to
 access a subset of available namespaces and tracks.
+
+If the FORWARD parameter ({{forward-parameter}}) is present in this message and
+equal to 0, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set
+the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
+from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
+set the FORWARD parameter to 1, or indicate that value by omitting the parameter
+(see {{subscriptions}}).
+
 
 ## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
 
