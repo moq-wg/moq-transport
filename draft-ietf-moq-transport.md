@@ -3090,6 +3090,7 @@ be terminated with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
 #### Object Extension Header {#object-extensions}
+
 Any Object with status Normal can have extension headers.  If an endpoint
 receives extension headers on Objects with status that is not Normal, it MUST close the
 session with a `PROTOCOL_VIOLATION`.
@@ -3101,9 +3102,11 @@ of the Object payload and not as an extension header.
 
 Extension Headers are defined in external specifications and registered in an
 IANA table {{iana}}. These specifications define the type and value of the
-header, along with any rules concerning processing, modification, caching and
-forwarding. A relay which is coded to implement these rules is said to
-"support" the extension.
+header, as well as the rules for processing, modification, caching and
+forwarding. All such specifications MUST specify whether multiple values of the
+same extension are allowed on a single Object.  A relay that enforces these
+rules is considered to "support" the extension.  If a Relay does not support an
+extension header, it MUST assume multiple values are allowed.
 
 If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
 cached as part of the Object and MUST be forwarded by relays.
@@ -3641,6 +3644,7 @@ cannot infer any information about the existence of prior groups (see
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
 
+An Object MUST NOT contain more than one instance of this extension header.
 ## Immutable Extensions
 
 The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
@@ -3685,6 +3689,8 @@ y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
 ~~~
 
+An Object MUST NOT contain more than one instance of this extension header.
+
 ## Prior Object ID Gap
 
 Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
@@ -3710,6 +3716,8 @@ cannot infer any information about the existence of prior objects (see
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
+
+An Object MUST NOT contain more than one instance of this extension header.
 
 # Security Considerations {#security}
 
