@@ -5063,9 +5063,9 @@ stream to obtain information about the current status of a given track.<a href="
 (<a href="#message-subscribe-req" class="auto internal xref">Section 9.9</a>).<a href="#section-9.19-2" class="pilcrow">¶</a></p>
 <p id="section-9.19-3">The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
-state or send any Objects. If successful, the publisher responds with a
+state or send any Objects.  If successful, the publisher responds with a
 REQUEST_OK message with the same parameters it would have set in a SUBSCRIBE_OK.
-Track Alias is not used. A publisher responds to a failed TRACK_STATUS with an
+Track Alias is not used.  A publisher responds to a failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.<a href="#section-9.19-3" class="pilcrow">¶</a></p>
 <p id="section-9.19-4">Relays without an <code>Established</code> subscription <span class="bcp14">MAY</span> forward TRACK_STATUS to one or more
 publishers, or <span class="bcp14">MAY</span> initiate a subscription (subject to authorization) as
