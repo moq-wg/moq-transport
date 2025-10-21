@@ -3023,13 +3023,7 @@ the type of the stream in question.
 |-------------|-------------------------------------------------|
 
 All MOQT datagrams start with a variable-length integer indicating the type of
-the datagram.
-
-|---------------------------|-------------------------------------------|
-| ID                        | Type                                      |
-|--------------------------:|:------------------------------------------|
-| 0x00-0x07,0x20-21,0x24-25 | OBJECT_DATAGRAM ({{object-datagram}})     |
-|---------------------------|-------------------------------------------|
+the datagram.  See {{object-datagram}}.
 
 An endpoint that receives an unknown stream or datagram type MUST close the
 session.
@@ -3199,7 +3193,7 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x0-0x7,0x20-21,0x24-25
+  Type (i) = 0x00-0x1F,0x20-21,0x24-25,0x28-29,0x2C-2D
   Track Alias (i),
   Group ID (i),
   [Object ID (i),]
