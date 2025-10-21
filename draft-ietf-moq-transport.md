@@ -1639,7 +1639,7 @@ it can appear. If it appears in some other type of message, it MUST be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.
 
-#### AUTHORIZATION TOKEN {#authorization-token}
+#### AUTHORIZATION TOKEN Parameter {#authorization-token}
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
 CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
@@ -1807,7 +1807,7 @@ handles a downstream request that includes those Objects re-requests them.
 If the MAX_CACHE_DURATION parameter is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
 
-#### PUBLISHER PRIORITY Parameter {#subscriber-priority}
+#### PUBLISHER PRIORITY Parameter {#publisher-priority}
 
 The PUBLISHER PRIORITY parameter (Parameter Type 0x0E) specifies the priority of
 a subscription relative to other subscriptions in the same session.  The value
@@ -1818,7 +1818,7 @@ subscription inherit this priority, unless they specifically override it.
 
 The subscription has Publisher Priorty 128 if this parameter is omitted.
 
-#### SUBSCRIBER PRIORITY Parameter {#subscriber-priority)
+#### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
 SUBSCRIBE, SUBSCRIBE_UPDATE, TRACK_STATUS, PUBLISH_OK or FETCH message. It is an
@@ -1863,7 +1863,7 @@ unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
 #### EXPIRES Parameter {#expires}
 
 The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH
-or PUBLISH_OK (TOOD: or REQUEST_OK).  It is a variable length integer encoding
+or PUBLISH_OK (TODO: or REQUEST_OK).  It is a variable length integer encoding
 the time in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
@@ -1906,7 +1906,7 @@ message, the default value is 1.
 
 #### DYNAMIC GROUPS Parameter {#dynamic-groups}
 
-The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in PUBLISH or
+The DYNAMIC_GROUPS parameter (parameter type 0x30) MAY appear in PUBLISH or
 SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
 1, it indicates that the subscriber can request the Original Publisher to start
 a new Group by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or
@@ -1916,9 +1916,9 @@ Relays MUST preserve the value of this parameter received from an upstream
 publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
 subscribers.
 
-#### NEW GROUP_REQUEST Parameter {#new-group-request}
+#### NEW GROUP REQUEST Parameter {#new-group-request}
 
-The NEW_GROUP_REQUEST parameter (parameter type 0x22) MAY appear in PUBLISH_OK,
+The NEW_GROUP_REQUEST parameter (parameter type 0x32) MAY appear in PUBLISH_OK,
 SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer representing the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
@@ -3847,6 +3847,22 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x2  | USE_ALIAS  | {{authorization-token}}
 | 0x3  | USE_VALUE  | {{authorization-token}}
 
+## Version Specific Parameters
+
+| Parameter Type | Parameter Name | Specification |
+|----------------|----------------|---------------|
+| 0x02 | DELIVERY_TIMEOUT | {{delivery-timeout}} |
+| 0x03 | AUTHORIZATION_TOKEN | {{authorization-token}} |
+| 0x04 | MAX_CACHE_DURATION | {{max-cache-duration}} |
+| 0x08 | EXPIRES | {{expires}} |
+| 0x09 | LARGEST_OBJECT | {{largest-param}} |
+| 0x0E | PUBLISHER_PRIORITY | {{publisher-priority}} |
+| 0x10 | FORWARD | {{forward-parameter}} |
+| 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
+| 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
+| 0x22 | GROUP_ORDER | {{group-order}} |
+| 0x30 | DYNAMIC_GROUPS | {{dynamic-groups}} |
+| 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 
 ## Error Codes {#iana-error-codes}
 
@@ -3889,7 +3905,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
 | INVALID_RANGE              | 0x11 | {{message-request-error}} |
 | MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
-| UINTERESTED                | 0x20 | {{message-request-error}} |
+| UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
@@ -3950,6 +3966,43 @@ document:
 RFC Editor's Note: Please remove this section prior to publication of a final version of this document.
 
 Issue and pull request numbers are listed with a leading octothorp.
+
+## Since draft-ietf-moq-transport-14
+
+**Setup and Control Plane**
+
+* Always use ALPN for version negotiation (#499)
+* Consolidate all the Error Message types (#1159)
+* Change MOQT IMPLEMENTATION code point to 0x7 (#1191)
+* Add Forward to SUBSCRIBE_NAMESPACE (#1220)
+* Parameters for Group Order, Subscribe Priority and Subscription Filter (redo) (#1273)
+* REQUEST_OK message (#1274)
+* Subscribe Update Acknowledgements (#1275)
+* Disallow DELETE and USE_ALIAS in CLIENT_SETUP (#1277)
+* Remove Expires field from SUBSCRIBE_OK (#1282)
+* Make Forward a Parameter (#1283)
+* Allow SUBSCRIBE_UPDATE to increase the end location (#1288)
+* Add default port for raw QUIC (#1289)
+* Unsubscribe Namespace should be linked to Subscribe Namespace (#1292)
+
+**Data Plane Wire Format and Handling**
+
+* Fetch Object serialization optimization (#949)
+* Make default PUBLISHER PRIORITY a parameter, optional in Subgroup/Datagram (#1056)
+* Allow datagram status with object ID=0 (#1197)
+* Disallow object extension headers in all non-Normal status objects (#1266)
+* Objects for malformed track must not be cached (#1290)
+* Remove NO_OBJECTS fetch error code (#1303)
+* Clarify what happens when max_cache_duration parameter is omitted (#1287)
+
+**Notable Editorial Changes**
+
+* Rename Request ID field in MAX_REQUEST_ID (#1250)
+* Define and draw subscription state machine (#1296)
+* Omitting a subgroup object necessitates reset (#1295)
+* Define duplication rules for header extensions (#1293)
+* Clarify joining fetch end location (#1286)
+
 
 ## Since draft-ietf-moq-transport-13
 
