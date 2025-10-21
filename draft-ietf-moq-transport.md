@@ -878,7 +878,7 @@ PUBLISH_DONE.
 
 This diagram shows the subscription state machine:
 
-```
+~~~
                               +--------+
                               |  Idle  |
                               +--------+
@@ -905,7 +905,7 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
               |            +-------------+              |
               +----------->| Terminated  | <------------+
                            +-------------+
-```
+~~~
 
 A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
 a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
