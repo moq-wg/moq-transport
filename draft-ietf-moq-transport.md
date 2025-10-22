@@ -2341,7 +2341,7 @@ SUBSCRIBE_OK Message {
 The sender of a request can later send a REQUEST_UPDATE to to modify it.
 
 The receiver of a REQUEST_UPDATE MUST respond with exactly one REQUEST_OK
-or REQUEST_ERROR message indicating if the update was successful.  
+or REQUEST_ERROR message indicating if the update was successful.
 
 If a parameter previously set on the request is not present in
 `REQUEST_UPDATE`, its value remains unchanged.
