@@ -3527,6 +3527,10 @@ DELIVERY_TIMEOUT (0x2):
 SESSION_CLOSED (0x3):
 : The publisher session is being closed.
 
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
+  {{malformed-tracks}}).
+
 ### Fetch Header {#fetch-header}
 
 When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
@@ -3928,7 +3932,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | CANCELLED        | 0x1  | {{closing-subgroup-streams}} |
 | DELIVERY_TIMEOUT | 0x2  | {{closing-subgroup-streams}} |
 | SESSION_CLOSED   | 0x3  | {{closing-subgroup-streams}} |
-| MALFORMED_TRACK  | 0x12 | {{malformed-tracks}}         |
+| MALFORMED_TRACK  | 0x12 | {{closing-subgroup-streams}} |
 
 # Contributors
 {:numbered="false"}
