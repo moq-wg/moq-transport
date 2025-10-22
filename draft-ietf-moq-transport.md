@@ -2255,10 +2255,6 @@ INVALID_JOINING_REQUEST_ID(0x32):
 : In response to a Joining FETCH, the referenced Request ID is not an
 `Established` Subscription.
 
-UNKNOWN_STATUS_IN_RANGE(0x33):
-: In response to a FETCH, the requested range contains an object with unknown
-status.
-
 ## SUBSCRIBE {#message-subscribe-req}
 
 A subscription causes the publisher to send newly published objects for a track.
@@ -2761,9 +2757,11 @@ A publisher MUST send fetched groups in the requested group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If an Original Publisher receives a FETCH with a range that includes an object with
-unknown status, it MUST return REQUEST_ERROR with code UNKNOWN_STATUS_IN_RANGE.
-
+If a Publisher receives a FETCH with a range that includes an object with
+unknown status (e.g. a Relay has temporarily lost contact with the Original
+Publisher and does not have the Object in cache), it can choose to reset the
+FETCH data stream with UNKNOWN_OBJECT_STATUS, or indicate the range of unknown
+Objects and continue serving other known Objects.
 
 ## FETCH_OK {#message-fetch-ok}
 
@@ -3524,6 +3522,10 @@ DELIVERY_TIMEOUT (0x2):
 SESSION_CLOSED (0x3):
 : The publisher session is being closed.
 
+UNKOWN_OBJECT_STATUS (0x4):
+: In response to a FETCH, the publisher is unable to determine the Status
+of the next Object in the requested range.
+
 ### Fetch Header {#fetch-header}
 
 When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
@@ -3551,7 +3553,7 @@ format:
   [Extensions (..),]
   Object Payload Length (i),
   [Object Status (i),]
-  [Object Payload (..),]
+  [Object Payload (..)]
 }
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
@@ -3588,6 +3590,9 @@ the prior Object, the Subscriber MUST close the session with a
 The Extensions structure is defined in {{object-extensions}}.
 
 The Object Status field is only present if the Object Payload Length is zero.
+FETCH responses have a special Object Status `UNKNOWN` (0x5).  When Object
+Status is `UNKNOWN`, all Objects between the last serialized Object, if any, and
+this one, inclusive, have `UNKNOWN` status, rather than `Object Does Not Exist`.
 
 When encoding an Object with a Forwarding Preference of "Datagram" (see
 {{object-properties}}), the Publisher treats it as having a Subgroup ID equal to
@@ -3901,7 +3906,6 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
-| UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
