@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 23 April 2026                                     I. Swett, Ed.
+Expires: 25 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         20 October 2025
+                                                         22 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 April 2026.
+   This Internet-Draft will expire on 25 April 2026.
 
 Copyright Notice
 
@@ -1009,16 +1009,32 @@ Table of Contents
 
    This diagram shows the subscription state machine:
 
-   +--------+ | Idle | +--------+ | | SUBSCRIBE | | PUBLISH
-   (subscriber)| | (publisher) V V +--------------+ +--------------+ |
-   Pending | | Pending | +----| (Subscriber) | | (Publisher) |----+ |
-   +--------------+ +--------------+ | | | | | REQUEST_ERROR |
-   SUBSCRIBE_OK | | PUBLISH_OK | REQUEST_ERROR | (publisher)| |
-   (subscriber) | | V V | | +-------------+ | | | Established |
-   ------+ | | | | SUBSCRIBE_UPDATE | +-------------+ <-----+ | | | | |
-   UNSUBSCRIBE | | PUBLISH_DONE | | (subscriber)| | (publisher) | | V
-   V | | +-------------+ | +----------->| Terminated | <------------+
-   +-------------+
+                               +--------+
+                               |  Idle  |
+                               +--------+
+                                 |    |
+                       SUBSCRIBE |    | PUBLISH
+                     (subscriber)|    | (publisher)
+                                 V    V
+                    +--------------+ +--------------+
+                    | Pending      | | Pending      |
+               +----| (Subscriber) | | (Publisher)  |----+
+               |    +--------------+ +--------------+    |
+               |                 |    |                  |
+ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
+               |      (publisher)|    | (subscriber)     |
+               |                 V    V                  |
+               |            +-------------+              |
+               |            | Established | ------+
+               |            |             |       | SUBSCRIBE_UPDATE
+               |            +-------------+ <-----+
+               |                 |    |                  |
+               |     UNSUBSCRIBE |    | PUBLISH_DONE     |
+               |     (subscriber)|    | (publisher)      |
+               |                 V    V                  |
+               |            +-------------+              |
+               +----------->| Terminated  | <------------+
+                            +-------------+
 
    A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in
    response to a SUBSCRIBE.  A subscriber MUST send exactly one
@@ -3252,15 +3268,7 @@ Table of Contents
                                  Table 3
 
    All MOQT datagrams start with a variable-length integer indicating
-   the type of the datagram.
-
-     +===========================+==================================+
-     |                        ID | Type                             |
-     +===========================+==================================+
-     | 0x00-0x07,0x20-21,0x24-25 | OBJECT_DATAGRAM (Section 10.3.1) |
-     +---------------------------+----------------------------------+
-
-                                 Table 4
+   the type of the datagram.  See Section 10.3.1.
 
    An endpoint that receives an unknown stream or datagram type MUST
    close the session.
@@ -3435,7 +3443,7 @@ Table of Contents
    An OBJECT_DATAGRAM carries a single object in a datagram.
 
    OBJECT_DATAGRAM {
-     Type (i) = 0x0-0x7,0x20-21,0x24-25
+     Type (i) = 0x00-0x1F,0x20-21,0x24-25,0x28-29,0x2C-2D
      Track Alias (i),
      Group ID (i),
      [Object ID (i),]
@@ -3504,7 +3512,7 @@ Table of Contents
     | 0x2D | No           | Yes        | Yes    | No       | Status   |
     +------+--------------+------------+--------+----------+----------+
 
-                                  Table 5
+                                  Table 4
 
    *  End of Group: For Type values where End of Group is "Yes" the
       Object is the last Object in the Group.
@@ -3651,7 +3659,7 @@ Table of Contents
    | 0x3D | Yes         | N/A       | Yes        | Yes      | No       |
    +------+-------------+-----------+------------+----------+----------+
 
-                                  Table 6
+                                  Table 5
 
    For Type values where Contains End of Group is Yes, the last Object
    in this Subgroup stream before a FIN is the last Object in the Group.
@@ -3879,7 +3887,7 @@ Table of Contents
      |                              | present                       |
      +------------------------------+-------------------------------+
 
-                                 Table 7
+                                 Table 6
 
    The following table defines additional flags within the Serialization
    Flags field.  Each flag is an independent boolean value, where a set
@@ -3905,7 +3913,7 @@ Table of Contents
     | 0x80    | PROTOCOL_VIOLATION         | N/A                      |
     +---------+----------------------------+--------------------------+
 
-                                  Table 8
+                                  Table 7
 
    If the first Object in the FETCH response uses a flag that references
    fields in the prior Object, the Subscriber MUST close the session
@@ -4185,7 +4193,7 @@ EXT 1 and EXT N can be modified or removed by Relays
                   |  0x3 | USE_VALUE | Section 9.2.1.1 |
                   +------+-----------+-----------------+
 
-                                 Table 9
+                                 Table 8
 
 13.2.  Version Specific Parameters
 
@@ -4217,7 +4225,7 @@ EXT 1 and EXT N can be modified or removed by Relays
         | 0x32           | NEW_GROUP_REQUEST   | Section 9.2.1.12 |
         +----------------+---------------------+------------------+
 
-                                  Table 10
+                                  Table 9
 
 13.3.  Error Codes
 
@@ -4269,7 +4277,7 @@ EXT 1 and EXT N can be modified or removed by Relays
            | MALFORMED_AUTHORITY        | 0x1A | Section 3.4   |
            +----------------------------+------+---------------+
 
-                                  Table 11
+                                  Table 10
 
 13.3.2.  REQUEST_ERROR Codes
 
@@ -4303,7 +4311,7 @@ EXT 1 and EXT N can be modified or removed by Relays
            | UNKNOWN_STATUS_IN_RANGE    | 0x33 | Section 9.8   |
            +----------------------------+------+---------------+
 
-                                  Table 12
+                                  Table 11
 
 13.3.3.  PUBLISH_DONE Codes
 
@@ -4329,7 +4337,7 @@ EXT 1 and EXT N can be modified or removed by Relays
                | UPDATE_FAILED      | 0x8  | Section 9.15  |
                +--------------------+------+---------------+
 
-                                  Table 13
+                                  Table 12
 
 13.3.4.  Data Stream Reset Error Codes
 
@@ -4345,7 +4353,7 @@ EXT 1 and EXT N can be modified or removed by Relays
                | SESSION_CLOSED   | 0x3  | Section 10.4.3 |
                +------------------+------+----------------+
 
-                                 Table 14
+                                 Table 13
 
 Contributors
 
@@ -4440,9 +4448,9 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-13, 7 July 2025,
+              ietf-webtrans-http3-14, 20 October 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-13>.
+              webtrans-http3-14>.
 
 Informative References
 
@@ -4471,9 +4479,9 @@ Informative References
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
               Framework", Work in Progress, Internet-Draft, draft-ietf-
-              webtrans-overview-10, 7 July 2025,
+              webtrans-overview-11, 20 October 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-10>.
+              webtrans-overview-11>.
 
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
