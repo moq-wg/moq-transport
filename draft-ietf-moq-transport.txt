@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 25 April 2026                                     I. Swett, Ed.
+Expires: 26 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         22 October 2025
+                                                         23 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 April 2026.
+   This Internet-Draft will expire on 26 April 2026.
 
 Copyright Notice
 
@@ -1519,7 +1519,7 @@ Table of Contents
    The specifics of how a relay authorizes a user are outside the scope
    of this specification.
 
-   The relay MUST have an established upstream subscription before
+   The relay MUST have an Established upstream subscription before
    sending SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a
    relay does not have sufficient information to send a FETCH_OK
    immediately in response to a FETCH, it MUST withhold sending FETCH_OK
@@ -2153,7 +2153,7 @@ Table of Contents
    Established subscription MUST include the NEW_GROUP_REQUEST when
    subscribing upstream.
 
-   A relay that receives a NEW_GROUP_REQUEST for an established
+   A relay that receives a NEW_GROUP_REQUEST for an Established
    subscription with a value of 0 or a value larger than the Largest
    Group MUST send a SUBSCRIBE_UPDATE including the NEW_GROUP_REQUEST to
    the publisher unless:
@@ -3168,7 +3168,7 @@ Table of Contents
 
    The subscriber sends the SUBSCRIBE_NAMESPACE control message to a
    publisher to request the current set of matching published namespaces
-   and established subscriptions, as well as future updates to the set.
+   and Established subscriptions, as well as future updates to the set.
 
    SUBSCRIBE_NAMESPACE Message {
      Type (i) = 0x11,
