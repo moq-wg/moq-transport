@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 25 April 2026                                     I. Swett, Ed.
+Expires: 26 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         22 October 2025
+                                                         23 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 April 2026.
+   This Internet-Draft will expire on 26 April 2026.
 
 Copyright Notice
 
@@ -2993,12 +2993,12 @@ Table of Contents
    either ascending or descending.  Within each group, objects are sent
    in Object ID order; subgroup ID is not used for ordering.
 
-   If a Publisher receives a FETCH with a range that includes an object
-   with unknown status (e.g. a Relay has temporarily lost contact with
-   the Original Publisher and does not have the Object in cache), it can
-   choose to reset the FETCH data stream with UNKNOWN_OBJECT_STATUS, or
-   indicate the range of unknown Objects and continue serving other
-   known Objects.
+   If a Publisher receives a FETCH with a range that includes one or
+   more Objects with unknown status (e.g. a Relay has temporarily lost
+   contact with the Original Publisher and does not have the Object in
+   cache), it can choose to reset the FETCH data stream with
+   UNKNOWN_OBJECT_STATUS, or indicate the range of unknown Objects and
+   continue serving other known Objects.
 
 9.17.  FETCH_OK
 
