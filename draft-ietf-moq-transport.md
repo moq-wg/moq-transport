@@ -1764,6 +1764,10 @@ time for the timeout is based on when the Object Headers are received, and does
 not depend upon the forwarding preference. There is no explicit signal that an
 Object was not sent because the delivery timeout was exceeded.
 
+DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
+endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST terminate the session
+with `PROTOCOL_VIOLATION`.
+
 If both the subscriber and publisher specify the parameter, they use the min of
 the two values for the subscription.  The publisher SHOULD always specify the
 value received from an upstream subscription when there is one, and nothing
