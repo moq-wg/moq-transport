@@ -2338,7 +2338,7 @@ SUBSCRIBE_OK Message {
 
 ## REQUEST_UPDATE {#message-request-update}
 
-The sender of a request can later send a REQUEST_UPDATE to to modify it.  The
+The sender of a request can later send a REQUEST_UPDATE to modify it.  The
 receiver of a PUBLISH can also send REQUEST_UPDATE to modify subscriber sent
 parameters.
 
