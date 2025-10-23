@@ -1350,7 +1350,7 @@ the content associated with the Track. The authorization information can be part
 of request itself or part of the encompassing session. The specifics of how a
 relay authorizes a user are outside the scope of this specification.
 
-The relay MUST have an established upstream subscription before sending
+The relay MUST have an `Established` upstream subscription before sending
 SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
 MUST withhold sending FETCH_OK until it does.
@@ -1941,7 +1941,7 @@ Relay Handling:
 A relay that receives a NEW_GROUP_REQUEST for a Track without an `Established`
 subscription MUST include the NEW_GROUP_REQUEST when subscribing upstream.
 
-A relay that receives a NEW_GROUP_REQUEST for an established subscription with a
+A relay that receives a NEW_GROUP_REQUEST for an `Established` subscription with a
 value of 0 or a value larger than the Largest Group MUST send a SUBSCRIBE_UPDATE
 including the NEW_GROUP_REQUEST to the publisher unless:
 
@@ -2926,7 +2926,7 @@ PUBLISH_NAMESPACE_CANCEL Message {
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
 The subscriber sends the SUBSCRIBE_NAMESPACE control message to a publisher to
-request the current set of matching published namespaces and established
+request the current set of matching published namespaces and `Established`
 subscriptions, as well as future updates to the set.
 
 ~~~
