@@ -1755,7 +1755,7 @@ aliases.
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH, PUBLISH_OK,
+REQUEST_OK (in response to TRACK_STATUS), PUBLISH, PUBLISH_OK,
 SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
 
 It is the duration in milliseconds the relay SHOULD
@@ -1821,20 +1821,20 @@ The subscription has Publisher Priorty 128 if this parameter is omitted.
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
-SUBSCRIBE, SUBSCRIBE_UPDATE, TRACK_STATUS, PUBLISH_OK or FETCH message. It is an
+SUBSCRIBE, SUBSCRIBE_UPDATE, PUBLISH_OK or FETCH message. It is an
 integer expressing the priority of a subscription relative to other
 subscriptions and fetch responses in the same session. Lower numbers get higher
 priority.  See {{priorities}}.  The range is restricted to 0-255.  If a
 publisher receives a value outside this range, it MUST close the session with
 `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE, TRACK_STATUS, PUBLISH_OK or FETCH, the publisher uses
+If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
 the value 128.
 
 #### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_OK, TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
+SUBSCRIBE_OK, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
 PUBLISH_OK or FETCH.
 
 It
@@ -1844,7 +1844,7 @@ response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
 Descending (0x2). If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference from
+If omitted from SUBSCRIBE, the publisher's preference from
 SUBSCRIBE_OK or REQUEST_OK is used. If omitted in PUBLISH_OK, the
 publisher's preference from PUBLISH is used. If omitted from SUBSCRIBE_OK,
 REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
@@ -1852,12 +1852,12 @@ REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
 The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) MAY appear in a
-SUBSCRIBE, TRACK_STATUS, PUBLISH_OK or SUBSCRIBE_UPDATE message. It is a
+SUBSCRIBE, PUBLISH_OK or SUBSCRIBE_UPDATE message. It is a
 length-prefixed Subscription Filter (see {{subscription-filters}}).  If the
 length of the Subscription Filter does not match the parameter length, the
 publisher MUST close the session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE, TRACK_STATUS or PUBLISH_OK, the subscription is
+If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
 
 #### EXPIRES Parameter {#expires}
@@ -1894,7 +1894,7 @@ any Objects in the Track.
 #### FORWARD Parameter
 
 The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
-SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK, and
+SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK and
 SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying the
 Forwarding State on affected subscriptions (see {{subscriptions}}).  The
 allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives a
@@ -2838,7 +2838,8 @@ A potential subscriber sends a `TRACK_STATUS` message on the control
 stream to obtain information about the current status of a given track.
 
 The TRACK_STATUS message format is identical to the SUBSCRIBE message
-({{message-subscribe-req}}).
+({{message-subscribe-req}}), but subscriber parameters related to Track
+delivery (e.g. SUBSCRIBER_PRIORITY) are not included.
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
