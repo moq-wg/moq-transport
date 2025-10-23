@@ -912,11 +912,6 @@ a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
-A publisher MUST save the Largest Location communicated in PUBLISH or
-SUBSCRIBE_OK when establishing a subscription. This value can be used in a
-Joining FETCH (see {{joining-fetches}}) at any time while the subscription is
-active.
-
 All `Established` subscriptions have a Forward State which is either 0 or 1.  If the Forward
 State is 0, the publisher does not send objects for the subscription.  If the
 Forward State is 1, the publisher sends objects.  The initiator of the
@@ -925,6 +920,12 @@ sender of PUBLISH_OK can update the Forward State based on its preference.  Once
 the subscription is established, the subscriber can update the Forward State by
 sending SUBSCRIBE_UPDATE.  Control messages, such as PUBLISH_DONE
 ({{message-publish-done}}) are still sent on subscriptions in Forward State 0.
+
+A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
+or REQUEST_OK in response to a SUBSCRIBE_UPDATE that changes the Forward State
+from 0 to 1.  This value is called the Joining Location and can be used in a
+Joining FETCH (see {{joining-fetches}}) while the subscription is in the
+`Established` state.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -1033,7 +1034,7 @@ is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
-To join a Track at a past Group, the subscriber sends a SUBSCRIBE with Filter
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or SUBSCRIBE_UPDATE with Filter
 Type `Largest Object` followed by a Joining FETCH (see {{joining-fetches}}) for
 the intended start Group, which can be relative.  To join a Track at the next
 Group, the subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
@@ -2630,23 +2631,22 @@ Standalone Fetch {
 
 ### Joining Fetches
 
-A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of an `Established` subscription.
+A Joining Fetch is associated with an `Established` subscription by
+specifying its Request ID.
 A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track Name
+subscription to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
-Subscribe.  The subscriber can set the Start Location to an absolute Location or
-a Location relative to the current group.
+subscription.  The subscriber can set the Start Location to an absolute Location or
+a Location relative to the Largest group.
 
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
 
-A Joining Fetch is only permitted when the associated Subscribe has the Filter
-Type Largest Object; any other value results in closing the session with a
-`PROTOCOL_VIOLATION`.
+A Joining Fetch is only permitted when the associated subscription Filter
+Type is Largest Object and the Forward State is 1; any other value results in closing
+the session with a `PROTOCOL_VIOLATION`.
 
-If no Objects have been published for the track, and the SUBSCRIBE_OK did not
-include a LARGEST_OBJECT parameter ({{largest-param}}), the publisher MUST
+If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
 
 A Joining Fetch includes this structure:
@@ -2658,9 +2658,9 @@ Joining Fetch {
 }
 ~~~
 
-* Joining Request ID: The Request ID of the existing subscription to be
+* Joining Request ID: The Request ID of the `Established` subscription to be
   joined. If a publisher receives a Joining Fetch with a Request ID that does
-  not correspond to an existing Subscribe in the same session, it MUST return
+  not correspond to an `Established` subscription in the same session, it MUST return
   a REQUEST_ERROR with error code `INVALID_JOINING_REQUEST_ID`
 
 * Joining Start : A relative or absolute value used to determing the Start
@@ -2668,20 +2668,19 @@ Joining Fetch {
 
 #### Joining Fetch Range Calculation
 
-The Largest Location value from the corresponding
+The Joining Location value from the corresponding
 subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
-The publisher receiving a Joining Fetch sets the End Location to {Subscribe
-Largest Location.Object + 1}. Here Subscribe Largest Location is the
-saved value from when the subscription started (see {{subscriptions}}).
+The publisher receiving a Joining Fetch sets the End Location to
+{Joining Location.Group, Joining Location.Object + 1} (see {{subscriptions}}.
 
-Note: the last Object included in the Joining FETCH response is Subscribe
-Largest Location.  The `+ 1` above indicates the equivalent Standalone Fetch
+Note: the last Object included in the Joining FETCH response is Joining
+Location.  The `+ 1` above indicates the equivalent Standalone Fetch
 encoding.
 
 For a Relative Joining Fetch, the publisher sets the Start Location to
-{Subscribe Largest Location.Group - Joining Start, 0}.
+{Joining Location.Group - Joining Start, 0}.
 
 For an Absolute Joining Fetch, the publisher sets the Start Location to
 {Joining Start, 0}.
