@@ -2757,7 +2757,7 @@ A publisher MUST send fetched groups in the requested group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If a Publisher receives a FETCH with a range that includes an object with
+If a Publisher receives a FETCH with a range that includes one or more Objects with
 unknown status (e.g. a Relay has temporarily lost contact with the Original
 Publisher and does not have the Object in cache), it can choose to reset the
 FETCH data stream with UNKNOWN_OBJECT_STATUS, or indicate the range of unknown
