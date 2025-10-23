@@ -2552,8 +2552,8 @@ Table of Contents
 
 9.11.  REQUEST_UPDATE
 
-   The sender of a request can later send a REQUEST_UPDATE to to modify
-   it.  The receiver of a PUBLISH can also send REQUEST_UPDATE to modify
+   The sender of a request can later send a REQUEST_UPDATE to modify it.
+   The receiver of a PUBLISH can also send REQUEST_UPDATE to modify
    subscriber sent parameters.
 
    The receiver of a REQUEST_UPDATE MUST respond with exactly one
