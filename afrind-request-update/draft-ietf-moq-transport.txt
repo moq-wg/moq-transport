@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 25 April 2026                                     I. Swett, Ed.
+Expires: 26 April 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         22 October 2025
+                                                         23 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 April 2026.
+   This Internet-Draft will expire on 26 April 2026.
 
 Copyright Notice
 
@@ -2553,7 +2553,8 @@ Table of Contents
 9.11.  REQUEST_UPDATE
 
    The sender of a request can later send a REQUEST_UPDATE to to modify
-   it.
+   it.  The receiver of a PUBLISH can also send REQUEST_UPDATE to modify
+   subscriber sent parameters.
 
    The receiver of a REQUEST_UPDATE MUST respond with exactly one
    REQUEST_OK or REQUEST_ERROR message indicating if the update was
