@@ -2187,6 +2187,7 @@ REQUEST_ERROR Message {
   Length (16),
   Request ID (i),
   Error Code (i),
+  [Retry Interval (i)],
   Error Reason (Reason Phrase),
 }
 ~~~
@@ -2196,66 +2197,83 @@ REQUEST_ERROR Message {
 
 * Error Code: Identifies an integer error code for request failure.
 
+* Retry Interval: The minimum time (in seconds) before the request SHOULD be
+sent again. Present only if the Error Code is odd.
+
 * Error Reason: Provides a text description of the request error. See
- {{reason-phrase}}.
+ {{reason-phrase}}.i
 
 The application SHOULD use a relevant error code in REQUEST_ERROR,
-as defined below. Most codepoints have identical meanings for various request
-types, but some have request-specific meanings.
+as defined below and assigned in {{iana-request-error}}. Most codepoints have
+identical meanings for various request types, but some have request-specific
+meanings.
 
-INTERNAL_ERROR (0x0):
+Odd error codes indicate the request is retryable with the same parameters at a
+later time. If so, the sender of REQUEST_ERROR includes a Retry Interval in the
+message. If it is sending more than one such message within a second or so, it
+SHOULD jitter the Retry Interval to avoid a flood of retries. The Retry Interval
+MAY be zero if the request can be retried immediately.
+
+If the sender has no information as to when a request is likely to be
+successful, it MAY jitter around a default interval of 30 seconds.
+
+If a Retry Interval exceeds the lifetime of a necessary authentication token
+used in the request, so that a retry at that time would faile, the sender SHOULD
+use a non-retryable error code indicating a new authentication token is needed.
+
+INTERNAL_ERROR:
 : An implementation specific or generic error occurred.
 
-UNAUTHORIZED (0x1):
+UNAUTHORIZED:
 : The subscriber is not authorized to perform the requested action on the given
 track.
 
-TIMEOUT (0x2):
+TIMEOUT:
 : The subscription could not be completed before an implementation specific
   timeout. For example, a relay could not establish an upstream subscription
   within the timeout.
 
-NOT_SUPPORTED (0x3):
+NOT_SUPPORTED:
 : The endpoint does not support the type of request.
 
-MALFORMED_AUTH_TOKEN (0x4):
+MALFORMED_AUTH_TOKEN:
 : Invalid Auth Token serialization during registration (see
   {{authorization-token}}).
 
-EXPIRED_AUTH_TOKEN (0x5):
+EXPIRED_AUTH_TOKEN:
 : Authorization token has expired ({{authorization-token}}).
 
 Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
 
-DOES_NOT_EXIST (0x10):
+DOES_NOT_EXIST:
 : The track or namespace is not available at the publisher.
 
-INVALID_RANGE (0x11):
+INVALID_RANGE:
 : In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
 cannot be satisfied.
 
-MALFORMED_TRACK (0x12):
+MALFORMED_TRACK:
 : In response to a FETCH, a relay publisher detected
 the track was malformed (see {{malformed-tracks}}).
 
 The following are errors for use by the subscriber. They can appear in response
 to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
 
-UNINTERESTED (0x20):
+UNINTERESTED:
 : The subscriber is not interested in the track or namespace.
 
 Errors below can only be used in response to one message type.
 
-PREFIX_OVERLAP (0x30):
+PREFIX_OVERLAP:
 : In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
 SUBSCRIBE_NAMESPACE in the same session.
 
-INVALID_JOINING_REQUEST_ID(0x32):
+INVALID_JOINING_REQUEST_ID:
 : In response to a Joining FETCH, the referenced Request ID is not an
 `Established` Subscription.
 
-UNKNOWN_STATUS_IN_RANGE(0x33):
+UNKNOWN_STATUS_IN_RANGE:
 : In response to a FETCH, the requested range contains an object with unknown
 status.
 
@@ -3889,19 +3907,28 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 | Name                       | Code | Specification              |
 |:---------------------------|:----:|:--------------------------|
-| INTERNAL_ERROR             | 0x0  | {{message-request-error}} |
-| UNAUTHORIZED               | 0x1  | {{message-request-error}} |
-| TIMEOUT                    | 0x2  | {{message-request-error}} |
-| NOT_SUPPORTED              | 0x3  | {{message-request-error}} |
-| MALFORMED_AUTH_TOKEN       | 0x4  | {{message-request-error}} |
-| EXPIRED_AUTH_TOKEN         | 0x5  | {{message-request-error}} |
-| DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
-| INVALID_RANGE              | 0x11 | {{message-request-error}} |
-| MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
-| UNINTERESTED               | 0x20 | {{message-request-error}} |
-| PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
-| INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
-| UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
+| INTERNAL_ERROR             | 0x1  | {{message-request-error}} |
+| UNAUTHORIZED               | 0x2  | {{message-request-error}} |
+| TIMEOUT                    | 0x3  | {{message-request-error}} |
+| NOT_SUPPORTED              | 0x4  | {{message-request-error}} |
+| INVALID_RANGE              | 0x5  | {{message-request-error}} |
+| MALFORMED_AUTH_TOKEN       | 0x6  | {{message-request-error}} |
+| UNKNOWN_STATUS_IN_RANGE    | 0x7  | {{message-request-error}} |
+| EXPIRED_AUTH_TOKEN         | 0x8  | {{message-request-error}} |
+| MALFORMED_TRACK            | 0x9  | {{message-request-error}} |
+| UNINTERESTED               | 0xa  | {{message-request-error}} |
+| DOES_NOT_EXIST             | 0xb  | {{message-request-error}} |
+| PREFIX_OVERLAP             | 0xc  | {{message-request-error}} |
+| INVALID_JOINING_REQUEST_ID | 0xe  | {{message-request-error}} |
+
+As noted above, odd error codes are potentially retryable.
+
+The range of error codes including 0x100 to 0xffff is reserved for
+implementation-speceific codes.
+
+The range of error codes starting with 0x10000 is reserved for
+provisional error codes that are under consideration for a permanent
+code point by the IETF.
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
