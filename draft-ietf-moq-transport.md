@@ -2201,7 +2201,7 @@ REQUEST_ERROR Message {
 sent again. Present only if the Error Code is odd.
 
 * Error Reason: Provides a text description of the request error. See
- {{reason-phrase}}.i
+ {{reason-phrase}}.
 
 The application SHOULD use a relevant error code in REQUEST_ERROR,
 as defined below and assigned in {{iana-request-error}}. Most codepoints have
