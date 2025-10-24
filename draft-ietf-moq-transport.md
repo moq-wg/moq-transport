@@ -2218,7 +2218,7 @@ If the sender has no information as to when a request is likely to be
 successful, it MAY jitter around a default interval of 30 seconds.
 
 If a Retry Interval exceeds the lifetime of a necessary authentication token
-used in the request, so that a retry at that time would faile, the sender SHOULD
+used in the request, so that a retry at that time would fail, the sender SHOULD
 use a non-retryable error code indicating a new authentication token is needed.
 
 INTERNAL_ERROR:
