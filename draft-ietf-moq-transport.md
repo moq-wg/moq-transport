@@ -932,7 +932,7 @@ prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
 without knowing the client is interested in and authorized to receive the
 content. The communication of intent and authorization can be accomplished by
 the client sending SUBSCRIBE_NAMESPACE, or conveyed in other mechanisms out of
-band./
+band.
 
 An endpoint MAY SUBSCRIBE to a Track it is publishing, though only Relays are
 required to handle such a SUBSCRIBE.  Such self-subscriptions are identical to
