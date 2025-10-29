@@ -513,9 +513,9 @@ include:
 1. An Object is received in a FETCH response with the same Group ID as the
    previous Object, but whose Object ID is not strictly larger than the previous
    object.
-2. An Object is received in a FETCH response with the same Subgroup ID as a
-   previous Object in the same FETCH response, but whose Publisher Priority
-   is different from the Publisher Priority of that previous Object.
+2.  In a FETCH response, an Object with a particular Subgroup ID is received, but its
+     Publisher Priority is different from that of the previous Object with the same
+     Subgroup ID.
 3. An Object is received in an Ascending FETCH response whose Group ID is smaller
    than the previous Object in the response.
 4. An Object is received in a Descending FETCH response whose Group ID is larger
