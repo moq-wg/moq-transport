@@ -2210,10 +2210,11 @@ meanings.
 
 Odd error codes indicate the request is retryable with the same parameters at a
 later time. If so, the sender of REQUEST_ERROR includes a Retry Interval in the
-message. If it is sending more than one such message within a second or so, it
-SHOULD apply randomization to each retry interval so that retries are spread out
-over time, minimizing the risk of synchronized retry storms.  The Retry Interval
-MAY be zero if the request can be retried immediately.
+message. If it is sending more than one such message within a second or so
+across one or more sessions, it SHOULD apply randomization to each retry
+interval so that retries are spread out over time, minimizing the risk of
+synchronized retry storms.  The Retry Interval MAY be zero if the request can be
+retried immediately.
 
 If the sender has no information as to when a request is likely to be
 successful, it MAY apply randomization around a default interval of 30 seconds.
