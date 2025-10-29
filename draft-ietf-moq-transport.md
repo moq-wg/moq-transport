@@ -3233,8 +3233,7 @@ There are 10 defined Type values for OBJECT_DATAGRAM.
 | 0x2D | No | Yes | Yes | No | Status |
 
 * End of Group: For Type values where End of Group is "Yes", indicates that no
-  Object with the same Group ID and the Object ID greater than the ID of the
-  current Object exists.
+  Object with the same Group ID and an Object ID greater than `Object ID` exists.
 
 * Extensions Present: If Extensions Present is "Yes" the Extensions structure
   defined in {{object-extensions}} is included. If an endpoint receives a
