@@ -2222,7 +2222,8 @@ used in the request, so that a retry at that time would fail, the sender SHOULD
 use a non-retryable error code indicating a new authentication token is needed.
 
 INTERNAL_ERROR:
-: An implementation specific or generic error occurred.
+: An implementation specific or generic error occurred. This might be retryable
+or not, depending on the codepoint.
 
 UNAUTHORIZED:
 : The subscriber is not authorized to perform the requested action on the given
@@ -2247,11 +2248,13 @@ Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
 
 DOES_NOT_EXIST:
-: The track or namespace is not available at the publisher.
+: The track or namespace is not available at the publisher. This might be
+retryable or not, if the target might exist later.
 
 INVALID_RANGE:
 : In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
-cannot be satisfied.
+cannot be satisfied. This might be retryable if the range is expected to have
+objects in the future.
 
 MALFORMED_TRACK:
 : In response to a FETCH, a relay publisher detected
@@ -2261,7 +2264,8 @@ The following are errors for use by the subscriber. They can appear in response
 to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
 
 UNINTERESTED:
-: The subscriber is not interested in the track or namespace.
+: The subscriber is not interested in the track or namespace. This might be
+retryable if it expects to be interested later.
 
 Errors below can only be used in response to one message type.
 
@@ -3907,21 +3911,26 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 | Name                       | Code | Specification              |
 |:---------------------------|:----:|:--------------------------|
+| INTERNAL_ERROR             | 0x0  | {{message-request-error}} |
 | INTERNAL_ERROR             | 0x1  | {{message-request-error}} |
 | UNAUTHORIZED               | 0x2  | {{message-request-error}} |
 | TIMEOUT                    | 0x3  | {{message-request-error}} |
-| NOT_SUPPORTED              | 0x4  | {{message-request-error}} |
+| INVALID_RANGE              | 0x4  | {{message-request-error}} |
 | INVALID_RANGE              | 0x5  | {{message-request-error}} |
-| MALFORMED_AUTH_TOKEN       | 0x6  | {{message-request-error}} |
+| NOT_SUPPORTED              | 0x6  | {{message-request-error}} |
 | UNKNOWN_STATUS_IN_RANGE    | 0x7  | {{message-request-error}} |
-| EXPIRED_AUTH_TOKEN         | 0x8  | {{message-request-error}} |
+| MALFORMED_AUTH_TOKEN       | 0x8  | {{message-request-error}} |
 | MALFORMED_TRACK            | 0x9  | {{message-request-error}} |
 | UNINTERESTED               | 0xa  | {{message-request-error}} |
-| DOES_NOT_EXIST             | 0xb  | {{message-request-error}} |
-| PREFIX_OVERLAP             | 0xc  | {{message-request-error}} |
-| INVALID_JOINING_REQUEST_ID | 0xe  | {{message-request-error}} |
+| UNINTERESTED               | 0xb  | {{message-request-error}} |
+| DOES_NOT_EXIST             | 0xc  | {{message-request-error}} |
+| DOES_NOT_EXIST             | 0xd  | {{message-request-error}} |
+| EXPIRED_AUTH_TOKEN         | 0xe  | {{message-request-error}} |
+| PREFIX_OVERLAP             | 0x10 | {{message-request-error}} |
+| INVALID_JOINING_REQUEST_ID | 0x12 | {{message-request-error}} |
 
-As noted above, odd error codes are potentially retryable.
+As noted above, odd error codes are potentially retryable. Some codes
+have both retryable and non-retryable versions.
 
 The range of error codes including 0x100 to 0xffff is reserved for
 implementation-speceific codes.
