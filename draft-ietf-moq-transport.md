@@ -2216,7 +2216,7 @@ over time, minimizing the risk of synchronized retry storms.  The Retry Interval
 MAY be zero if the request can be retried immediately.
 
 If the sender has no information as to when a request is likely to be
-successful, it MAY jitter around a default interval of 30 seconds.
+successful, it MAY apply randomization around a default interval of 30 seconds.
 
 If a Retry Interval exceeds the lifetime of a necessary authentication token
 used in the request, so that a retry at that time would fail, the sender SHOULD
