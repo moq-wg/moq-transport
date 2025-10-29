@@ -1304,7 +1304,7 @@ fields that can be updated are the following:
 
 1. Object can transition from existing to not existing in cases where the
    object is no longer available.
-3. Object Header Extensions can be added, removed or updated, subject
+2. Object Header Extensions can be added, removed or updated, subject
    to the constraints of the specific header extension.
 
 An endpoint that receives a duplicate Object with a different Forwarding
