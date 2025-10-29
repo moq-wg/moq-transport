@@ -3364,10 +3364,11 @@ There are 24 defined Type values for SUBGROUP_HEADER:
 | 0x3D | Yes           | N/A             | Yes        | Yes          | No            |
 |------|---------------|-----------------|------------|--------------|---------------|
 
-For Type values where Contains End of Group is Yes, the FIN indicates that the
-Objects that have the same Group ID and an Object ID larger than the last
-Object received on the stream do not exist.  This does not apply to
-RESET_STREAM or RESET_STREAM_AT.
+For Type values where Contains End of Group is Yes, the subscriber can infer the
+final Object in the Group when the data stream is terminated by a FIN.  In this
+case, Objects that have the same Group ID and an Object ID larger than the last
+Object received on the stream do not exist.  This does not apply when the data
+stream is terminated with a RESET_STREAM or RESET_STREAM_AT.
 
 For Type values where Subgroup ID Field Present is No, there is no explicit
 Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
