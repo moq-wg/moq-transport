@@ -3085,8 +3085,8 @@ Preference`.
   within the Group. This field is omitted if the `Object Forwarding Preference`
   is Datagram.
 
-* Object Status: An enumeration used to indicate missing objects or mark the
-  end of a group or track. See {{object-status}} below.
+* Object Status: An enumeration used to indicate whether the Object is a normal Object
+  or mark the end of a group or track. See {{object-status}} below.
 
 * Object Extension Length: The total length of the Object Extension Headers
   block, in bytes.
