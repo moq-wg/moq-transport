@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 28 April 2026                                     I. Swett, Ed.
+Expires: 3 May 2026                                        I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         25 October 2025
+                                                         30 October 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 April 2026.
+   This Internet-Draft will expire on 3 May 2026.
 
 Copyright Notice
 
@@ -1072,11 +1072,11 @@ Table of Contents
    endpoints, and all published Objects will be forwarded back to the
    endpoint, subject to priority and congestion response rules.
 
-   For a given Track, an endpoint can have at most one subscription to
-   the Track acting as the publisher and at most one acting as a
-   subscriber.  If an endpoint receives a message attempting to
-   establish a second subscription to a Track with the same role, it
-   MUST fail that request with a DUPLICATE_SUBSCRIPTION error.
+   For a given Track, an endpoint can have at most one subscription to a
+   Track acting as the publisher and at most one acting as a subscriber.
+   If an endpoint receives a message attempting to establish a second
+   subscription to a Track with the same role, it MUST fail that request
+   with a DUPLICATE_SUBSCRIPTION error.
 
    If a publisher receives a SUBSCRIBE request for a Track with an
    existing subscription not in Pending (publisher) state, it MUST fail
