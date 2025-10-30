@@ -1055,7 +1055,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 26 April 2026</td>
+<td class="center">Expires 3 May 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-10-23" class="published">23 October 2025</time>
+<time datetime="2025-10-30" class="published">30 October 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-04-26">26 April 2026</time></dd>
+<dd class="expires"><time datetime="2026-05-03">3 May 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 26 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 3 May 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2698,7 +2698,7 @@ the subscription is established, the subscriber can update the Forward State by
 sending SUBSCRIBE_UPDATE.  Control messages, such as PUBLISH_DONE
 (<a href="#message-publish-done" class="auto internal xref">Section 9.15</a>) are still sent on subscriptions in Forward State 0.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
 <p id="section-5.1-6">A publisher <span class="bcp14">MUST</span> save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
-or REQUEST_OK in response to a SUBSCRIBE_UPDATE that changes the Forward State
+or REQUEST_OK (in response to a SUBSCRIBE_UPDATE) that changes the Forward State
 from 0 to 1.  This value is called the Joining Location and can be used in a
 Joining FETCH (see <a href="#joining-fetches" class="auto internal xref">Section 9.16.2</a>) while the subscription is in the
 <code>Established</code> state.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
@@ -4862,9 +4862,9 @@ subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.<a href="#section-9.16.2.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.16.2.1-2">The publisher receiving a Joining Fetch sets the End Location to
 {Joining Location.Group, Joining Location.Object + 1} (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>.<a href="#section-9.16.2.1-2" class="pilcrow">¶</a></p>
-<p id="section-9.16.2.1-3">Note: the last Object included in the Joining FETCH response is Joining
-Location.  The <code>+ 1</code> above indicates the equivalent Standalone Fetch
-encoding.<a href="#section-9.16.2.1-3" class="pilcrow">¶</a></p>
+<p id="section-9.16.2.1-3">Note: the last Object included in the Joining FETCH response is the Object
+at the Joining Location.  The <code>+ 1</code> above indicates the equivalent Standalone
+Fetch encoding.<a href="#section-9.16.2.1-3" class="pilcrow">¶</a></p>
 <p id="section-9.16.2.1-4">For a Relative Joining Fetch, the publisher sets the Start Location to
 {Joining Location.Group - Joining Start, 0}.<a href="#section-9.16.2.1-4" class="pilcrow">¶</a></p>
 <p id="section-9.16.2.1-5">For an Absolute Joining Fetch, the publisher sets the Start Location to
