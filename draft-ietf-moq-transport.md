@@ -510,29 +510,32 @@ to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
-1. An Object is received in a FETCH response with the same Group as the
+1. An Object is received in a FETCH response with the same Group ID as the
    previous Object, but whose Object ID is not strictly larger than the previous
    object.
-2. An Object is received in an Ascending FETCH response whose Group ID is smaller
+2.  In a FETCH response, an Object with a particular Subgroup ID is received, but its
+     Publisher Priority is different from that of the previous Object with the same
+     Subgroup ID.
+3. An Object is received in an Ascending FETCH response whose Group ID is smaller
    than the previous Object in the response.
-3. An Object is received in a Descending FETCH response whose Group ID is larger
+4. An Object is received in a Descending FETCH response whose Group ID is larger
    than the previous Object in the resopnse.
-4. An Object is received whose Object ID is larger than the final Object in the
+5. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-5. A Subgroup is received over multiple transport streams terminated by FIN with
+6. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-6. An Object is received in a Group whose Object ID is larger than the final
+7. An Object is received in a Group whose Object ID is larger than the final
    Object in the Group.  The final Object in a Group is the Object with Status
    END_OF_GROUP or the last Object sent in a FETCH that requested the entire
    Group.
-7. An Object is received on a Track whose Group and Object ID are larger than the
+8. An Object is received on a Track whose Group and Object ID are larger than the
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
    End of Track.
-8. The same Object is received more than once with different Payload or
+9. The same Object is received more than once with different Payload or
     other immutable properties.
-9. An Object is received with a different Forwarding Preference than previously
+10. An Object is received with a different Forwarding Preference than previously
     observed from the same Track.
 
 The above list of conditions is not considered exhaustive.
@@ -2240,8 +2243,8 @@ INVALID_RANGE (0x11):
 cannot be satisfied.
 
 MALFORMED_TRACK (0x12):
-: In response to a FETCH, a relay publisher detected
-the track was malformed (see {{malformed-tracks}}).
+: In response to a FETCH, a relay publisher detected that the track was
+malformed (see {{malformed-tracks}}).
 
 The following are errors for use by the subscriber. They can appear in response
 to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
@@ -2583,8 +2586,8 @@ TOO_FAR_BEHIND (0x6):
 : The publisher's queue of objects to be sent to the given subscriber exceeds
   its implementation defined limit.
 
-MALFORMED_TRACK (0x7):
-: A relay publisher detected the track was malformed (see
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
 
 UPDATE_FAILED (0x8):
@@ -3528,6 +3531,10 @@ DELIVERY_TIMEOUT (0x2):
 SESSION_CLOSED (0x3):
 : The publisher session is being closed.
 
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
+  {{malformed-tracks}}).
+
 ### Fetch Header {#fetch-header}
 
 When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
@@ -3918,7 +3925,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | GOING_AWAY         | 0x4  | {{message-publish-done}} |
 | EXPIRED            | 0x5  | {{message-publish-done}} |
 | TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
-| MALFORMED_TRACK    | 0x7  | {{message-publish-done}} |
+| MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
 | UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
@@ -3929,6 +3936,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | CANCELLED        | 0x1  | {{closing-subgroup-streams}} |
 | DELIVERY_TIMEOUT | 0x2  | {{closing-subgroup-streams}} |
 | SESSION_CLOSED   | 0x3  | {{closing-subgroup-streams}} |
+| MALFORMED_TRACK  | 0x12 | {{closing-subgroup-streams}} |
 
 # Contributors
 {:numbered="false"}
