@@ -922,7 +922,7 @@ sending SUBSCRIBE_UPDATE.  Control messages, such as PUBLISH_DONE
 ({{message-publish-done}}) are still sent on subscriptions in Forward State 0.
 
 A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
-or REQUEST_OK in response to a SUBSCRIBE_UPDATE that changes the Forward State
+or REQUEST_OK (in response to a SUBSCRIBE_UPDATE) that changes the Forward State
 from 0 to 1.  This value is called the Joining Location and can be used in a
 Joining FETCH (see {{joining-fetches}}) while the subscription is in the
 `Established` state.
@@ -2675,9 +2675,9 @@ Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 The publisher receiving a Joining Fetch sets the End Location to
 {Joining Location.Group, Joining Location.Object + 1} (see {{subscriptions}}.
 
-Note: the last Object included in the Joining FETCH response is Joining
-Location.  The `+ 1` above indicates the equivalent Standalone Fetch
-encoding.
+Note: the last Object included in the Joining FETCH response is the Object
+at the Joining Location.  The `+ 1` above indicates the equivalent Standalone
+Fetch encoding.
 
 For a Relative Joining Fetch, the publisher sets the Start Location to
 {Joining Location.Group - Joining Start, 0}.
