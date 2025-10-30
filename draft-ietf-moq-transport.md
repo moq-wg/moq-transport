@@ -940,7 +940,7 @@ subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
 rules.
 
-For a given Track, an endpoint can have at most one subscription to the Track
+For a given Track, an endpoint can have at most one subscription to a Track
 acting as the publisher and at most one acting as a subscriber.  If an endpoint
 receives a message attempting to establish a second subscription to a Track
 with the same role, it MUST fail that request with a `DUPLICATE_SUBSCRIPTION`
