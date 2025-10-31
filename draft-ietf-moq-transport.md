@@ -1598,7 +1598,7 @@ and frequency of requests.  Request IDs for one endpoint increment independently
 from those sent by the peer endpoint.  The client's Request ID starts at 0 and
 are even and the server's Request ID starts at 1 and are odd.  The Request ID
 increments by 2 with each FETCH, SUBSCRIBE, SUBSCRIBE_UPDATE,
-SUBSCRIBE_NAMESPACE, PUBLISH, PUBLISH_NAMESPACE or TRACK_STATUS request.
+PUBLISH, PUBLISH_NAMESPACE or TRACK_STATUS request.
 Other messages with a Request ID field reference the Request ID of another
 message for correlation. If an endpoint receives a Request ID that is not valid
 for the peer, or a new request with a Request ID that is not the next in
@@ -2885,6 +2885,24 @@ PUBLISH_NAMESPACE Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
+## NAMESPACE {#message-pub-ns}
+
+The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
+it is in response to a SUBSCRIBE_NAMESPACE request. Because it is never
+sent on the control stream, it can use the same type.
+
+~~~
+NAMESPACE Message {
+  Type (i) = 0x6,
+  Length (16),
+  Track Namespace (..),
+}
+~~~
+{: #moq-transport-pub-ns-format title="MOQT NAMESPACE Message"}
+
+* Track Namespace: Identifies a track's namespace as defined in
+  {{track-name}}.
+
 ## PUBLISH_NAMESPACE_DONE {#message-pub-ns-done}
 
 The publisher sends the `PUBLISH_NAMESPACE_DONE` control message to indicate its
@@ -2932,9 +2950,10 @@ PUBLISH_NAMESPACE_CANCEL Message {
 
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
-The subscriber sends the SUBSCRIBE_NAMESPACE control message to a publisher to
-request the current set of matching published namespaces and `Established`
-subscriptions, as well as future updates to the set.
+The subscriber sends a SUBSCRIBE_NAMESPACE control message on a new
+bidirectional stream to a publisher to request the current set of matching
+published namespaces and/or `Established` subscriptions, as well as future
+updates to the set.
 
 ~~~
 SUBSCRIBE_NAMESPACE Message {
@@ -2942,6 +2961,7 @@ SUBSCRIBE_NAMESPACE Message {
   Length (16),
   Request ID (i),
   Track Namespace Prefix (..),
+  Subscribe Options (i),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2960,15 +2980,19 @@ SUBSCRIBE_NAMESPACE Message {
   Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-
+* Subscribe Options: Allows subscribers to request PUBLISH (0x00),
+  NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.
+ 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-The publisher will respond with REQUEST_OK or
-REQUEST_ERROR.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
-immediately forward existing PUBLISH_NAMESPACE and PUBLISH messages that match
-the Track Namespace Prefix that have not already been sent to this subscriber.
-If the set of matching PUBLISH_NAMESPACE messages changes, the publisher sends
-the corresponding PUBLISH_NAMESPACE or PUBLISH_NAMESPACE_DONE message.
+The publisher will respond with REQUEST_OK or REQUEST_ERROR.  If the
+SUBSCRIBE_NAMESPACE is successful, the publisher will send matching
+NAMESPACE messages on the response stream if they are requested.
+Also, any matching PUBLISH messages without an active Subscription will be
+sent on the control stream. When there are changes to the namespaces or
+subscriptions being published and the subscriber is subscribed to them,
+the publisher sends the corresponding NAMESPACE, PUBLISH_NAMESPACE_DONE,
+or PUBLISH messages.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
 session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
