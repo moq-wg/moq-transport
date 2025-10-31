@@ -948,9 +948,10 @@ error.
 
 If a publisher receives a SUBSCRIBE request for a Track with an existing
 subscription not in `Pending (publisher)` state, it MUST fail that request with
-a `DUPLICATE_SUBSCRIPTION` error. If a subscriber receives a PUBLISH for a
-subscription in the `Pending (Subscriber)` state, it MUST ensure the
-subscription transitions to the `Terminated` state before sending PUBLISH_OK.
+a `DUPLICATE_SUBSCRIPTION` error. If a subscriber receives a PUBLISH for a Track
+with a subscription in the `Pending (Subscriber)` state, it MUST ensure the
+subscription it initiated transitions to the `Terminated` state before sending
+PUBLISH_OK.
 
 A publisher SHOULD begin sending incomplete objects when available to avoid
 incurring additional latency.
