@@ -1572,7 +1572,7 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xD   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
-| 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
+| 0x6   | PUBLISH_NAMESPACE/NAMESPACE  ({{message-pub-ns}})   |
 |-------|-----------------------------------------------------|
 | 0x9   | PUBLISH_NAMESPACE_DONE  ({{message-pub-ns-done}})   |
 |-------|-----------------------------------------------------|
@@ -2884,12 +2884,12 @@ PUBLISH_NAMESPACE Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-## NAMESPACE {#message-pub-ns}
+## NAMESPACE {#message-namespace}
 
 The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
-it is in response to a SUBSCRIBE_NAMESPACE request. Because it is never
-sent on the control stream, it can use the same type value.  Because all
-NAMESPACE messages are in response to a single SUBSCRIBE_NAMESPACE, only
+it is sent on the response stream of a SUBSCRIBE_NAMESPACE request. Because
+it is never sent on the control stream, it can use the same type value.
+Because all NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, only
 the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.
 
