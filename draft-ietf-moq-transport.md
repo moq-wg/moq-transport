@@ -2340,10 +2340,9 @@ A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
 subscription.
 
 When a subscriber decreases the Start Location of the Subscription Filter
-(see {{subscription-filters}}), if the Start Location is less than the Track's
-Largest Location, the Start Location is increased to Largest Location,
-similar to SUBSCRIBE. If Objects with Locations smaller than the current
-subscription's Largest Location are required, FETCH can be used to retrieve them.
+(see {{subscription-filters}}), the Start Location can be less the Track's
+Largest Location, similar to a new Subscription. FETCH can be used to retrieve
+any necessary Objects smaller than the current Largest Location.
 
 When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
