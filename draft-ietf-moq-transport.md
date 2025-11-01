@@ -2892,8 +2892,8 @@ The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
 it is in response to a SUBSCRIBE_NAMESPACE request. Because it is never
 sent on the control stream, it can use the same type value.  Because all
 NAMESPACE messages are in response to a single SUBSCRIBE_NAMESPACE, only
-the namespace tuples after the namespace being subscribed to are included
-in the 
+the namespace tuples after the 'Track Namespace Prefix' are included
+in the 'Track Namespace Suffix'.
 
 ~~~
 NAMESPACE Message {
@@ -2987,7 +2987,7 @@ SUBSCRIBE_NAMESPACE Message {
 
 * Subscribe Options: Allows subscribers to request PUBLISH (0x00),
   NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.
- 
+
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR.  If the
