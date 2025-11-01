@@ -2991,7 +2991,7 @@ SUBSCRIBE_NAMESPACE Message {
 The publisher will respond with REQUEST_OK or REQUEST_ERROR.  If the
 SUBSCRIBE_NAMESPACE is successful, the publisher will send matching
 NAMESPACE messages on the response stream if they are requested.
-Also, any matching PUBLISH messages without an active Subscription will be
+Also, any matching PUBLISH messages without an `Established` Subscription will be
 sent on the control stream. When there are changes to the namespaces or
 subscriptions being published and the subscriber is subscribed to them,
 the publisher sends the corresponding NAMESPACE, PUBLISH_NAMESPACE_DONE,
