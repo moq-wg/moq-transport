@@ -1103,16 +1103,17 @@ The syntax of these messages is described in {{message}}.
 
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
-recipient of this message will send any relevant PUBLISH_NAMESPACE,
+recipient of this message will send any relevant NAMESPACE,
 PUBLISH_NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
 part of that namespace.  This includes echoing back PUBLISH or PUBLISH_NAMESPACE
 messages to the endpoint that sent them.  If an endpoint accepts its own
 PUBLISH, this behaves as self-subscription described in {{subscriptions}}.
 
-A publisher MUST send exactly one REQUEST_OK or
-REQUEST_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
-SHOULD close the session with a protocol error if it detects receiving more than
-one.
+The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
+publisher MUST send REQUEST_OK or REQUEST_ERROR as the first message on the
+bidirectional stream in response to a SUBSCRIBE_NAMESPACE. The subscriber
+SHOULD close the session with a protocol error if it detects receiving more
+than one.
 
 The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
@@ -2889,21 +2890,23 @@ PUBLISH_NAMESPACE Message {
 
 The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
 it is in response to a SUBSCRIBE_NAMESPACE request. Because it is never
-sent on the control stream, it can use the same type value.  Because all messages are in
-response to a single SUBSCRIBE_NAMESPACE, only the tuples of the namespace after the
-namespace being subscribed to are included.
+sent on the control stream, it can use the same type value.  Because all
+NAMESPACE messages are in response to a single SUBSCRIBE_NAMESPACE, only
+the namespace tuples after the namespace being subscribed to are included
+in the 
 
 ~~~
 NAMESPACE Message {
   Type (i) = 0x6,
   Length (16),
-  Track Namespace (..),
+  Track Namespace Suffix (..),
 }
 ~~~
 {: #moq-transport-pub-ns-format title="MOQT NAMESPACE Message"}
 
-* Track Namespace: Identifies a track's namespace as defined in
-  {{track-name}}.
+* Track Namespace Suffix: Specifies the final portion of a track's
+  namespace as defined in {{track-name}}. The namespace begins with the
+  'Track Namespace Prefix' specified in {message-subscribe-namespace}.
 
 ## PUBLISH_NAMESPACE_DONE {#message-pub-ns-done}
 
