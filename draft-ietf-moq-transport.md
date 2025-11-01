@@ -2889,7 +2889,9 @@ PUBLISH_NAMESPACE Message {
 
 The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
 it is in response to a SUBSCRIBE_NAMESPACE request. Because it is never
-sent on the control stream, it can use the same type.
+sent on the control stream, it can use the same type value.  Because all messages are in
+response to a single SUBSCRIBE_NAMESPACE, only the tuples of the namespace after the
+namespace being subscribed to are included.
 
 ~~~
 NAMESPACE Message {
