@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 24 April 2026                                     I. Swett, Ed.
+Expires: 5 May 2026                                        I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         21 October 2025
+                                                         1 November 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 April 2026.
+   This Internet-Draft will expire on 5 May 2026.
 
 Copyright Notice
 
@@ -628,38 +628,42 @@ Table of Contents
    malformed.  Some example conditions that constitute a malformed track
    when detected by a receiver include:
 
-   1.  An Object is received in a FETCH response with the same Group as
-       the previous Object, but whose Object ID is not strictly larger
-       than the previous object.
+   1.   An Object is received in a FETCH response with the same Group ID
+        as the previous Object, but whose Object ID is not strictly
+        larger than the previous object.
 
-   2.  An Object is received in an Ascending FETCH response whose Group
-       ID is smaller than the previous Object in the response.
+   2.   In a FETCH response, an Object with a particular Subgroup ID is
+        received, but its Publisher Priority is different from that of
+        the previous Object with the same Subgroup ID.
 
-   3.  An Object is received in a Descending FETCH response whose Group
-       ID is larger than the previous Object in the resopnse.
+   3.   An Object is received in an Ascending FETCH response whose Group
+        ID is smaller than the previous Object in the response.
 
-   4.  An Object is received whose Object ID is larger than the final
-       Object in the Subgroup.  The final Object in a Subgroup is the
-       last Object received on a Subgroup stream before a FIN.
+   4.   An Object is received in a Descending FETCH response whose Group
+        ID is larger than the previous Object in the resopnse.
 
-   5.  A Subgroup is received over multiple transport streams terminated
-       by FIN with different final Objects.
+   5.   An Object is received whose Object ID is larger than the final
+        Object in the Subgroup.  The final Object in a Subgroup is the
+        last Object received on a Subgroup stream before a FIN.
 
-   6.  An Object is received in a Group whose Object ID is larger than
-       the final Object in the Group.  The final Object in a Group is
-       the Object with Status END_OF_GROUP or the last Object sent in a
-       FETCH that requested the entire Group.
+   6.   A Subgroup is received over multiple transport streams
+        terminated by FIN with different final Objects.
 
-   7.  An Object is received on a Track whose Group and Object ID are
-       larger than the final Object in the Track.  The final Object in a
-       Track is the Object with Status END_OF_TRACK or the last Object
-       sent in a FETCH whose response indicated End of Track.
+   7.   An Object is received in a Group whose Object ID is larger than
+        the final Object in the Group.  The final Object in a Group is
+        the Object with Status END_OF_GROUP or the last Object sent in a
+        FETCH that requested the entire Group.
 
-   8.  The same Object is received more than once with different Payload
-       or other immutable properties.
+   8.   An Object is received on a Track whose Group and Object ID are
+        larger than the final Object in the Track.  The final Object in
+        a Track is the Object with Status END_OF_TRACK or the last
+        Object sent in a FETCH whose response indicated End of Track.
 
-   9.  An Object is received with a different Forwarding Preference than
-       previously observed from the same Track.
+   9.   The same Object is received more than once with different
+        Payload or other immutable properties.
+
+   10.  An Object is received with a different Forwarding Preference
+        than previously observed from the same Track.
 
    The above list of conditions is not considered exhaustive.
 
@@ -1009,16 +1013,32 @@ Table of Contents
 
    This diagram shows the subscription state machine:
 
-   +--------+ | Idle | +--------+ | | SUBSCRIBE | | PUBLISH
-   (subscriber)| | (publisher) V V +--------------+ +--------------+ |
-   Pending | | Pending | +----| (Subscriber) | | (Publisher) |----+ |
-   +--------------+ +--------------+ | | | | | REQUEST_ERROR |
-   SUBSCRIBE_OK | | PUBLISH_OK | REQUEST_ERROR | (publisher)| |
-   (subscriber) | | V V | | +-------------+ | | | Established |
-   ------+ | | | | SUBSCRIBE_UPDATE | +-------------+ <-----+ | | | | |
-   UNSUBSCRIBE | | PUBLISH_DONE | | (subscriber)| | (publisher) | | V
-   V | | +-------------+ | +----------->| Terminated | <------------+
-   +-------------+
+                               +--------+
+                               |  Idle  |
+                               +--------+
+                                 |    |
+                       SUBSCRIBE |    | PUBLISH
+                     (subscriber)|    | (publisher)
+                                 V    V
+                    +--------------+ +--------------+
+                    | Pending      | | Pending      |
+               +----| (Subscriber) | | (Publisher)  |----+
+               |    +--------------+ +--------------+    |
+               |                 |    |                  |
+ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
+               |      (publisher)|    | (subscriber)     |
+               |                 V    V                  |
+               |            +-------------+              |
+               |            | Established | ------+
+               |            |             |       | SUBSCRIBE_UPDATE
+               |            +-------------+ <-----+
+               |                 |    |                  |
+               |     UNSUBSCRIBE |    | PUBLISH_DONE     |
+               |     (subscriber)|    | (publisher)      |
+               |                 V    V                  |
+               |            +-------------+              |
+               +----------->| Terminated  | <------------+
+                            +-------------+
 
    A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in
    response to a SUBSCRIBE.  A subscriber MUST send exactly one
@@ -1503,7 +1523,7 @@ Table of Contents
    The specifics of how a relay authorizes a user are outside the scope
    of this specification.
 
-   The relay MUST have an established upstream subscription before
+   The relay MUST have an Established upstream subscription before
    sending SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a
    relay does not have sufficient information to send a FETCH_OK
    immediately in response to a FETCH, it MUST withhold sending FETCH_OK
@@ -1943,6 +1963,10 @@ Table of Contents
    is no explicit signal that an Object was not sent because the
    delivery timeout was exceeded.
 
+   DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.
+   If an endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST
+   terminate the session with PROTOCOL_VIOLATION.
+
    If both the subscriber and publisher specify the parameter, they use
    the min of the two values for the subscription.  The publisher SHOULD
    always specify the value received from an upstream subscription when
@@ -2137,7 +2161,7 @@ Table of Contents
    Established subscription MUST include the NEW_GROUP_REQUEST when
    subscribing upstream.
 
-   A relay that receives a NEW_GROUP_REQUEST for an established
+   A relay that receives a NEW_GROUP_REQUEST for an Established
    subscription with a value of 0 or a value larger than the Largest
    Group MUST send a SUBSCRIBE_UPDATE including the NEW_GROUP_REQUEST to
    the publisher unless:
@@ -2437,7 +2461,7 @@ Table of Contents
       Filter or range of Locations cannot be satisfied.
 
    MALFORMED_TRACK (0x12):  In response to a FETCH, a relay publisher
-      detected the track was malformed (see Section 2.4.2).
+      detected that the track was malformed (see Section 2.4.2).
 
    The following are errors for use by the subscriber.  They can appear
    in response to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
@@ -2539,11 +2563,10 @@ Table of Contents
    existing subscription.
 
    When a subscriber decreases the Start Location of the Subscription
-   Filter (see Section 5.1.2), if the Start Location is less than the
-   Track's Largest Location, the Start Location is increased to Largest
-   Location, similar to SUBSCRIBE.  If Objects with Locations smaller
-   than the current subscription's Largest Location are required, FETCH
-   can be used to retrieve them.
+   Filter (see Section 5.1.2), the Start Location can be less the
+   Track's Largest Location, similar to a new Subscription.  FETCH can
+   be used to retrieve any necessary Objects smaller than the current
+   Largest Location.
 
    When a subscriber increases the End Location, the Largest Object at
    the publisher might already be larger than the previous End Location.
@@ -2789,8 +2812,8 @@ Table of Contents
    TOO_FAR_BEHIND (0x6):  The publisher's queue of objects to be sent to
       the given subscriber exceeds its implementation defined limit.
 
-   MALFORMED_TRACK (0x7):  A relay publisher detected the track was
-      malformed (see Section 2.4.2).
+   MALFORMED_TRACK (0x12):  A relay publisher detected that the track
+      was malformed (see Section 2.4.2).
 
    UPDATE_FAILED (0x8):  SUBSCRIBE_UPDATE failed on this subscription
       (see Section 9.11).
@@ -3154,7 +3177,7 @@ Table of Contents
 
    The subscriber sends the SUBSCRIBE_NAMESPACE control message to a
    publisher to request the current set of matching published namespaces
-   and established subscriptions, as well as future updates to the set.
+   and Established subscriptions, as well as future updates to the set.
 
    SUBSCRIBE_NAMESPACE Message {
      Type (i) = 0x11,
@@ -3254,15 +3277,7 @@ Table of Contents
                                  Table 3
 
    All MOQT datagrams start with a variable-length integer indicating
-   the type of the datagram.
-
-     +===========================+==================================+
-     |                        ID | Type                             |
-     +===========================+==================================+
-     | 0x00-0x07,0x20-21,0x24-25 | OBJECT_DATAGRAM (Section 10.3.1) |
-     +---------------------------+----------------------------------+
-
-                                 Table 4
+   the type of the datagram.  See Section 10.3.1.
 
    An endpoint that receives an unknown stream or datagram type MUST
    close the session.
@@ -3437,7 +3452,7 @@ Table of Contents
    An OBJECT_DATAGRAM carries a single object in a datagram.
 
    OBJECT_DATAGRAM {
-     Type (i) = 0x0-0x7,0x20-21,0x24-25
+     Type (i) = 0x00-0x1F,0x20-21,0x24-25,0x28-29,0x2C-2D
      Track Alias (i),
      Group ID (i),
      [Object ID (i),]
@@ -3506,7 +3521,7 @@ Table of Contents
     | 0x2D | No           | Yes        | Yes    | No       | Status   |
     +------+--------------+------------+--------+----------+----------+
 
-                                  Table 5
+                                  Table 4
 
    *  End of Group: For Type values where End of Group is "Yes" the
       Object is the last Object in the Group.
@@ -3653,7 +3668,7 @@ Table of Contents
    | 0x3D | Yes         | N/A       | Yes        | Yes      | No       |
    +------+-------------+-----------+------------+----------+----------+
 
-                                  Table 6
+                                  Table 5
 
    For Type values where Contains End of Group is Yes, the last Object
    in this Subgroup stream before a FIN is the last Object in the Group.
@@ -3827,6 +3842,9 @@ Table of Contents
 
    SESSION_CLOSED (0x3):  The publisher session is being closed.
 
+   MALFORMED_TRACK (0x12):  A relay publisher detected that the track
+      was malformed (see Section 2.4.2).
+
 10.4.4.  Fetch Header
 
    When a stream begins with FETCH_HEADER, all objects on the stream
@@ -3881,7 +3899,7 @@ Table of Contents
      |                              | present                       |
      +------------------------------+-------------------------------+
 
-                                 Table 7
+                                 Table 6
 
    The following table defines additional flags within the Serialization
    Flags field.  Each flag is an independent boolean value, where a set
@@ -3907,7 +3925,7 @@ Table of Contents
     | 0x80    | PROTOCOL_VIOLATION         | N/A                      |
     +---------+----------------------------+--------------------------+
 
-                                  Table 8
+                                  Table 7
 
    If the first Object in the FETCH response uses a flag that references
    fields in the prior Object, the Subscriber MUST close the session
@@ -4187,7 +4205,7 @@ EXT 1 and EXT N can be modified or removed by Relays
                   |  0x3 | USE_VALUE | Section 9.2.1.1 |
                   +------+-----------+-----------------+
 
-                                 Table 9
+                                 Table 8
 
 13.2.  Version Specific Parameters
 
@@ -4219,7 +4237,7 @@ EXT 1 and EXT N can be modified or removed by Relays
         | 0x32           | NEW_GROUP_REQUEST   | Section 9.2.1.12 |
         +----------------+---------------------+------------------+
 
-                                  Table 10
+                                  Table 9
 
 13.3.  Error Codes
 
@@ -4271,7 +4289,7 @@ EXT 1 and EXT N can be modified or removed by Relays
            | MALFORMED_AUTHORITY        | 0x1A | Section 3.4   |
            +----------------------------+------+---------------+
 
-                                  Table 11
+                                  Table 10
 
 13.3.2.  REQUEST_ERROR Codes
 
@@ -4305,7 +4323,7 @@ EXT 1 and EXT N can be modified or removed by Relays
            | UNKNOWN_STATUS_IN_RANGE    | 0x33 | Section 9.8   |
            +----------------------------+------+---------------+
 
-                                  Table 12
+                                  Table 11
 
 13.3.3.  PUBLISH_DONE Codes
 
@@ -4326,12 +4344,12 @@ EXT 1 and EXT N can be modified or removed by Relays
                +--------------------+------+---------------+
                | TOO_FAR_BEHIND     | 0x6  | Section 9.15  |
                +--------------------+------+---------------+
-               | MALFORMED_TRACK    | 0x7  | Section 9.15  |
+               | MALFORMED_TRACK    | 0x12 | Section 9.15  |
                +--------------------+------+---------------+
                | UPDATE_FAILED      | 0x8  | Section 9.15  |
                +--------------------+------+---------------+
 
-                                  Table 13
+                                  Table 12
 
 13.3.4.  Data Stream Reset Error Codes
 
@@ -4346,8 +4364,10 @@ EXT 1 and EXT N can be modified or removed by Relays
                +------------------+------+----------------+
                | SESSION_CLOSED   | 0x3  | Section 10.4.3 |
                +------------------+------+----------------+
+               | MALFORMED_TRACK  | 0x12 | Section 10.4.3 |
+               +------------------+------+----------------+
 
-                                 Table 14
+                                 Table 13
 
 Contributors
 
