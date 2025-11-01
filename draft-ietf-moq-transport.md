@@ -1119,11 +1119,11 @@ The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
-An UNSUBSCRIBE_NAMESPACE withdraws a previous SUBSCRIBE_NAMESPACE. It does not
-prohibit original publishers from sending further PUBLISH_NAMESPACE or PUBLISH
-messages, but relays MUST NOT send any further PUBLISH messages to a client
-without knowing the client is interested in and authorized to receive the
-content.
+A SUBSCRIBE_NAMESPACE can be cancelled by the subscriber closing the stream with
+either a FIN or RESET_STREAM. Cancelling does not prohibit original publishers
+from sending further PUBLISH_NAMESPACE or PUBLISH messages, but relays MUST NOT
+send any further PUBLISH messages to a client without knowing the client is
+interested in and authorized to receive the content.
 
 ## Publishing Namespaces
 
@@ -1579,8 +1579,6 @@ The following Message Types are defined:
 | 0xC   | PUBLISH_NAMESPACE_CANCEL ({{message-pub-ns-cancel}})|
 |-------|-----------------------------------------------------|
 | 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
-|-------|-----------------------------------------------------|
-| 0x14  | UNSUBSCRIBE_NAMESPACE ({{message-unsub-ns}})        |
 |-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
@@ -3019,27 +3017,6 @@ the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
 from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
 set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 (see {{subscriptions}}).
-
-
-## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
-
-A subscriber issues a `UNSUBSCRIBE_NAMESPACE` message to a publisher indicating
-it is no longer interested in PUBLISH_NAMESPACE, PUBLISH_NAMESPACE_DONE and
-PUBLISH messages for the specified track namespace prefix.
-
-The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
-
-~~~
-UNSUBSCRIBE_NAMESPACE Message {
-  Type (i) = 0x14,
-  Length (16),
-  Request ID (i),
-}
-~~~
-{: #moq-transport-unsub-ann-format title="MOQT UNSUBSCRIBE_NAMESPACE Message"}
-
-* Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
-  ({{message-subscribe-ns}}) being cancelled by this message.
 
 
 # Data Streams and Datagrams {#data-streams}
