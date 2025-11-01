@@ -1103,26 +1103,27 @@ The syntax of these messages is described in {{message}}.
 
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
-recipient of this message will send any relevant PUBLISH_NAMESPACE,
+recipient of this message will send any relevant NAMESPACE,
 PUBLISH_NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
 part of that namespace.  This includes echoing back PUBLISH or PUBLISH_NAMESPACE
 messages to the endpoint that sent them.  If an endpoint accepts its own
 PUBLISH, this behaves as self-subscription described in {{subscriptions}}.
 
-A publisher MUST send exactly one REQUEST_OK or
-REQUEST_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
-SHOULD close the session with a protocol error if it detects receiving more than
-one.
+The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
+publisher MUST send REQUEST_OK or REQUEST_ERROR as the first message on the
+bidirectional stream in response to a SUBSCRIBE_NAMESPACE. The subscriber
+SHOULD close the session with a protocol error if it detects receiving more
+than one.
 
 The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
-An UNSUBSCRIBE_NAMESPACE withdraws a previous SUBSCRIBE_NAMESPACE. It does not
-prohibit original publishers from sending further PUBLISH_NAMESPACE or PUBLISH
-messages, but relays MUST NOT send any further PUBLISH messages to a client
-without knowing the client is interested in and authorized to receive the
-content.
+A SUBSCRIBE_NAMESPACE can be cancelled by the subscriber closing the stream with
+either a FIN or RESET_STREAM. Cancelling does not prohibit original publishers
+from sending further PUBLISH_NAMESPACE or PUBLISH messages, but relays MUST NOT
+send any further PUBLISH messages to a client without knowing the client is
+interested in and authorized to receive the content.
 
 ## Publishing Namespaces
 
@@ -1571,15 +1572,13 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xD   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
-| 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
+| 0x6   | PUBLISH_NAMESPACE/NAMESPACE  ({{message-pub-ns}})   |
 |-------|-----------------------------------------------------|
 | 0x9   | PUBLISH_NAMESPACE_DONE  ({{message-pub-ns-done}})   |
 |-------|-----------------------------------------------------|
 | 0xC   | PUBLISH_NAMESPACE_CANCEL ({{message-pub-ns-cancel}})|
 |-------|-----------------------------------------------------|
 | 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
-|-------|-----------------------------------------------------|
-| 0x14  | UNSUBSCRIBE_NAMESPACE ({{message-unsub-ns}})        |
 |-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
@@ -2885,6 +2884,28 @@ PUBLISH_NAMESPACE Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
+## NAMESPACE {#message-namespace}
+
+The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
+it is sent on the response stream of a SUBSCRIBE_NAMESPACE request. Because
+it is never sent on the control stream, it can use the same type value.
+Because all NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, only
+the namespace tuples after the 'Track Namespace Prefix' are included
+in the 'Track Namespace Suffix'.
+
+~~~
+NAMESPACE Message {
+  Type (i) = 0x6,
+  Length (16),
+  Track Namespace Suffix (..),
+}
+~~~
+{: #moq-transport-pub-ns-format title="MOQT NAMESPACE Message"}
+
+* Track Namespace Suffix: Specifies the final portion of a track's
+  namespace as defined in {{track-name}}. The namespace begins with the
+  'Track Namespace Prefix' specified in {message-subscribe-namespace}.
+
 ## PUBLISH_NAMESPACE_DONE {#message-pub-ns-done}
 
 The publisher sends the `PUBLISH_NAMESPACE_DONE` control message to indicate its
@@ -2932,9 +2953,10 @@ PUBLISH_NAMESPACE_CANCEL Message {
 
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
-The subscriber sends the SUBSCRIBE_NAMESPACE control message to a publisher to
-request the current set of matching published namespaces and `Established`
-subscriptions, as well as future updates to the set.
+The subscriber sends a SUBSCRIBE_NAMESPACE control message on a new
+bidirectional stream to a publisher to request the current set of matching
+published namespaces and/or `Established` subscriptions, as well as future
+updates to the set.
 
 ~~~
 SUBSCRIBE_NAMESPACE Message {
@@ -2942,6 +2964,7 @@ SUBSCRIBE_NAMESPACE Message {
   Length (16),
   Request ID (i),
   Track Namespace Prefix (..),
+  Subscribe Options (i),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2960,15 +2983,20 @@ SUBSCRIBE_NAMESPACE Message {
   Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
+* Subscribe Options: Allows subscribers to request PUBLISH (0x00),
+  NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-The publisher will respond with REQUEST_OK or
-REQUEST_ERROR.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
-immediately forward existing PUBLISH_NAMESPACE and PUBLISH messages that match
-the Track Namespace Prefix that have not already been sent to this subscriber.
-If the set of matching PUBLISH_NAMESPACE messages changes, the publisher sends
-the corresponding PUBLISH_NAMESPACE or PUBLISH_NAMESPACE_DONE message.
+The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
+of the bidi stream.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
+send matching NAMESPACE messages on the response stream if they are requested.
+If it is an error, the stream will be immediately closed via FIN.
+Also, any matching PUBLISH messages without an `Established` Subscription will be
+sent on the control stream. When there are changes to the namespaces or
+subscriptions being published and the subscriber is subscribed to them,
+the publisher sends the corresponding NAMESPACE, PUBLISH_NAMESPACE_DONE,
+or PUBLISH messages.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
 session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
@@ -2990,27 +3018,6 @@ the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
 from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
 set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 (see {{subscriptions}}).
-
-
-## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
-
-A subscriber issues a `UNSUBSCRIBE_NAMESPACE` message to a publisher indicating
-it is no longer interested in PUBLISH_NAMESPACE, PUBLISH_NAMESPACE_DONE and
-PUBLISH messages for the specified track namespace prefix.
-
-The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
-
-~~~
-UNSUBSCRIBE_NAMESPACE Message {
-  Type (i) = 0x14,
-  Length (16),
-  Request ID (i),
-}
-~~~
-{: #moq-transport-unsub-ann-format title="MOQT UNSUBSCRIBE_NAMESPACE Message"}
-
-* Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
-  ({{message-subscribe-ns}}) being cancelled by this message.
 
 
 # Data Streams and Datagrams {#data-streams}
