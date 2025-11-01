@@ -510,29 +510,32 @@ to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
-1. An Object is received in a FETCH response with the same Group as the
+1. An Object is received in a FETCH response with the same Group ID as the
    previous Object, but whose Object ID is not strictly larger than the previous
    object.
-2. An Object is received in an Ascending FETCH response whose Group ID is smaller
+2.  In a FETCH response, an Object with a particular Subgroup ID is received, but its
+     Publisher Priority is different from that of the previous Object with the same
+     Subgroup ID.
+3. An Object is received in an Ascending FETCH response whose Group ID is smaller
    than the previous Object in the response.
-3. An Object is received in a Descending FETCH response whose Group ID is larger
+4. An Object is received in a Descending FETCH response whose Group ID is larger
    than the previous Object in the resopnse.
-4. An Object is received whose Object ID is larger than the final Object in the
+5. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-5. A Subgroup is received over multiple transport streams terminated by FIN with
+6. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-6. An Object is received in a Group whose Object ID is larger than the final
+7. An Object is received in a Group whose Object ID is larger than the final
    Object in the Group.  The final Object in a Group is the Object with Status
    END_OF_GROUP or the last Object sent in a FETCH that requested the entire
    Group.
-7. An Object is received on a Track whose Group and Object ID are larger than the
+8. An Object is received on a Track whose Group and Object ID are larger than the
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
    End of Track.
-8. The same Object is received more than once with different Payload or
+9. The same Object is received more than once with different Payload or
     other immutable properties.
-9. An Object is received with a different Forwarding Preference than previously
+10. An Object is received with a different Forwarding Preference than previously
     observed from the same Track.
 
 The above list of conditions is not considered exhaustive.
@@ -878,7 +881,7 @@ PUBLISH_DONE.
 
 This diagram shows the subscription state machine:
 
-```
+~~~
                               +--------+
                               |  Idle  |
                               +--------+
@@ -905,7 +908,7 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
               |            +-------------+              |
               +----------->| Terminated  | <------------+
                            +-------------+
-```
+~~~
 
 A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
 a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
@@ -1350,7 +1353,7 @@ the content associated with the Track. The authorization information can be part
 of request itself or part of the encompassing session. The specifics of how a
 relay authorizes a user are outside the scope of this specification.
 
-The relay MUST have an established upstream subscription before sending
+The relay MUST have an `Established` upstream subscription before sending
 SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
 MUST withhold sending FETCH_OK until it does.
@@ -1764,6 +1767,10 @@ time for the timeout is based on when the Object Headers are received, and does
 not depend upon the forwarding preference. There is no explicit signal that an
 Object was not sent because the delivery timeout was exceeded.
 
+DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
+endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST terminate the session
+with `PROTOCOL_VIOLATION`.
+
 If both the subscriber and publisher specify the parameter, they use the min of
 the two values for the subscription.  The publisher SHOULD always specify the
 value received from an upstream subscription when there is one, and nothing
@@ -1941,7 +1948,7 @@ Relay Handling:
 A relay that receives a NEW_GROUP_REQUEST for a Track without an `Established`
 subscription MUST include the NEW_GROUP_REQUEST when subscribing upstream.
 
-A relay that receives a NEW_GROUP_REQUEST for an established subscription with a
+A relay that receives a NEW_GROUP_REQUEST for an `Established` subscription with a
 value of 0 or a value larger than the Largest Group MUST send a SUBSCRIBE_UPDATE
 including the NEW_GROUP_REQUEST to the publisher unless:
 
@@ -2236,8 +2243,8 @@ INVALID_RANGE (0x11):
 cannot be satisfied.
 
 MALFORMED_TRACK (0x12):
-: In response to a FETCH, a relay publisher detected
-the track was malformed (see {{malformed-tracks}}).
+: In response to a FETCH, a relay publisher detected that the track was
+malformed (see {{malformed-tracks}}).
 
 The following are errors for use by the subscriber. They can appear in response
 to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
@@ -2579,8 +2586,8 @@ TOO_FAR_BEHIND (0x6):
 : The publisher's queue of objects to be sent to the given subscriber exceeds
   its implementation defined limit.
 
-MALFORMED_TRACK (0x7):
-: A relay publisher detected the track was malformed (see
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
 
 UPDATE_FAILED (0x8):
@@ -2926,7 +2933,7 @@ PUBLISH_NAMESPACE_CANCEL Message {
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
 The subscriber sends the SUBSCRIBE_NAMESPACE control message to a publisher to
-request the current set of matching published namespaces and established
+request the current set of matching published namespaces and `Established`
 subscriptions, as well as future updates to the set.
 
 ~~~
@@ -3023,13 +3030,7 @@ the type of the stream in question.
 |-------------|-------------------------------------------------|
 
 All MOQT datagrams start with a variable-length integer indicating the type of
-the datagram.
-
-|---------------------------|-------------------------------------------|
-| ID                        | Type                                      |
-|--------------------------:|:------------------------------------------|
-| 0x00-0x07,0x20-21,0x24-25 | OBJECT_DATAGRAM ({{object-datagram}})     |
-|---------------------------|-------------------------------------------|
+the datagram.  See {{object-datagram}}.
 
 An endpoint that receives an unknown stream or datagram type MUST close the
 session.
@@ -3199,7 +3200,7 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x0-0x7,0x20-21,0x24-25
+  Type (i) = 0x00-0x1F,0x20-21,0x24-25,0x28-29,0x2C-2D
   Track Alias (i),
   Group ID (i),
   [Object ID (i),]
@@ -3529,6 +3530,10 @@ DELIVERY_TIMEOUT (0x2):
 
 SESSION_CLOSED (0x3):
 : The publisher session is being closed.
+
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
+  {{malformed-tracks}}).
 
 ### Fetch Header {#fetch-header}
 
@@ -3920,7 +3925,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | GOING_AWAY         | 0x4  | {{message-publish-done}} |
 | EXPIRED            | 0x5  | {{message-publish-done}} |
 | TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
-| MALFORMED_TRACK    | 0x7  | {{message-publish-done}} |
+| MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
 | UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
@@ -3931,6 +3936,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | CANCELLED        | 0x1  | {{closing-subgroup-streams}} |
 | DELIVERY_TIMEOUT | 0x2  | {{closing-subgroup-streams}} |
 | SESSION_CLOSED   | 0x3  | {{closing-subgroup-streams}} |
+| MALFORMED_TRACK  | 0x12 | {{closing-subgroup-streams}} |
 
 # Contributors
 {:numbered="false"}
