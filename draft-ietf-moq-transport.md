@@ -1119,7 +1119,7 @@ The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
-A SUBSCRIBE_NAMESPACE can be cancelled by the subscriber closing the stream with
+A SUBSCRIBE_NAMESPACE can be cancelled by closing the stream with
 either a FIN or RESET_STREAM. Cancelling does not prohibit original publishers
 from sending further PUBLISH_NAMESPACE or PUBLISH messages, but relays MUST NOT
 send any further PUBLISH messages to a client without knowing the client is
