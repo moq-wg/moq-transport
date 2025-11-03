@@ -1572,9 +1572,9 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xD   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
-| 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})   |
+| 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
 |-------|-----------------------------------------------------|
-| 0x8   | NAMESPACE  ({{message-pub-ns}})   |
+| 0x8   | NAMESPACE  ({{message-namespace}})                  |
 |-------|-----------------------------------------------------|
 | 0x9   | PUBLISH_NAMESPACE_DONE  ({{message-pub-ns-done}})   |
 |-------|-----------------------------------------------------|
