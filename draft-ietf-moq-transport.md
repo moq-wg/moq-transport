@@ -2989,7 +2989,7 @@ SUBSCRIBE_NAMESPACE Message {
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
-of the bidi stream.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
+of the stream.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
 send matching NAMESPACE messages on the response stream if they are requested.
 If it is an error, the stream will be immediately closed via FIN.
 Also, any matching PUBLISH messages without an `Established` Subscription will be
