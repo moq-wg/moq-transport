@@ -683,10 +683,13 @@ The first stream opened is a client-initiated bidirectional control stream where
 the endpoints exchange Setup messages ({{message-setup}}), followed by other
 messages defined in {{message}}.
 
-This specification only specifies a single use of bidirectional streams. Objects
-are sent on unidirectional streams.  Because there are no other uses of
-bidirectional streams, a peer MAY close the session as a `PROTOCOL_VIOLATION` if
-it receives a second bidirectional stream.
+This specification only specifies two uses of bidirectional streams, the control
+stream and SUBSCRIBE_NAMESPACE. Objects are sent on unidirectional streams.
+
+A unidirectional stream or bidirectional stream containing a SUBSCRIBE_NAMESPACE
+could arrive prior to the control stram, in which case the data SHOULD be buffered.
+If an implementation does not want to buffer, it MAY reset other bidirectional
+streams before the session and control stream are established.
 
 The control stream MUST NOT be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
