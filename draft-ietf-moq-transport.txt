@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 3 May 2026                                        I. Swett, Ed.
+Expires: 8 May 2026                                        I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         30 October 2025
+                                                         4 November 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 May 2026.
+   This Internet-Draft will expire on 8 May 2026.
 
 Copyright Notice
 
@@ -3138,13 +3138,13 @@ Table of Contents
    PUBLISH_NAMESPACE_DONE Message {
      Type (i) = 0x9,
      Length (16),
-     Track Namespace (..)
+     Request ID (i)
    }
 
                Figure 22: MOQT PUBLISH_NAMESPACE_DONE Message
 
-   *  Track Namespace: Identifies a track's namespace as defined in
-      Section 2.4.1.
+   *  Request ID: The Request ID of the PUBLISH_NAMESPACE that is being
+      terminated.  See Section 9.9.
 
 9.22.  PUBLISH_NAMESPACE_CANCEL
 
@@ -3155,15 +3155,15 @@ Table of Contents
    PUBLISH_NAMESPACE_CANCEL Message {
      Type (i) = 0xC,
      Length (16),
-     Track Namespace (..),
+     Request ID (i),
      Error Code (i),
      Error Reason (Reason Phrase)
    }
 
               Figure 23: MOQT PUBLISH_NAMESPACE_CANCEL Message
 
-   *  Track Namespace: Identifies a track's namespace as defined in
-      Section 2.4.1.
+   *  Request ID: The Request ID of the PUBLISH_NAMESPACE that is being
+      terminated.  See Section 9.9.
 
    *  Error Code: Identifies an integer error code for canceling the
       publish.  PUBLISH_NAMESPACE_CANCEL uses the same error codes as
