@@ -375,8 +375,8 @@ stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.
 
-When a Track's forwarding preference (see {{object-properties}}) is
-"Datagram", Objects are not sent in Subgroups and the
+When an Object's forwarding preference (see {{object-properties}}) is
+"Datagram", it is not sent in Subgroups and the
 description in the remainder of this section does not apply.
 
 Streams offer in-order reliable delivery and the ability to cancel sending and
@@ -535,8 +535,6 @@ include:
    End of Track.
 9. The same Object is received more than once with different Payload or
     other immutable properties.
-10. An Object is received with a different Forwarding Preference than previously
-    observed from the same Track.
 
 The above list of conditions is not considered exhaustive.
 
@@ -1179,8 +1177,7 @@ MOQT maintains priorities between different schedulable objects.
 A schedulable object in MOQT is either:
 
 1. The first or next Object in a Subgroup that is in response to a subscription.
-2. An Object in response to a subscription that belongs to a Track with
-   delivery preference Datagram.
+2. An Object in response to a subscription with delivery preference Datagram.
 3. An Object in response to a FETCH where that Object is the next
    Object in the response.
 
@@ -1234,8 +1231,8 @@ the objects SHOULD be selected as follows:
    decide the one that is scheduled to be sent first.
 3. If two objects in response to the same request have the same subscriber
    and publisher priority and belong to the same group of the same track, the
-   one with **the lowest Subgroup ID** (for tracks with delivery preference
-   Subgroup), or **the lowest Object ID** (for tracks with delivery preference
+   one with **the lowest Subgroup ID** (for objects with delivery preference
+   Subgroup), or **the lowest Object ID** (for objects with delivery preference
    Datagram) is scheduled to be sent first.
 
 The definition of "scheduled to be sent first" in the algorithm is implementation
@@ -1306,8 +1303,7 @@ fields that can be updated are the following:
    to the constraints of the specific header extension.
 
 An endpoint that receives a duplicate Object with an invalid Object Status
-change, or with a different Forwarding Preference, Subgroup ID, Priority or
-Payload MUST treat the track as Malformed.
+change, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
 
 Note that due to reordering, an implementation can receive a duplicate Object
 with a status of Normal, End of Group or End of Track after receiving a previous
@@ -2549,7 +2545,7 @@ PUBLISH_DONE Message {
 opened for this subscription.  This helps the subscriber know if it has received
 all of the data published in this subscription by comparing the number of
 streams received.  The subscriber can immediately remove all subscription state
-once the same number of streams have been processed.  If the track had
+once the same number of streams have been processed.  If the track had only Objects with
 Forwarding Preference = Datagram, the publisher MUST set Stream Count to 0.  If
 the publisher is unable to set Stream Count to the exact number of streams
 opened for the subscription, it MUST set Stream Count to 2^62 - 1. Subscribers
@@ -3035,9 +3031,8 @@ the datagram.  See {{object-datagram}}.
 An endpoint that receives an unknown stream or datagram type MUST close the
 session.
 
-Every Track has a single 'Object Forwarding Preference' and the Original
-Publisher MUST NOT mix different forwarding preferences within a single track
-(see {{malformed-tracks}}).
+Every Object has a 'Object Forwarding Preference' and the Original Publisher
+MAY mix different forwarding preference within a single track.
 
 ## Track Alias
 
@@ -3072,13 +3067,10 @@ A canonical MoQ Object has the following information:
 the Object ({{priorities}}).
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Subgroup and Datagram.  Note that the Original
-Publisher determines the Forwarding Preference for the entire Track, and is a
-Track property that is implicitly signaled by the delivery of any Object using
-either Subgroups or Datagrams. Once the property is established for one Object
-of a Track, the same value MUST be used for all Objects of the Track.
-In a subscription, an Object MUST be sent according to its `Object Forwarding
-Preference`.
+an object. The preferences are Subgroup and Datagram.  `Object Forwarding
+Preference` is the property of an individual Object, and is not required to
+remain consistent in one Track.  In a subscription, an Object MUST be sent
+according to its `Object Forwarding Preference`.
 
 * Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}})
   within the Group. This field is omitted if the `Object Forwarding Preference`
