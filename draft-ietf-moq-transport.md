@@ -1107,7 +1107,7 @@ The syntax of these messages is described in {{message}}.
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
 recipient of this message will send any relevant NAMESPACE,
-PUBLISH_NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
+NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
 part of that namespace.  This includes echoing back PUBLISH or PUBLISH_NAMESPACE
 messages to the endpoint that sent them.  If an endpoint accepts its own
 PUBLISH, this behaves as self-subscription described in {{subscriptions}}.
