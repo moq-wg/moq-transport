@@ -2922,13 +2922,13 @@ Namespace.
 PUBLISH_NAMESPACE_DONE Message {
   Type (i) = 0x9,
   Length (16),
-  Track Namespace (..)
+  Request ID (i)
 }
 ~~~
 {: #moq-transport-pub-ns-done-format title="MOQT PUBLISH_NAMESPACE_DONE Message"}
 
-* Track Namespace: Identifies a track's namespace as defined in
-  {{track-name}}.
+* Request ID: The Request ID of the PUBLISH_NAMESPACE that is being terminated. See
+  {{message-subscribe-req}}.
 
 ## NAMESPACE_DONE {#message-namespace-done}
 
@@ -2961,15 +2961,15 @@ within the provided Track Namespace.
 PUBLISH_NAMESPACE_CANCEL Message {
   Type (i) = 0xC,
   Length (16),
-  Track Namespace (..),
+  Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase)
 }
 ~~~
 {: #moq-transport-pub-ns-cancel-format title="MOQT PUBLISH_NAMESPACE_CANCEL Message"}
 
-* Track Namespace: Identifies a track's namespace as defined in
-  {{track-name}}.
+* Request ID: The Request ID of the PUBLISH_NAMESPACE that is being terminated. See
+  {{message-subscribe-req}}.
 
 * Error Code: Identifies an integer error code for canceling the publish.
   PUBLISH_NAMESPACE_CANCEL uses the same error codes as REQUEST_ERROR
