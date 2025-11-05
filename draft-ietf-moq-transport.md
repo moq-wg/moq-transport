@@ -1914,10 +1914,11 @@ message, the default value is 1.
 #### DYNAMIC GROUPS Parameter {#dynamic-groups}
 
 The DYNAMIC_GROUPS parameter (parameter type 0x30) MAY appear in PUBLISH or
-SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
-1, it indicates that the subscriber can request the Original Publisher to start
-a new Group by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or
-SUBSCRIBE_UPDATE for this Track.
+SUBSCRIBE_OK. The allowed values are 0 or 1. When the value is 1, it indicates
+that the subscriber can request the Original Publisher to start a new Group
+by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or SUBSCRIBE_UPDATE
+for this Track. If an endpoint receives a value larger than 1, it MUST close
+the session with `PROTOCOL_VIOLATION`.
 
 Relays MUST preserve the value of this parameter received from an upstream
 publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
@@ -2112,9 +2113,9 @@ GOAWAY Message {
 An endpoint sends a MAX_REQUEST_ID message to increase the number of requests
 the peer can send within a session.
 
-The Maximum Request ID MUST only increase within a session, and
-receipt of a MAX_REQUEST_ID message with an equal or smaller Request ID
-value is a `PROTOCOL_VIOLATION`.
+The Maximum Request ID MUST only increase within a session. If an endpoint
+receives MAX_REQUEST_ID message with an equal or smaller Request ID it MUST
+close the session with a `PROTOCOL_VIOLATION`.
 
 ~~~
 MAX_REQUEST_ID Message {
