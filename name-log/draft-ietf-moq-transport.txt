@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 8 May 2026                                        I. Swett, Ed.
+Expires: 9 May 2026                                        I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         4 November 2025
+                                                         5 November 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 May 2026.
+   This Internet-Draft will expire on 9 May 2026.
 
 Copyright Notice
 
@@ -441,12 +441,12 @@ Table of Contents
    There is often the need to render namespace tuples and track names in
    logs or other places.  The namespace and track name are binary so
    they need to be converted to a safe form for logging.  Having a
-   common way to do this is particularly useful for tools that monitory
+   common way to do this is particularly useful for tools that monitor
    security incidents across relays from different vendors.  The
    following format is RECOMMONDED:
 
    *  Each of the namespace tuples are rendered in order with a period
-      between them followed by the track name with a minus between the
+      between them followed by the track name with a hyphen between the
       last namespace and track name.
 
    *  Bytes in the range a-z, A-Z, and 0-9 are are output as is while
@@ -454,7 +454,7 @@ Table of Contents
       followed by exactly two lower case hex digits.
 
    For example, if a namespace had two two tuples, the first with the
-   bytes 0x48,0x69 , the next with bytes 0xFF, and a track name with the
+   bytes 0x48,0x69, the next with bytes 0xFF, and a track name with the
    byte 0x30 would render as the string "Hi.%ff-0".  The goal of this
    format is to have a format that is both filename and URL safe.  It
    allows many common names to be rendered it an easily human readable
