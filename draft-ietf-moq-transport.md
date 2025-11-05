@@ -294,7 +294,7 @@ Key-Value-Pair {
 * Length: Only present when Type is odd. Specifies the length of the Value field
   in bytes. The maximum length of a value is 2^16-1 bytes.  If an endpoint
   receives a length larger than the maximum, it MUST close the session with a
-  Protocol Violation.
+  `PROTOCOL_VIOLATION`.
 * Value: A single varint encoded value when Type is even, otherwise a
   sequence of Length bytes.
 
