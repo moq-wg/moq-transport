@@ -1896,7 +1896,8 @@ to using A.Group or A.Object.<a href="#section-1.4.1-3" class="pilcrow">¶</a></
 <p id="section-1.4.2-1">Key-Value-Pair is a flexible structure designed to carry key/value
 pairs in which the key is a variable length integer and the value
 is either a variable length integer or a byte field of arbitrary
-length.<a href="#section-1.4.2-1" class="pilcrow">¶</a></p>
+length. Key-Value-Pairs encode a Type value as a delta from the
+previous Type value, or from 0 if there is no previous Type value.<a href="#section-1.4.2-1" class="pilcrow">¶</a></p>
 <p id="section-1.4.2-2">Key-Value-Pair is used in both the data plane and control plane, but
 is optimized for use in the data plane.<a href="#section-1.4.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-key-value-pair"></span><div id="moq-key-value-pair">
@@ -1904,7 +1905,7 @@ is optimized for use in the data plane.<a href="#section-1.4.2-2" class="pilcrow
             <div class="alignLeft art-text artwork" id="section-1.4.2-3.1">
 <pre>
 Key-Value-Pair {
-  Type (i),
+  Delta Type (i),
   [Length (i),]
   Value (..)
 }
@@ -1916,8 +1917,9 @@ Key-Value-Pair {
 </div>
 <ul class="normal">
 <li class="normal" id="section-1.4.2-4.1">
-              <p id="section-1.4.2-4.1.1">Type: an unsigned integer, encoded as a varint, identifying the
-type of the value and also the subsequent serialization.<a href="#section-1.4.2-4.1.1" class="pilcrow">¶</a></p>
+              <p id="section-1.4.2-4.1.1">Delta Type: an unsigned integer, encoded as a varint, identifying the Type
+as a delta encoded value from the previous Type, if any. The Type identifies
+the type of value and also the subsequent serialization.<a href="#section-1.4.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-1.4.2-4.2">
               <p id="section-1.4.2-4.2.1">Length: Only present when Type is odd. Specifies the length of the Value field
@@ -3512,7 +3514,12 @@ uniqueness guarantee described in <a href="#track-scope" class="auto internal xr
 <p id="section-9.2-4">Receivers ignore unrecognized parameters.<a href="#section-9.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.2-5">The number of parameters in a message is not specifically limited, but the
 total length of a control message is limited to 2^16-1 bytes.<a href="#section-9.2-5" class="pilcrow">¶</a></p>
-<p id="section-9.2-6">Parameters are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>.<a href="#section-9.2-6" class="pilcrow">¶</a></p>
+<p id="section-9.2-6">Parameters are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a> in
+increasing Parameter ID order with a delta encoding. This is efficient on the
+wire and makes it easy to ensure there is only one instance of parameters
+that cannot be repeated. The previous Type value plus the Delta Type <span class="bcp14">MUST NOT</span> be
+greater than 2^64 - 1.  If a Delta Type is received that would be too large, the Session
+<span class="bcp14">MUST</span> be closed with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2-6" class="pilcrow">¶</a></p>
 <p id="section-9.2-7">Setup message parameters use a namespace that is constant across all MOQT
 versions. All other messages use a version-specific namespace.
 For example, the integer '1' can refer to different parameters for Setup
@@ -5470,8 +5477,8 @@ Any object with a status code other than zero <span class="bcp14">MUST</span> ha
 <a href="#section-10.2.1.2" class="section-number selfRef">10.2.1.2. </a><a href="#name-object-extension-header" class="section-name selfRef">Object Extension Header</a>
             </h5>
 <p id="section-10.2.1.2-1">Any Object with status Normal can have extension headers.  If an endpoint
-receives extension headers on Objects with status that is not Normal, it <span class="bcp14">MUST</span> close the
-session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.1.2-1" class="pilcrow">¶</a></p>
+receives extension headers on Objects with status that is not Normal, it <span class="bcp14">MUST</span> close
+the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.1.2-2">Object Extension Headers are visible to relays and allow the transmission of
 future metadata relevant to MOQT Object distribution. Any Object metadata never
 intended to be accessed by the transport or Relays <span class="bcp14">SHOULD</span> be serialized as part
@@ -5489,8 +5496,8 @@ cached as part of the Object and <span class="bcp14">MUST</span> be forwarded by
 definition of the extension, Extension Headers <span class="bcp14">MAY</span> be modified, added, removed,
 and/or cached by relays.<a href="#section-10.2.1.2-5" class="pilcrow">¶</a></p>
 <p id="section-10.2.1.2-6">Object Extension Headers are serialized as Key-Value-Pairs (see
-<a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>), prefixed by the length of the serialized
-Key-Value-Pairs, in bytes.<a href="#section-10.2.1.2-6" class="pilcrow">¶</a></p>
+<a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>) in increasing extension type order with a delta encoding,
+prefixed by the length of the serialized Key-Value-Pairs, in bytes.<a href="#section-10.2.1.2-6" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-10.2.1.2-7">
 <pre>
 Extensions {
