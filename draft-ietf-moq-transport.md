@@ -3068,8 +3068,8 @@ the Object ({{priorities}}).
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
 an object. The preferences are Subgroup and Datagram.  `Object Forwarding
-Preference` is the property of an individual Object, and is not required to
-remain consistent in one Track.  In a subscription, an Object MUST be sent
+Preference` is a property of an individual Object and can vary among
+Objects in the same Track.  In a subscription, an Object MUST be sent
 according to its `Object Forwarding Preference`.
 
 * Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}})
