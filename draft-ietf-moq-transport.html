@@ -1055,7 +1055,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 8 May 2026</td>
+<td class="center">Expires 10 May 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-11-04" class="published">4 November 2025</time>
+<time datetime="2025-11-06" class="published">6 November 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-05-08">8 May 2026</time></dd>
+<dd class="expires"><time datetime="2026-05-10">10 May 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 8 May 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 10 May 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3665,7 +3665,7 @@ aliases.<a href="#section-9.2.1.1-15" class="pilcrow">¶</a></p>
 <a href="#section-9.2.1.2" class="section-number selfRef">9.2.1.2. </a><a href="#name-delivery-timeout-parameter" class="section-name selfRef">DELIVERY TIMEOUT Parameter</a>
             </h5>
 <p id="section-9.2.1.2-1">The DELIVERY TIMEOUT parameter (Parameter Type 0x02) <span class="bcp14">MAY</span> appear in a
-TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH, PUBLISH_OK,
+REQUEST_OK (in response to TRACK_STATUS), PUBLISH, PUBLISH_OK,
 SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.<a href="#section-9.2.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.2-2">It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span>
 continue to attempt forwarding Objects after they have been received.  The start
@@ -3737,13 +3737,13 @@ subscription inherit this priority, unless they specifically override it.<a href
 <a href="#section-9.2.1.5" class="section-number selfRef">9.2.1.5. </a><a href="#name-subscriber-priority-paramet" class="section-name selfRef">SUBSCRIBER PRIORITY Parameter</a>
             </h5>
 <p id="section-9.2.1.5-1">The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) <span class="bcp14">MAY</span> appear in a
-SUBSCRIBE, SUBSCRIBE_UPDATE, TRACK_STATUS, PUBLISH_OK or FETCH message. It is an
+SUBSCRIBE, SUBSCRIBE_UPDATE, PUBLISH_OK or FETCH message. It is an
 integer expressing the priority of a subscription relative to other
 subscriptions and fetch responses in the same session. Lower numbers get higher
 priority.  See <a href="#priorities" class="auto internal xref">Section 7</a>.  The range is restricted to 0-255.  If a
 publisher receives a value outside this range, it <span class="bcp14">MUST</span> close the session with
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.5-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.5-2">If omitted from SUBSCRIBE, TRACK_STATUS, PUBLISH_OK or FETCH, the publisher uses
+<p id="section-9.2.1.5-2">If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
 the value 128.<a href="#section-9.2.1.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3753,7 +3753,7 @@ the value 128.<a href="#section-9.2.1.5-2" class="pilcrow">¶</a></p>
 <a href="#section-9.2.1.6" class="section-number selfRef">9.2.1.6. </a><a href="#name-group-order-parameter" class="section-name selfRef">GROUP ORDER Parameter</a>
             </h5>
 <p id="section-9.2.1.6-1">The GROUP_ORDER parameter (Parameter Type 0x22) <span class="bcp14">MAY</span> appear in a SUBSCRIBE,
-SUBSCRIBE_OK, TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
+SUBSCRIBE_OK, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
 PUBLISH_OK or FETCH.<a href="#section-9.2.1.6-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.6-2">It
 is an enum indicating how to prioritize Objects from different groups within the
@@ -3761,7 +3761,7 @@ same subscription (see <a href="#priorities" class="auto internal xref">Section 
 response (see <a href="#fetch-handling" class="auto internal xref">Section 9.16.3</a>). The allowed values are Ascending (0x1) or
 Descending (0x2). If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span>
 close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.6-2" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.6-3">If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference from
+<p id="section-9.2.1.6-3">If omitted from SUBSCRIBE, the publisher's preference from
 SUBSCRIBE_OK or REQUEST_OK is used. If omitted in PUBLISH_OK, the
 publisher's preference from PUBLISH is used. If omitted from SUBSCRIBE_OK,
 REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).<a href="#section-9.2.1.6-3" class="pilcrow">¶</a></p>
@@ -3773,11 +3773,11 @@ REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).<a href="#sectio
 <a href="#section-9.2.1.7" class="section-number selfRef">9.2.1.7. </a><a href="#name-subscription-filter-paramet" class="section-name selfRef">SUBSCRIPTION FILTER Parameter</a>
             </h5>
 <p id="section-9.2.1.7-1">The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) <span class="bcp14">MAY</span> appear in a
-SUBSCRIBE, TRACK_STATUS, PUBLISH_OK or SUBSCRIBE_UPDATE message. It is a
+SUBSCRIBE, PUBLISH_OK or SUBSCRIBE_UPDATE message. It is a
 length-prefixed Subscription Filter (see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>).  If the
 length of the Subscription Filter does not match the parameter length, the
 publisher <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.7-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.7-2">If omitted from SUBSCRIBE, TRACK_STATUS or PUBLISH_OK, the subscription is
+<p id="section-9.2.1.7-2">If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.<a href="#section-9.2.1.7-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3823,7 +3823,7 @@ any Objects in the Track.<a href="#section-9.2.1.9-2" class="pilcrow">¶</a></p>
 <a href="#section-9.2.1.10" class="section-number selfRef">9.2.1.10. </a><a href="#name-forward-parameter" class="section-name selfRef">FORWARD Parameter</a>
             </h5>
 <p id="section-9.2.1.10-1">The FORWARD parameter (Parameter Type 0x10) <span class="bcp14">MAY</span> appear in SUBSCRIBE,
-SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK, and
+SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK and
 SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying the
 Forwarding State on affected subscriptions (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).  The
 allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives a
@@ -5080,7 +5080,8 @@ cancelling.<a href="#section-9.18-4.1.1" class="pilcrow">¶</a></p>
 <p id="section-9.19-1">A potential subscriber sends a <code>TRACK_STATUS</code> message on the control
 stream to obtain information about the current status of a given track.<a href="#section-9.19-1" class="pilcrow">¶</a></p>
 <p id="section-9.19-2">The TRACK_STATUS message format is identical to the SUBSCRIBE message
-(<a href="#message-subscribe-req" class="auto internal xref">Section 9.9</a>).<a href="#section-9.19-2" class="pilcrow">¶</a></p>
+(<a href="#message-subscribe-req" class="auto internal xref">Section 9.9</a>), but subscriber parameters related to Track
+delivery (e.g. SUBSCRIBER_PRIORITY) are not included.<a href="#section-9.19-2" class="pilcrow">¶</a></p>
 <p id="section-9.19-3">The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
