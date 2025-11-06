@@ -1963,8 +1963,8 @@ Table of Contents
 9.2.1.2.  DELIVERY TIMEOUT Parameter
 
    The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-   TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
-   PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
+   REQUEST_OK (in response to TRACK_STATUS), PUBLISH, PUBLISH_OK,
+   SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
 
    It is the duration in milliseconds the relay SHOULD continue to
    attempt forwarding Objects after they have been received.  The start
@@ -2041,22 +2041,21 @@ Table of Contents
 9.2.1.5.  SUBSCRIBER PRIORITY Parameter
 
    The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in
-   a SUBSCRIBE, SUBSCRIBE_UPDATE, TRACK_STATUS, PUBLISH_OK or FETCH
-   message.  It is an integer expressing the priority of a subscription
-   relative to other subscriptions and fetch responses in the same
-   session.  Lower numbers get higher priority.  See Section 7.  The
-   range is restricted to 0-255.  If a publisher receives a value
-   outside this range, it MUST close the session with
-   PROTOCOL_VIOLATION.
+   a SUBSCRIBE, SUBSCRIBE_UPDATE, PUBLISH_OK or FETCH message.  It is an
+   integer expressing the priority of a subscription relative to other
+   subscriptions and fetch responses in the same session.  Lower numbers
+   get higher priority.  See Section 7.  The range is restricted to
+   0-255.  If a publisher receives a value outside this range, it MUST
+   close the session with PROTOCOL_VIOLATION.
 
-   If omitted from SUBSCRIBE, TRACK_STATUS, PUBLISH_OK or FETCH, the
-   publisher uses the value 128.
+   If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
+   the value 128.
 
 9.2.1.6.  GROUP ORDER Parameter
 
    The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a
-   SUBSCRIBE, SUBSCRIBE_OK, TRACK_STATUS, REQUEST_OK (in response to
-   TRACK_STATUS), PUBLISH, PUBLISH_OK or FETCH.
+   SUBSCRIBE, SUBSCRIBE_OK, REQUEST_OK (in response to TRACK_STATUS),
+   PUBLISH, PUBLISH_OK or FETCH.
 
    It is an enum indicating how to prioritize Objects from different
    groups within the same subscription (see Section 7), or how to order
@@ -2065,23 +2064,23 @@ Table of Contents
    value outside this range, it MUST close the session with
    PROTOCOL_VIOLATION.
 
-   If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference
-   from SUBSCRIBE_OK or REQUEST_OK is used.  If omitted in PUBLISH_OK,
-   the publisher's preference from PUBLISH is used.  If omitted from
+   If omitted from SUBSCRIBE, the publisher's preference from
+   SUBSCRIBE_OK or REQUEST_OK is used.  If omitted in PUBLISH_OK, the
+   publisher's preference from PUBLISH is used.  If omitted from
    SUBSCRIBE_OK, REQUEST_OK, PUBLISH or FETCH, the receiver uses
    Ascending (0x1).
 
 9.2.1.7.  SUBSCRIPTION FILTER Parameter
 
    The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) MAY appear in
-   a SUBSCRIBE, TRACK_STATUS, PUBLISH_OK or SUBSCRIBE_UPDATE message.
-   It is a length-prefixed Subscription Filter (see Section 5.1.2).  If
-   the length of the Subscription Filter does not match the parameter
-   length, the publisher MUST close the session with PROTOCOL_VIOLATION.
+   a SUBSCRIBE, PUBLISH_OK or SUBSCRIBE_UPDATE message.  It is a length-
+   prefixed Subscription Filter (see Section 5.1.2).  If the length of
+   the Subscription Filter does not match the parameter length, the
+   publisher MUST close the session with PROTOCOL_VIOLATION.
 
-   If omitted from SUBSCRIBE, TRACK_STATUS or PUBLISH_OK, the
-   subscription is unfiltered.  If omitted from SUBSCRIBE_UDPATE, the
-   value is unchanged.
+   If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
+   unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is
+   unchanged.
 
 9.2.1.8.  EXPIRES Parameter
 
@@ -2119,12 +2118,11 @@ Table of Contents
 9.2.1.10.  FORWARD Parameter
 
    The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
-   SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK,
-   and SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying
-   the Forwarding State on affected subscriptions (see Section 5.1).
-   The allowed values are 0 (don't forward) or 1 (forward).  If an
-   endpoint receives a value outside this range, it MUST close the
-   session with PROTOCOL_VIOLATION.
+   SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK and SUBSCRIBE_NAMESPACE.  It is
+   a variable length integer specifying the Forwarding State on affected
+   subscriptions (see Section 5.1).  The allowed values are 0 (don't
+   forward) or 1 (forward).  If an endpoint receives a value outside
+   this range, it MUST close the session with PROTOCOL_VIOLATION.
 
    If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
    subscription remains unchanged.  If the parameter is omitted from any
@@ -3098,7 +3096,8 @@ Table of Contents
    track.
 
    The TRACK_STATUS message format is identical to the SUBSCRIBE message
-   (Section 9.9).
+   (Section 9.9), but subscriber parameters related to Track delivery
+   (e.g. SUBSCRIBER_PRIORITY) are not included.
 
    The receiver of a TRACK_STATUS message treats it identically as if it
    had received a SUBSCRIBE message, except it does not create
@@ -3148,13 +3147,13 @@ Table of Contents
    PUBLISH_NAMESPACE_DONE Message {
      Type (i) = 0x9,
      Length (16),
-     Track Namespace (..)
+     Request ID (i)
    }
 
                Figure 22: MOQT PUBLISH_NAMESPACE_DONE Message
 
-   *  Track Namespace: Identifies a track's namespace as defined in
-      Section 2.4.1.
+   *  Request ID: The Request ID of the PUBLISH_NAMESPACE that is being
+      terminated.  See Section 9.9.
 
 9.22.  PUBLISH_NAMESPACE_CANCEL
 
@@ -3165,15 +3164,15 @@ Table of Contents
    PUBLISH_NAMESPACE_CANCEL Message {
      Type (i) = 0xC,
      Length (16),
-     Track Namespace (..),
+     Request ID (i),
      Error Code (i),
      Error Reason (Reason Phrase)
    }
 
               Figure 23: MOQT PUBLISH_NAMESPACE_CANCEL Message
 
-   *  Track Namespace: Identifies a track's namespace as defined in
-      Section 2.4.1.
+   *  Request ID: The Request ID of the PUBLISH_NAMESPACE that is being
+      terminated.  See Section 9.9.
 
    *  Error Code: Identifies an integer error code for canceling the
       publish.  PUBLISH_NAMESPACE_CANCEL uses the same error codes as
