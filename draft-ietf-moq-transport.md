@@ -947,7 +947,7 @@ with the same role, it MUST fail that request with a `DUPLICATE_SUBSCRIPTION`
 error.
 
 If a publisher receives a SUBSCRIBE request for a Track with an existing
-subscription not in `Pending (publisher)` state, it MUST fail that request with
+subscription in `Pending (publisher)` state, it MUST fail that request with
 a `DUPLICATE_SUBSCRIPTION` error. If a subscriber receives a PUBLISH for a Track
 with a subscription in the `Pending (Subscriber)` state, it MUST ensure the
 subscription it initiated transitions to the `Terminated` state before sending
