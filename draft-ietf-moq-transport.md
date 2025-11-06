@@ -275,22 +275,24 @@ Location A < Location B if:
 Key-Value-Pair is a flexible structure designed to carry key/value
 pairs in which the key is a variable length integer and the value
 is either a variable length integer or a byte field of arbitrary
-length.
+length. Key-Value-Pairs encode a Type value as a delta from the
+previous Type value, or from 0 if there is no previous Type value.
 
 Key-Value-Pair is used in both the data plane and control plane, but
 is optimized for use in the data plane.
 
 ~~~
 Key-Value-Pair {
-  Type (i),
+  Delta Type (i),
   [Length (i),]
   Value (..)
 }
 ~~~
 {: #moq-key-value-pair format title="MOQT Key-Value-Pair"}
 
-* Type: an unsigned integer, encoded as a varint, identifying the
-  type of the value and also the subsequent serialization.
+* Delta Type: an unsigned integer, encoded as a varint, identifying the Type
+  as a delta encoded value from the previous Type, if any. The Type identifies
+  the type of value and also the subsequent serialization.
 * Length: Only present when Type is odd. Specifies the length of the Value field
   in bytes. The maximum length of a value is 2^16-1 bytes.  If an endpoint
   receives a length larger than the maximum, it MUST close the session with a
@@ -1626,7 +1628,12 @@ Receivers ignore unrecognized parameters.
 The number of parameters in a message is not specifically limited, but the
 total length of a control message is limited to 2^16-1 bytes.
 
-Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
+Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}} in
+increasing Parameter ID order with a delta encoding. This is efficient on the
+wire and makes it easy to ensure there is only one instance of parameters
+that cannot be repeated. The previous Type value plus the Delta Type MUST NOT be
+greater than 2^64 - 1.  If a Delta Type is received that would be too large, the Session
+MUST be closed with a `PROTOCOL_VIOLATION`.
 
 Setup message parameters use a namespace that is constant across all MOQT
 versions. All other messages use a version-specific namespace.
@@ -3135,8 +3142,8 @@ Any object with a status code other than zero MUST have an empty payload.
 #### Object Extension Header {#object-extensions}
 
 Any Object with status Normal can have extension headers.  If an endpoint
-receives extension headers on Objects with status that is not Normal, it MUST close the
-session with a `PROTOCOL_VIOLATION`.
+receives extension headers on Objects with status that is not Normal, it MUST close
+the session with a `PROTOCOL_VIOLATION`.
 
 Object Extension Headers are visible to relays and allow the transmission of
 future metadata relevant to MOQT Object distribution. Any Object metadata never
@@ -3159,8 +3166,8 @@ definition of the extension, Extension Headers MAY be modified, added, removed,
 and/or cached by relays.
 
 Object Extension Headers are serialized as Key-Value-Pairs (see
-{{moq-key-value-pair}}), prefixed by the length of the serialized
-Key-Value-Pairs, in bytes.
+{{moq-key-value-pair}}) in increasing extension type order with a delta encoding,
+prefixed by the length of the serialized Key-Value-Pairs, in bytes.
 
 ~~~
 Extensions {
