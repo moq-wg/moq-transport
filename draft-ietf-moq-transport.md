@@ -1633,7 +1633,7 @@ increasing Parameter ID order with a delta encoding. This is efficient on the
 wire and makes it easy to ensure there is only one instance of parameters
 that cannot be repeated. The previous Type value plus the Delta Type MUST NOT be
 greater than 2^64 - 1.  If a Delta Type is received that would be too large, the Session
-SHOULD be closed with a Protocol Violation.
+MUST be closed with a `PROTOCOL_VIOLATION`.
 
 Setup message parameters use a namespace that is constant across all MOQT
 versions. All other messages use a version-specific namespace.
