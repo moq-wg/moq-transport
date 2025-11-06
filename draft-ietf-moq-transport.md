@@ -2646,7 +2646,7 @@ Standalone Fetch {
 ### Joining Fetches
 
 A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of a subscription in the `Established` or 
+specifying the Request ID of a subscription in the `Established` or
 `Pending (subscriber)` state.
 A publisher receiving a Joining Fetch uses properties of the associated
 Subscribe to determine the Track Namespace, Track Name
