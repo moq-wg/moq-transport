@@ -1925,7 +1925,7 @@ the type of value and also the subsequent serialization.<a href="#section-1.4.2-
               <p id="section-1.4.2-4.2.1">Length: Only present when Type is odd. Specifies the length of the Value field
 in bytes. The maximum length of a value is 2^16-1 bytes.  If an endpoint
 receives a length larger than the maximum, it <span class="bcp14">MUST</span> close the session with a
-Protocol Violation.<a href="#section-1.4.2-4.2.1" class="pilcrow">¶</a></p>
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-1.4.2-4.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-1.4.2-4.3">
               <p id="section-1.4.2-4.3.1">Value: A single varint encoded value when Type is even, otherwise a
@@ -1933,7 +1933,7 @@ sequence of Length bytes.<a href="#section-1.4.2-4.3.1" class="pilcrow">¶</a></
 </li>
           </ul>
 <p id="section-1.4.2-5">If a receiver understands a Type, and the following Value or Length/Value does
-not match the serialization defined by that Type, the receiver <span class="bcp14">MUST</span> terminate
+not match the serialization defined by that Type, the receiver <span class="bcp14">MUST</span> close
 the session with error code <code>KEY_VALUE_FORMATTING_ERROR</code>.<a href="#section-1.4.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2556,7 +2556,7 @@ MOQT enables proactively draining sessions via the GOAWAY message (<a href="#mes
 <p id="section-3.5-2">The server sends a GOAWAY message, signaling the client to establish a new
 session and migrate any <code>Established</code> subscriptions. The GOAWAY message optionally
 contains a new URI for the new session, otherwise the current URI is
-reused. The server <span class="bcp14">SHOULD</span> terminate the session with <code>GOAWAY_TIMEOUT</code> after a
+reused. The server <span class="bcp14">SHOULD</span> close the session with <code>GOAWAY_TIMEOUT</code> after a
 sufficient timeout if there are still open subscriptions or fetches on a
 connection.<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 <p id="section-3.5-3">When the server is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message to downstream
@@ -3680,7 +3680,7 @@ time for the timeout is based on when the Object Headers are received, and does
 not depend upon the forwarding preference. There is no explicit signal that an
 Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.1.2-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.2-3">DELIVERY_TIMEOUT, if present, <span class="bcp14">MUST</span> contain a value greater than 0.  If an
-endpoint receives a DELIVERY_TIMEOUT equal to 0 it <span class="bcp14">MUST</span> terminate the session
+endpoint receives a DELIVERY_TIMEOUT equal to 0 it <span class="bcp14">MUST</span> close the session
 with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.2-3" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.2-4">If both the subscriber and publisher specify the parameter, they use the min of
 the two values for the subscription.  The publisher <span class="bcp14">SHOULD</span> always specify the
@@ -3846,10 +3846,11 @@ message, the default value is 1.<a href="#section-9.2.1.10-2" class="pilcrow">¶
 <a href="#section-9.2.1.11" class="section-number selfRef">9.2.1.11. </a><a href="#name-dynamic-groups-parameter" class="section-name selfRef">DYNAMIC GROUPS Parameter</a>
             </h5>
 <p id="section-9.2.1.11-1">The DYNAMIC_GROUPS parameter (parameter type 0x30) <span class="bcp14">MAY</span> appear in PUBLISH or
-SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
-1, it indicates that the subscriber can request the Original Publisher to start
-a new Group by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or
-SUBSCRIBE_UPDATE for this Track.<a href="#section-9.2.1.11-1" class="pilcrow">¶</a></p>
+SUBSCRIBE_OK. The allowed values are 0 or 1. When the value is 1, it indicates
+that the subscriber can request the Original Publisher to start a new Group
+by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or SUBSCRIBE_UPDATE
+for this Track. If an endpoint receives a value larger than 1, it <span class="bcp14">MUST</span> close
+the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.11-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.11-2">Relays <span class="bcp14">MUST</span> preserve the value of this parameter received from an upstream
 publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
 subscribers.<a href="#section-9.2.1.11-2" class="pilcrow">¶</a></p>
@@ -4053,7 +4054,7 @@ publisher <span class="bcp14">MAY</span> reject new requests after sending a GOA
 <p id="section-9.4-3">Upon receiving a GOAWAY, an endpoint <span class="bcp14">SHOULD NOT</span> initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE and TRACK_SATUS.<a href="#section-9.4-3" class="pilcrow">¶</a></p>
-<p id="section-9.4-4">The endpoint <span class="bcp14">MUST</span> terminate the session with a <code>PROTOCOL_VIOLATION</code>
+<p id="section-9.4-4">The endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>
 (<a href="#session-termination" class="auto internal xref">Section 3.4</a>) if it receives multiple GOAWAY messages.<a href="#section-9.4-4" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
 <figure id="figure-6">
@@ -4082,7 +4083,7 @@ Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
 maximum, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-6.1.1" class="pilcrow">¶</a></p>
 <p id="section-9.4-6.1.2">
 If a server receives a GOAWAY with a non-zero New Session URI Length it <span class="bcp14">MUST</span>
-terminate the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-6.1.2" class="pilcrow">¶</a></p>
+close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-6.1.2" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4094,9 +4095,9 @@ terminate the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9
         </h3>
 <p id="section-9.5-1">An endpoint sends a MAX_REQUEST_ID message to increase the number of requests
 the peer can send within a session.<a href="#section-9.5-1" class="pilcrow">¶</a></p>
-<p id="section-9.5-2">The Maximum Request ID <span class="bcp14">MUST</span> only increase within a session, and
-receipt of a MAX_REQUEST_ID message with an equal or smaller Request ID
-value is a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.5-2" class="pilcrow">¶</a></p>
+<p id="section-9.5-2">The Maximum Request ID <span class="bcp14">MUST</span> only increase within a session. If an endpoint
+receives MAX_REQUEST_ID message with an equal or smaller Request ID it <span class="bcp14">MUST</span>
+close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.5-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-max_request_id-message"></span><div id="moq-transport-max-request-id">
 <figure id="figure-7">
           <div class="alignLeft art-text artwork" id="section-9.5-3.1">
@@ -4439,7 +4440,7 @@ subscription.<a href="#section-9.11-1" class="pilcrow">¶</a></p>
 the Start Location <span class="bcp14">MUST</span> not decrease, as an attempt to
 to do so could fail. If Objects with Locations smaller than the current
 subscription's Largest Location are required, FETCH can be used to retrieve
-them. A publisher <span class="bcp14">MUST</span> terminate the session with a <code>PROTOCOL_VIOLATION</code> if the
+them. A publisher <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code> if the
 SUBSCRIBE_UPDATE violates this rule.<a href="#section-9.11-2" class="pilcrow">¶</a></p>
 <p id="section-9.11-3">When a subscriber narrows their subscription (increase the Start Location and/or
 decrease the End Group), it might still receive objects
@@ -5467,7 +5468,7 @@ are beyond the end of a group or track.<a href="#section-10.2.1.1-1" class="pilc
 </li>
             </ul>
 <p id="section-10.2.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and the session <span class="bcp14">SHOULD</span>
-be terminated with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).
+be closed with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).
 Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-10.2.1.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -5822,7 +5823,7 @@ and there is no Object Payload.<a href="#section-10.3.1-5.5.2.2.1" class="pilcro
 <p id="section-10.4-1">When Objects are sent on streams, the stream begins with a Subgroup or Fetch
 Header and is followed by one or more sets of serialized Object fields.
 If a stream ends gracefully (i.e., the stream terminates with a FIN) in the
-middle of a serialized Object, the session <span class="bcp14">SHOULD</span> be terminated with a
+middle of a serialized Object, the session <span class="bcp14">SHOULD</span> be closed with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4-1" class="pilcrow">¶</a></p>
 <p id="section-10.4-2">A publisher <span class="bcp14">SHOULD NOT</span> open more than one stream at a time with the same Subgroup
 Header field values.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
