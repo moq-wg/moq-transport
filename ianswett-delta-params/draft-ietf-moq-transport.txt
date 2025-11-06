@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 May 2026                                        I. Swett, Ed.
+Expires: 10 May 2026                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         3 November 2025
+                                                         6 November 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 May 2026.
+   This Internet-Draft will expire on 10 May 2026.
 
 Copyright Notice
 
@@ -1823,7 +1823,7 @@ Table of Contents
    Parameter ID order with a delta encoding.  This is efficient on the
    wire and makes it easy to ensure there is only one instance of
    parameters that cannot be repeated.  The previous Type value plus the
-   Delta Type MUST NOT be greater than 2^62 - 1.  If a Delta Type is
+   Delta Type MUST NOT be greater than 2^64 - 1.  If a Delta Type is
    received that would be too large, the Session SHOULD be closed with a
    Protocol Violation.
 
