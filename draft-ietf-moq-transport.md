@@ -1896,7 +1896,7 @@ does not expire or expires at an unknown time.
 #### LARGEST OBJECT Parameter {#largest-param}
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in SUBSCRIBE_OK,
-PUBLISH or in REQUEST_OK in response to SUBSCRIBE_UPDATE.  It is a
+PUBLISH or in REQUEST_OK (in response to SUBSCRIBE_UPDATE or TRACK_STATUS).  It is a
 length-prefixed Location structure (see {{location-structure}}) containing the
 largest Location in the Track observed by the sending endpoint (see
 {{subscription-filters}}.  If Objects have been published on this Track the
