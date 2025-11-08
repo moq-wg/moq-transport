@@ -2203,7 +2203,7 @@ REQUEST_ERROR Message {
   Length (16),
   Request ID (i),
   Error Code (i),
-  [Retry Interval (i)],
+  Retry Interval (i),
   Error Reason (Reason Phrase),
 }
 ~~~
@@ -2214,7 +2214,7 @@ REQUEST_ERROR Message {
 * Error Code: Identifies an integer error code for request failure.
 
 * Retry Interval: The minimum time (in seconds) before the request SHOULD be
-sent again. Present only if the Error Code is odd.
+  sent again, plus one. If the value is 0, the request SHOULD NOT be retried.
 
 * Error Reason: Provides a text description of the request error. See
  {{reason-phrase}}.
@@ -2224,28 +2224,27 @@ as defined below and assigned in {{iana-request-error}}. Most codepoints have
 identical meanings for various request types, but some have request-specific
 meanings.
 
-Odd error codes indicate the request is retryable with the same parameters at a
-later time. If so, the sender of REQUEST_ERROR includes a Retry Interval in the
-message. If it is sending more than one such message within a second or so
-across one or more sessions, it SHOULD apply randomization to each retry
-interval so that retries are spread out over time, minimizing the risk of
-synchronized retry storms.  The Retry Interval MAY be zero if the request can be
-retried immediately.
+If request is retryable with the same parameters at a later time, the sender of
+REQUEST_ERROR includes a non-zero Retry Interval in the message. If it is
+sending more than one such message within a second or so across one or more
+sessions, it SHOULD apply randomization to each retry interval so that retries
+are spread out over time, minimizing the risk of synchronized retry storms.  The
+Retry Interval value MAY be one if the request can be retried immediately.
 
 If the sender has no information as to when a request is likely to be
 successful, it MAY apply randomization around a default interval of 30 seconds.
 
 If a Retry Interval exceeds the lifetime of a necessary authentication token
 used in the request, so that a retry at that time would fail, the sender SHOULD
-use a non-retryable error code indicating a new authentication token is needed.
+use an error code indicating a new authentication token is needed.
 
 INTERNAL_ERROR:
 : An implementation specific or generic error occurred. This might be retryable
-or not, depending on the codepoint.
+or not, depending on the imlementation conditions that caused the error.
 
 UNAUTHORIZED:
 : The subscriber is not authorized to perform the requested action on the given
-track.
+track.  This might be retryable if the authorization token is not yet valid.
 
 TIMEOUT:
 : The subscription could not be completed before an implementation specific
@@ -3935,25 +3934,18 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | Name                       | Code | Specification              |
 |:---------------------------|:----:|:--------------------------|
 | INTERNAL_ERROR             | 0x0  | {{message-request-error}} |
-| INTERNAL_ERROR             | 0x1  | {{message-request-error}} |
-| UNAUTHORIZED               | 0x2  | {{message-request-error}} |
-| TIMEOUT                    | 0x3  | {{message-request-error}} |
-| INVALID_RANGE              | 0x4  | {{message-request-error}} |
-| INVALID_RANGE              | 0x5  | {{message-request-error}} |
-| NOT_SUPPORTED              | 0x6  | {{message-request-error}} |
-| UNKNOWN_STATUS_IN_RANGE    | 0x7  | {{message-request-error}} |
-| MALFORMED_AUTH_TOKEN       | 0x8  | {{message-request-error}} |
-| MALFORMED_TRACK            | 0x9  | {{message-request-error}} |
-| UNINTERESTED               | 0xa  | {{message-request-error}} |
-| UNINTERESTED               | 0xb  | {{message-request-error}} |
-| DOES_NOT_EXIST             | 0xc  | {{message-request-error}} |
-| DOES_NOT_EXIST             | 0xd  | {{message-request-error}} |
-| EXPIRED_AUTH_TOKEN         | 0xe  | {{message-request-error}} |
-| PREFIX_OVERLAP             | 0x10 | {{message-request-error}} |
-| INVALID_JOINING_REQUEST_ID | 0x12 | {{message-request-error}} |
-
-As noted above, odd error codes are potentially retryable. Some codes
-have both retryable and non-retryable versions.
+| UNAUTHORIZED               | 0x1  | {{message-request-error}} |
+| TIMEOUT                    | 0x2  | {{message-request-error}} |
+| NOT_SUPPORTED              | 0x3  | {{message-request-error}} |
+| MALFORMED_AUTH_TOKEN       | 0x4  | {{message-request-error}} |
+| EXPIRED_AUTH_TOKEN         | 0x5  | {{message-request-error}} |
+| DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
+| INVALID_RANGE              | 0x11 | {{message-request-error}} |
+| MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
+| UNINTERESTED               | 0x20 | {{message-request-error}} |
+| PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
+| INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
 
 The range of error codes including 0x100 to 0xffff is reserved for
 implementation-speceific codes.
