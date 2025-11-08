@@ -2224,12 +2224,12 @@ as defined below and assigned in {{iana-request-error}}. Most codepoints have
 identical meanings for various request types, but some have request-specific
 meanings.
 
-If request is retryable with the same parameters at a later time, the sender of
+If a request is retryable with the same parameters at a later time, the sender of
 REQUEST_ERROR includes a non-zero Retry Interval in the message. If it is
 sending more than one such message within a second or so across one or more
 sessions, it SHOULD apply randomization to each retry interval so that retries
-are spread out over time, minimizing the risk of synchronized retry storms.  The
-Retry Interval value MAY be one if the request can be retried immediately.
+are spread out over time, minimizing the risk of synchronized retry storms.  A
+Retry Interval value of 1 indicates the request can be retried immediately.
 
 If the sender has no information as to when a request is likely to be
 successful, it MAY apply randomization around a default interval of 30 seconds.
@@ -2240,7 +2240,7 @@ use an error code indicating a new authentication token is needed.
 
 INTERNAL_ERROR:
 : An implementation specific or generic error occurred. This might be retryable
-or not, depending on the imlementation conditions that caused the error.
+or not, depending on the implementation conditions that caused the error.
 
 UNAUTHORIZED:
 : The subscriber is not authorized to perform the requested action on the given
