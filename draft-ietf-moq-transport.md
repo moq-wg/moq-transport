@@ -275,8 +275,14 @@ Location A < Location B if:
 Key-Value-Pair is a flexible structure designed to carry key/value
 pairs in which the key is a variable length integer and the value
 is either a variable length integer or a byte field of arbitrary
-length. Key-Value-Pairs encode a Type value as a delta from the
-previous Type value, or from 0 if there is no previous Type value.
+length.
+
+Key-Value-Pairs encode a Type value as a delta from the previous Type value,
+or from 0 if there is no previous Type value. This is efficient on the wire
+and makes it easy to ensure there is only one instance of a type when needed.
+The previous Type value plus the Delta Type MUST NOT be greater than 2^64 - 1.
+If a Delta Type is received that would be too large, the Session MUST be closed
+with a `PROTOCOL_VIOLATION`.
 
 Key-Value-Pair is used in both the data plane and control plane, but
 is optimized for use in the data plane.
@@ -1635,12 +1641,7 @@ Receivers ignore unrecognized parameters.
 The number of parameters in a message is not specifically limited, but the
 total length of a control message is limited to 2^16-1 bytes.
 
-Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}} in
-increasing Parameter ID order with a delta encoding. This is efficient on the
-wire and makes it easy to ensure there is only one instance of parameters
-that cannot be repeated. The previous Type value plus the Delta Type MUST NOT be
-greater than 2^64 - 1.  If a Delta Type is received that would be too large, the Session
-MUST be closed with a `PROTOCOL_VIOLATION`.
+Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
 
 Setup message parameters use a namespace that is constant across all MOQT
 versions. All other messages use a version-specific namespace.
@@ -1903,7 +1904,7 @@ does not expire or expires at an unknown time.
 #### LARGEST OBJECT Parameter {#largest-param}
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in SUBSCRIBE_OK,
-PUBLISH or in REQUEST_OK in response to SUBSCRIBE_UPDATE.  It is a
+PUBLISH or in REQUEST_OK (in response to SUBSCRIBE_UPDATE or TRACK_STATUS).  It is a
 length-prefixed Location structure (see {{location-structure}}) containing the
 largest Location in the Track observed by the sending endpoint (see
 {{subscription-filters}}.  If Objects have been published on this Track the
@@ -3174,8 +3175,8 @@ definition of the extension, Extension Headers MAY be modified, added, removed,
 and/or cached by relays.
 
 Object Extension Headers are serialized as Key-Value-Pairs (see
-{{moq-key-value-pair}}) in increasing extension type order with a delta encoding,
-prefixed by the length of the serialized Key-Value-Pairs, in bytes.
+{{moq-key-value-pair}}), prefixed by the length of the serialized
+Key-Value-Pairs, in bytes.
 
 ~~~
 Extensions {
