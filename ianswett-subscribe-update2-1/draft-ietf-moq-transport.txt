@@ -2586,7 +2586,7 @@ Table of Contents
 
    When a subscriber narrows their subscription (increase the Start
    Location and/or decrease the End Group), it might still receive
-   objects outside the new range if the publisher sent them before the
+   Objects outside the new range if the publisher sent them before the
    update was processed.
 
    The receiver of a SUBSCRIBE_UPDATE MUST respond with exactly one

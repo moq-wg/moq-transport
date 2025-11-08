@@ -4446,9 +4446,8 @@ create a gap in the subscription. The REQUEST_OK in response to the
 SUBSCRIBE_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
 can issue a FETCH to retrieve the omitted Objects, if any.<a href="#section-9.11-3" class="pilcrow">¶</a></p>
 <p id="section-9.11-4">When a subscriber narrows their subscription (increase the Start Location and/or
-decrease the End Group), it might still receive objects
-outside the new range if the publisher sent them before the update was
-processed.<a href="#section-9.11-4" class="pilcrow">¶</a></p>
+decrease the End Group), it might still receive Objects outside the
+new range if the publisher sent them before the update was processed.<a href="#section-9.11-4" class="pilcrow">¶</a></p>
 <p id="section-9.11-5">The receiver of a SUBSCRIBE_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful.  When an
 update is unsuccessful, the publisher <span class="bcp14">MUST</span> also terminate the subscription with
