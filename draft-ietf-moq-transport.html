@@ -3815,7 +3815,7 @@ does not expire or expires at an unknown time.<a href="#section-9.2.1.8-3" class
 <a href="#section-9.2.1.9" class="section-number selfRef">9.2.1.9. </a><a href="#name-largest-object-parameter" class="section-name selfRef">LARGEST OBJECT Parameter</a>
             </h5>
 <p id="section-9.2.1.9-1">The LARGEST_OBJECT parameter (Parameter Type 0x9) <span class="bcp14">MAY</span> appear in SUBSCRIBE_OK,
-PUBLISH or in REQUEST_OK in response to SUBSCRIBE_UPDATE.  It is a
+PUBLISH or in REQUEST_OK (in response to SUBSCRIBE_UPDATE or TRACK_STATUS).  It is a
 length-prefixed Location structure (see <a href="#location-structure" class="auto internal xref">Section 1.4.1</a>) containing the
 largest Location in the Track observed by the sending endpoint (see
 <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>.  If Objects have been published on this Track the
