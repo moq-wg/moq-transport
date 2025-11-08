@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 10 May 2026                                       I. Swett, Ed.
+Expires: 12 May 2026                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         6 November 2025
+                                                         8 November 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 May 2026.
+   This Internet-Draft will expire on 12 May 2026.
 
 Copyright Notice
 
@@ -385,8 +385,14 @@ Table of Contents
    Key-Value-Pair is a flexible structure designed to carry key/value
    pairs in which the key is a variable length integer and the value is
    either a variable length integer or a byte field of arbitrary length.
+
    Key-Value-Pairs encode a Type value as a delta from the previous Type
-   value, or from 0 if there is no previous Type value.
+   value, or from 0 if there is no previous Type value.  This is
+   efficient on the wire and makes it easy to ensure there is only one
+   instance of a type when needed.  The previous Type value plus the
+   Delta Type MUST NOT be greater than 2^64 - 1.  If a Delta Type is
+   received that would be too large, the Session MUST be closed with a
+   PROTOCOL_VIOLATION.
 
    Key-Value-Pair is used in both the data plane and control plane, but
    is optimized for use in the data plane.
@@ -1819,13 +1825,7 @@ Table of Contents
    The number of parameters in a message is not specifically limited,
    but the total length of a control message is limited to 2^16-1 bytes.
 
-   Parameters are serialized as Key-Value-Pairs Figure 2 in increasing
-   Parameter ID order with a delta encoding.  This is efficient on the
-   wire and makes it easy to ensure there is only one instance of
-   parameters that cannot be repeated.  The previous Type value plus the
-   Delta Type MUST NOT be greater than 2^64 - 1.  If a Delta Type is
-   received that would be too large, the Session MUST be closed with a
-   PROTOCOL_VIOLATION.
+   Parameters are serialized as Key-Value-Pairs Figure 2.
 
    Setup message parameters use a namespace that is constant across all
    MOQT versions.  All other messages use a version-specific namespace.
@@ -3421,8 +3421,8 @@ Table of Contents
    be modified, added, removed, and/or cached by relays.
 
    Object Extension Headers are serialized as Key-Value-Pairs (see
-   Figure 2) in increasing extension type order with a delta encoding,
-   prefixed by the length of the serialized Key-Value-Pairs, in bytes.
+   Figure 2), prefixed by the length of the serialized Key-Value-Pairs,
+   in bytes.
 
    Extensions {
      Extension Headers Length (i),
