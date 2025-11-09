@@ -1187,8 +1187,8 @@ status of Object Does Not Exist.  The endpoint SHOULD NOT cache or forward the
 duplicate object in this case.
 
 A cache MUST store all properties of an Object defined in
-{{object-properties}}, with the exception of any extensions ({{object-extensions}})
-that specify otherwise.
+{{object-properties}}, with the exception of any extensions
+({{object-extensions}}) that specify otherwise.
 
 ## Subscriber Interactions
 
