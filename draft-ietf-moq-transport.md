@@ -3698,43 +3698,14 @@ SUBGROUP_HEADER {
 
 # MoQT Extension Headers {#moqt-extension-headers}
 
-The following Object Extension Headers are defined in MOQT.
-
-## Prior Group ID Gap
-
-Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
-containing the number of Groups prior to the current Group that do not and will
-never exist. This is equivalent to receiving an `End of Group` status with
-Object ID 0 for each skipped Group. For example, if the Original Publisher is
-publishing an Object in Group 7 and knows it will never publish any Objects in
-Group 8 or Group 9, it can include Prior Group ID Gap = 2 in any number of
-Objects in Group 10, as it sees fit.  A Track is considered malformed (see
-{{malformed-tracks}}) if any of the following conditions are detected:
-
- * An Object contains more than one instance of Prior Group ID Gap.
- * A Group contains more than one Object with different values for Prior Group
-    ID Gap.
- * An Object has a Prior Group ID Gap larger than the Group ID.
- * An endpoint receives an Object with a Prior Group ID Gap covering an Object
-   it previously received.
- * An endpoint receives an Object with a Group ID within a previously
-   communicated gap.
-
-This extension is optional, as publishers might not know the prior gap gize, or
-there may not be a gap. If Prior Group ID Gap is not present, the receiver
-cannot infer any information about the existence of prior groups (see
-{{group-ids}}).
-
-This extension can be added by the Original Publisher, but MUST NOT be added by
-relays. This extension MUST NOT be modified or removed.
-
-An Object MUST NOT contain more than one instance of this extension header.
+The following Extension Headers are defined in MOQT. Each Extension Header
+specifies whether it can be used with Tracks, Objects, or both.
 
 ## Immutable Extensions
 
 The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
-Key-Value-Pairs (see {{moq-key-value-pair}}) which are also Object Extension
-Headers of the Object.
+Key-Value-Pairs (see {{moq-key-value-pair}}) which are also Track or Object
+Extension Headers.
 
 ~~~
 Immutable Extensions {
@@ -3773,6 +3744,36 @@ x = e2e Authenticated Data
 y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
 ~~~
+
+An Object MUST NOT contain more than one instance of this extension header.
+
+## Prior Group ID Gap
+
+Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
+containing the number of Groups prior to the current Group that do not and will
+never exist. This is equivalent to receiving an `End of Group` status with
+Object ID 0 for each skipped Group. For example, if the Original Publisher is
+publishing an Object in Group 7 and knows it will never publish any Objects in
+Group 8 or Group 9, it can include Prior Group ID Gap = 2 in any number of
+Objects in Group 10, as it sees fit.  A Track is considered malformed (see
+{{malformed-tracks}}) if any of the following conditions are detected:
+
+ * An Object contains more than one instance of Prior Group ID Gap.
+ * A Group contains more than one Object with different values for Prior Group
+    ID Gap.
+ * An Object has a Prior Group ID Gap larger than the Group ID.
+ * An endpoint receives an Object with a Prior Group ID Gap covering an Object
+   it previously received.
+ * An endpoint receives an Object with a Group ID within a previously
+   communicated gap.
+
+This extension is optional, as publishers might not know the prior gap gize, or
+there may not be a gap. If Prior Group ID Gap is not present, the receiver
+cannot infer any information about the existence of prior groups (see
+{{group-ids}}).
+
+This extension can be added by the Original Publisher, but MUST NOT be added by
+relays. This extension MUST NOT be modified or removed.
 
 An Object MUST NOT contain more than one instance of this extension header.
 
