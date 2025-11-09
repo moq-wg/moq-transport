@@ -588,6 +588,40 @@ ways, for example:
 3. Use TRACK_STATUS or similar mechanism to query the previous state to
    determine the largest published Group ID.
 
+## Extension Headers {#extension-headers}
+
+Tracks and Objects can have additional relay-visible metadata called Extension
+Headers.
+
+Extension Headers are visible to relays, do not require negotiation, and can
+be used to alter MoQT Object distribution.
+
+Extension Headers are defined in {{moqt-extension-headers}} as well as external
+specifications and are registered in an IANA table {{iana}}. These
+specifications define the type and value of the header, along with any rules
+concerning processing, modification, caching and forwarding. A relay which is
+coded to implement these rules is said to "support" the extension.
+
+If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
+cached as part of the Track or Object and MUST be forwarded by relays.
+
+If supported by the relay and subject to the processing rules specified in the
+definition of the extension, Extension Headers MAY be modified, added, removed,
+and/or cached by relays.
+
+Extension Headers are serialized as a length in bytes followed by
+Key-Value-Pairs (see {{moq-key-value-pair}}).
+
+~~~
+Extensions {
+  Extension Headers Length (i),
+  Extension headers (..),
+}
+~~~
+
+Header types are registered in the IANA table 'MOQ Extension Headers'.
+See {{iana}}.
+
 # Sessions {#session}
 
 ## Session establishment {#session-establishment}
@@ -1310,7 +1344,7 @@ fields that can be updated are the following:
 1. Object Status can transition from any status to Object Does Not Exist in
    cases where the object is no longer available.  Transitions between Normal,
    End of Group and End of Track are invalid.
-3. Object Header Extensions can be added, removed or updated, subject
+3. Object Extension Headers can be added, removed or updated, subject
    to the constraints of the specific header extension.
 
 An endpoint that receives a duplicate Object with an invalid Object Status
@@ -1506,12 +1540,19 @@ new relay instead of the old Relay. Once Objects are going to the new Relay, the
 published namespaces and subscriptions to the old relay can be withdrawn or
 terminated.
 
+## Relay Track Handling
+
+Relays that receive Track Extension Headers MUST include them in any PUBLISH,
+SUBSCRIBE_OK, TRACK_STATUS_OK or FETCH_OK sent for that Track. Relays
+MUST NOT modify Extension Headers unless the relay supports the Extension
+(see {{extension-headers}}).
+
 ## Relay Object Handling
 
 MOQT encodes the delivery information via Object headers
 ({{message-object}}).  A relay MUST NOT modify Object properties when
 forwarding, except for Object Extension Headers as specified in
-{{object-extensions}}.
+{{extension-headers}}.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
@@ -2334,7 +2375,8 @@ SUBSCRIBE_OK Message {
   Request ID (i),
   Track Alias (i),
   Number of Parameters (i),
-  Parameters (..) ...
+  Parameters (..) ...,
+  Extensions (..),
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -2349,6 +2391,8 @@ SUBSCRIBE_OK Message {
   it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
+
+* Extensions : A sequence of Extension Headers. See {{extension-headers}}.
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
@@ -2445,7 +2489,8 @@ PUBLISH Message {
   Track Name (..),
   Track Alias (i),
   Number of Parameters (i),
-  Parameters (..) ...
+  Parameters (..) ...,
+  Extensions (..),
 }
 ~~~
 {: #moq-transport-publish-format title="MOQT PUBLISH Message"}
@@ -2463,6 +2508,8 @@ PUBLISH Message {
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
+
+* Extensions : A sequence of Extension Headers. See {{extension-headers}}.
 
 A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
 send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
@@ -2796,6 +2843,7 @@ FETCH_OK Message {
   End Location (Location),
   Number of Parameters (i),
   Parameters (..) ...
+  Extensions (..),
 }
 ~~~
 {: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
@@ -2826,6 +2874,9 @@ FETCH_OK Message {
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
+
+* Extensions : A sequence of Extension Headers. See {{extension-headers}}.
+
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
@@ -3097,11 +3148,8 @@ Preference`.
 * Object Status: An enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
 
-* Object Extension Length: The total length of the Object Extension Headers
-  block, in bytes.
-
-* Object Extensions : A sequence of Object Extension Headers. See
-  {{object-extensions}} below.
+* Object Extensions : A sequence of Extension Headers. See
+  {{object-extensions}}.
 
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
 NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
@@ -3143,43 +3191,17 @@ Any object with a status code other than zero MUST have an empty payload.
 
 #### Object Extension Header {#object-extensions}
 
-Any Object with status Normal can have extension headers.  If an endpoint
-receives extension headers on Objects with status that is not Normal, it MUST close
-the session with a `PROTOCOL_VIOLATION`.
+Any Object with status Normal can have extension headers ({{extension-headers}}).
+If an endpoint receives extension headers on Objects with status that is
+not Normal, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-Object Extension Headers are visible to relays and allow the transmission of
-future metadata relevant to MOQT Object distribution. Any Object metadata never
-intended to be accessed by the transport or Relays SHOULD be serialized as part
-of the Object payload and not as an extension header.
+Object Extension Headers are visible to relays and are intented to be relevant
+to MOQT Object distribution. Any Object metadata never intended to be accessed
+by the transport or Relays SHOULD be serialized as part of the Object payload
+and not as an extension header.
 
-Extension Headers are defined in external specifications and registered in an
-IANA table {{iana}}. These specifications define the type and value of the
-header, as well as the rules for processing, modification, caching and
-forwarding. All such specifications MUST specify whether multiple values of the
-same extension are allowed on a single Object.  A relay that enforces these
-rules is considered to "support" the extension.  If a Relay does not support an
-extension header, it MUST assume multiple values are allowed.
-
-If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
-cached as part of the Object and MUST be forwarded by relays.
-
-If supported by the relay and subject to the processing rules specified in the
-definition of the extension, Extension Headers MAY be modified, added, removed,
-and/or cached by relays.
-
-Object Extension Headers are serialized as Key-Value-Pairs (see
-{{moq-key-value-pair}}), prefixed by the length of the serialized
-Key-Value-Pairs, in bytes.
-
-~~~
-Extensions {
-  Extension Headers Length (i),
-  Extension headers (..),
-}
-~~~
-
-Header types are registered in the IANA table 'MOQ Extension Headers'.
-See {{iana}}.
+Object Extension Header types are registered in the IANA table
+'MOQ Extension Headers'. See {{iana}}.
 
 ## Datagrams
 
@@ -3674,7 +3696,7 @@ SUBGROUP_HEADER {
 
 ~~~
 
-# Extension Headers
+# MoQT Extension Headers {#moqt-extension-headers}
 
 The following Object Extension Headers are defined in MOQT.
 
