@@ -1233,16 +1233,18 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.4.2.1">
                     <p id="section-toc.1-1.2.2.4.2.1.1"><a href="#section-2.4.1" class="auto internal xref">2.4.1</a>.  <a href="#name-track-naming" class="internal xref">Track Naming</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.4.2.2">
-                    <p id="section-toc.1-1.2.2.4.2.2.1"><a href="#section-2.4.2" class="auto internal xref">2.4.2</a>.  <a href="#name-malformed-tracks" class="internal xref">Malformed Tracks</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.4.2.3">
-                    <p id="section-toc.1-1.2.2.4.2.3.1"><a href="#section-2.4.3" class="auto internal xref">2.4.3</a>.  <a href="#name-scope" class="internal xref">Scope</a></p>
-</li>
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.5">
-                <p id="section-toc.1-1.2.2.5.1"><a href="#section-2.5" class="auto internal xref">2.5</a>.  <a href="#name-extension-headers" class="internal xref">Extension Headers</a></p>
+                <p id="section-toc.1-1.2.2.5.1"><a href="#section-2.5" class="auto internal xref">2.5</a>.  <a href="#name-malformed-tracks" class="internal xref">Malformed Tracks</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.5.2.1">
+                    <p id="section-toc.1-1.2.2.5.2.1.1"><a href="#section-2.5.1" class="auto internal xref">2.5.1</a>.  <a href="#name-scope" class="internal xref">Scope</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.6">
+                <p id="section-toc.1-1.2.2.6.1"><a href="#section-2.6" class="auto internal xref">2.6</a>.  <a href="#name-extension-headers" class="internal xref">Extension Headers</a></p>
 </li>
             </ul>
 </li>
@@ -2172,106 +2174,106 @@ specification that does needs to specify the canonicalization into the bytes in
 the Track Namespace or Track Name such that exact comparison works.<a href="#section-2.4.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
+</section>
+</div>
 <div id="malformed-tracks">
-<section id="section-2.4.2">
-          <h4 id="name-malformed-tracks">
-<a href="#section-2.4.2" class="section-number selfRef">2.4.2. </a><a href="#name-malformed-tracks" class="section-name selfRef">Malformed Tracks</a>
-          </h4>
-<p id="section-2.4.2-1">There are multiple ways a publisher can transmit a Track that does not conform
+<section id="section-2.5">
+        <h3 id="name-malformed-tracks">
+<a href="#section-2.5" class="section-number selfRef">2.5. </a><a href="#name-malformed-tracks" class="section-name selfRef">Malformed Tracks</a>
+        </h3>
+<p id="section-2.5-1">There are multiple ways a publisher can transmit a Track that does not conform
 to MoQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
-include:<a href="#section-2.4.2-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-2.4.2-2">
-<li id="section-2.4.2-2.1">
-              <p id="section-2.4.2-2.1.1">An Object is received in a FETCH response with the same Group as the
+include:<a href="#section-2.5-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-2.5-2">
+<li id="section-2.5-2.1">
+            <p id="section-2.5-2.1.1">An Object is received in a FETCH response with the same Group as the
 previous Object, but whose Object ID is not strictly larger than the previous
-object.<a href="#section-2.4.2-2.1.1" class="pilcrow">¶</a></p>
+object.<a href="#section-2.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.4.2-2.2">
-              <p id="section-2.4.2-2.2.1">An Object is received in an Ascending FETCH response whose Group ID is smaller
-than the previous Object in the response.<a href="#section-2.4.2-2.2.1" class="pilcrow">¶</a></p>
+          <li id="section-2.5-2.2">
+            <p id="section-2.5-2.2.1">An Object is received in an Ascending FETCH response whose Group ID is smaller
+than the previous Object in the response.<a href="#section-2.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.4.2-2.3">
-              <p id="section-2.4.2-2.3.1">An Object is received in a Descending FETCH response whose Group ID is larger
-than the previous Object in the resopnse.<a href="#section-2.4.2-2.3.1" class="pilcrow">¶</a></p>
+          <li id="section-2.5-2.3">
+            <p id="section-2.5-2.3.1">An Object is received in a Descending FETCH response whose Group ID is larger
+than the previous Object in the resopnse.<a href="#section-2.5-2.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.4.2-2.4">
-              <p id="section-2.4.2-2.4.1">An Object is received whose Object ID is larger than the final Object in the
+          <li id="section-2.5-2.4">
+            <p id="section-2.5-2.4.1">An Object is received whose Object ID is larger than the final Object in the
 Subgroup.  The final Object in a Subgroup is the last Object received on a
-Subgroup stream before a FIN.<a href="#section-2.4.2-2.4.1" class="pilcrow">¶</a></p>
+Subgroup stream before a FIN.<a href="#section-2.5-2.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.4.2-2.5">
-              <p id="section-2.4.2-2.5.1">A Subgroup is received with two or more different final Objects.<a href="#section-2.4.2-2.5.1" class="pilcrow">¶</a></p>
+          <li id="section-2.5-2.5">
+            <p id="section-2.5-2.5.1">A Subgroup is received with two or more different final Objects.<a href="#section-2.5-2.5.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.4.2-2.6">
-              <p id="section-2.4.2-2.6.1">An Object is received in a Group whose Object ID is larger than the final
+          <li id="section-2.5-2.6">
+            <p id="section-2.5-2.6.1">An Object is received in a Group whose Object ID is larger than the final
 Object in the Group.  The final Object in a Group is the Object with Status
 END_OF_GROUP or the last Object sent in a FETCH that requested the entire
-Group.<a href="#section-2.4.2-2.6.1" class="pilcrow">¶</a></p>
+Group.<a href="#section-2.5-2.6.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.4.2-2.7">
-              <p id="section-2.4.2-2.7.1">An Object is received on a Track whose Group and Object ID are larger than the
+          <li id="section-2.5-2.7">
+            <p id="section-2.5-2.7.1">An Object is received on a Track whose Group and Object ID are larger than the
 final Object in the Track.  The final Object in a Track is the Object with
 Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
-End of Track.<a href="#section-2.4.2-2.7.1" class="pilcrow">¶</a></p>
+End of Track.<a href="#section-2.5-2.7.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.4.2-2.8">
-              <p id="section-2.4.2-2.8.1">The same Object is received more than once with different Payload or
- other immutable properties.<a href="#section-2.4.2-2.8.1" class="pilcrow">¶</a></p>
+          <li id="section-2.5-2.8">
+            <p id="section-2.5-2.8.1">The same Object is received more than once with different Payload or
+ other immutable properties.<a href="#section-2.5-2.8.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.4.2-2.9">
-              <p id="section-2.4.2-2.9.1">An Object is received with a different Forwarding Preference than previously
- observed from the same Track.<a href="#section-2.4.2-2.9.1" class="pilcrow">¶</a></p>
+          <li id="section-2.5-2.9">
+            <p id="section-2.5-2.9.1">An Object is received with a different Forwarding Preference than previously
+ observed from the same Track.<a href="#section-2.5-2.9.1" class="pilcrow">¶</a></p>
 </li>
-          </ol>
-<p id="section-2.4.2-3">The above list of conditions is not considered exhaustive.<a href="#section-2.4.2-3" class="pilcrow">¶</a></p>
-<p id="section-2.4.2-4">When a subscriber detects a Malformed Track, it <span class="bcp14">MUST</span> UNSUBSCRIBE any
+        </ol>
+<p id="section-2.5-3">The above list of conditions is not considered exhaustive.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
+<p id="section-2.5-4">When a subscriber detects a Malformed Track, it <span class="bcp14">MUST</span> UNSUBSCRIBE any
 subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
 <span class="bcp14">SHOULD</span> deliver an error to the application.  If a relay detects a Malformed
 Track, it <span class="bcp14">MUST</span> immediately terminate downstream subscriptions with PUBLISH_DONE
-and reset any fetch streams with Status Code <code>MALFORMED_TRACK</code>.<a href="#section-2.4.2-4" class="pilcrow">¶</a></p>
-</section>
-</div>
+and reset any fetch streams with Status Code <code>MALFORMED_TRACK</code>.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
 <div id="track-scope">
-<section id="section-2.4.3">
+<section id="section-2.5.1">
           <h4 id="name-scope">
-<a href="#section-2.4.3" class="section-number selfRef">2.4.3. </a><a href="#name-scope" class="section-name selfRef">Scope</a>
+<a href="#section-2.5.1" class="section-number selfRef">2.5.1. </a><a href="#name-scope" class="section-name selfRef">Scope</a>
           </h4>
-<p id="section-2.4.3-1">An MOQT scope is a set of servers (as identified by their connection
+<p id="section-2.5.1-1">An MOQT scope is a set of servers (as identified by their connection
 URIs) for which the tuple of Track Namespace and Track Name are
 guaranteed to be unique and identify a specific track. It is up to
 the application using MOQT to define how broad or narrow the scope is.
 An application that deals with connections between devices
 on a local network may limit the scope to a single connection; by
 contrast, an application that uses multiple CDNs to serve media may
-require the scope to include all of those CDNs.<a href="#section-2.4.3-1" class="pilcrow">¶</a></p>
-<p id="section-2.4.3-2">Because the tuple of Track Namespace and Track Name are unique within an
+require the scope to include all of those CDNs.<a href="#section-2.5.1-1" class="pilcrow">¶</a></p>
+<p id="section-2.5.1-2">Because the tuple of Track Namespace and Track Name are unique within an
 MOQT scope, they can be used as a cache key for the track.
 If, at a given moment in time, two tracks within the same scope contain
 different data, they <span class="bcp14">MUST</span> have different names and/or namespaces.
 MOQT provides subscribers with the ability to alter the specific manner in
 which tracks are delivered via Parameters, but the actual content of the tracks
 does not depend on those parameters; this is in contrast to protocols like HTTP,
-where request headers can alter the server response.<a href="#section-2.4.3-2" class="pilcrow">¶</a></p>
-<p id="section-2.4.3-3">A publisher that loses state (e.g. crashes) and intends to resume publishing on
+where request headers can alter the server response.<a href="#section-2.5.1-2" class="pilcrow">¶</a></p>
+<p id="section-2.5.1-3">A publisher that loses state (e.g. crashes) and intends to resume publishing on
 the same Track risks colliding with previously published Objects and violating
 the above requirements.  A publisher can handle this in application specific
-ways, for example:<a href="#section-2.4.3-3" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-2.4.3-4">
-<li id="section-2.4.3-4.1">
-              <p id="section-2.4.3-4.1.1">Select a unique Track Name or Track Namespace whenever it resumes
+ways, for example:<a href="#section-2.5.1-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-2.5.1-4">
+<li id="section-2.5.1-4.1">
+              <p id="section-2.5.1-4.1.1">Select a unique Track Name or Track Namespace whenever it resumes
 publishing. For example, it can base one of the Namespace tuple fields on the
-current time, or select a sufficiently large random value.<a href="#section-2.4.3-4.1.1" class="pilcrow">¶</a></p>
+current time, or select a sufficiently large random value.<a href="#section-2.5.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.4.3-4.2">
-              <p id="section-2.4.3-4.2.1">Resume publishing under a previous Track Name and Namespace and set the
+            <li id="section-2.5.1-4.2">
+              <p id="section-2.5.1-4.2.1">Resume publishing under a previous Track Name and Namespace and set the
 initial Group ID to a unique value guaranteed to be larger than all
 previously used groups.  This can be done by choosing a Group ID based on the
-current time.<a href="#section-2.4.3-4.2.1" class="pilcrow">¶</a></p>
+current time.<a href="#section-2.5.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.4.3-4.3">
-              <p id="section-2.4.3-4.3.1">Use TRACK_STATUS or similar mechanism to query the previous state to
-determine the largest published Group ID.<a href="#section-2.4.3-4.3.1" class="pilcrow">¶</a></p>
+            <li id="section-2.5.1-4.3">
+              <p id="section-2.5.1-4.3.1">Use TRACK_STATUS or similar mechanism to query the previous state to
+determine the largest published Group ID.<a href="#section-2.5.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
 </section>
@@ -2279,28 +2281,28 @@ determine the largest published Group ID.<a href="#section-2.4.3-4.3.1" class="p
 </section>
 </div>
 <div id="extension-headers">
-<section id="section-2.5">
+<section id="section-2.6">
         <h3 id="name-extension-headers">
-<a href="#section-2.5" class="section-number selfRef">2.5. </a><a href="#name-extension-headers" class="section-name selfRef">Extension Headers</a>
+<a href="#section-2.6" class="section-number selfRef">2.6. </a><a href="#name-extension-headers" class="section-name selfRef">Extension Headers</a>
         </h3>
-<p id="section-2.5-1">Tracks and Objects can have additional relay-visible metadata called Extension
-Headers.<a href="#section-2.5-1" class="pilcrow">¶</a></p>
-<p id="section-2.5-2">Extension Headers are visible to relays and allow the transmission of
-future metadata relevant to MOQT Object distribution.<a href="#section-2.5-2" class="pilcrow">¶</a></p>
-<p id="section-2.5-3">Extension Headers are defined in <a href="#moqt-extension-headers" class="auto internal xref">Section 11</a> as well as external
+<p id="section-2.6-1">Tracks and Objects can have additional relay-visible metadata called Extension
+Headers.<a href="#section-2.6-1" class="pilcrow">¶</a></p>
+<p id="section-2.6-2">Extension Headers are visible to relays and allow the transmission of
+future metadata relevant to MOQT Object distribution.<a href="#section-2.6-2" class="pilcrow">¶</a></p>
+<p id="section-2.6-3">Extension Headers are defined in <a href="#moqt-extension-headers" class="auto internal xref">Section 11</a> as well as external
 specifications and are registered in an IANA table <a href="#iana" class="auto internal xref">Section 13</a>. These
 specifications define the type and value of the header, along with any rules
 concerning processing, modification, caching and forwarding. A relay which is
-coded to implement these rules is said to "support" the extension.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
-<p id="section-2.5-4">If unsupported by the relay, Extension Headers <span class="bcp14">MUST NOT</span> be modified, <span class="bcp14">MUST</span> be
-cached as part of the Track or Object and <span class="bcp14">MUST</span> be forwarded by relays.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
-<p id="section-2.5-5">If supported by the relay and subject to the processing rules specified in the
+coded to implement these rules is said to "support" the extension.<a href="#section-2.6-3" class="pilcrow">¶</a></p>
+<p id="section-2.6-4">If unsupported by the relay, Extension Headers <span class="bcp14">MUST NOT</span> be modified, <span class="bcp14">MUST</span> be
+cached as part of the Track or Object and <span class="bcp14">MUST</span> be forwarded by relays.<a href="#section-2.6-4" class="pilcrow">¶</a></p>
+<p id="section-2.6-5">If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers <span class="bcp14">MAY</span> be modified, added, removed,
-and/or cached by relays.<a href="#section-2.5-5" class="pilcrow">¶</a></p>
-<p id="section-2.5-6">Extension Headers are serialized as Key-Value-Pairs (see
-<a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-2.5-6" class="pilcrow">¶</a></p>
-<p id="section-2.5-7">Header types are registered in the IANA table 'MOQ Extension Headers'.
-See <a href="#iana" class="auto internal xref">Section 13</a>.<a href="#section-2.5-7" class="pilcrow">¶</a></p>
+and/or cached by relays.<a href="#section-2.6-5" class="pilcrow">¶</a></p>
+<p id="section-2.6-6">Extension Headers are serialized as Key-Value-Pairs (see
+<a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-2.6-6" class="pilcrow">¶</a></p>
+<p id="section-2.6-7">Header types are registered in the IANA table 'MOQ Extension Headers'.
+See <a href="#iana" class="auto internal xref">Section 13</a>.<a href="#section-2.6-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2731,7 +2733,7 @@ the result of the request, some Objects could be received even if the FETCH
 results in error.<a href="#section-5.1-12" class="pilcrow">¶</a></p>
 <p id="section-5.1-13">The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the publisher
 to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.4.3</a>.<a href="#section-5.1-13" class="pilcrow">¶</a></p>
+uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.5.1</a>.<a href="#section-5.1-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3164,7 +3166,7 @@ terminated.<a href="#section-8.3.2-2" class="pilcrow">¶</a></p>
 TRACK_STATUS_OK or FETCH_OK sent for that Track.  Relays <span class="bcp14">MUST NOT</span> modify the
 contents of the parameter by adding, removing, modifying or reordering the
 contained Extension Headers, unless the relay supports the Extension (see
-<a href="#extension-headers" class="auto internal xref">Section 2.5</a>).<a href="#section-8.4-1" class="pilcrow">¶</a></p>
+<a href="#extension-headers" class="auto internal xref">Section 2.6</a>).<a href="#section-8.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relay-object-handling">
@@ -3175,7 +3177,7 @@ contained Extension Headers, unless the relay supports the Extension (see
 <p id="section-8.5-1">MOQT encodes the delivery information via Object headers
 (<a href="#message-object" class="auto internal xref">Section 10.2</a>).  A relay <span class="bcp14">MUST NOT</span> modify Object properties when
 forwarding, except for Object Extension Headers as specified in
-<a href="#extension-headers" class="auto internal xref">Section 2.5</a>.<a href="#section-8.5-1" class="pilcrow">¶</a></p>
+<a href="#extension-headers" class="auto internal xref">Section 2.6</a>.<a href="#section-8.5-1" class="pilcrow">¶</a></p>
 <p id="section-8.5-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
 combine, split, or otherwise modify object payloads.  A relay <span class="bcp14">SHOULD</span>
 prioritize sending Objects based on <a href="#priorities" class="auto internal xref">Section 7</a>.<a href="#section-8.5-2" class="pilcrow">¶</a></p>
@@ -4468,7 +4470,7 @@ its implementation defined limit.<a href="#section-9.12-10.14.1" class="pilcrow"
 <dt id="section-9.12-10.15">MALFORMED_TRACK (0x7):</dt>
           <dd style="margin-left: 1.5em" id="section-9.12-10.16">
             <p id="section-9.12-10.16.1">A relay publisher detected the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-9.12-10.16.1" class="pilcrow">¶</a></p>
+<a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>).<a href="#section-9.12-10.16.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -5029,7 +5031,7 @@ Subscription.<a href="#section-9.18-5.16.1" class="pilcrow">¶</a></p>
 <dt id="section-9.18-5.19">MALFORMED_TRACK (0x9):</dt>
           <dd style="margin-left: 1.5em" id="section-9.18-5.20">
             <p id="section-9.18-5.20.1">A relay publisher detected the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-9.18-5.20.1" class="pilcrow">¶</a></p>
+<a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>).<a href="#section-9.18-5.20.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-9.18-5.21">MALFORMED_AUTH_TOKEN (0x10):</dt>
@@ -5614,7 +5616,7 @@ the datagram.<a href="#section-10-4" class="pilcrow">¶</a></p>
 session.<a href="#section-10-6" class="pilcrow">¶</a></p>
 <p id="section-10-7">Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferences within a single track
-(see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10-7" class="pilcrow">¶</a></p>
+(see <a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>).<a href="#section-10-7" class="pilcrow">¶</a></p>
 <div id="track-alias">
 <section id="section-10.1">
         <h3 id="name-track-alias">
@@ -5675,7 +5677,7 @@ objects or mark the end of a group or track. See <a href="#object-status" class=
 </li>
             <li class="normal" id="section-10.2.1-2.8">
               <p id="section-10.2.1-2.8.1">Object Extensions : A sequence of Extension Headers. See
-<a href="#extension-headers" class="auto internal xref">Section 2.5</a>.<a href="#section-10.2.1-2.8.1" class="pilcrow">¶</a></p>
+<a href="#extension-headers" class="auto internal xref">Section 2.6</a>.<a href="#section-10.2.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.2.1-2.9">
               <p id="section-10.2.1-2.9.1">Object Payload: An opaque payload intended for an End Subscriber and <span class="bcp14">SHOULD NOT</span> be processed by a relay. Only present when 'Object Status' is Normal
@@ -5717,7 +5719,7 @@ are beyond the end of a group or track.<a href="#section-10.2.1.1-1" class="pilc
        Group produced in this Track with Object ID zero. This status also
        indicates the specified Group has ended. Publishers <span class="bcp14">MUST NOT</span> publish an
        Object with a Location larger than this Location (see
-       <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>). This <span class="bcp14">SHOULD</span> be cached.<a href="#section-10.2.1.1-3.4.1" class="pilcrow">¶</a></p>
+       <a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>). This <span class="bcp14">SHOULD</span> be cached.<a href="#section-10.2.1.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-10.2.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and the session <span class="bcp14">SHOULD</span>
@@ -5730,7 +5732,7 @@ Any object with a status code other than zero <span class="bcp14">MUST</span> ha
             <h5 id="name-object-extension-headers">
 <a href="#section-10.2.1.2" class="section-number selfRef">10.2.1.2. </a><a href="#name-object-extension-headers" class="section-name selfRef">Object Extension Headers</a>
             </h5>
-<p id="section-10.2.1.2-1">Any Object can have Extension Headers (see <a href="#extension-headers" class="auto internal xref">Section 2.5</a>) except those
+<p id="section-10.2.1.2-1">Any Object can have Extension Headers (see <a href="#extension-headers" class="auto internal xref">Section 2.6</a>) except those
 with Object Status 'Object Does Not Exist'.  If an endpoint receives a
 non-existent Object containing extension headers it <span class="bcp14">MUST</span> close the session with
 a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.1.2-1" class="pilcrow">¶</a></p>
@@ -6387,7 +6389,7 @@ Object ID 0 for each skipped Group. For example, if the Original Publisher is
 publishing an Object in Group 7 and knows it will never publish any Objects in
 Group 8 or Group 9, it can include Prior Group ID Gap = 2 in any number of
 Objects in Group 10, as it sees fit.  A Track is considered malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the following conditions are detected:<a href="#section-11.1-1" class="pilcrow">¶</a></p>
+<a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>) if any of the following conditions are detected:<a href="#section-11.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11.1-2.1">
             <p id="section-11.1-2.1.1">An Object contains more than one instance of Prior Group ID Gap<a href="#section-11.1-2.1.1" class="pilcrow">¶</a></p>
@@ -6427,7 +6429,7 @@ will never exist. This is equivalent to receiving an <code>Object Does Not Exist
 status for each skipped Object ID. For example, if the Original Publisher is
 publishing Object 10 in Group 3 and knows it will never publish Objects 8 or 9
 in this Group, it can include Prior Object ID Gap = 2.  A Track is considered
-malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the following conditions are
+malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>) if any of the following conditions are
 detected:<a href="#section-11.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11.2-2.1">

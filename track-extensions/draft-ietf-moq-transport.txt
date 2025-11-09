@@ -93,9 +93,9 @@ Table of Contents
        2.3.1.  Group IDs
      2.4.  Track
        2.4.1.  Track Naming
-       2.4.2.  Malformed Tracks
-       2.4.3.  Scope
-     2.5.  Extension Headers
+     2.5.  Malformed Tracks
+       2.5.1.  Scope
+     2.6.  Extension Headers
    3.  Sessions
      3.1.  Session establishment
        3.1.1.  WebTransport
@@ -620,7 +620,7 @@ Table of Contents
    that does needs to specify the canonicalization into the bytes in the
    Track Namespace or Track Name such that exact comparison works.
 
-2.4.2.  Malformed Tracks
+2.5.  Malformed Tracks
 
    There are multiple ways a publisher can transmit a Track that does
    not conform to MoQT constraints.  Such a Track is considered
@@ -668,7 +668,7 @@ Table of Contents
    downstream subscriptions with PUBLISH_DONE and reset any fetch
    streams with Status Code MALFORMED_TRACK.
 
-2.4.3.  Scope
+2.5.1.  Scope
 
    An MOQT scope is a set of servers (as identified by their connection
    URIs) for which the tuple of Track Namespace and Track Name are
@@ -707,7 +707,7 @@ Table of Contents
    3.  Use TRACK_STATUS or similar mechanism to query the previous state
        to determine the largest published Group ID.
 
-2.5.  Extension Headers
+2.6.  Extension Headers
 
    Tracks and Objects can have additional relay-visible metadata called
    Extension Headers.
@@ -1090,7 +1090,7 @@ Table of Contents
 
    The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
    publisher to alter the payload of the objects it sends, as that would
-   violate the track uniqueness guarantee described in Section 2.4.3.
+   violate the track uniqueness guarantee described in Section 2.5.1.
 
 6.  Namespace Discovery
 
@@ -1532,14 +1532,14 @@ Table of Contents
    TRACK_STATUS_OK or FETCH_OK sent for that Track.  Relays MUST NOT
    modify the contents of the parameter by adding, removing, modifying
    or reordering the contained Extension Headers, unless the relay
-   supports the Extension (see Section 2.5).
+   supports the Extension (see Section 2.6).
 
 8.5.  Relay Object Handling
 
    MOQT encodes the delivery information via Object headers
    (Section 10.2).  A relay MUST NOT modify Object properties when
    forwarding, except for Object Extension Headers as specified in
-   Section 2.5.
+   Section 2.6.
 
    A relay MUST treat the object payload as opaque.  A relay MUST NOT
    combine, split, or otherwise modify object payloads.  A relay SHOULD
@@ -2557,7 +2557,7 @@ Table of Contents
       the given subscriber exceeds its implementation defined limit.
 
    MALFORMED_TRACK (0x7):  A relay publisher detected the track was
-      malformed (see Section 2.4.2).
+      malformed (see Section 2.5).
 
 9.13.  PUBLISH
 
@@ -2997,7 +2997,7 @@ Table of Contents
       with unknown status.
 
    MALFORMED_TRACK (0x9):  A relay publisher detected the track was
-      malformed (see Section 2.4.2).
+      malformed (see Section 2.5).
 
    MALFORMED_AUTH_TOKEN (0x10):  Invalid Auth Token serialization during
       registration (see Section 9.2.1.1).
@@ -3378,7 +3378,7 @@ Table of Contents
 
    Every Track has a single 'Object Forwarding Preference' and the
    Original Publisher MUST NOT mix different forwarding preferences
-   within a single track (see Section 2.4.2).
+   within a single track (see Section 2.5).
 
 10.1.  Track Alias
 
@@ -3425,7 +3425,7 @@ Table of Contents
       mark the end of a group or track.  See Section 10.2.1.1 below.
 
    *  Object Extensions : A sequence of Extension Headers.  See
-      Section 2.5.
+      Section 2.6.
 
    *  Object Payload: An opaque payload intended for an End Subscriber
       and SHOULD NOT be processed by a relay.  Only present when 'Object
@@ -3462,7 +3462,7 @@ Table of Contents
       than the largest Group produced in this Track with Object ID zero.
       This status also indicates the specified Group has ended.
       Publishers MUST NOT publish an Object with a Location larger than
-      this Location (see Section 2.4.2).  This SHOULD be cached.
+      this Location (see Section 2.5).  This SHOULD be cached.
 
    Any other value SHOULD be treated as a protocol error and the session
    SHOULD be terminated with a PROTOCOL_VIOLATION (Section 3.4).  Any
@@ -3470,7 +3470,7 @@ Table of Contents
 
 10.2.1.2.  Object Extension Headers
 
-   Any Object can have Extension Headers (see Section 2.5) except those
+   Any Object can have Extension Headers (see Section 2.6) except those
    with Object Status 'Object Does Not Exist'.  If an endpoint receives
    a non-existent Object containing extension headers it MUST close the
    session with a PROTOCOL_VIOLATION.
@@ -3952,7 +3952,7 @@ Table of Contents
    and knows it will never publish any Objects in Group 8 or Group 9, it
    can include Prior Group ID Gap = 2 in any number of Objects in Group
    10, as it sees fit.  A Track is considered malformed (see
-   Section 2.4.2) if any of the following conditions are detected:
+   Section 2.5) if any of the following conditions are detected:
 
    *  An Object contains more than one instance of Prior Group ID Gap
 
@@ -3984,7 +3984,7 @@ Table of Contents
    example, if the Original Publisher is publishing Object 10 in Group 3
    and knows it will never publish Objects 8 or 9 in this Group, it can
    include Prior Object ID Gap = 2.  A Track is considered malformed
-   (see Section 2.4.2) if any of the following conditions are detected:
+   (see Section 2.5) if any of the following conditions are detected:
 
    *  An Object contains more than one instance of Prior Object ID Gap
 
