@@ -3168,9 +3168,9 @@ A canonical MoQ Object has the following information:
 the Object {{priorities}}.
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
-  an object. The preferences are Subgroup and Datagram.  When in response to a
-  SUBSCRIBE, an Object MUST be sent according to its `Object Forwarding
-  Preference`, described below.
+an object. The preferences are Subgroup and Datagram.  When in response to a
+SUBSCRIBE, an Object MUST be sent according to its `Object Forwarding
+Preference`, described below.
 
 * Subgroup ID: The object is a member of the indicated subgroup ID
   ({{model-subgroup}}) within the group. This field is omitted if the Object
