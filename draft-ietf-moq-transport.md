@@ -3177,7 +3177,7 @@ within the group. This field is omitted if the Object Forwarding Preference is
 Datagram.
 
 * Object Status: As enumeration used to indicate missing
-  objects or mark the end of a group or track. See {{object-status}} below.
+objects or mark the end of a group or track. See {{object-status}} below.
 
 * Object Extensions : A sequence of Extension Headers. See
   {{extension-headers}}.
