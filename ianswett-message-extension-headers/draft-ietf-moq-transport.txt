@@ -2594,7 +2594,7 @@ Table of Contents
      Track Alias (i),
      Number of Parameters (i),
      Parameters (..) ...,
-     Extensions (..),
+     Track Extensions (..),
    }
 
                     Figure 12: MOQT SUBSCRIBE_OK Message
@@ -2611,7 +2611,8 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
-   *  Extensions : A sequence of Extension Headers.  See Section 2.5.
+   *  Track Extensions : A sequence of Extension Headers.  See
+      Section 2.5.
 
 9.11.  SUBSCRIBE_UPDATE
 
@@ -2709,7 +2710,7 @@ Table of Contents
      Track Alias (i),
      Number of Parameters (i),
      Parameters (..) ...,
-     Extensions (..),
+     Track Extensions (..),
    }
 
                       Figure 15: MOQT PUBLISH Message
@@ -2731,7 +2732,8 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
-   *  Extensions : A sequence of Extension Headers.  See Section 2.5.
+   *  Track Extensions : A sequence of Extension Headers.  See
+      Section 2.5.
 
    A subscriber receiving a PUBLISH for a Track it does not wish to
    receive SHOULD send REQUEST_ERROR with error code UNINTERESTED, and
@@ -3082,7 +3084,7 @@ Table of Contents
      End Location (Location),
      Number of Parameters (i),
      Parameters (..) ...
-     Extensions (..),
+     Track Extensions (..),
    }
 
                       Figure 19: MOQT FETCH_OK Message
@@ -3120,7 +3122,8 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
-   *  Extensions : A sequence of Extension Headers.  See Section 2.5.
+   *  Track Extensions : A sequence of Extension Headers.  See
+      Section 2.5.
 
 9.18.  FETCH_CANCEL
 
