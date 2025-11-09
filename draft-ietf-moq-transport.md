@@ -94,7 +94,7 @@ discovery and subscription.
 
 * {{message}} covers how control messages are encoded on the wire.
 
-* {{transmitting-tracks}} covers how data messages are encoded on the wire.
+* {{data-streams}} covers how data messages are encoded on the wire.
 
 
 ## Motivation
@@ -768,7 +768,7 @@ CONTROL_MESSAGE_TIMEOUT (0x11):
 
 DATA_STREAM_TIMEOUT (0x12):
 : The session was closed because the peer took too long to send data expected
-  on an open Data Stream (see {{transmitting-tracks}}). This includes fields of
+  on an open Data Stream (see {{data-streams}}). This includes fields of
   a stream header or an object header within a data stream. If an endpoint
   times out waiting for a new object header on an open subgroup stream, it
   MAY send a STOP_SENDING on that stream or terminate the subscription.
@@ -3101,7 +3101,7 @@ UNSUBSCRIBE_NAMESPACE Message {
 * Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
 
 
-# Transmitting Tracks {#transmitting-tracks}
+# Data Streams and Datagrams {#data-streams}
 
 A publisher sends Objects matching a subscription on Data Streams or Datagrams,
 and FETCH responses on a Data Stream.
