@@ -665,7 +665,7 @@ specific to the underlying transport protocol usage (see {{session}}).
 
 Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
 Extensions can define new Message types, new Parameters, or new framing for
-Fetch or Subscription response streams.
+Data Streams and Datagrams.
 
 The client and server MUST include all Setup Parameters {{setup-params}}
 required for the negotiated MOQT version in CLIENT_SETUP and SERVER_SETUP.
