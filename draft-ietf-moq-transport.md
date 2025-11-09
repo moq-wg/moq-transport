@@ -2376,7 +2376,7 @@ SUBSCRIBE_OK Message {
   Track Alias (i),
   Number of Parameters (i),
   Parameters (..) ...,
-  Extensions (..),
+  Track Extensions (..),
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -2392,7 +2392,7 @@ SUBSCRIBE_OK Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-* Extensions : A sequence of Extension Headers. See {{extension-headers}}.
+* Track Extensions : A sequence of Extension Headers. See {{extension-headers}}.
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
@@ -2490,7 +2490,7 @@ PUBLISH Message {
   Track Alias (i),
   Number of Parameters (i),
   Parameters (..) ...,
-  Extensions (..),
+  Track Extensions (..),
 }
 ~~~
 {: #moq-transport-publish-format title="MOQT PUBLISH Message"}
@@ -2509,7 +2509,7 @@ PUBLISH Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-* Extensions : A sequence of Extension Headers. See {{extension-headers}}.
+* Track Extensions : A sequence of Extension Headers. See {{extension-headers}}.
 
 A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
 send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
@@ -2843,7 +2843,7 @@ FETCH_OK Message {
   End Location (Location),
   Number of Parameters (i),
   Parameters (..) ...
-  Extensions (..),
+  Track Extensions (..),
 }
 ~~~
 {: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
@@ -2875,7 +2875,7 @@ FETCH_OK Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-* Extensions : A sequence of Extension Headers. See {{extension-headers}}.
+* Track Extensions : A sequence of Extension Headers. See {{extension-headers}}.
 
 
 ## FETCH_CANCEL {#message-fetch-cancel}
