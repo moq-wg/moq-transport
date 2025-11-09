@@ -179,7 +179,8 @@ Table of Contents
      10.5.  Examples
    11. MoQT Extension Headers
      11.1.  Prior Group ID Gap
-     11.2.  Prior Object ID Gap
+     11.2.  Immutable Extensions
+     11.3.  Prior Object ID Gap
    12. Security Considerations
      12.1.  Resource Exhaustion
      12.2.  Timeouts
@@ -3745,7 +3746,7 @@ Table of Contents
    Object ID Delta values.  A consumer cannot infer information about
    the existence of Objects between the current and previous Object ID
    in the Subgroup (e.g. when Object ID Delta is non-zero) unless there
-   is an Prior Object ID Gap extesnion header (see Section 11.2).
+   is an Prior Object ID Gap extesnion header (see Section 11.3).
 
    {
      Object ID Delta (i),
@@ -4070,7 +4071,9 @@ Table of Contents
    be added by relays.  This extension MUST NOT be modified or removed.
 
    An Object MUST NOT contain more than one instance of this extension
-   header. ## Immutable Extensions
+   header.
+
+11.2.  Immutable Extensions
 
    The Immutable Extensions (Extension Header Type 0xB) contains a
    sequence of Key-Value-Pairs (see Figure 2) which are also Object
@@ -4115,7 +4118,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    An Object MUST NOT contain more than one instance of this extension
    header.
 
-11.2.  Prior Object ID Gap
+11.3.  Prior Object ID Gap
 
    Prior Object ID Gap (Extension Header Type 0x3E) is a variable length
    integer containing the number of Objects prior to the current Object
