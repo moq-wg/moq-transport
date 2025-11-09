@@ -3172,9 +3172,9 @@ an object. The preferences are Subgroup and Datagram.  When in response to a
 SUBSCRIBE, an Object MUST be sent according to its `Object Forwarding
 Preference`, described below.
 
-* Subgroup ID: The object is a member of the indicated subgroup ID
-  ({{model-subgroup}}) within the group. This field is omitted if the Object
-  Forwarding Preference is Datagram.
+* Subgroup ID: The object is a member of the indicated subgroup ID ({{model-subgroup}})
+within the group. This field is omitted if the Object Forwarding Preference is
+Datagram.
 
 * Object Status: As enumeration used to indicate missing
   objects or mark the end of a group or track. See {{object-status}} below.
