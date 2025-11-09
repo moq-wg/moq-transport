@@ -507,7 +507,7 @@ information in these fields, for example by restricting them to UTF-8. Any
 specification that does needs to specify the canonicalization into the bytes in
 the Track Namespace or Track Name such that exact comparison works.
 
-### Malformed Tracks
+## Malformed Tracks
 
 There are multiple ways a publisher can transmit a Track that does not conform
 to MoQT constraints. Such a Track is considered malformed.  Some example
