@@ -798,7 +798,7 @@ Table of Contents
 
    Endpoints use the exchange of Setup messages to negotiate MOQT
    extensions.  Extensions can define new Message types, new Parameters,
-   or new framing for Fetch or Subscription response streams.
+   or new framing for Data Streams and Datagrams.
 
    The client and server MUST include all Setup Parameters Section 9.3.1
    required for the negotiated MOQT version in CLIENT_SETUP and
