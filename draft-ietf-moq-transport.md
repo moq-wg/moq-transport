@@ -928,14 +928,12 @@ SUBSCRIBE_OK when establishing a subscription. This value can be used in a
 Joining FETCH (see {{joining-fetches}}) at any time while the subscription is
 active.
 
-All `Established` subscriptions have a Forward State which is either 0 or 1.  If the Forward
-State is 0, the publisher does not send objects for the subscription.  If the
-Forward State is 1, the publisher sends objects.  The initiator of the
-subscription sets the initial Forward State in either PUBLISH or SUBSCRIBE.  The
-sender of PUBLISH_OK can update the Forward State based on its preference.  Once
-the subscription is established, the subscriber can update the Forward State by
-sending SUBSCRIBE_UPDATE.  Control messages, such as PUBLISH_DONE
-({{message-publish-done}}) are still sent on subscriptions in Forward State 0.
+All `Established` subscriptions have a Forward State which is either 0 or 1.
+The publisher does not send Objects if the Forward State is 0, and does send them
+if the Forward State is 1.  The initiator of the subscription sets the initial
+Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_OK
+or SUBSCRIBE_UPDATE to update the Forward State. Control messages, such as
+PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
