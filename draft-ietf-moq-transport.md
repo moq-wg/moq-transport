@@ -3729,6 +3729,7 @@ This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
 
 An Object MUST NOT contain more than one instance of this extension header.
+
 ## Immutable Extensions
 
 The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
