@@ -768,8 +768,8 @@ CONTROL_MESSAGE_TIMEOUT (0x11):
 
 DATA_STREAM_TIMEOUT (0x12):
 : The session was closed because the peer took too long to send data expected
-  on an open Data Stream (see {{data-streams}}). This includes fields of
-  a stream header or an object header within a data stream. If an endpoint
+  on an open Data Stream (see {{data-streams}}). This includes fields of a
+  stream header or an object header within a data stream. If an endpoint
   times out waiting for a new object header on an open subgroup stream, it
   MAY send a STOP_SENDING on that stream or terminate the subscription.
 
