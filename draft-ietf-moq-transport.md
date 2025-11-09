@@ -3250,9 +3250,9 @@ be dropped without any explicit notification.
 
 Each session along the path between the Original Publisher and End Subscriber
 might have different maximum datagram sizes. Additionally, Object Extension
-Headers ({{object-extension-headers}}) can be added to Objects as they pass
-through the MOQT network, increasing the size of the Object and the chances it
-will exceed the maximum datagram size of a downstream session and be dropped.
+Headers ({{object-extensions}}) can be added to Objects as they pass through
+the MOQT network, increasing the size of the Object and the chances it will
+exceed the maximum datagram size of a downstream session and be dropped.
 
 
 ### Object Datagram {#object-datagram}
