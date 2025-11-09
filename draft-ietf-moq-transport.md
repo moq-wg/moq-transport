@@ -2334,7 +2334,8 @@ SUBSCRIBE_OK Message {
   Request ID (i),
   Track Alias (i),
   Number of Parameters (i),
-  Parameters (..) ...
+  Parameters (..) ...,
+  Extensions (..),
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -2349,6 +2350,8 @@ SUBSCRIBE_OK Message {
   it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
+
+* Extensions: Track extension headers as defined in {{object-extensions}}.
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
@@ -2445,7 +2448,8 @@ PUBLISH Message {
   Track Name (..),
   Track Alias (i),
   Number of Parameters (i),
-  Parameters (..) ...
+  Parameters (..) ...,
+  Extensions (..),
 }
 ~~~
 {: #moq-transport-publish-format title="MOQT PUBLISH Message"}
@@ -2463,6 +2467,8 @@ PUBLISH Message {
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
+
+* Extensions: Track extension headers as defined in {{object-extensions}}.
 
 A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
 send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
