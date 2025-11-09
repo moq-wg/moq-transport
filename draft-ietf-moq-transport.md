@@ -3670,7 +3670,7 @@ SUBGROUP_HEADER {
 
 ~~~
 
-# MOQT Extension Headers
+# Extension Headers
 
 The following Object Extension Headers are defined in MOQT.
 
