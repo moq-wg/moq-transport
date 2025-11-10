@@ -1788,7 +1788,7 @@ multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
 handles a downstream request that includes those Objects re-requests them.
 
-When sent by a publisher, this parameter is End-To-End (see
+This parameter, which is only sent by publishers, is End-To-End (see
 {{parameter-scope}}).
 
 #### PUBLISHER PRIORITY Parameter {#subscriber-priority}
@@ -1802,7 +1802,7 @@ subscription inherit this priority, unless they specifically override it.
 
 The subscription has Publisher Priorty 128 if this parameter is omitted.
 
-When sent by a publisher, this parameter is End-To-End (see
+This parameter, which is only sent by publishers, is End-To-End (see
 {{parameter-scope}}).
 
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority)
@@ -1881,7 +1881,7 @@ Relays MUST preserve the value of this parameter received from an upstream
 publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
 subscribers.
 
-When sent by a publisher, this parameter is End-To-End (see
+This parameter, which is only sent by publishers, is End-To-End (see
 {{parameter-scope}}).
 
 #### NEW GROUP_REQUEST Parameter {#new-group-request}
@@ -1923,7 +1923,7 @@ to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
 After sending a NEW_GROUP_REQUEST upstream, the request is considered
 outstanding until the Largest Group increases.
 
-When sent by a publisher, this parameter is not End-To-End (see
+This parameter, which is only sent by subscribers, is not End-To-End (see
 {{parameter-scope}}).
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
