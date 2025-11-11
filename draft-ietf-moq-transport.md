@@ -543,6 +543,7 @@ include:
    End of Track.
 9. The same Object is received more than once with different Payload or
     other immutable properties.
+10. A duplicated Object is received with a different Forwarding Preference.
 
 The above list of conditions is not considered exhaustive.
 
@@ -1185,7 +1186,7 @@ MOQT maintains priorities between different schedulable objects.
 A schedulable object in MOQT is either:
 
 1. The first or next Object in a Subgroup that is in response to a subscription.
-2. An Object in response to a subscription with delivery preference Datagram.
+2. An Object with delivery preference Datagram.
 3. An Object in response to a FETCH where that Object is the next
    Object in the response.
 
@@ -1311,7 +1312,8 @@ fields that can be updated are the following:
    to the constraints of the specific header extension.
 
 An endpoint that receives a duplicate Object with an invalid Object Status
-change, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
+change, or with a different Forwarding Preference, Subgroup ID, Priority or
+Payload MUST treat the track as Malformed.
 
 Note that due to reordering, an implementation can receive a duplicate Object
 with a status of Normal, End of Group or End of Track after receiving a previous
