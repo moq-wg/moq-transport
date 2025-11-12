@@ -3195,7 +3195,7 @@ Any Object with status Normal can have extension headers ({{extension-headers}})
 If an endpoint receives extension headers on Objects with status that is
 not Normal, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-Object Extension Headers are visible to relays and are intented to be relevant
+Object Extension Headers are visible to relays and are intended to be relevant
 to MOQT Object distribution. Any Object metadata never intended to be accessed
 by the transport or Relays SHOULD be serialized as part of the Object payload
 and not as an extension header.
