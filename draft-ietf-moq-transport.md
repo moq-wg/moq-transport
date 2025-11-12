@@ -615,7 +615,7 @@ Key-Value-Pairs (see {{moq-key-value-pair}}).
 ~~~
 Extensions {
   Extension Headers Length (i),
-  Extension headers (..),
+  Extension Headers (..),
 }
 ~~~
 
