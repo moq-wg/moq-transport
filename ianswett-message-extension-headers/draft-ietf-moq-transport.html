@@ -5541,7 +5541,7 @@ Any object with a status code other than zero <span class="bcp14">MUST</span> ha
 <p id="section-10.2.1.2-1">Any Object with status Normal can have extension headers (<a href="#extension-headers" class="auto internal xref">Section 2.5</a>).
 If an endpoint receives extension headers on Objects with status that is
 not Normal, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-10.2.1.2-2">Object Extension Headers are visible to relays and are intented to be relevant
+<p id="section-10.2.1.2-2">Object Extension Headers are visible to relays and are intended to be relevant
 to MOQT Object distribution. Any Object metadata never intended to be accessed
 by the transport or Relays <span class="bcp14">SHOULD</span> be serialized as part of the Object payload
 and not as an extension header.<a href="#section-10.2.1.2-2" class="pilcrow">¶</a></p>
