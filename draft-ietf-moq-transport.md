@@ -590,10 +590,8 @@ ways, for example:
 
 ## Extension Headers {#extension-headers}
 
-Tracks and Objects can have additional relay-visible metadata called Extension
-Headers.
-
-Extension Headers are visible to relays, do not require negotiation, and can
+Tracks and Objects can have additional relay-visible fields Extension
+Headers, which are visible to relays, do not require negotiation, and can
 be used to alter MoQT Object distribution.
 
 Extension Headers are defined in {{moqt-extension-headers}} as well as external
