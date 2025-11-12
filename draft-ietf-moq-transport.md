@@ -607,15 +607,7 @@ If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers MAY be modified, added, removed,
 and/or cached by relays.
 
-Extension Headers are serialized as a length in bytes followed by
-Key-Value-Pairs (see {{moq-key-value-pair}}).
-
-~~~
-Extensions {
-  Extension Headers Length (i),
-  Extension Headers (..),
-}
-~~~
+Extension Headers are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
 
 Header types are registered in the IANA table 'MOQ Extension Headers'.
 See {{iana}}.
@@ -3187,7 +3179,7 @@ Any other value SHOULD be treated as a protocol error and the session SHOULD
 be closed with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
-#### Object Extension Header {#object-extensions}
+#### Object Extension Headers {#object-extensions}
 
 Any Object with status Normal can have extension headers ({{extension-headers}}).
 If an endpoint receives extension headers on Objects with status that is
@@ -3197,6 +3189,16 @@ Object Extension Headers are visible to relays and are intended to be relevant
 to MOQT Object distribution. Any Object metadata never intended to be accessed
 by the transport or Relays SHOULD be serialized as part of the Object payload
 and not as an extension header.
+
+Object Extension Headers are serialized as a length in bytes followed by
+Key-Value-Pairs (see {{moq-key-value-pair}}).
+
+~~~
+Extensions {
+  Extension Headers Length (i),
+  Extension Headers (..),
+}
+~~~
 
 Object Extension Header types are registered in the IANA table
 'MOQ Extension Headers'. See {{iana}}.
