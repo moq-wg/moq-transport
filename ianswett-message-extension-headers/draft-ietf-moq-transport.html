@@ -2294,32 +2294,31 @@ determine the largest published Group ID.<a href="#section-2.4.3-4.3.1" class="p
         <h3 id="name-extension-headers">
 <a href="#section-2.5" class="section-number selfRef">2.5. </a><a href="#name-extension-headers" class="section-name selfRef">Extension Headers</a>
         </h3>
-<p id="section-2.5-1">Tracks and Objects can have additional relay-visible metadata called Extension
-Headers.<a href="#section-2.5-1" class="pilcrow">¶</a></p>
-<p id="section-2.5-2">Extension Headers are visible to relays, do not require negotiation, and can
-be used to alter MoQT Object distribution.<a href="#section-2.5-2" class="pilcrow">¶</a></p>
-<p id="section-2.5-3">Extension Headers are defined in <a href="#moqt-extension-headers" class="auto internal xref">Section 11</a> as well as external
+<p id="section-2.5-1">Tracks and Objects can have additional relay-visible fields Extension
+Headers, which are visible to relays, do not require negotiation, and can
+be used to alter MoQT Object distribution.<a href="#section-2.5-1" class="pilcrow">¶</a></p>
+<p id="section-2.5-2">Extension Headers are defined in <a href="#moqt-extension-headers" class="auto internal xref">Section 11</a> as well as external
 specifications and are registered in an IANA table <a href="#iana" class="auto internal xref">Section 13</a>. These
 specifications define the type and value of the header, along with any rules
 concerning processing, modification, caching and forwarding. A relay which is
-coded to implement these rules is said to "support" the extension.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
-<p id="section-2.5-4">If unsupported by the relay, Extension Headers <span class="bcp14">MUST NOT</span> be modified, <span class="bcp14">MUST</span> be
-cached as part of the Track or Object and <span class="bcp14">MUST</span> be forwarded by relays.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
-<p id="section-2.5-5">If supported by the relay and subject to the processing rules specified in the
+coded to implement these rules is said to "support" the extension.<a href="#section-2.5-2" class="pilcrow">¶</a></p>
+<p id="section-2.5-3">If unsupported by the relay, Extension Headers <span class="bcp14">MUST NOT</span> be modified, <span class="bcp14">MUST</span> be
+cached as part of the Track or Object and <span class="bcp14">MUST</span> be forwarded by relays.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
+<p id="section-2.5-4">If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers <span class="bcp14">MAY</span> be modified, added, removed,
-and/or cached by relays.<a href="#section-2.5-5" class="pilcrow">¶</a></p>
-<p id="section-2.5-6">Extension Headers are serialized as a length in bytes followed by
-Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-2.5-6" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-2.5-7">
+and/or cached by relays.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
+<p id="section-2.5-5">Extension Headers are serialized as a length in bytes followed by
+Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-2.5-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-2.5-6">
 <pre>
 Extensions {
   Extension Headers Length (i),
   Extension Headers (..),
 }
-</pre><a href="#section-2.5-7" class="pilcrow">¶</a>
+</pre><a href="#section-2.5-6" class="pilcrow">¶</a>
 </div>
-<p id="section-2.5-8">Header types are registered in the IANA table 'MOQ Extension Headers'.
-See <a href="#iana" class="auto internal xref">Section 13</a>.<a href="#section-2.5-8" class="pilcrow">¶</a></p>
+<p id="section-2.5-7">Header types are registered in the IANA table 'MOQ Extension Headers'.
+See <a href="#iana" class="auto internal xref">Section 13</a>.<a href="#section-2.5-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
