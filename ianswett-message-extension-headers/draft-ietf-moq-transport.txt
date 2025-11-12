@@ -746,13 +746,7 @@ Table of Contents
    specified in the definition of the extension, Extension Headers MAY
    be modified, added, removed, and/or cached by relays.
 
-   Extension Headers are serialized as a length in bytes followed by
-   Key-Value-Pairs (see Figure 2).
-
-   Extensions {
-     Extension Headers Length (i),
-     Extension Headers (..),
-   }
+   Extension Headers are serialized as Key-Value-Pairs (see Figure 2).
 
    Header types are registered in the IANA table 'MOQ Extension
    Headers'.  See Section 13.
@@ -3443,7 +3437,7 @@ Table of Contents
    SHOULD be closed with a PROTOCOL_VIOLATION (Section 3.4).  Any object
    with a status code other than zero MUST have an empty payload.
 
-10.2.1.2.  Object Extension Header
+10.2.1.2.  Object Extension Headers
 
    Any Object with status Normal can have extension headers
    (Section 2.5).  If an endpoint receives extension headers on Objects
@@ -3455,6 +3449,14 @@ Table of Contents
    intended to be accessed by the transport or Relays SHOULD be
    serialized as part of the Object payload and not as an extension
    header.
+
+   Object Extension Headers are serialized as a length in bytes followed
+   by Key-Value-Pairs (see Figure 2).
+
+   Extensions {
+     Extension Headers Length (i),
+     Extension Headers (..),
+   }
 
    Object Extension Header types are registered in the IANA table 'MOQ
    Extension Headers'.  See Section 13.

@@ -2307,18 +2307,9 @@ cached as part of the Track or Object and <span class="bcp14">MUST</span> be for
 <p id="section-2.5-4">If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers <span class="bcp14">MAY</span> be modified, added, removed,
 and/or cached by relays.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
-<p id="section-2.5-5">Extension Headers are serialized as a length in bytes followed by
-Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-2.5-5" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-2.5-6">
-<pre>
-Extensions {
-  Extension Headers Length (i),
-  Extension Headers (..),
-}
-</pre><a href="#section-2.5-6" class="pilcrow">¶</a>
-</div>
-<p id="section-2.5-7">Header types are registered in the IANA table 'MOQ Extension Headers'.
-See <a href="#iana" class="auto internal xref">Section 13</a>.<a href="#section-2.5-7" class="pilcrow">¶</a></p>
+<p id="section-2.5-5">Extension Headers are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-2.5-5" class="pilcrow">¶</a></p>
+<p id="section-2.5-6">Header types are registered in the IANA table 'MOQ Extension Headers'.
+See <a href="#iana" class="auto internal xref">Section 13</a>.<a href="#section-2.5-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -5534,8 +5525,8 @@ Any object with a status code other than zero <span class="bcp14">MUST</span> ha
 </div>
 <div id="object-extensions">
 <section id="section-10.2.1.2">
-            <h5 id="name-object-extension-header">
-<a href="#section-10.2.1.2" class="section-number selfRef">10.2.1.2. </a><a href="#name-object-extension-header" class="section-name selfRef">Object Extension Header</a>
+            <h5 id="name-object-extension-headers">
+<a href="#section-10.2.1.2" class="section-number selfRef">10.2.1.2. </a><a href="#name-object-extension-headers" class="section-name selfRef">Object Extension Headers</a>
             </h5>
 <p id="section-10.2.1.2-1">Any Object with status Normal can have extension headers (<a href="#extension-headers" class="auto internal xref">Section 2.5</a>).
 If an endpoint receives extension headers on Objects with status that is
@@ -5544,8 +5535,18 @@ not Normal, it <span class="bcp14">MUST</span> close the session with a <code>PR
 to MOQT Object distribution. Any Object metadata never intended to be accessed
 by the transport or Relays <span class="bcp14">SHOULD</span> be serialized as part of the Object payload
 and not as an extension header.<a href="#section-10.2.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-10.2.1.2-3">Object Extension Header types are registered in the IANA table
-'MOQ Extension Headers'. See <a href="#iana" class="auto internal xref">Section 13</a>.<a href="#section-10.2.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-10.2.1.2-3">Object Extension Headers are serialized as a length in bytes followed by
+Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-10.2.1.2-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-10.2.1.2-4">
+<pre>
+Extensions {
+  Extension Headers Length (i),
+  Extension Headers (..),
+}
+</pre><a href="#section-10.2.1.2-4" class="pilcrow">¶</a>
+</div>
+<p id="section-10.2.1.2-5">Object Extension Header types are registered in the IANA table
+'MOQ Extension Headers'. See <a href="#iana" class="auto internal xref">Section 13</a>.<a href="#section-10.2.1.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
