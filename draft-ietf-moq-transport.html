@@ -3231,8 +3231,12 @@ in this Namespace in response to requests received from subscribers.<a href="#se
         </ol>
 <p id="section-8.5-3">Relays <span class="bcp14">MUST</span> verify that publishers are authorized to publish the set of Tracks
 whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
-Track Name in PUBLISH. The authorization and identification of the publisher
-depends on the way the relay is managed and is application specific.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
+Track Name in PUBLISH. Relays <span class="bcp14">MUST NOT</span> assume that an authorized publisher of a single
+Track is implicitly authorized to publish any other Tracks or Track Namespaces.
+If a Publisher would like Subscriptions in a Namespace routed to it, it <span class="bcp14">MUST</span> send
+an explicit PUBLISH_NAMESPACE.
+The authorization and identification of the publisher depends on the way the
+relay is managed and is application specific.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
 <p id="section-8.5-4">When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
 subcribe to Tracks in a namespace it previously responded REQUEST_OK
