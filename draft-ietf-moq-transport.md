@@ -1413,8 +1413,12 @@ in this Namespace in response to requests received from subscribers.
 
 Relays MUST verify that publishers are authorized to publish the set of Tracks
 whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
-Track Name in PUBLISH. The authorization and identification of the publisher
-depends on the way the relay is managed and is application specific.
+Track Name in PUBLISH. Relays MUST NOT assume that an authorized publisher of a single
+Track is implicitly authorized to publish any other Tracks or Track Namespaces.
+If a Publisher would like Subscriptions in a Namespace routed to it, it MUST send
+an explicit PUBLISH_NAMESPACE.
+The authorization and identification of the publisher depends on the way the
+relay is managed and is application specific.
 
 When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
