@@ -277,29 +277,37 @@ pairs in which the key is a variable length integer and the value
 is either a variable length integer or a byte field of arbitrary
 length.
 
+Key-Value-Pairs encode a Type value as a delta from the previous Type value,
+or from 0 if there is no previous Type value. This is efficient on the wire
+and makes it easy to ensure there is only one instance of a type when needed.
+The previous Type value plus the Delta Type MUST NOT be greater than 2^64 - 1.
+If a Delta Type is received that would be too large, the Session MUST be closed
+with a `PROTOCOL_VIOLATION`.
+
 Key-Value-Pair is used in both the data plane and control plane, but
 is optimized for use in the data plane.
 
 ~~~
 Key-Value-Pair {
-  Type (i),
+  Delta Type (i),
   [Length (i),]
   Value (..)
 }
 ~~~
 {: #moq-key-value-pair format title="MOQT Key-Value-Pair"}
 
-* Type: an unsigned integer, encoded as a varint, identifying the
-  type of the value and also the subsequent serialization.
+* Delta Type: an unsigned integer, encoded as a varint, identifying the Type
+  as a delta encoded value from the previous Type, if any. The Type identifies
+  the type of value and also the subsequent serialization.
 * Length: Only present when Type is odd. Specifies the length of the Value field
   in bytes. The maximum length of a value is 2^16-1 bytes.  If an endpoint
   receives a length larger than the maximum, it MUST close the session with a
-  Protocol Violation.
+  `PROTOCOL_VIOLATION`.
 * Value: A single varint encoded value when Type is even, otherwise a
   sequence of Length bytes.
 
 If a receiver understands a Type, and the following Value or Length/Value does
-not match the serialization defined by that Type, the receiver MUST terminate
+not match the serialization defined by that Type, the receiver MUST close
 the session with error code `KEY_VALUE_FORMATTING_ERROR`.
 
 ### Reason Phrase Structure {#reason-phrase}
@@ -655,27 +663,20 @@ specific to the underlying transport protocol usage (see {{session}}).
 
 ## Extension Negotiation {#extension-negotiation}
 
-Endpoints use the exchange of Setup messages to negotiate any MOQT extensions
-to use.
+Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
+Extensions can define new Message types, new Parameters, or new framing for
+Data Streams and Datagrams.
 
-The client includes all Setup Parameters {{setup-params}} required for the
-negotiated MOQT version in CLIENT_SETUP.
+The client and server MUST include all Setup Parameters {{setup-params}}
+required for the negotiated MOQT version in CLIENT_SETUP and SERVER_SETUP.
 
-Within any MOQT version, clients request the use of extensions by adding Setup
-parameters corresponding to that extension. No extensions are defined in this
-document.
-
-The server replies with a SERVER_SETUP message that includes all parameters
-required for a handshake in that version, and parameters for every extension
-requested by the client that it supports.
+Clients request the use of extensions by specifying Parameters in CLIENT_SETUP.
+The Server responds with Parameters in the SERVER_SETUP to indicate any
+extensions it supports.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
-
-If a given parameter carries the same information in multiple versions,
-but might have different optimal values in those versions, there SHOULD be
-separate Setup parameters for that information in each version.
 
 ## Session initialization {#session-init}
 
@@ -802,7 +803,7 @@ MOQT enables proactively draining sessions via the GOAWAY message ({{message-goa
 The server sends a GOAWAY message, signaling the client to establish a new
 session and migrate any `Established` subscriptions. The GOAWAY message optionally
 contains a new URI for the new session, otherwise the current URI is
-reused. The server SHOULD terminate the session with `GOAWAY_TIMEOUT` after a
+reused. The server SHOULD close the session with `GOAWAY_TIMEOUT` after a
 sufficient timeout if there are still open subscriptions or fetches on a
 connection.
 
@@ -1416,8 +1417,12 @@ in this Namespace in response to requests received from subscribers.
 
 Relays MUST verify that publishers are authorized to publish the set of Tracks
 whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
-Track Name in PUBLISH. The authorization and identification of the publisher
-depends on the way the relay is managed and is application specific.
+Track Name in PUBLISH. Relays MUST NOT assume that an authorized publisher of a single
+Track is implicitly authorized to publish any other Tracks or Track Namespaces.
+If a Publisher would like Subscriptions in a Namespace routed to it, it MUST send
+an explicit PUBLISH_NAMESPACE.
+The authorization and identification of the publisher depends on the way the
+relay is managed and is application specific.
 
 When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
@@ -1764,7 +1769,7 @@ aliases.
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH, PUBLISH_OK,
+REQUEST_OK (in response to TRACK_STATUS), PUBLISH, PUBLISH_OK,
 SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
 
 It is the duration in milliseconds the relay SHOULD
@@ -1774,7 +1779,7 @@ not depend upon the forwarding preference. There is no explicit signal that an
 Object was not sent because the delivery timeout was exceeded.
 
 DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
-endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST terminate the session
+endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session
 with `PROTOCOL_VIOLATION`.
 
 If both the subscriber and publisher specify the parameter, they use the min of
@@ -1834,20 +1839,20 @@ The subscription has Publisher Priorty 128 if this parameter is omitted.
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
-SUBSCRIBE, SUBSCRIBE_UPDATE, TRACK_STATUS, PUBLISH_OK or FETCH message. It is an
+SUBSCRIBE, SUBSCRIBE_UPDATE, PUBLISH_OK or FETCH message. It is an
 integer expressing the priority of a subscription relative to other
 subscriptions and fetch responses in the same session. Lower numbers get higher
 priority.  See {{priorities}}.  The range is restricted to 0-255.  If a
 publisher receives a value outside this range, it MUST close the session with
 `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE, TRACK_STATUS, PUBLISH_OK or FETCH, the publisher uses
+If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
 the value 128.
 
 #### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_OK, TRACK_STATUS, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
+SUBSCRIBE_OK, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
 PUBLISH_OK or FETCH.
 
 It
@@ -1857,7 +1862,7 @@ response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
 Descending (0x2). If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE or TRACK_STATUS, the publisher's preference from
+If omitted from SUBSCRIBE, the publisher's preference from
 SUBSCRIBE_OK or REQUEST_OK is used. If omitted in PUBLISH_OK, the
 publisher's preference from PUBLISH is used. If omitted from SUBSCRIBE_OK,
 REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
@@ -1865,12 +1870,12 @@ REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
 The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) MAY appear in a
-SUBSCRIBE, TRACK_STATUS, PUBLISH_OK or SUBSCRIBE_UPDATE message. It is a
+SUBSCRIBE, PUBLISH_OK or SUBSCRIBE_UPDATE message. It is a
 length-prefixed Subscription Filter (see {{subscription-filters}}).  If the
 length of the Subscription Filter does not match the parameter length, the
 publisher MUST close the session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE, TRACK_STATUS or PUBLISH_OK, the subscription is
+If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
 
 #### EXPIRES Parameter {#expires}
@@ -1895,7 +1900,7 @@ does not expire or expires at an unknown time.
 #### LARGEST OBJECT Parameter {#largest-param}
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in SUBSCRIBE_OK,
-PUBLISH or in REQUEST_OK in response to SUBSCRIBE_UPDATE.  It is a
+PUBLISH or in REQUEST_OK (in response to SUBSCRIBE_UPDATE or TRACK_STATUS).  It is a
 length-prefixed Location structure (see {{location-structure}}) containing the
 largest Location in the Track observed by the sending endpoint (see
 {{subscription-filters}}.  If Objects have been published on this Track the
@@ -1907,7 +1912,7 @@ any Objects in the Track.
 #### FORWARD Parameter
 
 The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
-SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK, TRACK_STATUS, TRACK_STATUS_OK, and
+SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK and
 SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying the
 Forwarding State on affected subscriptions (see {{subscriptions}}).  The
 allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives a
@@ -1920,10 +1925,11 @@ message, the default value is 1.
 #### DYNAMIC GROUPS Parameter {#dynamic-groups}
 
 The DYNAMIC_GROUPS parameter (parameter type 0x30) MAY appear in PUBLISH or
-SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
-1, it indicates that the subscriber can request the Original Publisher to start
-a new Group by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or
-SUBSCRIBE_UPDATE for this Track.
+SUBSCRIBE_OK. The allowed values are 0 or 1. When the value is 1, it indicates
+that the subscriber can request the Original Publisher to start a new Group
+by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or SUBSCRIBE_UPDATE
+for this Track. If an endpoint receives a value larger than 1, it MUST close
+the session with `PROTOCOL_VIOLATION`.
 
 Relays MUST preserve the value of this parameter received from an upstream
 publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
@@ -2089,7 +2095,7 @@ Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE and TRACK_SATUS.
 
-The endpoint MUST terminate the session with a `PROTOCOL_VIOLATION`
+The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
 ({{session-termination}}) if it receives multiple GOAWAY messages.
 
 ~~~
@@ -2111,16 +2117,16 @@ GOAWAY Message {
   maximum, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
   If a server receives a GOAWAY with a non-zero New Session URI Length it MUST
-  terminate the session with a `PROTOCOL_VIOLATION`.
+  close the session with a `PROTOCOL_VIOLATION`.
 
 ## MAX_REQUEST_ID {#message-max-request-id}
 
 An endpoint sends a MAX_REQUEST_ID message to increase the number of requests
 the peer can send within a session.
 
-The Maximum Request ID MUST only increase within a session, and
-receipt of a MAX_REQUEST_ID message with an equal or smaller Request ID
-value is a `PROTOCOL_VIOLATION`.
+The Maximum Request ID MUST only increase within a session. If an endpoint
+receives MAX_REQUEST_ID message with an equal or smaller Request ID it MUST
+close the session with a `PROTOCOL_VIOLATION`.
 
 ~~~
 MAX_REQUEST_ID Message {
@@ -2356,7 +2362,7 @@ When updating the Subscription Filter (see {{subscription-filters}}),
 the Start Location MUST not decrease, as an attempt to
 to do so could fail. If Objects with Locations smaller than the current
 subscription's Largest Location are required, FETCH can be used to retrieve
-them. A publisher MUST terminate the session with a `PROTOCOL_VIOLATION` if the
+them. A publisher MUST close the session with a `PROTOCOL_VIOLATION` if the
 SUBSCRIBE_UPDATE violates this rule.
 
 When a subscriber narrows their subscription (increase the Start Location and/or
@@ -2644,7 +2650,8 @@ Standalone Fetch {
 ### Joining Fetches
 
 A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of an `Established` subscription.
+specifying the Request ID of a subscription in the `Established` or
+`Pending (subscriber)` state.
 A publisher receiving a Joining Fetch uses properties of the associated
 Subscribe to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
@@ -2671,10 +2678,11 @@ Joining Fetch {
 }
 ~~~
 
-* Joining Request ID: The Request ID of the existing subscription to be
-  joined. If a publisher receives a Joining Fetch with a Request ID that does
-  not correspond to an existing Subscribe in the same session, it MUST return
-  a REQUEST_ERROR with error code `INVALID_JOINING_REQUEST_ID`
+* Joining Request ID: The Request ID of the subscription to be joined. If a
+  publisher receives a Joining Fetch with a Request ID that does not correspond
+  to a subscription in the same session in the `Established` or `Pending
+  (subscriber)` states, it MUST return a REQUEST_ERROR with error code
+  `INVALID_JOINING_REQUEST_ID`.
 
 * Joining Start : A relative or absolute value used to determing the Start
   Location, described below.
@@ -2851,7 +2859,8 @@ A potential subscriber sends a `TRACK_STATUS` message on the control
 stream to obtain information about the current status of a given track.
 
 The TRACK_STATUS message format is identical to the SUBSCRIBE message
-({{message-subscribe-req}}).
+({{message-subscribe-req}}), but subscriber parameters related to Track
+delivery (e.g. SUBSCRIBER_PRIORITY) are not included.
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
@@ -3162,14 +3171,14 @@ are beyond the end of a group or track.
          {{malformed-tracks}}). This SHOULD be cached.
 
 Any other value SHOULD be treated as a protocol error and the session SHOULD
-be terminated with a `PROTOCOL_VIOLATION` ({{session-termination}}).
+be closed with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
 #### Object Extension Header {#object-extensions}
 
 Any Object with status Normal can have extension headers.  If an endpoint
-receives extension headers on Objects with status that is not Normal, it MUST close the
-session with a `PROTOCOL_VIOLATION`.
+receives extension headers on Objects with status that is not Normal, it MUST close
+the session with a `PROTOCOL_VIOLATION`.
 
 Object Extension Headers are visible to relays and allow the transmission of
 future metadata relevant to MOQT Object distribution. Any Object metadata never
@@ -3310,7 +3319,7 @@ There are 10 defined Type values for OBJECT_DATAGRAM.
 When Objects are sent on streams, the stream begins with a Subgroup or Fetch
 Header and is followed by one or more sets of serialized Object fields.
 If a stream ends gracefully (i.e., the stream terminates with a FIN) in the
-middle of a serialized Object, the session SHOULD be terminated with a
+middle of a serialized Object, the session SHOULD be closed with a
 `PROTOCOL_VIOLATION`.
 
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
