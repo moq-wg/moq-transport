@@ -2919,7 +2919,7 @@ NAMESPACE Message {
 
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}}. The namespace begins with the
-  'Track Namespace Prefix' specified in {message-subscribe-namespace}.
+  'Track Namespace Prefix' specified in {message-subscribe-ns}.
 
 ## PUBLISH_NAMESPACE_DONE {#message-pub-ns-done}
 
@@ -2958,7 +2958,7 @@ NAMESPACE_DONE Message {
 
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}}. The namespace begins with the
-  'Track Namespace Prefix' specified in {message-subscribe-namespace}.
+  'Track Namespace Prefix' specified in {message-subscribe-ns}.
 
 ## PUBLISH_NAMESPACE_CANCEL {#message-pub-ns-cancel}
 
