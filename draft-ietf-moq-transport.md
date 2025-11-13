@@ -591,8 +591,8 @@ ways, for example:
 ## Extension Headers {#extension-headers}
 
 Tracks and Objects can have additional relay-visible fields Extension
-Headers, which are visible to relays, do not require negotiation, and can
-be used to alter MoQT Object distribution.
+Headers, which do not require negotiation, and can be used to alter
+MoQT Object distribution.
 
 Extension Headers are defined in {{moqt-extension-headers}} as well as external
 specifications and are registered in an IANA table {{iana}}. These
