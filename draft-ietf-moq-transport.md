@@ -2644,7 +2644,8 @@ Standalone Fetch {
 ### Joining Fetches
 
 A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of an `Established` subscription.
+specifying the Request ID of a subscription in the `Established` or
+`Pending (subscriber)` state.
 A publisher receiving a Joining Fetch uses properties of the associated
 Subscribe to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
@@ -2671,10 +2672,11 @@ Joining Fetch {
 }
 ~~~
 
-* Joining Request ID: The Request ID of the existing subscription to be
-  joined. If a publisher receives a Joining Fetch with a Request ID that does
-  not correspond to an existing Subscribe in the same session, it MUST return
-  a REQUEST_ERROR with error code `INVALID_JOINING_REQUEST_ID`
+* Joining Request ID: The Request ID of the subscription to be joined. If a
+  publisher receives a Joining Fetch with a Request ID that does not correspond
+  to a subscription in the same session in the `Established` or `Pending
+  (subscriber)` states, it MUST return a REQUEST_ERROR with error code
+  `INVALID_JOINING_REQUEST_ID`.
 
 * Joining Start : A relative or absolute value used to determing the Start
   Location, described below.
