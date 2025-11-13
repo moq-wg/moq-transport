@@ -4832,7 +4832,8 @@ means the entire group is requested.<a href="#section-9.16.1-4.4.1" class="pilcr
 <a href="#section-9.16.2" class="section-number selfRef">9.16.2. </a><a href="#name-joining-fetches" class="section-name selfRef">Joining Fetches</a>
           </h4>
 <p id="section-9.16.2-1">A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of an <code>Established</code> subscription.
+specifying the Request ID of a subscription in the <code>Established</code> or
+<code>Pending (subscriber)</code> state.
 A publisher receiving a Joining Fetch uses properties of the associated
 Subscribe to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
@@ -4857,10 +4858,11 @@ Joining Fetch {
 </div>
 <ul class="normal">
 <li class="normal" id="section-9.16.2-7.1">
-              <p id="section-9.16.2-7.1.1">Joining Request ID: The Request ID of the existing subscription to be
-joined. If a publisher receives a Joining Fetch with a Request ID that does
-not correspond to an existing Subscribe in the same session, it <span class="bcp14">MUST</span> return
-a REQUEST_ERROR with error code <code>INVALID_JOINING_REQUEST_ID</code><a href="#section-9.16.2-7.1.1" class="pilcrow">¶</a></p>
+              <p id="section-9.16.2-7.1.1">Joining Request ID: The Request ID of the subscription to be joined. If a
+publisher receives a Joining Fetch with a Request ID that does not correspond
+to a subscription in the same session in the <code>Established</code> or <code>Pending
+(subscriber)</code> states, it <span class="bcp14">MUST</span> return a REQUEST_ERROR with error code
+<code>INVALID_JOINING_REQUEST_ID</code>.<a href="#section-9.16.2-7.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.16.2-7.2">
               <p id="section-9.16.2-7.2.1">Joining Start : A relative or absolute value used to determing the Start
