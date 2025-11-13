@@ -663,27 +663,20 @@ specific to the underlying transport protocol usage (see {{session}}).
 
 ## Extension Negotiation {#extension-negotiation}
 
-Endpoints use the exchange of Setup messages to negotiate any MOQT extensions
-to use.
+Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
+Extensions can define new Message types, new Parameters, or new framing for
+Data Streams and Datagrams.
 
-The client includes all Setup Parameters {{setup-params}} required for the
-negotiated MOQT version in CLIENT_SETUP.
+The client and server MUST include all Setup Parameters {{setup-params}}
+required for the negotiated MOQT version in CLIENT_SETUP and SERVER_SETUP.
 
-Within any MOQT version, clients request the use of extensions by adding Setup
-parameters corresponding to that extension. No extensions are defined in this
-document.
-
-The server replies with a SERVER_SETUP message that includes all parameters
-required for a handshake in that version, and parameters for every extension
-requested by the client that it supports.
+Clients request the use of extensions by specifying Parameters in CLIENT_SETUP.
+The Server responds with Parameters in the SERVER_SETUP to indicate any
+extensions it supports.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
-
-If a given parameter carries the same information in multiple versions,
-but might have different optimal values in those versions, there SHOULD be
-separate Setup parameters for that information in each version.
 
 ## Session initialization {#session-init}
 
