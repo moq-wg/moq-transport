@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 May 2026                                       I. Swett, Ed.
+Expires: 17 May 2026                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         8 November 2025
+                                                        13 November 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 May 2026.
+   This Internet-Draft will expire on 17 May 2026.
 
 Copyright Notice
 
@@ -796,28 +796,21 @@ Table of Contents
 
 3.2.  Extension Negotiation
 
-   Endpoints use the exchange of Setup messages to negotiate any MOQT
-   extensions to use.
+   Endpoints use the exchange of Setup messages to negotiate MOQT
+   extensions.  Extensions can define new Message types, new Parameters,
+   or new framing for Data Streams and Datagrams.
 
-   The client includes all Setup Parameters Section 9.3.1 required for
-   the negotiated MOQT version in CLIENT_SETUP.
+   The client and server MUST include all Setup Parameters Section 9.3.1
+   required for the negotiated MOQT version in CLIENT_SETUP and
+   SERVER_SETUP.
 
-   Within any MOQT version, clients request the use of extensions by
-   adding Setup parameters corresponding to that extension.  No
-   extensions are defined in this document.
-
-   The server replies with a SERVER_SETUP message that includes all
-   parameters required for a handshake in that version, and parameters
-   for every extension requested by the client that it supports.
+   Clients request the use of extensions by specifying Parameters in
+   CLIENT_SETUP.  The Server responds with Parameters in the
+   SERVER_SETUP to indicate any extensions it supports.
 
    New versions of MOQT MUST specify which existing extensions can be
    used with that version.  New extensions MUST specify the existing
    versions with which they can be used.
-
-   If a given parameter carries the same information in multiple
-   versions, but might have different optimal values in those versions,
-   there SHOULD be separate Setup parameters for that information in
-   each version.
 
 3.3.  Session initialization
 
