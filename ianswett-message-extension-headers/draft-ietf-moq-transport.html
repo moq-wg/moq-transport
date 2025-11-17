@@ -2294,8 +2294,8 @@ determine the largest published Group ID.<a href="#section-2.4.3-4.3.1" class="p
         <h3 id="name-extension-headers">
 <a href="#section-2.5" class="section-number selfRef">2.5. </a><a href="#name-extension-headers" class="section-name selfRef">Extension Headers</a>
         </h3>
-<p id="section-2.5-1">Tracks and Objects can have additional relay-visible fields Extension
-Headers, which do not require negotiation, and can be used to alter
+<p id="section-2.5-1">Tracks and Objects can have additional relay-visible fields, known as Extensions,
+which do not require negotiation, and can be used to alter
 MoQT Object distribution.<a href="#section-2.5-1" class="pilcrow">¶</a></p>
 <p id="section-2.5-2">Extension Headers are defined in <a href="#moqt-extension-headers" class="auto internal xref">Section 11</a> as well as external
 specifications and are registered in an IANA table <a href="#iana" class="auto internal xref">Section 13</a>. These
@@ -2404,22 +2404,17 @@ specific to the underlying transport protocol usage (see <a href="#session" clas
         <h3 id="name-extension-negotiation">
 <a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-extension-negotiation" class="section-name selfRef">Extension Negotiation</a>
         </h3>
-<p id="section-3.2-1">Endpoints use the exchange of Setup messages to negotiate any MOQT extensions
-to use.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
-<p id="section-3.2-2">The client includes all Setup Parameters <a href="#setup-params" class="auto internal xref">Section 9.3.1</a> required for the
-negotiated MOQT version in CLIENT_SETUP.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
-<p id="section-3.2-3">Within any MOQT version, clients request the use of extensions by adding Setup
-parameters corresponding to that extension. No extensions are defined in this
-document.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
-<p id="section-3.2-4">The server replies with a SERVER_SETUP message that includes all parameters
-required for a handshake in that version, and parameters for every extension
-requested by the client that it supports.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
-<p id="section-3.2-5">New versions of MOQT <span class="bcp14">MUST</span> specify which existing extensions can be used with
+<p id="section-3.2-1">Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
+Extensions can define new Message types, new Parameters, or new framing for
+Data Streams and Datagrams.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">The client and server <span class="bcp14">MUST</span> include all Setup Parameters <a href="#setup-params" class="auto internal xref">Section 9.3.1</a>
+required for the negotiated MOQT version in CLIENT_SETUP and SERVER_SETUP.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.2-3">Clients request the use of extensions by specifying Parameters in CLIENT_SETUP.
+The Server responds with Parameters in the SERVER_SETUP to indicate any
+extensions it supports.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2-4">New versions of MOQT <span class="bcp14">MUST</span> specify which existing extensions can be used with
 that version. New extensions <span class="bcp14">MUST</span> specify the existing versions with which they
-can be used.<a href="#section-3.2-5" class="pilcrow">¶</a></p>
-<p id="section-3.2-6">If a given parameter carries the same information in multiple versions,
-but might have different optimal values in those versions, there <span class="bcp14">SHOULD</span> be
-separate Setup parameters for that information in each version.<a href="#section-3.2-6" class="pilcrow">¶</a></p>
+can be used.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="session-init">
@@ -3268,8 +3263,12 @@ in this Namespace in response to requests received from subscribers.<a href="#se
         </ol>
 <p id="section-8.5-3">Relays <span class="bcp14">MUST</span> verify that publishers are authorized to publish the set of Tracks
 whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
-Track Name in PUBLISH. The authorization and identification of the publisher
-depends on the way the relay is managed and is application specific.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
+Track Name in PUBLISH. Relays <span class="bcp14">MUST NOT</span> assume that an authorized publisher of a single
+Track is implicitly authorized to publish any other Tracks or Track Namespaces.
+If a Publisher would like Subscriptions in a Namespace routed to it, it <span class="bcp14">MUST</span> send
+an explicit PUBLISH_NAMESPACE.
+The authorization and identification of the publisher depends on the way the
+relay is managed and is application specific.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
 <p id="section-8.5-4">When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
 subcribe to Tracks in a namespace it previously responded REQUEST_OK
@@ -4884,7 +4883,8 @@ means the entire group is requested.<a href="#section-9.16.1-4.4.1" class="pilcr
 <a href="#section-9.16.2" class="section-number selfRef">9.16.2. </a><a href="#name-joining-fetches" class="section-name selfRef">Joining Fetches</a>
           </h4>
 <p id="section-9.16.2-1">A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of an <code>Established</code> subscription.
+specifying the Request ID of a subscription in the <code>Established</code> or
+<code>Pending (subscriber)</code> state.
 A publisher receiving a Joining Fetch uses properties of the associated
 Subscribe to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
@@ -4909,10 +4909,11 @@ Joining Fetch {
 </div>
 <ul class="normal">
 <li class="normal" id="section-9.16.2-7.1">
-              <p id="section-9.16.2-7.1.1">Joining Request ID: The Request ID of the existing subscription to be
-joined. If a publisher receives a Joining Fetch with a Request ID that does
-not correspond to an existing Subscribe in the same session, it <span class="bcp14">MUST</span> return
-a REQUEST_ERROR with error code <code>INVALID_JOINING_REQUEST_ID</code><a href="#section-9.16.2-7.1.1" class="pilcrow">¶</a></p>
+              <p id="section-9.16.2-7.1.1">Joining Request ID: The Request ID of the subscription to be joined. If a
+publisher receives a Joining Fetch with a Request ID that does not correspond
+to a subscription in the same session in the <code>Established</code> or <code>Pending
+(subscriber)</code> states, it <span class="bcp14">MUST</span> return a REQUEST_ERROR with error code
+<code>INVALID_JOINING_REQUEST_ID</code>.<a href="#section-9.16.2-7.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.16.2-7.2">
               <p id="section-9.16.2-7.2.1">Joining Start : A relative or absolute value used to determing the Start
