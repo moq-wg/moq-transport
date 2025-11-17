@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 17 May 2026                                       I. Swett, Ed.
+Expires: 21 May 2026                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        13 November 2025
+                                                        17 November 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 May 2026.
+   This Internet-Draft will expire on 21 May 2026.
 
 Copyright Notice
 
@@ -1726,8 +1726,8 @@ Table of Contents
 
    Relays that receive Track Extension Headers MUST include them in any
    PUBLISH, SUBSCRIBE_OK, TRACK_STATUS_OK or FETCH_OK sent for that
-   Track.  Relays MUST NOT modify Extension Headers unless the relay
-   supports the Extension (see Section 2.5).
+   Track.  Relays MUST NOT modify or remove Extension Headers unless the
+   relay supports the Extension (see Section 2.5).
 
 8.7.  Relay Object Handling
 
