@@ -3749,6 +3749,8 @@ An Object MUST NOT contain more than one instance of this extension header.
 
 ## Prior Group ID Gap
 
+Prior Group ID Gap only applies to Objects, not Tracks.
+
 Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
 containing the number of Groups prior to the current Group that do not and will
 never exist. This is equivalent to receiving an `End of Group` status with
@@ -3778,6 +3780,8 @@ relays. This extension MUST NOT be modified or removed.
 An Object MUST NOT contain more than one instance of this extension header.
 
 ## Prior Object ID Gap
+
+Prior Object ID Gap only applies to Objects, not Tracks.
 
 Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
 containing the number of Objects prior to the current Object that do not and
