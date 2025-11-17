@@ -6577,41 +6577,42 @@ EXT 1 and EXT N can be modified or removed by Relays
         <h3 id="name-prior-group-id-gap">
 <a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-prior-group-id-gap" class="section-name selfRef">Prior Group ID Gap</a>
         </h3>
-<p id="section-11.2-1">Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
+<p id="section-11.2-1">Prior Group ID Gap only applies to Objects, not Tracks.<a href="#section-11.2-1" class="pilcrow">¶</a></p>
+<p id="section-11.2-2">Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
 containing the number of Groups prior to the current Group that do not and will
 never exist. This is equivalent to receiving an <code>End of Group</code> status with
 Object ID 0 for each skipped Group. For example, if the Original Publisher is
 publishing an Object in Group 7 and knows it will never publish any Objects in
 Group 8 or Group 9, it can include Prior Group ID Gap = 2 in any number of
 Objects in Group 10, as it sees fit.  A Track is considered malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the following conditions are detected:<a href="#section-11.2-1" class="pilcrow">¶</a></p>
+<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the following conditions are detected:<a href="#section-11.2-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.2-2.1">
-            <p id="section-11.2-2.1.1">An Object contains more than one instance of Prior Group ID Gap.<a href="#section-11.2-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.2-3.1">
+            <p id="section-11.2-3.1.1">An Object contains more than one instance of Prior Group ID Gap.<a href="#section-11.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.2-2.2">
-            <p id="section-11.2-2.2.1">A Group contains more than one Object with different values for Prior Group
- ID Gap.<a href="#section-11.2-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.2-3.2">
+            <p id="section-11.2-3.2.1">A Group contains more than one Object with different values for Prior Group
+ ID Gap.<a href="#section-11.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.2-2.3">
-            <p id="section-11.2-2.3.1">An Object has a Prior Group ID Gap larger than the Group ID.<a href="#section-11.2-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.2-3.3">
+            <p id="section-11.2-3.3.1">An Object has a Prior Group ID Gap larger than the Group ID.<a href="#section-11.2-3.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.2-2.4">
-            <p id="section-11.2-2.4.1">An endpoint receives an Object with a Prior Group ID Gap covering an Object
-it previously received.<a href="#section-11.2-2.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.2-3.4">
+            <p id="section-11.2-3.4.1">An endpoint receives an Object with a Prior Group ID Gap covering an Object
+it previously received.<a href="#section-11.2-3.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.2-2.5">
-            <p id="section-11.2-2.5.1">An endpoint receives an Object with a Group ID within a previously
-communicated gap.<a href="#section-11.2-2.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.2-3.5">
+            <p id="section-11.2-3.5.1">An endpoint receives an Object with a Group ID within a previously
+communicated gap.<a href="#section-11.2-3.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.2-3">This extension is optional, as publishers might not know the prior gap gize, or
+<p id="section-11.2-4">This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
-<a href="#group-ids" class="auto internal xref">Section 2.3.1</a>).<a href="#section-11.2-3" class="pilcrow">¶</a></p>
-<p id="section-11.2-4">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
-relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed.<a href="#section-11.2-4" class="pilcrow">¶</a></p>
-<p id="section-11.2-5">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.2-5" class="pilcrow">¶</a></p>
+<a href="#group-ids" class="auto internal xref">Section 2.3.1</a>).<a href="#section-11.2-4" class="pilcrow">¶</a></p>
+<p id="section-11.2-5">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
+relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed.<a href="#section-11.2-5" class="pilcrow">¶</a></p>
+<p id="section-11.2-6">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="prior-object-id-gap">
@@ -6619,37 +6620,38 @@ relays. This extension <span class="bcp14">MUST NOT</span> be modified or remove
         <h3 id="name-prior-object-id-gap">
 <a href="#section-11.3" class="section-number selfRef">11.3. </a><a href="#name-prior-object-id-gap" class="section-name selfRef">Prior Object ID Gap</a>
         </h3>
-<p id="section-11.3-1">Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
+<p id="section-11.3-1">Prior Object ID Gap only applies to Objects, not Tracks.<a href="#section-11.3-1" class="pilcrow">¶</a></p>
+<p id="section-11.3-2">Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
 containing the number of Objects prior to the current Object that do not and
 will never exist. This is equivalent to receiving an <code>Object Does Not Exist</code>
 status for each skipped Object ID. For example, if the Original Publisher is
 publishing Object 10 in Group 3 and knows it will never publish Objects 8 or 9
 in this Group, it can include Prior Object ID Gap = 2.  A Track is considered
 malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the following conditions are
-detected:<a href="#section-11.3-1" class="pilcrow">¶</a></p>
+detected:<a href="#section-11.3-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.3-2.1">
-            <p id="section-11.3-2.1.1">An Object contains more than one instance of Prior Object ID Gap.<a href="#section-11.3-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.3-3.1">
+            <p id="section-11.3-3.1.1">An Object contains more than one instance of Prior Object ID Gap.<a href="#section-11.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.3-2.2">
-            <p id="section-11.3-2.2.1">An Object has a Prior Object ID Gap larger than the Object ID.<a href="#section-11.3-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.3-3.2">
+            <p id="section-11.3-3.2.1">An Object has a Prior Object ID Gap larger than the Object ID.<a href="#section-11.3-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.3-2.3">
-            <p id="section-11.3-2.3.1">An endpoint receives an Object with a Prior Object ID Gap covering an Object
-it previously received.<a href="#section-11.3-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.3-3.3">
+            <p id="section-11.3-3.3.1">An endpoint receives an Object with a Prior Object ID Gap covering an Object
+it previously received.<a href="#section-11.3-3.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.3-2.4">
-            <p id="section-11.3-2.4.1">An endpoint receives an Object with an Object ID within a previously
-communicated gap.<a href="#section-11.3-2.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.3-3.4">
+            <p id="section-11.3-3.4.1">An endpoint receives an Object with an Object ID within a previously
+communicated gap.<a href="#section-11.3-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.3-3">This extension is optional, as publishers might not know the prior gap gize, or
+<p id="section-11.3-4">This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
-<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-11.3-3" class="pilcrow">¶</a></p>
-<p id="section-11.3-4">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
-relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed.<a href="#section-11.3-4" class="pilcrow">¶</a></p>
-<p id="section-11.3-5">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.3-5" class="pilcrow">¶</a></p>
+<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-11.3-4" class="pilcrow">¶</a></p>
+<p id="section-11.3-5">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
+relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed.<a href="#section-11.3-5" class="pilcrow">¶</a></p>
+<p id="section-11.3-6">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.3-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
