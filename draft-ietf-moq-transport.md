@@ -663,27 +663,20 @@ specific to the underlying transport protocol usage (see {{session}}).
 
 ## Extension Negotiation {#extension-negotiation}
 
-Endpoints use the exchange of Setup messages to negotiate any MOQT extensions
-to use.
+Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
+Extensions can define new Message types, new Parameters, or new framing for
+Data Streams and Datagrams.
 
-The client includes all Setup Parameters {{setup-params}} required for the
-negotiated MOQT version in CLIENT_SETUP.
+The client and server MUST include all Setup Parameters {{setup-params}}
+required for the negotiated MOQT version in CLIENT_SETUP and SERVER_SETUP.
 
-Within any MOQT version, clients request the use of extensions by adding Setup
-parameters corresponding to that extension. No extensions are defined in this
-document.
-
-The server replies with a SERVER_SETUP message that includes all parameters
-required for a handshake in that version, and parameters for every extension
-requested by the client that it supports.
+Clients request the use of extensions by specifying Parameters in CLIENT_SETUP.
+The Server responds with Parameters in the SERVER_SETUP to indicate any
+extensions it supports.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
-
-If a given parameter carries the same information in multiple versions,
-but might have different optimal values in those versions, there SHOULD be
-separate Setup parameters for that information in each version.
 
 ## Session initialization {#session-init}
 
@@ -1418,8 +1411,12 @@ in this Namespace in response to requests received from subscribers.
 
 Relays MUST verify that publishers are authorized to publish the set of Tracks
 whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
-Track Name in PUBLISH. The authorization and identification of the publisher
-depends on the way the relay is managed and is application specific.
+Track Name in PUBLISH. Relays MUST NOT assume that an authorized publisher of a single
+Track is implicitly authorized to publish any other Tracks or Track Namespaces.
+If a Publisher would like Subscriptions in a Namespace routed to it, it MUST send
+an explicit PUBLISH_NAMESPACE.
+The authorization and identification of the publisher depends on the way the
+relay is managed and is application specific.
 
 When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
@@ -2645,7 +2642,8 @@ Standalone Fetch {
 ### Joining Fetches
 
 A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of an `Established` subscription.
+specifying the Request ID of a subscription in the `Established` or
+`Pending (subscriber)` state.
 A publisher receiving a Joining Fetch uses properties of the associated
 Subscribe to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
@@ -2672,10 +2670,11 @@ Joining Fetch {
 }
 ~~~
 
-* Joining Request ID: The Request ID of the existing subscription to be
-  joined. If a publisher receives a Joining Fetch with a Request ID that does
-  not correspond to an existing Subscribe in the same session, it MUST return
-  a REQUEST_ERROR with error code `INVALID_JOINING_REQUEST_ID`
+* Joining Request ID: The Request ID of the subscription to be joined. If a
+  publisher receives a Joining Fetch with a Request ID that does not correspond
+  to a subscription in the same session in the `Established` or `Pending
+  (subscriber)` states, it MUST return a REQUEST_ERROR with error code
+  `INVALID_JOINING_REQUEST_ID`.
 
 * Joining Start : A relative or absolute value used to determing the Start
   Location, described below.
