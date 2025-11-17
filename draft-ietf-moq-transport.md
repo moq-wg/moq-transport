@@ -1534,14 +1534,14 @@ terminated.
 
 Relays that receive Track Extension Headers MUST include them in any PUBLISH,
 SUBSCRIBE_OK, TRACK_STATUS_OK or FETCH_OK sent for that Track. Relays
-MUST NOT modify Extension Headers unless the relay supports the Extension
-(see {{extension-headers}}).
+MUST NOT modify or remove Extension Headers unless the relay supports the
+Extension (see {{extension-headers}}).
 
 ## Relay Object Handling
 
 MOQT encodes the delivery information via Object headers
-({{message-object}}).  A relay MUST NOT modify Object properties when
-forwarding, except for Object Extension Headers as specified in
+({{message-object}}).  A relay MUST NOT modify Object properties
+when forwarding, except for Object Extension Headers as specified in
 {{extension-headers}}.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
