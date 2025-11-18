@@ -2915,7 +2915,7 @@ NAMESPACE Message {
   Track Namespace Suffix (..),
 }
 ~~~
-{: #moq-transport-pub-ns-format title="MOQT NAMESPACE Message"}
+{: #moq-transport-ns-format title="MOQT NAMESPACE Message"}
 
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}}. The namespace begins with the
