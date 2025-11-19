@@ -3111,7 +3111,7 @@ not exist.
 
 * 0x3 := Indicates End of Group. Indicates that no objects with the specified
          Group ID and the Object ID that is greater than or equal to the one
-         specified exist.
+         specified exist in the group identified by the Group ID.
 
 * 0x4 := Indicates End of Track. Indicates that no objects with the location
          that is equal to or greater than the one specified exist.
