@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 May 2026                                       I. Swett, Ed.
+Expires: 23 May 2026                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         8 November 2025
+                                                        19 November 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 May 2026.
+   This Internet-Draft will expire on 23 May 2026.
 
 Copyright Notice
 
@@ -2572,10 +2572,10 @@ Table of Contents
    existing subscription.
 
    When a subscriber decreases the Start Location of the Subscription
-   Filter (see Section 5.1.2), the Start Location can be less the
-   Track's Largest Location, similar to a new Subscription.  FETCH can
-   be used to retrieve any necessary Objects smaller than the current
-   Largest Location.
+   Filter (see Section 5.1.2), the Start Location can be smaller than
+   the Track's Largest Location, similar to a new Subscription.  FETCH
+   can be used to retrieve any necessary Objects smaller than the
+   current Largest Location.
 
    When a subscriber increases the End Location, the Largest Object at
    the publisher might already be larger than the previous End Location.
