@@ -369,7 +369,9 @@ Objects within a Group are in ascending order by Object ID.
 From the perspective of a subscriber or a cache, an Object can be in three
 possible states:
 
-1. The Object is known to not exist. This state is permanent.
+1. The Object is known to not exist. This state is permanent. MOQT has multiple
+   ways to communicate that a certain range of objects does not exist,
+   including the Object Status field, and the use of gaps in FETCH responses.
 2. The Object is known to exist. From this state, it can transition to not
    existing, but not vice versa.
 3. The state of the Object is unknown, either because it has not been yet
@@ -3679,7 +3681,9 @@ cannot infer any information about the existence of prior groups (see
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MAY be removed by relay when the object in question is
-served via FETCH, but it MUST NOT be modified or removed otherwise.
+served via FETCH, and the gap that the extension communicates is already
+communicated implicitly in the FETCH response; it MUST NOT be modified or
+removed otherwise.
 
 An Object MUST NOT contain more than one instance of this extension header.
 
@@ -3752,7 +3756,9 @@ cannot infer any information about the existence of prior objects (see
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MAY be removed by relay when the object in question is
-served via FETCH, but it MUST NOT be modified or removed otherwise.
+served via FETCH, and the gap that the extension communicates is already
+communicated implicitly in the FETCH response; it MUST NOT be modified or
+removed otherwise.
 
 An Object MUST NOT contain more than one instance of this extension header.
 
