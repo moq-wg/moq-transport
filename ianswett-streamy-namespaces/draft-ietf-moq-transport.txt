@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 22 May 2026                                       I. Swett, Ed.
+Expires: 24 May 2026                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        18 November 2025
+                                                        20 November 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 May 2026.
+   This Internet-Draft will expire on 24 May 2026.
 
 Copyright Notice
 
@@ -824,10 +824,11 @@ Table of Contents
    unidirectional streams.
 
    A unidirectional stream or bidirectional stream containing a
-   SUBSCRIBE_NAMESPACE could arrive prior to the control stram, in which
-   case the data SHOULD be buffered.  If an implementation does not want
-   to buffer, it MAY reset other bidirectional streams before the
-   session and control stream are established.
+   SUBSCRIBE_NAMESPACE could arrive prior to the control stream, in
+   which case the data SHOULD be buffered until the control stream
+   arrives and setup is complete.  If an implementation does not want to
+   buffer, it MAY reset other bidirectional streams before the session
+   and control stream are established.
 
    The control stream MUST NOT be closed at the underlying transport
    layer during the session's lifetime.  Doing so results in the session
