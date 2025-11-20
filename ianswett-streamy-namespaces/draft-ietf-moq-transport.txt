@@ -3166,8 +3166,9 @@ Table of Contents
                      Figure 22: MOQT NAMESPACE Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
-      namespace as defined in Section 2.4.1.  The namespace begins with
-      the 'Track Namespace Prefix' specified in {message-subscribe-ns}.
+      namespace as defined in Section 2.4.1 after removing namespace
+      tuples included in 'Track Namespace Prefix' {message-subscribe-
+      ns}.
 
 9.22.  PUBLISH_NAMESPACE_DONE
 
