@@ -688,7 +688,8 @@ This specification only specifies two uses of bidirectional streams, the control
 stream and SUBSCRIBE_NAMESPACE. Objects are sent on unidirectional streams.
 
 A unidirectional stream or bidirectional stream containing a SUBSCRIBE_NAMESPACE
-could arrive prior to the control stram, in which case the data SHOULD be buffered.
+could arrive prior to the control stream, in which case the data SHOULD be buffered
+until the control stream arrives and setup is complete.
 If an implementation does not want to buffer, it MAY reset other bidirectional
 streams before the session and control stream are established.
 
