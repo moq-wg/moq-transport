@@ -275,8 +275,14 @@ Location A < Location B if:
 Key-Value-Pair is a flexible structure designed to carry key/value
 pairs in which the key is a variable length integer and the value
 is either a variable length integer or a byte field of arbitrary
-length. Key-Value-Pairs encode a Type value as a delta from the
-previous Type value, or from 0 if there is no previous Type value.
+length.
+
+Key-Value-Pairs encode a Type value as a delta from the previous Type value,
+or from 0 if there is no previous Type value. This is efficient on the wire
+and makes it easy to ensure there is only one instance of a type when needed.
+The previous Type value plus the Delta Type MUST NOT be greater than 2^64 - 1.
+If a Delta Type is received that would be too large, the Session MUST be closed
+with a `PROTOCOL_VIOLATION`.
 
 Key-Value-Pair is used in both the data plane and control plane, but
 is optimized for use in the data plane.
@@ -657,27 +663,20 @@ specific to the underlying transport protocol usage (see {{session}}).
 
 ## Extension Negotiation {#extension-negotiation}
 
-Endpoints use the exchange of Setup messages to negotiate any MOQT extensions
-to use.
+Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
+Extensions can define new Message types, new Parameters, or new framing for
+Data Streams and Datagrams.
 
-The client includes all Setup Parameters {{setup-params}} required for the
-negotiated MOQT version in CLIENT_SETUP.
+The client and server MUST include all Setup Parameters {{setup-params}}
+required for the negotiated MOQT version in CLIENT_SETUP and SERVER_SETUP.
 
-Within any MOQT version, clients request the use of extensions by adding Setup
-parameters corresponding to that extension. No extensions are defined in this
-document.
-
-The server replies with a SERVER_SETUP message that includes all parameters
-required for a handshake in that version, and parameters for every extension
-requested by the client that it supports.
+Clients request the use of extensions by specifying Parameters in CLIENT_SETUP.
+The Server responds with Parameters in the SERVER_SETUP to indicate any
+extensions it supports.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
-
-If a given parameter carries the same information in multiple versions,
-but might have different optimal values in those versions, there SHOULD be
-separate Setup parameters for that information in each version.
 
 ## Session initialization {#session-init}
 
@@ -1414,8 +1413,12 @@ in this Namespace in response to requests received from subscribers.
 
 Relays MUST verify that publishers are authorized to publish the set of Tracks
 whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
-Track Name in PUBLISH. The authorization and identification of the publisher
-depends on the way the relay is managed and is application specific.
+Track Name in PUBLISH. Relays MUST NOT assume that an authorized publisher of a single
+Track is implicitly authorized to publish any other Tracks or Track Namespaces.
+If a Publisher would like Subscriptions in a Namespace routed to it, it MUST send
+an explicit PUBLISH_NAMESPACE.
+The authorization and identification of the publisher depends on the way the
+relay is managed and is application specific.
 
 When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
@@ -1628,12 +1631,7 @@ Receivers ignore unrecognized parameters.
 The number of parameters in a message is not specifically limited, but the
 total length of a control message is limited to 2^16-1 bytes.
 
-Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}} in
-increasing Parameter ID order with a delta encoding. This is efficient on the
-wire and makes it easy to ensure there is only one instance of parameters
-that cannot be repeated. The previous Type value plus the Delta Type MUST NOT be
-greater than 2^64 - 1.  If a Delta Type is received that would be too large, the Session
-MUST be closed with a `PROTOCOL_VIOLATION`.
+Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
 
 Setup message parameters use a namespace that is constant across all MOQT
 versions. All other messages use a version-specific namespace.
@@ -1896,7 +1894,7 @@ does not expire or expires at an unknown time.
 #### LARGEST OBJECT Parameter {#largest-param}
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in SUBSCRIBE_OK,
-PUBLISH or in REQUEST_OK in response to SUBSCRIBE_UPDATE.  It is a
+PUBLISH or in REQUEST_OK (in response to SUBSCRIBE_UPDATE or TRACK_STATUS).  It is a
 length-prefixed Location structure (see {{location-structure}}) containing the
 largest Location in the Track observed by the sending endpoint (see
 {{subscription-filters}}.  If Objects have been published on this Track the
@@ -2645,7 +2643,8 @@ Standalone Fetch {
 ### Joining Fetches
 
 A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of an `Established` subscription.
+specifying the Request ID of a subscription in the `Established` or
+`Pending (subscriber)` state.
 A publisher receiving a Joining Fetch uses properties of the associated
 Subscribe to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
@@ -2672,10 +2671,11 @@ Joining Fetch {
 }
 ~~~
 
-* Joining Request ID: The Request ID of the existing subscription to be
-  joined. If a publisher receives a Joining Fetch with a Request ID that does
-  not correspond to an existing Subscribe in the same session, it MUST return
-  a REQUEST_ERROR with error code `INVALID_JOINING_REQUEST_ID`
+* Joining Request ID: The Request ID of the subscription to be joined. If a
+  publisher receives a Joining Fetch with a Request ID that does not correspond
+  to a subscription in the same session in the `Established` or `Pending
+  (subscriber)` states, it MUST return a REQUEST_ERROR with error code
+  `INVALID_JOINING_REQUEST_ID`.
 
 * Joining Start : A relative or absolute value used to determing the Start
   Location, described below.
@@ -3166,8 +3166,8 @@ definition of the extension, Extension Headers MAY be modified, added, removed,
 and/or cached by relays.
 
 Object Extension Headers are serialized as Key-Value-Pairs (see
-{{moq-key-value-pair}}) in increasing extension type order with a delta encoding,
-prefixed by the length of the serialized Key-Value-Pairs, in bytes.
+{{moq-key-value-pair}}), prefixed by the length of the serialized
+Key-Value-Pairs, in bytes.
 
 ~~~
 Extensions {
