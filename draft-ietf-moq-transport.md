@@ -1327,7 +1327,7 @@ fields that can be updated are the following:
 1. Object Status can transition from any status to Object Does Not Exist in
    cases where the object is no longer available.  Transitions between Normal,
    End of Group and End of Track are invalid.
-3. Object Extension Headers can be added, removed or updated, subject
+2. Object Extension Headers can be added, removed or updated, subject
    to the constraints of the specific header extension.
 
 An endpoint that receives a duplicate Object with an invalid Object Status
