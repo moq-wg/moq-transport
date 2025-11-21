@@ -1529,10 +1529,9 @@ terminated.
 
 ## Relay Track Handling
 
-Relays that receive Track Extension Headers MUST include them in any PUBLISH,
-SUBSCRIBE_OK, TRACK_STATUS_OK or FETCH_OK sent for that Track. Relays
-MUST NOT modify or remove Extension Headers unless the relay supports the
-Extension (see {{extension-headers}}).
+A relay MUST include Track Extension Headers when sending any PUBLISH,
+SUBSCRIBE_OK, TRACK_STATUS_OK or FETCH_OK, unless allowed by the extension's
+specification (see {{extension-headers}}).
 
 ## Relay Object Handling
 
