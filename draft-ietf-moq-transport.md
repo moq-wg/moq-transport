@@ -539,6 +539,14 @@ include:
    Subgroup stream before a FIN.
 5. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
+6. An Object is received in a Group whose Object ID is larger than the final
+   Object in the Group.  The final Object in a Group is the Object with Status
+   END_OF_GROUP or the last Object sent in a FETCH that requested the entire
+   Group.
+7. An Object is received on a Track whose Group and Object ID are larger than the
+   final Object in the Track.  The final Object in a Track is the Object with
+   Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
+   End of Track.
 8. The same Object is received more than once with different Payload or
     other immutable properties.
 9. An Object is received with a different Forwarding Preference than previously
