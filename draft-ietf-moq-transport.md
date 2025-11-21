@@ -374,6 +374,23 @@ payloads.
 
 Objects within a Group are in ascending order by Object ID.
 
+From the perspective of a subscriber or a cache, an Object can be in three
+possible states:
+
+1. The Object is known to not exist. This state is permanent. MOQT has multiple
+   ways to communicate that a certain range of objects does not exist,
+   including the Object Status field, and the use of gaps in FETCH responses.
+2. The Object is known to exist. From this state, it can transition to not
+   existing, but not vice versa.
+3. The state of the Object is unknown, either because it has not been yet
+   received, or it has not been produced yet.
+
+Whenever the publisher communicates that certain objects do not exist, this
+fact is expressed as a contiguous range of non-existent objects and
+by include extension headers indicating the group/object gaps; MOQT
+implementers should take that into account when selecting appropriate data
+structures.
+
 ## Subgroups {#model-subgroup}
 
 A subgroup is a sequence of one or more objects from the same group
@@ -1314,20 +1331,23 @@ Objects or MAY use them to update certain cached fields. Implementations that
 update the cache need to protect against cache poisoning.  The only Object
 fields that can be updated are the following:
 
-1. Object Status can transition from any status to Object Does Not Exist in
-   cases where the object is no longer available.  Transitions between Normal,
-   End of Group and End of Track are invalid.
-3. Object Header Extensions can be added, removed or updated, subject
+1. Object can transition from existing to not existing in cases where the
+   object is no longer available.
+2. Object Header Extensions can be added, removed or updated, subject
    to the constraints of the specific header extension.
 
-An endpoint that receives a duplicate Object with an invalid Object Status
-change, or with a different Forwarding Preference, Subgroup ID, Priority or
-Payload MUST treat the track as Malformed.
+An endpoint that receives a duplicate Object with a different Forwarding
+Preference, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
 
-Note that due to reordering, an implementation can receive a duplicate Object
-with a status of Normal, End of Group or End of Track after receiving a previous
-status of Object Does Not Exist.  The endpoint SHOULD NOT cache or forward the
-duplicate object in this case.
+For ranges of objects that do not exist, relays MAY change the representation
+of a missing range to a semantically equivalent one.  For instance, a relay may
+change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
+of Group status, or a Prior Group ID Gap extension could be removed in FETCH,
+where it's redundant.
+
+Note that due to reordering, an implementation can receive an Object after
+receiving an indication that the Object in question does not exist.  The
+endpoint SHOULD NOT cache or forward the object in this case.
 
 A cache MUST store all properties of an Object defined in
 {{object-properties}}, with the exception of any extensions
@@ -2755,14 +2775,13 @@ The publisher responding to a FETCH is
 responsible for delivering all available Objects in the requested range in the
 requested order (see {{group-order}}). The Objects in the response are delivered on a single
 unidirectional stream. Any gaps in the Group and Object IDs in the response
-stream indicate objects that do not exist (eg: they implicitly have status
-`Object Does Not Exist`).  For Ascending Group Order this includes ranges
-between the first requested object and the first object in the stream; between
-objects in the stream; and between the last object in the stream and the Largest
-Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
-a FIN.  If no Objects exist in the requested range, the publisher opens the
-unidirectional stream, sends the FETCH_HEADER (see {{fetch-header}}) and closes
-the stream with a FIN.
+stream indicate objects that do not exist.  For Ascending Group Order this
+includes ranges between the first requested object and the first object in the
+stream; between objects in the stream; and between the last object in the
+stream and the Largest Group/Object indicated in FETCH_OK, so long as the fetch
+stream is terminated by a FIN.  If no Objects exist in the requested range, the
+publisher opens the unidirectional stream, sends the FETCH_HEADER (see
+{{fetch-header}}) and closes the stream with a FIN.
 
 A relay that has cached objects from the beginning of the range MAY start
 sending objects immediately in response to a FETCH.  If it encounters an object
@@ -3108,8 +3127,8 @@ Preference`.
   within the Group. This field is omitted if the `Object Forwarding Preference`
   is Datagram.
 
-* Object Status: An enumeration used to indicate missing
-objects or mark the end of a group or track. See {{object-status}} below.
+* Object Status: An enumeration used to indicate whether the Object is a normal Object
+  or mark the end of a group or track. See {{object-status}} below.
 
 * Object Extension Length: The total length of the Object Extension Headers
   block, in bytes.
@@ -3122,34 +3141,24 @@ NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
 
 #### Object Status {#object-status}
 
-The Object Status informs subscribers what objects will not be received
-because they were never produced, are no longer available, or because they
-are beyond the end of a group or track.
+The Object Status is a field that is only present in objects that are delivered
+via a SUBSCRIPTION, and is absent in Objects delivered via a FETCH.  It allows
+the publisher to explicitly communicate that a specific range of objects does
+not exist.
 
 `Status` can have following values:
 
 * 0x0 := Normal object. This status is implicit for any non-zero length object.
          Zero-length objects explicitly encode the Normal status.
 
-* 0x1 := Indicates Object Does Not Exist. Indicates that this Object does not
-         exist at any publisher and it will not be published in the future. This
-         SHOULD be cached.
+* 0x3 := Indicates End of Group. Indicates that no objects with the specified
+         Group ID and the Object ID that is greater than or equal to the one
+         specified exist in the group identified by the Group ID.
 
-* 0x3 := Indicates End of Group. Object ID is one greater than the largest
-         Object produced in the Group identified by the Group ID. If the Object
-         ID is 0, it indicates there are no Objects in this Group. This SHOULD
-         be cached. A publisher MAY use an end of Group object to signal the end
-         of all open Subgroups in a Group. A non-zero-length Object can be the
-         End of Group, as signaled in the DATAGRAM or SUBGROUP_HEADER Type field
-         (see {{object-datagram}} and {{subgroup-header}}).
+* 0x4 := Indicates End of Track. Indicates that no objects with the location
+         that is equal to or greater than the one specified exist.
 
-* 0x4 := Indicates End of Track. Group ID is either the largest Group produced
-         in this Track with Object ID one greater than the largest Object
-         produced in that Group, or Group ID is one greater than the largest
-         Group produced in this Track with Object ID zero. This status also
-         indicates the specified Group has ended. Publishers MUST NOT publish an
-         Object with a Location larger than this Location (see
-         {{malformed-tracks}}). This SHOULD be cached.
+All of those SHOULD be cached.
 
 Any other value SHOULD be treated as a protocol error and the session SHOULD
 be closed with a `PROTOCOL_VIOLATION` ({{session-termination}}).
@@ -3265,8 +3274,8 @@ There are 10 defined Type values for OBJECT_DATAGRAM.
 | 0x2C | No | No | Yes | No | Status |
 | 0x2D | No | Yes | Yes | No | Status |
 
-* End of Group: For Type values where End of Group is "Yes" the Object is the
-  last Object in the Group.
+* End of Group: For Type values where End of Group is "Yes", indicates that no
+  Object with the same Group ID and an Object ID greater than `Object ID` exists.
 
 * Extensions Present: If Extensions Present is "Yes" the Extensions structure
   defined in {{object-extensions}} is included. If an endpoint receives a
@@ -3397,10 +3406,11 @@ There are 24 defined Type values for SUBGROUP_HEADER:
 | 0x3D | Yes           | N/A             | Yes        | Yes          | No            |
 |------|---------------|-----------------|------------|--------------|---------------|
 
-For Type values where Contains End of Group is Yes, the last Object in this
-Subgroup stream before a FIN is the last Object in the Group.  If the Subgroup
-stream is terminated with a RESET_STREAM or RESET_STREAM_AT, the receiver cannot
-determine the End of Group Object ID.
+For Type values where Contains End of Group is Yes, the subscriber can infer the
+final Object in the Group when the data stream is terminated by a FIN.  In this
+case, Objects that have the same Group ID and an Object ID larger than the last
+Object received on the stream do not exist.  This does not apply when the data
+stream is terminated with a RESET_STREAM or RESET_STREAM_AT.
 
 For Type values where Subgroup ID Field Present is No, there is no explicit
 Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
@@ -3585,7 +3595,6 @@ format:
   [Publisher Priority (8),]
   [Extensions (..),]
   Object Payload Length (i),
-  [Object Status (i),]
   [Object Payload (..),]
 }
 ~~~
@@ -3621,8 +3630,6 @@ the prior Object, the Subscriber MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
 The Extensions structure is defined in {{object-extensions}}.
-
-The Object Status field is only present if the Object Payload Length is zero.
 
 When encoding an Object with a Forwarding Preference of "Datagram" (see
 {{object-properties}}), the Publisher treats it as having a Subgroup ID equal to
@@ -3696,12 +3703,11 @@ The following Object Extension Headers are defined in MOQT.
 
 Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
 containing the number of Groups prior to the current Group that do not and will
-never exist. This is equivalent to receiving an `End of Group` status with
-Object ID 0 for each skipped Group. For example, if the Original Publisher is
-publishing an Object in Group 7 and knows it will never publish any Objects in
-Group 8 or Group 9, it can include Prior Group ID Gap = 2 in any number of
-Objects in Group 10, as it sees fit.  A Track is considered malformed (see
-{{malformed-tracks}}) if any of the following conditions are detected:
+never exist. For example, if the Original Publisher is publishing an Object in
+Group 7 and knows it will never publish any Objects in Group 8 or Group 9, it
+can include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it
+sees fit.  A Track is considered malformed (see {{malformed-tracks}}) if any of
+the following conditions are detected:
 
  * An Object contains more than one instance of Prior Group ID Gap.
  * A Group contains more than one Object with different values for Prior Group
@@ -3718,9 +3724,13 @@ cannot infer any information about the existence of prior groups (see
 {{group-ids}}).
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
-relays. This extension MUST NOT be modified or removed.
+relays. This extension MAY be removed by relay when the object in question is
+served via FETCH, and the gap that the extension communicates is already
+communicated implicitly in the FETCH response; it MUST NOT be modified or
+removed otherwise.
 
 An Object MUST NOT contain more than one instance of this extension header.
+
 ## Immutable Extensions
 
 The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
@@ -3771,12 +3781,10 @@ An Object MUST NOT contain more than one instance of this extension header.
 
 Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
 containing the number of Objects prior to the current Object that do not and
-will never exist. This is equivalent to receiving an `Object Does Not Exist`
-status for each skipped Object ID. For example, if the Original Publisher is
-publishing Object 10 in Group 3 and knows it will never publish Objects 8 or 9
-in this Group, it can include Prior Object ID Gap = 2.  A Track is considered
-malformed (see {{malformed-tracks}}) if any of the following conditions are
-detected:
+will never exist. For example, if the Original Publisher is publishing Object
+10 in Group 3 and knows it will never publish Objects 8 or 9 in this Group, it
+can include Prior Object ID Gap = 2.  A Track is considered malformed (see
+{{malformed-tracks}}) if any of the following conditions are detected:
 
  * An Object contains more than one instance of Prior Object ID Gap.
  * An Object has a Prior Object ID Gap larger than the Object ID.
@@ -3791,7 +3799,10 @@ cannot infer any information about the existence of prior objects (see
 {{model-object}}).
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
-relays. This extension MUST NOT be modified or removed.
+relays. This extension MAY be removed by relay when the object in question is
+served via FETCH, and the gap that the extension communicates is already
+communicated implicitly in the FETCH response; it MUST NOT be modified or
+removed otherwise.
 
 An Object MUST NOT contain more than one instance of this extension header.
 
