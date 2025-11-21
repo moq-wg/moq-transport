@@ -378,7 +378,8 @@ possible states:
    received, or it has not been produced yet.
 
 Whenever the publisher communicates that certain objects do not exist, this
-fact is expressed as a contiguous range of non-existent objects; MOQT
+fact is expressed as a contiguous range of non-existent objects and
+by include extension headers indicating the group/object gaps; MOQT
 implementers should take that into account when selecting appropriate data
 structures.
 
