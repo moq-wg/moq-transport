@@ -326,11 +326,11 @@ Reason Phrase {
 
 ## Representing Namespace and Track Names
 
-There is often the need to render namespace tuples and track names in
-logs or other places. The namespace and track name are binary so they
-need to be converted to a safe form for logging.  Having a common way to
-do this is particularly useful for tools that monitor security
-incidents across relays from different vendors.  The following format is
+There is often the need to render namespace tuples and track names 
+to be consumed for logging, representing track filename or in
+certain authorization verification schemes, for example. The namespace 
+and track name are binary so they need to be converted to a safe
+form. The following format is
 RECOMMONDED:
 
 * Each of the namespace tuples are rendered in order with a period
