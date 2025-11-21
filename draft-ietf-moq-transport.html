@@ -2658,9 +2658,10 @@ SUBSCRIBE_OK or REQUEST_ERROR.  Once either of these sequences is
 successful, the subscription moves to the <code>Established</code> state and can
 be updated by the subscriber using SUBSCRIBE_UPDATE.  Either endpoint
 can terminate an <code>Established</code> subscription, moving it to the
-<code>Terminated</code> state.  The subscriber terminates a subscription using
-UNSUBSCRIBE, the publisher terminates a subscription using
-PUBLISH_DONE.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<code>Terminated</code> state.  The subscriber terminates a subscription in the
+<code>Pending (Subscriber)</code> or <code>Established</code> states using
+UNSUBSCRIBE, the publisher terminates a subscription in the <code>Pending
+(Publisher)</code> or <code>Established</code> states using PUBLISH_DONE.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1-2">This diagram shows the subscription state machine:<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5.1-3">
 <pre>
@@ -2677,14 +2678,14 @@ PUBLISH_DONE.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
               |    +--------------+ +--------------+    |
               |                 |    |                  |
 REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
-              |      (publisher)|    | (subscriber)     |
+(publisher)   |      (publisher)|    | (subscriber)     | (subscriber)
               |                 V    V                  |
               |            +-------------+              |
               |            | Established | ------+
               |            |             |       | SUBSCRIBE_UPDATE
               |            +-------------+ &lt;-----+
               |                 |    |                  |
-              |     UNSUBSCRIBE |    | PUBLISH_DONE     |
+              +---- UNSUBSCRIBE |    | PUBLISH_DONE ----+
               |     (subscriber)|    | (publisher)      |
               |                 V    V                  |
               |            +-------------+              |
@@ -2719,14 +2720,25 @@ required to handle such a SUBSCRIBE.  Such self-subscriptions are identical to
 subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
 rules.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
-<p id="section-5.1-9">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to avoid
-incurring additional latency.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
-<p id="section-5.1-10">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
+<p id="section-5.1-9">For a given Track, an endpoint can have at most one subscription to a Track
+acting as the publisher and at most one acting as a subscriber.  If an endpoint
+receives a message attempting to establish a second subscription to a Track
+with the same role, it <span class="bcp14">MUST</span> fail that request with a <code>DUPLICATE_SUBSCRIPTION</code>
+error.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<p id="section-5.1-10">If a publisher receives a SUBSCRIBE request for a Track with an existing
+subscription in <code>Pending (publisher)</code> state, it <span class="bcp14">MUST</span> fail that request with
+a <code>DUPLICATE_SUBSCRIPTION</code> error. If a subscriber receives a PUBLISH for a Track
+with a subscription in the <code>Pending (Subscriber)</code> state, it <span class="bcp14">MUST</span> ensure the
+subscription it initiated transitions to the <code>Terminated</code> state before sending
+PUBLISH_OK.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+<p id="section-5.1-11">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to avoid
+incurring additional latency.<a href="#section-5.1-11" class="pilcrow">¶</a></p>
+<p id="section-5.1-12">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
 with REQUEST_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
-<a href="#datagrams" class="auto internal xref">Section 10.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>).<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+<a href="#datagrams" class="auto internal xref">Section 10.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>).<a href="#section-5.1-12" class="pilcrow">¶</a></p>
 <div id="subscription-state-management">
 <section id="section-5.1.1">
           <h4 id="name-subscription-state-manageme">
@@ -4273,6 +4285,12 @@ within the timeout.<a href="#section-9.8-5.6.1" class="pilcrow">¶</a></p>
           <dd style="margin-left: 1.5em" id="section-9.8-5.12">
             <p id="section-9.8-5.12.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 9.2.1.1</a>).<a href="#section-9.8-5.12.1" class="pilcrow">¶</a></p>
 </dd>
+          <dd class="break"></dd>
+<dt id="section-9.8-5.13">DUPLICATE_SUBSCRIPTION (0x19):</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-5.14">
+            <p id="section-9.8-5.14.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
+with the same role as an existing subscription.<a href="#section-9.8-5.14.1" class="pilcrow">¶</a></p>
+</dd>
         <dd class="break"></dd>
 </dl>
 <p id="section-9.8-6">Below are errors for use by the publisher. They can appear in response to
@@ -4333,9 +4351,7 @@ status.<a href="#section-9.8-11.6.1" class="pilcrow">¶</a></p>
         <h3 id="name-subscribe">
 <a href="#section-9.9" class="section-number selfRef">9.9. </a><a href="#name-subscribe" class="section-name selfRef">SUBSCRIBE</a>
         </h3>
-<p id="section-9.9-1">A subscription causes the publisher to send newly published objects for a track.
-A subscriber <span class="bcp14">MUST NOT</span> establish multiple concurrent subscriptions for a track within a
-single session and publishers <span class="bcp14">SHOULD</span> treat this as a protocol violation.<a href="#section-9.9-1" class="pilcrow">¶</a></p>
+<p id="section-9.9-1">A subscription causes the publisher to send newly published objects for a track.<a href="#section-9.9-1" class="pilcrow">¶</a></p>
 <p id="section-9.9-2">Subscribe only requests newly published or received Objects.  Objects from the
 past are retrieved using FETCH (<a href="#message-fetch" class="auto internal xref">Section 9.16</a>).<a href="#section-9.9-2" class="pilcrow">¶</a></p>
 <p id="section-9.9-3">The format of SUBSCRIBE is as follows:<a href="#section-9.9-3" class="pilcrow">¶</a></p>
@@ -7107,6 +7123,13 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">MALFORMED_TRACK</td>
                 <td class="text-center" rowspan="1" colspan="1">0x12</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#message-request-error" class="auto internal xref">Section 9.8</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">DUPLICATE_SUBSCRIPTION</td>
+                <td class="text-center" rowspan="1" colspan="1">0x19</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#message-request-error" class="auto internal xref">Section 9.8</a>
 </td>
