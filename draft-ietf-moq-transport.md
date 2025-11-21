@@ -1110,9 +1110,10 @@ If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
 recipient of this message will send any relevant NAMESPACE,
 NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
-part of that namespace.  This includes echoing back PUBLISH or PUBLISH_NAMESPACE
-messages to the endpoint that sent them.  If an endpoint accepts its own
-PUBLISH, this behaves as self-subscription described in {{subscriptions}}.
+part of that namespace.  This includes echoing back published Tracks and/or Track
+Namespaces under the SUBSCRIBE_NAMESPACE prefix to the endpoint that sent them.
+If an endpoint accepts its own PUBLISH, this behaves as self-subscription described
+in {{subscriptions}}.
 
 The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
 publisher MUST send REQUEST_OK or REQUEST_ERROR as the first message on the
