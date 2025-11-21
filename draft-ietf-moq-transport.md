@@ -1180,7 +1180,7 @@ MOQT maintains priorities between different schedulable objects.
 A schedulable object in MOQT is either:
 
 1. The first or next Object in a Subgroup that is in response to a subscription.
-2. An Object with delivery preference Datagram.
+2. An Object with forwarding preference Datagram.
 3. An Object in response to a FETCH where that Object is the next
    Object in the response.
 
