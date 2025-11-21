@@ -1234,8 +1234,8 @@ the objects SHOULD be selected as follows:
    decide the one that is scheduled to be sent first.
 3. If two objects in response to the same request have the same subscriber
    and publisher priority and belong to the same group of the same track, the
-   one with **the lowest Subgroup ID** (for objects with delivery preference
-   Subgroup), or **the lowest Object ID** (for objects with delivery preference
+   one with **the lowest Subgroup ID** (for objects with forwarding preference
+   Subgroup), or **the lowest Object ID** (for objects with forwarding preference
    Datagram) is scheduled to be sent first.  If the two objects have
    different Forwarding Preferences the order is implementation dependent.
 
