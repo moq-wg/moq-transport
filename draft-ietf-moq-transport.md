@@ -543,7 +543,8 @@ include:
    End of Track.
 9. The same Object is received more than once with different Payload or
     other immutable properties.
-10. A duplicated Object is received with a different Forwarding Preference.
+10. An Object is received with a different Forwarding Preference than previously
+    observed.
 
 The above list of conditions is not considered exhaustive.
 
@@ -1235,7 +1236,8 @@ the objects SHOULD be selected as follows:
    and publisher priority and belong to the same group of the same track, the
    one with **the lowest Subgroup ID** (for objects with delivery preference
    Subgroup), or **the lowest Object ID** (for objects with delivery preference
-   Datagram) is scheduled to be sent first.
+   Datagram) is scheduled to be sent first.  If the two objects have
+   different Forwarding Preferences the order is implementation dependent.
 
 The definition of "scheduled to be sent first" in the algorithm is implementation
 dependent and is constrained by the prioritization interface of the underlying
