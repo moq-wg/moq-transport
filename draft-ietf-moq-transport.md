@@ -876,9 +876,10 @@ SUBSCRIBE_OK or REQUEST_ERROR.  Once either of these sequences is
 successful, the subscription moves to the `Established` state and can
 be updated by the subscriber using SUBSCRIBE_UPDATE.  Either endpoint
 can terminate an `Established` subscription, moving it to the
-`Terminated` state.  The subscriber terminates a subscription using
-UNSUBSCRIBE, the publisher terminates a subscription using
-PUBLISH_DONE.
+`Terminated` state.  The subscriber terminates a subscription in the
+`Pending (Subscriber)` or `Established` states using
+UNSUBSCRIBE, the publisher terminates a subscription in the `Pending
+(Publisher)` or `Established` states using PUBLISH_DONE.
 
 This diagram shows the subscription state machine:
 
@@ -896,14 +897,14 @@ This diagram shows the subscription state machine:
               |    +--------------+ +--------------+    |
               |                 |    |                  |
 REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
-              |      (publisher)|    | (subscriber)     |
+(publisher)   |      (publisher)|    | (subscriber)     | (subscriber)
               |                 V    V                  |
               |            +-------------+              |
               |            | Established | ------+
               |            |             |       | SUBSCRIBE_UPDATE
               |            +-------------+ <-----+
               |                 |    |                  |
-              |     UNSUBSCRIBE |    | PUBLISH_DONE     |
+              +---- UNSUBSCRIBE |    | PUBLISH_DONE ----+
               |     (subscriber)|    | (publisher)      |
               |                 V    V                  |
               |            +-------------+              |
@@ -942,6 +943,19 @@ required to handle such a SUBSCRIBE.  Such self-subscriptions are identical to
 subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
 rules.
+
+For a given Track, an endpoint can have at most one subscription to a Track
+acting as the publisher and at most one acting as a subscriber.  If an endpoint
+receives a message attempting to establish a second subscription to a Track
+with the same role, it MUST fail that request with a `DUPLICATE_SUBSCRIPTION`
+error.
+
+If a publisher receives a SUBSCRIBE request for a Track with an existing
+subscription in `Pending (publisher)` state, it MUST fail that request with
+a `DUPLICATE_SUBSCRIPTION` error. If a subscriber receives a PUBLISH for a Track
+with a subscription in the `Pending (Subscriber)` state, it MUST ensure the
+subscription it initiated transitions to the `Terminated` state before sending
+PUBLISH_OK.
 
 A publisher SHOULD begin sending incomplete objects when available to avoid
 incurring additional latency.
@@ -2238,6 +2252,10 @@ MALFORMED_AUTH_TOKEN (0x4):
 EXPIRED_AUTH_TOKEN (0x5):
 : Authorization token has expired ({{authorization-token}}).
 
+DUPLICATE_SUBSCRIPTION (0x19):
+: The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
+with the same role as an existing subscription.
+
 Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
 
@@ -2275,8 +2293,6 @@ status.
 ## SUBSCRIBE {#message-subscribe-req}
 
 A subscription causes the publisher to send newly published objects for a track.
-A subscriber MUST NOT establish multiple concurrent subscriptions for a track within a
-single session and publishers SHOULD treat this as a protocol violation.
 
 Subscribe only requests newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
@@ -3917,6 +3933,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
 | INVALID_RANGE              | 0x11 | {{message-request-error}} |
 | MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
+| DUPLICATE_SUBSCRIPTION     | 0x19 | {{message-request-error}} |
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
