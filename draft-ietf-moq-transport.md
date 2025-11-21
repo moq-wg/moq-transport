@@ -341,11 +341,11 @@ RECOMMONDED:
   all other bytes are percent encoded as a percent symbol followed by
   exactly two lower case hex digits.
 
-For example, if a namespace had two two tuples, the first with the bytes
+For example, if a namespace had two tuples, the first with the bytes
 0x48,0x69, the next with bytes 0xFF, and a track name with the byte
 0x30 would render as the string "Hi.%ff-0". The goal of this format is
 to have a format that is both filename and URL safe. It allows many
-common names to be rendered it an easily human readable form while still
+common names to be rendered in an easily human readable form while still
 supporting all binary values.
 
 TODO - update examples in this draft to match this.
