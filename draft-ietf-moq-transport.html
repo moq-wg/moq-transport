@@ -1055,7 +1055,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 17 May 2026</td>
+<td class="center">Expires 25 May 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-11-13" class="published">13 November 2025</time>
+<time datetime="2025-11-21" class="published">21 November 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-05-17">17 May 2026</time></dd>
+<dd class="expires"><time datetime="2026-05-25">25 May 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 17 May 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 25 May 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -4435,34 +4435,32 @@ it <span class="bcp14">MUST</span> close the session with error <code>DUPLICATE_
         </h3>
 <p id="section-9.11-1">A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
 subscription.<a href="#section-9.11-1" class="pilcrow">¶</a></p>
-<p id="section-9.11-2">When updating the Subscription Filter (see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>),
-the Start Location <span class="bcp14">MUST</span> not decrease, as an attempt to
-to do so could fail. If Objects with Locations smaller than the current
-subscription's Largest Location are required, FETCH can be used to retrieve
-them. A publisher <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code> if the
-SUBSCRIBE_UPDATE violates this rule.<a href="#section-9.11-2" class="pilcrow">¶</a></p>
-<p id="section-9.11-3">When a subscriber narrows their subscription (increase the Start Location and/or
-decrease the End Group), it might still receive objects
-outside the new range if the publisher sent them before the update was
-processed. When a subscriber increases the End Location, the Largest Object at
+<p id="section-9.11-2">When a subscriber decreases the Start Location of the Subscription Filter
+(see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>), the Start Location can be smaller than the Track's
+Largest Location, similar to a new Subscription. FETCH can be used to retrieve
+any necessary Objects smaller than the current Largest Location.<a href="#section-9.11-2" class="pilcrow">¶</a></p>
+<p id="section-9.11-3">When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
 create a gap in the subscription. The REQUEST_OK in response to the
 SUBSCRIBE_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
 can issue a FETCH to retrieve the omitted Objects, if any.<a href="#section-9.11-3" class="pilcrow">¶</a></p>
-<p id="section-9.11-4">The receiver of a SUBSCRIBE_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_OK
+<p id="section-9.11-4">When a subscriber narrows their subscription (increase the Start Location and/or
+decrease the End Group), it might still receive Objects outside the
+new range if the publisher sent them before the update was processed.<a href="#section-9.11-4" class="pilcrow">¶</a></p>
+<p id="section-9.11-5">The receiver of a SUBSCRIBE_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful.  When an
 update is unsuccessful, the publisher <span class="bcp14">MUST</span> also terminate the subscription with
-PUBLISH_DONE with error code <code>UPDATE_FAILED</code>.<a href="#section-9.11-4" class="pilcrow">¶</a></p>
-<p id="section-9.11-5">Like SUBSCRIBE, End Group <span class="bcp14">MUST</span> be greater than or equal to the Group specified
-in <code>Start</code>.<a href="#section-9.11-5" class="pilcrow">¶</a></p>
-<p id="section-9.11-6">If a parameter previously set on the subscription in <code>SUBSCRIBE</code>, <code>PUBLISH_OK</code>
+PUBLISH_DONE with error code <code>UPDATE_FAILED</code>.<a href="#section-9.11-5" class="pilcrow">¶</a></p>
+<p id="section-9.11-6">Like SUBSCRIBE, End Group <span class="bcp14">MUST</span> be greater than or equal to the Group specified
+in <code>Start</code>.<a href="#section-9.11-6" class="pilcrow">¶</a></p>
+<p id="section-9.11-7">If a parameter previously set on the subscription in <code>SUBSCRIBE</code>, <code>PUBLISH_OK</code>
 or <code>SUBSCRIBE_UPDATE</code> is not present in <code>SUBSCRIBE_UPDATE</code>, its value remains
-unchanged.<a href="#section-9.11-6" class="pilcrow">¶</a></p>
-<p id="section-9.11-7">There is no mechanism to remove a parameter from a subscription.<a href="#section-9.11-7" class="pilcrow">¶</a></p>
-<p id="section-9.11-8">The format of SUBSCRIBE_UPDATE is as follows:<a href="#section-9.11-8" class="pilcrow">¶</a></p>
+unchanged.<a href="#section-9.11-7" class="pilcrow">¶</a></p>
+<p id="section-9.11-8">There is no mechanism to remove a parameter from a subscription.<a href="#section-9.11-8" class="pilcrow">¶</a></p>
+<p id="section-9.11-9">The format of SUBSCRIBE_UPDATE is as follows:<a href="#section-9.11-9" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_update-messa"></span><div id="moq-transport-subscribe-update-format">
 <figure id="figure-13">
-          <div class="alignLeft art-text artwork" id="section-9.11-9.1">
+          <div class="alignLeft art-text artwork" id="section-9.11-10.1">
 <pre>
 SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
@@ -4479,18 +4477,18 @@ SUBSCRIBE_UPDATE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.11-10.1">
-            <p id="section-9.11-10.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.11-10.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.11-11.1">
+            <p id="section-9.11-11.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.11-11.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.11-10.2">
-            <p id="section-9.11-10.2.1">Subscription Request ID: The Request ID of the SUBSCRIBE
+          <li class="normal" id="section-9.11-11.2">
+            <p id="section-9.11-11.2.1">Subscription Request ID: The Request ID of the SUBSCRIBE
 (<a href="#message-subscribe-req" class="auto internal xref">Section 9.9</a>) this message is updating.  This <span class="bcp14">MUST</span> match an
 existing Request ID.  The publisher <span class="bcp14">MUST</span> close the session with `
 <code>PROTOCOL_VIOLATION</code> if the subscriber specifies an invalid Subscription
-Request ID.<a href="#section-9.11-10.2.1" class="pilcrow">¶</a></p>
+Request ID.<a href="#section-9.11-11.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.11-10.3">
-            <p id="section-9.11-10.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.11-10.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.11-11.3">
+            <p id="section-9.11-11.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.11-11.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
