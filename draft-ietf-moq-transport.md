@@ -1320,7 +1320,7 @@ where it's redundant.
 
 Note that due to reordering, an implementation can receive an Object after
 receiving an indication that the Object in question does not exist.  The
-endpoint SHOULD NOT cache or forward the duplicate object in this case.
+endpoint SHOULD NOT cache or forward the object in this case.
 
 A cache MUST store all properties of an Object defined in
 {{object-properties}}, with the exception of any extensions
