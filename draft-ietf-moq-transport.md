@@ -2385,10 +2385,6 @@ If the upstream SUBSCRIBE fails, the relay sends a REQUEST_ERROR and can reset t
 unidirectional stream.  It can choose to do so immediately or wait until the
 cached objects have been delivered before resetting the stream.
 
-The Largest available Object in the requested range is indicated in the SUBSCRIBE_OK,
-and is the last Object a subscription will return if the End Location have not yet been
-published.
-
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
