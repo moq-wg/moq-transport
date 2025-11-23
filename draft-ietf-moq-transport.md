@@ -457,8 +457,8 @@ by doing a Fetch upstream, if necessary.
 
 Applications that cannot produce Group IDs that increase with time are limited
 to the subset of MOQT that does not compare group IDs. Subscribers to these
-Tracks SHOULD NOT use range filters which span multiple Groups in FETCH or
-SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so they could have
+Tracks SHOULD NOT use range filters which span multiple Groups in
+SUBSCRIBE.  SUBSCRIBE uses Group Order, which could have
 an unexpected delivery order if Group IDs do not increase with time.
 
 The amount of time elapsed between publishing an Object in Group ID N and in a
@@ -565,8 +565,8 @@ include:
 
 The above list of conditions is not considered exhaustive.
 
-When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE any
-subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
+When a subscriber detects a Malformed Track, it MUST unsubscribe from any
+subscription for that Track from that publisher, and
 SHOULD deliver an error to the application.  If a relay detects a Malformed
 Track, it MUST immediately terminate downstream subscriptions with PUBLISH_DONE
 and reset any fetch streams with Status Code `MALFORMED_TRACK`. Object(s)
@@ -818,8 +818,7 @@ The server sends a GOAWAY message, signaling the client to establish a new
 session and migrate any `Established` subscriptions. The GOAWAY message optionally
 contains a new URI for the new session, otherwise the current URI is
 reused. The server SHOULD close the session with `GOAWAY_TIMEOUT` after a
-sufficient timeout if there are still open subscriptions or fetches on a
-connection.
+sufficient timeout if there are still open subscriptions on a connection.
 
 When the server is a subscriber, it SHOULD send a GOAWAY message to downstream
 subscribers prior to any UNSUBSCRIBE messages to upstream publishers.
@@ -935,9 +934,7 @@ response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
 A publisher MUST save the Largest Location communicated in PUBLISH or
-SUBSCRIBE_OK when establishing a subscription. This value can be used in a
-Joining FETCH (see {{joining-fetches}}) at any time while the subscription is
-active.
+SUBSCRIBE_OK when establishing a subscription.
 
 All `Established` subscriptions have a Forward State which is either 0 or 1.
 The publisher does not send Objects if the Forward State is 0, and does send them
@@ -1036,6 +1033,11 @@ to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass the Largest Object filter.
 
+Relative Past Group (0x5): The number of Groups in the past is specified explicitly.
+The filter Start Location is `{Largest Object.Group - NumGroups, 0}`.  There is no
+End Group - the subscription is open ended. A NumGroups value of 0 starts the
+subscription at at the current Group.
+
 Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
 0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
 delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
@@ -1067,8 +1069,7 @@ request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE with Filter
-Type `Largest Object` followed by a Joining FETCH (see {{joining-fetches}}) for
-the intended start Group, which can be relative.  To join a Track at the next
+Type `Relative Past Group`. To join a Track at the next
 Group, the subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
 
 #### Dynamically Starting New Groups
@@ -1092,27 +1093,6 @@ Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
 `Next Group Start` and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
 groups. A publisher that does will begin the next group as soon as practical.
-
-## Fetch State Management
-
-The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
-FETCH.
-
-A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
-REQUEST_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
-data stream is already open, it MAY send STOP_SENDING for the data stream along
-with FETCH_CANCEL, but MUST send FETCH_CANCEL.
-
-The Publisher can destroy fetch state as soon as it has received a
-FETCH_CANCEL. It MUST reset any open streams associated with the FETCH. It can
-also destroy state after closing the FETCH data stream.
-
-It can destroy all FETCH state after closing the data stream with a FIN.
-
-A REQUEST_ERROR indicates that both endpoints can immediately destroy state.
-Since a relay can start delivering FETCH Objects from cache before determining
-the result of the request, some Objects could be received even if the FETCH
-results in error.
 
 
 # Namespace Discovery {#track-discovery}
@@ -1379,17 +1359,17 @@ deduplicate Objects before forwarding, subject to implementation constraints.
 
 ## Subscriber Interactions
 
-Subscribers request Tracks by sending a SUBSCRIBE (see
-{{message-subscribe-req}}) or FETCH (see {{message-fetch}}) control message for
-each Track of interest. Relays MUST ensure subscribers are authorized to access
-the content associated with the Track. The authorization information can be part
-of request itself or part of the encompassing session. The specifics of how a
-relay authorizes a user are outside the scope of this specification.
+Subscribers request Tracks by sending a SUBSCRIBE (see {{message-subscribe-req}})
+control message on a new bidirectional stream for each Track of interest.
+Relays MUST ensure subscribers are authorized to access the content associated
+with the Track. The authorization information can be part of request itself or
+part of the encompassing session. The specifics of how a relay authorizes a user
+are outside the scope of this specification.
 
 The relay MUST have an `Established` upstream subscription before sending
 SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
-sufficient information to send a FETCH_OK immediately in response to a FETCH, it
-MUST withhold sending FETCH_OK until it does.
+sufficient information to send a SUBSCRIBE_OK, itMUST withhold sending
+SUBSCRIBE_OK until it does.
 
 Publishers maintain a list of `Established` downstream subscriptions for
 each Track. Relays use the Track Alias ({{track-alias}}) of an incoming Object
@@ -1597,10 +1577,6 @@ The following Message Types are defined:
 | 0x1E  | PUBLISH_OK ({{message-publish-ok}})                 |
 |-------|-----------------------------------------------------|
 | 0xB   | PUBLISH_DONE ({{message-publish-done}})             |
-|-------|-----------------------------------------------------|
-| 0x16  | FETCH ({{message-fetch}})                           |
-|-------|-----------------------------------------------------|
-| 0x18  | FETCH_OK ({{message-fetch-ok}})                     |
 |-------|-----------------------------------------------------|
 | 0xD   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
@@ -1833,7 +1809,7 @@ any other relevant information.
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a PUBLISH,
-SUBSCRIBE_OK, FETCH_OK or REQUEST_OK (in response to TRACK_STATUS) message.
+SUBSCRIBE_OK, or REQUEST_OK (in response to TRACK_STATUS) message.
 
 It is an integer expressing
 the number of milliseconds an Object can be served from a cache. If present, the
@@ -2312,8 +2288,7 @@ There are 4 types of subscriptions:
 Code | Subscription Type
 0x0 | Only newly published Objects
 0x1 | Only previously published Objects
-0x2 | All Objects, relative to Largest Object
-0x3 | All Objects, with an absolute start
+0x2 | All previously and newly published Objects
 
 An endpoint that receives a Subscription Type greater than 0x3 MUST close
 the session with a `PROTOCOL_VIOLATION`.
