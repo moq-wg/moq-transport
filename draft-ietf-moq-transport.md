@@ -1592,8 +1592,6 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x2   | SUBSCRIBE_UPDATE ({{message-subscribe-update}})     |
 |-------|-----------------------------------------------------|
-| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
-|-------|-----------------------------------------------------|
 | 0x1D  | PUBLISH  ({{message-publish}})                      |
 |-------|-----------------------------------------------------|
 | 0x1E  | PUBLISH_OK ({{message-publish-ok}})                 |
@@ -1603,8 +1601,6 @@ The following Message Types are defined:
 | 0x16  | FETCH ({{message-fetch}})                           |
 |-------|-----------------------------------------------------|
 | 0x18  | FETCH_OK ({{message-fetch-ok}})                     |
-|-------|-----------------------------------------------------|
-| 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})             |
 |-------|-----------------------------------------------------|
 | 0xD   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
@@ -1910,7 +1906,7 @@ The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH
 or PUBLISH_OK (TODO: or REQUEST_OK).  It is a variable length integer encoding
 the time in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
-or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
+or unsubscribe, depending on its role.  This value is advisory and the sender
 can terminate the subscription prior to or after the expiry time.
 
 The receiver of the parameter can extend the subscription by sending a
@@ -2114,11 +2110,11 @@ the session soon.  Servers can use GOAWAY to initiate session migration
 ({{session-migration}}) with an optional URI.
 
 The GOAWAY message does not impact subscription state. A subscriber
-SHOULD individually UNSUBSCRIBE for each existing subscription, while a
+SHOULD individually unsubscribe for each existing subscription, while a
 publisher MAY reject new requests after sending a GOAWAY.
 
 Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to the
-peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
+peer including SUBSCRIBE, PUBLISH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE and TRACK_SATUS.
 
 The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
@@ -2165,7 +2161,7 @@ MAX_REQUEST_ID Message {
 
 * Max Request ID: The new Maximum Request ID for the session plus 1. If a
   Request ID equal to or larger than this is received by the endpoint that sent
-  the MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE, FETCH,
+  the MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE,
   SUBSCRIBE, SUBSCRIBE_NAMESPACE, SUBSCRIBE_UDPATE or TRACK_STATUS), the
   endpoint MUST close the session with an error of `TOO_MANY_REQUESTS`.
 
@@ -2221,7 +2217,7 @@ REQUEST_OK Message {
 
 ## REQUEST_ERROR {#message-request-error}
 
-The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
+The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE,
 PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS). The unique
 request ID in the REQUEST_ERROR is used to associate it with the correct type of
 request.
@@ -2275,17 +2271,17 @@ DUPLICATE_SUBSCRIPTION (0x19):
 with the same role as an existing subscription.
 
 Below are errors for use by the publisher. They can appear in response to
-SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
+SUBSCRIBE, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
 
 DOES_NOT_EXIST (0x10):
 : The track or namespace is not available at the publisher.
 
 INVALID_RANGE (0x11):
-: In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
+: In response to SUBSCRIBE, specified Filter or range of Locations
 cannot be satisfied.
 
 MALFORMED_TRACK (0x12):
-: In response to a FETCH, a relay publisher detected that the track was
+: In response to a SUBSCRIBE, a relay publisher detected that the track was
 malformed (see {{malformed-tracks}}).
 
 The following are errors for use by the subscriber. They can appear in response
@@ -2300,20 +2296,27 @@ PREFIX_OVERLAP (0x30):
 : In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
 SUBSCRIBE_NAMESPACE in the same session.
 
-INVALID_JOINING_REQUEST_ID(0x32):
-: In response to a Joining FETCH, the referenced Request ID is not an
-`Established` Subscription.
-
 UNKNOWN_STATUS_IN_RANGE(0x33):
 : In response to a FETCH, the requested range contains an object with unknown
 status.
 
 ## SUBSCRIBE {#message-subscribe-req}
 
-A subscription causes the publisher to send newly published objects for a track.
+A subscription causes the publisher to send Objects for a Track. Newly
+published Objects are published according to their forwarding preference
+and previously published Objects are delivered on a single unidirectional
+stream, allowing the receiver to apply flow control.
 
-Subscribe only requests newly published or received Objects.  Objects from the
-past are retrieved using FETCH ({{message-fetch}}).
+There are 4 types of subscriptions:
+
+Code | Subscription Type
+0x0 | Only newly published Objects
+0x1 | Only previously published Objects
+0x2 | All Objects, relative to Largest Object
+0x3 | All Objects, with an absolute start
+
+An endpoint that receives a Subscription Type greater than 0x3 MUST close
+the session with a `PROTOCOL_VIOLATION`.
 
 The format of SUBSCRIBE is as follows:
 
@@ -2322,6 +2325,7 @@ SUBSCRIBE Message {
   Type (i) = 0x3,
   Length (16),
   Request ID (i),
+  Subscribe Type (8),
   Track Namespace (..),
   Track Name Length (i),
   Track Name (..),
@@ -2333,6 +2337,8 @@ SUBSCRIBE Message {
 
 * Request ID: See {{request-id}}.
 
+* Subscribe Type: The type of Subscription, as described above.
+
 * Track Namespace: Identifies the namespace of the track as defined in
   ({{track-name}}).
 
@@ -2340,12 +2346,13 @@ SUBSCRIBE Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
-allowing the subscriber to determine the start group/object when not explicitly
-specified, and start sending objects.
+Upon successful subscription, the publisher MUST reply with a SUBSCRIBE_OK as
+the first message on the bidirectional stream, allowing the subscriber to
+determine the start group/object when not explicitly specified, and start
+sending objects.
 
 If the publisher cannot satisfy the requested Subscription Filter (see
-{{subscription-filter}}) or if the entire End Group has already been published
+{{subscription-filter}}) or if subscription is after the end of the Track,
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
 
@@ -2353,10 +2360,44 @@ Subscribing with the FORWARD parameter ({{forward-parameter}}) equal to 0 allows
 publisher or relay to prepare to serve the subscription in advance, reducing the
 time to receive objects in the future.
 
+### Sending Previously Published Objects
+
+TODO: This should probably be moved up.
+
+The publisher creates a new unidirectional stream to send previously
+published Objects.
+
+When past Objects are requested, the publisher is responsible for delivering all
+available Objects in the requested range in the requested order (see {{group-order}}).
+Any gaps in the Group and Object IDs in the response stream indicate objects
+that do not exist.  For Ascending Group Order, this includes ranges between the
+first requested object and the first object in the stream; between objects in the
+stream; and between the last object in the stream and the Largest Group/Object
+indicated in SUBSCRIBE_OK, so long as the stream is terminated by a FIN.
+If no Objects exist in the requested range, the publisher opens the unidirectional
+stream, sends the FETCH_HEADER (see {{fetch-header}}) and closes the stream with a FIN.
+
+A relay that has cached Objects from the beginning of the range MAY start
+sending objects immediately.  If it encounters an Object in the requested range
+that is not cached and has unknown status, the relay MUST pause subsequent delivery
+or indicate the Object status is unknown via UNKOWN_OBJECT_STATUS.
+If the upstream SUBSCRIBE fails, the relay sends a REQUEST_ERROR and can reset the
+unidirectional stream.  It can choose to do so immediately or wait until the
+cached objects have been delivered before resetting the stream.
+
+The Largest available Object in the requested range is indicated in the SUBSCRIBE_OK,
+and is the last Object a subscription will return if the End Location have not yet been
+published.
+
+
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
 A publisher sends a SUBSCRIBE_OK control message for successful
 subscriptions.
+
+A publisher MAY send Objects in response to a SUBSCRIBE before the
+SUBSCRIBE_OK message is sent, but the SUBSCRIBE_OK MUST NOT be sent until
+the End Location is known.
 
 ~~~
 SUBSCRIBE_OK Message {
@@ -2381,15 +2422,15 @@ SUBSCRIBE_OK Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
+
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
 A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
-subscription.
+subscription on the same bidirectional stream the Subscription was established on.
 
 When a subscriber decreases the Start Location of the Subscription Filter
 (see {{subscription-filters}}), the Start Location can be smaller than the Track's
-Largest Location, similar to a new Subscription. FETCH can be used to retrieve
-any necessary Objects smaller than the current Largest Location.
+Largest Location, similar to a new Subscription.
 
 When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
@@ -2421,49 +2462,22 @@ The format of SUBSCRIBE_UPDATE is as follows:
 SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
   Length (16),
-  Request ID (i),
-  Subscription Request ID (i),
   Number of Parameters (i),
   Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
 
-* Request ID: See {{request-id}}.
-
-* Subscription Request ID: The Request ID of the SUBSCRIBE
-  ({{message-subscribe-req}}) this message is updating.  This MUST match an
-  existing Request ID.  The publisher MUST close the session with `
-  `PROTOCOL_VIOLATION` if the subscriber specifies an invalid Subscription
-  Request ID.
-
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-
-## UNSUBSCRIBE {#message-unsubscribe}
-
-A Subscriber issues an `UNSUBSCRIBE` message to a Publisher indicating it is no
-longer interested in receiving the specified Track, indicating that the
-Publisher stop sending Objects as soon as possible.
-
-The format of `UNSUBSCRIBE` is as follows:
-
-~~~
-UNSUBSCRIBE Message {
-  Type (i) = 0xA,
-  Length (16),
-  Request ID (i)
-}
-~~~
-{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
-
-* Request ID: The Request ID of the subscription that is being terminated. See
-  {{message-subscribe-req}}.
 
 ## PUBLISH {#message-publish}
 
 The publisher sends the PUBLISH control message to initiate a subscription to a
 track. The receiver verifies the publisher is authorized to publish this track.
+
+A PUBLISH message only sends new Objects for a Track, not previously published
+Objects.
 
 ~~~
 PUBLISH Message {
@@ -2557,8 +2571,8 @@ reason.
 
 A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least its
 delivery timeout in case some objects are still inbound due to prioritization or
-packet loss. The subscriber MAY dispense with a timer if it sent UNSUBSCRIBE or
-is otherwise no longer interested in objects from the track. Once the timer has
+packet loss. The subscriber MAY dispense with a timer if cancelled the subscription
+or is otherwise no longer interested in objects from the track. Once the timer has
 expired, the receiver destroys subscription state once all open streams for the
 subscription have closed. A subscriber MAY discard subscription state earlier,
 at the cost of potentially not delivering some late objects to the
@@ -2633,251 +2647,7 @@ UPDATE_FAILED (0x8):
 : SUBSCRIBE_UPDATE failed on this subscription (see
   {{message-subscribe-update}}).
 
-## FETCH {#message-fetch}
 
-A subscriber issues a FETCH to a publisher to request a range of already
-published objects within a track.
-
-There are three types of Fetch messages.
-
-Code | Fetch Type
-0x1 | Standalone Fetch
-0x2 | Relative Joining Fetch
-0x3 | Absolute Joining Fetch
-
-An endpoint that receives a Fetch Type other than 0x1, 0x2 or 0x3 MUST close
-the session with a `PROTOCOL_VIOLATION`.
-
-### Standalone Fetch
-
-A Fetch of Objects performed independently of any Subscribe.
-
-A Standalone Fetch includes this structure:
-
-~~~
-Standalone Fetch {
-  Track Namespace (..),
-  Track Name Length (i),
-  Track Name (..),
-  Start Location (Location),
-  End Location (Location)
-}
-~~~
-
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Start Location: The start Location.
-
-* End Location: The end Location, plus 1. A Location.Object value of 0
-  means the entire group is requested.
-
-### Joining Fetches
-
-A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of a subscription in the `Established` or
-`Pending (subscriber)` state.
-A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track Name
-and End Location such that it is contiguous with the associated
-Subscribe.  The subscriber can set the Start Location to an absolute Location or
-a Location relative to the current group.
-
-A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
-certain number of groups prior to the live edge of a track.
-
-A Joining Fetch is only permitted when the associated Subscribe has the Filter
-Type Largest Object; any other value results in closing the session with a
-`PROTOCOL_VIOLATION`.
-
-If no Objects have been published for the track, and the SUBSCRIBE_OK did not
-include a LARGEST_OBJECT parameter ({{largest-param}}), the publisher MUST
-respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
-
-A Joining Fetch includes this structure:
-
-~~~
-Joining Fetch {
-  Joining Request ID (i),
-  Joining Start (i)
-}
-~~~
-
-* Joining Request ID: The Request ID of the subscription to be joined. If a
-  publisher receives a Joining Fetch with a Request ID that does not correspond
-  to a subscription in the same session in the `Established` or `Pending
-  (subscriber)` states, it MUST return a REQUEST_ERROR with error code
-  `INVALID_JOINING_REQUEST_ID`.
-
-* Joining Start : A relative or absolute value used to determing the Start
-  Location, described below.
-
-#### Joining Fetch Range Calculation
-
-The Largest Location value from the corresponding
-subscription is used to calculate the end of a Joining Fetch, so the
-Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
-
-The publisher receiving a Joining Fetch sets the End Location to {Subscribe
-Largest Location.Object + 1}. Here Subscribe Largest Location is the
-saved value from when the subscription started (see {{subscriptions}}).
-
-Note: the last Object included in the Joining FETCH response is Subscribe
-Largest Location.  The `+ 1` above indicates the equivalent Standalone Fetch
-encoding.
-
-For a Relative Joining Fetch, the publisher sets the Start Location to
-{Subscribe Largest Location.Group - Joining Start, 0}.
-
-For an Absolute Joining Fetch, the publisher sets the Start Location to
-{Joining Start, 0}.
-
-
-### Fetch Handling
-
-The format of FETCH is as follows:
-
-~~~
-FETCH Message {
-  Type (i) = 0x16,
-  Length (16),
-  Request ID (i),
-  Fetch Type (i),
-  [Standalone (Standalone Fetch),]
-  [Joining (Joining Fetch),]
-  Number of Parameters (i),
-  Parameters (..) ...
-}
-~~~
-{: #moq-transport-fetch-format title="MOQT FETCH Message"}
-
-* Request ID: See {{request-id}}.
-
-* Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
-  Joining or Absolute Joining.
-
-* Standalone: Standalone Fetch structure included when Fetch Type is 0x1
-
-* Joining: Joining Fetch structure included when Fetch Type is 0x2 or 0x3.
-
-* Parameters: The parameters are defined in {{version-specific-params}}.
-
-A publisher responds to a FETCH request with either a FETCH_OK or a REQUEST_ERROR
-message.  The publisher creates a new unidirectional stream that is used to send the
-Objects.  The FETCH_OK or REQUEST_ERROR can come at any time relative to object
-delivery.
-
-The publisher responding to a FETCH is
-responsible for delivering all available Objects in the requested range in the
-requested order (see {{group-order}}). The Objects in the response are delivered on a single
-unidirectional stream. Any gaps in the Group and Object IDs in the response
-stream indicate objects that do not exist.  For Ascending Group Order this
-includes ranges between the first requested object and the first object in the
-stream; between objects in the stream; and between the last object in the
-stream and the Largest Group/Object indicated in FETCH_OK, so long as the fetch
-stream is terminated by a FIN.  If no Objects exist in the requested range, the
-publisher opens the unidirectional stream, sends the FETCH_HEADER (see
-{{fetch-header}}) and closes the stream with a FIN.
-
-A relay that has cached objects from the beginning of the range MAY start
-sending objects immediately in response to a FETCH.  If it encounters an object
-in the requested range that is not cached and has unknown status, the relay MUST
-pause subsequent delivery until it has confirmed the object's status upstream.
-If the upstream FETCH fails, the relay sends a REQUEST_ERROR and can reset the
-unidirectional stream.  It can choose to do so immediately or wait until the
-cached objects have been delivered before resetting the stream.
-
-The Object Forwarding Preference does not apply to fetches.
-
-Fetch specifies an inclusive range of Objects starting at Start Location and
-ending at End Location. End Location MUST specify the same or a larger Location
-than Start Location for Standalone and Absolute Joining Fetches.
-
-Objects that are not yet published will not be retrieved by a FETCH.  The
-Largest available Object in the requested range is indicated in the FETCH_OK,
-and is the last Object a fetch will return if the End Location have not yet been
-published.
-
-If Start Location is greater than the `Largest Object`
-({{message-subscribe-req}}) the publisher MUST return REQUEST_ERROR with error
-code `INVALID_RANGE`.
-
-A publisher MUST send fetched groups in the requested group order, either
-ascending or descending. Within each group, objects are sent in Object ID order;
-subgroup ID is not used for ordering.
-
-If an Original Publisher receives a FETCH with a range that includes an object with
-unknown status, it MUST return REQUEST_ERROR with code UNKNOWN_STATUS_IN_RANGE.
-
-
-## FETCH_OK {#message-fetch-ok}
-
-A publisher sends a FETCH_OK control message in response to successful fetches.
-A publisher MAY send Objects in response to a FETCH before the FETCH_OK message is sent,
-but the FETCH_OK MUST NOT be sent until the End Location is known.
-
-~~~
-FETCH_OK Message {
-  Type (i) = 0x18,
-  Length (16),
-  Request ID (i),
-  End Of Track (8),
-  End Location (Location),
-  Number of Parameters (i),
-  Parameters (..) ...
-}
-~~~
-{: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
-
-* Request ID: The Request ID of the FETCH this message is replying to
-  {{message-subscribe-req}}.
-
-* End Of Track: 1 if all Objects have been published on this Track, and
-  the End Location is the final Object in the Track, 0 if not.
-
-* End Location: The largest object covered by the FETCH response.
-  The End Location is determined as follows:
-   - If the requested FETCH End Location was beyond the Largest known (possibly
-     final) Object, End Location is {Largest.Group, Largest.Object + 1}
-   - If End Location.Object in the FETCH request was 0 and the response covers
-     the last Object in the Group, End Location is {Fetch.End Location.Group, 0}
-   - Otherwise, End Location is Fetch.End Location
-  Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
-  End Location described in {{joining-fetch-range-calculation}}.
-
-  If the relay is subscribed to the track, it uses its knowledge of the largest
-  {Group, Object} to set End Location.  If it is not subscribed and the
-  requested End Location exceeds its cached data, the relay makes an upstream
-  request to complete the FETCH, and uses the upstream response to set End
-  Location.
-
-  If End Location is smaller than the Start Location in the corresponding FETCH
-  the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
-
-* Parameters: The parameters are defined in {{version-specific-params}}.
-
-## FETCH_CANCEL {#message-fetch-cancel}
-
-A subscriber sends a FETCH_CANCEL message to a publisher to indicate it is no
-longer interested in receiving objects for the fetch identified by the 'Request
-ID'. The publisher SHOULD promptly close the unidirectional stream, even if it
-is in the middle of delivering an object.
-
-The format of `FETCH_CANCEL` is as follows:
-
-~~~
-FETCH_CANCEL Message {
-  Type (i) = 0x17,
-  Length (16),
-  Request ID (i)
-}
-~~~
-{: #moq-transport-fetch-cancel title="MOQT FETCH_CANCEL Message"}
-
-* Request ID: The Request ID of the FETCH ({{message-fetch}}) this message is
-  cancelling.
 
 ## TRACK_STATUS {#message-track-status}
 
@@ -2899,7 +2669,7 @@ Relays without an `Established` subscription MAY forward TRACK_STATUS to one or 
 publishers, or MAY initiate a subscription (subject to authorization) as
 described in {{publisher-interactions}} to determine the response. The publisher
 does not send PUBLISH_DONE for this request, and the subscriber cannot send
-SUBSCRIBE_UPDATE or UNSUBSCRIBE.
+SUBSCRIBE_UPDATE.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 
@@ -3552,7 +3322,7 @@ INTERNAL_ERROR (0x0):
 : An implementation specific error.
 
 CANCELLED (0x1):
-: The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
+: The subscriber requested cancellation via UNSUBSCRIBE or
   STOP_SENDING, or the publisher ended the subscription, in which case
   PUBLISH_DONE ({{message-publish-done}}) will have a more detailed status
   code.
@@ -3946,7 +3716,6 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
-| UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
