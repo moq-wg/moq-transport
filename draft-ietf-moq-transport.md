@@ -1073,18 +1073,16 @@ Group, the subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
 
 When a subscriber is already receiving one Track and intends to join another
 Track that carries equivalent content, such as a higher or lower bitrate
-variant, the subscriber uses a coordinated switching procedure. The subscriber
-identifies the current Track and the target Track and requests a transition at
-a suitable Group boundary. This allows the subscriber to join the new Track
-without gaps or duplication in the delivered object sequence.
+variant, the subscriber uses a switching procedure. The subscriber identifies 
+the current Track and the target Track and requests a transition at a suitable 
+Group boundary. This allows the subscriber to join the new Track without gaps 
+or duplication in the delivered object sequence.
 
 #### Coordinated Track Switching for Adaptive Bitrate Streaming
 Client-side Adaptive bitrate (ABR) streaming requires a subscriber to 
 transition between two Tracks that represent alternative formats of the same 
-content. Only the subscriber knows which Tracks are alternatives, based on 
-information such as catalog metadata or an out-of-band manifest. A Relay cannot 
-infer the relationship between Tracks and does not know which Track represents 
-a higher or lower quality.
+content. The subscriber knows which Tracks are alternatives, based on 
+information such as catalog metadata or an out-of-band manifest.
 
 To request a switch, the subscriber sends a SWITCH (see {{message-switch}}) 
 identifying the Track it is currently receiving and the Track it intends to 
