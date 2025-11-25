@@ -1055,7 +1055,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 25 May 2026</td>
+<td class="center">Expires 29 May 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-11-21" class="published">21 November 2025</time>
+<time datetime="2025-11-25" class="published">25 November 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-05-25">25 May 2026</time></dd>
+<dd class="expires"><time datetime="2026-05-29">29 May 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 25 May 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 29 May 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2029,6 +2029,28 @@ underlying encoding, compression, any end-to-end encryption, or
 authentication. A relay <span class="bcp14">MUST NOT</span> combine, split, or otherwise modify object
 payloads.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
 <p id="section-2.1-3">Objects within a Group are in ascending order by Object ID.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.1-4">From the perspective of a subscriber or a cache, an Object can be in three
+possible states:<a href="#section-2.1-4" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-2.1-5">
+<li id="section-2.1-5.1">
+            <p id="section-2.1-5.1.1">The Object is known to not exist. This state is permanent. MOQT has multiple
+ways to communicate that a certain range of objects does not exist,
+including the Object Status field, and the use of gaps in FETCH responses.<a href="#section-2.1-5.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-2.1-5.2">
+            <p id="section-2.1-5.2.1">The Object is known to exist. From this state, it can transition to not
+existing, but not vice versa.<a href="#section-2.1-5.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-2.1-5.3">
+            <p id="section-2.1-5.3.1">The state of the Object is unknown, either because it has not been yet
+received, or it has not been produced yet.<a href="#section-2.1-5.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-2.1-6">Whenever the publisher communicates that certain objects do not exist, this
+fact is expressed as a contiguous range of non-existent objects and
+by include extension headers indicating the group/object gaps; MOQT
+implementers should take that into account when selecting appropriate data
+structures.<a href="#section-2.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="model-subgroup">
@@ -2690,9 +2712,10 @@ SUBSCRIBE_OK or REQUEST_ERROR.  Once either of these sequences is
 successful, the subscription moves to the <code>Established</code> state and can
 be updated by the subscriber using SUBSCRIBE_UPDATE.  Either endpoint
 can terminate an <code>Established</code> subscription, moving it to the
-<code>Terminated</code> state.  The subscriber terminates a subscription using
-UNSUBSCRIBE, the publisher terminates a subscription using
-PUBLISH_DONE.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<code>Terminated</code> state.  The subscriber terminates a subscription in the
+<code>Pending (Subscriber)</code> or <code>Established</code> states using
+UNSUBSCRIBE, the publisher terminates a subscription in the <code>Pending
+(Publisher)</code> or <code>Established</code> states using PUBLISH_DONE.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1-2">This diagram shows the subscription state machine:<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5.1-3">
 <pre>
@@ -2709,14 +2732,14 @@ PUBLISH_DONE.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
               |    +--------------+ +--------------+    |
               |                 |    |                  |
 REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
-              |      (publisher)|    | (subscriber)     |
+(publisher)   |      (publisher)|    | (subscriber)     | (subscriber)
               |                 V    V                  |
               |            +-------------+              |
               |            | Established | ------+
               |            |             |       | SUBSCRIBE_UPDATE
               |            +-------------+ &lt;-----+
               |                 |    |                  |
-              |     UNSUBSCRIBE |    | PUBLISH_DONE     |
+              +---- UNSUBSCRIBE |    | PUBLISH_DONE ----+
               |     (subscriber)|    | (publisher)      |
               |                 V    V                  |
               |            +-------------+              |
@@ -2732,14 +2755,12 @@ if it receives more than one.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
 SUBSCRIBE_OK when establishing a subscription. This value can be used in a
 Joining FETCH (see <a href="#joining-fetches" class="auto internal xref">Section 9.16.2</a>) at any time while the subscription is
 active.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">All <code>Established</code> subscriptions have a Forward State which is either 0 or 1.  If the Forward
-State is 0, the publisher does not send objects for the subscription.  If the
-Forward State is 1, the publisher sends objects.  The initiator of the
-subscription sets the initial Forward State in either PUBLISH or SUBSCRIBE.  The
-sender of PUBLISH_OK can update the Forward State based on its preference.  Once
-the subscription is established, the subscriber can update the Forward State by
-sending SUBSCRIBE_UPDATE.  Control messages, such as PUBLISH_DONE
-(<a href="#message-publish-done" class="auto internal xref">Section 9.15</a>) are still sent on subscriptions in Forward State 0.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">All <code>Established</code> subscriptions have a Forward State which is either 0 or 1.
+The publisher does not send Objects if the Forward State is 0, and does send them
+if the Forward State is 1.  The initiator of the subscription sets the initial
+Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_OK
+or SUBSCRIBE_UPDATE to update the Forward State. Control messages, such as
+PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.15</a>) are sent regardless of the forward state.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
 <p id="section-5.1-7">Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays <span class="bcp14">MUST NOT</span> send any PUBLISH messages
 without knowing the client is interested in and authorized to receive the
@@ -2751,14 +2772,25 @@ required to handle such a SUBSCRIBE.  Such self-subscriptions are identical to
 subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
 rules.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
-<p id="section-5.1-9">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to avoid
-incurring additional latency.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
-<p id="section-5.1-10">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
+<p id="section-5.1-9">For a given Track, an endpoint can have at most one subscription to a Track
+acting as the publisher and at most one acting as a subscriber.  If an endpoint
+receives a message attempting to establish a second subscription to a Track
+with the same role, it <span class="bcp14">MUST</span> fail that request with a <code>DUPLICATE_SUBSCRIPTION</code>
+error.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<p id="section-5.1-10">If a publisher receives a SUBSCRIBE request for a Track with an existing
+subscription in <code>Pending (publisher)</code> state, it <span class="bcp14">MUST</span> fail that request with
+a <code>DUPLICATE_SUBSCRIPTION</code> error. If a subscriber receives a PUBLISH for a Track
+with a subscription in the <code>Pending (Subscriber)</code> state, it <span class="bcp14">MUST</span> ensure the
+subscription it initiated transitions to the <code>Terminated</code> state before sending
+PUBLISH_OK.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+<p id="section-5.1-11">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to avoid
+incurring additional latency.<a href="#section-5.1-11" class="pilcrow">¶</a></p>
+<p id="section-5.1-12">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
 with REQUEST_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
-<a href="#datagrams" class="auto internal xref">Section 10.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>).<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+<a href="#datagrams" class="auto internal xref">Section 10.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>).<a href="#section-5.1-12" class="pilcrow">¶</a></p>
 <div id="subscription-state-management">
 <section id="section-5.1.1">
           <h4 id="name-subscription-state-manageme">
@@ -3135,25 +3167,27 @@ update the cache need to protect against cache poisoning.  The only Object
 fields that can be updated are the following:<a href="#section-8.1-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-8.1-3">
 <li id="section-8.1-3.1">
-            <p id="section-8.1-3.1.1">Object Status can transition from any status to Object Does Not Exist in
-cases where the object is no longer available.  Transitions between Normal,
-End of Group and End of Track are invalid.<a href="#section-8.1-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-3.1.1">Object can transition from existing to not existing in cases where the
+object is no longer available.<a href="#section-8.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-8.1-3.2">
             <p id="section-8.1-3.2.1">Object Extension Headers can be added, removed or updated, subject
 to the constraints of the specific header extension.<a href="#section-8.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-8.1-4">An endpoint that receives a duplicate Object with an invalid Object Status
-change, or with a different Forwarding Preference, Subgroup ID, Priority or
-Payload <span class="bcp14">MUST</span> treat the track as Malformed.<a href="#section-8.1-4" class="pilcrow">¶</a></p>
-<p id="section-8.1-5">Note that due to reordering, an implementation can receive a duplicate Object
-with a status of Normal, End of Group or End of Track after receiving a previous
-status of Object Does Not Exist.  The endpoint <span class="bcp14">SHOULD NOT</span> cache or forward the
-duplicate object in this case.<a href="#section-8.1-5" class="pilcrow">¶</a></p>
-<p id="section-8.1-6">A cache <span class="bcp14">MUST</span> store all properties of an Object defined in
+<p id="section-8.1-4">An endpoint that receives a duplicate Object with a different Forwarding
+Preference, Subgroup ID, Priority or Payload <span class="bcp14">MUST</span> treat the track as Malformed.<a href="#section-8.1-4" class="pilcrow">¶</a></p>
+<p id="section-8.1-5">For ranges of objects that do not exist, relays <span class="bcp14">MAY</span> change the representation
+of a missing range to a semantically equivalent one.  For instance, a relay may
+change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
+of Group status, or a Prior Group ID Gap extension could be removed in FETCH,
+where it's redundant.<a href="#section-8.1-5" class="pilcrow">¶</a></p>
+<p id="section-8.1-6">Note that due to reordering, an implementation can receive an Object after
+receiving an indication that the Object in question does not exist.  The
+endpoint <span class="bcp14">SHOULD NOT</span> cache or forward the object in this case.<a href="#section-8.1-6" class="pilcrow">¶</a></p>
+<p id="section-8.1-7">A cache <span class="bcp14">MUST</span> store all properties of an Object defined in
 <a href="#object-properties" class="auto internal xref">Section 10.2.1</a>, with the exception of any extensions
-(<a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a>) that specify otherwise.<a href="#section-8.1-6" class="pilcrow">¶</a></p>
+(<a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a>) that specify otherwise.<a href="#section-8.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="forward-handling">
@@ -4315,6 +4349,12 @@ within the timeout.<a href="#section-9.8-5.6.1" class="pilcrow">¶</a></p>
           <dd style="margin-left: 1.5em" id="section-9.8-5.12">
             <p id="section-9.8-5.12.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 9.2.1.1</a>).<a href="#section-9.8-5.12.1" class="pilcrow">¶</a></p>
 </dd>
+          <dd class="break"></dd>
+<dt id="section-9.8-5.13">DUPLICATE_SUBSCRIPTION (0x19):</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-5.14">
+            <p id="section-9.8-5.14.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
+with the same role as an existing subscription.<a href="#section-9.8-5.14.1" class="pilcrow">¶</a></p>
+</dd>
         <dd class="break"></dd>
 </dl>
 <p id="section-9.8-6">Below are errors for use by the publisher. They can appear in response to
@@ -4375,9 +4415,7 @@ status.<a href="#section-9.8-11.6.1" class="pilcrow">¶</a></p>
         <h3 id="name-subscribe">
 <a href="#section-9.9" class="section-number selfRef">9.9. </a><a href="#name-subscribe" class="section-name selfRef">SUBSCRIBE</a>
         </h3>
-<p id="section-9.9-1">A subscription causes the publisher to send newly published objects for a track.
-A subscriber <span class="bcp14">MUST NOT</span> establish multiple concurrent subscriptions for a track within a
-single session and publishers <span class="bcp14">SHOULD</span> treat this as a protocol violation.<a href="#section-9.9-1" class="pilcrow">¶</a></p>
+<p id="section-9.9-1">A subscription causes the publisher to send newly published objects for a track.<a href="#section-9.9-1" class="pilcrow">¶</a></p>
 <p id="section-9.9-2">Subscribe only requests newly published or received Objects.  Objects from the
 past are retrieved using FETCH (<a href="#message-fetch" class="auto internal xref">Section 9.16</a>).<a href="#section-9.9-2" class="pilcrow">¶</a></p>
 <p id="section-9.9-3">The format of SUBSCRIBE is as follows:<a href="#section-9.9-3" class="pilcrow">¶</a></p>
@@ -4481,34 +4519,32 @@ it <span class="bcp14">MUST</span> close the session with error <code>DUPLICATE_
         </h3>
 <p id="section-9.11-1">A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
 subscription.<a href="#section-9.11-1" class="pilcrow">¶</a></p>
-<p id="section-9.11-2">When updating the Subscription Filter (see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>),
-the Start Location <span class="bcp14">MUST</span> not decrease, as an attempt to
-to do so could fail. If Objects with Locations smaller than the current
-subscription's Largest Location are required, FETCH can be used to retrieve
-them. A publisher <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code> if the
-SUBSCRIBE_UPDATE violates this rule.<a href="#section-9.11-2" class="pilcrow">¶</a></p>
-<p id="section-9.11-3">When a subscriber narrows their subscription (increase the Start Location and/or
-decrease the End Group), it might still receive objects
-outside the new range if the publisher sent them before the update was
-processed. When a subscriber increases the End Location, the Largest Object at
+<p id="section-9.11-2">When a subscriber decreases the Start Location of the Subscription Filter
+(see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>), the Start Location can be smaller than the Track's
+Largest Location, similar to a new Subscription. FETCH can be used to retrieve
+any necessary Objects smaller than the current Largest Location.<a href="#section-9.11-2" class="pilcrow">¶</a></p>
+<p id="section-9.11-3">When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
 create a gap in the subscription. The REQUEST_OK in response to the
 SUBSCRIBE_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
 can issue a FETCH to retrieve the omitted Objects, if any.<a href="#section-9.11-3" class="pilcrow">¶</a></p>
-<p id="section-9.11-4">The receiver of a SUBSCRIBE_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_OK
+<p id="section-9.11-4">When a subscriber narrows their subscription (increase the Start Location and/or
+decrease the End Group), it might still receive Objects outside the
+new range if the publisher sent them before the update was processed.<a href="#section-9.11-4" class="pilcrow">¶</a></p>
+<p id="section-9.11-5">The receiver of a SUBSCRIBE_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful.  When an
 update is unsuccessful, the publisher <span class="bcp14">MUST</span> also terminate the subscription with
-PUBLISH_DONE with error code <code>UPDATE_FAILED</code>.<a href="#section-9.11-4" class="pilcrow">¶</a></p>
-<p id="section-9.11-5">Like SUBSCRIBE, End Group <span class="bcp14">MUST</span> be greater than or equal to the Group specified
-in <code>Start</code>.<a href="#section-9.11-5" class="pilcrow">¶</a></p>
-<p id="section-9.11-6">If a parameter previously set on the subscription in <code>SUBSCRIBE</code>, <code>PUBLISH_OK</code>
+PUBLISH_DONE with error code <code>UPDATE_FAILED</code>.<a href="#section-9.11-5" class="pilcrow">¶</a></p>
+<p id="section-9.11-6">Like SUBSCRIBE, End Group <span class="bcp14">MUST</span> be greater than or equal to the Group specified
+in <code>Start</code>.<a href="#section-9.11-6" class="pilcrow">¶</a></p>
+<p id="section-9.11-7">If a parameter previously set on the subscription in <code>SUBSCRIBE</code>, <code>PUBLISH_OK</code>
 or <code>SUBSCRIBE_UPDATE</code> is not present in <code>SUBSCRIBE_UPDATE</code>, its value remains
-unchanged.<a href="#section-9.11-6" class="pilcrow">¶</a></p>
-<p id="section-9.11-7">There is no mechanism to remove a parameter from a subscription.<a href="#section-9.11-7" class="pilcrow">¶</a></p>
-<p id="section-9.11-8">The format of SUBSCRIBE_UPDATE is as follows:<a href="#section-9.11-8" class="pilcrow">¶</a></p>
+unchanged.<a href="#section-9.11-7" class="pilcrow">¶</a></p>
+<p id="section-9.11-8">There is no mechanism to remove a parameter from a subscription.<a href="#section-9.11-8" class="pilcrow">¶</a></p>
+<p id="section-9.11-9">The format of SUBSCRIBE_UPDATE is as follows:<a href="#section-9.11-9" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_update-messa"></span><div id="moq-transport-subscribe-update-format">
 <figure id="figure-13">
-          <div class="alignLeft art-text artwork" id="section-9.11-9.1">
+          <div class="alignLeft art-text artwork" id="section-9.11-10.1">
 <pre>
 SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
@@ -4525,18 +4561,18 @@ SUBSCRIBE_UPDATE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.11-10.1">
-            <p id="section-9.11-10.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.11-10.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.11-11.1">
+            <p id="section-9.11-11.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.11-11.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.11-10.2">
-            <p id="section-9.11-10.2.1">Subscription Request ID: The Request ID of the SUBSCRIBE
+          <li class="normal" id="section-9.11-11.2">
+            <p id="section-9.11-11.2.1">Subscription Request ID: The Request ID of the SUBSCRIBE
 (<a href="#message-subscribe-req" class="auto internal xref">Section 9.9</a>) this message is updating.  This <span class="bcp14">MUST</span> match an
 existing Request ID.  The publisher <span class="bcp14">MUST</span> close the session with `
 <code>PROTOCOL_VIOLATION</code> if the subscriber specifies an invalid Subscription
-Request ID.<a href="#section-9.11-10.2.1" class="pilcrow">¶</a></p>
+Request ID.<a href="#section-9.11-11.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.11-10.3">
-            <p id="section-9.11-10.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.11-10.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.11-11.3">
+            <p id="section-9.11-11.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.11-11.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4993,14 +5029,13 @@ delivery.<a href="#section-9.16.3-4" class="pilcrow">¶</a></p>
 responsible for delivering all available Objects in the requested range in the
 requested order (see <a href="#group-order" class="auto internal xref">Section 9.2.1.6</a>). The Objects in the response are delivered on a single
 unidirectional stream. Any gaps in the Group and Object IDs in the response
-stream indicate objects that do not exist (eg: they implicitly have status
-<code>Object Does Not Exist</code>).  For Ascending Group Order this includes ranges
-between the first requested object and the first object in the stream; between
-objects in the stream; and between the last object in the stream and the Largest
-Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
-a FIN.  If no Objects exist in the requested range, the publisher opens the
-unidirectional stream, sends the FETCH_HEADER (see <a href="#fetch-header" class="auto internal xref">Section 10.4.4</a>) and closes
-the stream with a FIN.<a href="#section-9.16.3-5" class="pilcrow">¶</a></p>
+stream indicate objects that do not exist.  For Ascending Group Order this
+includes ranges between the first requested object and the first object in the
+stream; between objects in the stream; and between the last object in the
+stream and the Largest Group/Object indicated in FETCH_OK, so long as the fetch
+stream is terminated by a FIN.  If no Objects exist in the requested range, the
+publisher opens the unidirectional stream, sends the FETCH_HEADER (see
+<a href="#fetch-header" class="auto internal xref">Section 10.4.4</a>) and closes the stream with a FIN.<a href="#section-9.16.3-5" class="pilcrow">¶</a></p>
 <p id="section-9.16.3-6">A relay that has cached objects from the beginning of the range <span class="bcp14">MAY</span> start
 sending objects immediately in response to a FETCH.  If it encounters an object
 in the requested range that is not cached and has unknown status, the relay <span class="bcp14">MUST</span>
@@ -5469,8 +5504,8 @@ within the Group. This field is omitted if the <code>Object Forwarding Preferenc
 is Datagram.<a href="#section-10.2.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.2.1-2.7">
-              <p id="section-10.2.1-2.7.1">Object Status: An enumeration used to indicate missing
-objects or mark the end of a group or track. See <a href="#object-status" class="auto internal xref">Section 10.2.1.1</a> below.<a href="#section-10.2.1-2.7.1" class="pilcrow">¶</a></p>
+              <p id="section-10.2.1-2.7.1">Object Status: An enumeration used to indicate whether the Object is a normal Object
+or mark the end of a group or track. See <a href="#object-status" class="auto internal xref">Section 10.2.1.1</a> below.<a href="#section-10.2.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.2.1-2.8">
               <p id="section-10.2.1-2.8.1">Object Extensions : A sequence of Extension Headers. See
@@ -5485,9 +5520,10 @@ objects or mark the end of a group or track. See <a href="#object-status" class=
             <h5 id="name-object-status">
 <a href="#section-10.2.1.1" class="section-number selfRef">10.2.1.1. </a><a href="#name-object-status" class="section-name selfRef">Object Status</a>
             </h5>
-<p id="section-10.2.1.1-1">The Object Status informs subscribers what objects will not be received
-because they were never produced, are no longer available, or because they
-are beyond the end of a group or track.<a href="#section-10.2.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-10.2.1.1-1">The Object Status is a field that is only present in objects that are delivered
+via a SUBSCRIPTION, and is absent in Objects delivered via a FETCH.  It allows
+the publisher to explicitly communicate that a specific range of objects does
+not exist.<a href="#section-10.2.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.1.1-2"><code>Status</code> can have following values:<a href="#section-10.2.1.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.2.1.1-3.1">
@@ -5495,32 +5531,19 @@ are beyond the end of a group or track.<a href="#section-10.2.1.1-1" class="pilc
        Zero-length objects explicitly encode the Normal status.<a href="#section-10.2.1.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-10.2.1.1-3.2">
-                <p id="section-10.2.1.1-3.2.1">0x1 := Indicates Object Does Not Exist. Indicates that this Object does not
-       exist at any publisher and it will not be published in the future. This
-       <span class="bcp14">SHOULD</span> be cached.<a href="#section-10.2.1.1-3.2.1" class="pilcrow">¶</a></p>
+                <p id="section-10.2.1.1-3.2.1">0x3 := Indicates End of Group. Indicates that no objects with the specified
+       Group ID and the Object ID that is greater than or equal to the one
+       specified exist in the group identified by the Group ID.<a href="#section-10.2.1.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-10.2.1.1-3.3">
-                <p id="section-10.2.1.1-3.3.1">0x3 := Indicates End of Group. Object ID is one greater than the largest
-       Object produced in the Group identified by the Group ID. If the Object
-       ID is 0, it indicates there are no Objects in this Group. This <span class="bcp14">SHOULD</span>
-       be cached. A publisher <span class="bcp14">MAY</span> use an end of Group object to signal the end
-       of all open Subgroups in a Group. A non-zero-length Object can be the
-       End of Group, as signaled in the DATAGRAM or SUBGROUP_HEADER Type field
-       (see <a href="#object-datagram" class="auto internal xref">Section 10.3.1</a> and <a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>).<a href="#section-10.2.1.1-3.3.1" class="pilcrow">¶</a></p>
-</li>
-              <li class="normal" id="section-10.2.1.1-3.4">
-                <p id="section-10.2.1.1-3.4.1">0x4 := Indicates End of Track. Group ID is either the largest Group produced
-       in this Track with Object ID one greater than the largest Object
-       produced in that Group, or Group ID is one greater than the largest
-       Group produced in this Track with Object ID zero. This status also
-       indicates the specified Group has ended. Publishers <span class="bcp14">MUST NOT</span> publish an
-       Object with a Location larger than this Location (see
-       <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>). This <span class="bcp14">SHOULD</span> be cached.<a href="#section-10.2.1.1-3.4.1" class="pilcrow">¶</a></p>
+                <p id="section-10.2.1.1-3.3.1">0x4 := Indicates End of Track. Indicates that no objects with the location
+       that is equal to or greater than the one specified exist.<a href="#section-10.2.1.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
-<p id="section-10.2.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and the session <span class="bcp14">SHOULD</span>
+<p id="section-10.2.1.1-4">All of those <span class="bcp14">SHOULD</span> be cached.<a href="#section-10.2.1.1-4" class="pilcrow">¶</a></p>
+<p id="section-10.2.1.1-5">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and the session <span class="bcp14">SHOULD</span>
 be closed with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).
-Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-10.2.1.1-4" class="pilcrow">¶</a></p>
+Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-10.2.1.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="object-extensions">
@@ -5811,8 +5834,8 @@ There are 10 defined Type values for OBJECT_DATAGRAM.<a href="#section-10.3.1-3"
           </table>
 <ul class="normal">
 <li class="normal" id="section-10.3.1-5.1">
-              <p id="section-10.3.1-5.1.1">End of Group: For Type values where End of Group is "Yes" the Object is the
-last Object in the Group.<a href="#section-10.3.1-5.1.1" class="pilcrow">¶</a></p>
+              <p id="section-10.3.1-5.1.1">End of Group: For Type values where End of Group is "Yes", indicates that no
+Object with the same Group ID and an Object ID greater than <code>Object ID</code> exists.<a href="#section-10.3.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.3.1-5.2">
               <p id="section-10.3.1-5.2.1">Extensions Present: If Extensions Present is "Yes" the Extensions structure
@@ -6127,10 +6150,11 @@ SUBGROUP_HEADER {
               </tr>
             </tbody>
           </table>
-<p id="section-10.4.2-7">For Type values where Contains End of Group is Yes, the last Object in this
-Subgroup stream before a FIN is the last Object in the Group.  If the Subgroup
-stream is terminated with a RESET_STREAM or RESET_STREAM_AT, the receiver cannot
-determine the End of Group Object ID.<a href="#section-10.4.2-7" class="pilcrow">¶</a></p>
+<p id="section-10.4.2-7">For Type values where Contains End of Group is Yes, the subscriber can infer the
+final Object in the Group when the data stream is terminated by a FIN.  In this
+case, Objects that have the same Group ID and an Object ID larger than the last
+Object received on the stream do not exist.  This does not apply when the data
+stream is terminated with a RESET_STREAM or RESET_STREAM_AT.<a href="#section-10.4.2-7" class="pilcrow">¶</a></p>
 <p id="section-10.4.2-8">For Type values where Subgroup ID Field Present is No, there is no explicit
 Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
 0x10-11 and 0x18-19) or the Object ID of the first object transmitted in this
@@ -6344,7 +6368,6 @@ format:<a href="#section-10.4.4-3" class="pilcrow">¶</a></p>
   [Publisher Priority (8),]
   [Extensions (..),]
   Object Payload Length (i),
-  [Object Status (i),]
   [Object Payload (..),]
 }
 </pre>
@@ -6437,10 +6460,9 @@ the corresponding condition is true.<a href="#section-10.4.4-8" class="pilcrow">
 the prior Object, the Subscriber <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4.4-10" class="pilcrow">¶</a></p>
 <p id="section-10.4.4-11">The Extensions structure is defined in <a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a>.<a href="#section-10.4.4-11" class="pilcrow">¶</a></p>
-<p id="section-10.4.4-12">The Object Status field is only present if the Object Payload Length is zero.<a href="#section-10.4.4-12" class="pilcrow">¶</a></p>
-<p id="section-10.4.4-13">When encoding an Object with a Forwarding Preference of "Datagram" (see
+<p id="section-10.4.4-12">When encoding an Object with a Forwarding Preference of "Datagram" (see
 <a href="#object-properties" class="auto internal xref">Section 10.2.1</a>), the Publisher treats it as having a Subgroup ID equal to
-the Object ID.<a href="#section-10.4.4-13" class="pilcrow">¶</a></p>
+the Object ID.<a href="#section-10.4.4-12" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -6623,12 +6645,10 @@ relays. This extension <span class="bcp14">MUST NOT</span> be modified or remove
 <p id="section-11.3-1">Prior Object ID Gap only applies to Objects, not Tracks.<a href="#section-11.3-1" class="pilcrow">¶</a></p>
 <p id="section-11.3-2">Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
 containing the number of Objects prior to the current Object that do not and
-will never exist. This is equivalent to receiving an <code>Object Does Not Exist</code>
-status for each skipped Object ID. For example, if the Original Publisher is
-publishing Object 10 in Group 3 and knows it will never publish Objects 8 or 9
-in this Group, it can include Prior Object ID Gap = 2.  A Track is considered
-malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the following conditions are
-detected:<a href="#section-11.3-2" class="pilcrow">¶</a></p>
+will never exist. For example, if the Original Publisher is publishing Object
+10 in Group 3 and knows it will never publish Objects 8 or 9 in this Group, it
+can include Prior Object ID Gap = 2.  A Track is considered malformed (see
+<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the following conditions are detected:<a href="#section-11.3-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11.3-3.1">
             <p id="section-11.3-3.1.1">An Object contains more than one instance of Prior Object ID Gap.<a href="#section-11.3-3.1.1" class="pilcrow">¶</a></p>
@@ -6650,7 +6670,10 @@ there may not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
 <a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-11.3-4" class="pilcrow">¶</a></p>
 <p id="section-11.3-5">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
-relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed.<a href="#section-11.3-5" class="pilcrow">¶</a></p>
+relays. This extension <span class="bcp14">MAY</span> be removed by relay when the object in question is
+served via FETCH, and the gap that the extension communicates is already
+communicated implicitly in the FETCH response; it <span class="bcp14">MUST NOT</span> be modified or
+removed otherwise.<a href="#section-11.3-5" class="pilcrow">¶</a></p>
 <p id="section-11.3-6">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.3-6" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -7155,6 +7178,13 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">MALFORMED_TRACK</td>
                 <td class="text-center" rowspan="1" colspan="1">0x12</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#message-request-error" class="auto internal xref">Section 9.8</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">DUPLICATE_SUBSCRIPTION</td>
+                <td class="text-center" rowspan="1" colspan="1">0x19</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#message-request-error" class="auto internal xref">Section 9.8</a>
 </td>
