@@ -1055,7 +1055,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 29 May 2026</td>
+<td class="center">Expires 30 May 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-11-25" class="published">25 November 2025</time>
+<time datetime="2025-11-26" class="published">26 November 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-05-29">29 May 2026</time></dd>
+<dd class="expires"><time datetime="2026-05-30">30 May 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 29 May 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 30 May 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1526,7 +1526,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-moqt-extension-headers" class="internal xref">MoQT Extension Headers</a></p>
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-extension-headers-2" class="internal xref">Extension Headers</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
                 <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-immutable-extensions" class="internal xref">Immutable Extensions</a></p>
@@ -2064,8 +2064,8 @@ have a dependency and priority relationship consistent with sharing a
 stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
-<p id="section-2.2-2">When a Track's forwarding preference (see <a href="#object-properties" class="auto internal xref">Section 10.2.1</a>) is
-"Datagram", Objects are not sent in Subgroups and the
+<p id="section-2.2-2">When an Object's forwarding preference (see <a href="#object-properties" class="auto internal xref">Section 10.2.1</a>) is
+"Datagram", it is not sent in Subgroups and the
 description in the remainder of this section does not apply.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
 <p id="section-2.2-3">Streams offer in-order reliable delivery and the ability to cancel sending and
 retransmission of data. Furthermore, many QUIC and WebTransport implementations
@@ -2255,7 +2255,7 @@ End of Track.<a href="#section-2.4.2-2.8.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-2.4.2-2.10">
               <p id="section-2.4.2-2.10.1">An Object is received with a different Forwarding Preference than previously
-observed from the same Track.<a href="#section-2.4.2-2.10.1" class="pilcrow">¶</a></p>
+observed.<a href="#section-2.4.2-2.10.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
 <p id="section-2.4.2-3">The above list of conditions is not considered exhaustive.<a href="#section-2.4.2-3" class="pilcrow">¶</a></p>
@@ -3030,8 +3030,7 @@ A schedulable object in MOQT is either:<a href="#section-7.1-1" class="pilcrow">
             <p id="section-7.1-2.1.1">The first or next Object in a Subgroup that is in response to a subscription.<a href="#section-7.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-7.1-2.2">
-            <p id="section-7.1-2.2.1">An Object in response to a subscription that belongs to a Track with
-delivery preference Datagram.<a href="#section-7.1-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-2.2.1">An Object with forwarding preference Datagram.<a href="#section-7.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-7.1-2.3">
             <p id="section-7.1-2.3.1">An Object in response to a FETCH where that Object is the next
@@ -3094,9 +3093,10 @@ decide the one that is scheduled to be sent first.<a href="#section-7.2-2.3.1" c
           <li id="section-7.2-2.4">
             <p id="section-7.2-2.4.1">If two objects in response to the same request have the same subscriber
 and publisher priority and belong to the same group of the same track, the
-one with <strong>the lowest Subgroup ID</strong> (for tracks with delivery preference
-Subgroup), or <strong>the lowest Object ID</strong> (for tracks with delivery preference
-Datagram) is scheduled to be sent first.<a href="#section-7.2-2.4.1" class="pilcrow">¶</a></p>
+one with <strong>the lowest Subgroup ID</strong> (for objects with forwarding preference
+Subgroup), or <strong>the lowest Object ID</strong> (for objects with forwarding preference
+Datagram) is scheduled to be sent first.  If the two objects have
+different Forwarding Preferences the order is implementation dependent.<a href="#section-7.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-7.2-3">The definition of "scheduled to be sent first" in the algorithm is implementation
@@ -4775,7 +4775,7 @@ PUBLISH_DONE Message {
 opened for this subscription.  This helps the subscriber know if it has received
 all of the data published in this subscription by comparing the number of
 streams received.  The subscriber can immediately remove all subscription state
-once the same number of streams have been processed.  If the track had
+once the same number of streams have been processed.  If the track had only Objects with
 Forwarding Preference = Datagram, the publisher <span class="bcp14">MUST</span> set Stream Count to 0.  If
 the publisher is unable to set Stream Count to the exact number of streams
 opened for the subscription, it <span class="bcp14">MUST</span> set Stream Count to 2^62 - 1. Subscribers
@@ -5442,9 +5442,8 @@ the type of the stream in question.<a href="#section-10-2" class="pilcrow">¶</a
 the datagram.  See <a href="#object-datagram" class="auto internal xref">Section 10.3.1</a>.<a href="#section-10-4" class="pilcrow">¶</a></p>
 <p id="section-10-5">An endpoint that receives an unknown stream or datagram type <span class="bcp14">MUST</span> close the
 session.<a href="#section-10-5" class="pilcrow">¶</a></p>
-<p id="section-10-6">Every Track has a single 'Object Forwarding Preference' and the Original
-Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferences within a single track
-(see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10-6" class="pilcrow">¶</a></p>
+<p id="section-10-6">Every Object has a 'Object Forwarding Preference' and the Original Publisher
+<span class="bcp14">MAY</span> mix different forwarding preference within a single track.<a href="#section-10-6" class="pilcrow">¶</a></p>
 <div id="track-alias">
 <section id="section-10.1">
         <h3 id="name-track-alias">
@@ -5490,13 +5489,10 @@ the Object (<a href="#priorities" class="auto internal xref">Section 7</a>).<a h
 </li>
             <li class="normal" id="section-10.2.1-2.5">
               <p id="section-10.2.1-2.5.1">Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Subgroup and Datagram.  Note that the Original
-Publisher determines the Forwarding Preference for the entire Track, and is a
-Track property that is implicitly signaled by the delivery of any Object using
-either Subgroups or Datagrams. Once the property is established for one Object
-of a Track, the same value <span class="bcp14">MUST</span> be used for all Objects of the Track.
-In a subscription, an Object <span class="bcp14">MUST</span> be sent according to its <code>Object Forwarding
-Preference</code>.<a href="#section-10.2.1-2.5.1" class="pilcrow">¶</a></p>
+an object. The preferences are Subgroup and Datagram.  <code>Object Forwarding
+Preference</code> is a property of an individual Object and can vary among
+Objects in the same Track.  In a subscription, an Object <span class="bcp14">MUST</span> be sent
+according to its <code>Object Forwarding Preference</code>.<a href="#section-10.2.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.2.1-2.6">
               <p id="section-10.2.1-2.6.1">Subgroup ID: The identifier of the Object's Subgroup (see <a href="#model-subgroup" class="auto internal xref">Section 2.2</a>)
@@ -6536,8 +6532,8 @@ SUBGROUP_HEADER {
 </div>
 <div id="moqt-extension-headers">
 <section id="section-11">
-      <h2 id="name-moqt-extension-headers">
-<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-moqt-extension-headers" class="section-name selfRef">MoQT Extension Headers</a>
+      <h2 id="name-extension-headers-2">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-extension-headers-2" class="section-name selfRef">Extension Headers</a>
       </h2>
 <p id="section-11-1">The following Extension Headers are defined in MOQT. Each Extension Header
 specifies whether it can be used with Tracks, Objects, or both.<a href="#section-11-1" class="pilcrow">¶</a></p>
@@ -6602,12 +6598,11 @@ EXT 1 and EXT N can be modified or removed by Relays
 <p id="section-11.2-1">Prior Group ID Gap only applies to Objects, not Tracks.<a href="#section-11.2-1" class="pilcrow">¶</a></p>
 <p id="section-11.2-2">Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
 containing the number of Groups prior to the current Group that do not and will
-never exist. This is equivalent to receiving an <code>End of Group</code> status with
-Object ID 0 for each skipped Group. For example, if the Original Publisher is
-publishing an Object in Group 7 and knows it will never publish any Objects in
-Group 8 or Group 9, it can include Prior Group ID Gap = 2 in any number of
-Objects in Group 10, as it sees fit.  A Track is considered malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the following conditions are detected:<a href="#section-11.2-2" class="pilcrow">¶</a></p>
+never exist. For example, if the Original Publisher is publishing an Object in
+Group 7 and knows it will never publish any Objects in Group 8 or Group 9, it
+can include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it
+sees fit.  A Track is considered malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of
+the following conditions are detected:<a href="#section-11.2-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11.2-3.1">
             <p id="section-11.2-3.1.1">An Object contains more than one instance of Prior Group ID Gap.<a href="#section-11.2-3.1.1" class="pilcrow">¶</a></p>
@@ -6633,7 +6628,10 @@ there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
 <a href="#group-ids" class="auto internal xref">Section 2.3.1</a>).<a href="#section-11.2-4" class="pilcrow">¶</a></p>
 <p id="section-11.2-5">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
-relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed.<a href="#section-11.2-5" class="pilcrow">¶</a></p>
+relays. This extension <span class="bcp14">MAY</span> be removed by relay when the object in question is
+served via FETCH, and the gap that the extension communicates is already
+communicated implicitly in the FETCH response; it <span class="bcp14">MUST NOT</span> be modified or
+removed otherwise.<a href="#section-11.2-5" class="pilcrow">¶</a></p>
 <p id="section-11.2-6">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>

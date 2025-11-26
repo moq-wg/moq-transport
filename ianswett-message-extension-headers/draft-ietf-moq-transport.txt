@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 29 May 2026                                       I. Swett, Ed.
+Expires: 30 May 2026                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        25 November 2025
+                                                        26 November 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 May 2026.
+   This Internet-Draft will expire on 30 May 2026.
 
 Copyright Notice
 
@@ -177,7 +177,7 @@ Table of Contents
        10.4.3.  Closing Subgroup Streams
        10.4.4.  Fetch Header
      10.5.  Examples
-   11. MoQT Extension Headers
+   11. Extension Headers
      11.1.  Immutable Extensions
      11.2.  Prior Group ID Gap
      11.3.  Prior Object ID Gap
@@ -519,9 +519,9 @@ Table of Contents
    delivered using at least as many streams as there are Subgroups,
    typically with a one-to-one mapping between Subgroups and streams.
 
-   When a Track's forwarding preference (see Section 10.2.1) is
-   "Datagram", Objects are not sent in Subgroups and the description in
-   the remainder of this section does not apply.
+   When an Object's forwarding preference (see Section 10.2.1) is
+   "Datagram", it is not sent in Subgroups and the description in the
+   remainder of this section does not apply.
 
    Streams offer in-order reliable delivery and the ability to cancel
    sending and retransmission of data.  Furthermore, many QUIC and
@@ -696,7 +696,7 @@ Table of Contents
         Payload or other immutable properties.
 
    10.  An Object is received with a different Forwarding Preference
-        than previously observed from the same Track.
+        than previously observed.
 
    The above list of conditions is not considered exhaustive.
 
@@ -1390,8 +1390,7 @@ Table of Contents
    1.  The first or next Object in a Subgroup that is in response to a
        subscription.
 
-   2.  An Object in response to a subscription that belongs to a Track
-       with delivery preference Datagram.
+   2.  An Object with forwarding preference Datagram.
 
    3.  An Object in response to a FETCH where that Object is the next
        Object in the response.
@@ -1453,10 +1452,11 @@ Table of Contents
 
    4.  If two objects in response to the same request have the same
        subscriber and publisher priority and belong to the same group of
-       the same track, the one with *the lowest Subgroup ID* (for tracks
-       with delivery preference Subgroup), or *the lowest Object ID*
-       (for tracks with delivery preference Datagram) is scheduled to be
-       sent first.
+       the same track, the one with *the lowest Subgroup ID* (for
+       objects with forwarding preference Subgroup), or *the lowest
+       Object ID* (for objects with forwarding preference Datagram) is
+       scheduled to be sent first.  If the two objects have different
+       Forwarding Preferences the order is implementation dependent.
 
    The definition of "scheduled to be sent first" in the algorithm is
    implementation dependent and is constrained by the prioritization
@@ -2861,16 +2861,16 @@ Table of Contents
       know if it has received all of the data published in this
       subscription by comparing the number of streams received.  The
       subscriber can immediately remove all subscription state once the
-      same number of streams have been processed.  If the track had
-      Forwarding Preference = Datagram, the publisher MUST set Stream
-      Count to 0.  If the publisher is unable to set Stream Count to the
-      exact number of streams opened for the subscription, it MUST set
-      Stream Count to 2^62 - 1.  Subscribers SHOULD use a timeout or
-      other mechanism to remove subscription state in case the publisher
-      set an incorrect value, reset a stream before the SUBGROUP_HEADER,
-      or set the maximum value.  If a subscriber receives more streams
-      for a subscription than specified in Stream Count, it MAY close
-      the session with a PROTOCOL_VIOLATION.
+      same number of streams have been processed.  If the track had only
+      Objects with Forwarding Preference = Datagram, the publisher MUST
+      set Stream Count to 0.  If the publisher is unable to set Stream
+      Count to the exact number of streams opened for the subscription,
+      it MUST set Stream Count to 2^62 - 1.  Subscribers SHOULD use a
+      timeout or other mechanism to remove subscription state in case
+      the publisher set an incorrect value, reset a stream before the
+      SUBGROUP_HEADER, or set the maximum value.  If a subscriber
+      receives more streams for a subscription than specified in Stream
+      Count, it MAY close the session with a PROTOCOL_VIOLATION.
 
    *  Error Reason: Provides the reason for subscription error.  See
       Section 1.4.3.
@@ -3373,9 +3373,9 @@ Table of Contents
    An endpoint that receives an unknown stream or datagram type MUST
    close the session.
 
-   Every Track has a single 'Object Forwarding Preference' and the
-   Original Publisher MUST NOT mix different forwarding preferences
-   within a single track (see Section 2.4.2).
+   Every Object has a 'Object Forwarding Preference' and the Original
+   Publisher MAY mix different forwarding preference within a single
+   track.
 
 10.1.  Track Alias
 
@@ -3411,13 +3411,10 @@ Table of Contents
 
    *  Object Forwarding Preference: An enumeration indicating how a
       publisher sends an object.  The preferences are Subgroup and
-      Datagram.  Note that the Original Publisher determines the
-      Forwarding Preference for the entire Track, and is a Track
-      property that is implicitly signaled by the delivery of any Object
-      using either Subgroups or Datagrams.  Once the property is
-      established for one Object of a Track, the same value MUST be used
-      for all Objects of the Track.  In a subscription, an Object MUST
-      be sent according to its Object Forwarding Preference.
+      Datagram.  Object Forwarding Preference is a property of an
+      individual Object and can vary among Objects in the same Track.
+      In a subscription, an Object MUST be sent according to its Object
+      Forwarding Preference.
 
    *  Subgroup ID: The identifier of the Object's Subgroup (see
       Section 2.2) within the Group.  This field is omitted if the
@@ -4055,7 +4052,7 @@ Table of Contents
      Payload = "efgh"
    }
 
-11.  MoQT Extension Headers
+11.  Extension Headers
 
    The following Extension Headers are defined in MOQT.  Each Extension
    Header specifies whether it can be used with Tracks, Objects, or
@@ -4112,13 +4109,12 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    Prior Group ID Gap (Extension Header Type 0x3C) is a variable length
    integer containing the number of Groups prior to the current Group
-   that do not and will never exist.  This is equivalent to receiving an
-   End of Group status with Object ID 0 for each skipped Group.  For
-   example, if the Original Publisher is publishing an Object in Group 7
-   and knows it will never publish any Objects in Group 8 or Group 9, it
-   can include Prior Group ID Gap = 2 in any number of Objects in Group
-   10, as it sees fit.  A Track is considered malformed (see
-   Section 2.4.2) if any of the following conditions are detected:
+   that do not and will never exist.  For example, if the Original
+   Publisher is publishing an Object in Group 7 and knows it will never
+   publish any Objects in Group 8 or Group 9, it can include Prior Group
+   ID Gap = 2 in any number of Objects in Group 10, as it sees fit.  A
+   Track is considered malformed (see Section 2.4.2) if any of the
+   following conditions are detected:
 
    *  An Object contains more than one instance of Prior Group ID Gap.
 
@@ -4139,7 +4135,10 @@ EXT 1 and EXT N can be modified or removed by Relays
    existence of prior groups (see Section 2.3.1).
 
    This extension can be added by the Original Publisher, but MUST NOT
-   be added by relays.  This extension MUST NOT be modified or removed.
+   be added by relays.  This extension MAY be removed by relay when the
+   object in question is served via FETCH, and the gap that the
+   extension communicates is already communicated implicitly in the
+   FETCH response; it MUST NOT be modified or removed otherwise.
 
    An Object MUST NOT contain more than one instance of this extension
    header.
