@@ -611,7 +611,7 @@ Tracks and Objects can have additional relay-visible fields, known as Extensions
 which do not require negotiation, and can be used to alter
 MoQT Object distribution.
 
-Extension Headers are defined in {{extension-headers}} as well as external
+Extension Headers are defined in {{moqt-extension-headers}} as well as external
 specifications and are registered in an IANA table {{iana}}. These
 specifications define the type and value of the header, along with any rules
 concerning processing, modification, caching and forwarding. A relay which is
@@ -3710,7 +3710,7 @@ SUBGROUP_HEADER {
 
 ~~~
 
-# Extension Headers {#extension-headers}
+# Extension Headers {#moqt-extension-headers}
 
 The following Extension Headers are defined in MOQT. Each Extension Header
 specifies whether it can be used with Tracks, Objects, or both.
