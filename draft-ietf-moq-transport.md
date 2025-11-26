@@ -400,8 +400,8 @@ stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.
 
-When a Track's forwarding preference (see {{object-properties}}) is
-"Datagram", Objects are not sent in Subgroups and the
+When an Object's forwarding preference (see {{object-properties}}) is
+"Datagram", it is not sent in Subgroups and the
 description in the remainder of this section does not apply.
 
 Streams offer in-order reliable delivery and the ability to cancel sending and
@@ -561,7 +561,7 @@ include:
 9. The same Object is received more than once with different Payload or
     other immutable properties.
 10. An Object is received with a different Forwarding Preference than previously
-    observed from the same Track.
+    observed.
 
 The above list of conditions is not considered exhaustive.
 
@@ -1215,8 +1215,7 @@ MOQT maintains priorities between different schedulable objects.
 A schedulable object in MOQT is either:
 
 1. The first or next Object in a Subgroup that is in response to a subscription.
-2. An Object in response to a subscription that belongs to a Track with
-   delivery preference Datagram.
+2. An Object with forwarding preference Datagram.
 3. An Object in response to a FETCH where that Object is the next
    Object in the response.
 
@@ -1270,9 +1269,10 @@ the objects SHOULD be selected as follows:
    decide the one that is scheduled to be sent first.
 3. If two objects in response to the same request have the same subscriber
    and publisher priority and belong to the same group of the same track, the
-   one with **the lowest Subgroup ID** (for tracks with delivery preference
-   Subgroup), or **the lowest Object ID** (for tracks with delivery preference
-   Datagram) is scheduled to be sent first.
+   one with **the lowest Subgroup ID** (for objects with forwarding preference
+   Subgroup), or **the lowest Object ID** (for objects with forwarding preference
+   Datagram) is scheduled to be sent first.  If the two objects have
+   different Forwarding Preferences the order is implementation dependent.
 
 The definition of "scheduled to be sent first" in the algorithm is implementation
 dependent and is constrained by the prioritization interface of the underlying
@@ -2596,7 +2596,7 @@ PUBLISH_DONE Message {
 opened for this subscription.  This helps the subscriber know if it has received
 all of the data published in this subscription by comparing the number of
 streams received.  The subscriber can immediately remove all subscription state
-once the same number of streams have been processed.  If the track had
+once the same number of streams have been processed.  If the track had only Objects with
 Forwarding Preference = Datagram, the publisher MUST set Stream Count to 0.  If
 the publisher is unable to set Stream Count to the exact number of streams
 opened for the subscription, it MUST set Stream Count to 2^62 - 1. Subscribers
@@ -3112,9 +3112,8 @@ the datagram.  See {{object-datagram}}.
 An endpoint that receives an unknown stream or datagram type MUST close the
 session.
 
-Every Track has a single 'Object Forwarding Preference' and the Original
-Publisher MUST NOT mix different forwarding preferences within a single track
-(see {{malformed-tracks}}).
+Every Object has a 'Object Forwarding Preference' and the Original Publisher
+MAY mix different forwarding preference within a single track.
 
 ## Track Alias
 
@@ -3149,13 +3148,10 @@ A canonical MoQ Object has the following information:
 the Object ({{priorities}}).
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Subgroup and Datagram.  Note that the Original
-Publisher determines the Forwarding Preference for the entire Track, and is a
-Track property that is implicitly signaled by the delivery of any Object using
-either Subgroups or Datagrams. Once the property is established for one Object
-of a Track, the same value MUST be used for all Objects of the Track.
-In a subscription, an Object MUST be sent according to its `Object Forwarding
-Preference`.
+an object. The preferences are Subgroup and Datagram.  `Object Forwarding
+Preference` is a property of an individual Object and can vary among
+Objects in the same Track.  In a subscription, an Object MUST be sent
+according to its `Object Forwarding Preference`.
 
 * Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}})
   within the Group. This field is omitted if the `Object Forwarding Preference`
@@ -3733,38 +3729,6 @@ SUBGROUP_HEADER {
 
 The following Object Extension Headers are defined in MOQT.
 
-## Prior Group ID Gap
-
-Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
-containing the number of Groups prior to the current Group that do not and will
-never exist. For example, if the Original Publisher is publishing an Object in
-Group 7 and knows it will never publish any Objects in Group 8 or Group 9, it
-can include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it
-sees fit.  A Track is considered malformed (see {{malformed-tracks}}) if any of
-the following conditions are detected:
-
- * An Object contains more than one instance of Prior Group ID Gap.
- * A Group contains more than one Object with different values for Prior Group
-    ID Gap.
- * An Object has a Prior Group ID Gap larger than the Group ID.
- * An endpoint receives an Object with a Prior Group ID Gap covering an Object
-   it previously received.
- * An endpoint receives an Object with a Group ID within a previously
-   communicated gap.
-
-This extension is optional, as publishers might not know the prior gap gize, or
-there may not be a gap. If Prior Group ID Gap is not present, the receiver
-cannot infer any information about the existence of prior groups (see
-{{group-ids}}).
-
-This extension can be added by the Original Publisher, but MUST NOT be added by
-relays. This extension MAY be removed by relay when the object in question is
-served via FETCH, and the gap that the extension communicates is already
-communicated implicitly in the FETCH response; it MUST NOT be modified or
-removed otherwise.
-
-An Object MUST NOT contain more than one instance of this extension header.
-
 ## Immutable Extensions
 
 The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
@@ -3808,6 +3772,38 @@ x = e2e Authenticated Data
 y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
 ~~~
+
+An Object MUST NOT contain more than one instance of this extension header.
+
+## Prior Group ID Gap
+
+Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
+containing the number of Groups prior to the current Group that do not and will
+never exist. For example, if the Original Publisher is publishing an Object in
+Group 7 and knows it will never publish any Objects in Group 8 or Group 9, it
+can include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it
+sees fit.  A Track is considered malformed (see {{malformed-tracks}}) if any of
+the following conditions are detected:
+
+ * An Object contains more than one instance of Prior Group ID Gap.
+ * A Group contains more than one Object with different values for Prior Group
+    ID Gap.
+ * An Object has a Prior Group ID Gap larger than the Group ID.
+ * An endpoint receives an Object with a Prior Group ID Gap covering an Object
+   it previously received.
+ * An endpoint receives an Object with a Group ID within a previously
+   communicated gap.
+
+This extension is optional, as publishers might not know the prior gap gize, or
+there may not be a gap. If Prior Group ID Gap is not present, the receiver
+cannot infer any information about the existence of prior groups (see
+{{group-ids}}).
+
+This extension can be added by the Original Publisher, but MUST NOT be added by
+relays. This extension MAY be removed by relay when the object in question is
+served via FETCH, and the gap that the extension communicates is already
+communicated implicitly in the FETCH response; it MUST NOT be modified or
+removed otherwise.
 
 An Object MUST NOT contain more than one instance of this extension header.
 
