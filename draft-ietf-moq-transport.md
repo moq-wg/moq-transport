@@ -611,7 +611,7 @@ Tracks and Objects can have additional relay-visible fields, known as Extensions
 which do not require negotiation, and can be used to alter
 MoQT Object distribution.
 
-Extension Headers are defined in {{moqt-extension-headers}} as well as external
+Extension Headers are defined in {{extension-headers}} as well as external
 specifications and are registered in an IANA table {{iana}}. These
 specifications define the type and value of the header, along with any rules
 concerning processing, modification, caching and forwarding. A relay which is
@@ -3714,7 +3714,7 @@ SUBGROUP_HEADER {
 
 ~~~
 
-# MoQT Extension Headers {#moqt-extension-headers}
+# Extension Headers {#extension-headers}
 
 The following Extension Headers are defined in MOQT. Each Extension Header
 specifies whether it can be used with Tracks, Objects, or both.
@@ -3771,12 +3771,11 @@ Prior Group ID Gap only applies to Objects, not Tracks.
 
 Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
 containing the number of Groups prior to the current Group that do not and will
-never exist. This is equivalent to receiving an `End of Group` status with
-Object ID 0 for each skipped Group. For example, if the Original Publisher is
-publishing an Object in Group 7 and knows it will never publish any Objects in
-Group 8 or Group 9, it can include Prior Group ID Gap = 2 in any number of
-Objects in Group 10, as it sees fit.  A Track is considered malformed (see
-{{malformed-tracks}}) if any of the following conditions are detected:
+never exist. For example, if the Original Publisher is publishing an Object in
+Group 7 and knows it will never publish any Objects in Group 8 or Group 9, it
+can include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it
+sees fit.  A Track is considered malformed (see {{malformed-tracks}}) if any of
+the following conditions are detected:
 
  * An Object contains more than one instance of Prior Group ID Gap.
  * A Group contains more than one Object with different values for Prior Group
@@ -3793,7 +3792,10 @@ cannot infer any information about the existence of prior groups (see
 {{group-ids}}).
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
-relays. This extension MUST NOT be modified or removed.
+relays. This extension MAY be removed by relay when the object in question is
+served via FETCH, and the gap that the extension communicates is already
+communicated implicitly in the FETCH response; it MUST NOT be modified or
+removed otherwise.
 
 An Object MUST NOT contain more than one instance of this extension header.
 
