@@ -401,15 +401,16 @@ using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.
 
 When an Object's forwarding preference (see {{object-properties}}) is
-"Datagram", it is not sent in Subgroups and the
-description in the remainder of this section does not apply.
+"Datagram", it is not sent in Subgroups, does not belong to a Subgroup in any
+way, and the description in the remainder of this section does not apply.
 
 Streams offer in-order reliable delivery and the ability to cancel sending and
 retransmission of data. Furthermore, many QUIC and WebTransport implementations
 offer the ability to control the relative scheduling priority of pending stream
 data.
 
-Every object within a Group belongs to exactly one Subgroup.
+Every object within a Group belongs to exactly one Subgroup (but zero if its
+forwarding preference is Datagram).
 
 When Objects are sent in a subscription (see {{subscriptions}}),  Objects
 from two subgroups MUST NOT be sent on the same stream, and Objects from the
@@ -3077,7 +3078,9 @@ An endpoint that receives an unknown stream or datagram type MUST close the
 session.
 
 Every Object has a 'Object Forwarding Preference' and the Original Publisher
-MAY mix different forwarding preference within a single track.
+MAY mix different forwarding preference within a single track. As a Subgroup
+is by definition a set of objects delivered with Subgroup forwarding preference,
+objects with a Subgroup ID have the same forwarding preference.
 
 ## Track Alias
 
@@ -3616,7 +3619,7 @@ Bitmask | Condition if set | Condition if not set (0)
 0x08 | Group ID field is present | Group ID is the prior Object's Group ID
 0x10 | Priority field is present | Priority is the prior Object's Priority
 0x20 | Extensions field is present | Extensions field is not present
-0x40 | `PROTOCOL_VIOLATION` | N/A
+0x40 | Datagram: ignore the two least significant bits | Use the subgroup ID in the two least significant bits
 0x80 | `PROTOCOL_VIOLATION` | N/A
 
 If the first Object in the FETCH response uses a flag that references fields in
@@ -3626,8 +3629,8 @@ the prior Object, the Subscriber MUST close the session with a
 The Extensions structure is defined in {{object-extensions}}.
 
 When encoding an Object with a Forwarding Preference of "Datagram" (see
-{{object-properties}}), the Publisher treats it as having a Subgroup ID equal to
-the Object ID.
+{{object-properties}}), the object has no Subgroup ID. The publisher MUST SET bit 0x40 to '1'. When 0x40 is
+set, it SHOULD set the two least significant bits to zero and the subscriber MUST ignore the bits.
 
 ## Examples
 
