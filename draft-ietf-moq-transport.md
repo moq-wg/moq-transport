@@ -1560,7 +1560,7 @@ terminated.
 
 ## Relay Track Handling
 
-A relay MUST include Track Extension Headers when sending any PUBLISH,
+A relay MUST include all Extension Headers associated with a Track when sending any PUBLISH,
 SUBSCRIBE_OK, TRACK_STATUS_OK or FETCH_OK, unless allowed by the extension's
 specification (see {{extension-headers}}).
 
