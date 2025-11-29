@@ -614,8 +614,7 @@ MoQT Object distribution.
 Extension Headers are defined in {{moqt-extension-headers}} as well as external
 specifications and are registered in an IANA table {{iana}}. These
 specifications define the type and value of the header, along with any rules
-concerning processing, modification, caching and forwarding. A relay which is
-coded to implement these rules is said to "support" the extension.
+concerning processing, modification, caching and forwarding.
 
 If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
 cached as part of the Track or Object and MUST be forwarded by relays.
