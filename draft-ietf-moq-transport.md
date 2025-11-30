@@ -3629,8 +3629,9 @@ the prior Object, the Subscriber MUST close the session with a
 The Extensions structure is defined in {{object-extensions}}.
 
 When encoding an Object with a Forwarding Preference of "Datagram" (see
-{{object-properties}}), the object has no Subgroup ID. The publisher MUST SET bit 0x40 to '1'. When 0x40 is
-set, it SHOULD set the two least significant bits to zero and the subscriber MUST ignore the bits.
+{{object-properties}}), the object has no Subgroup ID. The publisher MUST SET bit 0x40 to '1'.
+When 0x40 is set, it SHOULD set the two least significant bits to zero and the subscriber
+MUST ignore the bits.
 
 ## Examples
 
