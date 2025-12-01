@@ -3577,7 +3577,7 @@ DELIVERY_TIMEOUT (0x2):
 SESSION_CLOSED (0x3):
 : The publisher session is being closed.
 
-UNKOWN_OBJECT_STATUS (0x4):
+UNKNOWN_OBJECT_STATUS (0x4):
 : In response to a FETCH, the publisher is unable to determine the Status
 of the next Object in the requested range.
 
@@ -4000,13 +4000,14 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
 
-| Name             | Code | Specification                |
-|:-----------------|:----:|:-----------------------------|
-| INTERNAL_ERROR   | 0x0  | {{closing-subgroup-streams}} |
-| CANCELLED        | 0x1  | {{closing-subgroup-streams}} |
-| DELIVERY_TIMEOUT | 0x2  | {{closing-subgroup-streams}} |
-| SESSION_CLOSED   | 0x3  | {{closing-subgroup-streams}} |
-| MALFORMED_TRACK  | 0x12 | {{closing-subgroup-streams}} |
+| Name                  | Code | Specification                |
+|:----------------------|:----:|:-----------------------------|
+| INTERNAL_ERROR        | 0x0  | {{closing-subgroup-streams}} |
+| CANCELLED             | 0x1  | {{closing-subgroup-streams}} |
+| DELIVERY_TIMEOUT      | 0x2  | {{closing-subgroup-streams}} |
+| SESSION_CLOSED        | 0x3  | {{closing-subgroup-streams}} |
+| UNKNOWN_OBJECT_STATUS | 0x4  | {{closing-subgroup-streams}} |
+| MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
 
 # Contributors
 {:numbered="false"}
