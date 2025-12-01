@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 2 June 2026                                       I. Swett, Ed.
+Expires: 4 June 2026                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        29 November 2025
+                                                         1 December 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 June 2026.
+   This Internet-Draft will expire on 4 June 2026.
 
 Copyright Notice
 
@@ -3423,8 +3423,8 @@ Table of Contents
       is a normal Object or mark the end of a group or track.  See
       Section 10.2.1.1 below.
 
-   *  Object Extensions : A sequence of Extension Headers.  See
-      Section 10.2.1.2.
+   *  Object Extensions : A sequence of Extensions associated with the
+      object.  See Section 10.2.1.2.
 
    *  Object Payload: An opaque payload intended for an End Subscriber
       and SHOULD NOT be processed by a relay.  Only present when 'Object
