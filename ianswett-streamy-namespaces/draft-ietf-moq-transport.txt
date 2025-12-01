@@ -3365,7 +3365,7 @@ Table of Contents
    the control stream.  When there are changes to the namespaces or
    subscriptions being published and the subscriber is subscribed to
    them, the publisher sends the corresponding NAMESPACE,
-   PUBLISH_NAMESPACE_DONE, or PUBLISH messages.
+   NAMESPACE_DONE, or PUBLISH messages.
 
    A subscriber cannot make overlapping namespace subscriptions on a
    single session.  Within a session, if a publisher receives a
