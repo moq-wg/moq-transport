@@ -3104,7 +3104,7 @@ If it is an error, the stream will be immediately closed via FIN.
 Also, any matching PUBLISH messages without an `Established` Subscription will be
 sent on the control stream. When there are changes to the namespaces or
 subscriptions being published and the subscriber is subscribed to them,
-the publisher sends the corresponding NAMESPACE, PUBLISH_NAMESPACE_DONE,
+the publisher sends the corresponding NAMESPACE, NAMESPACE_DONE,
 or PUBLISH messages.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
