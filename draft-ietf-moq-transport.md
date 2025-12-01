@@ -2416,9 +2416,10 @@ SUBSCRIBE_OK Message {
 
 ## REQUEST_UPDATE {#message-request-update}
 
-The sender of a request can later send a REQUEST_UPDATE to modify it.  The
-receiver of a PUBLISH can also send REQUEST_UPDATE to modify subscriber sent
-parameters.
+The sender of a request (SUBSCRIBE, PUBLISH, FETCH, TRACK_STATUS,
+PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE) can later send a REQUEST_UPDATE to
+modify it.  A subscriber can also send REQUEST_UPDATE to modify parameters of a
+subscription established with PUBLISH.
 
 The receiver of a REQUEST_UPDATE MUST respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful.
