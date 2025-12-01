@@ -3163,7 +3163,7 @@ according to its `Object Forwarding Preference`.
 * Object Status: An enumeration used to indicate whether the Object is a normal Object
   or mark the end of a group or track. See {{object-status}} below.
 
-* Object Extensions : A sequence of Extension Headers. See
+* Object Extensions : A sequence of Extensions associated with the object. See
   {{object-extensions}}.
 
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
