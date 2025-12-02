@@ -1427,7 +1427,12 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.9.2.10.1"><a href="#section-9.10" class="auto internal xref">9.10</a>. <a href="#name-subscribe_ok" class="internal xref">SUBSCRIBE_OK</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.11">
-                <p id="section-toc.1-1.9.2.11.1"><a href="#section-9.11" class="auto internal xref">9.11</a>. <a href="#name-subscribe_update" class="internal xref">SUBSCRIBE_UPDATE</a></p>
+                <p id="section-toc.1-1.9.2.11.1"><a href="#section-9.11" class="auto internal xref">9.11</a>. <a href="#name-request_update" class="internal xref">REQUEST_UPDATE</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.11.2.1">
+                    <p id="section-toc.1-1.9.2.11.2.1.1"><a href="#section-9.11.1" class="auto internal xref">9.11.1</a>.  <a href="#name-updating-subscriptions" class="internal xref">Updating Subscriptions</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.12">
                 <p id="section-toc.1-1.9.2.12.1"><a href="#section-9.12" class="auto internal xref">9.12</a>. <a href="#name-unsubscribe" class="internal xref">UNSUBSCRIBE</a></p>
@@ -2715,7 +2720,7 @@ initiates a subscription to a track by sending the SUBSCRIBE message.
 The publisher either accepts or rejects the subscription using
 SUBSCRIBE_OK or REQUEST_ERROR.  Once either of these sequences is
 successful, the subscription moves to the <code>Established</code> state and can
-be updated by the subscriber using SUBSCRIBE_UPDATE.  Either endpoint
+be updated by the subscriber using REQUEST_UPDATE.  Either endpoint
 can terminate an <code>Established</code> subscription, moving it to the
 <code>Terminated</code> state.  The subscriber terminates a subscription in the
 <code>Pending (Subscriber)</code> or <code>Established</code> states using
@@ -2741,7 +2746,7 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
               |                 V    V                  |
               |            +-------------+              |
               |            | Established | ------+
-              |            |             |       | SUBSCRIBE_UPDATE
+              |            |             |       | REQUEST_UPDATE
               |            +-------------+ &lt;-----+
               |                 |    |                  |
               +---- UNSUBSCRIBE |    | PUBLISH_DONE ----+
@@ -2764,7 +2769,7 @@ active.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
 The publisher does not send Objects if the Forward State is 0, and does send them
 if the Forward State is 1.  The initiator of the subscription sets the initial
 Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_OK
-or SUBSCRIBE_UPDATE to update the Forward State. Control messages, such as
+or REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.15</a>) are sent regardless of the forward state.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
 <p id="section-5.1-7">Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays <span class="bcp14">MUST NOT</span> send any PUBLISH messages
@@ -2898,7 +2903,7 @@ Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
 <code>Largest Object</code> and observe the <code>Largest Location</code> in the response.  If the
 Object ID is below the application's threshold, the subscriber sends a FETCH for
 the beginning of the Group.  If the Object ID is above the threshold and the
-Track supports dynamic groups, the subscriber sends a SUBSCRIBE_UPDATE message with the
+Track supports dynamic groups, the subscriber sends a REQUEST_UPDATE message with the
 NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
 <a href="#new-group-request" class="auto internal xref">Section 9.2.1.12</a>).<a href="#section-5.1.3.1-2" class="pilcrow">¶</a></p>
 <p id="section-5.1.3.1-3">Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
@@ -3055,7 +3060,7 @@ priorities.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
 A lower priority number indicates higher priority; the highest priority is 0.<a href="#section-7.1-5" class="pilcrow">¶</a></p>
 <p id="section-7.1-6"><code>Subscriber Priority</code> is a priority number associated with an individual
 request.  It is specified in the SUBSCRIBE or FETCH message, and can be
-updated via SUBSCRIBE_UPDATE message.  The subscriber priority of an individual
+updated via REQUEST_UPDATE message.  The subscriber priority of an individual
 schedulable object is the subscriber priority of the request that caused that
 object to be sent. When subscriber priority is changed, a best effort <span class="bcp14">SHOULD</span> be
 made to apply the change to all objects that have not been scheduled, but it is
@@ -3258,7 +3263,7 @@ multiple subscribers request the same Track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 Track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
-Because SUBSCRIBE_UPDATE only allows narrowing a subscription, relays that
+Because MOQT restricts widening a subscription, relays that
 aggregate upstream subscriptions can subscribe using the Largest Object
 filter to avoid churn as downstream subscribers with disparate filters
 subscribe and unsubscribe from a Track.<a href="#section-8.4-5" class="pilcrow">¶</a></p>
@@ -3334,7 +3339,7 @@ one publisher is available, the Relay <span class="bcp14">MAY</span> send the FE
 <p id="section-8.5-10">When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 <code>Established</code> upstream subscriptions, it <span class="bcp14">MUST</span> reply with SUBSCRIBE_OK.  If the
 SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
-State=0, the Relay <span class="bcp14">MUST</span> send SUBSCRIBE_UPDATE with Forward=1 to all publishers.
+State=0, the Relay <span class="bcp14">MUST</span> send REQUEST_UPDATE with Forward=1 to all publishers.
 If there are no <code>Established</code> upstream subscriptions for the requested Track, the Relay
 <span class="bcp14">MUST</span> send a SUBSCRIBE request to each publisher that has published the
 subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
@@ -3500,7 +3505,7 @@ MOQT Control Message {
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x2</td>
-            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_UPDATE (<a href="#message-subscribe-update" class="auto internal xref">Section 9.11</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">REQUEST_UPDATE (<a href="#message-request-update" class="auto internal xref">Section 9.11</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xA</td>
@@ -3577,7 +3582,7 @@ ongoing requests, and supports the endpoint's ability to limit the concurrency
 and frequency of requests.  Request IDs for one endpoint increment independently
 from those sent by the peer endpoint.  The client's Request ID starts at 0 and
 are even and the server's Request ID starts at 1 and are odd.  The Request ID
-increments by 2 with each FETCH, SUBSCRIBE, SUBSCRIBE_UPDATE,
+increments by 2 with each FETCH, SUBSCRIBE, REQUEST_UPDATE,
 SUBSCRIBE_NAMESPACE, PUBLISH, PUBLISH_NAMESPACE or TRACK_STATUS request.
 Other messages with a Request ID field reference the Request ID of another
 message for correlation. If an endpoint receives a Request ID that is not valid
@@ -3627,7 +3632,7 @@ these parameters to appear in Setup messages.<a href="#section-9.2.1-1" class="p
 <a href="#section-9.2.1.1" class="section-number selfRef">9.2.1.1. </a><a href="#name-authorization-token-paramet" class="section-name selfRef">AUTHORIZATION TOKEN Parameter</a>
             </h5>
 <p id="section-9.2.1.1-1">The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) <span class="bcp14">MAY</span> appear in a
-CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
+CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
 SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
 parameter conveys information to authorize the sender to perform the operation
 carrying the parameter.<a href="#section-9.2.1.1-1" class="pilcrow">¶</a></p>
@@ -3830,7 +3835,8 @@ subscription inherit this priority, unless they specifically override it.<a href
 <a href="#section-9.2.1.5" class="section-number selfRef">9.2.1.5. </a><a href="#name-subscriber-priority-paramet" class="section-name selfRef">SUBSCRIBER PRIORITY Parameter</a>
             </h5>
 <p id="section-9.2.1.5-1">The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) <span class="bcp14">MAY</span> appear in a
-SUBSCRIBE, SUBSCRIBE_UPDATE, PUBLISH_OK or FETCH message. It is an
+SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
+PUBLISH_OK message. It is an
 integer expressing the priority of a subscription relative to other
 subscriptions and fetch responses in the same session. Lower numbers get higher
 priority.  See <a href="#priorities" class="auto internal xref">Section 7</a>.  The range is restricted to 0-255.  If a
@@ -3866,7 +3872,7 @@ REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).<a href="#sectio
 <a href="#section-9.2.1.7" class="section-number selfRef">9.2.1.7. </a><a href="#name-subscription-filter-paramet" class="section-name selfRef">SUBSCRIPTION FILTER Parameter</a>
             </h5>
 <p id="section-9.2.1.7-1">The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) <span class="bcp14">MAY</span> appear in a
-SUBSCRIBE, PUBLISH_OK or SUBSCRIBE_UPDATE message. It is a
+SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a subscription) message. It is a
 length-prefixed Subscription Filter (see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>).  If the
 length of the Subscription Filter does not match the parameter length, the
 publisher <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.7-1" class="pilcrow">¶</a></p>
@@ -3886,9 +3892,9 @@ the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
 can terminate the subscription prior to or after the expiry time.<a href="#section-9.2.1.8-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.8-2">The receiver of the parameter can extend the subscription by sending a
-SUBSCRIBE_UPDATE (TODO: SUBSCRIPTION_UPDATE). If the receiver of the parameter
+REQUEST_UPDATE. If the receiver of the parameter
 has one or more updated AUTHORIZATION_TOKENs, it <span class="bcp14">SHOULD</span> include those in the
-SUBSCRIBE_UPDATE. Relays that send this parameter and applications that receive
+REQUEST_UPDATE. Relays that send this parameter and applications that receive
 it <span class="bcp14">MAY</span> introduce jitter to prevent many endpoints from updating
 simultaneously.<a href="#section-9.2.1.8-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.8-3">If the EXPIRES parameter is 0 or is not present in a message, the subscription
@@ -3901,7 +3907,7 @@ does not expire or expires at an unknown time.<a href="#section-9.2.1.8-3" class
 <a href="#section-9.2.1.9" class="section-number selfRef">9.2.1.9. </a><a href="#name-largest-object-parameter" class="section-name selfRef">LARGEST OBJECT Parameter</a>
             </h5>
 <p id="section-9.2.1.9-1">The LARGEST_OBJECT parameter (Parameter Type 0x9) <span class="bcp14">MAY</span> appear in SUBSCRIBE_OK,
-PUBLISH or in REQUEST_OK (in response to SUBSCRIBE_UPDATE or TRACK_STATUS).  It is a
+PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE or TRACK_STATUS).  It is a
 length-prefixed Location structure (see <a href="#location-structure" class="auto internal xref">Section 1.4.1</a>) containing the
 largest Location in the Track observed by the sending endpoint (see
 <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>.  If Objects have been published on this Track the
@@ -3916,12 +3922,12 @@ any Objects in the Track.<a href="#section-9.2.1.9-2" class="pilcrow">¶</a></p>
 <a href="#section-9.2.1.10" class="section-number selfRef">9.2.1.10. </a><a href="#name-forward-parameter" class="section-name selfRef">FORWARD Parameter</a>
             </h5>
 <p id="section-9.2.1.10-1">The FORWARD parameter (Parameter Type 0x10) <span class="bcp14">MAY</span> appear in SUBSCRIBE,
-SUBSCRIBE_UPDATE, PUBLISH, PUBLISH_OK and
+REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
 SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying the
 Forwarding State on affected subscriptions (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).  The
 allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives a
 value outside this range, it <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.10-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.10-2">If the parameter is omitted from SUBSCRIBE_UPDATE, the value for the
+<p id="section-9.2.1.10-2">If the parameter is omitted from REQUEST_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
 message, the default value is 1.<a href="#section-9.2.1.10-2" class="pilcrow">¶</a></p>
 </section>
@@ -3934,7 +3940,7 @@ message, the default value is 1.<a href="#section-9.2.1.10-2" class="pilcrow">¶
 <p id="section-9.2.1.11-1">The DYNAMIC_GROUPS parameter (parameter type 0x30) <span class="bcp14">MAY</span> appear in PUBLISH or
 SUBSCRIBE_OK. The allowed values are 0 or 1. When the value is 1, it indicates
 that the subscriber can request the Original Publisher to start a new Group
-by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or SUBSCRIBE_UPDATE
+by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
 for this Track. If an endpoint receives a value larger than 1, it <span class="bcp14">MUST</span> close
 the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.11-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.11-2">Relays <span class="bcp14">MUST</span> preserve the value of this parameter received from an upstream
@@ -3948,10 +3954,10 @@ subscribers.<a href="#section-9.2.1.11-2" class="pilcrow">¶</a></p>
 <a href="#section-9.2.1.12" class="section-number selfRef">9.2.1.12. </a><a href="#name-new-group-request-parameter" class="section-name selfRef">NEW GROUP REQUEST Parameter</a>
             </h5>
 <p id="section-9.2.1.12-1">The NEW_GROUP_REQUEST parameter (parameter type 0x32) <span class="bcp14">MAY</span> appear in PUBLISH_OK,
-SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer representing the largest Group
+SUBSCRIBE or REQUEST_UPDATE for a subscription.  It is an integer representing the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber <span class="bcp14">MUST NOT</span> send
-this parameter in PUBLISH_OK or SUBSCRIBE_UPDATE if the publisher did not
+this parameter in PUBLISH_OK or REQUEST_UPDATE if the publisher did not
 include DYNAMIC_GROUPS=1 when establishing the subscription.  A subscriber <span class="bcp14">MAY</span>
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
@@ -3967,7 +3973,7 @@ requirements that it be equal to the NEW_GROUP_REQUEST parameter value.<a href="
 <p id="section-9.2.1.12-4">A relay that receives a NEW_GROUP_REQUEST for a Track without an <code>Established</code>
 subscription <span class="bcp14">MUST</span> include the NEW_GROUP_REQUEST when subscribing upstream.<a href="#section-9.2.1.12-4" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.12-5">A relay that receives a NEW_GROUP_REQUEST for an <code>Established</code> subscription with a
-value of 0 or a value larger than the Largest Group <span class="bcp14">MUST</span> send a SUBSCRIBE_UPDATE
+value of 0 or a value larger than the Largest Group <span class="bcp14">MUST</span> send a REQUEST_UPDATE
 including the NEW_GROUP_REQUEST to the publisher unless:<a href="#section-9.2.1.12-5" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-9.2.1.12-6">
 <li id="section-9.2.1.12-6.1">
@@ -4255,7 +4261,7 @@ endpoint is blocked. More on Request ID in <a href="#request-id" class="auto int
         <h3 id="name-request_ok">
 <a href="#section-9.7" class="section-number selfRef">9.7. </a><a href="#name-request_ok" class="section-name selfRef">REQUEST_OK</a>
         </h3>
-<p id="section-9.7-1">The REQUEST_OK message is sent to a response to SUBSCRIBE_UPDATE, TRACK_STATUS,
+<p id="section-9.7-1">The REQUEST_OK message is sent to a response to REQUEST_UPDATE, TRACK_STATUS,
 SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests. The unique request ID in the
 REQUEST_OK is used to associate it with the correct type of request.<a href="#section-9.7-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_ok-message"></span><div id="moq-transport-request-ok">
@@ -4523,69 +4529,76 @@ it <span class="bcp14">MUST</span> close the session with error <code>DUPLICATE_
         </ul>
 </section>
 </div>
-<div id="message-subscribe-update">
+<div id="message-request-update">
 <section id="section-9.11">
-        <h3 id="name-subscribe_update">
-<a href="#section-9.11" class="section-number selfRef">9.11. </a><a href="#name-subscribe_update" class="section-name selfRef">SUBSCRIBE_UPDATE</a>
+        <h3 id="name-request_update">
+<a href="#section-9.11" class="section-number selfRef">9.11. </a><a href="#name-request_update" class="section-name selfRef">REQUEST_UPDATE</a>
         </h3>
-<p id="section-9.11-1">A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
-subscription.<a href="#section-9.11-1" class="pilcrow">¶</a></p>
-<p id="section-9.11-2">When a subscriber decreases the Start Location of the Subscription Filter
-(see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>), the Start Location can be smaller than the Track's
-Largest Location, similar to a new Subscription. FETCH can be used to retrieve
-any necessary Objects smaller than the current Largest Location.<a href="#section-9.11-2" class="pilcrow">¶</a></p>
-<p id="section-9.11-3">When a subscriber increases the End Location, the Largest Object at
-the publisher might already be larger than the previous End Location. This will
-create a gap in the subscription. The REQUEST_OK in response to the
-SUBSCRIBE_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
-can issue a FETCH to retrieve the omitted Objects, if any.<a href="#section-9.11-3" class="pilcrow">¶</a></p>
-<p id="section-9.11-4">When a subscriber narrows their subscription (increase the Start Location and/or
-decrease the End Group), it might still receive Objects outside the
-new range if the publisher sent them before the update was processed.<a href="#section-9.11-4" class="pilcrow">¶</a></p>
-<p id="section-9.11-5">The receiver of a SUBSCRIBE_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_OK
-or REQUEST_ERROR message indicating if the update was successful.  When an
-update is unsuccessful, the publisher <span class="bcp14">MUST</span> also terminate the subscription with
-PUBLISH_DONE with error code <code>UPDATE_FAILED</code>.<a href="#section-9.11-5" class="pilcrow">¶</a></p>
-<p id="section-9.11-6">Like SUBSCRIBE, End Group <span class="bcp14">MUST</span> be greater than or equal to the Group specified
-in <code>Start</code>.<a href="#section-9.11-6" class="pilcrow">¶</a></p>
-<p id="section-9.11-7">If a parameter previously set on the subscription in <code>SUBSCRIBE</code>, <code>PUBLISH_OK</code>
-or <code>SUBSCRIBE_UPDATE</code> is not present in <code>SUBSCRIBE_UPDATE</code>, its value remains
-unchanged.<a href="#section-9.11-7" class="pilcrow">¶</a></p>
-<p id="section-9.11-8">There is no mechanism to remove a parameter from a subscription.<a href="#section-9.11-8" class="pilcrow">¶</a></p>
-<p id="section-9.11-9">The format of SUBSCRIBE_UPDATE is as follows:<a href="#section-9.11-9" class="pilcrow">¶</a></p>
-<span id="name-moqt-subscribe_update-messa"></span><div id="moq-transport-subscribe-update-format">
+<p id="section-9.11-1">The sender of a request (SUBSCRIBE, PUBLISH, FETCH, TRACK_STATUS,
+PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE) can later send a REQUEST_UPDATE to
+modify it.  A subscriber can also send REQUEST_UPDATE to modify parameters of a
+subscription established with PUBLISH.<a href="#section-9.11-1" class="pilcrow">¶</a></p>
+<p id="section-9.11-2">The receiver of a REQUEST_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_OK
+or REQUEST_ERROR message indicating if the update was successful.<a href="#section-9.11-2" class="pilcrow">¶</a></p>
+<p id="section-9.11-3">If a parameter previously set on the request is not present in
+<code>REQUEST_UPDATE</code>, its value remains unchanged.<a href="#section-9.11-3" class="pilcrow">¶</a></p>
+<p id="section-9.11-4">There is no mechanism to remove a parameter from a request.<a href="#section-9.11-4" class="pilcrow">¶</a></p>
+<p id="section-9.11-5">The format of REQUEST_UPDATE is as follows:<a href="#section-9.11-5" class="pilcrow">¶</a></p>
+<span id="name-moqt-request_update-message"></span><div id="moq-transport-request-update-format">
 <figure id="figure-13">
-          <div class="alignLeft art-text artwork" id="section-9.11-10.1">
+          <div class="alignLeft art-text artwork" id="section-9.11-6.1">
 <pre>
-SUBSCRIBE_UPDATE Message {
+REQUEST_UPDATE Message {
   Type (i) = 0x2,
   Length (16),
   Request ID (i),
-  Subscription Request ID (i),
+  Existing Request ID (i),
   Number of Parameters (i),
   Parameters (..) ...
 }
 </pre>
 </div>
 <figcaption><a href="#figure-13" class="selfRef">Figure 13</a>:
-<a href="#name-moqt-subscribe_update-messa" class="selfRef">MOQT SUBSCRIBE_UPDATE Message</a>
+<a href="#name-moqt-request_update-message" class="selfRef">MOQT REQUEST_UPDATE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.11-11.1">
-            <p id="section-9.11-11.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.11-11.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.11-7.1">
+            <p id="section-9.11-7.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.11-7.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.11-11.2">
-            <p id="section-9.11-11.2.1">Subscription Request ID: The Request ID of the SUBSCRIBE
-(<a href="#message-subscribe-req" class="auto internal xref">Section 9.9</a>) this message is updating.  This <span class="bcp14">MUST</span> match an
-existing Request ID.  The publisher <span class="bcp14">MUST</span> close the session with `
-<code>PROTOCOL_VIOLATION</code> if the subscriber specifies an invalid Subscription
-Request ID.<a href="#section-9.11-11.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.11-7.2">
+            <p id="section-9.11-7.2.1">Existing Request ID: The Request ID of the request this message is
+updating.  This <span class="bcp14">MUST</span> match the Request ID of an existing request.  The
+receiver <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code> if the sender
+specifies an invalid Existing Request ID, or if the parameters included
+in the REQUEST_UPDATE are invalid for the type of request being modified.<a href="#section-9.11-7.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.11-11.3">
-            <p id="section-9.11-11.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.11-11.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.11-7.3">
+            <p id="section-9.11-7.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.11-7.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<div id="updating-subscriptions">
+<section id="section-9.11.1">
+          <h4 id="name-updating-subscriptions">
+<a href="#section-9.11.1" class="section-number selfRef">9.11.1. </a><a href="#name-updating-subscriptions" class="section-name selfRef">Updating Subscriptions</a>
+          </h4>
+<p id="section-9.11.1-1">When a subscriber decreases the Start Location of the Subscription Filter
+(see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>), the Start Location can be smaller than the Track's
+Largest Location, similar to a new Subscription. FETCH can be used to retrieve
+any necessary Objects smaller than the current Largest Location.<a href="#section-9.11.1-1" class="pilcrow">¶</a></p>
+<p id="section-9.11.1-2">When a subscriber increases the End Location, the Largest Object at
+the publisher might already be larger than the previous End Location. This will
+create a gap in the subscription. The REQUEST_OK in response to the
+REQUEST_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
+can issue a FETCH to retrieve the omitted Objects, if any.<a href="#section-9.11.1-2" class="pilcrow">¶</a></p>
+<p id="section-9.11.1-3">When a subscriber narrows their subscription (increase the Start Location and/or
+decrease the End Group), it might still receive Objects outside the
+new range if the publisher sent them before the update was processed.<a href="#section-9.11.1-3" class="pilcrow">¶</a></p>
+<p id="section-9.11.1-4">When a subscription
+update is unsuccessful, the publisher <span class="bcp14">MUST</span> also terminate the subscription with
+PUBLISH_DONE with error code <code>UPDATE_FAILED</code>.<a href="#section-9.11.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="message-unsubscribe">
@@ -4847,8 +4860,8 @@ its implementation defined limit.<a href="#section-9.15-10.14.1" class="pilcrow"
           <dd class="break"></dd>
 <dt id="section-9.15-10.17">UPDATE_FAILED (0x8):</dt>
           <dd style="margin-left: 1.5em" id="section-9.15-10.18">
-            <p id="section-9.15-10.18.1">SUBSCRIBE_UPDATE failed on this subscription (see
-<a href="#message-subscribe-update" class="auto internal xref">Section 9.11</a>).<a href="#section-9.15-10.18.1" class="pilcrow">¶</a></p>
+            <p id="section-9.15-10.18.1">REQUEST_UPDATE failed on this subscription (see
+<a href="#message-request-update" class="auto internal xref">Section 9.11</a>).<a href="#section-9.15-10.18.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -5201,7 +5214,7 @@ appropriate REQUEST_ERROR message.<a href="#section-9.19-3" class="pilcrow">¶</
 publishers, or <span class="bcp14">MAY</span> initiate a subscription (subject to authorization) as
 described in <a href="#publisher-interactions" class="auto internal xref">Section 8.5</a> to determine the response. The publisher
 does not send PUBLISH_DONE for this request, and the subscriber cannot send
-SUBSCRIBE_UPDATE or UNSUBSCRIBE.<a href="#section-9.19-4" class="pilcrow">¶</a></p>
+REQUEST_UPDATE or UNSUBSCRIBE.<a href="#section-9.19-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-pub-ns">
@@ -6279,7 +6292,7 @@ not limited to:<a href="#section-10.4.3-3" class="pilcrow">¶</a></p>
               <p id="section-10.4.3-4.3.1">A publisher's decision to end the subscription early<a href="#section-10.4.3-4.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.4.3-4.4">
-              <p id="section-10.4.3-4.4.1">A SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
+              <p id="section-10.4.3-4.4.1">A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
 the Start Location to a larger Location<a href="#section-10.4.3-4.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.4.3-4.5">
