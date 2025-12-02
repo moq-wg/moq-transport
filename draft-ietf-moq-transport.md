@@ -1671,23 +1671,22 @@ for the peer, or a new request with a Request ID that is not the next in
 sequence or exceeds the received MAX_REQUEST_ID, it MUST close the session with
 `INVALID_REQUEST_ID`.
 
-## Parameters {#params}
+## Message Parameters {#params}
 
-Some messages include a Parameters field that encodes optional message
-elements.
+Some messages include a Parameters field that encodes optional message elements.
+All parameters included in a message MUST be defined in the negotiated version
+of MOQT or negotiated via Setup Parameters.  An endpoint that receives an
+unknown message parameters MUST close the session with `PROTOCOL_VIOLATION`.
 
 Senders MUST NOT repeat the same parameter type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers SHOULD check that there are no
-unauthorized duplicate parameters and close the session as a
-`PROTOCOL_VIOLATION` if found.  Receivers MUST allow duplicates of unknown
-parameters.
+unexpected duplicate parameters and close the session as a
+`PROTOCOL_VIOLATION` if found.
 
 The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
 to alter the payload of the objects it sends, as that would violate the track
 uniqueness guarantee described in {{track-scope}}.
-
-Receivers ignore unrecognized parameters.
 
 The number of parameters in a message is not specifically limited, but the
 total length of a control message is limited to 2^16-1 bytes.
@@ -1700,6 +1699,16 @@ For example, the integer '1' can refer to different parameters for Setup
 messages and for all other message types. SETUP message parameter types
 are defined in {{setup-params}}. Version-specific parameter types are defined
 in {{version-specific-params}}.
+
+### Parameter Scope
+
+Message Parameters sent by the subscriber are always intended for the peer
+endpoint and are not forwarded by Relays.  Some message parameters sent by the
+publisher are intended for the peer endpoint and are not forwarded by Relays,
+while others relate to the Track or subscription and are considered End-to-End,
+as noted in the parameter definition.  End-to-End Parameters sent in PUBLISH,
+SUBSCRIBE_OK, TRACK_STATUS_OK or FETCH_OK MUST be cached by Relays and included
+in future downstream subscriptions or fetches for that Track.
 
 ### Version Specific Parameters {#version-specific-params}
 
@@ -1821,6 +1830,9 @@ The AUTHORIZATION TOKEN parameter MAY be repeated within a message as long as
 the combination of Token Type and Token Value are unique after resolving any
 aliases.
 
+When sent by a publisher, this parameter is not End-To-End (see
+{{parameter-scope}}).
+
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
@@ -1863,6 +1875,9 @@ successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
 any other relevant information.
 
+When sent by a publisher, this parameter is End-To-End (see
+{{parameter-scope}}).
+
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a PUBLISH,
@@ -1880,6 +1895,9 @@ handles a downstream request that includes those Objects re-requests them.
 If the MAX_CACHE_DURATION parameter is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
 
+This parameter, which is only sent by publishers, is End-To-End (see
+{{parameter-scope}}).
+
 #### PUBLISHER PRIORITY Parameter {#publisher-priority}
 
 The PUBLISHER PRIORITY parameter (Parameter Type 0x0E) specifies the priority of
@@ -1890,6 +1908,9 @@ parameter is valid in SUBSCRIBE_OK and PUBLISH. Subgroups and Datagrams for this
 subscription inherit this priority, unless they specifically override it.
 
 The subscription has Publisher Priorty 128 if this parameter is omitted.
+
+This parameter, which is only sent by publishers, is End-To-End (see
+{{parameter-scope}}).
 
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
@@ -1904,6 +1925,9 @@ publisher receives a value outside this range, it MUST close the session with
 
 If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
 the value 128.
+
+This parameter, which is only sent by subscribers, is not End-To-End (see
+{{parameter-scope}}).
 
 #### GROUP ORDER Parameter {#group-order}
 
@@ -1923,6 +1947,9 @@ SUBSCRIBE_OK or REQUEST_OK is used. If omitted in PUBLISH_OK, the
 publisher's preference from PUBLISH is used. If omitted from SUBSCRIBE_OK,
 REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
 
+When sent by a publisher, this parameter is End-To-End (see
+{{parameter-scope}}).
+
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
 The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) MAY appear in a
@@ -1933,6 +1960,9 @@ publisher MUST close the session with `PROTOCOL_VIOLATION`.
 
 If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
+
+This parameter, which is only sent by subscribers, is not End-To-End (see
+{{parameter-scope}}).
 
 #### EXPIRES Parameter {#expires}
 
@@ -1953,6 +1983,9 @@ simultaneously.
 If the EXPIRES parameter is 0 or is not present in a message, the subscription
 does not expire or expires at an unknown time.
 
+When sent by a publisher, this parameter is not End-To-End (see
+{{parameter-scope}}).
+
 #### LARGEST OBJECT Parameter {#largest-param}
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in SUBSCRIBE_OK,
@@ -1964,6 +1997,10 @@ Publisher MUST include this parameter.
 
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
+
+This parameter, which is only sent by publishers, is not End-To-End (see
+{{parameter-scope}}).
+
 
 #### FORWARD Parameter
 
@@ -1978,6 +2015,10 @@ If the parameter is omitted from REQUEST_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
 message, the default value is 1.
 
+When sent by a publisher, this parameter is End-To-End (see
+{{parameter-scope}}).
+
+
 #### DYNAMIC GROUPS Parameter {#dynamic-groups}
 
 The DYNAMIC_GROUPS parameter (parameter type 0x30) MAY appear in PUBLISH or
@@ -1990,6 +2031,9 @@ the session with `PROTOCOL_VIOLATION`.
 Relays MUST preserve the value of this parameter received from an upstream
 publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
 subscribers.
+
+This parameter, which is only sent by publishers, is End-To-End (see
+{{parameter-scope}}).
 
 #### NEW GROUP REQUEST Parameter {#new-group-request}
 
@@ -2029,6 +2073,9 @@ to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
 
 After sending a NEW_GROUP_REQUEST upstream, the request is considered
 outstanding until the Largest Group increases.
+
+This parameter, which is only sent by subscribers, is not End-To-End (see
+{{parameter-scope}}).
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
