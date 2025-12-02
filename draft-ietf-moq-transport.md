@@ -1168,7 +1168,7 @@ If an endpoint accepts its own PUBLISH, this behaves as self-subscription descri
 in {{subscriptions}}.
 
 The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
-publisher MUST send REQUEST_OK or REQUEST_ERROR as the first message on the
+publisher MUST send a single REQUEST_OK or REQUEST_ERROR as the first message on the
 bidirectional stream in response to a SUBSCRIBE_NAMESPACE. The subscriber
 SHOULD close the session with a protocol error if it detects receiving more
 than one.
