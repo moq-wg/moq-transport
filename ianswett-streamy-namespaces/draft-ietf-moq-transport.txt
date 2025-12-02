@@ -1322,10 +1322,10 @@ Table of Contents
    described in Section 5.1.
 
    The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional
-   stream and the publisher MUST send REQUEST_OK or REQUEST_ERROR as the
-   first message on the bidirectional stream in response to a
-   SUBSCRIBE_NAMESPACE.  The subscriber SHOULD close the session with a
-   protocol error if it detects receiving more than one.
+   stream and the publisher MUST send a single REQUEST_OK or
+   REQUEST_ERROR as the first message on the bidirectional stream in
+   response to a SUBSCRIBE_NAMESPACE.  The subscriber SHOULD close the
+   session with a protocol error if it detects receiving more than one.
 
    The receiver of a REQUEST_OK or REQUEST_ERROR ought to forward the
    result to the application, so the application can decide which other
