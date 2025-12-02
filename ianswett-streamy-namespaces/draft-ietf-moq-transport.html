@@ -2451,9 +2451,9 @@ the endpoints exchange Setup messages (<a href="#message-setup" class="auto inte
 messages defined in <a href="#message" class="auto internal xref">Section 9</a>.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">This specification only specifies two uses of bidirectional streams, the control
 stream and SUBSCRIBE_NAMESPACE. Objects are sent on unidirectional streams.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
-<p id="section-3.3-3">A unidirectional stream containing Objects or bidirectional stream(s) containing a SUBSCRIBE_NAMESPACE
-could arrive prior to the control stream, in which case the data <span class="bcp14">SHOULD</span> be buffered
-until the control stream arrives and setup is complete.
+<p id="section-3.3-3">A unidirectional stream containing Objects or bidirectional stream(s) containing a
+SUBSCRIBE_NAMESPACE could arrive prior to the control stream, in which case the
+data <span class="bcp14">SHOULD</span> be buffered until the control stream arrives and setup is complete.
 If an implementation does not want to buffer, it <span class="bcp14">MAY</span> reset other bidirectional
 streams before the session and control stream are established.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 <p id="section-3.3-4">The control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer during the
