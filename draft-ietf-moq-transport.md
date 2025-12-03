@@ -2972,6 +2972,7 @@ identifies the Track it is currently receiving and the Track it intends to
 receive next, and the Relay performs the transition as described in
 {{relay-switch}}.
 
+~~~
 SWITCH Message {
   Type (i) = 0x12,
   Length (16),
@@ -2991,7 +2992,7 @@ SWITCH Message {
   Number of Parameters (i),
   Parameters (...) ...,
 }
-
+~~~
 
 The fields of the SWITCH message are as follows:
 
