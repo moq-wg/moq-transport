@@ -245,9 +245,59 @@ This document uses stream management terms described in {{?RFC9000, Section
 This document uses the conventions detailed in ({{?RFC9000, Section 1.3}})
 when describing the binary encoding.
 
-To reduce unnecessary use of bandwidth, variable length integers SHOULD
-be encoded using the least number of bytes possible to represent the
-required value.
+### Variable-Length Integers
+
+MoQT requires a variable-length integer encoding with the following properties:
+
+1. The encoded length can be determined from the first encoded byte.
+2. The range of 1 byte values is as large as possible.
+3. All 64 bit numbers can be encoded.
+
+The variable-length integer encoding uses the most significant one to five
+bits of the first byte to indicate the length of the encoding in bytes. The
+remaining bits represent the integer value, encoded in network byte order.
+
+Integers are encoded in 1, 2, 4, 6, 8, or 9 bytes and can encode 7-, 14-, 29-,
+44-, 59-, or 64-bit values, respectively. The following table summarizes the
+encoding properties.
+
+|--------------|----------------|-------------|------------------------|
+| Leading Bits | Length (bytes) | Usable Bits | Range                  |
+|--------------|----------------|-------------|------------------------|
+| 0            | 1              | 7           | 0-127                  |
+|--------------|----------------|-------------|------------------------|
+| 10           | 2              | 14          | 0-16383                |
+|--------------|----------------|-------------|------------------------|
+| 110          | 4              | 29          | 0-536870911            |
+|--------------|----------------|-------------|------------------------|
+| 1110         | 6              | 44          | 0-17592186044415       |
+|--------------|----------------|-------------|------------------------|
+| 11110        | 8              | 59          | 0-576460752303423487   |
+|--------------|----------------|-------------|------------------------|
+| 11111000     | 9              | 64          | 0-18446744073709551615 |
+|--------------|----------------|-------------|------------------------|
+{: format title="Summary of Integer Encodings"}
+
+For example, the nine-byte sequence 0xf8ffffffffffffffff decodes to the decimal
+value 18,446,744,073,709,551,615; the eight-byte sequence 0xf2197c5eff14e88c
+decodes to the decimal value 151,288,809,941,952,652; the six-byte sequence
+0xe2a1a0e403d8 decodes to 2,893,212,287,960; the four-byte sequence 0xdd7f3e7d
+decodes to 494,878,333; the two-byte sequence 0xbbbd decodes to 15,293; and the
+single byte 0x25 decodes to 37 (as does the two-byte sequence 0x8025).
+
+The three least significant bits of the first byte in 9-byte encodings MUST be
+set to 000.  An endpoint that receives any other value MUST close the session
+with a `PROTOCOL_VIOLATION`.
+
+To reduce unnecessary use of bandwidth, variable length integers SHOULD be
+encoded using the least number of bytes possible to represent the required
+value.
+
+x (vi64):
+
+: Indicates that x holds an integer value using the variable-length
+  encoding as described above.
+
 
 ### Location Structure
 
@@ -255,8 +305,8 @@ Location identifies a particular Object in a Group within a Track.
 
 ~~~
 Location {
-  Group (i),
-  Object (i)
+  Group (vi64),
+  Object (vi64)
 }
 ~~~
 {: #moq-location format title="Location structure"}
@@ -289,8 +339,8 @@ is optimized for use in the data plane.
 
 ~~~
 Key-Value-Pair {
-  Delta Type (i),
-  [Length (i),]
+  Delta Type (vi64),
+  [Length (vi64),]
   Value (..)
 }
 ~~~
@@ -317,7 +367,7 @@ information about the error condition, where appropriate.
 
 ~~~
 Reason Phrase {
-  Reason Phrase Length (i),
+  Reason Phrase Length (vi64),
   Reason Phrase Value (..)
 }
 ~~~
@@ -484,7 +534,7 @@ encoded as follows:
 
 ~~~
 Track Namespace {
-  Number of Track Namespace Fields (i),
+  Number of Track Namespace Fields (vi64),
   Track Namespace Field (..) ...
 }
 ~~~
@@ -496,7 +546,7 @@ Each Track Namespace Field is encoded as follows:
 
 ~~~
 Track Namespace Field {
-  Track Namespace Field Length (i),
+  Track Namespace Field Length (vi64),
   Track Namespace Field Value (..)
 }
 ~~~
@@ -1043,9 +1093,9 @@ A Subscription Filter has the following structure:
 
 ~~~
 Subscription Filter {
-  Filter Type (i),
+  Filter Type (vi64),
   [Start Location (Location),]
-  [End Group (i),]
+  [End Group (vi64),]
 }
 ~~~
 
@@ -1583,7 +1633,7 @@ formatted as follows:
 
 ~~~
 MOQT Control Message {
-  Message Type (i),
+  Message Type (vi64),
   Message Length (16),
   Message Payload (..),
 }
@@ -1723,9 +1773,9 @@ follows:
 
 ~~~
 Token {
-  Alias Type (i),
-  [Token Alias (i),]
-  [Token Type (i),]
+  Alias Type (vi64),
+  [Token Alias (vi64),]
+  [Token Type (vi64),]
   [Token Value (..)]
 }
 ~~~
@@ -2044,16 +2094,16 @@ The wire format of the Setup messages are as follows:
 
 ~~~
 CLIENT_SETUP Message {
-  Type (i) = 0x20,
+  Type (vi64) = 0x20,
   Length (16),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Setup Parameters (..) ...,
 }
 
 SERVER_SETUP Message {
-  Type (i) = 0x21,
+  Type (vi64) = 0x21,
   Length (16),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Setup Parameters (..) ...,
 }
 ~~~
@@ -2156,9 +2206,9 @@ The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
 
 ~~~
 GOAWAY Message {
-  Type (i) = 0x10,
+  Type (vi64) = 0x10,
   Length (16),
-  New Session URI Length (i),
+  New Session URI Length (vi64),
   New Session URI (..),
 }
 ~~~
@@ -2186,9 +2236,9 @@ close the session with a `PROTOCOL_VIOLATION`.
 
 ~~~
 MAX_REQUEST_ID Message {
-  Type (i) = 0x15,
+  Type (vi64) = 0x15,
   Length (16),
-  Max Request ID (i),
+  Max Request ID (vi64),
 }
 ~~~
 {: #moq-transport-max-request-id format title="MOQT MAX_REQUEST_ID Message"}
@@ -2218,9 +2268,9 @@ sending REQUESTS_BLOCKED is not required.
 
 ~~~
 REQUESTS_BLOCKED Message {
-  Type (i) = 0x1A,
+  Type (vi64) = 0x1A,
   Length (16),
-  Maximum Request ID (i),
+  Maximum Request ID (vi64),
 }
 ~~~
 {: #moq-transport-requests-blocked format title="MOQT REQUESTS_BLOCKED Message"}
@@ -2236,10 +2286,10 @@ REQUEST_OK is used to associate it with the correct type of request.
 
 ~~~
 REQUEST_OK Message {
-  Type (i) = 0x7,
+  Type (vi64) = 0x7,
   Length (16),
-  Request ID (i),
-  Number of Parameters (i),
+  Request ID (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2258,10 +2308,10 @@ request.
 
 ~~~
 REQUEST_ERROR Message {
-  Type (i) = 0x5,
+  Type (vi64) = 0x5,
   Length (16),
-  Request ID (i),
-  Error Code (i),
+  Request ID (vi64),
+  Error Code (vi64),
   Error Reason (Reason Phrase),
 }
 ~~~
@@ -2349,13 +2399,13 @@ The format of SUBSCRIBE is as follows:
 
 ~~~
 SUBSCRIBE Message {
-  Type (i) = 0x3,
+  Type (vi64) = 0x3,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (..),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2390,11 +2440,11 @@ subscriptions.
 
 ~~~
 SUBSCRIBE_OK Message {
-  Type (i) = 0x4,
+  Type (vi64) = 0x4,
   Length (16),
-  Request ID (i),
-  Track Alias (i),
-  Number of Parameters (i),
+  Request ID (vi64),
+  Track Alias (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...,
   Track Extensions (..),
 }
@@ -2433,11 +2483,11 @@ The format of REQUEST_UPDATE is as follows:
 
 ~~~
 REQUEST_UPDATE Message {
-  Type (i) = 0x2,
+  Type (vi64) = 0x2,
   Length (16),
-  Request ID (i),
-  Existing Request ID (i),
-  Number of Parameters (i),
+  Request ID (vi64),
+  Existing Request ID (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2484,9 +2534,9 @@ The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
 UNSUBSCRIBE Message {
-  Type (i) = 0xA,
+  Type (vi64) = 0xA,
   Length (16),
-  Request ID (i)
+  Request ID (vi64)
 }
 ~~~
 {: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
@@ -2501,14 +2551,14 @@ track. The receiver verifies the publisher is authorized to publish this track.
 
 ~~~
 PUBLISH Message {
-  Type (i) = 0x1D,
+  Type (vi64) = 0x1D,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (..),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
-  Track Alias (i),
-  Number of Parameters (i),
+  Track Alias (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...,
   Track Extensions (..),
 }
@@ -2550,10 +2600,10 @@ authorization and acceptance of a PUBLISH message, and establish a subscription.
 
 ~~~
 PUBLISH_OK Message {
-  Type (i) = 0x1E,
+  Type (vi64) = 0x1E,
   Length (16),
-  Request ID (i),
-  Number of Parameters (i),
+  Request ID (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...,
 }
 ~~~
@@ -2606,11 +2656,11 @@ The format of `PUBLISH_DONE` is as follows:
 
 ~~~
 PUBLISH_DONE Message {
-  Type (i) = 0xB,
+  Type (vi64) = 0xB,
   Length (16),
-  Request ID (i),
-  Status Code (i),
-  Stream Count (i),
+  Request ID (vi64),
+  Status Code (vi64),
+  Stream Count (vi64),
   Error Reason (Reason Phrase)
 }
 ~~~
@@ -2694,7 +2744,7 @@ A Standalone Fetch includes this structure:
 ~~~
 Standalone Fetch {
   Track Namespace (..),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
   Start Location (Location),
   End Location (Location)
@@ -2737,8 +2787,8 @@ A Joining Fetch includes this structure:
 
 ~~~
 Joining Fetch {
-  Joining Request ID (i),
-  Joining Start (i)
+  Joining Request ID (vi64),
+  Joining Start (vi64)
 }
 ~~~
 
@@ -2778,13 +2828,13 @@ The format of FETCH is as follows:
 
 ~~~
 FETCH Message {
-  Type (i) = 0x16,
+  Type (vi64) = 0x16,
   Length (16),
-  Request ID (i),
-  Fetch Type (i),
+  Request ID (vi64),
+  Fetch Type (vi64),
   [Standalone (Standalone Fetch),]
   [Joining (Joining Fetch),]
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2857,12 +2907,12 @@ but the FETCH_OK MUST NOT be sent until the End Location is known.
 
 ~~~
 FETCH_OK Message {
-  Type (i) = 0x18,
+  Type (vi64) = 0x18,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   End Of Track (8),
   End Location (Location),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
   Track Extensions (..),
 }
@@ -2910,9 +2960,9 @@ The format of `FETCH_CANCEL` is as follows:
 
 ~~~
 FETCH_CANCEL Message {
-  Type (i) = 0x17,
+  Type (vi64) = 0x17,
   Length (16),
-  Request ID (i)
+  Request ID (vi64)
 }
 ~~~
 {: #moq-transport-fetch-cancel title="MOQT FETCH_CANCEL Message"}
@@ -2950,11 +3000,11 @@ publisher is authorized to publish tracks under this namespace.
 
 ~~~
 PUBLISH_NAMESPACE Message {
-  Type (i) = 0x6,
+  Type (vi64) = 0x6,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (..),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2974,10 +3024,11 @@ intent to stop serving new subscriptions for tracks within the provided Track
 Namespace.
 
 ~~~
+
 PUBLISH_NAMESPACE_DONE Message {
-  Type (i) = 0x9,
+  Type (vi64) = 0x9,
   Length (16),
-  Request ID (i)
+  Request ID (vi64)
 }
 ~~~
 {: #moq-transport-pub-ns-done-format title="MOQT PUBLISH_NAMESPACE_DONE Message"}
@@ -2993,10 +3044,10 @@ within the provided Track Namespace.
 
 ~~~
 PUBLISH_NAMESPACE_CANCEL Message {
-  Type (i) = 0xC,
+  Type (vi64) = 0xC,
   Length (16),
-  Request ID (i),
-  Error Code (i),
+  Request ID (vi64),
+  Error Code (vi64),
   Error Reason (Reason Phrase)
 }
 ~~~
@@ -3020,11 +3071,11 @@ subscriptions, as well as future updates to the set.
 
 ~~~
 SUBSCRIBE_NAMESPACE Message {
-  Type (i) = 0x11,
+  Type (vi64) = 0x11,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace Prefix (..),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -3084,9 +3135,9 @@ The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
 
 ~~~
 UNSUBSCRIBE_NAMESPACE Message {
-  Type (i) = 0x14,
+  Type (vi64) = 0x14,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
 }
 ~~~
 {: #moq-transport-unsub-ann-format title="MOQT UNSUBSCRIBE_NAMESPACE Message"}
@@ -3212,7 +3263,7 @@ Key-Value-Pairs (see {{moq-key-value-pair}}).
 
 ~~~
 Extensions {
-  Extension Headers Length (i),
+  Extension Headers Length (vi64),
   Extension Headers (..),
 }
 ~~~
@@ -3249,13 +3300,13 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x00-0x1F,0x20-21,0x24-25,0x28-29,0x2C-2D
-  Track Alias (i),
-  Group ID (i),
-  [Object ID (i),]
+  Type (vi64) = 0x00-0x1F,0x20-21,0x24-25,0x28-29,0x2C-2D
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Object ID (vi64),]
   [Publisher Priority (8),]
   [Extensions (..),]
-  [Object Status (i),]
+  [Object Status (vi64),]
   [Object Payload (..),]
 }
 ~~~
@@ -3355,10 +3406,10 @@ flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i) = 0x10..0x1D,
-  Track Alias (i),
-  Group ID (i),
-  [Subgroup ID (i),]
+  Type (vi64) = 0x10..0x1D,
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Subgroup ID (vi64),]
   [Publisher Priority (8),]
 }
 ~~~
@@ -3461,10 +3512,10 @@ unless there is an Prior Object ID Gap extesnion header (see
 
 ~~~
 {
-  Object ID Delta (i),
+  Object ID Delta (vi64),
   [Extensions (..),]
-  Object Payload Length (i),
-  [Object Status (i),]
+  Object Payload Length (vi64),
+  [Object Status (vi64),]
   [Object Payload (..),]
 }
 ~~~
@@ -3592,8 +3643,8 @@ track requested in the Fetch message identified by `Request ID`.
 
 ~~~
 FETCH_HEADER {
-  Type (i) = 0x5,
-  Request ID (i),
+  Type (vi64) = 0x5,
+  Request ID (vi64),
 }
 ~~~
 {: #fetch-header-format title="MOQT FETCH_HEADER"}
@@ -3605,12 +3656,12 @@ format:
 ~~~
 {
   Serialization Flags (8),
-  [Group ID (i),]
-  [Subgroup ID (i),]
-  [Object ID (i),]
+  [Group ID (vi64),]
+  [Subgroup ID (vi64),]
+  [Object ID (vi64),]
   [Publisher Priority (8),]
   [Extensions (..),]
-  Object Payload Length (i),
+  Object Payload Length (vi64),
   [Object Payload (..),]
 }
 ~~~
@@ -3725,7 +3776,7 @@ Extension Headers.
 ~~~
 Immutable Extensions {
   Type (0xB),
-  Length (i),
+  Length (vi64),
   Key-Value-Pair (..) ...
 }
 ~~~
