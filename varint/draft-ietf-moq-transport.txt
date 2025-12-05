@@ -373,7 +373,7 @@ Table of Contents
    3.  All 64 bit numbers can be encoded.
 
    The variable-length integer encoding uses the most significant one to
-   four bits of the first byte to indicate the length of the encoding in
+   five bits of the first byte to indicate the length of the encoding in
    bytes.  The remaining bits represent the integer value, encoded in
    network byte order.
 
