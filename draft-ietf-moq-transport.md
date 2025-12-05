@@ -253,7 +253,7 @@ MoQT requires a variable-length integer encoding with the following properties:
 2. The range of 1 byte values is as large as possible.
 3. All 64 bit numbers can be encoded.
 
-The variable-length integer encoding uses the most significant one to four
+The variable-length integer encoding uses the most significant one to five
 bits of the first byte to indicate the length of the encoding in bytes. The
 remaining bits represent the integer value, encoded in network byte order.
 
