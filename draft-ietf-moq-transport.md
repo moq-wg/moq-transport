@@ -257,9 +257,9 @@ The variable-length integer encoding uses the most significant one to four
 bits of the first byte to indicate the length of the encoding in bytes. The
 remaining bits represent the integer value, encoded in network byte order.
 
-Integers are encoded in 1, 2, 4, 8, or 9 bytes and can encode 7-, 14-, 29-, 60-,
-or 64-bit values, respectively. The following table summarizes the encoding
-properties.
+Integers are encoded in 1, 2, 4, 6, 8, or 9 bytes and can encode 7-, 14-, 29-,
+44-, 59-, or 64-bit values, respectively. The following table summarizes the
+encoding properties.
 
 |--------------|----------------|-------------|------------------------|
 | Leading Bits | Length (bytes) | Usable Bits | Range                  |
@@ -270,21 +270,23 @@ properties.
 |--------------|----------------|-------------|------------------------|
 | 110          | 4              | 29          | 0-536870911            |
 |--------------|----------------|-------------|------------------------|
-| 1110         | 8              | 60          | 0-1152921504606846975  |
+| 1110         | 6              | 44          | 0-17592186044415       |
 |--------------|----------------|-------------|------------------------|
-| 11110000     | 9              | 64          | 0-18446744073709551615 |
+| 11110        | 8              | 59          | 0-576460752303423487   |
+|--------------|----------------|-------------|------------------------|
+| 11111000     | 9              | 64          | 0-18446744073709551615 |
 |--------------|----------------|-------------|------------------------|
 {: format title="Summary of Integer Encodings"}
 
-For example, the nine-byte sequence 0xf0ffffffffffffffff decodes to the decimal
-value 18,446,744,073,709,551,615; the eight-byte sequence 0xe2197c5eff14e88c
-decodes to the decimal value 151,288,809,941,952,652; the four-byte sequence
-0xdd7f3e7d decodes to 494,878,333; the two-byte sequence 0xbbbd decodes to
-15,293; and the single byte 0x25 decodes to 37 (as does the two-byte sequence
-0x8025).
+For example, the nine-byte sequence 0xf8ffffffffffffffff decodes to the decimal
+value 18,446,744,073,709,551,615; the eight-byte sequence 0xf2197c5eff14e88c
+decodes to the decimal value 151,288,809,941,952,652; the six-byte sequence
+0xe2a1a0e403d8 decodes to 2,893,212,287,960; the four-byte sequence 0xdd7f3e7d
+decodes to 494,878,333; the two-byte sequence 0xbbbd decodes to 15,293; and the
+single byte 0x25 decodes to 37 (as does the two-byte sequence 0x8025).
 
-The four least significant bits of the first byte in 9-byte encodings MUST be
-set to 0000.  An endpoint that receives any other value MUST close the session
+The three least significant bits of the first byte in 9-byte encodings MUST be
+set to 000.  An endpoint that receives any other value MUST close the session
 with a `PROTOCOL_VIOLATION`.
 
 To reduce unnecessary use of bandwidth, variable length integers SHOULD be
