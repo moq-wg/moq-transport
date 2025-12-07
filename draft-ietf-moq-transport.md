@@ -725,7 +725,10 @@ the endpoints exchange Setup messages ({{message-setup}}), followed by other
 messages defined in {{message}}.
 
 This specification only specifies two uses of bidirectional streams, the control
-stream and SUBSCRIBE_NAMESPACE. Objects are sent on unidirectional streams.
+stream, which begins with CLIENT_SETUP, and SUBSCRIBE_NAMESPACE. Bidirectional
+streams MUST NOT begin with any other message type unless negotiated. If they
+do, the peer MUST close the Session with a Protocol Violation. Objects are sent on
+unidirectional streams.
 
 A unidirectional stream containing Objects or bidirectional stream(s) containing a
 SUBSCRIBE_NAMESPACE could arrive prior to the control stream, in which case the
