@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 5 June 2026                                       I. Swett, Ed.
+Expires: 10 June 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         2 December 2025
+                                                         7 December 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 June 2026.
+   This Internet-Draft will expire on 10 June 2026.
 
 Copyright Notice
 
@@ -869,7 +869,10 @@ Table of Contents
    followed by other messages defined in Section 9.
 
    This specification only specifies two uses of bidirectional streams,
-   the control stream and SUBSCRIBE_NAMESPACE.  Objects are sent on
+   the control stream, which begins with CLIENT_SETUP, and
+   SUBSCRIBE_NAMESPACE.  Bidirectional streams MUST NOT begin with any
+   other message type unless negotiated.  If they do, the peer MUST
+   close the Session with a Protocol Violation.  Objects are sent on
    unidirectional streams.
 
    A unidirectional stream containing Objects or bidirectional stream(s)
