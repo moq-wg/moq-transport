@@ -565,12 +565,13 @@ include:
 
 The above list of conditions is not considered exhaustive.
 
-When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE any
-subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
-SHOULD deliver an error to the application.  If a relay detects a Malformed
-Track, it MUST immediately terminate downstream subscriptions with PUBLISH_DONE
-and reset any fetch streams with Status Code `MALFORMED_TRACK`. Object(s)
-triggering Malformed Track status MUST NOT be cached.
+When a subscriber detects a Malformed Track, it MUST send unsubsribe any
+subscription and cancel any fetch for that Track from that publisher by sending
+STOP_SENDING on the bidi stream, and SHOULD deliver an error to the application.
+If a relay detects a Malformed Track, it MUST immediately terminate downstream
+subscriptions with PUBLISH_DONE and reset any fetch streams with
+Status Code `MALFORMED_TRACK`. Object(s) triggering Malformed Track status
+MUST NOT be cached.
 
 ### Scope {#track-scope}
 
@@ -722,19 +723,21 @@ can be used.
 
 The first stream opened is a client-initiated bidirectional control stream where
 the endpoints exchange Setup messages ({{message-setup}}), followed by other
-messages defined in {{message}}.
+messages defined in {{message}}. The control stream begins with a single
+CLIENT_SETUP message.
 
-This specification only specifies two uses of bidirectional streams, the control
-stream, which begins with CLIENT_SETUP, and SUBSCRIBE_NAMESPACE. Bidirectional
-streams MUST NOT begin with any other message type unless negotiated. If they
-do, the peer MUST close the Session with a Protocol Violation. Objects are sent on
-unidirectional streams.
+In addition to the control stream, this specification uses bidirectional streams
+that begin with five types of message: TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH,
+and SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT begin with any other
+message type unless negotiated. If they do, the peer MUST close the Session with a
+Protocol Violation. Objects are sent on unidirectional streams.
 
-A unidirectional stream containing Objects or bidirectional stream(s) containing a
-SUBSCRIBE_NAMESPACE could arrive prior to the control stream, in which case the
-data SHOULD be buffered until the control stream arrives and setup is complete.
-If an implementation does not want to buffer, it MAY reset other bidirectional
-streams before the session and control stream are established.
+A unidirectional stream containing Objects or bidirectional stream(s) beginning
+with a message other than CLIENT_SETUP could arrive prior to the control stream,
+in which case the stream data SHOULD be buffered until the control stream arrives
+and setup is complete. If an implementation does not want to buffer or if it is
+certain the message type is not supported, it MAY reset other bidirectional streams
+before the session and control stream are established.
 
 The control stream MUST NOT be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
@@ -852,7 +855,7 @@ sufficient timeout if there are still open subscriptions or fetches on a
 connection.
 
 When the server is a subscriber, it SHOULD send a GOAWAY message to downstream
-subscribers prior to any UNSUBSCRIBE messages to upstream publishers.
+subscribers prior to unsubscribing from upstream publishers.
 
 After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
 there are no more `Established` subscriptions before closing the session with NO_ERROR.
@@ -924,9 +927,9 @@ successful, the subscription moves to the `Established` state and can
 be updated by the subscriber using REQUEST_UPDATE.  Either endpoint
 can terminate an `Established` subscription, moving it to the
 `Terminated` state.  The subscriber terminates a subscription in the
-`Pending (Subscriber)` or `Established` states using
-UNSUBSCRIBE, the publisher terminates a subscription in the `Pending
-(Publisher)` or `Established` states using PUBLISH_DONE.
+`Pending (Subscriber)` or `Established` states by cancelling the
+bidirectional stream. The publisher terminates a subscription in the
+`Pending (Publisher)` or `Established` states using PUBLISH_DONE.
 
 This diagram shows the subscription state machine:
 
@@ -951,7 +954,7 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
               |            |             |       | REQUEST_UPDATE
               |            +-------------+ <-----+
               |                 |    |                  |
-              +---- UNSUBSCRIBE |    | PUBLISH_DONE ----+
+              +-- Cancel Stream |    | PUBLISH_DONE ----+
               |     (subscriber)|    | (publisher)      |
               |                 V    V                  |
               |            +-------------+              |
@@ -1014,13 +1017,13 @@ the Subscriber dropping Objects if its buffering limits are exceeded (see
 
 ### Subscription State Management
 
-A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
+A subscriber keeps subscription state until it cancels the stream, or after
 receipt of a PUBLISH_DONE or REQUEST_ERROR. Note that PUBLISH_DONE does not
 usually indicate that state can immediately be destroyed, see
 {{message-publish-done}}.
 
 The Publisher can destroy subscription state as soon as it has received
-UNSUBSCRIBE. It MUST reset any open streams associated with the SUBSCRIBE.
+Stop Sending. It MUST reset any open streams associated with the SUBSCRIBE.
 
 The Publisher can also immediately delete subscription state after sending
 PUBLISH_DONE, but MUST NOT send it until it has closed all related streams.
@@ -1128,13 +1131,14 @@ groups. A publisher that does will begin the next group as soon as practical.
 The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
 FETCH.
 
-A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
-REQUEST_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
-data stream is already open, it MAY send STOP_SENDING for the data stream along
-with FETCH_CANCEL, but MUST send FETCH_CANCEL.
+A subscriber keeps FETCH state until it sends STOP_SENDING on the bidi stream,
+receives REQUEST_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream.
+If the data stream is already open, it MAY send STOP_SENDING for the data stream in
+addition to STOP_SENDING on the bidi stream, but MUST send STOP_SENDING for the
+bidi stream.
 
 The Publisher can destroy fetch state as soon as it has received a
-FETCH_CANCEL. It MUST reset any open streams associated with the FETCH. It can
+STOP_SENDING. It MUST reset any open streams associated with the FETCH. It can
 also destroy state after closing the FETCH data stream.
 
 It can destroy all FETCH state after closing the data stream with a FIN.
@@ -1312,8 +1316,8 @@ publisher priority.  The ordering in those cases is implementation-defined,
 though the expectation is that all subscriptions will be able to send some data.
 
 Given the critical nature of control messages and their relatively
-small size, the control stream SHOULD be prioritized higher than all
-subscribed Objects.
+small size, the control stream and bid request streams SHOULD be prioritized
+higher than all subscribed Objects.
 
 ## Considerations for Setting Priorities
 
@@ -1400,7 +1404,7 @@ given Track.
 
 There is no specified limit to the number of publishers of a Track Namespace or
 Track.  An implementation can use mechanisms such as REQUEST_ERROR,
-UNSUBSCRIBE or PUBLISH_NAMESPACE_CANCEL if it cannot
+STOP_SENDING or PUBLISH_NAMESPACE_CANCEL if it cannot
 accept an additional publisher due to implementation constraints.
 Implementations can consider the establishment or idle time of the session or
 subscription to determine which publisher to reject or disconnect.
@@ -1460,7 +1464,7 @@ When a subscriber receives the GOAWAY message, it starts the process
 of connecting to a new relay and sending the SUBSCRIBE requests for
 all `Established` subscriptions to the new relay. The new relay will send a
 response to the subscribes and if they are successful, the subscriptions
-to the old relay can be stopped with an UNSUBSCRIBE.
+to the old relay can be stopped with an STOP_SENDING.
 
 
 ## Publisher Interactions
@@ -1586,8 +1590,8 @@ prioritize sending Objects based on {{priorities}}.
 
 # Control Messages {#message}
 
-MOQT uses a single bidirectional stream to exchange control messages, as
-defined in {{session-init}}.  Every single message on the control stream is
+MOQT uses bidirectional streams to exchange control messages, as
+defined in {{session-init}}.  Every single message on a control stream is
 formatted as follows:
 
 ~~~
@@ -1630,8 +1634,6 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x2   | REQUEST_UPDATE ({{message-request-update}})         |
 |-------|-----------------------------------------------------|
-| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
-|-------|-----------------------------------------------------|
 | 0x1D  | PUBLISH  ({{message-publish}})                      |
 |-------|-----------------------------------------------------|
 | 0x1E  | PUBLISH_OK ({{message-publish-ok}})                 |
@@ -1641,8 +1643,6 @@ The following Message Types are defined:
 | 0x16  | FETCH ({{message-fetch}})                           |
 |-------|-----------------------------------------------------|
 | 0x18  | FETCH_OK ({{message-fetch-ok}})                     |
-|-------|-----------------------------------------------------|
-| 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})             |
 |-------|-----------------------------------------------------|
 | 0xD   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
@@ -2485,30 +2485,11 @@ When a subscription
 update is unsuccessful, the publisher MUST also terminate the subscription with
 PUBLISH_DONE with error code `UPDATE_FAILED`.
 
-## UNSUBSCRIBE {#message-unsubscribe}
-
-A Subscriber issues an `UNSUBSCRIBE` message to a Publisher indicating it is no
-longer interested in receiving the specified Track, indicating that the
-Publisher stop sending Objects as soon as possible.
-
-The format of `UNSUBSCRIBE` is as follows:
-
-~~~
-UNSUBSCRIBE Message {
-  Type (i) = 0xA,
-  Length (16),
-  Request ID (i)
-}
-~~~
-{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
-
-* Request ID: The Request ID of the subscription that is being terminated. See
-  {{message-subscribe-req}}.
-
 ## PUBLISH {#message-publish}
 
-The publisher sends the PUBLISH control message to initiate a subscription to a
-track. The receiver verifies the publisher is authorized to publish this track.
+The publisher sends the PUBLISH message on a new bidirectional stream to initiate
+a subscription for a Track. The receiver verifies the publisher is authorized to
+publish this track.
 
 ~~~
 PUBLISH Message {
@@ -2556,8 +2537,9 @@ PUBLISH_OK.
 
 ## PUBLISH_OK {#message-publish-ok}
 
-The subscriber sends a PUBLISH_OK control message to acknowledge the successful
-authorization and acceptance of a PUBLISH message, and establish a subscription.
+The subscriber sends a PUBLISH_OK as the first response message on the
+bidi stream to acknowledge the successful authorization and acceptance of a
+PUBLISH message, and establish a subscription.
 
 ~~~
 PUBLISH_OK Message {
@@ -2580,8 +2562,9 @@ filter that is entirely behind Largest Object or is otherwise invalid.
 
 ## PUBLISH_DONE {#message-publish-done}
 
-A publisher sends a `PUBLISH_DONE` message to indicate it is done publishing
-Objects for that subscription.  The Status Code indicates why the subscription
+A publisher sends a `PUBLISH_DONE` message as the final message on the
+subscription's bidi stream to indicate it is done publishing Objects for that
+subscription.  The Status Code indicates why the subscription
 ended, and whether it was an error. Because PUBLISH_DONE is sent on the control
 stream, it is likely to arrive at the receiver before late-arriving objects, and
 often even late-opening streams. However, the receiver uses it as an indication
@@ -2605,7 +2588,7 @@ reason.
 
 A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least its
 delivery timeout in case some objects are still inbound due to prioritization or
-packet loss. The subscriber MAY dispense with a timer if it sent UNSUBSCRIBE or
+packet loss. The subscriber MAY dispense with a timer if it unsubscribed or
 is otherwise no longer interested in objects from the track. Once the timer has
 expired, the receiver destroys subscription state once all open streams for the
 subscription have closed. A subscriber MAY discard subscription state earlier,
@@ -2683,8 +2666,8 @@ UPDATE_FAILED (0x8):
 
 ## FETCH {#message-fetch}
 
-A subscriber issues a FETCH to a publisher to request a range of already
-published objects within a track.
+A subscriber sends FETCH as the first message on a new bidi stream to a
+publisher to request a range of already published objects within a track.
 
 There are three types of Fetch messages.
 
@@ -2726,7 +2709,11 @@ Standalone Fetch {
 
 A Joining Fetch is associated with a Subscribe request by
 specifying the Request ID of a subscription in the `Established` or
-`Pending (subscriber)` state.
+`Pending (subscriber)` state. Because Joining Fetch references an existing
+subscription, if that subscription has not yet been established, the Publisher
+receiving the Joining Fetch buffers the pending Joining Fetch until either
+the Subscription is established or the request times out.
+
 A publisher receiving a Joining Fetch uses properties of the associated
 Subscribe to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
@@ -2862,9 +2849,10 @@ unknown status, it MUST return REQUEST_ERROR with code UNKNOWN_STATUS_IN_RANGE.
 
 ## FETCH_OK {#message-fetch-ok}
 
-A publisher sends a FETCH_OK control message in response to successful fetches.
-A publisher MAY send Objects in response to a FETCH before the FETCH_OK message is sent,
-but the FETCH_OK MUST NOT be sent until the End Location is known.
+A publisher sends a FETCH_OK as the first message on the bidi stream in response
+to a successful fetch. A publisher MAY send Objects in response to a FETCH before
+the FETCH_OK message is sent, but the FETCH_OK MUST NOT be sent until the
+End Location is known.
 
 ~~~
 FETCH_OK Message {
@@ -2910,31 +2898,10 @@ FETCH_OK Message {
 * Track Extensions : A sequence of Extension Headers. See {{extension-headers}}.
 
 
-## FETCH_CANCEL {#message-fetch-cancel}
-
-A subscriber sends a FETCH_CANCEL message to a publisher to indicate it is no
-longer interested in receiving objects for the fetch identified by the 'Request
-ID'. The publisher SHOULD promptly close the unidirectional stream, even if it
-is in the middle of delivering an object.
-
-The format of `FETCH_CANCEL` is as follows:
-
-~~~
-FETCH_CANCEL Message {
-  Type (i) = 0x17,
-  Length (16),
-  Request ID (i)
-}
-~~~
-{: #moq-transport-fetch-cancel title="MOQT FETCH_CANCEL Message"}
-
-* Request ID: The Request ID of the FETCH ({{message-fetch}}) this message is
-  cancelling.
-
 ## TRACK_STATUS {#message-track-status}
 
-A potential subscriber sends a `TRACK_STATUS` message on the control
-stream to obtain information about the current status of a given track.
+A potential subscriber sends `TRACK_STATUS` as the first and only message on a
+new bidi stream to obtain information about the current status of a given track.
 
 The TRACK_STATUS message format is identical to the SUBSCRIBE message
 ({{message-subscribe-req}}), but subscriber parameters related to Track
@@ -2945,13 +2912,14 @@ received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
 REQUEST_OK message with the same parameters it would have set in a SUBSCRIBE_OK.
 Track Alias is not used.  A publisher responds to a failed TRACK_STATUS with an
-appropriate REQUEST_ERROR message.
+appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
+REQUEST_OK or REQUEST_ERROR are sent.
 
 Relays without an `Established` subscription MAY forward TRACK_STATUS to one or more
 publishers, or MAY initiate a subscription (subject to authorization) as
 described in {{publisher-interactions}} to determine the response. The publisher
 does not send PUBLISH_DONE for this request, and the subscriber cannot send
-REQUEST_UPDATE or UNSUBSCRIBE.
+REQUEST_UPDATE.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 
@@ -3107,9 +3075,9 @@ of the stream.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
 send matching NAMESPACE messages on the response stream if they are requested.
 If it is an error, the stream will be immediately closed via FIN.
 Also, any matching PUBLISH messages without an `Established` Subscription will be
-sent on the control stream. When there are changes to the namespaces or
-subscriptions being published and the subscriber is subscribed to them,
-the publisher sends the corresponding NAMESPACE, NAMESPACE_DONE,
+established on new bidirectional streams. When there are changes to the
+namespaces or subscriptions being published and the subscriber is subscribed to
+them, the publisher sends the corresponding NAMESPACE, NAMESPACE_DONE,
 or PUBLISH messages.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
@@ -3374,8 +3342,11 @@ Header field values.
 
 Streams aside from the control stream MAY be canceled due to congestion
 or other reasons by either the publisher or subscriber. Early termination of a
-stream does not affect the MoQ application state, and therefore has no
-effect on outstanding subscriptions.
+unidirectional stream does not affect the MoQ application state, and therefore has
+no effect on outstanding subscriptions. Termination of a bidi request stream
+terminates the Subscription, Fetch or Track Status request. Publishers SHOULD NOT
+RESET the bidi response stream, and instead SHOULD send the appropriate final
+message indicating the response is complete and FIN the bidi stream.
 
 ### Subgroup Header
 
@@ -3528,7 +3499,7 @@ stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
 not limited to:
 
 * An Object in an open Subgroup exceeding its Delivery Timeout
-* Early termination of subscription due to an UNSUBSCRIBE message
+* Early termination of subscription due to stream cancellation
 * A publisher's decision to end the subscription early
 * A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
   the Start Location to a larger Location
@@ -3609,10 +3580,9 @@ INTERNAL_ERROR (0x0):
 : An implementation specific error.
 
 CANCELLED (0x1):
-: The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
-  STOP_SENDING, or the publisher ended the subscription, in which case
-  PUBLISH_DONE ({{message-publish-done}}) will have a more detailed status
-  code.
+: The subscriber requested cancellation via STOP_SENDING, or the publisher
+  ended the subscription, in which case PUBLISH_DONE ({{message-publish-done}})
+  will have a more detailed status code.
 
 DELIVERY_TIMEOUT (0x2):
 : The DELIVERY TIMEOUT {{delivery-timeout}} was exceeded for this stream.
