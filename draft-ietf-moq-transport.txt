@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 5 June 2026                                       I. Swett, Ed.
+Expires: 11 June 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         2 December 2025
+                                                         8 December 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 June 2026.
+   This Internet-Draft will expire on 11 June 2026.
 
 Copyright Notice
 
@@ -162,10 +162,11 @@ Table of Contents
      9.18. FETCH_CANCEL
      9.19. TRACK_STATUS
      9.20. PUBLISH_NAMESPACE
-     9.21. PUBLISH_NAMESPACE_DONE
-     9.22. PUBLISH_NAMESPACE_CANCEL
-     9.23. SUBSCRIBE_NAMESPACE
-     9.24. UNSUBSCRIBE_NAMESPACE
+     9.21. NAMESPACE
+     9.22. PUBLISH_NAMESPACE_DONE
+     9.23. NAMESPACE_DONE
+     9.24. PUBLISH_NAMESPACE_CANCEL
+     9.25. SUBSCRIBE_NAMESPACE
    10. Data Streams and Datagrams
      10.1.  Track Alias
      10.2.  Objects
@@ -867,11 +868,19 @@ Table of Contents
    stream where the endpoints exchange Setup messages (Section 9.3),
    followed by other messages defined in Section 9.
 
-   This specification only specifies a single use of bidirectional
-   streams.  Objects are sent on unidirectional streams.  Because there
-   are no other uses of bidirectional streams, a peer MAY close the
-   session as a PROTOCOL_VIOLATION if it receives a second bidirectional
-   stream.
+   This specification only specifies two uses of bidirectional streams,
+   the control stream, which begins with CLIENT_SETUP, and
+   SUBSCRIBE_NAMESPACE.  Bidirectional streams MUST NOT begin with any
+   other message type unless negotiated.  If they do, the peer MUST
+   close the Session with a Protocol Violation.  Objects are sent on
+   unidirectional streams.
+
+   A unidirectional stream containing Objects or bidirectional stream(s)
+   containing a SUBSCRIBE_NAMESPACE could arrive prior to the control
+   stream, in which case the data SHOULD be buffered until the control
+   stream arrives and setup is complete.  If an implementation does not
+   want to buffer, it MAY reset other bidirectional streams before the
+   session and control stream are established.
 
    The control stream MUST NOT be closed at the underlying transport
    layer during the session's lifetime.  Doing so results in the session
@@ -1309,13 +1318,16 @@ Table of Contents
    If the subscriber is aware of a namespace of interest, it can send
    SUBSCRIBE_NAMESPACE to publishers/relays it has established a session
    with.  The recipient of this message will send any relevant
-   PUBLISH_NAMESPACE, PUBLISH_NAMESPACE_DONE or PUBLISH messages for
-   that namespace, or more specific part of that namespace.  This
-   includes echoing back PUBLISH or PUBLISH_NAMESPACE messages to the
-   endpoint that sent them.  If an endpoint accepts its own PUBLISH,
-   this behaves as self-subscription described in Section 5.1.
+   NAMESPACE, NAMESPACE_DONE or PUBLISH messages for that namespace, or
+   more specific part of that namespace.  This includes echoing back
+   published Tracks and/or Track Namespaces under the
+   SUBSCRIBE_NAMESPACE prefix to the endpoint that sent them.  If an
+   endpoint accepts its own PUBLISH, this behaves as self-subscription
+   described in Section 5.1.
 
-   A publisher MUST send exactly one REQUEST_OK or REQUEST_ERROR in
+   The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional
+   stream and the publisher MUST send a single REQUEST_OK or
+   REQUEST_ERROR as the first message on the bidirectional stream in
    response to a SUBSCRIBE_NAMESPACE.  The subscriber SHOULD close the
    session with a protocol error if it detects receiving more than one.
 
@@ -1323,11 +1335,12 @@ Table of Contents
    result to the application, so the application can decide which other
    publishers to contact, if any.
 
-   An UNSUBSCRIBE_NAMESPACE withdraws a previous SUBSCRIBE_NAMESPACE.
-   It does not prohibit original publishers from sending further
-   PUBLISH_NAMESPACE or PUBLISH messages, but relays MUST NOT send any
-   further PUBLISH messages to a client without knowing the client is
-   interested in and authorized to receive the content.
+   A SUBSCRIBE_NAMESPACE can be cancelled by closing the stream with
+   either a FIN or RESET_STREAM.  Cancelling does not prohibit original
+   publishers from sending further PUBLISH_NAMESPACE or PUBLISH
+   messages, but relays MUST NOT send any further PUBLISH messages to a
+   client without knowing the client is interested in and authorized to
+   receive the content.
 
 6.2.  Publishing Namespaces
 
@@ -1832,13 +1845,15 @@ Table of Contents
            +------+--------------------------------------------+
            |  0x6 | PUBLISH_NAMESPACE (Section 9.20)           |
            +------+--------------------------------------------+
-           |  0x9 | PUBLISH_NAMESPACE_DONE (Section 9.21)      |
+           |  0x8 | NAMESPACE (Section 9.21)                   |
            +------+--------------------------------------------+
-           |  0xC | PUBLISH_NAMESPACE_CANCEL (Section 9.22)    |
+           |  0x9 | PUBLISH_NAMESPACE_DONE (Section 9.22)      |
            +------+--------------------------------------------+
-           | 0x11 | SUBSCRIBE_NAMESPACE (Section 9.23)         |
+           |  0xE | NAMESPACE_DONE (Section 9.23)              |
            +------+--------------------------------------------+
-           | 0x14 | UNSUBSCRIBE_NAMESPACE (Section 9.24)       |
+           |  0xC | PUBLISH_NAMESPACE_CANCEL (Section 9.24)    |
+           +------+--------------------------------------------+
+           | 0x11 | SUBSCRIBE_NAMESPACE (Section 9.25)         |
            +------+--------------------------------------------+
 
                                   Table 1
@@ -3226,7 +3241,28 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
-9.21.  PUBLISH_NAMESPACE_DONE
+9.21.  NAMESPACE
+
+   The NAMESPACE message is similar to the PUBLISH_NAMESPACE message,
+   except it is sent on the response stream of a SUBSCRIBE_NAMESPACE
+   request.  All NAMESPACE messages are in response to a
+   SUBSCRIBE_NAMESPACE, so only the namespace tuples after the 'Track
+   Namespace Prefix' are included in the 'Track Namespace Suffix'.
+
+   NAMESPACE Message {
+     Type (i) = 0x8,
+     Length (16),
+     Track Namespace Suffix (..),
+   }
+
+                     Figure 22: MOQT NAMESPACE Message
+
+   *  Track Namespace Suffix: Specifies the final portion of a track's
+      namespace as defined in Section 2.4.1 after removing namespace
+      tuples included in 'Track Namespace Prefix' {message-subscribe-
+      ns}.
+
+9.22.  PUBLISH_NAMESPACE_DONE
 
    The publisher sends the PUBLISH_NAMESPACE_DONE control message to
    indicate its intent to stop serving new subscriptions for tracks
@@ -3238,12 +3274,33 @@ Table of Contents
      Request ID (i)
    }
 
-               Figure 22: MOQT PUBLISH_NAMESPACE_DONE Message
+               Figure 23: MOQT PUBLISH_NAMESPACE_DONE Message
 
    *  Request ID: The Request ID of the PUBLISH_NAMESPACE that is being
       terminated.  See Section 9.9.
 
-9.22.  PUBLISH_NAMESPACE_CANCEL
+9.23.  NAMESPACE_DONE
+
+   The publisher sends the NAMESPACE_DONE control message to indicate
+   its intent to stop serving new subscriptions for tracks within the
+   provided Track Namespace.  All NAMESPACE_DONE messages are in
+   response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after
+   the 'Track Namespace Prefix' are included in the 'Track Namespace
+   Suffix'.
+
+   NAMESPACE_DONE Message {
+     Type (i) = 0xE,
+     Length (16),
+     Track Namespace Suffix (..)
+   }
+
+                   Figure 24: MOQT NAMESPACE_DONE Message
+
+   *  Track Namespace Suffix: Specifies the final portion of a track's
+      namespace as defined in Section 2.4.1.  The namespace begins with
+      the 'Track Namespace Prefix' specified in {message-subscribe-ns}.
+
+9.24.  PUBLISH_NAMESPACE_CANCEL
 
    The subscriber sends an PUBLISH_NAMESPACE_CANCEL control message to
    indicate it will stop sending new subscriptions for tracks within the
@@ -3257,7 +3314,7 @@ Table of Contents
      Error Reason (Reason Phrase)
    }
 
-              Figure 23: MOQT PUBLISH_NAMESPACE_CANCEL Message
+              Figure 25: MOQT PUBLISH_NAMESPACE_CANCEL Message
 
    *  Request ID: The Request ID of the PUBLISH_NAMESPACE that is being
       terminated.  See Section 9.9.
@@ -3269,22 +3326,24 @@ Table of Contents
    *  Error Reason: Provides the reason for publish cancelation.  See
       Section 1.4.3.
 
-9.23.  SUBSCRIBE_NAMESPACE
+9.25.  SUBSCRIBE_NAMESPACE
 
-   The subscriber sends the SUBSCRIBE_NAMESPACE control message to a
-   publisher to request the current set of matching published namespaces
-   and Established subscriptions, as well as future updates to the set.
+   The subscriber sends a SUBSCRIBE_NAMESPACE control message on a new
+   bidirectional stream to a publisher to request the current set of
+   matching published namespaces and/or Established subscriptions, as
+   well as future updates to the set.
 
    SUBSCRIBE_NAMESPACE Message {
      Type (i) = 0x11,
      Length (16),
      Request ID (i),
      Track Namespace Prefix (..),
+     Subscribe Options (i),
      Number of Parameters (i),
      Parameters (..) ...
    }
 
-                Figure 24: MOQT SUBSCRIBE_NAMESPACE Message
+                Figure 26: MOQT SUBSCRIBE_NAMESPACE Message
 
    *  Request ID: See Section 9.1.
 
@@ -3300,15 +3359,22 @@ Table of Contents
       than 32 Track Namespace Fields, it MUST close the session with a
       PROTOCOL_VIOLATION.
 
+   *  Subscribe Options: Allows subscribers to request PUBLISH (0x00),
+      NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE
+      request.
+
    *  Parameters: The parameters are defined in Section 9.2.1.
 
-   The publisher will respond with REQUEST_OK or REQUEST_ERROR.  If the
-   SUBSCRIBE_NAMESPACE is successful, the publisher will immediately
-   forward existing PUBLISH_NAMESPACE and PUBLISH messages that match
-   the Track Namespace Prefix that have not already been sent to this
-   subscriber.  If the set of matching PUBLISH_NAMESPACE messages
-   changes, the publisher sends the corresponding PUBLISH_NAMESPACE or
-   PUBLISH_NAMESPACE_DONE message.
+   The publisher will respond with REQUEST_OK or REQUEST_ERROR on the
+   response half of the stream.  If the SUBSCRIBE_NAMESPACE is
+   successful, the publisher will send matching NAMESPACE messages on
+   the response stream if they are requested.  If it is an error, the
+   stream will be immediately closed via FIN.  Also, any matching
+   PUBLISH messages without an Established Subscription will be sent on
+   the control stream.  When there are changes to the namespaces or
+   subscriptions being published and the subscriber is subscribed to
+   them, the publisher sends the corresponding NAMESPACE,
+   NAMESPACE_DONE, or PUBLISH messages.
 
    A subscriber cannot make overlapping namespace subscriptions on a
    single session.  Within a session, if a publisher receives a
@@ -3332,26 +3398,6 @@ Table of Contents
    messages resulting from this SUBSCRIBE_NAMESPACE will set the FORWARD
    parameter to 1, or indicate that value by omitting the parameter (see
    Section 5.1).
-
-9.24.  UNSUBSCRIBE_NAMESPACE
-
-   A subscriber issues a UNSUBSCRIBE_NAMESPACE message to a publisher
-   indicating it is no longer interested in PUBLISH_NAMESPACE,
-   PUBLISH_NAMESPACE_DONE and PUBLISH messages for the specified track
-   namespace prefix.
-
-   The format of UNSUBSCRIBE_NAMESPACE is as follows:
-
-   UNSUBSCRIBE_NAMESPACE Message {
-     Type (i) = 0x14,
-     Length (16),
-     Request ID (i),
-   }
-
-               Figure 25: MOQT UNSUBSCRIBE_NAMESPACE Message
-
-   *  Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
-      (Section 9.23) being cancelled by this message.
 
 10.  Data Streams and Datagrams
 
@@ -3526,7 +3572,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                      Figure 26: MOQT OBJECT_DATAGRAM
+                      Figure 27: MOQT OBJECT_DATAGRAM
 
    The Type value determines which fields are present in the
    OBJECT_DATAGRAM.  There are 10 defined Type values for
@@ -3662,7 +3708,7 @@ Table of Contents
      [Publisher Priority (8),]
    }
 
-                      Figure 27: MOQT SUBGROUP_HEADER
+                      Figure 28: MOQT SUBGROUP_HEADER
 
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
@@ -3784,7 +3830,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                   Figure 28: MOQT Subgroup Object Fields
+                   Figure 29: MOQT Subgroup Object Fields
 
 10.4.3.  Closing Subgroup Streams
 
@@ -3922,7 +3968,7 @@ Table of Contents
      Request ID (i),
    }
 
-                        Figure 29: MOQT FETCH_HEADER
+                        Figure 30: MOQT FETCH_HEADER
 
    Each Object sent on a FETCH stream after the FETCH_HEADER has the
    following format:
@@ -3938,7 +3984,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                    Figure 30: MOQT Fetch Object Fields
+                    Figure 31: MOQT Fetch Object Fields
 
    The Serialization Flags field defines the serialization of the
    Object.
