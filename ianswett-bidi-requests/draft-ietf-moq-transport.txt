@@ -868,7 +868,7 @@ Table of Contents
    begins with a single CLIENT_SETUP message.
 
    In addition to the control stream, this specification uses
-   bidirectional streams that begin with five types of message:
+   bidirectional streams that begin with six types of message:
    TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE, and
    SUBSCRIBE_NAMESPACE.  Bidirectional streams MUST NOT begin with any
    other message type unless negotiated.  If they do, the peer MUST
@@ -1071,9 +1071,9 @@ Table of Contents
    REQUEST_UPDATE.  Either endpoint can terminate an Established
    subscription, moving it to the Terminated state.  The subscriber
    terminates a subscription in the Pending (Subscriber) or Established
-   states by cancelling the bidirectional stream.  The publisher
-   terminates a subscription in the Pending (Publisher) or Established
-   states using PUBLISH_DONE.
+   states by sending STOP_SENDING.  The publisher terminates a
+   subscription in the Pending (Publisher) or Established states using
+   PUBLISH_DONE.
 
    This diagram shows the subscription state machine:
 
@@ -1097,7 +1097,7 @@ Table of Contents
                |            |             |       | REQUEST_UPDATE
                |            +-------------+ <-----+
                |                 |    |                  |
-               +-- Cancel Stream |    | PUBLISH_DONE ----+
+               +--- STOP_SENDING |    | PUBLISH_DONE ----+
                |     (subscriber)|    | (publisher)      |
                |                 V    V                  |
                |            +-------------+              |
@@ -1162,13 +1162,13 @@ Table of Contents
 
 5.1.1.  Subscription State Management
 
-   A subscriber keeps subscription state until it cancels the stream, or
+   A subscriber keeps subscription state until it sends STOP_SENDING, or
    after receipt of a PUBLISH_DONE or REQUEST_ERROR.  Note that
    PUBLISH_DONE does not usually indicate that state can immediately be
    destroyed, see Section 9.14.
 
    The Publisher can destroy subscription state as soon as it has
-   received Stop Sending.  It MUST reset any open streams associated
+   received STOP_SENDING.  It MUST reset any open streams associated
    with the SUBSCRIBE.
 
    The Publisher can also immediately delete subscription state after
@@ -1487,7 +1487,7 @@ Table of Contents
    subscriptions will be able to send some data.
 
    Given the critical nature of control messages and their relatively
-   small size, the control stream and bid request streams SHOULD be
+   small size, the control stream and bidi request streams SHOULD be
    prioritized higher than all subscribed Objects.
 
 7.3.  Considerations for Setting Priorities
@@ -1676,9 +1676,9 @@ Table of Contents
 
    When a publisher wants to stop new subscriptions for a published
    namespace it sends a STOP_SENDING on the bidi stream to withdraw the
-   PUBLISH_NAMESPACE.  A subscriber indicates it will no longer subcribe
-   to Tracks in a namespace it previously responded REQUEST_OK to by
-   sending a PUBLISH_NAMESPACE_CANCEL.
+   PUBLISH_NAMESPACE.  A subscriber indicates it will no longer
+   subscribe to Tracks in a namespace it previously responded REQUEST_OK
+   to by sending a PUBLISH_NAMESPACE_CANCEL.
 
    A Relay connects publishers and subscribers by managing sessions
    based on the Track Namespace or Full Track Name.  When a SUBSCRIBE
@@ -2622,7 +2622,7 @@ Table of Contents
 
 9.10.  SUBSCRIBE_OK
 
-   A publisher sends a SUBSCRIBE_OK as the first message on the incoming
+   A publisher sends a SUBSCRIBE_OK as the first response message on the
    bidi stream for successful subscriptions.
 
    SUBSCRIBE_OK Message {
@@ -3621,10 +3621,10 @@ Table of Contents
    Early termination of a unidirectional stream does not affect the MoQ
    application state, and therefore has no effect on outstanding
    subscriptions.  Termination of a bidi request stream terminates the
-   Subscription, Fetch or Track Status request.  Publishers SHOULD NOT
-   RESET the bidi response stream, and instead SHOULD send the
-   appropriate final message indicating the response is complete and FIN
-   the bidi stream.
+   Subscription, Fetch, Track Status, Publish Namespace, or Subscribe
+   Namespace request.  Publishers SHOULD NOT RESET the bidi response
+   stream, and instead SHOULD send the appropriate final message
+   indicating the response is complete and FIN the bidi stream.
 
 10.4.2.  Subgroup Header
 

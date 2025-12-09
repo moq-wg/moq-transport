@@ -2448,7 +2448,7 @@ the endpoints exchange Setup messages (<a href="#message-setup" class="auto inte
 messages defined in <a href="#message" class="auto internal xref">Section 9</a>. The control stream begins with a single
 CLIENT_SETUP message.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">In addition to the control stream, this specification uses bidirectional streams
-that begin with five types of message: TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH,
+that begin with six types of message: TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH,
 PUBLISH_NAMESPACE, and SUBSCRIBE_NAMESPACE. Bidirectional streams <span class="bcp14">MUST NOT</span> begin
 with any other message type unless negotiated. If they do, the peer <span class="bcp14">MUST</span> close
 the Session with a Protocol Violation. Objects are sent on unidirectional streams.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
@@ -2720,8 +2720,8 @@ successful, the subscription moves to the <code>Established</code> state and can
 be updated by the subscriber using REQUEST_UPDATE.  Either endpoint
 can terminate an <code>Established</code> subscription, moving it to the
 <code>Terminated</code> state.  The subscriber terminates a subscription in the
-<code>Pending (Subscriber)</code> or <code>Established</code> states by cancelling the
-bidirectional stream. The publisher terminates a subscription in the
+<code>Pending (Subscriber)</code> or <code>Established</code> states by sending STOP_SENDING.
+The publisher terminates a subscription in the
 <code>Pending (Publisher)</code> or <code>Established</code> states using PUBLISH_DONE.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1-2">This diagram shows the subscription state machine:<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5.1-3">
@@ -2746,7 +2746,7 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
               |            |             |       | REQUEST_UPDATE
               |            +-------------+ &lt;-----+
               |                 |    |                  |
-              +-- Cancel Stream |    | PUBLISH_DONE ----+
+              +--- STOP_SENDING |    | PUBLISH_DONE ----+
               |     (subscriber)|    | (publisher)      |
               |                 V    V                  |
               |            +-------------+              |
@@ -2803,12 +2803,12 @@ the Subscriber dropping Objects if its buffering limits are exceeded (see
           <h4 id="name-subscription-state-manageme">
 <a href="#section-5.1.1" class="section-number selfRef">5.1.1. </a><a href="#name-subscription-state-manageme" class="section-name selfRef">Subscription State Management</a>
           </h4>
-<p id="section-5.1.1-1">A subscriber keeps subscription state until it cancels the stream, or after
+<p id="section-5.1.1-1">A subscriber keeps subscription state until it sends STOP_SENDING, or after
 receipt of a PUBLISH_DONE or REQUEST_ERROR. Note that PUBLISH_DONE does not
 usually indicate that state can immediately be destroyed, see
 <a href="#message-publish-done" class="auto internal xref">Section 9.14</a>.<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1.1-2">The Publisher can destroy subscription state as soon as it has received
-Stop Sending. It <span class="bcp14">MUST</span> reset any open streams associated with the SUBSCRIBE.<a href="#section-5.1.1-2" class="pilcrow">¶</a></p>
+STOP_SENDING. It <span class="bcp14">MUST</span> reset any open streams associated with the SUBSCRIBE.<a href="#section-5.1.1-2" class="pilcrow">¶</a></p>
 <p id="section-5.1.1-3">The Publisher can also immediately delete subscription state after sending
 PUBLISH_DONE, but <span class="bcp14">MUST NOT</span> send it until it has closed all related streams.<a href="#section-5.1.1-3" class="pilcrow">¶</a></p>
 <p id="section-5.1.1-4">A REQUEST_ERROR indicates no objects will be delivered, and both endpoints can
@@ -3117,7 +3117,7 @@ to different subscriptions or FETCH responses, but have the same subscriber and
 publisher priority.  The ordering in those cases is implementation-defined,
 though the expectation is that all subscriptions will be able to send some data.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
 <p id="section-7.2-5">Given the critical nature of control messages and their relatively
-small size, the control stream and bid request streams <span class="bcp14">SHOULD</span> be prioritized
+small size, the control stream and bidi request streams <span class="bcp14">SHOULD</span> be prioritized
 higher than all subscribed Objects.<a href="#section-7.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3313,7 +3313,7 @@ The authorization and identification of the publisher depends on the way the
 relay is managed and is application specific.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
 <p id="section-8.5-4">When a publisher wants to stop new subscriptions for a published namespace it
 sends a STOP_SENDING on the bidi stream to withdraw the PUBLISH_NAMESPACE.
-A subscriber indicates it will no longer subcribe to Tracks in a namespace
+A subscriber indicates it will no longer subscribe to Tracks in a namespace
 it previously responded REQUEST_OK to by sending a PUBLISH_NAMESPACE_CANCEL.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
 <p id="section-8.5-5">A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
@@ -4471,7 +4471,7 @@ time to receive objects in the future.<a href="#section-9.9-8" class="pilcrow">�
         <h3 id="name-subscribe_ok">
 <a href="#section-9.10" class="section-number selfRef">9.10. </a><a href="#name-subscribe_ok" class="section-name selfRef">SUBSCRIBE_OK</a>
         </h3>
-<p id="section-9.10-1">A publisher sends a SUBSCRIBE_OK as the first message on the incoming
+<p id="section-9.10-1">A publisher sends a SUBSCRIBE_OK as the first response message on the
 bidi stream for successful subscriptions.<a href="#section-9.10-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_ok-message"></span><div id="moq-transport-subscribe-ok">
 <figure id="figure-12">
@@ -5851,9 +5851,9 @@ Header field values.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
 or other reasons by either the publisher or subscriber. Early termination of a
 unidirectional stream does not affect the MoQ application state, and therefore has
 no effect on outstanding subscriptions. Termination of a bidi request stream
-terminates the Subscription, Fetch or Track Status request. Publishers <span class="bcp14">SHOULD NOT</span>
-RESET the bidi response stream, and instead <span class="bcp14">SHOULD</span> send the appropriate final
-message indicating the response is complete and FIN the bidi stream.<a href="#section-10.4.1-1" class="pilcrow">¶</a></p>
+terminates the Subscription, Fetch, Track Status, Publish Namespace, or Subscribe Namespace
+request. Publishers <span class="bcp14">SHOULD NOT</span> RESET the bidi response stream, and instead <span class="bcp14">SHOULD</span> send
+the appropriate final message indicating the response is complete and FIN the bidi stream.<a href="#section-10.4.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subgroup-header">
