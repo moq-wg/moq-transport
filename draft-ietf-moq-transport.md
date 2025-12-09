@@ -2911,7 +2911,6 @@ does not send PUBLISH_DONE for this request, and the subscriber cannot send
 REQUEST_UPDATE.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
- 
 The publisher sends the PUBLISH_NAMESPACE message as the first message on a
 new bidi stream to advertise that it has tracks available within a Track Namespace.
 The receiver verifies the publisher is authorized to publish tracks under this
