@@ -728,9 +728,9 @@ CLIENT_SETUP message.
 
 In addition to the control stream, this specification uses bidirectional streams
 that begin with five types of message: TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH,
-and SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT begin with any other
-message type unless negotiated. If they do, the peer MUST close the Session with a
-Protocol Violation. Objects are sent on unidirectional streams.
+PUBLISH_NAMESPACE, and SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT begin
+with any other message type unless negotiated. If they do, the peer MUST close
+the Session with a Protocol Violation. Objects are sent on unidirectional streams.
 
 A unidirectional stream containing Objects or bidirectional stream(s) beginning
 with a message other than CLIENT_SETUP could arrive prior to the control stream,
@@ -1207,20 +1207,18 @@ An endpoint SHOULD report the reception of a REQUEST_OK or
 REQUEST_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
 namespace. This might be especially useful in upload or chat applications. A
-subscriber MUST send exactly one REQUEST_OK or REQUEST_ERROR
-in response to a PUBLISH_NAMESPACE. The publisher SHOULD close the session with
-a protocol error if it receives more than one.
+subscriber MUST send exactly one REQUEST_OK or REQUEST_ERROR as the first
+message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
+SHOULD close the session with a protocol error if it receives more than one.
 
-A PUBLISH_NAMESPACE_DONE message withdraws a previous PUBLISH_NAMESPACE,
+A PUBLISH_NAMESPACE is withdrawn by sending STOP_SENDING on the bidi stream,
 although it is not a protocol error for the subscriber to send a SUBSCRIBE or
-FETCH message for a track in a namespace after receiving an
-PUBLISH_NAMESPACE_DONE.
+FETCH message for a track in a namespace after the namespace is withdrawn.
 
 A subscriber can send PUBLISH_NAMESPACE_CANCEL to revoke acceptance of an
 PUBLISH_NAMESPACE, for example due to expiration of authorization
 credentials. The message enables the publisher to PUBLISH_NAMESPACE again with
-refreshed authorization, or discard associated state. After receiving an
-PUBLISH_NAMESPACE_CANCEL, the publisher does not send PUBLISH_NAMESPACE_DONE.
+refreshed authorization, or close the stream and discard associated state.
 
 While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
 subscribers, it is not a full-fledged routing protocol and does not protect
@@ -1489,9 +1487,9 @@ The authorization and identification of the publisher depends on the way the
 relay is managed and is application specific.
 
 When a publisher wants to stop new subscriptions for a published namespace it
-sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
-subcribe to Tracks in a namespace it previously responded REQUEST_OK
-to by sending a PUBLISH_NAMESPACE_CANCEL.
+sends a STOP_SENDING on the bidi stream to withdraw the PUBLISH_NAMESPACE.
+A subscriber indicates it will no longer subcribe to Tracks in a namespace
+it previously responded REQUEST_OK to by sending a PUBLISH_NAMESPACE_CANCEL.
 
 A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
@@ -1573,9 +1571,9 @@ terminated.
 
 ## Relay Track Handling
 
-A relay MUST include all Extension Headers associated with a Track when sending any PUBLISH,
-SUBSCRIBE_OK, TRACK_STATUS_OK or FETCH_OK, unless allowed by the extension's
-specification (see {{extension-headers}}).
+A relay MUST include all Extension Headers associated with a Track when sending
+any PUBLISH, SUBSCRIBE_OK, TRACK_STATUS_OK or FETCH_OK, unless allowed by the
+extension's specification (see {{extension-headers}}).
 
 ## Relay Object Handling
 
@@ -1649,8 +1647,6 @@ The following Message Types are defined:
 | 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
 |-------|-----------------------------------------------------|
 | 0x8   | NAMESPACE  ({{message-namespace}})                  |
-|-------|-----------------------------------------------------|
-| 0x9   | PUBLISH_NAMESPACE_DONE  ({{message-pub-ns-done}})   |
 |-------|-----------------------------------------------------|
 | 0xE   | NAMESPACE_DONE  ({{message-namespace-done}})        |
 |-------|-----------------------------------------------------|
@@ -2396,8 +2392,8 @@ time to receive objects in the future.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
-A publisher sends a SUBSCRIBE_OK control message for successful
-subscriptions.
+A publisher sends a SUBSCRIBE_OK as the first message on the incoming
+bidi stream for successful subscriptions.
 
 ~~~
 SUBSCRIBE_OK Message {
@@ -2428,9 +2424,9 @@ SUBSCRIBE_OK Message {
 ## REQUEST_UPDATE {#message-request-update}
 
 The sender of a request (SUBSCRIBE, PUBLISH, FETCH, TRACK_STATUS,
-PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE) can later send a REQUEST_UPDATE to
-modify it.  A subscriber can also send REQUEST_UPDATE to modify parameters of a
-subscription established with PUBLISH.
+PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE) can later send a REQUEST_UPDATE on the
+same bidi stream as the request to modify it.  A subscriber can also send
+REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.
 
 The receiver of a REQUEST_UPDATE MUST respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful.
@@ -2447,7 +2443,6 @@ REQUEST_UPDATE Message {
   Type (i) = 0x2,
   Length (16),
   Request ID (i),
-  Existing Request ID (i),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2455,12 +2450,6 @@ REQUEST_UPDATE Message {
 {: #moq-transport-request-update-format title="MOQT REQUEST_UPDATE Message"}
 
 * Request ID: See {{request-id}}.
-
-* Existing Request ID: The Request ID of the request this message is
-  updating.  This MUST match the Request ID of an existing request.  The
-  receiver MUST close the session with `PROTOCOL_VIOLATION` if the sender
-  specifies an invalid Existing Request ID, or if the parameters included
-  in the REQUEST_UPDATE are invalid for the type of request being modified.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2487,9 +2476,9 @@ PUBLISH_DONE with error code `UPDATE_FAILED`.
 
 ## PUBLISH {#message-publish}
 
-The publisher sends the PUBLISH message on a new bidirectional stream to initiate
-a subscription for a Track. The receiver verifies the publisher is authorized to
-publish this track.
+The publisher sends PUBLISH as the first message on a new bidirectional stream
+to initiate a subscription for a Track. The receiver verifies the publisher is
+authorized to publish this track.
 
 ~~~
 PUBLISH Message {
@@ -2922,10 +2911,11 @@ does not send PUBLISH_DONE for this request, and the subscriber cannot send
 REQUEST_UPDATE.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
-
-The publisher sends the PUBLISH_NAMESPACE control message to advertise that it
-has tracks available within a Track Namespace. The receiver verifies the
-publisher is authorized to publish tracks under this namespace.
+ 
+The publisher sends the PUBLISH_NAMESPACE message as the first message on a
+new bidi stream to advertise that it has tracks available within a Track Namespace.
+The receiver verifies the publisher is authorized to publish tracks under this
+namespace.
 
 ~~~
 PUBLISH_NAMESPACE Message {
@@ -2966,24 +2956,6 @@ NAMESPACE Message {
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}} after removing namespace tuples included in
   'Track Namespace Prefix' {message-subscribe-ns}.
-
-## PUBLISH_NAMESPACE_DONE {#message-pub-ns-done}
-
-The publisher sends the `PUBLISH_NAMESPACE_DONE` control message to indicate its
-intent to stop serving new subscriptions for tracks within the provided Track
-Namespace.
-
-~~~
-PUBLISH_NAMESPACE_DONE Message {
-  Type (i) = 0x9,
-  Length (16),
-  Request ID (i)
-}
-~~~
-{: #moq-transport-pub-ns-done-format title="MOQT PUBLISH_NAMESPACE_DONE Message"}
-
-* Request ID: The Request ID of the PUBLISH_NAMESPACE that is being terminated. See
-  {{message-subscribe-req}}.
 
 ## NAMESPACE_DONE {#message-namespace-done}
 
@@ -3089,10 +3061,10 @@ subscription, it MUST respond with REQUEST_ERROR with error code
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
 
-SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE,
-PUBLISH_NAMESPACE_DONE or PUBLISH messages to a subscriber.  It is useful in
-applications or relays where subscribers are only interested in or authorized to
-access a subset of available namespaces and tracks.
+SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE
+or PUBLISH messages to a subscriber.  It is useful in applications or relays
+where subscribers are only interested in or authorized to access a subset of
+available namespaces and tracks.
 
 If the FORWARD parameter ({{forward-parameter}}) is present in this message and
 equal to 0, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set
@@ -3883,9 +3855,9 @@ maintenance for the session to be excessive.
 A Relay can use authorization rules in order to prevent subscriptions closer
 to the root of a large prefix tree. Otherwise, if an entity sends a relay a
 SUBSCRIBE_NAMESPACE message with a short prefix, it can cause the relay to send
-a large volume of PUBLISH_NAMESPACE messages. As churn continues in the tree of
+a large volume of NAMESPACE messages. As churn continues in the tree of
 prefixes, the relay would have to continue to send
-PUBLISH_NAMESPACE/PUBLISH_NAMESPACE_DONE messages to the entity that had sent
+NAMESPACE/NAMESPACE_DONE messages to the entity that had sent
 the SUBSCRIBE_NAMESPACE.
 
 TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
