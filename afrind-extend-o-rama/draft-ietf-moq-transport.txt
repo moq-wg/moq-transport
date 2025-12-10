@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 June 2026                                      I. Swett, Ed.
+Expires: 13 June 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         9 December 2025
+                                                        10 December 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 June 2026.
+   This Internet-Draft will expire on 13 June 2026.
 
 Copyright Notice
 
@@ -1917,9 +1917,10 @@ Table of Contents
    types are defined in Section 9.3.1.  Version-specific parameter types
    are defined in Section 9.2.2.
 
-   The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
-   publisher to alter the payload of the objects it sends, as that would
-   violate the track uniqueness guarantee described in Section 2.4.3.
+   Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause
+   the publisher to alter the payload of the objects it sends, as that
+   would violate the track uniqueness guarantee described in
+   Section 2.4.3.
 
 9.2.1.  Parameter Scope
 
@@ -2058,7 +2059,7 @@ Table of Contents
 9.2.2.2.  DELIVERY TIMEOUT Parameter
 
    The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-   PUBLISH_OK, SUBSCRIBE, or SUBSCRIBE_UDPATE message.
+   PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
 
    It is the duration in milliseconds the relay SHOULD continue to
    attempt forwarding Objects after they have been received.  The start
@@ -2115,7 +2116,7 @@ Table of Contents
 9.2.2.4.  GROUP ORDER Parameter
 
    The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a
-   SUBSCRIBE, or FETCH.
+   SUBSCRIBE, PUBLISH_OK, or FETCH.
 
    It is an enum indicating how to prioritize Objects from different
    groups within the same subscription (see Section 7), or how to order
