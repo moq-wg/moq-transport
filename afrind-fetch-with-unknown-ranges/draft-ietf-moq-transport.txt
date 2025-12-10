@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 4 June 2026                                       I. Swett, Ed.
+Expires: 13 June 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         1 December 2025
+                                                        10 December 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 June 2026.
+   This Internet-Draft will expire on 13 June 2026.
 
 Copyright Notice
 
@@ -3926,21 +3926,36 @@ Table of Contents
    following format:
 
    {
-     Serialization Flags (8),
+     Serialization Flags (i),
      [Group ID (i),]
      [Subgroup ID (i),]
      [Object ID (i),]
      [Publisher Priority (8),]
      [Extensions (..),]
      Object Payload Length (i),
-     [Fetch Status (i),]
      [Object Payload (..),]
    }
 
                     Figure 30: MOQT Fetch Object Fields
 
    The Serialization Flags field defines the serialization of the
-   Object.
+   Object.  It is a variable-length integer.  When less than 64, the
+   bits repesent flags described below.  The following additional values
+   are defined:
+
+                   +=======+===========================+
+                   | Value | Meaning                   |
+                   +=======+===========================+
+                   | 0x8C  | End of Non-Existent Range |
+                   +-------+---------------------------+
+                   | 0x10C | End of Unknown Range      |
+                   +-------+---------------------------+
+
+                                  Table 6
+
+   Any other value is a PROTOCOL_VIOLATION.
+
+10.4.4.1.  Flags
 
    The two least significant bits (LSBs) of the Serialization Flags form
    a two-bit field that defines the encoding of the Subgroup.  To
@@ -3963,7 +3978,7 @@ Table of Contents
      |                              | present                       |
      +------------------------------+-------------------------------+
 
-                                 Table 6
+                                 Table 7
 
    The following table defines additional flags within the Serialization
    Flags field.  Each flag is an independent boolean value, where a set
@@ -3984,12 +3999,8 @@ Table of Contents
     | 0x20    | Extensions field is        | Extensions field is not  |
     |         | present                    | present                  |
     +---------+----------------------------+--------------------------+
-    | 0x40    | PROTOCOL_VIOLATION         | N/A                      |
-    +---------+----------------------------+--------------------------+
-    | 0x80    | PROTOCOL_VIOLATION         | N/A                      |
-    +---------+----------------------------+--------------------------+
 
-                                  Table 7
+                                  Table 8
 
    If the first Object in the FETCH response uses a flag that references
    fields in the prior Object, the Subscriber MUST close the session
@@ -3997,29 +4008,21 @@ Table of Contents
 
    The Extensions structure is defined in Section 10.2.1.2.
 
-   The Fetch Status field is only present if the Object Payload Length
-   is zero, and contains one of the following values:
-
-                        +=======+================+
-                        | Value | Meaning        |
-                        +=======+================+
-                        | 0x00  | Unknown        |
-                        +-------+----------------+
-                        | 0x01  | Does not Exist |
-                        +-------+----------------+
-
-                                 Table 8
-
-   Any other value is a PROTOCOL_VIOLATION.  When Object Fetch Status is
-   present, all Objects with Locations between the last serialized
-   Object, if any, and this one, inclusive, have the given status.  A
-   publisher SHOULD NOT use Does not Exist in a FETCH response except to
-   split a range of Objects that will not be serialized into those that
-   are known not to exist and those which are Unknown.
-
    When encoding an Object with a Forwarding Preference of "Datagram"
    (see Section 10.2.1), the Publisher treats it as having a Subgroup ID
    equal to the Object ID.
+
+10.4.4.2.  End of Range
+
+   When Serialization Flags indicates an End of Range, the Group ID and
+   Object ID fields are present.  Subgroup ID, Priority and Extensions
+   are not present.  All Objects with Locations between the last
+   serialized Object, if any, and this Location, inclusive, either do
+   not exist (when Serialization Flags is 0x8C) or are unknown (0x10C).
+   A publisher SHOULD NOT use End of Non-Existent Range in a FETCH
+   response except to split a range of Objects that will not be
+   serialized into those that are known not to exist and those with
+   unknown status.
 
 10.5.  Examples
 

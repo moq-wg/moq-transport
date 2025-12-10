@@ -1055,7 +1055,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 4 June 2026</td>
+<td class="center">Expires 13 June 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-12-01" class="published">1 December 2025</time>
+<time datetime="2025-12-10" class="published">10 December 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-06-04">4 June 2026</time></dd>
+<dd class="expires"><time datetime="2026-06-13">13 June 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 4 June 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 13 June 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -6359,14 +6359,13 @@ format:<a href="#section-10.4.4-3" class="pilcrow">¶</a></p>
             <div class="alignLeft art-text artwork" id="section-10.4.4-4.1">
 <pre>
 {
-  Serialization Flags (8),
+  Serialization Flags (i),
   [Group ID (i),]
   [Subgroup ID (i),]
   [Object ID (i),]
   [Publisher Priority (8),]
   [Extensions (..),]
   Object Payload Length (i),
-  [Fetch Status (i),]
   [Object Payload (..),]
 }
 </pre>
@@ -6375,94 +6374,11 @@ format:<a href="#section-10.4.4-3" class="pilcrow">¶</a></p>
 <a href="#name-moqt-fetch-object-fields" class="selfRef">MOQT Fetch Object Fields</a>
             </figcaption></figure>
 </div>
-<p id="section-10.4.4-5">The Serialization Flags field defines the serialization of the Object.<a href="#section-10.4.4-5" class="pilcrow">¶</a></p>
-<p id="section-10.4.4-6">The two least significant bits (LSBs) of the Serialization Flags form a two-bit
-field that defines the encoding of the Subgroup.  To extract this value, the
-Subscriber performs a bitwise AND operation with the mask 0x03.<a href="#section-10.4.4-6" class="pilcrow">¶</a></p>
+<p id="section-10.4.4-5">The Serialization Flags field defines the serialization of the Object.  It is
+a variable-length integer.  When less than 64, the bits repesent flags described
+below.  The following additional values are defined:<a href="#section-10.4.4-5" class="pilcrow">¶</a></p>
 <table class="center" id="table-6">
             <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
-<thead>
-              <tr>
-                <th class="text-left" rowspan="1" colspan="1">Bitmask Result (Serialization Flags &amp; 0x03)</th>
-                <th class="text-left" rowspan="1" colspan="1">Meaning</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x00</td>
-                <td class="text-left" rowspan="1" colspan="1">Subgroup ID is zero</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x01</td>
-                <td class="text-left" rowspan="1" colspan="1">Subgroup ID is the prior Object's Subgroup ID</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x02</td>
-                <td class="text-left" rowspan="1" colspan="1">Subgroup ID is the prior Object's Subgroup ID plus one</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x03</td>
-                <td class="text-left" rowspan="1" colspan="1">The Subgroup ID field is present</td>
-              </tr>
-            </tbody>
-          </table>
-<p id="section-10.4.4-8">The following table defines additional flags within the Serialization Flags
-field. Each flag is an independent boolean value, where a set bit (1) indicates
-the corresponding condition is true.<a href="#section-10.4.4-8" class="pilcrow">¶</a></p>
-<table class="center" id="table-7">
-            <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
-<thead>
-              <tr>
-                <th class="text-left" rowspan="1" colspan="1">Bitmask</th>
-                <th class="text-left" rowspan="1" colspan="1">Condition if set</th>
-                <th class="text-left" rowspan="1" colspan="1">Condition if not set (0)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x04</td>
-                <td class="text-left" rowspan="1" colspan="1">Object ID field is present</td>
-                <td class="text-left" rowspan="1" colspan="1">Object ID is the prior Object's ID plus one</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x08</td>
-                <td class="text-left" rowspan="1" colspan="1">Group ID field is present</td>
-                <td class="text-left" rowspan="1" colspan="1">Group ID is the prior Object's Group ID</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x10</td>
-                <td class="text-left" rowspan="1" colspan="1">Priority field is present</td>
-                <td class="text-left" rowspan="1" colspan="1">Priority is the prior Object's Priority</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x20</td>
-                <td class="text-left" rowspan="1" colspan="1">Extensions field is present</td>
-                <td class="text-left" rowspan="1" colspan="1">Extensions field is not present</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x40</td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <code>PROTOCOL_VIOLATION</code>
-</td>
-                <td class="text-left" rowspan="1" colspan="1">N/A</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x80</td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <code>PROTOCOL_VIOLATION</code>
-</td>
-                <td class="text-left" rowspan="1" colspan="1">N/A</td>
-              </tr>
-            </tbody>
-          </table>
-<p id="section-10.4.4-10">If the first Object in the FETCH response uses a flag that references fields in
-the prior Object, the Subscriber <span class="bcp14">MUST</span> close the session with a
-<code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4.4-10" class="pilcrow">¶</a></p>
-<p id="section-10.4.4-11">The Extensions structure is defined in <a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a>.<a href="#section-10.4.4-11" class="pilcrow">¶</a></p>
-<p id="section-10.4.4-12">The Fetch Status field is only present if the Object Payload Length is
-zero, and contains one of the following values:<a href="#section-10.4.4-12" class="pilcrow">¶</a></p>
-<table class="center" id="table-8">
-            <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Value</th>
@@ -6471,23 +6387,109 @@ zero, and contains one of the following values:<a href="#section-10.4.4-12" clas
             </thead>
             <tbody>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x00</td>
-                <td class="text-left" rowspan="1" colspan="1">Unknown</td>
+                <td class="text-left" rowspan="1" colspan="1">0x8C</td>
+                <td class="text-left" rowspan="1" colspan="1">End of Non-Existent Range</td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x01</td>
-                <td class="text-left" rowspan="1" colspan="1">Does not Exist</td>
+                <td class="text-left" rowspan="1" colspan="1">0x10C</td>
+                <td class="text-left" rowspan="1" colspan="1">End of Unknown Range</td>
               </tr>
             </tbody>
           </table>
-<p id="section-10.4.4-14">Any other value is a <code>PROTOCOL_VIOLATION</code>.  When Object Fetch Status is present,
-all Objects with Locations between the last serialized Object, if any, and this
-one, inclusive, have the given status.  A publisher <span class="bcp14">SHOULD NOT</span> use <code>Does not
-Exist</code> in a FETCH response except to split a range of Objects that will not be
-serialized into those that are known not to exist and those which are Unknown.<a href="#section-10.4.4-14" class="pilcrow">¶</a></p>
-<p id="section-10.4.4-15">When encoding an Object with a Forwarding Preference of "Datagram" (see
+<p id="section-10.4.4-7">Any other value is a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4.4-7" class="pilcrow">¶</a></p>
+<div id="flags">
+<section id="section-10.4.4.1">
+            <h5 id="name-flags">
+<a href="#section-10.4.4.1" class="section-number selfRef">10.4.4.1. </a><a href="#name-flags" class="section-name selfRef">Flags</a>
+            </h5>
+<p id="section-10.4.4.1-1">The two least significant bits (LSBs) of the Serialization Flags form a two-bit
+field that defines the encoding of the Subgroup.  To extract this value, the
+Subscriber performs a bitwise AND operation with the mask 0x03.<a href="#section-10.4.4.1-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-7">
+              <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
+<thead>
+                <tr>
+                  <th class="text-left" rowspan="1" colspan="1">Bitmask Result (Serialization Flags &amp; 0x03)</th>
+                  <th class="text-left" rowspan="1" colspan="1">Meaning</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="text-left" rowspan="1" colspan="1">0x00</td>
+                  <td class="text-left" rowspan="1" colspan="1">Subgroup ID is zero</td>
+                </tr>
+                <tr>
+                  <td class="text-left" rowspan="1" colspan="1">0x01</td>
+                  <td class="text-left" rowspan="1" colspan="1">Subgroup ID is the prior Object's Subgroup ID</td>
+                </tr>
+                <tr>
+                  <td class="text-left" rowspan="1" colspan="1">0x02</td>
+                  <td class="text-left" rowspan="1" colspan="1">Subgroup ID is the prior Object's Subgroup ID plus one</td>
+                </tr>
+                <tr>
+                  <td class="text-left" rowspan="1" colspan="1">0x03</td>
+                  <td class="text-left" rowspan="1" colspan="1">The Subgroup ID field is present</td>
+                </tr>
+              </tbody>
+            </table>
+<p id="section-10.4.4.1-3">The following table defines additional flags within the Serialization Flags
+field. Each flag is an independent boolean value, where a set bit (1) indicates
+the corresponding condition is true.<a href="#section-10.4.4.1-3" class="pilcrow">¶</a></p>
+<table class="center" id="table-8">
+              <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
+<thead>
+                <tr>
+                  <th class="text-left" rowspan="1" colspan="1">Bitmask</th>
+                  <th class="text-left" rowspan="1" colspan="1">Condition if set</th>
+                  <th class="text-left" rowspan="1" colspan="1">Condition if not set (0)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="text-left" rowspan="1" colspan="1">0x04</td>
+                  <td class="text-left" rowspan="1" colspan="1">Object ID field is present</td>
+                  <td class="text-left" rowspan="1" colspan="1">Object ID is the prior Object's ID plus one</td>
+                </tr>
+                <tr>
+                  <td class="text-left" rowspan="1" colspan="1">0x08</td>
+                  <td class="text-left" rowspan="1" colspan="1">Group ID field is present</td>
+                  <td class="text-left" rowspan="1" colspan="1">Group ID is the prior Object's Group ID</td>
+                </tr>
+                <tr>
+                  <td class="text-left" rowspan="1" colspan="1">0x10</td>
+                  <td class="text-left" rowspan="1" colspan="1">Priority field is present</td>
+                  <td class="text-left" rowspan="1" colspan="1">Priority is the prior Object's Priority</td>
+                </tr>
+                <tr>
+                  <td class="text-left" rowspan="1" colspan="1">0x20</td>
+                  <td class="text-left" rowspan="1" colspan="1">Extensions field is present</td>
+                  <td class="text-left" rowspan="1" colspan="1">Extensions field is not present</td>
+                </tr>
+              </tbody>
+            </table>
+<p id="section-10.4.4.1-5">If the first Object in the FETCH response uses a flag that references fields in
+the prior Object, the Subscriber <span class="bcp14">MUST</span> close the session with a
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4.4.1-5" class="pilcrow">¶</a></p>
+<p id="section-10.4.4.1-6">The Extensions structure is defined in <a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a>.<a href="#section-10.4.4.1-6" class="pilcrow">¶</a></p>
+<p id="section-10.4.4.1-7">When encoding an Object with a Forwarding Preference of "Datagram" (see
 <a href="#object-properties" class="auto internal xref">Section 10.2.1</a>), the Publisher treats it as having a Subgroup ID equal to
-the Object ID.<a href="#section-10.4.4-15" class="pilcrow">¶</a></p>
+the Object ID.<a href="#section-10.4.4.1-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="end-of-range">
+<section id="section-10.4.4.2">
+            <h5 id="name-end-of-range">
+<a href="#section-10.4.4.2" class="section-number selfRef">10.4.4.2. </a><a href="#name-end-of-range" class="section-name selfRef">End of Range</a>
+            </h5>
+<p id="section-10.4.4.2-1">When Serialization Flags indicates an End of Range, the Group ID and Object ID
+fields are present.  Subgroup ID, Priority and Extensions are not present. All
+Objects with Locations between the last serialized Object, if any, and this
+Location, inclusive, either do not exist (when Serialization Flags is 0x8C) or
+are unknown (0x10C).  A publisher <span class="bcp14">SHOULD NOT</span> use <code>End of Non-Existent Range</code> in
+a FETCH response except to split a range of Objects that will not be serialized
+into those that are known not to exist and those with unknown status.<a href="#section-10.4.4.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 </section>
