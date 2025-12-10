@@ -1711,7 +1711,7 @@ messages and for all other message types. SETUP message parameter types
 are defined in {{setup-params}}. Version-specific parameter types are defined
 in {{version-specific-params}}.
 
-The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
+Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
 to alter the payload of the objects it sends, as that would violate the track
 uniqueness guarantee described in {{track-scope}}.
 
@@ -1845,7 +1845,7 @@ aliases.
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-PUBLISH_OK, SUBSCRIBE, or SUBSCRIBE_UDPATE message.
+PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
 
 It is the duration in milliseconds the relay SHOULD
 continue to attempt forwarding Objects after they have been received.  The start
@@ -1899,7 +1899,7 @@ the value 128.
 #### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
-or FETCH.
+PUBLISH_OK, or FETCH.
 
 It
 is an enum indicating how to prioritize Objects from different groups within the
@@ -3765,9 +3765,8 @@ A subscription has Publisher Priorty 128 if this extension is omitted.
 The PUBLISHER_GROUP_ORDER_PREFERENCE extension (Extension Header Type 0x22) is a
 Track Extension.
 
-It
-is an enum indicating the publisher's preference for prioritizing Objects from
-different groups within the
+It is an enum indicating the publisher's preference for prioritizing Objects
+from different groups within the
 same subscription (see {{priorities}}). The allowed values are Ascending (0x1) or
 Descending (0x2). If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
