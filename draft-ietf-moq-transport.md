@@ -3604,20 +3604,29 @@ format:
 
 ~~~
 {
-  Serialization Flags (8),
+  Serialization Flags (i),
   [Group ID (i),]
   [Subgroup ID (i),]
   [Object ID (i),]
   [Publisher Priority (8),]
   [Extensions (..),]
   Object Payload Length (i),
-  [Fetch Status (i),]
   [Object Payload (..),]
 }
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
 
-The Serialization Flags field defines the serialization of the Object.
+The Serialization Flags field defines the serialization of the Object.  It is
+a variable-length integer.  When less than 64, the bits repesent flags described
+below.  The following additional values are defined:
+
+Value | Meaning
+0x8C | End of Non-Existent Range
+0x10C | End of Unknown Range
+
+Any other value is a `PROTOCOL_VIOLATION`.
+
+#### Flags
 
 The two least significant bits (LSBs) of the Serialization Flags form a two-bit
 field that defines the encoding of the Subgroup.  To extract this value, the
@@ -3639,8 +3648,6 @@ Bitmask | Condition if set | Condition if not set (0)
 0x08 | Group ID field is present | Group ID is the prior Object's Group ID
 0x10 | Priority field is present | Priority is the prior Object's Priority
 0x20 | Extensions field is present | Extensions field is not present
-0x40 | `PROTOCOL_VIOLATION` | N/A
-0x80 | `PROTOCOL_VIOLATION` | N/A
 
 If the first Object in the FETCH response uses a flag that references fields in
 the prior Object, the Subscriber MUST close the session with a
@@ -3648,22 +3655,19 @@ the prior Object, the Subscriber MUST close the session with a
 
 The Extensions structure is defined in {{object-extensions}}.
 
-The Fetch Status field is only present if the Object Payload Length is
-zero, and contains one of the following values:
-
-Value | Meaning
-0x00 | Unknown
-0x01 | Does not Exist
-
-Any other value is a `PROTOCOL_VIOLATION`.  When Object Fetch Status is present,
-all Objects with Locations between the last serialized Object, if any, and this
-one, inclusive, have the given status.  A publisher SHOULD NOT use `Does not
-Exist` in a FETCH response except to split a range of Objects that will not be
-serialized into those that are known not to exist and those which are Unknown.
-
 When encoding an Object with a Forwarding Preference of "Datagram" (see
 {{object-properties}}), the Publisher treats it as having a Subgroup ID equal to
 the Object ID.
+
+#### End of Range
+
+When Serialization Flags indicates an End of Range, the Group ID and Object ID
+fields are present.  Subgroup ID, Priority and Extensions are not present. All
+Objects with Locations between the last serialized Object, if any, and this
+Location, inclusive, either do not exist (when Serialization Flags is 0x8C) or
+are unknown (0x10C).  A publisher SHOULD NOT use `End of Non-Existent Range` in
+a FETCH response except to split a range of Objects that will not be serialized
+into those that are known not to exist and those with unknown status.
 
 ## Examples
 
