@@ -565,8 +565,8 @@ include:
 
 The above list of conditions is not considered exhaustive.
 
-When a subscriber detects a Malformed Track, it MUST send unsubsribe any
-subscription and cancel any fetch for that Track from that publisher by sending
+When a subscriber detects a Malformed Track, it MUST cancel any corresponding
+subscription or fetches for that Track from that publisher by sending
 STOP_SENDING on the bidi stream, and SHOULD deliver an error to the application.
 If a relay detects a Malformed Track, it MUST immediately terminate downstream
 subscriptions with PUBLISH_DONE and reset any fetch streams with
