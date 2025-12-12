@@ -3088,13 +3088,13 @@ SUBSCRIBE_NAMESPACE Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
-  {{track-name}} with between 1 and 32 Track Namespace Fields.  This prefix is
+  {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
   matched against track namespaces known to the publisher.  For example, if the
   publisher is a relay that has received PUBLISH_NAMESPACE messages for
   namespaces ("example.com", "meeting=123", "participant=100") and
   ("example.com", "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for
   ("example.com", "meeting=123") would match both.  If an endpoint receives a
-  Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
+  Track Namespace Prefix consisting of greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 * Subscribe Options: Allows subscribers to request PUBLISH (0x00),
