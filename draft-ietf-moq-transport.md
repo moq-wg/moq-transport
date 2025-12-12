@@ -17,7 +17,7 @@ venue:
   mail: "moq@ietf.org"
   arch: "https://mailarchive.ietf.org/arch/browse/moq/"
   github: "moq-wg/moq-transport"
-  latest: "https://moq-wg.github.io/moq-transport/draftS-ietf-moq-transport.html"
+  latest: "https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html"
 
 stand_alone: yes
 smart_quotes: no
