@@ -17,7 +17,7 @@ venue:
   mail: "moq@ietf.org"
   arch: "https://mailarchive.ietf.org/arch/browse/moq/"
   github: "moq-wg/moq-transport"
-  latest: "https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html"
+  latest: "https://moq-wg.github.io/moq-transport/draftS-ietf-moq-transport.html"
 
 stand_alone: yes
 smart_quotes: no
@@ -1648,11 +1648,7 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
 |-------|-----------------------------------------------------|
-| 0x8   | NAMESPACE  ({{message-namespace}})                  |
-|-------|-----------------------------------------------------|
 | 0x9   | PUBLISH_NAMESPACE_DONE  ({{message-pub-ns-done}})   |
-|-------|-----------------------------------------------------|
-| 0xE   | NAMESPACE_DONE  ({{message-namespace-done}})        |
 |-------|-----------------------------------------------------|
 | 0xC   | PUBLISH_NAMESPACE_CANCEL ({{message-pub-ns-cancel}})|
 |-------|-----------------------------------------------------|
@@ -2978,27 +2974,6 @@ PUBLISH_NAMESPACE Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-## NAMESPACE {#message-namespace}
-
-The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
-it is sent on the response stream of a SUBSCRIBE_NAMESPACE request.
-All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
-the namespace tuples after the 'Track Namespace Prefix' are included
-in the 'Track Namespace Suffix'.
-
-~~~
-NAMESPACE Message {
-  Type (i) = 0x8,
-  Length (16),
-  Track Namespace Suffix (..),
-}
-~~~
-{: #moq-transport-ns-format title="MOQT NAMESPACE Message"}
-
-* Track Namespace Suffix: Specifies the final portion of a track's
-  namespace as defined in {{track-name}} after removing namespace tuples included in
-  'Track Namespace Prefix' {message-subscribe-ns}.
-
 ## PUBLISH_NAMESPACE_DONE {#message-pub-ns-done}
 
 The publisher sends the `PUBLISH_NAMESPACE_DONE` control message to indicate its
@@ -3016,27 +2991,6 @@ PUBLISH_NAMESPACE_DONE Message {
 
 * Request ID: The Request ID of the PUBLISH_NAMESPACE that is being terminated. See
   {{message-subscribe-req}}.
-
-## NAMESPACE_DONE {#message-namespace-done}
-
-The publisher sends the `NAMESPACE_DONE` control message to indicate its
-intent to stop serving new subscriptions for tracks within the provided Track
-Namespace. All NAMESPACE_DONE messages are in response to a SUBSCRIBE_NAMESPACE,
-so only the namespace tuples after the 'Track Namespace Prefix' are included
-in the 'Track Namespace Suffix'.
-
-~~~
-NAMESPACE_DONE Message {
-  Type (i) = 0xE,
-  Length (16),
-  Track Namespace Suffix (..)
-}
-~~~
-{: #moq-transport-ns-done-format title="MOQT NAMESPACE_DONE Message"}
-
-* Track Namespace Suffix: Specifies the final portion of a track's
-  namespace as defined in {{track-name}}. The namespace begins with the
-  'Track Namespace Prefix' specified in {message-subscribe-ns}.
 
 ## PUBLISH_NAMESPACE_CANCEL {#message-pub-ns-cancel}
 
@@ -3112,6 +3066,10 @@ subscriptions being published and the subscriber is subscribed to them,
 the publisher sends the corresponding NAMESPACE, NAMESPACE_DONE,
 or PUBLISH messages.
 
+The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
+corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
+corresponding NAMESPACE, it SHOULD close the session with a 'Protocol Error'.
+
 A subscriber cannot make overlapping namespace subscriptions on a single
 session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
 Track Namespace Prefix that shares a common prefix with an established namespace
@@ -3132,6 +3090,46 @@ the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
 from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
 set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 (see {{subscriptions}}).
+
+### NAMESPACE {#message-namespace}
+
+The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
+it is sent on the response stream of a SUBSCRIBE_NAMESPACE request.
+All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
+the namespace tuples after the 'Track Namespace Prefix' are included
+in the 'Track Namespace Suffix'.
+
+~~~
+NAMESPACE Message {
+  Type (i) = 0x8,
+  Track Namespace Suffix (..),
+}
+~~~
+{: #moq-transport-ns-format title="MOQT NAMESPACE Message"}
+
+* Track Namespace Suffix: Specifies the final portion of a track's
+  namespace as defined in {{track-name}} after removing namespace tuples included in
+  'Track Namespace Prefix' {message-subscribe-ns}.
+
+### NAMESPACE_DONE {#message-namespace-done}
+
+The publisher sends the `NAMESPACE_DONE` control message to indicate its
+intent to stop serving new subscriptions for tracks within the provided Track
+Namespace. All NAMESPACE_DONE messages are in response to a SUBSCRIBE_NAMESPACE,
+so only the namespace tuples after the 'Track Namespace Prefix' are included
+in the 'Track Namespace Suffix'.
+
+~~~
+NAMESPACE_DONE Message {
+  Type (i) = 0xE,
+  Track Namespace Suffix (..)
+}
+~~~
+{: #moq-transport-ns-done-format title="MOQT NAMESPACE_DONE Message"}
+
+* Track Namespace Suffix: Specifies the final portion of a track's
+  namespace as defined in {{track-name}}. The namespace begins with the
+  'Track Namespace Prefix' specified in {message-subscribe-ns}.
 
 
 # Data Streams and Datagrams {#data-streams}
