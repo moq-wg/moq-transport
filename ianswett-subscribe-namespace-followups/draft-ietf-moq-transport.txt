@@ -30,7 +30,7 @@ About This Document
    This note is to be removed before publishing as an RFC.
 
    The latest revision of this draft can be found at https://moq-
-   wg.github.io/moq-transport/draftS-ietf-moq-transport.html.  Status
+   wg.github.io/moq-transport/draft-ietf-moq-transport.html.  Status
    information for this document may be found at
    https://datatracker.ietf.org/doc/draft-ietf-moq-transport/.
 
