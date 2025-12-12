@@ -1609,10 +1609,6 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
-| 0x15  | MAX_REQUEST_ID ({{message-max-request-id}})         |
-|-------|-----------------------------------------------------|
-| 0x1A  | REQUESTS_BLOCKED ({{message-requests-blocked}})     |
-|-------|-----------------------------------------------------|
 | 0x7   | REQUEST_OK ({{message-request-ok}})                 |
 |-------|-----------------------------------------------------|
 | 0x5   | REQUEST_ERROR  ({{message-request-error}})          |
