@@ -1393,7 +1393,7 @@ given Track.
 
 There is no specified limit to the number of publishers of a Track Namespace or
 Track.  An implementation can use mechanisms such as REQUEST_ERROR,
-STOP_SENDING or PUBLISH_NAMESPACE_CANCEL if it cannot
+unsubscribing via STOP_SENDING or PUBLISH_NAMESPACE_CANCEL if it cannot
 accept an additional publisher due to implementation constraints.
 Implementations can consider the establishment or idle time of the session or
 subscription to determine which publisher to reject or disconnect.
