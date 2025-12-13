@@ -1451,7 +1451,7 @@ all possible Objects matching the filter have been delivered to the subscriber.
 Since tracking this can be prohibitively expensive, Relays are not required or
 expected to do so.
 
-### Graceful Subscriber Relay Switchover
+### Graceful Subscriber Relay Switchover {#graceful-subscriber-switchover}
 
 This section describes behavior a subscriber MAY implement
 to allow for a better user experience when a relay sends a GOAWAY.
@@ -1537,7 +1537,7 @@ the Relay MUST NOT propagate that message or Object to another Session, because
 it would enable a single Session error to force an unrelated Session, which
 might be handling other subscriptions, to be closed.
 
-### Graceful Publisher Network Switchover
+### Graceful Publisher Network Switchover {#graceful-publisher-switchover}
 
 This section describes a behavior that a publisher MAY
 choose to implement to allow for a better user experience when
