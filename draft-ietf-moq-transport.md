@@ -2160,7 +2160,13 @@ publisher MAY reject new requests after sending a GOAWAY.
 
 Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-SUBSCRIBE_NAMESPACE and TRACK_SATUS.
+SUBSCRIBE_NAMESPACE and TRACK_STATUS.
+
+Sending a GOAWAY does not prevent the sender from initiating new requests,
+though the sender SHOULD avoid initiating requests unless required by migration
+(see ({{graceful-subscriber-switchover}} and {{graceful-publisher-switchover}}).
+An endpoint that receives a GOAWAY MAY reject new requests with an appropriate
+error code (e.g., SUBSCRIBE_ERROR with error code GOING_AWAY).
 
 The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
 ({{session-termination}}) if it receives multiple GOAWAY messages.
