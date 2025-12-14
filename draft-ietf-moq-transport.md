@@ -3113,9 +3113,10 @@ NAMESPACE Message {
 
 ### NAMESPACE_DONE {#message-namespace-done}
 
-The publisher sends the `NAMESPACE_DONE` message to indicate its
-intent to stop serving new subscriptions for tracks within the provided Track
-Namespace. All NAMESPACE_DONE messages are in response to a SUBSCRIBE_NAMESPACE,
+The publisher sends the `NAMESPACE_DONE` message on the response stream of a
+SUBSCRIBE_NAMESPACE request to indicate its intent to stop serving new
+subscriptions for tracks within the specified Track Namespace.
+All NAMESPACE_DONE messages are in response to a SUBSCRIBE_NAMESPACE,
 so only the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.
 
