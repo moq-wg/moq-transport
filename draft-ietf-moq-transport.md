@@ -619,7 +619,7 @@ concerning processing, modification, caching and forwarding.
 If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
 cached as part of the Track or Object and MUST be forwarded by relays.  If a
 Track or Object arrives with a different set of unknown extensions, the most
-recent set SHOULD update any cached values, removing any unknown values not
+recent set SHOULD replace any cached values, removing any unknown values not
 present in the new set.
 
 If supported by the relay and subject to the processing rules specified in the
