@@ -3093,8 +3093,8 @@ set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 
 ### NAMESPACE {#message-namespace}
 
-The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
-it is sent on the response stream of a SUBSCRIBE_NAMESPACE request.
+The NAMESPACE message is similar to PUBLISH_NAMESPACE, except it is not a control
+message and is only sent on the response stream of a SUBSCRIBE_NAMESPACE request.
 All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.
