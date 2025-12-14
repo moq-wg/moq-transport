@@ -3113,7 +3113,7 @@ NAMESPACE Message {
 
 ### NAMESPACE_DONE {#message-namespace-done}
 
-The publisher sends the `NAMESPACE_DONE` control message to indicate its
+The publisher sends the `NAMESPACE_DONE` message to indicate its
 intent to stop serving new subscriptions for tracks within the provided Track
 Namespace. All NAMESPACE_DONE messages are in response to a SUBSCRIBE_NAMESPACE,
 so only the namespace tuples after the 'Track Namespace Prefix' are included
