@@ -409,8 +409,7 @@ retransmission of data. Furthermore, many QUIC and WebTransport implementations
 offer the ability to control the relative scheduling priority of pending stream
 data.
 
-Every object within a Group belongs to exactly one Subgroup (but zero if its
-forwarding preference is Datagram).
+Every Object within a Group belongs to exactly one Subgroup or Datagram.
 
 When Objects are sent in a subscription (see {{subscriptions}}),  Objects
 from two subgroups MUST NOT be sent on the same stream, and Objects from the
