@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 15 June 2026                                      I. Swett, Ed.
+Expires: 17 June 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        12 December 2025
+                                                        14 December 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 June 2026.
+   This Internet-Draft will expire on 17 June 2026.
 
 Copyright Notice
 
@@ -3332,8 +3332,8 @@ Table of Contents
 
    The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix
    before the corresponding NAMESPACE.  If a subscriber receives a
-   NAMESPACE_DONE before the corresponding NAMESPACE, it SHOULD close
-   the session with a 'Protocol Error'.
+   NAMESPACE_DONE before the corresponding NAMESPACE, it MUST close the
+   session with a 'PROTOCOL_VIOLATION'.
 
    A subscriber cannot make overlapping namespace subscriptions on a
    single session.  Within a session, if a publisher receives a
