@@ -5412,8 +5412,8 @@ set the FORWARD parameter to 1, or indicate that value by omitting the parameter
           <h4 id="name-namespace">
 <a href="#section-9.23.1" class="section-number selfRef">9.23.1. </a><a href="#name-namespace" class="section-name selfRef">NAMESPACE</a>
           </h4>
-<p id="section-9.23.1-1">The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
-it is sent on the response stream of a SUBSCRIBE_NAMESPACE request.
+<p id="section-9.23.1-1">The NAMESPACE message is similar to PUBLISH_NAMESPACE, except it is not a control
+message and is only sent on the response stream of a SUBSCRIBE_NAMESPACE request.
 All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.<a href="#section-9.23.1-1" class="pilcrow">¶</a></p>

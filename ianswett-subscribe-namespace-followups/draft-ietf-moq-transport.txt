@@ -3360,11 +3360,12 @@ Table of Contents
 
 9.23.1.  NAMESPACE
 
-   The NAMESPACE message is similar to the PUBLISH_NAMESPACE message,
-   except it is sent on the response stream of a SUBSCRIBE_NAMESPACE
-   request.  All NAMESPACE messages are in response to a
-   SUBSCRIBE_NAMESPACE, so only the namespace tuples after the 'Track
-   Namespace Prefix' are included in the 'Track Namespace Suffix'.
+   The NAMESPACE message is similar to PUBLISH_NAMESPACE, except it is
+   not a control message and is only sent on the response stream of a
+   SUBSCRIBE_NAMESPACE request.  All NAMESPACE messages are in response
+   to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after the
+   'Track Namespace Prefix' are included in the 'Track Namespace
+   Suffix'.
 
    NAMESPACE Message {
      Type (i) = 0x8,
