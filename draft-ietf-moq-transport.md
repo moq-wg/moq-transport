@@ -3617,7 +3617,7 @@ format:
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
 
 The Serialization Flags field defines the serialization of the Object.  It is
-a variable-length integer.  When less than 64, the bits repesent flags described
+a variable-length integer.  When less than 64, the bits represent flags described
 below.  The following additional values are defined:
 
 Value | Meaning
@@ -3661,7 +3661,8 @@ the Object ID.
 
 #### End of Range
 
-When Serialization Flags indicates an End of Range, the Group ID and Object ID
+When Serialization Flags indicates an End of Range (e.g. values 0x8C or 0x10C), 
+the Group ID and Object ID
 fields are present.  Subgroup ID, Priority and Extensions are not present. All
 Objects with Locations between the last serialized Object, if any, and this
 Location, inclusive, either do not exist (when Serialization Flags is 0x8C) or
