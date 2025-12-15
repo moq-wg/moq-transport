@@ -3661,14 +3661,14 @@ the Object ID.
 
 #### End of Range
 
-When Serialization Flags indicates an End of Range (e.g. values 0x8C or 0x10C), 
-the Group ID and Object ID
-fields are present.  Subgroup ID, Priority and Extensions are not present. All
-Objects with Locations between the last serialized Object, if any, and this
-Location, inclusive, either do not exist (when Serialization Flags is 0x8C) or
-are unknown (0x10C).  A publisher SHOULD NOT use `End of Non-Existent Range` in
-a FETCH response except to split a range of Objects that will not be serialized
-into those that are known not to exist and those with unknown status.
+When Serialization Flags indicates an End of Range (e.g. values 0x8C or 0x10C),
+the Group ID and Object ID fields are present.  Subgroup ID, Priority and
+Extensions are not present. All Objects with Locations between the last
+serialized Object, if any, and this Location, inclusive, either do not exist
+(when Serialization Flags is 0x8C) or are unknown (0x10C).  A publisher SHOULD
+NOT use `End of Non-Existent Range` in a FETCH response except to split a range
+of Objects that will not be serialized into those that are known not to exist
+and those with unknown status.
 
 ## Examples
 
