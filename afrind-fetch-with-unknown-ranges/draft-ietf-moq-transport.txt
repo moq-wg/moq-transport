@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 June 2026                                      I. Swett, Ed.
+Expires: 18 June 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        10 December 2025
+                                                        15 December 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 June 2026.
+   This Internet-Draft will expire on 18 June 2026.
 
 Copyright Notice
 
@@ -3940,8 +3940,8 @@ Table of Contents
 
    The Serialization Flags field defines the serialization of the
    Object.  It is a variable-length integer.  When less than 64, the
-   bits repesent flags described below.  The following additional values
-   are defined:
+   bits represent flags described below.  The following additional
+   values are defined:
 
                    +=======+===========================+
                    | Value | Meaning                   |
@@ -4014,15 +4014,15 @@ Table of Contents
 
 10.4.4.2.  End of Range
 
-   When Serialization Flags indicates an End of Range, the Group ID and
-   Object ID fields are present.  Subgroup ID, Priority and Extensions
-   are not present.  All Objects with Locations between the last
-   serialized Object, if any, and this Location, inclusive, either do
-   not exist (when Serialization Flags is 0x8C) or are unknown (0x10C).
-   A publisher SHOULD NOT use End of Non-Existent Range in a FETCH
-   response except to split a range of Objects that will not be
-   serialized into those that are known not to exist and those with
-   unknown status.
+   When Serialization Flags indicates an End of Range (e.g. values 0x8C
+   or 0x10C), the Group ID and Object ID fields are present.  Subgroup
+   ID, Priority and Extensions are not present.  All Objects with
+   Locations between the last serialized Object, if any, and this
+   Location, inclusive, either do not exist (when Serialization Flags is
+   0x8C) or are unknown (0x10C).  A publisher SHOULD NOT use End of Non-
+   Existent Range in a FETCH response except to split a range of Objects
+   that will not be serialized into those that are known not to exist
+   and those with unknown status.
 
 10.5.  Examples
 
