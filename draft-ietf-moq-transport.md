@@ -1029,13 +1029,14 @@ A REQUEST_ERROR indicates no objects will be delivered, and both endpoints can
 immediately destroy relevant state. Objects MUST NOT be sent for requests that
 end with an error.
 
-### Subscription Filters
+### Subscription Location Filter
 
-Subscribers can specify a filter on a subscription indicating to the publisher
+Subscribers can specify a Location Filter ({{location-filter}}) 
+on a subscription indicating to the publisher
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.
 
-All filters have a Start Location and an optional End Group.  Only objects
+All Location Filters have a Start Location and an optional End Group.  Only objects
 published or received via a subscription having Locations greater than or
 equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.
@@ -1046,19 +1047,11 @@ Track from the perspective of the publisher processing the message. Largest
 Object updates when the first byte of an Object with a Location larger than the
 previous value is published or received through a subscription.
 
-A Subscription Filter has the following structure:
+There are four uses of Subscription Location Filters.
 
-~~~
-Subscription Filter {
-  Filter Type (i),
-  [Start Location (Location),]
-  [End Group (i),]
-}
-~~~
-
-Filter Type can have one of the following values:
-
-Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
+Largest Object: The Special Location Filter ({{special-location-filters}})
+with Start Group = 0 and Start Object = 0 and the rest omitted indicates
+the filter Start Location is `{Largest Object.Group,
 Largest Object.Object + 1}` and `Largest Object` is communicated in
 SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
 {0, 0}. There is no End Group - the subscription is open ended.  Note that due
@@ -1066,28 +1059,27 @@ to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass the Largest Object filter.
 
-Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
+Next Group Start: The Special Location Filter ({{special-location-filters}})
+with Start Group = 0 and the rest omitted indicates
+the filter Start Location is `{Largest Object.Group + 1,
 0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
 delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
 the subscription is open ended. For scenarios where the subscriber intends to
 start from more than one group in the future, it can use an AbsoluteStart filter
 instead.
 
-AbsoluteStart (0x3): The filter Start Location is specified explicitly. The
+AbsoluteStart: The Location Filter Start Location is specified explicitly. The
 specified `Start Location` MAY be less than the `Largest Object` observed at the
 publisher. There is no End Group - the subscription is open ended.  An
 AbsoluteStart filter with `Start` = {0, 0} is equivalent to an unfiltered
-subscription.
+subscription, and is therefore not allowed since that indicates Largest Object.
 
-AbsoluteRange (0x4): The filter Start Location and End Group are specified
+AbsoluteRange: The Location Filter Start Location and End Group are specified
 explicitly. The specified `Start Location` MAY be less than the `Largest Object`
 observed at the publisher. If the specified `End Group` is the same group
 specified in `Start Location`, the remainder of that Group passes the
 filter. `End Group` MUST specify the same or a larger Group than specified in
 `Start Location`.
-
-An endpoint that receives a filter type other than the above MUST close the
-session with `PROTOCOL_VIOLATION`.
 
 ### Joining an Ongoing Track
 
@@ -1096,10 +1088,12 @@ is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
-To join a Track at a past Group, the subscriber sends a SUBSCRIBE with Filter
-Type `Largest Object` followed by a Joining FETCH (see {{joining-fetches}}) for
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE with the
+Special Location Filter
+ `Largest Object` followed by a Joining FETCH (see {{joining-fetches}}) for
 the intended start Group, which can be relative.  To join a Track at the next
-Group, the subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
+Group, the subscriber sends a SUBSCRIBE with the Special Location Filter
+`Next Group Start`.
 
 #### Dynamically Starting New Groups
 
@@ -1934,17 +1928,6 @@ SUBSCRIBE_OK or REQUEST_OK is used. If omitted in PUBLISH_OK, the
 publisher's preference from PUBLISH is used. If omitted from SUBSCRIBE_OK,
 REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
 
-#### SUBSCRIPTION FILTER Parameter {#subscription-filter}
-
-The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) MAY appear in a
-SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a subscription) message. It is a
-length-prefixed Subscription Filter (see {{subscription-filters}}).  If the
-length of the Subscription Filter does not match the parameter length, the
-publisher MUST close the session with `PROTOCOL_VIOLATION`.
-
-If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
-unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
-
 #### EXPIRES Parameter {#expires}
 
 The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH
@@ -2040,6 +2023,226 @@ to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
 
 After sending a NEW_GROUP_REQUEST upstream, the request is considered
 outstanding until the Largest Group increases.
+
+#### Filters
+
+Filters are parameters in control messages that tell a publisher to
+filter tracks and objects according to subscriber criteria which are
+comparisons of integer values in object headers.
+
+There are seven filter types, 0x21-0x2D odd (with length prefix),
+with similar structures and behavior as summarized below.
+
+~~~
+ LOCATION_FILTER { Type=0x21, Len, [StartG, [StartO, [EndG, [EndO]]]] }
+    GROUP_FILTER { Type=0x23, Len, [StartG, [EndG]]... }
+ SUBGROUP_FILTER { Type=0x25, Len, [StartS, [EndS]]... }
+   OBJECT_FILTER { Type=0x27, Len, [StartO, [EndO]]... }
+ PRIORITY_FILTER { Type=0x29, Len, [StartP, [EndP]]... }
+EXTENSION_FILTER { Type=0x2B, Len, [ExtType, StartV, [EndV]]... }
+    TRACK_FILTER { Type=0x2D, Len, [ExtType, MaxS, MaxD, MaxT] }
+
+G=GroupID, S=SubgroupID, O=ObjectID, P=Priority, V=Value of Extension
+MaxS=MaxTracksSelected, MaxD=MaxTracksDeselected, MaxT=MaxTimeSelected
+~~~
+
+The TRACK_FILTER parameter MAY appear in a SUBSCRIBE_NAMESPACE or
+REQUEST_UPDATE (for SUBSCRIBE_NAMESPACE) message.  All other filter
+parameters MAY appear in a FETCH, SUBSCRIBE, SUBSCRIBE_NAMESPACE,
+PUBLISH_OK, or REQUEST_UPDATE (for a subscription) message.
+
+A filter parameter with zero length indicates no filter, which MAY
+be used in REQUEST_UPDATE to remove the filter.  If a filter parameter
+is omitted from REQUEST_UDPATE, the value is unchanged.  If omitted
+from other messages, the default is no filter.
+
+All filter types can be combined using logical "and" operations
+to further restrict which tracks and objects pass all filter criteria.
+The track filter MUST be evaluated after all other filters which can
+be evaluated in any order.
+
+##### LOCATION FILTER
+
+The LOCATION_FILTER parameter (Parameter Type 0x21) selects objects
+within a single specified Location range.  It is a length-prefixed
+sequence of Start Group ID, Start Object ID, End Group ID, and
+End Object ID. 
+
+~~~
+LOCATION_FILTER Parameter {
+  Type (i) = 0x21,
+  Length (i),
+  [Start Group ID (i),
+  [Start Object ID (i),
+  [End Group ID (i),
+  [End Object iD (i)]]]
+}
+~~~
+
+End Object ID MAY be omitted to indicate no end within End Group.
+End Group ID and End Object ID MAY be omitted to indicate no end,
+for an open ended subscription or a Joining Fetch ({{joining-fetches}})
+which implicitly ends at the associated subscription start Location.
+All but Start Group ID MAY be omitted to indicate
+Special Location Filters ({{special-location-filters}}).
+
+###### Special Location Filters
+
+In subscriptions, there are two special Location Filters.
+
+Largest Object:
+Location Filter { Type, Length, StartGroup=0, StartObject=0 }
+
+Next Group Start:
+Location Filter { Type, Length, StartGroup=0 }
+
+In joining fetches, there are two special Location Filters.
+
+Absolute Joining Fetch:
+Location Filter { Type, Length, StartGroup, StartObject=0 }
+
+Relative Joining Fetch:
+Location Filter { Type, Length, StartGroupDelta }
+
+##### GROUP FILTER
+
+The GROUP_FILTER parameter (Type 0x23) selects objects with
+specified ranges of Group ID.  It is a length-prefixed sequence of
+Group ID Start/End inclusive range pairs.  The number of ranges
+MUST NOT exceed the MAX_FILTER_RANGES parameter value.  The final
+End MAY be omitted to indicate no end.  
+
+~~~
+GROUP_FILTER Parameter {
+  Type (i) = 0x23,
+  Length (i),
+  [Start Group ID (i),
+  [End Group ID (i)]]...
+}
+~~~
+
+##### SUBGROUP FILTER
+
+The SUBGROUP_FILTER parameter (Type 0x25) selects objects with
+specified ranges of Subgroup ID.  It is a length-prefixed sequence of
+Subgroup ID Start/End inclusive range pairs.  The number of ranges
+MUST NOT exceed the MAX_FILTER_RANGES parameter value.  The final
+End MAY be omitted to indicate no end.
+
+~~~
+SUBGROUP_FILTER Parameter {
+  Type (i) = 0x25,
+  Length (i),
+  [Start Subgroup ID (i),
+  [End Subgroup ID (i)]]...
+}
+~~~
+
+##### OBJECT FILTER
+
+The OBJECT_FILTER parameter (Type 0x27) selects objects with
+specified ranges of Object ID.  It is a length-prefixed sequence of
+Object ID Start/End inclusive range pairs.  The number of ranges
+MUST NOT exceed the MAX_FILTER_RANGES parameter value.  The final
+End MAY be omitted to indicate no end.
+
+~~~
+OBJECT_FILTER Parameter {
+  Type (i) = 0x27,
+  Length (i),
+  [Start Object ID (i),
+  [End Object ID (i)]]...
+}
+~~~
+
+##### PRIORITY FILTER
+
+The PRIORITY_FILTER parameter (Type 0x29) selects objects with
+specified ranges of Publisher Priority.  It is a length-prefixed sequence of
+Publisher Priority Start/End inclusive range pairs.  The number of ranges
+MUST NOT exceed the MAX_FILTER_RANGES parameter value.  The final
+End MAY be omitted to indicate no end.
+
+~~~
+PRIORITY_FILTER Parameter {
+  Type (i) = 0x29,
+  Length (i),
+  [Start Publisher Priority (8),
+  [End Publisher Priority (8)]]...
+}
+~~~
+
+##### EXTENSION FILTER
+
+The EXTENSION_FILTER parameter (Type 0x2B) selects objects with
+specified ranges of Extension Value for specified Extension Types which
+MUST be even (single integer Value).
+It is a length-prefixed sequence of tuples of Extension Type followed by
+Extension Value Start/End inclusive range.  The number of tuples/ranges
+MUST NOT exceed the MAX_FILTER_RANGES parameter value.  The final
+End MAY be omitted to indicate no end.  End=0 also indicates no end if
+Start>0, to allow no end for non-final Extension Types. 
+
+~~~
+EXTENSION_FILTER Parameter {
+  Type (i) = 0x2B,
+  Length (i),
+  [Extension Type (i),
+  Start Value (i),
+  [End Value (i)]]...
+}
+~~~
+
+##### TRACK FILTER
+
+The TRACK_FILTER parameter (Type 0x2D) selects a specified number
+of tracks within a namespace with the highest values for a specified
+Extension Type which MUST be even (single integer value).
+It is a length-prefixed sequence of Extension Type followed by
+MaxTracksSelected, MaxTracksDeselected, and MaxTimeSelected.
+
+~~~
+TRACK_FILTER Parameter {
+  Type (i) = 0x2D,
+  Length (i),
+  [Extension Type (i),
+  MaxTracksSelected (i),
+  MaxTracksDeselected (i),
+  MaxTimeSelected (i)]
+}
+~~~
+
+MaxTracksSelected limits the number of tracks selected concurrently,
+which MUST NOT exceed the MAX_TRACKS_SELECTED parameter value sent
+by the peer.
+
+MaxTracksDeselected limits the number of tracks to keep in a list
+of deselected tracks, which MUST NOT exceed the MAX_TRACKS_DESELECTED
+parameter value sent by the peer.
+
+MaxTimeSelected limits the number of milliseconds a selected track
+can remain selected without delivering an object with Extension Type.
+
+###### Track Selection
+
+A track is selected if it delivers an object with the top N highest
+value for Extension Type, where N = MaxTracksSelected.  The publisher
+MUST send a PUBLISH message for each newly selected track.  For tracks
+with the same value, the earliest delivered object wins the tie
+breaker, so a selected track remains selected until another track
+delivers a higher value or MaxTimeSelected elapses before the track
+delivers an object that remains in the top N, either of which
+deselect the track.  The last M deselected tracks are kept in a list,
+where M = MaxTracksDeselected, to avoid more PUBLISH messages in case
+a deselected track is reselected.  When a track drops from this list
+because it is older than the last M, the publisher MUST send a
+PUBLISH_DONE message to avoid excess old subscription state.
+If a track is reselected after this, it is considered newly selected
+so the publisher MUST send a PUBLISH message again.
+Endpoints should set MaxTracksDeselected and MAX_TRACKS_DESELECTED
+high enough to avoid excessive control messages but low enough to
+avoid excessive old subscription state.
+
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -2147,6 +2350,28 @@ string {{!RFC3629}}, though the message does not carry information, such as
 language tags, that would aid comprehension by any entity other than the one
 that created the text.
 
+#### MAX FILTER RANGES
+
+The MAX_FILTER_RANGES parameter (Type 0x06) limits the peer's number of
+start/end ranges allowed in each filter parameter which allows multiple ranges.
+The default value is 0, so if not specified, the peer MUST NOT send any such
+filter parameters.
+This parameter is independent in client and server directions. 
+
+#### MAX TRACKS SELECTED
+
+The MAX_TRACKS_SELECTED parameter (Type 0x08) limits the peer's value of
+MaxTracksSelected in the TRACK_FILTER parameter.  The default value is 0,
+so if not specified, the peer MUST NOT send any TRACK_FILTER parameter.
+The peer MUST NOT send any TRACK_FILTER parameter with MaxTracksSelected
+greater than this parameter. It is independent in client and server directions. 
+
+#### MAX TRACKS DESELECTED
+
+The MAX_TRACKS_DESELECTED parameter (Type 0x0A) limits the peer's value of
+MaxTracksDeselected in the TRACK_FILTER parameter.  The default value is 0. 
+The peer MUST NOT send any TRACK_FILTER parameter with MaxTracksDeselected
+greater than this parameter. It is independent in client and server directions. 
 
 ## GOAWAY {#message-goaway}
 
@@ -2696,6 +2921,9 @@ Code | Fetch Type
 An endpoint that receives a Fetch Type other than 0x1, 0x2 or 0x3 MUST close
 the session with a `PROTOCOL_VIOLATION`.
 
+Each Fetch message MUST include a Location Filter parameter ({{location-filter}}),
+otheriwse the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
+
 ### Standalone Fetch
 
 A Fetch of Objects performed independently of any Subscribe.
@@ -2706,9 +2934,7 @@ A Standalone Fetch includes this structure:
 Standalone Fetch {
   Track Namespace (..),
   Track Name Length (i),
-  Track Name (..),
-  Start Location (Location),
-  End Location (Location)
+  Track Name (..)
 }
 ~~~
 
@@ -2717,10 +2943,8 @@ Standalone Fetch {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Start Location: The start Location.
-
-* End Location: The end Location, plus 1. A Location.Object value of 0
-  means the entire group is requested.
+* Location Filter (parameter): Identifies Start and End Locations as
+defined in ({{location-filter}}).
 
 ### Joining Fetches
 
@@ -2730,14 +2954,16 @@ specifying the Request ID of a subscription in the `Established` or
 A publisher receiving a Joining Fetch uses properties of the associated
 Subscribe to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
-Subscribe.  The subscriber can set the Start Location to an absolute Location or
+Subscribe.  The subscriber can set the Location Filter Start Group
+to an absolute Location or
 a Location relative to the current group.
 
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
 
-A Joining Fetch is only permitted when the associated Subscribe has the Filter
-Type Largest Object; any other value results in closing the session with a
+A Joining Fetch is only permitted when the associated Subscribe has the 
+Special Location Filter ({{special-location-filters}}) type 
+Largest Object; any other value results in closing the session with a
 `PROTOCOL_VIOLATION`.
 
 If no Objects have been published for the track, and the SUBSCRIBE_OK did not
@@ -2748,8 +2974,7 @@ A Joining Fetch includes this structure:
 
 ~~~
 Joining Fetch {
-  Joining Request ID (i),
-  Joining Start (i)
+  Joining Request ID (i)
 }
 ~~~
 
@@ -2759,8 +2984,9 @@ Joining Fetch {
   (subscriber)` states, it MUST return a REQUEST_ERROR with error code
   `INVALID_JOINING_REQUEST_ID`.
 
-* Joining Start : A relative or absolute value used to determing the Start
-  Location, described below.
+* Location Filter (parameter): A relative StartGroupDelta or absolute StartGroup
+  value used to determine the Start Location using the Special Location Filter
+  ({{special-location-filters}}), described below.
 
 #### Joining Fetch Range Calculation
 
@@ -2769,18 +2995,14 @@ subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
 The publisher receiving a Joining Fetch sets the End Location to {Subscribe
-Largest Location.Object + 1}. Here Subscribe Largest Location is the
+Largest Location.Object}. Here Subscribe Largest Location is the
 saved value from when the subscription started (see {{subscriptions}}).
 
-Note: the last Object included in the Joining FETCH response is Subscribe
-Largest Location.  The `+ 1` above indicates the equivalent Standalone Fetch
-encoding.
-
 For a Relative Joining Fetch, the publisher sets the Start Location to
-{Subscribe Largest Location.Group - Joining Start, 0}.
+{Subscribe Largest Location.Group - LocationFilter.StartGroupDelta, 0}.
 
 For an Absolute Joining Fetch, the publisher sets the Start Location to
-{Joining Start, 0}.
+{LocationFilter.StartGroup, 0}.
 
 
 ### Fetch Handling
@@ -2811,6 +3033,8 @@ FETCH Message {
 * Joining: Joining Fetch structure included when Fetch Type is 0x2 or 0x3.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
+  This MUST include a Location Filter parameter ({{location-filter}}).
+
 
 A publisher responds to a FETCH request with either a FETCH_OK or a REQUEST_ERROR
 message.  The publisher creates a new unidirectional stream that is used to send the
@@ -2821,7 +3045,8 @@ The publisher responding to a FETCH is
 responsible for delivering all available Objects in the requested range in the
 requested order (see {{group-order}}). The Objects in the response are delivered on a single
 unidirectional stream. Any gaps in the Group and Object IDs in the response
-stream indicate objects that do not exist.  For Ascending Group Order this
+stream indicate objects that do not exist unless filters beyond the 
+Location Filter were applied.  For Ascending Group Order this
 includes ranges between the first requested object and the first object in the
 stream; between objects in the stream; and between the last object in the
 stream and the Largest Group/Object indicated in FETCH_OK, so long as the fetch
@@ -3958,8 +4183,14 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x0E | PUBLISHER_PRIORITY | {{publisher-priority}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
-| 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
+| 0x21 | LOCATION_FILTER | {{location-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
+| 0x23 | GROUP_FILTER | {{group-filter}} |
+| 0x25 | SUBGROUP_FILTER | {{subgroup-filter}} |
+| 0x27 | OBJECT_FILTER | {{object-filter}} |
+| 0x29 | PRIORITY_FILTER | {{priority-filter}} |
+| 0x2B | EXTENSION_FILTER | {{extension-filter}} |
+| 0x2D | TRACK_FILTER | {{track-filter}} |
 | 0x30 | DYNAMIC_GROUPS | {{dynamic-groups}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 
