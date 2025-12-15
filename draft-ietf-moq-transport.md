@@ -2345,10 +2345,6 @@ INVALID_JOINING_REQUEST_ID(0x32):
 : In response to a Joining FETCH, the referenced Request ID is not an
 `Established` Subscription.
 
-UNKNOWN_STATUS_IN_RANGE(0x33):
-: In response to a FETCH, the requested range contains an object with unknown
-status.
-
 ## SUBSCRIBE {#message-subscribe-req}
 
 A subscription causes the publisher to send newly published objects for a track.
@@ -2856,9 +2852,11 @@ A publisher MUST send fetched groups in the requested group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If an Original Publisher receives a FETCH with a range that includes an object with
-unknown status, it MUST return REQUEST_ERROR with code UNKNOWN_STATUS_IN_RANGE.
-
+If a Publisher receives a FETCH with a range that includes one or more Objects with
+unknown status (e.g. a Relay has temporarily lost contact with the Original
+Publisher and does not have the Object in cache), it can choose to reset the
+FETCH data stream with UNKNOWN_OBJECT_STATUS, or indicate the range of unknown
+Objects and continue serving other known Objects.
 
 ## FETCH_OK {#message-fetch-ok}
 
@@ -3622,6 +3620,10 @@ DELIVERY_TIMEOUT (0x2):
 SESSION_CLOSED (0x3):
 : The publisher session is being closed.
 
+UNKNOWN_OBJECT_STATUS (0x4):
+: In response to a FETCH, the publisher is unable to determine the Status
+of the next Object in the requested range.
+
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
@@ -3645,7 +3647,7 @@ format:
 
 ~~~
 {
-  Serialization Flags (8),
+  Serialization Flags (i),
   [Group ID (i),]
   [Subgroup ID (i),]
   [Object ID (i),]
@@ -3657,7 +3659,17 @@ format:
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
 
-The Serialization Flags field defines the serialization of the Object.
+The Serialization Flags field defines the serialization of the Object.  It is
+a variable-length integer.  When less than 128, the bits represent flags described
+below.  The following additional values are defined:
+
+Value | Meaning
+0x8C | End of Non-Existent Range
+0x10C | End of Unknown Range
+
+Any other value is a `PROTOCOL_VIOLATION`.
+
+#### Flags
 
 The two least significant bits (LSBs) of the Serialization Flags form a two-bit
 field that defines the encoding of the Subgroup.  To extract this value, the
@@ -3680,7 +3692,6 @@ Bitmask | Condition if set | Condition if not set (0)
 0x10 | Priority field is present | Priority is the prior Object's Priority
 0x20 | Extensions field is present | Extensions field is not present
 0x40 | Datagram: ignore the two least significant bits | Use the subgroup ID in the two least significant bits
-0x80 | `PROTOCOL_VIOLATION` | N/A
 
 If the first Object in the FETCH response uses a flag that references fields in
 the prior Object, the Subscriber MUST close the session with a
@@ -3692,6 +3703,17 @@ When encoding an Object with a Forwarding Preference of "Datagram" (see
 {{object-properties}}), the object has no Subgroup ID. The publisher MUST SET bit 0x40 to '1'.
 When 0x40 is set, it SHOULD set the two least significant bits to zero and the subscriber
 MUST ignore the bits.
+
+#### End of Range
+
+When Serialization Flags indicates an End of Range (e.g. values 0x8C or 0x10C),
+the Group ID and Object ID fields are present.  Subgroup ID, Priority and
+Extensions are not present. All Objects with Locations between the last
+serialized Object, if any, and this Location, inclusive, either do not exist
+(when Serialization Flags is 0x8C) or are unknown (0x10C).  A publisher SHOULD
+NOT use `End of Non-Existent Range` in a FETCH response except to split a range
+of Objects that will not be serialized into those that are known not to exist
+and those with unknown status.
 
 ## Examples
 
@@ -4011,7 +4033,6 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
-| UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
@@ -4029,13 +4050,14 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
 
-| Name             | Code | Specification                |
-|:-----------------|:----:|:-----------------------------|
-| INTERNAL_ERROR   | 0x0  | {{closing-subgroup-streams}} |
-| CANCELLED        | 0x1  | {{closing-subgroup-streams}} |
-| DELIVERY_TIMEOUT | 0x2  | {{closing-subgroup-streams}} |
-| SESSION_CLOSED   | 0x3  | {{closing-subgroup-streams}} |
-| MALFORMED_TRACK  | 0x12 | {{closing-subgroup-streams}} |
+| Name                  | Code | Specification                |
+|:----------------------|:----:|:-----------------------------|
+| INTERNAL_ERROR        | 0x0  | {{closing-subgroup-streams}} |
+| CANCELLED             | 0x1  | {{closing-subgroup-streams}} |
+| DELIVERY_TIMEOUT      | 0x2  | {{closing-subgroup-streams}} |
+| SESSION_CLOSED        | 0x3  | {{closing-subgroup-streams}} |
+| UNKNOWN_OBJECT_STATUS | 0x4  | {{closing-subgroup-streams}} |
+| MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
 
 # Contributors
 {:numbered="false"}
