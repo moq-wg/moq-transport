@@ -1953,7 +1953,7 @@ The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in SUBSCRIBE_OK,
 PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE or TRACK_STATUS).  It is a
 length-prefixed Location structure (see {{location-structure}}) containing the
 largest Location in the Track observed by the sending endpoint (see
-{{subscription-filters}}.  If Objects have been published on this Track the
+{{subscription-location-filter}}.  If Objects have been published on this Track the
 Publisher MUST include this parameter.
 
 If omitted from a message, the sending endpoint has not published or received
@@ -2610,8 +2610,8 @@ On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
 specified, and start sending objects.
 
-If the publisher cannot satisfy the requested Subscription Filter (see
-{{subscription-filter}}) or if the entire End Group has already been published
+If the publisher cannot satisfy the requested Subscription Location Filter (see
+{{subscription-location-filter}}) or if the entire End Group has already been published
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
 
@@ -2691,8 +2691,8 @@ REQUEST_UPDATE Message {
 
 ### Updating Subscriptions
 
-When a subscriber decreases the Start Location of the Subscription Filter
-(see {{subscription-filters}}), the Start Location can be smaller than the Track's
+When a subscriber decreases the Start Location of the Subscription Location Filter
+(see {{subscription-location-filter}}), the Start Location can be smaller than the Track's
 Largest Location, similar to a new Subscription. FETCH can be used to retrieve
 any necessary Objects smaller than the current Largest Location.
 
