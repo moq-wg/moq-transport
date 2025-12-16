@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 June 2026                                      I. Swett, Ed.
+Expires: 19 June 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        10 December 2025
+                                                        16 December 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 June 2026.
+   This Internet-Draft will expire on 19 June 2026.
 
 Copyright Notice
 
@@ -4104,10 +4104,10 @@ Table of Contents
    Objects can be cached until implementation constraints cause them to
    be evicted.
 
-11.1.1.1.  PUBLISHER PRIORITY
+11.1.1.1.  DEFAULT PUBLISHER PRIORITY
 
-   The PUBLISHER PRIORITY extension (Extension Header Type 0x0E) is a
-   Track Extension that specifies the priority of a subscription
+   The DEFAULT PUBLISHER PRIORITY extension (Extension Header Type 0x0E)
+   is a Track Extension that specifies the priority of a subscription
    relative to other subscriptions in the same session.  The value is
    from 0 to 255 and lower numbers get higher priority.  See Section 7.
    Priorities above 255 are invalid.  Subgroups and Datagrams for this
@@ -4117,9 +4117,9 @@ Table of Contents
    A subscription has Publisher Priorty 128 if this extension is
    omitted.
 
-11.1.1.2.  PUBLISHER GROUP ORDER PREFERENCE
+11.1.1.2.  DEFAULT PUBLISHER GROUP ORDER
 
-   The PUBLISHER_GROUP_ORDER_PREFERENCE extension (Extension Header Type
+   The DEFAULT_PUBLISHER_GROUP_ORDER extension (Extension Header Type
    0x22) is a Track Extension.
 
    It is an enum indicating the publisher's preference for prioritizing
