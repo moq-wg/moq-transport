@@ -3749,10 +3749,10 @@ handles a downstream request that includes those Objects re-requests them.
 If the MAX_CACHE_DURATION extension is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
 
-#### PUBLISHER PRIORITY {#publisher-priority}
+#### DEFAULT PUBLISHER PRIORITY {#publisher-priority}
 
-The PUBLISHER PRIORITY extension (Extension Header Type 0x0E) is a Track Extension
-that specifies the priority of
+The DEFAULT PUBLISHER PRIORITY extension (Extension Header Type 0x0E) is a Track
+Extension that specifies the priority of
 a subscription relative to other subscriptions in the same session.  The value
 is from 0 to 255 and lower numbers get higher priority.  See
 {{priorities}}. Priorities above 255 are invalid. Subgroups and Datagrams for this
@@ -3760,9 +3760,9 @@ subscription inherit this priority, unless they specifically override it.
 
 A subscription has Publisher Priorty 128 if this extension is omitted.
 
-#### PUBLISHER GROUP ORDER PREFERENCE {#group-order-pref}
+#### DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
 
-The PUBLISHER_GROUP_ORDER_PREFERENCE extension (Extension Header Type 0x22) is a
+The DEFAULT_PUBLISHER_GROUP_ORDER extension (Extension Header Type 0x22) is a
 Track Extension.
 
 It is an enum indicating the publisher's preference for prioritizing Objects
