@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 17 June 2026                                      I. Swett, Ed.
+Expires: 19 June 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        14 December 2025
+                                                        16 December 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 June 2026.
+   This Internet-Draft will expire on 19 June 2026.
 
 Copyright Notice
 
@@ -2570,9 +2570,6 @@ Table of Contents
    INVALID_JOINING_REQUEST_ID(0x32):  In response to a Joining FETCH,
       the referenced Request ID is not an Established Subscription.
 
-   UNKNOWN_STATUS_IN_RANGE(0x33):  In response to a FETCH, the requested
-      range contains an object with unknown status.
-
 9.9.  SUBSCRIBE
 
    A subscription causes the publisher to send newly published objects
@@ -3107,9 +3104,12 @@ Table of Contents
    either ascending or descending.  Within each group, objects are sent
    in Object ID order; subgroup ID is not used for ordering.
 
-   If an Original Publisher receives a FETCH with a range that includes
-   an object with unknown status, it MUST return REQUEST_ERROR with code
-   UNKNOWN_STATUS_IN_RANGE.
+   If a Publisher receives a FETCH with a range that includes one or
+   more Objects with unknown status (e.g. a Relay has temporarily lost
+   contact with the Original Publisher and does not have the Object in
+   cache), it can choose to reset the FETCH data stream with
+   UNKNOWN_OBJECT_STATUS, or indicate the range of unknown Objects and
+   continue serving other known Objects.
 
 9.17.  FETCH_OK
 
@@ -3954,6 +3954,10 @@ Table of Contents
 
    SESSION_CLOSED (0x3):  The publisher session is being closed.
 
+   UNKNOWN_OBJECT_STATUS (0x4):  In response to a FETCH, the publisher
+      is unable to determine the Status of the next Object in the
+      requested range.
+
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 2.4.2).
 
@@ -3974,7 +3978,7 @@ Table of Contents
    following format:
 
    {
-     Serialization Flags (8),
+     Serialization Flags (i),
      [Group ID (i),]
      [Subgroup ID (i),]
      [Object ID (i),]
@@ -3987,7 +3991,23 @@ Table of Contents
                     Figure 31: MOQT Fetch Object Fields
 
    The Serialization Flags field defines the serialization of the
-   Object.
+   Object.  It is a variable-length integer.  When less than 64, the
+   bits represent flags described below.  The following additional
+   values are defined:
+
+                   +=======+===========================+
+                   | Value | Meaning                   |
+                   +=======+===========================+
+                   | 0x8C  | End of Non-Existent Range |
+                   +-------+---------------------------+
+                   | 0x10C | End of Unknown Range      |
+                   +-------+---------------------------+
+
+                                  Table 6
+
+   Any other value is a PROTOCOL_VIOLATION.
+
+10.4.4.1.  Flags
 
    The two least significant bits (LSBs) of the Serialization Flags form
    a two-bit field that defines the encoding of the Subgroup.  To
@@ -4010,7 +4030,7 @@ Table of Contents
      |                              | present                       |
      +------------------------------+-------------------------------+
 
-                                 Table 6
+                                 Table 7
 
    The following table defines additional flags within the Serialization
    Flags field.  Each flag is an independent boolean value, where a set
@@ -4031,12 +4051,8 @@ Table of Contents
     | 0x20    | Extensions field is        | Extensions field is not  |
     |         | present                    | present                  |
     +---------+----------------------------+--------------------------+
-    | 0x40    | PROTOCOL_VIOLATION         | N/A                      |
-    +---------+----------------------------+--------------------------+
-    | 0x80    | PROTOCOL_VIOLATION         | N/A                      |
-    +---------+----------------------------+--------------------------+
 
-                                  Table 7
+                                  Table 8
 
    If the first Object in the FETCH response uses a flag that references
    fields in the prior Object, the Subscriber MUST close the session
@@ -4047,6 +4063,18 @@ Table of Contents
    When encoding an Object with a Forwarding Preference of "Datagram"
    (see Section 10.2.1), the Publisher treats it as having a Subgroup ID
    equal to the Object ID.
+
+10.4.4.2.  End of Range
+
+   When Serialization Flags indicates an End of Range (e.g. values 0x8C
+   or 0x10C), the Group ID and Object ID fields are present.  Subgroup
+   ID, Priority and Extensions are not present.  All Objects with
+   Locations between the last serialized Object, if any, and this
+   Location, inclusive, either do not exist (when Serialization Flags is
+   0x8C) or are unknown (0x10C).  A publisher SHOULD NOT use End of Non-
+   Existent Range in a FETCH response except to split a range of Objects
+   that will not be serialized into those that are known not to exist
+   and those with unknown status.
 
 10.5.  Examples
 
@@ -4325,7 +4353,7 @@ EXT 1 and EXT N can be modified or removed by Relays
                   |  0x3 | USE_VALUE | Section 9.2.1.1 |
                   +------+-----------+-----------------+
 
-                                 Table 8
+                                 Table 9
 
 13.2.  Version Specific Parameters
 
@@ -4357,7 +4385,7 @@ EXT 1 and EXT N can be modified or removed by Relays
         | 0x32           | NEW_GROUP_REQUEST   | Section 9.2.1.12 |
         +----------------+---------------------+------------------+
 
-                                  Table 9
+                                  Table 10
 
 13.3.  Error Codes
 
@@ -4409,7 +4437,7 @@ EXT 1 and EXT N can be modified or removed by Relays
            | MALFORMED_AUTHORITY        | 0x1A | Section 3.4   |
            +----------------------------+------+---------------+
 
-                                  Table 10
+                                  Table 11
 
 13.3.2.  REQUEST_ERROR Codes
 
@@ -4442,10 +4470,8 @@ EXT 1 and EXT N can be modified or removed by Relays
            +----------------------------+------+---------------+
            | INVALID_JOINING_REQUEST_ID | 0x32 | Section 9.8   |
            +----------------------------+------+---------------+
-           | UNKNOWN_STATUS_IN_RANGE    | 0x33 | Section 9.8   |
-           +----------------------------+------+---------------+
 
-                                  Table 11
+                                  Table 12
 
 13.3.3.  PUBLISH_DONE Codes
 
@@ -4471,25 +4497,27 @@ EXT 1 and EXT N can be modified or removed by Relays
                | UPDATE_FAILED      | 0x8  | Section 9.15  |
                +--------------------+------+---------------+
 
-                                  Table 12
+                                  Table 13
 
 13.3.4.  Data Stream Reset Error Codes
 
-               +==================+======+================+
-               | Name             | Code | Specification  |
-               +==================+======+================+
-               | INTERNAL_ERROR   | 0x0  | Section 10.4.3 |
-               +------------------+------+----------------+
-               | CANCELLED        | 0x1  | Section 10.4.3 |
-               +------------------+------+----------------+
-               | DELIVERY_TIMEOUT | 0x2  | Section 10.4.3 |
-               +------------------+------+----------------+
-               | SESSION_CLOSED   | 0x3  | Section 10.4.3 |
-               +------------------+------+----------------+
-               | MALFORMED_TRACK  | 0x12 | Section 10.4.3 |
-               +------------------+------+----------------+
+             +=======================+======+================+
+             | Name                  | Code | Specification  |
+             +=======================+======+================+
+             | INTERNAL_ERROR        | 0x0  | Section 10.4.3 |
+             +-----------------------+------+----------------+
+             | CANCELLED             | 0x1  | Section 10.4.3 |
+             +-----------------------+------+----------------+
+             | DELIVERY_TIMEOUT      | 0x2  | Section 10.4.3 |
+             +-----------------------+------+----------------+
+             | SESSION_CLOSED        | 0x3  | Section 10.4.3 |
+             +-----------------------+------+----------------+
+             | UNKNOWN_OBJECT_STATUS | 0x4  | Section 10.4.3 |
+             +-----------------------+------+----------------+
+             | MALFORMED_TRACK       | 0x12 | Section 10.4.3 |
+             +-----------------------+------+----------------+
 
-                                 Table 13
+                                  Table 14
 
 Contributors
 
