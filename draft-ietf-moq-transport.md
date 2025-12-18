@@ -326,29 +326,40 @@ Reason Phrase {
 
 ## Representing Namespace and Track Names
 
-There is often the need to render namespace tuples and track names 
-to be consumed for logging, representing track filename or in
-certain authorization verification schemes, for example. The namespace 
-and track name are binary so they need to be converted to a safe
-form. The following format is
-RECOMMONDED:
+There is often the need to render namespace tuples and track names to be
+consumed for logging, representing track filename or in certain authorization
+verification schemes, for example. The namespace and track name are binary so
+they need to be converted to a safe form. The following format is RECOMMONDED:
 
-* Each of the namespace tuples are rendered in order with a period
-  between them followed by the track name with a hyphen between the last
-  namespace and track name.
+* Each of the namespace tuples are rendered in order with an exclamation point
+  (!) between them followed by the track name with a double exclamation point
+  (!!) between the last namespace and track name.
 
-* Bytes in the range a-z, A-Z, and 0-9 are are output as is while bytes
-  all other bytes are percent encoded as a percent symbol followed by
-  exactly two lower case hex digits.
+* Bytes in the range a-z, A-Z, 0-9 as well as - (0x2d) and _ (0x5f) are are
+  output as is while bytes all other bytes are encoded as a period (.) symbol
+  followed by exactly two lower case hex digits.
 
-For example, if a namespace had two tuples, the first with the bytes
-0x48,0x69, the next with bytes 0xFF, and a track name with the byte
-0x30 would render as the string "Hi.%ff-0". The goal of this format is
-to have a format that is both filename and URL safe. It allows many
-common names to be rendered in an easily human readable form while still
-supporting all binary values.
+For example, if a namespace had two tuples, the first with the bytes 0x48,0x69,
+the next with bytes 0xFF, and a track name with the byte 0x30 would render as
+the string "Hi!.FF!!0". The goal of this format is to have a format that is both
+filename and URL safe. It allows many common names to be rendered in an easily
+human readable form while still supporting all binary values.
 
-TODO - update examples in this draft to match this.
+Examples:
+
+~~~
+example.2enet!teamA!projectX!!report
+  Namespace tuples: example.net, teamA, projectX
+  Track name: report
+
+mydomain.2eio!users!123!!profilePicture
+  Namespace tuples: mydomain.io, users, 123
+  Track name: profilePicture
+
+company.2eorg!departments!marketing!!budget2024
+  Namespace tuples: company.org, departments, marketing
+  Track name: budget2024
+~~~
 
 # Object Data Model {#model}
 
