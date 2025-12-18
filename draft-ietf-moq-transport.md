@@ -2213,7 +2213,7 @@ REQUEST_ERROR Message {
 
 * Error Code: Identifies an integer error code for request failure.
 
-* Retry Interval: The minimum time (in seconds) before the request SHOULD be
+* Retry Interval: The minimum time (in milliseconds) before the request SHOULD be
   sent again, plus one. If the value is 0, the request SHOULD NOT be retried.
 
 * Error Reason: Provides a text description of the request error. See
@@ -2226,14 +2226,13 @@ meanings.
 
 If a request is retryable with the same parameters at a later time, the sender of
 REQUEST_ERROR includes a non-zero Retry Interval in the message. If it is
-sending more than one such message within a second or so across one or more
+sending more than one such message within a second or so across multiple
 sessions, it SHOULD apply randomization to each retry interval so that retries
 are spread out over time, minimizing the risk of synchronized retry storms.  A
 Retry Interval value of 1 indicates the request can be retried immediately.
 
 INTERNAL_ERROR:
-: An implementation specific or generic error occurred. This might be retryable
-or not, depending on the implementation conditions that caused the error.
+: An implementation specific or generic error occurred.
 
 UNAUTHORIZED:
 : The subscriber is not authorized to perform the requested action on the given
@@ -2258,13 +2257,11 @@ Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
 
 DOES_NOT_EXIST:
-: The track or namespace is not available at the publisher. This might be
-retryable or not, if the target might exist later.
+: The track or namespace is not available at the publisher.
 
 INVALID_RANGE:
 : In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
-cannot be satisfied. This might be retryable if the range is expected to have
-objects in the future.
+cannot be satisfied.
 
 MALFORMED_TRACK:
 : In response to a FETCH, a relay publisher detected the track was
@@ -2274,8 +2271,7 @@ The following are errors for use by the subscriber. They can appear in response
 to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
 
 UNINTERESTED:
-: The subscriber is not interested in the track or namespace. This might be
-retryable if it expects to be interested later.
+: The subscriber is not interested in the track or namespace.
 
 Errors below can only be used in response to one message type.
 
@@ -3939,13 +3935,6 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | UNKNOWN_STATUS_IN_RANGE    | 0x33 | {{message-request-error}} |
-
-The range of error codes including 0x100 to 0xffff is reserved for
-implementation-speceific codes.
-
-The range of error codes starting with 0x10000 is reserved for
-provisional error codes that are under consideration for a permanent
-code point by the IETF.
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
