@@ -1473,21 +1473,19 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.9.2.20.1"><a href="#section-9.20" class="auto internal xref">9.20</a>. <a href="#name-publish_namespace" class="internal xref">PUBLISH_NAMESPACE</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.21">
-                <p id="section-toc.1-1.9.2.21.1"><a href="#section-9.21" class="auto internal xref">9.21</a>. <a href="#name-publish_namespace_done" class="internal xref">PUBLISH_NAMESPACE_DONE</a></p>
+                <p id="section-toc.1-1.9.2.21.1"><a href="#section-9.21" class="auto internal xref">9.21</a>. <a href="#name-namespace" class="internal xref">NAMESPACE</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.22">
-                <p id="section-toc.1-1.9.2.22.1"><a href="#section-9.22" class="auto internal xref">9.22</a>. <a href="#name-publish_namespace_cancel" class="internal xref">PUBLISH_NAMESPACE_CANCEL</a></p>
+                <p id="section-toc.1-1.9.2.22.1"><a href="#section-9.22" class="auto internal xref">9.22</a>. <a href="#name-publish_namespace_done" class="internal xref">PUBLISH_NAMESPACE_DONE</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.23">
-                <p id="section-toc.1-1.9.2.23.1"><a href="#section-9.23" class="auto internal xref">9.23</a>. <a href="#name-subscribe_namespace" class="internal xref">SUBSCRIBE_NAMESPACE</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.23.2.1">
-                    <p id="section-toc.1-1.9.2.23.2.1.1"><a href="#section-9.23.1" class="auto internal xref">9.23.1</a>.  <a href="#name-namespace" class="internal xref">NAMESPACE</a></p>
+                <p id="section-toc.1-1.9.2.23.1"><a href="#section-9.23" class="auto internal xref">9.23</a>. <a href="#name-namespace_done" class="internal xref">NAMESPACE_DONE</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.23.2.2">
-                    <p id="section-toc.1-1.9.2.23.2.2.1"><a href="#section-9.23.2" class="auto internal xref">9.23.2</a>.  <a href="#name-namespace_done" class="internal xref">NAMESPACE_DONE</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.24">
+                <p id="section-toc.1-1.9.2.24.1"><a href="#section-9.24" class="auto internal xref">9.24</a>. <a href="#name-publish_namespace_cancel" class="internal xref">PUBLISH_NAMESPACE_CANCEL</a></p>
 </li>
-                </ul>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.25">
+                <p id="section-toc.1-1.9.2.25.1"><a href="#section-9.25" class="auto internal xref">9.25</a>. <a href="#name-subscribe_namespace" class="internal xref">SUBSCRIBE_NAMESPACE</a></p>
 </li>
             </ul>
 </li>
@@ -3549,16 +3547,24 @@ MOQT Control Message {
             <td class="text-left" rowspan="1" colspan="1">PUBLISH_NAMESPACE  (<a href="#message-pub-ns" class="auto internal xref">Section 9.20</a>)</td>
           </tr>
           <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x8</td>
+            <td class="text-left" rowspan="1" colspan="1">NAMESPACE  (<a href="#message-namespace" class="auto internal xref">Section 9.21</a>)</td>
+          </tr>
+          <tr>
             <td class="text-right" rowspan="1" colspan="1">0x9</td>
-            <td class="text-left" rowspan="1" colspan="1">PUBLISH_NAMESPACE_DONE  (<a href="#message-pub-ns-done" class="auto internal xref">Section 9.21</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">PUBLISH_NAMESPACE_DONE  (<a href="#message-pub-ns-done" class="auto internal xref">Section 9.22</a>)</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0xE</td>
+            <td class="text-left" rowspan="1" colspan="1">NAMESPACE_DONE  (<a href="#message-namespace-done" class="auto internal xref">Section 9.23</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xC</td>
-            <td class="text-left" rowspan="1" colspan="1">PUBLISH_NAMESPACE_CANCEL (<a href="#message-pub-ns-cancel" class="auto internal xref">Section 9.22</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">PUBLISH_NAMESPACE_CANCEL (<a href="#message-pub-ns-cancel" class="auto internal xref">Section 9.24</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x11</td>
-            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_NAMESPACE (<a href="#message-subscribe-ns" class="auto internal xref">Section 9.23</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_NAMESPACE (<a href="#message-subscribe-ns" class="auto internal xref">Section 9.25</a>)</td>
           </tr>
         </tbody>
       </table>
@@ -5251,17 +5257,51 @@ PUBLISH_NAMESPACE Message {
         </ul>
 </section>
 </div>
-<div id="message-pub-ns-done">
+<div id="message-namespace">
 <section id="section-9.21">
-        <h3 id="name-publish_namespace_done">
-<a href="#section-9.21" class="section-number selfRef">9.21. </a><a href="#name-publish_namespace_done" class="section-name selfRef">PUBLISH_NAMESPACE_DONE</a>
+        <h3 id="name-namespace">
+<a href="#section-9.21" class="section-number selfRef">9.21. </a><a href="#name-namespace" class="section-name selfRef">NAMESPACE</a>
         </h3>
-<p id="section-9.21-1">The publisher sends the <code>PUBLISH_NAMESPACE_DONE</code> control message to indicate its
-intent to stop serving new subscriptions for tracks within the provided Track
-Namespace.<a href="#section-9.21-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-publish_namespace_done"></span><div id="moq-transport-pub-ns-done-format">
+<p id="section-9.21-1">The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
+it is sent on the response stream of a SUBSCRIBE_NAMESPACE request.
+All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
+the namespace tuples after the 'Track Namespace Prefix' are included
+in the 'Track Namespace Suffix'.<a href="#section-9.21-1" class="pilcrow">¶</a></p>
+<span id="name-moqt-namespace-message"></span><div id="moq-transport-ns-format">
 <figure id="figure-22">
           <div class="alignLeft art-text artwork" id="section-9.21-2.1">
+<pre>
+NAMESPACE Message {
+  Type (i) = 0x8,
+  Length (16),
+  Track Namespace Suffix (..),
+}
+</pre>
+</div>
+<figcaption><a href="#figure-22" class="selfRef">Figure 22</a>:
+<a href="#name-moqt-namespace-message" class="selfRef">MOQT NAMESPACE Message</a>
+          </figcaption></figure>
+</div>
+<ul class="normal">
+<li class="normal" id="section-9.21-3.1">
+            <p id="section-9.21-3.1.1">Track Namespace Suffix: Specifies the final portion of a track's
+namespace as defined in <a href="#track-name" class="auto internal xref">Section 2.4.1</a> after removing namespace tuples included in
+'Track Namespace Prefix' {message-subscribe-ns}.<a href="#section-9.21-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="message-pub-ns-done">
+<section id="section-9.22">
+        <h3 id="name-publish_namespace_done">
+<a href="#section-9.22" class="section-number selfRef">9.22. </a><a href="#name-publish_namespace_done" class="section-name selfRef">PUBLISH_NAMESPACE_DONE</a>
+        </h3>
+<p id="section-9.22-1">The publisher sends the <code>PUBLISH_NAMESPACE_DONE</code> control message to indicate its
+intent to stop serving new subscriptions for tracks within the provided Track
+Namespace.<a href="#section-9.22-1" class="pilcrow">¶</a></p>
+<span id="name-moqt-publish_namespace_done"></span><div id="moq-transport-pub-ns-done-format">
+<figure id="figure-23">
+          <div class="alignLeft art-text artwork" id="section-9.22-2.1">
 <pre>
 PUBLISH_NAMESPACE_DONE Message {
   Type (i) = 0x9,
@@ -5270,29 +5310,63 @@ PUBLISH_NAMESPACE_DONE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-22" class="selfRef">Figure 22</a>:
+<figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
 <a href="#name-moqt-publish_namespace_done" class="selfRef">MOQT PUBLISH_NAMESPACE_DONE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.21-3.1">
-            <p id="section-9.21-3.1.1">Request ID: The Request ID of the PUBLISH_NAMESPACE that is being terminated. See
-<a href="#message-subscribe-req" class="auto internal xref">Section 9.9</a>.<a href="#section-9.21-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.22-3.1">
+            <p id="section-9.22-3.1.1">Request ID: The Request ID of the PUBLISH_NAMESPACE that is being terminated. See
+<a href="#message-subscribe-req" class="auto internal xref">Section 9.9</a>.<a href="#section-9.22-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="message-namespace-done">
+<section id="section-9.23">
+        <h3 id="name-namespace_done">
+<a href="#section-9.23" class="section-number selfRef">9.23. </a><a href="#name-namespace_done" class="section-name selfRef">NAMESPACE_DONE</a>
+        </h3>
+<p id="section-9.23-1">The publisher sends the <code>NAMESPACE_DONE</code> control message to indicate its
+intent to stop serving new subscriptions for tracks within the provided Track
+Namespace. All NAMESPACE_DONE messages are in response to a SUBSCRIBE_NAMESPACE,
+so only the namespace tuples after the 'Track Namespace Prefix' are included
+in the 'Track Namespace Suffix'.<a href="#section-9.23-1" class="pilcrow">¶</a></p>
+<span id="name-moqt-namespace_done-message"></span><div id="moq-transport-ns-done-format">
+<figure id="figure-24">
+          <div class="alignLeft art-text artwork" id="section-9.23-2.1">
+<pre>
+NAMESPACE_DONE Message {
+  Type (i) = 0xE,
+  Length (16),
+  Track Namespace Suffix (..)
+}
+</pre>
+</div>
+<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
+<a href="#name-moqt-namespace_done-message" class="selfRef">MOQT NAMESPACE_DONE Message</a>
+          </figcaption></figure>
+</div>
+<ul class="normal">
+<li class="normal" id="section-9.23-3.1">
+            <p id="section-9.23-3.1.1">Track Namespace Suffix: Specifies the final portion of a track's
+namespace as defined in <a href="#track-name" class="auto internal xref">Section 2.4.1</a>. The namespace begins with the
+'Track Namespace Prefix' specified in {message-subscribe-ns}.<a href="#section-9.23-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="message-pub-ns-cancel">
-<section id="section-9.22">
+<section id="section-9.24">
         <h3 id="name-publish_namespace_cancel">
-<a href="#section-9.22" class="section-number selfRef">9.22. </a><a href="#name-publish_namespace_cancel" class="section-name selfRef">PUBLISH_NAMESPACE_CANCEL</a>
+<a href="#section-9.24" class="section-number selfRef">9.24. </a><a href="#name-publish_namespace_cancel" class="section-name selfRef">PUBLISH_NAMESPACE_CANCEL</a>
         </h3>
-<p id="section-9.22-1">The subscriber sends an <code>PUBLISH_NAMESPACE_CANCEL</code> control message to
+<p id="section-9.24-1">The subscriber sends an <code>PUBLISH_NAMESPACE_CANCEL</code> control message to
 indicate it will stop sending new subscriptions for tracks
-within the provided Track Namespace.<a href="#section-9.22-1" class="pilcrow">¶</a></p>
+within the provided Track Namespace.<a href="#section-9.24-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_namespace_canc"></span><div id="moq-transport-pub-ns-cancel-format">
-<figure id="figure-23">
-          <div class="alignLeft art-text artwork" id="section-9.22-2.1">
+<figure id="figure-25">
+          <div class="alignLeft art-text artwork" id="section-9.24-2.1">
 <pre>
 PUBLISH_NAMESPACE_CANCEL Message {
   Type (i) = 0xC,
@@ -5303,39 +5377,39 @@ PUBLISH_NAMESPACE_CANCEL Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
+<figcaption><a href="#figure-25" class="selfRef">Figure 25</a>:
 <a href="#name-moqt-publish_namespace_canc" class="selfRef">MOQT PUBLISH_NAMESPACE_CANCEL Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.22-3.1">
-            <p id="section-9.22-3.1.1">Request ID: The Request ID of the PUBLISH_NAMESPACE that is being terminated. See
-<a href="#message-subscribe-req" class="auto internal xref">Section 9.9</a>.<a href="#section-9.22-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.24-3.1">
+            <p id="section-9.24-3.1.1">Request ID: The Request ID of the PUBLISH_NAMESPACE that is being terminated. See
+<a href="#message-subscribe-req" class="auto internal xref">Section 9.9</a>.<a href="#section-9.24-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.22-3.2">
-            <p id="section-9.22-3.2.1">Error Code: Identifies an integer error code for canceling the publish.
+          <li class="normal" id="section-9.24-3.2">
+            <p id="section-9.24-3.2.1">Error Code: Identifies an integer error code for canceling the publish.
 PUBLISH_NAMESPACE_CANCEL uses the same error codes as REQUEST_ERROR
-(<a href="#message-request-error" class="auto internal xref">Section 9.8</a>) that responds to PUBLISH_NAMESPACE.<a href="#section-9.22-3.2.1" class="pilcrow">¶</a></p>
+(<a href="#message-request-error" class="auto internal xref">Section 9.8</a>) that responds to PUBLISH_NAMESPACE.<a href="#section-9.24-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.22-3.3">
-            <p id="section-9.22-3.3.1">Error Reason: Provides the reason for publish cancelation. See
-<a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.22-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.24-3.3">
+            <p id="section-9.24-3.3.1">Error Reason: Provides the reason for publish cancelation. See
+<a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.24-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="message-subscribe-ns">
-<section id="section-9.23">
+<section id="section-9.25">
         <h3 id="name-subscribe_namespace">
-<a href="#section-9.23" class="section-number selfRef">9.23. </a><a href="#name-subscribe_namespace" class="section-name selfRef">SUBSCRIBE_NAMESPACE</a>
+<a href="#section-9.25" class="section-number selfRef">9.25. </a><a href="#name-subscribe_namespace" class="section-name selfRef">SUBSCRIBE_NAMESPACE</a>
         </h3>
-<p id="section-9.23-1">The subscriber sends a SUBSCRIBE_NAMESPACE control message on a new
+<p id="section-9.25-1">The subscriber sends a SUBSCRIBE_NAMESPACE control message on a new
 bidirectional stream to a publisher to request the current set of matching
 published namespaces and/or <code>Established</code> subscriptions, as well as future
-updates to the set.<a href="#section-9.23-1" class="pilcrow">¶</a></p>
+updates to the set.<a href="#section-9.25-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_namespace-me"></span><div id="moq-transport-subscribe-ns-format">
-<figure id="figure-24">
-          <div class="alignLeft art-text artwork" id="section-9.23-2.1">
+<figure id="figure-26">
+          <div class="alignLeft art-text artwork" id="section-9.25-2.1">
 <pre>
 SUBSCRIBE_NAMESPACE Message {
   Type (i) = 0x11,
@@ -5348,16 +5422,16 @@ SUBSCRIBE_NAMESPACE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
+<figcaption><a href="#figure-26" class="selfRef">Figure 26</a>:
 <a href="#name-moqt-subscribe_namespace-me" class="selfRef">MOQT SUBSCRIBE_NAMESPACE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.23-3.1">
-            <p id="section-9.23-3.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.23-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.25-3.1">
+            <p id="section-9.25-3.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.25-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.23-3.2">
-            <p id="section-9.23-3.2.1">Track Namespace Prefix: A Track Namespace structure as described in
+          <li class="normal" id="section-9.25-3.2">
+            <p id="section-9.25-3.2.1">Track Namespace Prefix: A Track Namespace structure as described in
 <a href="#track-name" class="auto internal xref">Section 2.4.1</a> with between 1 and 32 Track Namespace Fields.  This prefix is
 matched against track namespaces known to the publisher.  For example, if the
 publisher is a relay that has received PUBLISH_NAMESPACE messages for
@@ -5365,17 +5439,17 @@ namespaces ("example.com", "meeting=123", "participant=100") and
 ("example.com", "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for
 ("example.com", "meeting=123") would match both.  If an endpoint receives a
 Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
-Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.23-3.2.1" class="pilcrow">¶</a></p>
+Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.25-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.23-3.3">
-            <p id="section-9.23-3.3.1">Subscribe Options: Allows subscribers to request PUBLISH (0x00),
-NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.<a href="#section-9.23-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.25-3.3">
+            <p id="section-9.25-3.3.1">Subscribe Options: Allows subscribers to request PUBLISH (0x00),
+NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.<a href="#section-9.25-3.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.23-3.4">
-            <p id="section-9.23-3.4.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.23-3.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.25-3.4">
+            <p id="section-9.25-3.4.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.25-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-9.23-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
+<p id="section-9.25-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
 send matching NAMESPACE messages on the response stream if they are requested.
 If it is an error, the stream will be immediately closed via FIN.
@@ -5383,97 +5457,27 @@ Also, any matching PUBLISH messages without an <code>Established</code> Subscrip
 sent on the control stream. When there are changes to the namespaces or
 subscriptions being published and the subscriber is subscribed to them,
 the publisher sends the corresponding NAMESPACE, NAMESPACE_DONE,
-or PUBLISH messages.<a href="#section-9.23-4" class="pilcrow">¶</a></p>
-<p id="section-9.23-5">The publisher <span class="bcp14">MUST NOT</span> send NAMESPACE_DONE for a namespace suffix before the
-corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
-corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session with a 'PROTOCOL_VIOLATION'.<a href="#section-9.23-5" class="pilcrow">¶</a></p>
-<p id="section-9.23-6">A subscriber cannot make overlapping namespace subscriptions on a single
+or PUBLISH messages.<a href="#section-9.25-4" class="pilcrow">¶</a></p>
+<p id="section-9.25-5">A subscriber cannot make overlapping namespace subscriptions on a single
 session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
 Track Namespace Prefix that shares a common prefix with an established namespace
 subscription, it <span class="bcp14">MUST</span> respond with REQUEST_ERROR with error code
-<code>PREFIX_OVERLAP</code>.<a href="#section-9.23-6" class="pilcrow">¶</a></p>
-<p id="section-9.23-7">The publisher <span class="bcp14">MUST</span> ensure the subscriber is authorized to perform this
-namespace subscription.<a href="#section-9.23-7" class="pilcrow">¶</a></p>
-<p id="section-9.23-8">SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE,
+<code>PREFIX_OVERLAP</code>.<a href="#section-9.25-5" class="pilcrow">¶</a></p>
+<p id="section-9.25-6">The publisher <span class="bcp14">MUST</span> ensure the subscriber is authorized to perform this
+namespace subscription.<a href="#section-9.25-6" class="pilcrow">¶</a></p>
+<p id="section-9.25-7">SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE,
 PUBLISH_NAMESPACE_DONE or PUBLISH messages to a subscriber.  It is useful in
 applications or relays where subscribers are only interested in or authorized to
-access a subset of available namespaces and tracks.<a href="#section-9.23-8" class="pilcrow">¶</a></p>
-<p id="section-9.23-9">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.2.1.10</a>) is present in this message and
+access a subset of available namespaces and tracks.<a href="#section-9.25-7" class="pilcrow">¶</a></p>
+<p id="section-9.25-8">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.2.1.10</a>) is present in this message and
 equal to 0, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set
 the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
 from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
 set the FORWARD parameter to 1, or indicate that value by omitting the parameter
-(see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).<a href="#section-9.23-9" class="pilcrow">¶</a></p>
-<p id="section-9.23-10">The publisher <span class="bcp14">MUST NOT</span> send NAMESPACE_DONE for a namespace suffix before the
+(see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).<a href="#section-9.25-8" class="pilcrow">¶</a></p>
+<p id="section-9.25-9">The publisher <span class="bcp14">MUST NOT</span> send NAMESPACE_DONE for a namespace suffix before the
 corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
-corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session with a 'PROTOCOL_VIOLATION'.<a href="#section-9.23-10" class="pilcrow">¶</a></p>
-<div id="message-namespace">
-<section id="section-9.23.1">
-          <h4 id="name-namespace">
-<a href="#section-9.23.1" class="section-number selfRef">9.23.1. </a><a href="#name-namespace" class="section-name selfRef">NAMESPACE</a>
-          </h4>
-<p id="section-9.23.1-1">The NAMESPACE message is similar to PUBLISH_NAMESPACE, except it is not a control
-message and is only sent on the response stream of a SUBSCRIBE_NAMESPACE request.
-All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
-the namespace tuples after the 'Track Namespace Prefix' are included
-in the 'Track Namespace Suffix'.<a href="#section-9.23.1-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-namespace-message"></span><div id="moq-transport-ns-format">
-<figure id="figure-25">
-            <div class="alignLeft art-text artwork" id="section-9.23.1-2.1">
-<pre>
-NAMESPACE Message {
-  Type (i) = 0x8,
-  Track Namespace Suffix (..),
-}
-</pre>
-</div>
-<figcaption><a href="#figure-25" class="selfRef">Figure 25</a>:
-<a href="#name-moqt-namespace-message" class="selfRef">MOQT NAMESPACE Message</a>
-            </figcaption></figure>
-</div>
-<ul class="normal">
-<li class="normal" id="section-9.23.1-3.1">
-              <p id="section-9.23.1-3.1.1">Track Namespace Suffix: Specifies the final portion of a track's
-namespace as defined in <a href="#track-name" class="auto internal xref">Section 2.4.1</a> after removing namespace tuples included in
-'Track Namespace Prefix' {message-subscribe-ns}.<a href="#section-9.23.1-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-</section>
-</div>
-<div id="message-namespace-done">
-<section id="section-9.23.2">
-          <h4 id="name-namespace_done">
-<a href="#section-9.23.2" class="section-number selfRef">9.23.2. </a><a href="#name-namespace_done" class="section-name selfRef">NAMESPACE_DONE</a>
-          </h4>
-<p id="section-9.23.2-1">The publisher sends the <code>NAMESPACE_DONE</code> message on the response stream of a
-SUBSCRIBE_NAMESPACE request to indicate its intent to stop serving new
-subscriptions for tracks within the specified Track Namespace.
-All NAMESPACE_DONE messages are in response to a SUBSCRIBE_NAMESPACE,
-so only the namespace tuples after the 'Track Namespace Prefix' are included
-in the 'Track Namespace Suffix'.<a href="#section-9.23.2-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-namespace_done-message"></span><div id="moq-transport-ns-done-format">
-<figure id="figure-26">
-            <div class="alignLeft art-text artwork" id="section-9.23.2-2.1">
-<pre>
-NAMESPACE_DONE Message {
-  Type (i) = 0xE,
-  Track Namespace Suffix (..)
-}
-</pre>
-</div>
-<figcaption><a href="#figure-26" class="selfRef">Figure 26</a>:
-<a href="#name-moqt-namespace_done-message" class="selfRef">MOQT NAMESPACE_DONE Message</a>
-            </figcaption></figure>
-</div>
-<ul class="normal">
-<li class="normal" id="section-9.23.2-3.1">
-              <p id="section-9.23.2-3.1.1">Track Namespace Suffix: Specifies the final portion of a track's
-namespace as defined in <a href="#track-name" class="auto internal xref">Section 2.4.1</a>. The namespace begins with the
-'Track Namespace Prefix' specified in {message-subscribe-ns}.<a href="#section-9.23.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-</section>
-</div>
+corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session with a 'PROTOCOL_VIOLATION'.<a href="#section-9.25-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

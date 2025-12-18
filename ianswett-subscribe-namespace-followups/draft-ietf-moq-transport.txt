@@ -162,11 +162,11 @@ Table of Contents
      9.18. FETCH_CANCEL
      9.19. TRACK_STATUS
      9.20. PUBLISH_NAMESPACE
-     9.21. PUBLISH_NAMESPACE_DONE
-     9.22. PUBLISH_NAMESPACE_CANCEL
-     9.23. SUBSCRIBE_NAMESPACE
-       9.23.1.  NAMESPACE
-       9.23.2.  NAMESPACE_DONE
+     9.21. NAMESPACE
+     9.22. PUBLISH_NAMESPACE_DONE
+     9.23. NAMESPACE_DONE
+     9.24. PUBLISH_NAMESPACE_CANCEL
+     9.25. SUBSCRIBE_NAMESPACE
    10. Data Streams and Datagrams
      10.1.  Track Alias
      10.2.  Objects
@@ -1845,11 +1845,15 @@ Table of Contents
            +------+--------------------------------------------+
            |  0x6 | PUBLISH_NAMESPACE (Section 9.20)           |
            +------+--------------------------------------------+
-           |  0x9 | PUBLISH_NAMESPACE_DONE (Section 9.21)      |
+           |  0x8 | NAMESPACE (Section 9.21)                   |
            +------+--------------------------------------------+
-           |  0xC | PUBLISH_NAMESPACE_CANCEL (Section 9.22)    |
+           |  0x9 | PUBLISH_NAMESPACE_DONE (Section 9.22)      |
            +------+--------------------------------------------+
-           | 0x11 | SUBSCRIBE_NAMESPACE (Section 9.23)         |
+           |  0xE | NAMESPACE_DONE (Section 9.23)              |
+           +------+--------------------------------------------+
+           |  0xC | PUBLISH_NAMESPACE_CANCEL (Section 9.24)    |
+           +------+--------------------------------------------+
+           | 0x11 | SUBSCRIBE_NAMESPACE (Section 9.25)         |
            +------+--------------------------------------------+
 
                                   Table 1
@@ -3237,7 +3241,28 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
-9.21.  PUBLISH_NAMESPACE_DONE
+9.21.  NAMESPACE
+
+   The NAMESPACE message is similar to the PUBLISH_NAMESPACE message,
+   except it is sent on the response stream of a SUBSCRIBE_NAMESPACE
+   request.  All NAMESPACE messages are in response to a
+   SUBSCRIBE_NAMESPACE, so only the namespace tuples after the 'Track
+   Namespace Prefix' are included in the 'Track Namespace Suffix'.
+
+   NAMESPACE Message {
+     Type (i) = 0x8,
+     Length (16),
+     Track Namespace Suffix (..),
+   }
+
+                     Figure 22: MOQT NAMESPACE Message
+
+   *  Track Namespace Suffix: Specifies the final portion of a track's
+      namespace as defined in Section 2.4.1 after removing namespace
+      tuples included in 'Track Namespace Prefix' {message-subscribe-
+      ns}.
+
+9.22.  PUBLISH_NAMESPACE_DONE
 
    The publisher sends the PUBLISH_NAMESPACE_DONE control message to
    indicate its intent to stop serving new subscriptions for tracks
@@ -3249,12 +3274,33 @@ Table of Contents
      Request ID (i)
    }
 
-               Figure 22: MOQT PUBLISH_NAMESPACE_DONE Message
+               Figure 23: MOQT PUBLISH_NAMESPACE_DONE Message
 
    *  Request ID: The Request ID of the PUBLISH_NAMESPACE that is being
       terminated.  See Section 9.9.
 
-9.22.  PUBLISH_NAMESPACE_CANCEL
+9.23.  NAMESPACE_DONE
+
+   The publisher sends the NAMESPACE_DONE control message to indicate
+   its intent to stop serving new subscriptions for tracks within the
+   provided Track Namespace.  All NAMESPACE_DONE messages are in
+   response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after
+   the 'Track Namespace Prefix' are included in the 'Track Namespace
+   Suffix'.
+
+   NAMESPACE_DONE Message {
+     Type (i) = 0xE,
+     Length (16),
+     Track Namespace Suffix (..)
+   }
+
+                   Figure 24: MOQT NAMESPACE_DONE Message
+
+   *  Track Namespace Suffix: Specifies the final portion of a track's
+      namespace as defined in Section 2.4.1.  The namespace begins with
+      the 'Track Namespace Prefix' specified in {message-subscribe-ns}.
+
+9.24.  PUBLISH_NAMESPACE_CANCEL
 
    The subscriber sends an PUBLISH_NAMESPACE_CANCEL control message to
    indicate it will stop sending new subscriptions for tracks within the
@@ -3268,7 +3314,7 @@ Table of Contents
      Error Reason (Reason Phrase)
    }
 
-              Figure 23: MOQT PUBLISH_NAMESPACE_CANCEL Message
+              Figure 25: MOQT PUBLISH_NAMESPACE_CANCEL Message
 
    *  Request ID: The Request ID of the PUBLISH_NAMESPACE that is being
       terminated.  See Section 9.9.
@@ -3280,7 +3326,7 @@ Table of Contents
    *  Error Reason: Provides the reason for publish cancelation.  See
       Section 1.4.3.
 
-9.23.  SUBSCRIBE_NAMESPACE
+9.25.  SUBSCRIBE_NAMESPACE
 
    The subscriber sends a SUBSCRIBE_NAMESPACE control message on a new
    bidirectional stream to a publisher to request the current set of
@@ -3297,7 +3343,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                Figure 24: MOQT SUBSCRIBE_NAMESPACE Message
+                Figure 26: MOQT SUBSCRIBE_NAMESPACE Message
 
    *  Request ID: See Section 9.1.
 
@@ -3330,11 +3376,6 @@ Table of Contents
    them, the publisher sends the corresponding NAMESPACE,
    NAMESPACE_DONE, or PUBLISH messages.
 
-   The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix
-   before the corresponding NAMESPACE.  If a subscriber receives a
-   NAMESPACE_DONE before the corresponding NAMESPACE, it MUST close the
-   session with a 'PROTOCOL_VIOLATION'.
-
    A subscriber cannot make overlapping namespace subscriptions on a
    single session.  Within a session, if a publisher receives a
    SUBSCRIBE_NAMESPACE with a Track Namespace Prefix that shares a
@@ -3362,47 +3403,6 @@ Table of Contents
    before the corresponding NAMESPACE.  If a subscriber receives a
    NAMESPACE_DONE before the corresponding NAMESPACE, it MUST close the
    session with a 'PROTOCOL_VIOLATION'.
-
-9.23.1.  NAMESPACE
-
-   The NAMESPACE message is similar to PUBLISH_NAMESPACE, except it is
-   not a control message and is only sent on the response stream of a
-   SUBSCRIBE_NAMESPACE request.  All NAMESPACE messages are in response
-   to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after the
-   'Track Namespace Prefix' are included in the 'Track Namespace
-   Suffix'.
-
-   NAMESPACE Message {
-     Type (i) = 0x8,
-     Track Namespace Suffix (..),
-   }
-
-                     Figure 25: MOQT NAMESPACE Message
-
-   *  Track Namespace Suffix: Specifies the final portion of a track's
-      namespace as defined in Section 2.4.1 after removing namespace
-      tuples included in 'Track Namespace Prefix' {message-subscribe-
-      ns}.
-
-9.23.2.  NAMESPACE_DONE
-
-   The publisher sends the NAMESPACE_DONE message on the response stream
-   of a SUBSCRIBE_NAMESPACE request to indicate its intent to stop
-   serving new subscriptions for tracks within the specified Track
-   Namespace.  All NAMESPACE_DONE messages are in response to a
-   SUBSCRIBE_NAMESPACE, so only the namespace tuples after the 'Track
-   Namespace Prefix' are included in the 'Track Namespace Suffix'.
-
-   NAMESPACE_DONE Message {
-     Type (i) = 0xE,
-     Track Namespace Suffix (..)
-   }
-
-                   Figure 26: MOQT NAMESPACE_DONE Message
-
-   *  Track Namespace Suffix: Specifies the final portion of a track's
-      namespace as defined in Section 2.4.1.  The namespace begins with
-      the 'Track Namespace Prefix' specified in {message-subscribe-ns}.
 
 10.  Data Streams and Datagrams
 
