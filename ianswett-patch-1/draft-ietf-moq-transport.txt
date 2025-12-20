@@ -2169,11 +2169,11 @@ Table of Contents
 
 9.2.1.8.  PAUSE_AT Parameter
 
-   The PAUSE_AT parameter (Parameter Type 0x??) MAY appear in a
+   The PAUSE_AT parameter (Parameter Type 0x23) MAY appear in a
    SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE (for a subscription)
-   message.  It is a length-prefixed Group ID and Subgroup ID.  No
-   Objects with a larger Group ID or an equal Group ID and larger or
-   equal Subgroup ID are sent for the Subscription until PAUSE_AT is
+   message.  It is a length-prefixed Group ID and Subgroup ID.  Objects
+   with a larger Group ID or an equal Group ID and larger or equal
+   Subgroup ID SHOULD NOT be sent for the Subscription until PAUSE_AT is
    increased.
 
    PAUSE_AT is different from the end of a Subscription filter because

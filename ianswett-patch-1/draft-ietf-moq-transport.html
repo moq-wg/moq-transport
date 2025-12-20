@@ -3890,11 +3890,11 @@ unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.<a href="#
             <h5 id="name-pause_at-parameter">
 <a href="#section-9.2.1.8" class="section-number selfRef">9.2.1.8. </a><a href="#name-pause_at-parameter" class="section-name selfRef">PAUSE_AT Parameter</a>
             </h5>
-<p id="section-9.2.1.8-1">The PAUSE_AT parameter (Parameter Type 0x??) <span class="bcp14">MAY</span> appear in a SUBSCRIBE,
+<p id="section-9.2.1.8-1">The PAUSE_AT parameter (Parameter Type 0x23) <span class="bcp14">MAY</span> appear in a SUBSCRIBE,
 PUBLISH_OK, or REQUEST_UPDATE (for a subscription) message. It is a
-length-prefixed Group ID and Subgroup ID.  No Objects with a larger Group ID
-or an equal Group ID and larger or equal Subgroup ID are sent for the
-Subscription until PAUSE_AT is increased.<a href="#section-9.2.1.8-1" class="pilcrow">¶</a></p>
+length-prefixed Group ID and Subgroup ID.  Objects with a larger Group ID
+or an equal Group ID and larger or equal Subgroup ID <span class="bcp14">SHOULD NOT</span> be sent
+for the Subscription until PAUSE_AT is increased.<a href="#section-9.2.1.8-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.8-2">PAUSE_AT is different from the end of a Subscription filter because it only
 prevents too many Objects from being sent at once, but the Subscription will
 still deliver the same Objects that it would without PAUSE_AT, assuming the
