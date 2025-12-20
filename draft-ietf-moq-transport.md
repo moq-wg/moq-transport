@@ -1949,11 +1949,11 @@ unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
 
 #### PAUSE_AT Parameter {#pause-at}
 
-The PAUSE_AT parameter (Parameter Type 0x??) MAY appear in a SUBSCRIBE,
+The PAUSE_AT parameter (Parameter Type 0x23) MAY appear in a SUBSCRIBE,
 PUBLISH_OK, or REQUEST_UPDATE (for a subscription) message. It is a
-length-prefixed Group ID and Subgroup ID.  No Objects with a larger Group ID
-or an equal Group ID and larger or equal Subgroup ID are sent for the
-Subscription until PAUSE_AT is increased.
+length-prefixed Group ID and Subgroup ID.  Objects with a larger Group ID
+or an equal Group ID and larger or equal Subgroup ID SHOULD NOT be sent
+for the Subscription until PAUSE_AT is increased.
 
 PAUSE_AT is different from the end of a Subscription filter because it only
 prevents too many Objects from being sent at once, but the Subscription will
