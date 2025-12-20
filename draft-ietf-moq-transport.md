@@ -649,7 +649,7 @@ such as TCP, and applications using MoQ might need to fallback to
 another protocol when QUIC or WebTransport aren't available.
 
 MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-({{WebTransport, Section 3.4}}) to perform version negotiation.
+({{WebTransport, Section 3.3}}) to perform version negotiation.
 
 \[\[RFC editor: please remove the remainder of this section before publication.]]
 
