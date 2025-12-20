@@ -1055,7 +1055,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 21 June 2026</td>
+<td class="center">Expires 23 June 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-12-18" class="published">18 December 2025</time>
+<time datetime="2025-12-20" class="published">20 December 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-06-21">21 June 2026</time></dd>
+<dd class="expires"><time datetime="2026-06-23">23 June 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 21 June 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 23 June 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -5432,13 +5432,13 @@ SUBSCRIBE_NAMESPACE Message {
 </li>
           <li class="normal" id="section-9.25-3.2">
             <p id="section-9.25-3.2.1">Track Namespace Prefix: A Track Namespace structure as described in
-<a href="#track-name" class="auto internal xref">Section 2.4.1</a> with between 1 and 32 Track Namespace Fields.  This prefix is
+<a href="#track-name" class="auto internal xref">Section 2.4.1</a> with between 0 and 32 Track Namespace Fields.  This prefix is
 matched against track namespaces known to the publisher.  For example, if the
 publisher is a relay that has received PUBLISH_NAMESPACE messages for
 namespaces ("example.com", "meeting=123", "participant=100") and
 ("example.com", "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for
 ("example.com", "meeting=123") would match both.  If an endpoint receives a
-Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
+Track Namespace Prefix consisting of greater than than 32 Track Namespace
 Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.25-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.25-3.3">
