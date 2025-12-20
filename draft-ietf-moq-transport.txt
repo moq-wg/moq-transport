@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 22 June 2026                                      I. Swett, Ed.
+Expires: 23 June 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        19 December 2025
+                                                        20 December 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 June 2026.
+   This Internet-Draft will expire on 23 June 2026.
 
 Copyright Notice
 
@@ -1694,8 +1694,11 @@ Table of Contents
    namespace=(foo) or namespace=(foo, bar).  It will not match a session
    with namespace=(foobar).
 
-   Relays MUST forward SUBSCRIBE messages to all matching publishers and
-   PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
+   Relays MUST send SUBSCRIBE messages to all matching publishers.  This
+   includes matching both Established subscriptions on the Full Track
+   Name and Namespace Prefix Matching against published Namespaces.
+   Relays MUST forward PUBLISH_NAMESPACE or PUBLISH messages to all
+   matching subscribers.
 
    When a Relay needs to make an upstream FETCH request, it determines
    the available publishers using the same matching rules as SUBSCRIBE.
