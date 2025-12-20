@@ -1945,6 +1945,26 @@ publisher MUST close the session with `PROTOCOL_VIOLATION`.
 If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
 
+#### PAUSE_AT Parameter {#pause-at}
+
+The PAUSE_AT parameter (Parameter Type 0x??) MAY appear in a SUBSCRIBE,
+PUBLISH_OK, or REQUEST_UPDATE (for a subscription) message. It is a
+length-prefixed Group ID and Subgroup ID.  No Objects with a larger Group ID
+or an equal Group ID and larger or equal Subgroup ID are sent for the
+Subscription until PAUSE_AT is increased.
+
+PAUSE_AT is different from the end of a Subscription filter because it only
+prevents too many Objects from being sent at once, but the Subscription will
+still deliver the same Objects that it would without PAUSE_AT, assuming the
+PAUSE_AT Parameter is removed or increased to a sufficiently large value.
+
+PAUSE_AT can limit the streams and bandwidth consumed by a single
+Subscription, reducing the likelihood of the Session running out of stream
+or data flow control.
+
+If a Subscription remains paused for too long, a Publisher might decide to
+terminate the Subscription, just like it can for those with Forward=0.
+
 #### EXPIRES Parameter {#expires}
 
 The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH
