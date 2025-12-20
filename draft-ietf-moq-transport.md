@@ -1504,7 +1504,9 @@ A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
 that sent PUBLISH_NAMESPACE messages with namespace=(foo) or namespace=(foo,
 bar).  It will not match a session with namespace=(foobar).
 
-Relays MUST forward SUBSCRIBE messages to all matching publishers and
+Relays MUST send SUBSCRIBE messages to all matching publishers. This includes
+matching both Established subscriptions on the Full Track Name and Namespace
+Prefix Matching against published Namespaces.  Relays MUST forward
 PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
 
 When a Relay needs to make an upstream FETCH request, it determines the
