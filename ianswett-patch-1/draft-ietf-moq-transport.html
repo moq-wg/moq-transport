@@ -3334,7 +3334,9 @@ fields than the Track Namespace in the message, it qualifies as a match.<a href=
 A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
 that sent PUBLISH_NAMESPACE messages with namespace=(foo) or namespace=(foo,
 bar).  It will not match a session with namespace=(foobar).<a href="#section-8.5-7" class="pilcrow">¶</a></p>
-<p id="section-8.5-8">Relays <span class="bcp14">MUST</span> forward SUBSCRIBE messages to all matching publishers and
+<p id="section-8.5-8">Relays <span class="bcp14">MUST</span> send SUBSCRIBE messages to all matching publishers. This includes
+matching both Established subscriptions on the Full Track Name and Namespace
+Prefix Matching against published Namespaces.  Relays <span class="bcp14">MUST</span> forward
 PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.<a href="#section-8.5-8" class="pilcrow">¶</a></p>
 <p id="section-8.5-9">When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
