@@ -326,39 +326,31 @@ Reason Phrase {
 
 ## Representing Namespace and Track Names
 
-There is often the need to render namespace tuples and track names to be
-consumed for logging, representing track filename or in certain authorization
-verification schemes, for example. The namespace and track name are binary so
-they need to be converted to a safe form. The following format is RECOMMONDED:
+There is often a need to render namespace tuples and track names for
+purposes such as logging, representing track filenames, or use in
+certain authorization verification schemes. The namespace and track name
+are binary, so they need to be converted to a safe form.
 
-* Each of the namespace tuples are rendered in order with a hyphen (-) between
-  them followed by the track name with a double hyphen (--) between the last
-  namespace and track name.
+The following format is RECOMMONDED:
 
-* Bytes in the range a-z, A-Z, 0-9 as well as ! (0x21) and _ (0x5f) are
-  output as is while bytes all other bytes are encoded as a period (.) symbol
-  followed by exactly two lower case hex digits.
+* Each of the namespace tuples are rendered in order with a hyphen (-)
+  between them followed by the track name with a double hyphen (--)
+  between the last namespace and track name.
 
-For example, if a namespace had two tuples, the first with the bytes 0x48,0x69,
-the next with bytes 0xFF, and a track name with the byte 0x30 would render as
-the string "Hi-.FF--0". The goal of this format is to have a format that is both
-filename and URL safe. It allows many common names to be rendered in an easily
-human readable form while still supporting all binary values.
+* Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output as is,
+  while all other bytes are encoded as a period (.) symbol followed by
+  exactly two lower case hex digits.
 
-Examples:
+The goal of this format is to have a format that is both filename and
+URL safe. It allows many common names to be rendered in an easily human
+readable form while still supporting binary values.
+
+Example:
 
 ~~~
-example.2enet-teamA-projectX--report
-  Namespace tuples: example.net, teamA, projectX
+example.2enet-team2-project_x--report
+  Namespace tuples: (example.net, team2, project_x)
   Track name: report
-
-mydomain.2eio-users-123--profilePicture
-  Namespace tuples: mydomain.io, users, 123
-  Track name: profilePicture
-
-company.2eorg-departments-marketing--budget2024
-  Namespace tuples: company.org, departments, marketing
-  Track name: budget2024
 ~~~
 
 # Object Data Model {#model}
