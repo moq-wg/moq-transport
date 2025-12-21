@@ -1843,8 +1843,10 @@ SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
 It is the duration in milliseconds the relay SHOULD
 continue to attempt forwarding Objects after they have been received.  The start
 time for the timeout is based on when the Object Headers are received, and does
-not depend upon the forwarding preference. There is no explicit signal that an
-Object was not sent because the delivery timeout was exceeded.
+not depend upon the forwarding preference. Objects with forwarding preference
+'Datagram' are not retransmitted when lost, so the Delivery Timeout only limits
+the amount of time they can be queued before being sent. There is no explicit
+signal that an Object was not sent because the delivery timeout was exceeded.
 
 DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
 endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session
