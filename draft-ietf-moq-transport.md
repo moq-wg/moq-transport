@@ -1947,20 +1947,20 @@ publisher MUST close the session with `PROTOCOL_VIOLATION`.
 If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
 
-#### PAUSE_AT Parameter {#pause-at}
+#### MAX_SEND_LOCATION Parameter {#pause-at}
 
-The PAUSE_AT parameter (Parameter Type 0x23) MAY appear in a SUBSCRIBE,
-PUBLISH_OK, or REQUEST_UPDATE (for a subscription) message. It is a
-length-prefixed Group ID and Subgroup ID.  Objects with a larger Group ID
-or an equal Group ID and larger or equal Subgroup ID SHOULD NOT be sent
-for the Subscription until PAUSE_AT is increased.
+The MAX_SEND_LOCATION parameter (Parameter Type 0x23) MAY appear in a
+SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE (for a subscription) message.
+It is a length-prefixed Group ID and Subgroup ID.  Objects with a larger
+Group ID or an equal Group ID and larger or equal Subgroup ID SHOULD NOT
+be sent for the Subscription until MAX_SEND_LOCATION is increased.
 
-PAUSE_AT is different from the end of a Subscription filter because it only
-prevents too many Objects from being sent at once. The Subscription will
-still deliver the same Objects that it would without PAUSE_AT, once the
-PAUSE_AT Parameter is removed or increased to a sufficiently large value.
+MAX_SEND_LOCATION is different from the end of a Subscription filter because it
+only prevents too many Objects from being sent at once. The Subscription will
+still deliver the same Objects that it would without MAX_SEND_LOCATION, once the
+MAX_SEND_LOCATION Parameter is removed or increased to a sufficiently large value.
 
-PAUSE_AT can limit the streams and bandwidth consumed by a single
+MAX_SEND_LOCATION can limit the streams and bandwidth consumed by a single
 Subscription, reducing the likelihood of the Session running out of stream
 or data flow control.
 
