@@ -1965,7 +1965,7 @@ Subscription, reducing the likelihood of the Session running out of stream
 or data flow control.
 
 If a Subscription remains paused for too long, a Publisher MAY decide to
-terminate the Subscription, just like it can for those with Forward=0.
+terminate the Subscription with error `TOO_FAR_BEHIND`.
 
 #### EXPIRES Parameter {#expires}
 
