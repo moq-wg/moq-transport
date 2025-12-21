@@ -3896,8 +3896,8 @@ length-prefixed Group ID and Subgroup ID.  Objects with a larger Group ID
 or an equal Group ID and larger or equal Subgroup ID <span class="bcp14">SHOULD NOT</span> be sent
 for the Subscription until PAUSE_AT is increased.<a href="#section-9.2.1.8-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.8-2">PAUSE_AT is different from the end of a Subscription filter because it only
-prevents too many Objects from being sent at once, but the Subscription will
-still deliver the same Objects that it would without PAUSE_AT, assuming the
+prevents too many Objects from being sent at once. The Subscription will
+still deliver the same Objects that it would without PAUSE_AT, once the
 PAUSE_AT Parameter is removed or increased to a sufficiently large value.<a href="#section-9.2.1.8-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.8-3">PAUSE_AT can limit the streams and bandwidth consumed by a single
 Subscription, reducing the likelihood of the Session running out of stream

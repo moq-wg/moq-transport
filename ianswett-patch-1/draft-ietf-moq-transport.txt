@@ -2177,10 +2177,10 @@ Table of Contents
    increased.
 
    PAUSE_AT is different from the end of a Subscription filter because
-   it only prevents too many Objects from being sent at once, but the
+   it only prevents too many Objects from being sent at once.  The
    Subscription will still deliver the same Objects that it would
-   without PAUSE_AT, assuming the PAUSE_AT Parameter is removed or
-   increased to a sufficiently large value.
+   without PAUSE_AT, once the PAUSE_AT Parameter is removed or increased
+   to a sufficiently large value.
 
    PAUSE_AT can limit the streams and bandwidth consumed by a single
    Subscription, reducing the likelihood of the Session running out of
