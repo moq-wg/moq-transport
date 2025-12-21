@@ -3903,7 +3903,7 @@ MAX_SEND_LOCATION Parameter is removed or increased to a sufficiently large valu
 Subscription, reducing the likelihood of the Session running out of stream
 or data flow control.<a href="#section-9.2.1.8-3" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.8-4">If a Subscription remains paused for too long, a Publisher <span class="bcp14">MAY</span> decide to
-terminate the Subscription, just like it can for those with Forward=0.<a href="#section-9.2.1.8-4" class="pilcrow">¶</a></p>
+terminate the Subscription with error <code>TOO_FAR_BEHIND</code>.<a href="#section-9.2.1.8-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="expires">
