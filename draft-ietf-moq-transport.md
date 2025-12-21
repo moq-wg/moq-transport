@@ -3319,7 +3319,8 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x00-0x1F,0x20-21,0x24-25,0x28-29,0x2C-2D
+  Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
+             0x28..0x29 / 0x2C..0x2D,
   Track Alias (i),
   Group ID (i),
   [Object ID (i),]
@@ -3332,8 +3333,9 @@ OBJECT_DATAGRAM {
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
 The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or the set of
-values from 0x00 to 0x0F, 0x20 to 0x2F). The three low-order bits and bit 5
-of the Type field determine which fields are present in the datagram:
+values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this range
+are valid. The four low-order bits and bit 5 of the Type field determine which fields
+are present in the datagram:
 
 * The **EXTENSIONS** bit (0x01) in the Type is set to indicate that there is an
   Extensions field present. When set to 1, the Extensions structure defined in
@@ -3360,6 +3362,17 @@ of the Type field determine which fields are present in the datagram:
   Status field is omitted. There is no explicit length field for the Object Payload;
   the entirety of the transport datagram following the Object header fields contains
   the payload.
+
+The following Type values are invalid protocol violations. If an endpoint receives a
+datagram with any of these Type values, it MUST close the session with a
+`PROTOCOL_VIOLATION`:
+
+* Type values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set: 0x22,
+  0x23, 0x26, 0x27, 0x2A, 0x2B, 0x2E, 0x2F. An object status message cannot signal
+  end of group.
+
+* Type values that do not match the form 0b00X0XXXX (i.e., Type values outside the
+  ranges 0x00..0x0F and 0x20..0x2F).
 
 
 ## Streams
@@ -3397,7 +3410,7 @@ flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i) = 0x10..0x1D,
+  Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D,
   Track Alias (i),
   Group ID (i),
   [Subgroup ID (i),]
@@ -3410,8 +3423,9 @@ All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
 The Type field in the SUBGROUP_HEADER takes the form 0b00X1XXXX (or the set of
-values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to 1. The
-four low-order bits and bit 5 determine which fields are present in the header:
+values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to 1. However,
+not all Type values in this range are valid. The four low-order bits and bit 5
+determine which fields are present in the header:
 
 * The **EXTENSIONS** bit (0x01) in the Type is set to indicate that an Extensions
   field is present in all Objects in this Subgroup. When set to 1, the Extensions
@@ -3427,8 +3441,7 @@ four low-order bits and bit 5 determine which fields are present in the header:
   * 0b01: The Subgroup ID field is absent and the Subgroup ID is the Object ID
     of the first Object transmitted in this Subgroup.
   * 0b10: The Subgroup ID field is present in the header.
-  * 0b11: Reserved. If an endpoint receives this value, it MUST close the
-    session with a `PROTOCOL_VIOLATION`.
+  * 0b11: Reserved for future use.
 
 * The **END_OF_GROUP** bit (0x08) indicates that this stream can contain the End of
   Group. When set to 1, the subscriber can infer the final Object in the Group when
@@ -3442,6 +3455,16 @@ four low-order bits and bit 5 determine which fields are present in the header:
   inherits the Publisher Priority specified in the control message that established
   the subscription. When set to 0, the Priority field is present in the Subgroup
   header.
+
+The following Type values are invalid protocol violations. If an endpoint receives a
+stream header with any of these Type values, it MUST close the session with a
+`PROTOCOL_VIOLATION`:
+
+* Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36, 0x37,
+  0x3E, 0x3F. This mode is reserved for future use.
+
+* Type values that do not match the form 0b00X1XXXX (i.e., Type values outside the
+  ranges 0x10..0x1F and 0x30..0x3F, or values where bit 4 is not set).
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
