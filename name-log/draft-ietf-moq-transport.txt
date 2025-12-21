@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 23 June 2026                                      I. Swett, Ed.
+Expires: 24 June 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        20 December 2025
+                                                        21 December 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 June 2026.
+   This Internet-Draft will expire on 24 June 2026.
 
 Copyright Notice
 
@@ -449,7 +449,7 @@ Table of Contents
       (--) between the last namespace and track name.
 
    *  Bytes in the range a-z, A-Z, 0-9 as well as ! (0x21) and _ (0x5f)
-      are are output as is while bytes all other bytes are encoded as a
+      are output as is while bytes all other bytes are encoded as a
       period (.) symbol followed by exactly two lower case hex digits.
 
    For example, if a namespace had two tuples, the first with the bytes
