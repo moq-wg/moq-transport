@@ -335,7 +335,7 @@ they need to be converted to a safe form. The following format is RECOMMONDED:
   them followed by the track name with a double hyphen (--) between the last
   namespace and track name.
 
-* Bytes in the range a-z, A-Z, 0-9 as well as ! (0x21) and _ (0x5f) are are
+* Bytes in the range a-z, A-Z, 0-9 as well as ! (0x21) and _ (0x5f) are
   output as is while bytes all other bytes are encoded as a period (.) symbol
   followed by exactly two lower case hex digits.
 
