@@ -1964,7 +1964,7 @@ PAUSE_AT can limit the streams and bandwidth consumed by a single
 Subscription, reducing the likelihood of the Session running out of stream
 or data flow control.
 
-If a Subscription remains paused for too long, a Publisher might decide to
+If a Subscription remains paused for too long, a Publisher MAY decide to
 terminate the Subscription, just like it can for those with Forward=0.
 
 #### EXPIRES Parameter {#expires}
@@ -3388,7 +3388,10 @@ middle of a serialized Object, the session SHOULD be closed with a
 `PROTOCOL_VIOLATION`.
 
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
-Header field values.
+Header field values. A publisher SHOULD NOT open a new stream for a Subgroup
+until Objects are going to be sent on the stream, to both reduce the number of
+open streams and reduce the chance a stream will be opened and no Objects sent
+on it due to Delivery Timeout, REQUEST_UPDATE, or cancellation.
 
 ### Stream Cancellation
 
