@@ -1956,8 +1956,8 @@ or an equal Group ID and larger or equal Subgroup ID SHOULD NOT be sent
 for the Subscription until PAUSE_AT is increased.
 
 PAUSE_AT is different from the end of a Subscription filter because it only
-prevents too many Objects from being sent at once, but the Subscription will
-still deliver the same Objects that it would without PAUSE_AT, assuming the
+prevents too many Objects from being sent at once. The Subscription will
+still deliver the same Objects that it would without PAUSE_AT, once the
 PAUSE_AT Parameter is removed or increased to a sufficiently large value.
 
 PAUSE_AT can limit the streams and bandwidth consumed by a single
