@@ -332,6 +332,35 @@ Reason Phrase {
   such as language tags, that would aid comprehension by any entity other than
   the one that created the text.
 
+## Representing Namespace and Track Names
+
+There is often a need to render namespace tuples and track names for
+purposes such as logging, representing track filenames, or use in
+certain authorization verification schemes. The namespace and track name
+are binary, so they need to be converted to a safe form.
+
+The following format is RECOMMONDED:
+
+* Each of the namespace tuples are rendered in order with a hyphen (-)
+  between them followed by the track name with a double hyphen (--)
+  between the last namespace and track name.
+
+* Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output as is,
+  while all other bytes are encoded as a period (.) symbol followed by
+  exactly two lower case hex digits.
+
+The goal of this format is to have a format that is both filename and
+URL safe. It allows many common names to be rendered in an easily human
+readable form while still supporting binary values.
+
+Example:
+
+~~~
+example.2enet-team2-project_x--report
+  Namespace tuples: (example.net, team2, project_x)
+  Track name: report
+~~~
+
 # Object Data Model {#model}
 
 MOQT has a hierarchical data model, comprised of tracks which contain
