@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 25 June 2026                                      I. Swett, Ed.
+Expires: 27 June 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        22 December 2025
+                                                        24 December 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 June 2026.
+   This Internet-Draft will expire on 27 June 2026.
 
 Copyright Notice
 
@@ -87,6 +87,7 @@ Table of Contents
        1.4.1.  Location Structure
        1.4.2.  Key-Value-Pair Structure
        1.4.3.  Reason Phrase Structure
+     1.5.  Representing Namespace and Track Names
    2.  Object Data Model
      2.1.  Objects
      2.2.  Subgroups
@@ -449,6 +450,33 @@ Table of Contents
       string and does not carry information, such as language tags, that
       would aid comprehension by any entity other than the one that
       created the text.
+
+1.5.  Representing Namespace and Track Names
+
+   There is often a need to render namespace tuples and track names for
+   purposes such as logging, representing track filenames, or use in
+   certain authorization verification schemes.  The namespace and track
+   name are binary, so they need to be converted to a safe form.
+
+   The following format is RECOMMONDED:
+
+   *  Each of the namespace tuples are rendered in order with a hyphen
+      (-) between them followed by the track name with a double hyphen
+      (--) between the last namespace and track name.
+
+   *  Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output as
+      is, while all other bytes are encoded as a period (.) symbol
+      followed by exactly two lower case hex digits.
+
+   The goal of this format is to have a format that is both filename and
+   URL safe.  It allows many common names to be rendered in an easily
+   human readable form while still supporting binary values.
+
+   Example:
+
+   example.2enet-team2-project_x--report
+     Namespace tuples: (example.net, team2, project_x)
+     Track name: report
 
 2.  Object Data Model
 
