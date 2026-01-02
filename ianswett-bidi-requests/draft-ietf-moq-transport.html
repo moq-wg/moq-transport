@@ -1274,6 +1274,11 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
                 <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-session-initialization" class="internal xref">Session initialization</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.1">
+                    <p id="section-toc.1-1.3.2.3.2.1.1"><a href="#section-3.3.1" class="auto internal xref">3.3.1</a>.  <a href="#name-request-cancellation-and-re" class="internal xref">Request Cancellation and Rejection</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
                 <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-termination" class="internal xref">Termination</a></p>
@@ -2288,8 +2293,8 @@ observed.<a href="#section-2.4.2-2.10.1" class="pilcrow">¶</a></p>
           </ol>
 <p id="section-2.4.2-3">The above list of conditions is not considered exhaustive.<a href="#section-2.4.2-3" class="pilcrow">¶</a></p>
 <p id="section-2.4.2-4">When a subscriber detects a Malformed Track, it <span class="bcp14">MUST</span> cancel any corresponding
-subscription or fetches for that Track from that publisher by sending
-STOP_SENDING on the bidi stream, and <span class="bcp14">SHOULD</span> deliver an error to the application.
+subscription or fetches for that Track from that publisher
+(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>), and <span class="bcp14">SHOULD</span> deliver an error to the application.
 If a relay detects a Malformed Track, it <span class="bcp14">MUST</span> immediately terminate downstream
 subscriptions with PUBLISH_DONE and reset any fetch streams with
 Status Code <code>MALFORMED_TRACK</code>. Object(s) triggering Malformed Track status
@@ -2476,11 +2481,12 @@ can be used.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
 the endpoints exchange Setup messages (<a href="#message-setup" class="auto internal xref">Section 9.2</a>), followed by other
 messages defined in <a href="#message" class="auto internal xref">Section 9</a>. The control stream begins with a single
 CLIENT_SETUP message.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.3-2">In addition to the control stream, this specification uses bidirectional streams
-that begin with six types of message: TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH,
-PUBLISH_NAMESPACE, and SUBSCRIBE_NAMESPACE. Bidirectional streams <span class="bcp14">MUST NOT</span> begin
-with any other message type unless negotiated. If they do, the peer <span class="bcp14">MUST</span> close
-the Session with a Protocol Violation. Objects are sent on unidirectional streams.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.3-2">In addition to the control stream, this specification uses bidirectional request
+streams that begin with six types of message: TRACK_STATUS, SUBSCRIBE, PUBLISH,
+FETCH, PUBLISH_NAMESPACE, and SUBSCRIBE_NAMESPACE. Bidirectional streams <span class="bcp14">MUST NOT</span>
+begin with any other message type unless negotiated. If they do, the peer <span class="bcp14">MUST</span>
+close the Session with a Protocol Violation. Objects are sent on unidirectional
+streams.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">A unidirectional stream containing Objects or bidirectional stream(s) beginning
 with a message other than CLIENT_SETUP could arrive prior to the control stream,
 in which case the stream data <span class="bcp14">SHOULD</span> be buffered until the control stream arrives
@@ -2490,6 +2496,21 @@ before the session and control stream are established.<a href="#section-3.3-3" c
 <p id="section-3.3-4">The control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
+<div id="request-cancellation">
+<section id="section-3.3.1">
+          <h4 id="name-request-cancellation-and-re">
+<a href="#section-3.3.1" class="section-number selfRef">3.3.1. </a><a href="#name-request-cancellation-and-re" class="section-name selfRef">Request Cancellation and Rejection</a>
+          </h4>
+<p id="section-3.3.1-1">Once a request stream has been opened, the request <span class="bcp14">MAY</span> be cancelled by either
+endpoint. Subscribers cancel requests if the response is no longer of interest;
+Publishers cancel requests if they are unable to or choose not to respond.<a href="#section-3.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-2">Implementations <span class="bcp14">SHOULD</span> cancel requests by abruptly terminating any directions of a
+stream that are still open. To do so, an implementation resets the sending parts of
+streams and aborts reading on the receiving parts of streams; see (<span>[<a href="#QUIC" class="cite xref">QUIC</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-2.4" class="relref">Section 2.4</a></span>).<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-3">When the Publisher rejects a request without performing any application processing,
+The PUBLISHER <span class="bcp14">SHOULD</span> send a REQUEST_ERROR and FINs the stream.<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="session-termination">
@@ -2819,10 +2840,10 @@ the Subscriber dropping Objects if its buffering limits are exceeded (see
           <h4 id="name-subscription-state-manageme">
 <a href="#section-5.1.1" class="section-number selfRef">5.1.1. </a><a href="#name-subscription-state-manageme" class="section-name selfRef">Subscription State Management</a>
           </h4>
-<p id="section-5.1.1-1">A subscriber keeps subscription state until it sends STOP_SENDING, or after
-receipt of a PUBLISH_DONE or REQUEST_ERROR. Note that PUBLISH_DONE does not
-usually indicate that state can immediately be destroyed, see
-<a href="#message-publish-done" class="auto internal xref">Section 9.11</a>.<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.1-1">A subscriber keeps subscription state until it cancels the request
+(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>), or after receipt of a PUBLISH_DONE or
+REQUEST_ERROR. Note that PUBLISH_DONE does not usually indicate that state
+can immediately be destroyed, see <a href="#message-publish-done" class="auto internal xref">Section 9.11</a>.<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1.1-2">The Publisher can destroy subscription state as soon as it has received
 STOP_SENDING. It <span class="bcp14">MUST</span> reset any open streams associated with the SUBSCRIBE.<a href="#section-5.1.1-2" class="pilcrow">¶</a></p>
 <p id="section-5.1.1-3">The Publisher can also immediately delete subscription state after sending
@@ -2936,11 +2957,11 @@ groups. A publisher that does will begin the next group as soon as practical.<a 
         </h3>
 <p id="section-5.2-1">The publisher <span class="bcp14">MUST</span> send exactly one FETCH_OK or REQUEST_ERROR in response to a
 FETCH.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
-<p id="section-5.2-2">A subscriber keeps FETCH state until it sends STOP_SENDING on the bidi stream,
-receives REQUEST_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream.
-If the data stream is already open, it <span class="bcp14">MAY</span> send STOP_SENDING for the data stream in
-addition to STOP_SENDING on the bidi stream, but <span class="bcp14">MUST</span> send STOP_SENDING for the
-bidi stream.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">A subscriber keeps FETCH state until it cancels the request
+((see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>)), receives REQUEST_ERROR, or receives a FIN or
+RESET_STREAM for the FETCH data stream. If the data stream is already open,
+the subscriber <span class="bcp14">MAY</span> send STOP_SENDING for the data stream in addition to
+STOP_SENDING on the bidi stream, but <span class="bcp14">MUST</span> send STOP_SENDING for the bidi stream.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 <p id="section-5.2-3">The Publisher can destroy fetch state as soon as it has received a
 STOP_SENDING. It <span class="bcp14">MUST</span> reset any open streams associated with the FETCH. It can
 also destroy state after closing the FETCH data stream.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
@@ -3015,9 +3036,10 @@ namespace. This might be especially useful in upload or chat applications. A
 subscriber <span class="bcp14">MUST</span> send exactly one REQUEST_OK or REQUEST_ERROR as the first
 message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
 <span class="bcp14">SHOULD</span> close the session with a protocol error if it receives more than one.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
-<p id="section-6.2-4">A PUBLISH_NAMESPACE is withdrawn by sending STOP_SENDING on the bidi stream,
-although it is not a protocol error for the subscriber to send a SUBSCRIBE or
-FETCH message for a track in a namespace after the namespace is withdrawn.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2-4">A PUBLISH_NAMESPACE is withdrawn by cancelling the Request
+(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>), although it is not a protocol error for
+the subscriber to send a SUBSCRIBE or FETCH message for a track in a
+namespace after the namespace is withdrawn.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
 <p id="section-6.2-5">A subscriber can send PUBLISH_NAMESPACE_CANCEL to revoke acceptance of an
 PUBLISH_NAMESPACE, for example due to expiration of authorization
 credentials. The message enables the publisher to PUBLISH_NAMESPACE again with
@@ -3237,8 +3259,8 @@ explain how Relays maintain subscriptions to all available publishers for a
 given Track.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <p id="section-8.3-2">There is no specified limit to the number of publishers of a Track Namespace or
 Track.  An implementation can use mechanisms such as REQUEST_ERROR,
-unsubscribing via STOP_SENDING or PUBLISH_NAMESPACE_CANCEL if it cannot
-accept an additional publisher due to implementation constraints.
+unsubscribing (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>) or PUBLISH_NAMESPACE_CANCEL if it
+cannot accept an additional publisher due to implementation constraints.
 Implementations can consider the establishment or idle time of the session or
 subscription to determine which publisher to reject or disconnect.<a href="#section-8.3-2" class="pilcrow">¶</a></p>
 <p id="section-8.3-3">Relays <span class="bcp14">MUST</span> handle Objects for the same Track from multiple publishers and
@@ -3296,7 +3318,7 @@ to allow for a better user experience when a relay sends a GOAWAY.<a href="#sect
 of connecting to a new relay and sending the SUBSCRIBE requests for
 all <code>Established</code> subscriptions to the new relay. The new relay will send a
 response to the subscribes and if they are successful, the subscriptions
-to the old relay can be stopped with an STOP_SENDING.<a href="#section-8.4.1-2" class="pilcrow">¶</a></p>
+to the old relay can be cancelled (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>).<a href="#section-8.4.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3327,8 +3349,8 @@ If a Publisher would like Subscriptions in a Namespace routed to it, it <span cl
 an explicit PUBLISH_NAMESPACE.
 The authorization and identification of the publisher depends on the way the
 relay is managed and is application specific.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
-<p id="section-8.5-4">When a publisher wants to stop new subscriptions for a published namespace it
-sends a STOP_SENDING on the bidi stream to withdraw the PUBLISH_NAMESPACE.
+<p id="section-8.5-4">When a publisher wants to stop new subscriptions for a published namespace, it
+cancels the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>) to withdraw the PUBLISH_NAMESPACE.
 A subscriber indicates it will no longer subscribe to Tracks in a namespace
 it previously responded REQUEST_OK to by sending a PUBLISH_NAMESPACE_CANCEL.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
 <p id="section-8.5-5">A Relay connects publishers and subscribers by managing sessions based on the
