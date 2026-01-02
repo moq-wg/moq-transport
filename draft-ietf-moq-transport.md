@@ -595,8 +595,8 @@ include:
 The above list of conditions is not considered exhaustive.
 
 When a subscriber detects a Malformed Track, it MUST cancel any corresponding
-subscription or fetches for that Track from that publisher by sending
-STOP_SENDING on the bidi stream, and SHOULD deliver an error to the application.
+subscription or fetches for that Track from that publisher
+(see {{request-cancellation}}), and SHOULD deliver an error to the application.
 If a relay detects a Malformed Track, it MUST immediately terminate downstream
 subscriptions with PUBLISH_DONE and reset any fetch streams with
 Status Code `MALFORMED_TRACK`. Object(s) triggering Malformed Track status
@@ -755,11 +755,12 @@ the endpoints exchange Setup messages ({{message-setup}}), followed by other
 messages defined in {{message}}. The control stream begins with a single
 CLIENT_SETUP message.
 
-In addition to the control stream, this specification uses bidirectional streams
-that begin with six types of message: TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH,
-PUBLISH_NAMESPACE, and SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT begin
-with any other message type unless negotiated. If they do, the peer MUST close
-the Session with a Protocol Violation. Objects are sent on unidirectional streams.
+In addition to the control stream, this specification uses bidirectional request
+streams that begin with six types of message: TRACK_STATUS, SUBSCRIBE, PUBLISH,
+FETCH, PUBLISH_NAMESPACE, and SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT
+begin with any other message type unless negotiated. If they do, the peer MUST
+close the Session with a Protocol Violation. Objects are sent on unidirectional
+streams.
 
 A unidirectional stream containing Objects or bidirectional stream(s) beginning
 with a message other than CLIENT_SETUP could arrive prior to the control stream,
@@ -771,6 +772,20 @@ before the session and control stream are established.
 The control stream MUST NOT be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
 `PROTOCOL_VIOLATION`.
+
+### Request Cancellation and Rejection {#request-cancellation}
+
+Once a request stream has been opened, the request MAY be cancelled by either
+endpoint. Subscribers cancel requests if the response is no longer of interest;
+Publishers cancel requests if they are unable to or choose not to respond.
+
+Implementations SHOULD cancel requests by abruptly terminating any directions of a
+stream that are still open. To do so, an implementation resets the sending parts of
+streams and aborts reading on the receiving parts of streams; see ({{QUIC, Section 2.4}}).
+
+When the Publisher rejects a request without performing any application processing,
+The PUBLISHER SHOULD send a REQUEST_ERROR and FINs the stream.
+
 
 ## Termination  {#session-termination}
 
@@ -1037,10 +1052,10 @@ the Subscriber dropping Objects if its buffering limits are exceeded (see
 
 ### Subscription State Management
 
-A subscriber keeps subscription state until it sends STOP_SENDING, or after
-receipt of a PUBLISH_DONE or REQUEST_ERROR. Note that PUBLISH_DONE does not
-usually indicate that state can immediately be destroyed, see
-{{message-publish-done}}.
+A subscriber keeps subscription state until it cancels the request
+(see {{request-cancellation}}), or after receipt of a PUBLISH_DONE or
+REQUEST_ERROR. Note that PUBLISH_DONE does not usually indicate that state
+can immediately be destroyed, see {{message-publish-done}}.
 
 The Publisher can destroy subscription state as soon as it has received
 STOP_SENDING. It MUST reset any open streams associated with the SUBSCRIBE.
@@ -1151,11 +1166,11 @@ groups. A publisher that does will begin the next group as soon as practical.
 The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
 FETCH.
 
-A subscriber keeps FETCH state until it sends STOP_SENDING on the bidi stream,
-receives REQUEST_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream.
-If the data stream is already open, it MAY send STOP_SENDING for the data stream in
-addition to STOP_SENDING on the bidi stream, but MUST send STOP_SENDING for the
-bidi stream.
+A subscriber keeps FETCH state until it cancels the request
+((see {{request-cancellation}})), receives REQUEST_ERROR, or receives a FIN or
+RESET_STREAM for the FETCH data stream. If the data stream is already open,
+the subscriber MAY send STOP_SENDING for the data stream in addition to
+STOP_SENDING on the bidi stream, but MUST send STOP_SENDING for the bidi stream.
 
 The Publisher can destroy fetch state as soon as it has received a
 STOP_SENDING. It MUST reset any open streams associated with the FETCH. It can
@@ -1231,9 +1246,10 @@ subscriber MUST send exactly one REQUEST_OK or REQUEST_ERROR as the first
 message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
 SHOULD close the session with a protocol error if it receives more than one.
 
-A PUBLISH_NAMESPACE is withdrawn by sending STOP_SENDING on the bidi stream,
-although it is not a protocol error for the subscriber to send a SUBSCRIBE or
-FETCH message for a track in a namespace after the namespace is withdrawn.
+A PUBLISH_NAMESPACE is withdrawn by cancelling the Request
+(see {{request-cancellation}}), although it is not a protocol error for
+the subscriber to send a SUBSCRIBE or FETCH message for a track in a
+namespace after the namespace is withdrawn.
 
 A subscriber can send PUBLISH_NAMESPACE_CANCEL to revoke acceptance of an
 PUBLISH_NAMESPACE, for example due to expiration of authorization
@@ -1422,8 +1438,8 @@ given Track.
 
 There is no specified limit to the number of publishers of a Track Namespace or
 Track.  An implementation can use mechanisms such as REQUEST_ERROR,
-unsubscribing via STOP_SENDING or PUBLISH_NAMESPACE_CANCEL if it cannot
-accept an additional publisher due to implementation constraints.
+unsubscribing (see {{request-cancellation}}) or PUBLISH_NAMESPACE_CANCEL if it
+cannot accept an additional publisher due to implementation constraints.
 Implementations can consider the establishment or idle time of the session or
 subscription to determine which publisher to reject or disconnect.
 
@@ -1482,7 +1498,7 @@ When a subscriber receives the GOAWAY message, it starts the process
 of connecting to a new relay and sending the SUBSCRIBE requests for
 all `Established` subscriptions to the new relay. The new relay will send a
 response to the subscribes and if they are successful, the subscriptions
-to the old relay can be stopped with an STOP_SENDING.
+to the old relay can be cancelled (see {{request-cancellation}}).
 
 
 ## Publisher Interactions
@@ -1506,8 +1522,8 @@ an explicit PUBLISH_NAMESPACE.
 The authorization and identification of the publisher depends on the way the
 relay is managed and is application specific.
 
-When a publisher wants to stop new subscriptions for a published namespace it
-sends a STOP_SENDING on the bidi stream to withdraw the PUBLISH_NAMESPACE.
+When a publisher wants to stop new subscriptions for a published namespace, it
+cancels the request (see {{request-cancellation}}) to withdraw the PUBLISH_NAMESPACE.
 A subscriber indicates it will no longer subscribe to Tracks in a namespace
 it previously responded REQUEST_OK to by sending a PUBLISH_NAMESPACE_CANCEL.
 
