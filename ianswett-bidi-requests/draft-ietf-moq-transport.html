@@ -1472,10 +1472,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.9.2.17.1"><a href="#section-9.17" class="auto internal xref">9.17</a>. <a href="#name-namespace_done" class="internal xref">NAMESPACE_DONE</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.18">
-                <p id="section-toc.1-1.9.2.18.1"><a href="#section-9.18" class="auto internal xref">9.18</a>. <a href="#name-publish_namespace_cancel" class="internal xref">PUBLISH_NAMESPACE_CANCEL</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.19">
-                <p id="section-toc.1-1.9.2.19.1"><a href="#section-9.19" class="auto internal xref">9.19</a>. <a href="#name-subscribe_namespace" class="internal xref">SUBSCRIBE_NAMESPACE</a></p>
+                <p id="section-toc.1-1.9.2.18.1"><a href="#section-9.18" class="auto internal xref">9.18</a>. <a href="#name-subscribe_namespace" class="internal xref">SUBSCRIBE_NAMESPACE</a></p>
 </li>
             </ul>
 </li>
@@ -3040,9 +3037,9 @@ message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
 (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>), although it is not a protocol error for
 the subscriber to send a SUBSCRIBE or FETCH message for a track in a
 namespace after the namespace is withdrawn.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2-5">A subscriber can send PUBLISH_NAMESPACE_CANCEL to revoke acceptance of an
-PUBLISH_NAMESPACE, for example due to expiration of authorization
-credentials. The message enables the publisher to PUBLISH_NAMESPACE again with
+<p id="section-6.2-5">A subscriber can cancel the request to revoke acceptance of a
+PUBLISH_NAMESPACE. If the reason for cancellation is expiration of
+authorization credentials, the publisher can PUBLISH_NAMESPACE again with
 refreshed authorization, or close the stream and discard associated state.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
 <p id="section-6.2-6">While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
 subscribers, it is not a full-fledged routing protocol and does not protect
@@ -3259,10 +3256,10 @@ explain how Relays maintain subscriptions to all available publishers for a
 given Track.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <p id="section-8.3-2">There is no specified limit to the number of publishers of a Track Namespace or
 Track.  An implementation can use mechanisms such as REQUEST_ERROR,
-unsubscribing (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>) or PUBLISH_NAMESPACE_CANCEL if it
-cannot accept an additional publisher due to implementation constraints.
-Implementations can consider the establishment or idle time of the session or
-subscription to determine which publisher to reject or disconnect.<a href="#section-8.3-2" class="pilcrow">¶</a></p>
+unsubscribing (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>) if it cannot accept an additional
+publisher due to implementation constraints. Implementations can consider the
+establishment or idle time of the session or subscription to determine which
+publisher to reject or disconnect.<a href="#section-8.3-2" class="pilcrow">¶</a></p>
 <p id="section-8.3-3">Relays <span class="bcp14">MUST</span> handle Objects for the same Track from multiple publishers and
 forward them to matching <code>Established</code> subscriptions. The Relay <span class="bcp14">SHOULD</span> attempt to
 deduplicate Objects before forwarding, subject to implementation constraints.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
@@ -3351,8 +3348,8 @@ The authorization and identification of the publisher depends on the way the
 relay is managed and is application specific.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
 <p id="section-8.5-4">When a publisher wants to stop new subscriptions for a published namespace, it
 cancels the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>) to withdraw the PUBLISH_NAMESPACE.
-A subscriber indicates it will no longer subscribe to Tracks in a namespace
-it previously responded REQUEST_OK to by sending a PUBLISH_NAMESPACE_CANCEL.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
+A subscriber also indicates it will no longer subscribe to Tracks in a namespace
+by cancelling the request.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
 <p id="section-8.5-5">A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
 Track Name is matched exactly against existing upstream subscriptions.<a href="#section-8.5-5" class="pilcrow">¶</a></p>
@@ -3572,12 +3569,8 @@ MOQT Control Message {
             <td class="text-left" rowspan="1" colspan="1">NAMESPACE_DONE  (<a href="#message-namespace-done" class="auto internal xref">Section 9.17</a>)</td>
           </tr>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0xC</td>
-            <td class="text-left" rowspan="1" colspan="1">PUBLISH_NAMESPACE_CANCEL (<a href="#message-pub-ns-cancel" class="auto internal xref">Section 9.18</a>)</td>
-          </tr>
-          <tr>
             <td class="text-right" rowspan="1" colspan="1">0x11</td>
-            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_NAMESPACE (<a href="#message-subscribe-ns" class="auto internal xref">Section 9.19</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_NAMESPACE (<a href="#message-subscribe-ns" class="auto internal xref">Section 9.18</a>)</td>
           </tr>
         </tbody>
       </table>
@@ -5127,55 +5120,18 @@ namespace as defined in <a href="#track-name" class="auto internal xref">Section
         </ul>
 </section>
 </div>
-<div id="message-pub-ns-cancel">
-<section id="section-9.18">
-        <h3 id="name-publish_namespace_cancel">
-<a href="#section-9.18" class="section-number selfRef">9.18. </a><a href="#name-publish_namespace_cancel" class="section-name selfRef">PUBLISH_NAMESPACE_CANCEL</a>
-        </h3>
-<p id="section-9.18-1">The subscriber sends an <code>PUBLISH_NAMESPACE_CANCEL</code> control message to
-indicate it will stop sending new subscriptions for tracks
-within the provided Track Namespace.<a href="#section-9.18-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-publish_namespace_canc"></span><div id="moq-transport-pub-ns-cancel-format">
-<figure id="figure-20">
-          <div class="alignLeft art-text artwork" id="section-9.18-2.1">
-<pre>
-PUBLISH_NAMESPACE_CANCEL Message {
-  Type (i) = 0xC,
-  Length (16),
-  Error Code (i),
-  Error Reason (Reason Phrase)
-}
-</pre>
-</div>
-<figcaption><a href="#figure-20" class="selfRef">Figure 20</a>:
-<a href="#name-moqt-publish_namespace_canc" class="selfRef">MOQT PUBLISH_NAMESPACE_CANCEL Message</a>
-          </figcaption></figure>
-</div>
-<ul class="normal">
-<li class="normal" id="section-9.18-3.1">
-            <p id="section-9.18-3.1.1">Error Code: Identifies an integer error code for canceling the publish.
-PUBLISH_NAMESPACE_CANCEL uses the same error codes as REQUEST_ERROR
-(<a href="#message-request-error" class="auto internal xref">Section 9.5</a>) that responds to PUBLISH_NAMESPACE.<a href="#section-9.18-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-9.18-3.2">
-            <p id="section-9.18-3.2.1">Error Reason: Provides the reason for publish cancelation. See
-<a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.18-3.2.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-</section>
-</div>
 <div id="message-subscribe-ns">
-<section id="section-9.19">
+<section id="section-9.18">
         <h3 id="name-subscribe_namespace">
-<a href="#section-9.19" class="section-number selfRef">9.19. </a><a href="#name-subscribe_namespace" class="section-name selfRef">SUBSCRIBE_NAMESPACE</a>
+<a href="#section-9.18" class="section-number selfRef">9.18. </a><a href="#name-subscribe_namespace" class="section-name selfRef">SUBSCRIBE_NAMESPACE</a>
         </h3>
-<p id="section-9.19-1">The subscriber sends a SUBSCRIBE_NAMESPACE control message on a new
+<p id="section-9.18-1">The subscriber sends a SUBSCRIBE_NAMESPACE control message on a new
 bidirectional stream to a publisher to request the current set of matching
 published namespaces and/or <code>Established</code> subscriptions, as well as future
-updates to the set.<a href="#section-9.19-1" class="pilcrow">¶</a></p>
+updates to the set.<a href="#section-9.18-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_namespace-me"></span><div id="moq-transport-subscribe-ns-format">
-<figure id="figure-21">
-          <div class="alignLeft art-text artwork" id="section-9.19-2.1">
+<figure id="figure-20">
+          <div class="alignLeft art-text artwork" id="section-9.18-2.1">
 <pre>
 SUBSCRIBE_NAMESPACE Message {
   Type (i) = 0x11,
@@ -5187,13 +5143,13 @@ SUBSCRIBE_NAMESPACE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-21" class="selfRef">Figure 21</a>:
+<figcaption><a href="#figure-20" class="selfRef">Figure 20</a>:
 <a href="#name-moqt-subscribe_namespace-me" class="selfRef">MOQT SUBSCRIBE_NAMESPACE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.19-3.1">
-            <p id="section-9.19-3.1.1">Track Namespace Prefix: A Track Namespace structure as described in
+<li class="normal" id="section-9.18-3.1">
+            <p id="section-9.18-3.1.1">Track Namespace Prefix: A Track Namespace structure as described in
 <a href="#track-name" class="auto internal xref">Section 2.4.1</a> with between 0 and 32 Track Namespace Fields.  This prefix is
 matched against track namespaces known to the publisher.  For example, if the
 publisher is a relay that has received PUBLISH_NAMESPACE messages for
@@ -5201,17 +5157,17 @@ namespaces ("example.com", "meeting=123", "participant=100") and
 ("example.com", "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for
 ("example.com", "meeting=123") would match both.  If an endpoint receives a
 Track Namespace Prefix consisting of greater than than 32 Track Namespace
-Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.19-3.1.1" class="pilcrow">¶</a></p>
+Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.18-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.19-3.2">
-            <p id="section-9.19-3.2.1">Subscribe Options: Allows subscribers to request PUBLISH (0x00),
-NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.<a href="#section-9.19-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.18-3.2">
+            <p id="section-9.18-3.2.1">Subscribe Options: Allows subscribers to request PUBLISH (0x00),
+NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.<a href="#section-9.18-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.19-3.3">
-            <p id="section-9.19-3.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.19-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.18-3.3">
+            <p id="section-9.18-3.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.18-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-9.19-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
+<p id="section-9.18-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
 send matching NAMESPACE messages on the response stream if they are requested.
 If it is an error, the stream will be immediately closed via FIN.
@@ -5219,24 +5175,24 @@ Also, any matching PUBLISH messages without an <code>Established</code> Subscrip
 established on new bidirectional streams. When there are changes to the
 namespaces or subscriptions being published and the subscriber is subscribed to
 them, the publisher sends the corresponding NAMESPACE, NAMESPACE_DONE,
-or PUBLISH messages.<a href="#section-9.19-4" class="pilcrow">¶</a></p>
-<p id="section-9.19-5">A subscriber cannot make overlapping namespace subscriptions on a single
+or PUBLISH messages.<a href="#section-9.18-4" class="pilcrow">¶</a></p>
+<p id="section-9.18-5">A subscriber cannot make overlapping namespace subscriptions on a single
 session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
 Track Namespace Prefix that shares a common prefix with an established namespace
 subscription, it <span class="bcp14">MUST</span> respond with REQUEST_ERROR with error code
-<code>PREFIX_OVERLAP</code>.<a href="#section-9.19-5" class="pilcrow">¶</a></p>
-<p id="section-9.19-6">The publisher <span class="bcp14">MUST</span> ensure the subscriber is authorized to perform this
-namespace subscription.<a href="#section-9.19-6" class="pilcrow">¶</a></p>
-<p id="section-9.19-7">SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE
+<code>PREFIX_OVERLAP</code>.<a href="#section-9.18-5" class="pilcrow">¶</a></p>
+<p id="section-9.18-6">The publisher <span class="bcp14">MUST</span> ensure the subscriber is authorized to perform this
+namespace subscription.<a href="#section-9.18-6" class="pilcrow">¶</a></p>
+<p id="section-9.18-7">SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE
 or PUBLISH messages to a subscriber.  It is useful in applications or relays
 where subscribers are only interested in or authorized to access a subset of
-available namespaces and tracks.<a href="#section-9.19-7" class="pilcrow">¶</a></p>
-<p id="section-9.19-8">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.1.1.10</a>) is present in this message and
+available namespaces and tracks.<a href="#section-9.18-7" class="pilcrow">¶</a></p>
+<p id="section-9.18-8">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.1.1.10</a>) is present in this message and
 equal to 0, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set
 the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
 from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
 set the FORWARD parameter to 1, or indicate that value by omitting the parameter
-(see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).<a href="#section-9.19-8" class="pilcrow">¶</a></p>
+(see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).<a href="#section-9.18-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -5431,7 +5387,7 @@ exceed the maximum datagram size of a downstream session and be dropped.<a href=
           </h4>
 <p id="section-10.3.1-1">An <code>OBJECT_DATAGRAM</code> carries a single object in a datagram.<a href="#section-10.3.1-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_datagram"></span><div id="object-datagram-format">
-<figure id="figure-22">
+<figure id="figure-21">
             <div class="alignLeft art-text artwork" id="section-10.3.1-2.1">
 <pre>
 OBJECT_DATAGRAM {
@@ -5446,7 +5402,7 @@ OBJECT_DATAGRAM {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-22" class="selfRef">Figure 22</a>:
+<figcaption><a href="#figure-21" class="selfRef">Figure 21</a>:
 <a href="#name-moqt-object_datagram" class="selfRef">MOQT OBJECT_DATAGRAM</a>
             </figcaption></figure>
 </div>
@@ -5746,7 +5702,7 @@ control to the control stream before allocating it any data streams. Otherwise,
 a receiver might wait for a control message containing a Track Alias to release
 flow control, while the sender waits for flow control to send the message.<a href="#section-10.4.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup_header"></span><div id="object-header-format">
-<figure id="figure-23">
+<figure id="figure-22">
             <div class="alignLeft art-text artwork" id="section-10.4.2-3.1">
 <pre>
 SUBGROUP_HEADER {
@@ -5758,7 +5714,7 @@ SUBGROUP_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
+<figcaption><a href="#figure-22" class="selfRef">Figure 22</a>:
 <a href="#name-moqt-subgroup_header" class="selfRef">MOQT SUBGROUP_HEADER</a>
             </figcaption></figure>
 </div>
@@ -6011,7 +5967,7 @@ previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
 unless there is an Prior Object ID Gap extesnion header (see
 <a href="#prior-object-id-gap" class="auto internal xref">Section 11.3</a>).<a href="#section-10.4.2-13" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
-<figure id="figure-24">
+<figure id="figure-23">
             <div class="alignLeft art-text artwork" id="section-10.4.2-14.1">
 <pre>
 {
@@ -6023,7 +5979,7 @@ unless there is an Prior Object ID Gap extesnion header (see
 }
 </pre>
 </div>
-<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
+<figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
 <a href="#name-moqt-subgroup-object-fields" class="selfRef">MOQT Subgroup Object Fields</a>
             </figcaption></figure>
 </div>
@@ -6176,7 +6132,7 @@ of the next Object in the requested range.<a href="#section-10.4.3-18.10.1" clas
 <p id="section-10.4.4-1">When a stream begins with <code>FETCH_HEADER</code>, all objects on the stream belong to the
 track requested in the Fetch message identified by <code>Fetch ID</code>.<a href="#section-10.4.4-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_header"></span><div id="fetch-header-format">
-<figure id="figure-25">
+<figure id="figure-24">
             <div class="alignLeft art-text artwork" id="section-10.4.4-2.1">
 <pre>
 FETCH_HEADER {
@@ -6185,14 +6141,14 @@ FETCH_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-25" class="selfRef">Figure 25</a>:
+<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
 <a href="#name-moqt-fetch_header" class="selfRef">MOQT FETCH_HEADER</a>
             </figcaption></figure>
 </div>
 <p id="section-10.4.4-3">Each Object sent on a FETCH stream after the FETCH_HEADER has the following
 format:<a href="#section-10.4.4-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-object-fields"></span><div id="object-fetch-format">
-<figure id="figure-26">
+<figure id="figure-25">
             <div class="alignLeft art-text artwork" id="section-10.4.4-4.1">
 <pre>
 {
@@ -6207,7 +6163,7 @@ format:<a href="#section-10.4.4-3" class="pilcrow">¶</a></p>
 }
 </pre>
 </div>
-<figcaption><a href="#figure-26" class="selfRef">Figure 26</a>:
+<figcaption><a href="#figure-25" class="selfRef">Figure 25</a>:
 <a href="#name-moqt-fetch-object-fields" class="selfRef">MOQT Fetch Object Fields</a>
             </figcaption></figure>
 </div>

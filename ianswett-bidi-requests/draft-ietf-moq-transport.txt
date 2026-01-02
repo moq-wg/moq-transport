@@ -161,8 +161,7 @@ Table of Contents
      9.15. PUBLISH_NAMESPACE
      9.16. NAMESPACE
      9.17. NAMESPACE_DONE
-     9.18. PUBLISH_NAMESPACE_CANCEL
-     9.19. SUBSCRIBE_NAMESPACE
+     9.18. SUBSCRIBE_NAMESPACE
    10. Data Streams and Datagrams
      10.1.  Track Alias
      10.2.  Objects
@@ -1406,11 +1405,11 @@ Table of Contents
    subscriber to send a SUBSCRIBE or FETCH message for a track in a
    namespace after the namespace is withdrawn.
 
-   A subscriber can send PUBLISH_NAMESPACE_CANCEL to revoke acceptance
-   of an PUBLISH_NAMESPACE, for example due to expiration of
-   authorization credentials.  The message enables the publisher to
-   PUBLISH_NAMESPACE again with refreshed authorization, or close the
-   stream and discard associated state.
+   A subscriber can cancel the request to revoke acceptance of a
+   PUBLISH_NAMESPACE.  If the reason for cancellation is expiration of
+   authorization credentials, the publisher can PUBLISH_NAMESPACE again
+   with refreshed authorization, or close the stream and discard
+   associated state.
 
    While PUBLISH_NAMESPACE indicates to relays how to connect publishers
    and subscribers, it is not a full-fledged routing protocol and does
@@ -1615,11 +1614,11 @@ Table of Contents
 
    There is no specified limit to the number of publishers of a Track
    Namespace or Track.  An implementation can use mechanisms such as
-   REQUEST_ERROR, unsubscribing (see Section 3.3.1) or
-   PUBLISH_NAMESPACE_CANCEL if it cannot accept an additional publisher
-   due to implementation constraints.  Implementations can consider the
-   establishment or idle time of the session or subscription to
-   determine which publisher to reject or disconnect.
+   REQUEST_ERROR, unsubscribing (see Section 3.3.1) if it cannot accept
+   an additional publisher due to implementation constraints.
+   Implementations can consider the establishment or idle time of the
+   session or subscription to determine which publisher to reject or
+   disconnect.
 
    Relays MUST handle Objects for the same Track from multiple
    publishers and forward them to matching Established subscriptions.
@@ -1708,9 +1707,8 @@ Table of Contents
 
    When a publisher wants to stop new subscriptions for a published
    namespace, it cancels the request (see Section 3.3.1) to withdraw the
-   PUBLISH_NAMESPACE.  A subscriber indicates it will no longer
-   subscribe to Tracks in a namespace it previously responded REQUEST_OK
-   to by sending a PUBLISH_NAMESPACE_CANCEL.
+   PUBLISH_NAMESPACE.  A subscriber also indicates it will no longer
+   subscribe to Tracks in a namespace by cancelling the request.
 
    A Relay connects publishers and subscribers by managing sessions
    based on the Track Namespace or Full Track Name.  When a SUBSCRIBE
@@ -1879,9 +1877,7 @@ Table of Contents
            +------+--------------------------------------------+
            |  0xE | NAMESPACE_DONE (Section 9.17)              |
            +------+--------------------------------------------+
-           |  0xC | PUBLISH_NAMESPACE_CANCEL (Section 9.18)    |
-           +------+--------------------------------------------+
-           | 0x11 | SUBSCRIBE_NAMESPACE (Section 9.19)         |
+           | 0x11 | SUBSCRIBE_NAMESPACE (Section 9.18)         |
            +------+--------------------------------------------+
 
                                   Table 1
@@ -3161,29 +3157,7 @@ Table of Contents
       namespace as defined in Section 2.4.1.  The namespace begins with
       the 'Track Namespace Prefix' specified in {message-subscribe-ns}.
 
-9.18.  PUBLISH_NAMESPACE_CANCEL
-
-   The subscriber sends an PUBLISH_NAMESPACE_CANCEL control message to
-   indicate it will stop sending new subscriptions for tracks within the
-   provided Track Namespace.
-
-   PUBLISH_NAMESPACE_CANCEL Message {
-     Type (i) = 0xC,
-     Length (16),
-     Error Code (i),
-     Error Reason (Reason Phrase)
-   }
-
-              Figure 20: MOQT PUBLISH_NAMESPACE_CANCEL Message
-
-   *  Error Code: Identifies an integer error code for canceling the
-      publish.  PUBLISH_NAMESPACE_CANCEL uses the same error codes as
-      REQUEST_ERROR (Section 9.5) that responds to PUBLISH_NAMESPACE.
-
-   *  Error Reason: Provides the reason for publish cancelation.  See
-      Section 1.4.3.
-
-9.19.  SUBSCRIBE_NAMESPACE
+9.18.  SUBSCRIBE_NAMESPACE
 
    The subscriber sends a SUBSCRIBE_NAMESPACE control message on a new
    bidirectional stream to a publisher to request the current set of
@@ -3199,7 +3173,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                Figure 21: MOQT SUBSCRIBE_NAMESPACE Message
+                Figure 20: MOQT SUBSCRIBE_NAMESPACE Message
 
    *  Track Namespace Prefix: A Track Namespace structure as described
       in Section 2.4.1 with between 0 and 32 Track Namespace Fields.
@@ -3425,7 +3399,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                      Figure 22: MOQT OBJECT_DATAGRAM
+                      Figure 21: MOQT OBJECT_DATAGRAM
 
    The Type value determines which fields are present in the
    OBJECT_DATAGRAM.  There are 10 defined Type values for
@@ -3566,7 +3540,7 @@ Table of Contents
      [Publisher Priority (8),]
    }
 
-                      Figure 23: MOQT SUBGROUP_HEADER
+                      Figure 22: MOQT SUBGROUP_HEADER
 
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
@@ -3688,7 +3662,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                   Figure 24: MOQT Subgroup Object Fields
+                   Figure 23: MOQT Subgroup Object Fields
 
 10.4.3.  Closing Subgroup Streams
 
@@ -3830,7 +3804,7 @@ Table of Contents
      Fetch ID (i),
    }
 
-                        Figure 25: MOQT FETCH_HEADER
+                        Figure 24: MOQT FETCH_HEADER
 
    Each Object sent on a FETCH stream after the FETCH_HEADER has the
    following format:
@@ -3846,7 +3820,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                    Figure 26: MOQT Fetch Object Fields
+                    Figure 25: MOQT Fetch Object Fields
 
    The Serialization Flags field defines the serialization of the
    Object.  It is a variable-length integer.  When less than 64, the
