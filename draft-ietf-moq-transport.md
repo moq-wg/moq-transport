@@ -1251,9 +1251,9 @@ A PUBLISH_NAMESPACE is withdrawn by cancelling the Request
 the subscriber to send a SUBSCRIBE or FETCH message for a track in a
 namespace after the namespace is withdrawn.
 
-A subscriber can send PUBLISH_NAMESPACE_CANCEL to revoke acceptance of an
-PUBLISH_NAMESPACE, for example due to expiration of authorization
-credentials. The message enables the publisher to PUBLISH_NAMESPACE again with
+A subscriber can cancel the request to revoke acceptance of a
+PUBLISH_NAMESPACE. If the reason for cancellation is expiration of
+authorization credentials, the publisher can PUBLISH_NAMESPACE again with
 refreshed authorization, or close the stream and discard associated state.
 
 While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
@@ -1438,10 +1438,10 @@ given Track.
 
 There is no specified limit to the number of publishers of a Track Namespace or
 Track.  An implementation can use mechanisms such as REQUEST_ERROR,
-unsubscribing (see {{request-cancellation}}) or PUBLISH_NAMESPACE_CANCEL if it
-cannot accept an additional publisher due to implementation constraints.
-Implementations can consider the establishment or idle time of the session or
-subscription to determine which publisher to reject or disconnect.
+unsubscribing (see {{request-cancellation}}) if it cannot accept an additional
+publisher due to implementation constraints. Implementations can consider the
+establishment or idle time of the session or subscription to determine which
+publisher to reject or disconnect.
 
 Relays MUST handle Objects for the same Track from multiple publishers and
 forward them to matching `Established` subscriptions. The Relay SHOULD attempt to
@@ -1524,8 +1524,8 @@ relay is managed and is application specific.
 
 When a publisher wants to stop new subscriptions for a published namespace, it
 cancels the request (see {{request-cancellation}}) to withdraw the PUBLISH_NAMESPACE.
-A subscriber indicates it will no longer subscribe to Tracks in a namespace
-it previously responded REQUEST_OK to by sending a PUBLISH_NAMESPACE_CANCEL.
+A subscriber also indicates it will no longer subscribe to Tracks in a namespace
+by cancelling the request.
 
 A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
@@ -1683,8 +1683,6 @@ The following Message Types are defined:
 | 0x8   | NAMESPACE  ({{message-namespace}})                  |
 |-------|-----------------------------------------------------|
 | 0xE   | NAMESPACE_DONE  ({{message-namespace-done}})        |
-|-------|-----------------------------------------------------|
-| 0xC   | PUBLISH_NAMESPACE_CANCEL ({{message-pub-ns-cancel}})|
 |-------|-----------------------------------------------------|
 | 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
 |-------|-----------------------------------------------------|
@@ -2901,29 +2899,6 @@ NAMESPACE_DONE Message {
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}}. The namespace begins with the
   'Track Namespace Prefix' specified in {message-subscribe-ns}.
-
-## PUBLISH_NAMESPACE_CANCEL {#message-pub-ns-cancel}
-
-The subscriber sends an `PUBLISH_NAMESPACE_CANCEL` control message to
-indicate it will stop sending new subscriptions for tracks
-within the provided Track Namespace.
-
-~~~
-PUBLISH_NAMESPACE_CANCEL Message {
-  Type (i) = 0xC,
-  Length (16),
-  Error Code (i),
-  Error Reason (Reason Phrase)
-}
-~~~
-{: #moq-transport-pub-ns-cancel-format title="MOQT PUBLISH_NAMESPACE_CANCEL Message"}
-
-* Error Code: Identifies an integer error code for canceling the publish.
-  PUBLISH_NAMESPACE_CANCEL uses the same error codes as REQUEST_ERROR
-  ({{message-request-error}}) that responds to PUBLISH_NAMESPACE.
-
-* Error Reason: Provides the reason for publish cancelation. See
-  {{reason-phrase}}.
 
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
