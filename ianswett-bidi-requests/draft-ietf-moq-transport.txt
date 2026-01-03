@@ -3513,7 +3513,7 @@ Table of Contents
    subscriptions.  Termination of a bidi request stream terminates the
    Subscription, Fetch, Track Status, Publish Namespace, or Subscribe
    Namespace request.  When possible, Publishers SHOULD send a
-   SUBSCRIBE_DONE when terminating a subscription instead of abruptly
+   PUBLISH_DONE when terminating a subscription instead of abruptly
    terminating the stream.
 
 10.4.2.  Subgroup Header
