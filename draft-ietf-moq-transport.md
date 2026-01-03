@@ -759,7 +759,7 @@ In addition to the control stream, this specification uses bidirectional request
 streams that begin with six types of message: TRACK_STATUS, SUBSCRIBE, PUBLISH,
 FETCH, PUBLISH_NAMESPACE, and SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT
 begin with any other message type unless negotiated. If they do, the peer MUST
-close the Session with a Protocol Violation. Objects are sent on unidirectional
+close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
 streams.
 
 A unidirectional stream containing Objects or bidirectional stream(s) beginning
