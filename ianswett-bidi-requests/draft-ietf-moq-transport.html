@@ -2478,17 +2478,18 @@ can be used.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
 the endpoints exchange Setup messages (<a href="#message-setup" class="auto internal xref">Section 9.2</a>), followed by other
 messages defined in <a href="#message" class="auto internal xref">Section 9</a>. The control stream begins with a single
 CLIENT_SETUP message.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.3-2">In addition to the control stream, this specification uses bidirectional request
-streams that begin with six types of message: TRACK_STATUS, SUBSCRIBE, PUBLISH,
-FETCH, PUBLISH_NAMESPACE, and SUBSCRIBE_NAMESPACE. Bidirectional streams <span class="bcp14">MUST NOT</span>
+<p id="section-3.3-2">In addition to the control stream, this specification uses bidirectional streams
+to carry requests.  A request stream begins with one of these six message types:
+TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE, and
+SUBSCRIBE_NAMESPACE. Bidirectional streams <span class="bcp14">MUST NOT</span>
 begin with any other message type unless negotiated. If they do, the peer <span class="bcp14">MUST</span>
 close the Session with a <code>PROTOCOL_VIOLATION</code>. Objects are sent on unidirectional
 streams.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">A unidirectional stream containing Objects or bidirectional stream(s) beginning
 with a message other than CLIENT_SETUP could arrive prior to the control stream,
 in which case the stream data <span class="bcp14">SHOULD</span> be buffered until the control stream arrives
-and setup is complete. If an implementation does not want to buffer or if it is
-certain the message type is not supported, it <span class="bcp14">MAY</span> reset other bidirectional streams
+and setup is complete. If an implementation does not want to buffer or if
+the message type is not supported, it <span class="bcp14">MAY</span> reset such bidirectional streams
 before the session and control stream are established.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 <p id="section-3.3-4">The control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
@@ -2499,13 +2500,13 @@ session's lifetime.  Doing so results in the session being closed as a
 <a href="#section-3.3.1" class="section-number selfRef">3.3.1. </a><a href="#name-request-cancellation-and-re" class="section-name selfRef">Request Cancellation and Rejection</a>
           </h4>
 <p id="section-3.3.1-1">Once a request stream has been opened, the request <span class="bcp14">MAY</span> be cancelled by either
-endpoint. Subscribers cancel requests if the response is no longer of interest;
-Publishers cancel requests if they are unable to or choose not to respond.<a href="#section-3.3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-2">Implementations <span class="bcp14">SHOULD</span> cancel requests by abruptly terminating any directions of a
-stream that are still open. To do so, an implementation resets the sending parts of
-streams and aborts reading on the receiving parts of streams; see (<span>[<a href="#QUIC" class="cite xref">QUIC</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-2.4" class="relref">Section 2.4</a></span>).<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
+endpoint. Senders cancel requests if the response is no longer of interest;
+Receivers cancel requests if they are unable to or choose not to respond.<a href="#section-3.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-2">Implementations <span class="bcp14">SHOULD</span> cancel requests by abruptly terminating any directions of
+a stream that are still open using RESET_STREAM / RESET_STREAM_AT or
+STOP_SENDING.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.3.1-3">When the Publisher rejects a request without performing any application processing,
-The PUBLISHER <span class="bcp14">SHOULD</span> send a REQUEST_ERROR and FINs the stream.<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
+The PUBLISHER <span class="bcp14">SHOULD</span> send a REQUEST_ERROR and FIN the stream.<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3348,8 +3349,8 @@ The authorization and identification of the publisher depends on the way the
 relay is managed and is application specific.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
 <p id="section-8.5-4">When a publisher wants to stop new subscriptions for a published namespace, it
 cancels the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>) to withdraw the PUBLISH_NAMESPACE.
-A subscriber also indicates it will no longer subscribe to Tracks in a namespace
-by cancelling the request.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
+A subscriber indicates it will no longer subscribe to Tracks in a namespace
+by cancelling the PUBLISH_NAMESPACE request.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
 <p id="section-8.5-5">A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
 Track Name is matched exactly against existing upstream subscriptions.<a href="#section-8.5-5" class="pilcrow">¶</a></p>
@@ -3461,7 +3462,7 @@ prioritize sending Objects based on <a href="#priorities" class="auto internal x
 <a href="#section-9" class="section-number selfRef">9. </a><a href="#name-control-messages" class="section-name selfRef">Control Messages</a>
       </h2>
 <p id="section-9-1">MOQT uses bidirectional streams to exchange control messages, as
-defined in <a href="#session-init" class="auto internal xref">Section 3.3</a>.  Every single message on a control stream is
+defined in <a href="#session-init" class="auto internal xref">Section 3.3</a>.  Every message on a control or request stream is
 formatted as follows:<a href="#section-9-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-control-message"></span><div id="moq-transport-message-format">
 <figure id="figure-3">
@@ -6009,7 +6010,7 @@ not limited to:<a href="#section-10.4.3-3" class="pilcrow">¶</a></p>
               <p id="section-10.4.3-4.1.1">An Object in an open Subgroup exceeding its Delivery Timeout<a href="#section-10.4.3-4.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.4.3-4.2">
-              <p id="section-10.4.3-4.2.1">Early termination of subscription due to stream cancellation<a href="#section-10.4.3-4.2.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.3-4.2.1">Early termination of subscription due to request cancellation<a href="#section-10.4.3-4.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.4.3-4.3">
               <p id="section-10.4.3-4.3.1">A publisher's decision to end the subscription early<a href="#section-10.4.3-4.3.1" class="pilcrow">¶</a></p>

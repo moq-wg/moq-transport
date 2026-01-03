@@ -892,20 +892,20 @@ Table of Contents
    begins with a single CLIENT_SETUP message.
 
    In addition to the control stream, this specification uses
-   bidirectional request streams that begin with six types of message:
-   TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE, and
-   SUBSCRIBE_NAMESPACE.  Bidirectional streams MUST NOT begin with any
-   other message type unless negotiated.  If they do, the peer MUST
-   close the Session with a PROTOCOL_VIOLATION.  Objects are sent on
-   unidirectional streams.
+   bidirectional streams to carry requests.  A request stream begins
+   with one of these six message types: TRACK_STATUS, SUBSCRIBE,
+   PUBLISH, FETCH, PUBLISH_NAMESPACE, and SUBSCRIBE_NAMESPACE.
+   Bidirectional streams MUST NOT begin with any other message type
+   unless negotiated.  If they do, the peer MUST close the Session with
+   a PROTOCOL_VIOLATION.  Objects are sent on unidirectional streams.
 
    A unidirectional stream containing Objects or bidirectional stream(s)
    beginning with a message other than CLIENT_SETUP could arrive prior
    to the control stream, in which case the stream data SHOULD be
    buffered until the control stream arrives and setup is complete.  If
-   an implementation does not want to buffer or if it is certain the
-   message type is not supported, it MAY reset other bidirectional
-   streams before the session and control stream are established.
+   an implementation does not want to buffer or if the message type is
+   not supported, it MAY reset such bidirectional streams before the
+   session and control stream are established.
 
    The control stream MUST NOT be closed at the underlying transport
    layer during the session's lifetime.  Doing so results in the session
@@ -914,18 +914,17 @@ Table of Contents
 3.3.1.  Request Cancellation and Rejection
 
    Once a request stream has been opened, the request MAY be cancelled
-   by either endpoint.  Subscribers cancel requests if the response is
-   no longer of interest; Publishers cancel requests if they are unable
-   to or choose not to respond.
+   by either endpoint.  Senders cancel requests if the response is no
+   longer of interest; Receivers cancel requests if they are unable to
+   or choose not to respond.
 
    Implementations SHOULD cancel requests by abruptly terminating any
-   directions of a stream that are still open.  To do so, an
-   implementation resets the sending parts of streams and aborts reading
-   on the receiving parts of streams; see ([QUIC], Section 2.4).
+   directions of a stream that are still open using RESET_STREAM /
+   RESET_STREAM_AT or STOP_SENDING.
 
    When the Publisher rejects a request without performing any
    application processing, The PUBLISHER SHOULD send a REQUEST_ERROR and
-   FINs the stream.
+   FIN the stream.
 
 3.4.  Termination
 
@@ -1707,8 +1706,9 @@ Table of Contents
 
    When a publisher wants to stop new subscriptions for a published
    namespace, it cancels the request (see Section 3.3.1) to withdraw the
-   PUBLISH_NAMESPACE.  A subscriber also indicates it will no longer
-   subscribe to Tracks in a namespace by cancelling the request.
+   PUBLISH_NAMESPACE.  A subscriber indicates it will no longer
+   subscribe to Tracks in a namespace by cancelling the
+   PUBLISH_NAMESPACE request.
 
    A Relay connects publishers and subscribers by managing sessions
    based on the Track Namespace or Full Track Name.  When a SUBSCRIBE
@@ -1821,8 +1821,8 @@ Table of Contents
 9.  Control Messages
 
    MOQT uses bidirectional streams to exchange control messages, as
-   defined in Section 3.3.  Every single message on a control stream is
-   formatted as follows:
+   defined in Section 3.3.  Every message on a control or request stream
+   is formatted as follows:
 
    MOQT Control Message {
      Message Type (i),
@@ -3684,7 +3684,7 @@ Table of Contents
 
    *  An Object in an open Subgroup exceeding its Delivery Timeout
 
-   *  Early termination of subscription due to stream cancellation
+   *  Early termination of subscription due to request cancellation
 
    *  A publisher's decision to end the subscription early
 
