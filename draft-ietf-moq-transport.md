@@ -755,9 +755,10 @@ the endpoints exchange Setup messages ({{message-setup}}), followed by other
 messages defined in {{message}}. The control stream begins with a single
 CLIENT_SETUP message.
 
-In addition to the control stream, this specification uses bidirectional request
-streams that begin with six types of message: TRACK_STATUS, SUBSCRIBE, PUBLISH,
-FETCH, PUBLISH_NAMESPACE, and SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT
+In addition to the control stream, this specification uses bidirectional streams
+to carry requests.  A request stream begins with one of these six message types:
+TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE, and
+SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT
 begin with any other message type unless negotiated. If they do, the peer MUST
 close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
 streams.
@@ -765,8 +766,8 @@ streams.
 A unidirectional stream containing Objects or bidirectional stream(s) beginning
 with a message other than CLIENT_SETUP could arrive prior to the control stream,
 in which case the stream data SHOULD be buffered until the control stream arrives
-and setup is complete. If an implementation does not want to buffer or if it is
-certain the message type is not supported, it MAY reset other bidirectional streams
+and setup is complete. If an implementation does not want to buffer or if
+the message type is not supported, it MAY reset such bidirectional streams
 before the session and control stream are established.
 
 The control stream MUST NOT be closed at the underlying transport layer during the
@@ -776,15 +777,15 @@ session's lifetime.  Doing so results in the session being closed as a
 ### Request Cancellation and Rejection {#request-cancellation}
 
 Once a request stream has been opened, the request MAY be cancelled by either
-endpoint. Subscribers cancel requests if the response is no longer of interest;
-Publishers cancel requests if they are unable to or choose not to respond.
+endpoint. Senders cancel requests if the response is no longer of interest;
+Receivers cancel requests if they are unable to or choose not to respond.
 
-Implementations SHOULD cancel requests by abruptly terminating any directions of a
-stream that are still open. To do so, an implementation resets the sending parts of
-streams and aborts reading on the receiving parts of streams; see ({{QUIC, Section 2.4}}).
+Implementations SHOULD cancel requests by abruptly terminating any directions of
+a stream that are still open using RESET_STREAM / RESET_STREAM_AT or
+STOP_SENDING.
 
 When the Publisher rejects a request without performing any application processing,
-The PUBLISHER SHOULD send a REQUEST_ERROR and FINs the stream.
+The PUBLISHER SHOULD send a REQUEST_ERROR and FIN the stream.
 
 
 ## Termination  {#session-termination}
@@ -1524,8 +1525,8 @@ relay is managed and is application specific.
 
 When a publisher wants to stop new subscriptions for a published namespace, it
 cancels the request (see {{request-cancellation}}) to withdraw the PUBLISH_NAMESPACE.
-A subscriber also indicates it will no longer subscribe to Tracks in a namespace
-by cancelling the request.
+A subscriber indicates it will no longer subscribe to Tracks in a namespace
+by cancelling the PUBLISH_NAMESPACE request.
 
 A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
@@ -1627,7 +1628,7 @@ prioritize sending Objects based on {{priorities}}.
 # Control Messages {#message}
 
 MOQT uses bidirectional streams to exchange control messages, as
-defined in {{session-init}}.  Every single message on a control stream is
+defined in {{session-init}}.  Every message on a control or request stream is
 formatted as follows:
 
 ~~~
@@ -3365,7 +3366,7 @@ stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
 not limited to:
 
 * An Object in an open Subgroup exceeding its Delivery Timeout
-* Early termination of subscription due to stream cancellation
+* Early termination of subscription due to request cancellation
 * A publisher's decision to end the subscription early
 * A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
   the Start Location to a larger Location
