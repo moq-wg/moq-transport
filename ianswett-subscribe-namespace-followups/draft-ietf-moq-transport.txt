@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 June 2026                                      I. Swett, Ed.
+Expires: 7 July 2026                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        24 December 2025
+                                                          3 January 2026
 
 
                        Media over QUIC Transport
@@ -57,11 +57,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 June 2026.
+   This Internet-Draft will expire on 7 July 2026.
 
 Copyright Notice
 
-   Copyright (c) 2025 IETF Trust and the persons identified as the
+   Copyright (c) 2026 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -2080,9 +2080,12 @@ Table of Contents
    It is the duration in milliseconds the relay SHOULD continue to
    attempt forwarding Objects after they have been received.  The start
    time for the timeout is based on when the Object Headers are
-   received, and does not depend upon the forwarding preference.  There
-   is no explicit signal that an Object was not sent because the
-   delivery timeout was exceeded.
+   received, and does not depend upon the forwarding preference.
+   Objects with forwarding preference 'Datagram' are not retransmitted
+   when lost, so the Delivery Timeout only limits the amount of time
+   they can be queued before being sent.  There is no explicit signal
+   that an Object was not sent because the delivery timeout was
+   exceeded.
 
    DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.
    If an endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close
