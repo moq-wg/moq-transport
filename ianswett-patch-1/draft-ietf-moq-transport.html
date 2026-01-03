@@ -25,7 +25,7 @@ networks and is designed for high scale and low latency distribution.
     Python 3.12.12
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
-    intervaltree 3.1.0
+    intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.0.2
     platformdirs 4.5.1
@@ -1051,11 +1051,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">December 2025</td>
+<td class="right">January 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 24 June 2026</td>
+<td class="center">Expires 7 July 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-12-21" class="published">21 December 2025</time>
+<time datetime="2026-01-03" class="published">3 January 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-06-24">24 June 2026</time></dd>
+<dd class="expires"><time datetime="2026-07-07">7 July 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 24 June 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 7 July 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1151,7 +1151,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 <a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
         </h2>
 <p id="section-boilerplate.2-1">
-            Copyright (c) 2025 IETF Trust and the persons identified as the
+            Copyright (c) 2026 IETF Trust and the persons identified as the
             document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.2-2">
             This document is subject to BCP 78 and the IETF Trust's Legal
@@ -1210,6 +1210,9 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                     <p id="section-toc.1-1.1.2.4.2.3.1"><a href="#section-1.4.3" class="auto internal xref">1.4.3</a>.  <a href="#name-reason-phrase-structure" class="internal xref">Reason Phrase Structure</a></p>
 </li>
                 </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.5">
+                <p id="section-toc.1-1.1.2.5.1"><a href="#section-1.5" class="auto internal xref">1.5</a>.  <a href="#name-representing-namespace-and-" class="internal xref">Representing Namespace and Track Names</a></p>
 </li>
             </ul>
 </li>
@@ -1989,6 +1992,41 @@ the one that created the text.<a href="#section-1.4.3-3.2.1" class="pilcrow">¶<
 </li>
           </ul>
 </section>
+</div>
+</section>
+</div>
+<div id="representing-namespace-and-track-names">
+<section id="section-1.5">
+        <h3 id="name-representing-namespace-and-">
+<a href="#section-1.5" class="section-number selfRef">1.5. </a><a href="#name-representing-namespace-and-" class="section-name selfRef">Representing Namespace and Track Names</a>
+        </h3>
+<p id="section-1.5-1">There is often a need to render namespace tuples and track names for
+purposes such as logging, representing track filenames, or use in
+certain authorization verification schemes. The namespace and track name
+are binary, so they need to be converted to a safe form.<a href="#section-1.5-1" class="pilcrow">¶</a></p>
+<p id="section-1.5-2">The following format is RECOMMONDED:<a href="#section-1.5-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.5-3.1">
+            <p id="section-1.5-3.1.1">Each of the namespace tuples are rendered in order with a hyphen (-)
+between them followed by the track name with a double hyphen (--)
+between the last namespace and track name.<a href="#section-1.5-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.5-3.2">
+            <p id="section-1.5-3.2.1">Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output as is,
+while all other bytes are encoded as a period (.) symbol followed by
+exactly two lower case hex digits.<a href="#section-1.5-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-1.5-4">The goal of this format is to have a format that is both filename and
+URL safe. It allows many common names to be rendered in an easily human
+readable form while still supporting binary values.<a href="#section-1.5-4" class="pilcrow">¶</a></p>
+<p id="section-1.5-5">Example:<a href="#section-1.5-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-1.5-6">
+<pre>
+example.2enet-team2-project_x--report
+  Namespace tuples: (example.net, team2, project_x)
+  Track name: report
+</pre><a href="#section-1.5-6" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
@@ -3773,8 +3811,10 @@ SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.<a href="#section-9.2.1.2-1
 <p id="section-9.2.1.2-2">It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span>
 continue to attempt forwarding Objects after they have been received.  The start
 time for the timeout is based on when the Object Headers are received, and does
-not depend upon the forwarding preference. There is no explicit signal that an
-Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.1.2-2" class="pilcrow">¶</a></p>
+not depend upon the forwarding preference. Objects with forwarding preference
+'Datagram' are not retransmitted when lost, so the Delivery Timeout only limits
+the amount of time they can be queued before being sent. There is no explicit
+signal that an Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.1.2-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.2-3">DELIVERY_TIMEOUT, if present, <span class="bcp14">MUST</span> contain a value greater than 0.  If an
 endpoint receives a DELIVERY_TIMEOUT equal to 0 it <span class="bcp14">MUST</span> close the session
 with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.2-3" class="pilcrow">¶</a></p>
