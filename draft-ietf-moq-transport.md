@@ -2706,6 +2706,8 @@ FETCH Message {
 
 * Fetch ID: An ID used to identify the unidirectional stream containing
   Objects requested by the Fetch. The ID MUST be unique within a Session.
+  To ensure Fetch IDs are not reused, implementations SHOULD issue them
+  sequentially.
 
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
