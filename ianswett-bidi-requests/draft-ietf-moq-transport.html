@@ -6097,9 +6097,8 @@ RESET_STREAM_AT, as defined below:<a href="#section-10.4.3-17" class="pilcrow">�
             <dd class="break"></dd>
 <dt id="section-10.4.3-18.3">CANCELLED (0x1):</dt>
             <dd style="margin-left: 1.5em" id="section-10.4.3-18.4">
-              <p id="section-10.4.3-18.4.1">The subscriber requested cancellation via STOP_SENDING, or the publisher
-ended the subscription, in which case PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.11</a>)
-will have a more detailed status code.<a href="#section-10.4.3-18.4.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.3-18.4.1">The subscriber or publisher cancelled the Request. For Subscriptions,
+PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.11</a>) will have a more detailed status code.<a href="#section-10.4.3-18.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-10.4.3-18.5">DELIVERY_TIMEOUT (0x2):</dt>
