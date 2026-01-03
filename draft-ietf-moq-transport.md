@@ -1341,7 +1341,7 @@ publisher priority.  The ordering in those cases is implementation-defined,
 though the expectation is that all subscriptions will be able to send some data.
 
 A publisher might not utilize the entire available congestion window for lower
-priority Objects if it expects higher priority Objects to be available to send
+priority Objects if it expects higher priority Objects will be available to send
 in the near future or it wants to reserve some bandwidth for control messages.
 
 Given the critical nature of control messages and their relatively
