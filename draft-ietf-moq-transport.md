@@ -3212,8 +3212,8 @@ or other reasons by either the publisher or subscriber. Early termination of a
 unidirectional stream does not affect the MoQ application state, and therefore has
 no effect on outstanding subscriptions. Termination of a bidi request stream
 terminates the Subscription, Fetch, Track Status, Publish Namespace, or Subscribe Namespace
-request. Publishers SHOULD NOT RESET the bidi response stream, and instead SHOULD send
-the appropriate final message indicating the response is complete and FIN the bidi stream.
+request. When possible, Publishers SHOULD send a SUBSCRIBE_DONE when terminating a
+subscription instead of abruptly terminating the stream.
 
 ### Subgroup Header
 
