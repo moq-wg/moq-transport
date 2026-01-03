@@ -332,6 +332,35 @@ Reason Phrase {
   such as language tags, that would aid comprehension by any entity other than
   the one that created the text.
 
+## Representing Namespace and Track Names
+
+There is often a need to render namespace tuples and track names for
+purposes such as logging, representing track filenames, or use in
+certain authorization verification schemes. The namespace and track name
+are binary, so they need to be converted to a safe form.
+
+The following format is RECOMMONDED:
+
+* Each of the namespace tuples are rendered in order with a hyphen (-)
+  between them followed by the track name with a double hyphen (--)
+  between the last namespace and track name.
+
+* Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output as is,
+  while all other bytes are encoded as a period (.) symbol followed by
+  exactly two lower case hex digits.
+
+The goal of this format is to have a format that is both filename and
+URL safe. It allows many common names to be rendered in an easily human
+readable form while still supporting binary values.
+
+Example:
+
+~~~
+example.2enet-team2-project_x--report
+  Namespace tuples: (example.net, team2, project_x)
+  Track name: report
+~~~
+
 # Object Data Model {#model}
 
 MOQT has a hierarchical data model, comprised of tracks which contain
@@ -1843,8 +1872,10 @@ SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
 It is the duration in milliseconds the relay SHOULD
 continue to attempt forwarding Objects after they have been received.  The start
 time for the timeout is based on when the Object Headers are received, and does
-not depend upon the forwarding preference. There is no explicit signal that an
-Object was not sent because the delivery timeout was exceeded.
+not depend upon the forwarding preference. Objects with forwarding preference
+'Datagram' are not retransmitted when lost, so the Delivery Timeout only limits
+the amount of time they can be queued before being sent. There is no explicit
+signal that an Object was not sent because the delivery timeout was exceeded.
 
 DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
 endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session
