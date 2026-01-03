@@ -3447,9 +3447,8 @@ INTERNAL_ERROR (0x0):
 : An implementation specific error.
 
 CANCELLED (0x1):
-: The subscriber requested cancellation via STOP_SENDING, or the publisher
-  ended the subscription, in which case PUBLISH_DONE ({{message-publish-done}})
-  will have a more detailed status code.
+: The subscriber or publisher cancelled the Request. For Subscriptions,
+  PUBLISH_DONE ({{message-publish-done}}) will have a more detailed status code.
 
 DELIVERY_TIMEOUT (0x2):
 : The DELIVERY TIMEOUT {{delivery-timeout}} was exceeded for this stream.
