@@ -4860,7 +4860,9 @@ FETCH Message {
 <ul class="normal">
 <li class="normal" id="section-9.12.3-3.1">
               <p id="section-9.12.3-3.1.1">Fetch ID: An ID used to identify the unidirectional stream containing
-Objects requested by the Fetch. The ID <span class="bcp14">MUST</span> be unique within a Session.<a href="#section-9.12.3-3.1.1" class="pilcrow">¶</a></p>
+Objects requested by the Fetch. The ID <span class="bcp14">MUST</span> be unique within a Session.
+To ensure Fetch IDs are not reused, implementations <span class="bcp14">SHOULD</span> issue them
+sequentially.<a href="#section-9.12.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.12.3-3.2">
               <p id="section-9.12.3-3.2.1">Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
