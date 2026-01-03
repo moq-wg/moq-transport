@@ -4571,9 +4571,9 @@ filter that is entirely behind Largest Object or is otherwise invalid.<a href="#
         <h3 id="name-publish_done">
 <a href="#section-9.11" class="section-number selfRef">9.11. </a><a href="#name-publish_done" class="section-name selfRef">PUBLISH_DONE</a>
         </h3>
-<p id="section-9.11-1">A publisher sends a <code>PUBLISH_DONE</code> message as the final message on the
-subscription's bidi stream to indicate it is done publishing Objects for that
-subscription.  The Status Code indicates why the subscription
+<p id="section-9.11-1">A publisher sends a <code>PUBLISH_DONE</code> message as the final message before
+closing the subscription's bidi stream to indicate it is done publishing Objects
+for that subscription.  The Status Code indicates why the subscription
 ended, and whether it was an error. Because PUBLISH_DONE is sent on the control
 stream, it is likely to arrive at the receiver before late-arriving objects, and
 often even late-opening streams. However, the receiver uses it as an indication
