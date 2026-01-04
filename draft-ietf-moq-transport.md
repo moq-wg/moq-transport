@@ -1484,7 +1484,7 @@ expected to do so.
 
 This section describes a behavior that a publisher MAY implement to improve
 user experience when a relay sends a GOAWAY or the Subscriber switches between
-networks, such as WiFi to Cellular, and QUIC Connection Migration is not possible. 
+networks, such as WiFi to Cellular, and QUIC Connection Migration is not possible.
 
 When a subscriber receives the GOAWAY message, it starts the process
 of connecting to a new relay and sending the SUBSCRIBE requests for
@@ -1573,7 +1573,7 @@ might be handling other subscriptions, to be closed.
 
 This section describes a behavior that a publisher MAY implement to improve
 user experience when a relay sends a GOAWAY or the Subscriber switches between
-networks, such as WiFi to Cellular, and QUIC Connection Migration is not possible. 
+networks, such as WiFi to Cellular, and QUIC Connection Migration is not possible.
 
 A new Session is established, to a new URI if specified in a GOAWAY. The
 publisher sends PUBLISH_NAMESPACE and/or PUBLISH messages to begin publishing
