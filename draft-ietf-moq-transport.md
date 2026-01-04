@@ -4000,7 +4000,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x2  | USE_ALIAS  | {{authorization-token}}
 | 0x3  | USE_VALUE  | {{authorization-token}}
 
-## Version Specific Parameters
+## Message Parameters
 
 | Parameter Type | Parameter Name | Specification |
 |----------------|----------------|---------------|
