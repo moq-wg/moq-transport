@@ -192,7 +192,7 @@ Table of Contents
        12.3.2.  SUBSCRIBE_NAMESPACE with short prefixes
    13. IANA Considerations
      13.1.  Authorization Token Alias Type
-     13.2.  Version Specific Parameters
+     13.2.  Message Parameters
      13.3.  Error Codes
        13.3.1.  Session Termination Error Codes
        13.3.2.  REQUEST_ERROR Codes
@@ -4391,7 +4391,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                  Table 9
 
-13.2.  Version Specific Parameters
+13.2.  Message Parameters
 
         +================+=====================+==================+
         | Parameter Type | Parameter Name      | Specification    |
