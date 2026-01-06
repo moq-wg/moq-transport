@@ -587,7 +587,7 @@ Additionally, a FETCH responce is considered malformed if:
 1. An Object is received in a FETCH response with the same Group ID as the
    previous Object, but whose Object ID is not strictly larger than the previous
    object.
-2. In a FETCH response, an Object with a particular Subgroup ID is received, but its
+2. An Object with a particular Subgroup ID is received, but its
    Publisher Priority is different from that of the previous Object with the same
    Subgroup ID.
 3. An Object is received in an Ascending FETCH response whose Group ID is smaller
