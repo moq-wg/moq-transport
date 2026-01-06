@@ -561,7 +561,7 @@ Namespace Fields or Track Name such that exact comparison works.
 
 There are multiple ways a publisher can transmit a Track that does not conform
 to MOQT constraints. Such a Track is considered malformed.  Some example
-conditions that constitute a malformed track when detected by a receiver
+conditions that constitute a malformed track when detected by a subscriber
 include:
 
 1. An Object is received whose Object ID is larger than the final Object in the
@@ -569,11 +569,11 @@ include:
    Subgroup stream before a FIN.
 2. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-3. An Object is received in a Group whose Object ID is larger than the final
+3. An Object is received whose Object ID is larger than the final
    Object in the Group.  The final Object in a Group is the Object with Status
    END_OF_GROUP or the last Object sent in a FETCH that requested the entire
    Group.
-4. An Object is received on a Track whose Group and Object ID are larger than the
+4. An Object is received whose Group and Object ID are larger than the
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
    End of Track.
