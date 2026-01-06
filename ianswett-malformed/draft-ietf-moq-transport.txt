@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 July 2026                                       I. Swett, Ed.
+Expires: 10 July 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          3 January 2026
+                                                          6 January 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 July 2026.
+   This Internet-Draft will expire on 10 July 2026.
 
 Copyright Notice
 
@@ -720,9 +720,9 @@ Table of Contents
        as the previous Object, but whose Object ID is not strictly
        larger than the previous object.
 
-   2.  In a FETCH response, an Object with a particular Subgroup ID is
-       received, but its Publisher Priority is different from that of
-       the previous Object with the same Subgroup ID.
+   2.  An Object with a particular Subgroup ID is received, but its
+       Publisher Priority is different from that of the previous Object
+       with the same Subgroup ID.
 
    3.  An Object is received in an Ascending FETCH response whose Group
        ID is smaller than the previous Object in the response.
