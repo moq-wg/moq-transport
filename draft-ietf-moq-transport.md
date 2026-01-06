@@ -1572,7 +1572,7 @@ might be handling other subscriptions, to be closed.
 ### Graceful Publisher Relay Switchover
 
 This section describes a behavior that a publisher MAY implement to improve
-user experience when a relay sends a GOAWAY or the Subscriber switches between
+user experience when a relay sends a GOAWAY or the publisher switches between
 networks, such as WiFi to Cellular, and QUIC Connection Migration is not possible.
 
 A new Session is established, to a new URI if specified in a GOAWAY. The
