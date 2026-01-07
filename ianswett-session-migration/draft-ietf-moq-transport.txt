@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 10 July 2026                                      I. Swett, Ed.
+Expires: 11 July 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          6 January 2026
+                                                          7 January 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 July 2026.
+   This Internet-Draft will expire on 11 July 2026.
 
 Copyright Notice
 
@@ -2415,7 +2415,14 @@ Table of Contents
 
    Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests
    to the peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-   SUBSCRIBE_NAMESPACE and TRACK_SATUS.
+   SUBSCRIBE_NAMESPACE and TRACK_STATUS.
+
+   Sending a GOAWAY does not prevent the sender from initiating new
+   requests, though the sender SHOULD avoid initiating requests unless
+   required by migration (see (Section 8.4.1 and Section 8.5.1).  An
+   endpoint that receives a GOAWAY MAY reject new requests with an
+   appropriate error code (e.g., SUBSCRIBE_ERROR with error code
+   GOING_AWAY).
 
    The endpoint MUST close the session with a PROTOCOL_VIOLATION
    (Section 3.4) if it receives multiple GOAWAY messages.
