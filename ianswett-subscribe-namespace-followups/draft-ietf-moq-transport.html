@@ -1055,7 +1055,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 7 July 2026</td>
+<td class="center">Expires 11 July 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-01-03" class="published">3 January 2026</time>
+<time datetime="2026-01-07" class="published">7 January 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-07-07">7 July 2026</time></dd>
+<dd class="expires"><time datetime="2026-07-11">11 July 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 7 July 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 11 July 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3314,7 +3314,7 @@ upstream publisher terminates the subscription, or the subscription expires (see
 all possible Objects matching the filter have been delivered to the subscriber.
 Since tracking this can be prohibitively expensive, Relays are not required or
 expected to do so.<a href="#section-8.4-6" class="pilcrow">¶</a></p>
-<div id="graceful-subscriber-relay-switchover">
+<div id="graceful-subscriber-switchover">
 <section id="section-8.4.1">
           <h4 id="name-graceful-subscriber-relay-s">
 <a href="#section-8.4.1" class="section-number selfRef">8.4.1. </a><a href="#name-graceful-subscriber-relay-s" class="section-name selfRef">Graceful Subscriber Relay Switchover</a>
@@ -3401,7 +3401,7 @@ Forward State=1 in the reply.<a href="#section-8.5-12" class="pilcrow">¶</a></p
 the Relay <span class="bcp14">MUST NOT</span> propagate that message or Object to another Session, because
 it would enable a single Session error to force an unrelated Session, which
 might be handling other subscriptions, to be closed.<a href="#section-8.5-13" class="pilcrow">¶</a></p>
-<div id="graceful-publisher-network-switchover">
+<div id="graceful-publisher-switchover">
 <section id="section-8.5.1">
           <h4 id="name-graceful-publisher-network-">
 <a href="#section-8.5.1" class="section-number selfRef">8.5.1. </a><a href="#name-graceful-publisher-network-" class="section-name selfRef">Graceful Publisher Network Switchover</a>
@@ -4190,12 +4190,17 @@ the session soon.  Servers can use GOAWAY to initiate session migration
 publisher <span class="bcp14">MAY</span> reject new requests after sending a GOAWAY.<a href="#section-9.4-2" class="pilcrow">¶</a></p>
 <p id="section-9.4-3">Upon receiving a GOAWAY, an endpoint <span class="bcp14">SHOULD NOT</span> initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-SUBSCRIBE_NAMESPACE and TRACK_SATUS.<a href="#section-9.4-3" class="pilcrow">¶</a></p>
-<p id="section-9.4-4">The endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>
-(<a href="#session-termination" class="auto internal xref">Section 3.4</a>) if it receives multiple GOAWAY messages.<a href="#section-9.4-4" class="pilcrow">¶</a></p>
+SUBSCRIBE_NAMESPACE and TRACK_STATUS.<a href="#section-9.4-3" class="pilcrow">¶</a></p>
+<p id="section-9.4-4">Sending a GOAWAY does not prevent the sender from initiating new requests,
+though the sender <span class="bcp14">SHOULD</span> avoid initiating requests unless required by migration
+(see (<a href="#graceful-subscriber-switchover" class="auto internal xref">Section 8.4.1</a> and <a href="#graceful-publisher-switchover" class="auto internal xref">Section 8.5.1</a>).
+An endpoint that receives a GOAWAY <span class="bcp14">MAY</span> reject new requests with an appropriate
+error code (e.g., SUBSCRIBE_ERROR with error code GOING_AWAY).<a href="#section-9.4-4" class="pilcrow">¶</a></p>
+<p id="section-9.4-5">The endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>
+(<a href="#session-termination" class="auto internal xref">Section 3.4</a>) if it receives multiple GOAWAY messages.<a href="#section-9.4-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
 <figure id="figure-6">
-          <div class="alignLeft art-text artwork" id="section-9.4-5.1">
+          <div class="alignLeft art-text artwork" id="section-9.4-6.1">
 <pre>
 GOAWAY Message {
   Type (i) = 0x10,
@@ -4210,17 +4215,17 @@ GOAWAY Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.4-6.1">
-            <p id="section-9.4-6.1.1">New Session URI: When received by a client, indicates where the client can
+<li class="normal" id="section-9.4-7.1">
+            <p id="section-9.4-7.1.1">New Session URI: When received by a client, indicates where the client can
 connect to continue this session.  The client <span class="bcp14">MUST</span> use this URI for the new
 session if provided. If the URI is zero bytes long, the current URI is reused
 instead. The new session URI <span class="bcp14">SHOULD</span> use the same scheme
 as the current URI to ensure compatibility.  The maxmimum length of the New
 Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
-maximum, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-6.1.1" class="pilcrow">¶</a></p>
-<p id="section-9.4-6.1.2">
+maximum, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-7.1.1" class="pilcrow">¶</a></p>
+<p id="section-9.4-7.1.2">
 If a server receives a GOAWAY with a non-zero New Session URI Length it <span class="bcp14">MUST</span>
-close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-6.1.2" class="pilcrow">¶</a></p>
+close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-7.1.2" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
