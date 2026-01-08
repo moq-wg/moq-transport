@@ -1729,11 +1729,11 @@ versions. All other messages use a version-specific namespace.
 For example, the integer '1' can refer to different parameters for Setup
 messages and for all other message types. SETUP message parameter types
 are defined in {{setup-params}}. Version-specific parameter types are defined
-in {{version-specific-params}}.
+in {{message-params}}.
 
-### Version Specific Parameters {#version-specific-params}
+### Message Parameters {#message-params}
 
-Each version-specific parameter definition indicates the message types in which
+Each message parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it MUST be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.
@@ -1741,10 +1741,9 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION TOKEN Parameter {#authorization-token}
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
-CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
-SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
-parameter conveys information to authorize the sender to perform the operation
-carrying the parameter.
+PUBLISH, SUBSCRIBE, REQUEST_UPDATE, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
+TRACK_STATUS or FETCH message. This parameter conveys information to authorize
+the sender to perform the operation carrying the parameter.
 
 The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
@@ -2149,9 +2148,10 @@ initiation.
 
 #### AUTHORIZATION TOKEN {#setup-auth-token}
 
-See {{authorization-token}}.  The endpoint can specify one or more tokens in
-CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT session
-establishment.
+The AUTHORIZATION TOKEN setup parameter (Parameter Type 0x03)) is funcionally
+equivalient to the AUTHORIZATION TOKEN message parameter, see {{authorization-token}}.
+The endpoint can specify one or more tokens in CLIENT_SETUP or SERVER_SETUP
+that the peer can use to authorize MOQT session establishment.
 
 If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
@@ -2285,7 +2285,7 @@ REQUEST_OK Message {
 
 * Request ID: The Request ID to which this message is replying.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 ## REQUEST_ERROR {#message-request-error}
 
@@ -2402,7 +2402,7 @@ SUBSCRIBE Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -2444,7 +2444,7 @@ SUBSCRIBE_OK Message {
   uses the same Track Alias as a different track with an `Established` subscription,
   it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 * Track Extensions : A sequence of Extension Headers. See {{extension-headers}}.
 
@@ -2485,7 +2485,7 @@ REQUEST_UPDATE Message {
   specifies an invalid Existing Request ID, or if the parameters included
   in the REQUEST_UPDATE are invalid for the type of request being modified.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 ### Updating Subscriptions
 
@@ -2561,7 +2561,7 @@ PUBLISH Message {
   uses the same Track Alias as a different track with an `Established` subscription, it
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 * Track Extensions : A sequence of Extension Headers. See {{extension-headers}}.
 
@@ -2596,7 +2596,7 @@ PUBLISH_OK Message {
 * Request ID: The Request ID of the PUBLISH this message is replying to
   {{message-publish}}.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 TODO: A similar section to SUBSCRIBE about how the publisher handles a
 filter that is entirely behind Largest Object or is otherwise invalid.
@@ -2833,7 +2833,7 @@ FETCH Message {
 
 * Joining: Joining Fetch structure included when Fetch Type is 0x2 or 0x3.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a REQUEST_ERROR
 message.  The publisher creates a new unidirectional stream that is used to send the
@@ -2930,7 +2930,7 @@ FETCH_OK Message {
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 * Track Extensions : A sequence of Extension Headers. See {{extension-headers}}.
 
@@ -3001,7 +3001,7 @@ PUBLISH_NAMESPACE Message {
 * Track Namespace: Identifies a track's namespace as defined in
   {{track-name}}.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 ## NAMESPACE {#message-namespace}
 
@@ -3125,7 +3125,7 @@ SUBSCRIBE_NAMESPACE Message {
 * Subscribe Options: Allows subscribers to request PUBLISH (0x00),
   NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
@@ -3994,7 +3994,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x2  | USE_ALIAS  | {{authorization-token}}
 | 0x3  | USE_VALUE  | {{authorization-token}}
 
-## Version Specific Parameters
+## Message Parameters
 
 | Parameter Type | Parameter Name | Specification |
 |----------------|----------------|---------------|
