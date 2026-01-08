@@ -2111,13 +2111,13 @@ stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
 <p id="section-2.2-2">When an Object's forwarding preference (see <a href="#object-properties" class="auto internal xref">Section 10.2.1</a>) is
-"Datagram", it is not sent in Subgroups and the
-description in the remainder of this section does not apply.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
+"Datagram", it is not sent in Subgroups, does not belong to a Subgroup in any
+way, and the description in the remainder of this section does not apply.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
 <p id="section-2.2-3">Streams offer in-order reliable delivery and the ability to cancel sending and
 retransmission of data. Furthermore, many QUIC and WebTransport implementations
 offer the ability to control the relative scheduling priority of pending stream
 data.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
-<p id="section-2.2-4">Every object within a Group belongs to exactly one Subgroup.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
+<p id="section-2.2-4">Every Object within a Group belongs to exactly one Subgroup or Datagram.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
 <p id="section-2.2-5">When Objects are sent in a subscription (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>),  Objects
 from two subgroups <span class="bcp14">MUST NOT</span> be sent on the same stream, and Objects from the
 same Subgroup <span class="bcp14">MUST NOT</span> be sent on different streams, unless one of the streams
@@ -5573,7 +5573,7 @@ the datagram.  See <a href="#object-datagram" class="auto internal xref">Section
 <p id="section-10-5">An endpoint that receives an unknown stream or datagram type <span class="bcp14">MUST</span> close the
 session.<a href="#section-10-5" class="pilcrow">¶</a></p>
 <p id="section-10-6">Every Object has a 'Object Forwarding Preference' and the Original Publisher
-<span class="bcp14">MAY</span> mix different forwarding preference within a single track.<a href="#section-10-6" class="pilcrow">¶</a></p>
+<span class="bcp14">MAY</span> use both Subgroups and Datagrams within a Group or Track.<a href="#section-10-6" class="pilcrow">¶</a></p>
 <div id="track-alias">
 <section id="section-10.1">
         <h3 id="name-track-alias">
@@ -6511,7 +6511,7 @@ format:<a href="#section-10.4.4-3" class="pilcrow">¶</a></p>
             </figcaption></figure>
 </div>
 <p id="section-10.4.4-5">The Serialization Flags field defines the serialization of the Object.  It is
-a variable-length integer.  When less than 64, the bits represent flags described
+a variable-length integer.  When less than 128, the bits represent flags described
 below.  The following additional values are defined:<a href="#section-10.4.4-5" class="pilcrow">¶</a></p>
 <table class="center" id="table-6">
             <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
@@ -6601,6 +6601,11 @@ the corresponding condition is true.<a href="#section-10.4.4.1-3" class="pilcrow
                   <td class="text-left" rowspan="1" colspan="1">Extensions field is present</td>
                   <td class="text-left" rowspan="1" colspan="1">Extensions field is not present</td>
                 </tr>
+                <tr>
+                  <td class="text-left" rowspan="1" colspan="1">0x40</td>
+                  <td class="text-left" rowspan="1" colspan="1">Datagram: ignore the two least significant bits</td>
+                  <td class="text-left" rowspan="1" colspan="1">Use the subgroup ID in the two least significant bits</td>
+                </tr>
               </tbody>
             </table>
 <p id="section-10.4.4.1-5">If the first Object in the FETCH response uses a flag that references fields in
@@ -6608,8 +6613,9 @@ the prior Object, the Subscriber <span class="bcp14">MUST</span> close the sessi
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4.4.1-5" class="pilcrow">¶</a></p>
 <p id="section-10.4.4.1-6">The Extensions structure is defined in <a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a>.<a href="#section-10.4.4.1-6" class="pilcrow">¶</a></p>
 <p id="section-10.4.4.1-7">When encoding an Object with a Forwarding Preference of "Datagram" (see
-<a href="#object-properties" class="auto internal xref">Section 10.2.1</a>), the Publisher treats it as having a Subgroup ID equal to
-the Object ID.<a href="#section-10.4.4.1-7" class="pilcrow">¶</a></p>
+<a href="#object-properties" class="auto internal xref">Section 10.2.1</a>), the object has no Subgroup ID. The publisher <span class="bcp14">MUST</span> SET bit 0x40 to '1'.
+When 0x40 is set, it <span class="bcp14">SHOULD</span> set the two least significant bits to zero and the subscriber
+<span class="bcp14">MUST</span> ignore the bits.<a href="#section-10.4.4.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="end-of-range">

@@ -550,15 +550,17 @@ Table of Contents
    typically with a one-to-one mapping between Subgroups and streams.
 
    When an Object's forwarding preference (see Section 10.2.1) is
-   "Datagram", it is not sent in Subgroups and the description in the
-   remainder of this section does not apply.
+   "Datagram", it is not sent in Subgroups, does not belong to a
+   Subgroup in any way, and the description in the remainder of this
+   section does not apply.
 
    Streams offer in-order reliable delivery and the ability to cancel
    sending and retransmission of data.  Furthermore, many QUIC and
    WebTransport implementations offer the ability to control the
    relative scheduling priority of pending stream data.
 
-   Every object within a Group belongs to exactly one Subgroup.
+   Every Object within a Group belongs to exactly one Subgroup or
+   Datagram.
 
    When Objects are sent in a subscription (see Section 5.1), Objects
    from two subgroups MUST NOT be sent on the same stream, and Objects
@@ -3487,8 +3489,8 @@ Table of Contents
    close the session.
 
    Every Object has a 'Object Forwarding Preference' and the Original
-   Publisher MAY mix different forwarding preference within a single
-   track.
+   Publisher MAY use both Subgroups and Datagrams within a Group or
+   Track.
 
 10.1.  Track Alias
 
@@ -4057,7 +4059,7 @@ Table of Contents
                     Figure 31: MOQT Fetch Object Fields
 
    The Serialization Flags field defines the serialization of the
-   Object.  It is a variable-length integer.  When less than 64, the
+   Object.  It is a variable-length integer.  When less than 128, the
    bits represent flags described below.  The following additional
    values are defined:
 
@@ -4102,21 +4104,24 @@ Table of Contents
    Flags field.  Each flag is an independent boolean value, where a set
    bit (1) indicates the corresponding condition is true.
 
-    +=========+============================+==========================+
-    | Bitmask | Condition if set           | Condition if not set (0) |
-    +=========+============================+==========================+
-    | 0x04    | Object ID field is present | Object ID is the prior   |
-    |         |                            | Object's ID plus one     |
-    +---------+----------------------------+--------------------------+
-    | 0x08    | Group ID field is present  | Group ID is the prior    |
-    |         |                            | Object's Group ID        |
-    +---------+----------------------------+--------------------------+
-    | 0x10    | Priority field is present  | Priority is the prior    |
-    |         |                            | Object's Priority        |
-    +---------+----------------------------+--------------------------+
-    | 0x20    | Extensions field is        | Extensions field is not  |
-    |         | present                    | present                  |
-    +---------+----------------------------+--------------------------+
+   +=========+============================+============================+
+   | Bitmask | Condition if set           | Condition if not set (0)   |
+   +=========+============================+============================+
+   | 0x04    | Object ID field is         | Object ID is the prior     |
+   |         | present                    | Object's ID plus one       |
+   +---------+----------------------------+----------------------------+
+   | 0x08    | Group ID field is          | Group ID is the prior      |
+   |         | present                    | Object's Group ID          |
+   +---------+----------------------------+----------------------------+
+   | 0x10    | Priority field is          | Priority is the prior      |
+   |         | present                    | Object's Priority          |
+   +---------+----------------------------+----------------------------+
+   | 0x20    | Extensions field is        | Extensions field is not    |
+   |         | present                    | present                    |
+   +---------+----------------------------+----------------------------+
+   | 0x40    | Datagram: ignore the two   | Use the subgroup ID in the |
+   |         | least significant bits     | two least significant bits |
+   +---------+----------------------------+----------------------------+
 
                                   Table 8
 
@@ -4127,8 +4132,10 @@ Table of Contents
    The Extensions structure is defined in Section 10.2.1.2.
 
    When encoding an Object with a Forwarding Preference of "Datagram"
-   (see Section 10.2.1), the Publisher treats it as having a Subgroup ID
-   equal to the Object ID.
+   (see Section 10.2.1), the object has no Subgroup ID.  The publisher
+   MUST SET bit 0x40 to '1'.  When 0x40 is set, it SHOULD set the two
+   least significant bits to zero and the subscriber MUST ignore the
+   bits.
 
 10.4.4.2.  End of Range
 
