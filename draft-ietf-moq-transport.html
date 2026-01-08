@@ -5526,6 +5526,9 @@ the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
 from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
 set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).<a href="#section-9.25-8" class="pilcrow">¶</a></p>
+<p id="section-9.25-9">The publisher <span class="bcp14">MUST NOT</span> send NAMESPACE_DONE for a namespace suffix before the
+corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
+corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session with a 'PROTOCOL_VIOLATION'.<a href="#section-9.25-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
