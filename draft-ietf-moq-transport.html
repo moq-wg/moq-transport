@@ -3834,7 +3834,9 @@ and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher <span class="bcp14">MAY</span> terminate
 the subscription with error <code>TOO_FAR_BEHIND</code>.<a href="#section-9.2.1.2-5" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.2-6">If an object in a subgroup exceeds the delivery timeout, the publisher <span class="bcp14">MUST</span>
-reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>).<a href="#section-9.2.1.2-6" class="pilcrow">¶</a></p>
+reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>) and
+<span class="bcp14">SHOULD NOT</span> attempt to open a new stream to deliver additional Objects in that
+Subgroup.<a href="#section-9.2.1.2-6" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.2-7">When sent by a subscriber, this parameter is intended to be specific to a
 subscription, so it <span class="bcp14">SHOULD NOT</span> be forwarded upstream by a relay that intends
 to serve multiple subscriptions for the same track.<a href="#section-9.2.1.2-7" class="pilcrow">¶</a></p>
@@ -6417,42 +6419,44 @@ stream header is of questionable utility.<a href="#section-10.4.3-15" class="pil
 <p id="section-10.4.3-16">RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
 Subgroups in a Group at once.<a href="#section-10.4.3-16" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-17">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
-RESET_STREAM_AT, as defined below:<a href="#section-10.4.3-17" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-10.4.3-18">
-            <dt id="section-10.4.3-18.1">INTERNAL_ERROR (0x0):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-18.2">
-              <p id="section-10.4.3-18.2.1">An implementation specific error.<a href="#section-10.4.3-18.2.1" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-17">A publisher that receives a STOP_SENDING on a Subgroup stream <span class="bcp14">SHOULD NOT</span> attempt
+to open a new stream to deliver additional Objects in that Subgroup.<a href="#section-10.4.3-17" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-18">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
+RESET_STREAM_AT, as defined below:<a href="#section-10.4.3-18" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-10.4.3-19">
+            <dt id="section-10.4.3-19.1">INTERNAL_ERROR (0x0):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.2">
+              <p id="section-10.4.3-19.2.1">An implementation specific error.<a href="#section-10.4.3-19.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-18.3">CANCELLED (0x1):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-18.4">
-              <p id="section-10.4.3-18.4.1">The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
+<dt id="section-10.4.3-19.3">CANCELLED (0x1):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.4">
+              <p id="section-10.4.3-19.4.1">The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
 STOP_SENDING, or the publisher ended the subscription, in which case
 PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.15</a>) will have a more detailed status
-code.<a href="#section-10.4.3-18.4.1" class="pilcrow">¶</a></p>
+code.<a href="#section-10.4.3-19.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-18.5">DELIVERY_TIMEOUT (0x2):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-18.6">
-              <p id="section-10.4.3-18.6.1">The DELIVERY TIMEOUT <a href="#delivery-timeout" class="auto internal xref">Section 9.2.1.2</a> was exceeded for this stream.<a href="#section-10.4.3-18.6.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-19.5">DELIVERY_TIMEOUT (0x2):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.6">
+              <p id="section-10.4.3-19.6.1">The DELIVERY TIMEOUT <a href="#delivery-timeout" class="auto internal xref">Section 9.2.1.2</a> was exceeded for this stream.<a href="#section-10.4.3-19.6.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-18.7">SESSION_CLOSED (0x3):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-18.8">
-              <p id="section-10.4.3-18.8.1">The publisher session is being closed.<a href="#section-10.4.3-18.8.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-19.7">SESSION_CLOSED (0x3):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.8">
+              <p id="section-10.4.3-19.8.1">The publisher session is being closed.<a href="#section-10.4.3-19.8.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-18.9">UNKNOWN_OBJECT_STATUS (0x4):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-18.10">
-              <p id="section-10.4.3-18.10.1">In response to a FETCH, the publisher is unable to determine the Status
-of the next Object in the requested range.<a href="#section-10.4.3-18.10.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-19.9">UNKNOWN_OBJECT_STATUS (0x4):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.10">
+              <p id="section-10.4.3-19.10.1">In response to a FETCH, the publisher is unable to determine the Status
+of the next Object in the requested range.<a href="#section-10.4.3-19.10.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-18.11">MALFORMED_TRACK (0x12):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-18.12">
-              <p id="section-10.4.3-18.12.1">A relay publisher detected that the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-18.12.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-19.11">MALFORMED_TRACK (0x12):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.12">
+              <p id="section-10.4.3-19.12.1">A relay publisher detected that the track was malformed (see
+<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-19.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
