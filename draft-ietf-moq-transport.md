@@ -582,7 +582,7 @@ include:
 6. An Object is received with a different Forwarding Preference than previously
     observed.
 
-Additionally, a FETCH responce is considered malformed if:
+Additionally, a FETCH response is considered malformed if:
 
 1. An Object is received in a FETCH response with the same Group ID as the
    previous Object, but whose Object ID is not strictly larger than the previous
