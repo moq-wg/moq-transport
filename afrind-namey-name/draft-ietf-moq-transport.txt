@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 June 2026                                      I. Swett, Ed.
+Expires: 12 July 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        13 December 2025
+                                                          8 January 2026
 
 
                        Media over QUIC Transport
@@ -57,11 +57,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 June 2026.
+   This Internet-Draft will expire on 12 July 2026.
 
 Copyright Notice
 
-   Copyright (c) 2025 IETF Trust and the persons identified as the
+   Copyright (c) 2026 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -642,7 +642,7 @@ Table of Contents
    Namespace Fields, it MUST close the session with a
    PROTOCOL_VIOLATION.
 
-   Track Name is a possibly empty sequence of bytes that identifies an
+   Track Name is a sequence of bytes, possibly empty, that identifies an
    individual track within the namespace.
 
    The maximum total length of a Full Track Name is 4,096 bytes.  The
