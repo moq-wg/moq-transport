@@ -3188,9 +3188,7 @@ An endpoint that receives an unknown stream or datagram type MUST close the
 session.
 
 Every Object has a 'Object Forwarding Preference' and the Original Publisher
-MAY mix different forwarding preference within a single track. As a Subgroup
-is by definition a set of objects delivered with Subgroup forwarding preference,
-objects with a Subgroup ID have the same forwarding preference.
+MAY use both Subgroups and Datagrams within a Group or Track.
 
 ## Track Alias
 
