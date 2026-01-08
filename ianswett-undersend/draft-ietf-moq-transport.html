@@ -1055,7 +1055,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 7 July 2026</td>
+<td class="center">Expires 12 July 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-01-03" class="published">3 January 2026</time>
+<time datetime="2026-01-08" class="published">8 January 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-07-07">7 July 2026</time></dd>
+<dd class="expires"><time datetime="2026-07-12">12 July 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 7 July 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 12 July 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1396,7 +1396,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-parameters" class="internal xref">Parameters</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.1">
-                    <p id="section-toc.1-1.9.2.2.2.1.1"><a href="#section-9.2.1" class="auto internal xref">9.2.1</a>.  <a href="#name-version-specific-parameters" class="internal xref">Version Specific Parameters</a></p>
+                    <p id="section-toc.1-1.9.2.2.2.1.1"><a href="#section-9.2.1" class="auto internal xref">9.2.1</a>.  <a href="#name-message-parameters" class="internal xref">Message Parameters</a></p>
 </li>
                 </ul>
 </li>
@@ -1579,7 +1579,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.13.2.1.1"><a href="#section-13.1" class="auto internal xref">13.1</a>.  <a href="#name-authorization-token-alias-t" class="internal xref">Authorization Token Alias Type</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2">
-                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-version-specific-parameters-2" class="internal xref">Version Specific Parameters</a></p>
+                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-message-parameters-2" class="internal xref">Message Parameters</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3">
                 <p id="section-toc.1-1.13.2.3.1"><a href="#section-13.3" class="auto internal xref">13.3</a>.  <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
@@ -3318,7 +3318,7 @@ upstream publisher terminates the subscription, or the subscription expires (see
 all possible Objects matching the filter have been delivered to the subscriber.
 Since tracking this can be prohibitively expensive, Relays are not required or
 expected to do so.<a href="#section-8.4-6" class="pilcrow">¶</a></p>
-<div id="graceful-subscriber-relay-switchover">
+<div id="graceful-subscriber-switchover">
 <section id="section-8.4.1">
           <h4 id="name-graceful-subscriber-relay-s">
 <a href="#section-8.4.1" class="section-number selfRef">8.4.1. </a><a href="#name-graceful-subscriber-relay-s" class="section-name selfRef">Graceful Subscriber Relay Switchover</a>
@@ -3405,7 +3405,7 @@ Forward State=1 in the reply.<a href="#section-8.5-12" class="pilcrow">¶</a></p
 the Relay <span class="bcp14">MUST NOT</span> propagate that message or Object to another Session, because
 it would enable a single Session error to force an unrelated Session, which
 might be handling other subscriptions, to be closed.<a href="#section-8.5-13" class="pilcrow">¶</a></p>
-<div id="graceful-publisher-network-switchover">
+<div id="graceful-publisher-switchover">
 <section id="section-8.5.1">
           <h4 id="name-graceful-publisher-network-">
 <a href="#section-8.5.1" class="section-number selfRef">8.5.1. </a><a href="#name-graceful-publisher-network-" class="section-name selfRef">Graceful Publisher Network Switchover</a>
@@ -3663,13 +3663,13 @@ versions. All other messages use a version-specific namespace.
 For example, the integer '1' can refer to different parameters for Setup
 messages and for all other message types. SETUP message parameter types
 are defined in <a href="#setup-params" class="auto internal xref">Section 9.3.1</a>. Version-specific parameter types are defined
-in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
-<div id="version-specific-params">
+in <a href="#message-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
+<div id="message-params">
 <section id="section-9.2.1">
-          <h4 id="name-version-specific-parameters">
-<a href="#section-9.2.1" class="section-number selfRef">9.2.1. </a><a href="#name-version-specific-parameters" class="section-name selfRef">Version Specific Parameters</a>
+          <h4 id="name-message-parameters">
+<a href="#section-9.2.1" class="section-number selfRef">9.2.1. </a><a href="#name-message-parameters" class="section-name selfRef">Message Parameters</a>
           </h4>
-<p id="section-9.2.1-1">Each version-specific parameter definition indicates the message types in which
+<p id="section-9.2.1-1">Each message parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it <span class="bcp14">MUST</span> be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.<a href="#section-9.2.1-1" class="pilcrow">¶</a></p>
@@ -3679,10 +3679,9 @@ these parameters to appear in Setup messages.<a href="#section-9.2.1-1" class="p
 <a href="#section-9.2.1.1" class="section-number selfRef">9.2.1.1. </a><a href="#name-authorization-token-paramet" class="section-name selfRef">AUTHORIZATION TOKEN Parameter</a>
             </h5>
 <p id="section-9.2.1.1-1">The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) <span class="bcp14">MAY</span> appear in a
-CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
-SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
-parameter conveys information to authorize the sender to perform the operation
-carrying the parameter.<a href="#section-9.2.1.1-1" class="pilcrow">¶</a></p>
+PUBLISH, SUBSCRIBE, REQUEST_UPDATE, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
+TRACK_STATUS or FETCH message. This parameter conveys information to authorize
+the sender to perform the operation carrying the parameter.<a href="#section-9.2.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.1-2">The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
 Type and Token Value in future messages. The Token structure is serialized as
@@ -3815,8 +3814,10 @@ SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.<a href="#section-9.2.1.2-1
 <p id="section-9.2.1.2-2">It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span>
 continue to attempt forwarding Objects after they have been received.  The start
 time for the timeout is based on when the Object Headers are received, and does
-not depend upon the forwarding preference. There is no explicit signal that an
-Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.1.2-2" class="pilcrow">¶</a></p>
+not depend upon the forwarding preference. Objects with forwarding preference
+'Datagram' are not retransmitted when lost, so the Delivery Timeout only limits
+the amount of time they can be queued before being sent. There is no explicit
+signal that an Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.1.2-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.2-3">DELIVERY_TIMEOUT, if present, <span class="bcp14">MUST</span> contain a value greater than 0.  If an
 endpoint receives a DELIVERY_TIMEOUT equal to 0 it <span class="bcp14">MUST</span> close the session
 with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.1.2-3" class="pilcrow">¶</a></p>
@@ -4152,9 +4153,10 @@ initiation.<a href="#section-9.3.1.4-2" class="pilcrow">¶</a></p>
             <h5 id="name-authorization-token">
 <a href="#section-9.3.1.5" class="section-number selfRef">9.3.1.5. </a><a href="#name-authorization-token" class="section-name selfRef">AUTHORIZATION TOKEN</a>
             </h5>
-<p id="section-9.3.1.5-1">See <a href="#authorization-token" class="auto internal xref">Section 9.2.1.1</a>.  The endpoint can specify one or more tokens in
-CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT session
-establishment.<a href="#section-9.3.1.5-1" class="pilcrow">¶</a></p>
+<p id="section-9.3.1.5-1">The AUTHORIZATION TOKEN setup parameter (Parameter Type 0x03)) is funcionally
+equivalient to the AUTHORIZATION TOKEN message parameter, see <a href="#authorization-token" class="auto internal xref">Section 9.2.1.1</a>.
+The endpoint can specify one or more tokens in CLIENT_SETUP or SERVER_SETUP
+that the peer can use to authorize MOQT session establishment.<a href="#section-9.3.1.5-1" class="pilcrow">¶</a></p>
 <p id="section-9.3.1.5-2">If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it <span class="bcp14">MUST NOT</span> fail
 the session with <code>AUTH_TOKEN_CACHE_OVERFLOW</code>.  Instead, it <span class="bcp14">MUST</span> treat the
@@ -4192,12 +4194,17 @@ the session soon.  Servers can use GOAWAY to initiate session migration
 publisher <span class="bcp14">MAY</span> reject new requests after sending a GOAWAY.<a href="#section-9.4-2" class="pilcrow">¶</a></p>
 <p id="section-9.4-3">Upon receiving a GOAWAY, an endpoint <span class="bcp14">SHOULD NOT</span> initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-SUBSCRIBE_NAMESPACE and TRACK_SATUS.<a href="#section-9.4-3" class="pilcrow">¶</a></p>
-<p id="section-9.4-4">The endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>
-(<a href="#session-termination" class="auto internal xref">Section 3.4</a>) if it receives multiple GOAWAY messages.<a href="#section-9.4-4" class="pilcrow">¶</a></p>
+SUBSCRIBE_NAMESPACE and TRACK_STATUS.<a href="#section-9.4-3" class="pilcrow">¶</a></p>
+<p id="section-9.4-4">Sending a GOAWAY does not prevent the sender from initiating new requests,
+though the sender <span class="bcp14">SHOULD</span> avoid initiating requests unless required by migration
+(see (<a href="#graceful-subscriber-switchover" class="auto internal xref">Section 8.4.1</a> and <a href="#graceful-publisher-switchover" class="auto internal xref">Section 8.5.1</a>).
+An endpoint that receives a GOAWAY <span class="bcp14">MAY</span> reject new requests with an appropriate
+error code (e.g., SUBSCRIBE_ERROR with error code GOING_AWAY).<a href="#section-9.4-4" class="pilcrow">¶</a></p>
+<p id="section-9.4-5">The endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>
+(<a href="#session-termination" class="auto internal xref">Section 3.4</a>) if it receives multiple GOAWAY messages.<a href="#section-9.4-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
 <figure id="figure-6">
-          <div class="alignLeft art-text artwork" id="section-9.4-5.1">
+          <div class="alignLeft art-text artwork" id="section-9.4-6.1">
 <pre>
 GOAWAY Message {
   Type (i) = 0x10,
@@ -4212,17 +4219,17 @@ GOAWAY Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.4-6.1">
-            <p id="section-9.4-6.1.1">New Session URI: When received by a client, indicates where the client can
+<li class="normal" id="section-9.4-7.1">
+            <p id="section-9.4-7.1.1">New Session URI: When received by a client, indicates where the client can
 connect to continue this session.  The client <span class="bcp14">MUST</span> use this URI for the new
 session if provided. If the URI is zero bytes long, the current URI is reused
 instead. The new session URI <span class="bcp14">SHOULD</span> use the same scheme
 as the current URI to ensure compatibility.  The maxmimum length of the New
 Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
-maximum, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-6.1.1" class="pilcrow">¶</a></p>
-<p id="section-9.4-6.1.2">
+maximum, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-7.1.1" class="pilcrow">¶</a></p>
+<p id="section-9.4-7.1.2">
 If a server receives a GOAWAY with a non-zero New Session URI Length it <span class="bcp14">MUST</span>
-close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-6.1.2" class="pilcrow">¶</a></p>
+close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-7.1.2" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4333,7 +4340,7 @@ REQUEST_OK Message {
             <p id="section-9.7-3.1.1">Request ID: The Request ID to which this message is replying.<a href="#section-9.7-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.7-3.2">
-            <p id="section-9.7-3.2.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.7-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.7-3.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.7-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4509,7 +4516,7 @@ SUBSCRIBE Message {
             <p id="section-9.9-5.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-9.9-5.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.9-5.4">
-            <p id="section-9.9-5.4.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.9-5.4.1" class="pilcrow">¶</a></p>
+            <p id="section-9.9-5.4.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.9-5.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.9-6">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
@@ -4562,7 +4569,7 @@ uses the same Track Alias as a different track with an <code>Established</code> 
 it <span class="bcp14">MUST</span> close the session with error <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-9.10-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.10-3.3">
-            <p id="section-9.10-3.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.10-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.10-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.10-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.10-3.4">
             <p id="section-9.10-3.4.1">Track Extensions : A sequence of Extension Headers. See <a href="#extension-headers" class="auto internal xref">Section 2.5</a>.<a href="#section-9.10-3.4.1" class="pilcrow">¶</a></p>
@@ -4615,7 +4622,7 @@ specifies an invalid Existing Request ID, or if the parameters included
 in the REQUEST_UPDATE are invalid for the type of request being modified.<a href="#section-9.11-7.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.11-7.3">
-            <p id="section-9.11-7.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.11-7.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.11-7.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.11-7.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <div id="updating-subscriptions">
@@ -4721,7 +4728,7 @@ uses the same Track Alias as a different track with an <code>Established</code> 
 <span class="bcp14">MUST</span> close the session with error <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-9.13-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.13-3.5">
-            <p id="section-9.13-3.5.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.13-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-9.13-3.5.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.13-3.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.13-3.6">
             <p id="section-9.13-3.6.1">Track Extensions : A sequence of Extension Headers. See <a href="#extension-headers" class="auto internal xref">Section 2.5</a>.<a href="#section-9.13-3.6.1" class="pilcrow">¶</a></p>
@@ -4768,7 +4775,7 @@ PUBLISH_OK Message {
 <a href="#message-publish" class="auto internal xref">Section 9.13</a>.<a href="#section-9.14-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.14-3.2">
-            <p id="section-9.14-3.2.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.14-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.14-3.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.14-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.14-4">TODO: A similar section to SUBSCRIBE about how the publisher handles a
@@ -5083,7 +5090,7 @@ Joining or Absolute Joining.<a href="#section-9.16.3-3.2.1" class="pilcrow">¶</
               <p id="section-9.16.3-3.4.1">Joining: Joining Fetch structure included when Fetch Type is 0x2 or 0x3.<a href="#section-9.16.3-3.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.16.3-3.5">
-              <p id="section-9.16.3-3.5.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.16.3-3.5.1" class="pilcrow">¶</a></p>
+              <p id="section-9.16.3-3.5.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.16.3-3.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-9.16.3-4">A publisher responds to a FETCH request with either a FETCH_OK or a REQUEST_ERROR
@@ -5197,7 +5204,7 @@ If End Location is smaller than the Start Location in the corresponding FETCH
 the receiver <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.17-3.3.4" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.17-3.4">
-            <p id="section-9.17-3.4.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.17-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-9.17-3.4.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.17-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.17-3.5">
             <p id="section-9.17-3.5.1">Track Extensions : A sequence of Extension Headers. See <a href="#extension-headers" class="auto internal xref">Section 2.5</a>.<a href="#section-9.17-3.5.1" class="pilcrow">¶</a></p>
@@ -5296,7 +5303,7 @@ PUBLISH_NAMESPACE Message {
 <a href="#track-name" class="auto internal xref">Section 2.4.1</a>.<a href="#section-9.20-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.20-3.3">
-            <p id="section-9.20-3.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.20-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.20-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.20-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5490,7 +5497,7 @@ Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOC
 NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.<a href="#section-9.25-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.25-3.4">
-            <p id="section-9.25-3.4.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.25-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-9.25-3.4.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.25-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.25-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
@@ -6976,10 +6983,10 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
         </table>
 </section>
 </div>
-<div id="version-specific-parameters">
+<div id="message-parameters">
 <section id="section-13.2">
-        <h3 id="name-version-specific-parameters-2">
-<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-version-specific-parameters-2" class="section-name selfRef">Version Specific Parameters</a>
+        <h3 id="name-message-parameters-2">
+<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-message-parameters-2" class="section-name selfRef">Message Parameters</a>
         </h3>
 <table class="center" id="table-10">
           <caption><a href="#table-10" class="selfRef">Table 10</a></caption>

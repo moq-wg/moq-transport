@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 July 2026                                       I. Swett, Ed.
+Expires: 12 July 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          3 January 2026
+                                                          8 January 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 July 2026.
+   This Internet-Draft will expire on 12 July 2026.
 
 Copyright Notice
 
@@ -139,7 +139,7 @@ Table of Contents
    9.  Control Messages
      9.1.  Request ID
      9.2.  Parameters
-       9.2.1.  Version Specific Parameters
+       9.2.1.  Message Parameters
      9.3.  CLIENT_SETUP and SERVER_SETUP
        9.3.1.  Setup Parameters
      9.4.  GOAWAY
@@ -192,7 +192,7 @@ Table of Contents
        12.3.2.  SUBSCRIBE_NAMESPACE with short prefixes
    13. IANA Considerations
      13.1.  Authorization Token Alias Type
-     13.2.  Version Specific Parameters
+     13.2.  Message Parameters
      13.3.  Error Codes
        13.3.1.  Session Termination Error Codes
        13.3.2.  REQUEST_ERROR Codes
@@ -1951,21 +1951,21 @@ Table of Contents
    parameter types are defined in Section 9.3.1.  Version-specific
    parameter types are defined in Section 9.2.1.
 
-9.2.1.  Version Specific Parameters
+9.2.1.  Message Parameters
 
-   Each version-specific parameter definition indicates the message
-   types in which it can appear.  If it appears in some other type of
-   message, it MUST be ignored.  Note that since Setup parameters use a
-   separate namespace, it is impossible for these parameters to appear
-   in Setup messages.
+   Each message parameter definition indicates the message types in
+   which it can appear.  If it appears in some other type of message, it
+   MUST be ignored.  Note that since Setup parameters use a separate
+   namespace, it is impossible for these parameters to appear in Setup
+   messages.
 
 9.2.1.1.  AUTHORIZATION TOKEN Parameter
 
    The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in
-   a CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
-   SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH
-   message.  This parameter conveys information to authorize the sender
-   to perform the operation carrying the parameter.
+   a PUBLISH, SUBSCRIBE, REQUEST_UPDATE, SUBSCRIBE_NAMESPACE,
+   PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message.  This parameter
+   conveys information to authorize the sender to perform the operation
+   carrying the parameter.
 
    The parameter value is a Token structure containing an optional
    Session-specific Alias.  The Alias allows the sender to reference a
@@ -2086,9 +2086,12 @@ Table of Contents
    It is the duration in milliseconds the relay SHOULD continue to
    attempt forwarding Objects after they have been received.  The start
    time for the timeout is based on when the Object Headers are
-   received, and does not depend upon the forwarding preference.  There
-   is no explicit signal that an Object was not sent because the
-   delivery timeout was exceeded.
+   received, and does not depend upon the forwarding preference.
+   Objects with forwarding preference 'Datagram' are not retransmitted
+   when lost, so the Delivery Timeout only limits the amount of time
+   they can be queued before being sent.  There is no explicit signal
+   that an Object was not sent because the delivery timeout was
+   exceeded.
 
    DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.
    If an endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close
@@ -2399,7 +2402,9 @@ Table of Contents
 
 9.3.1.5.  AUTHORIZATION TOKEN
 
-   See Section 9.2.1.1.  The endpoint can specify one or more tokens in
+   The AUTHORIZATION TOKEN setup parameter (Parameter Type 0x03)) is
+   funcionally equivalient to the AUTHORIZATION TOKEN message parameter,
+   see Section 9.2.1.1.  The endpoint can specify one or more tokens in
    CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT
    session establishment.
 
@@ -2432,7 +2437,14 @@ Table of Contents
 
    Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests
    to the peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-   SUBSCRIBE_NAMESPACE and TRACK_SATUS.
+   SUBSCRIBE_NAMESPACE and TRACK_STATUS.
+
+   Sending a GOAWAY does not prevent the sender from initiating new
+   requests, though the sender SHOULD avoid initiating requests unless
+   required by migration (see (Section 8.4.1 and Section 8.5.1).  An
+   endpoint that receives a GOAWAY MAY reject new requests with an
+   appropriate error code (e.g., SUBSCRIBE_ERROR with error code
+   GOING_AWAY).
 
    The endpoint MUST close the session with a PROTOCOL_VIOLATION
    (Section 3.4) if it receives multiple GOAWAY messages.
@@ -4392,7 +4404,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                  Table 9
 
-13.2.  Version Specific Parameters
+13.2.  Message Parameters
 
         +================+=====================+==================+
         | Parameter Type | Parameter Name      | Specification    |
