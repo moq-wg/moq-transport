@@ -536,18 +536,24 @@ Track Namespace Field {
 * Track Namespace Field Value: A sequence of bytes that forms a Track Namespace
   Field.
 
+Each Track Namespace Field Value MUST contain at least one byte. If an endpoint
+receives a Track Namespace Field with a Track Namespace Field Length of 0, it
+MUST close the session with a `PROTOCOL_VIOLATION`.
+
 The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
 consisting of 0 or greater than 32 Track Namespace Fields, it MUST close the
 session with a `PROTOCOL_VIOLATION`.
 
-Track Name is a sequence of bytes that identifies an individual track within the
-namespace.
+Track Name is a sequence of bytes, possibly empty, that identifies an individual
+track within the namespace.
 
-The maximum total length of a Full Track Name is 4,096 bytes. The length of a Full
-Track Name is computed as the sum of the Track Namespace Field Length fields
-and the Track Name Length field.  If an endpoint receives a Full Track Name
-exceeding this length, it MUST close the session with a `PROTOCOL_VIOLATION`.
+The maximum total length of a Full Track Name is 4,096 bytes. The length of a
+Full Track Name is computed as the sum of the Track Namespace Field Length
+fields and the Track Name Length field. The length of a Track Namespace is the
+sum of the Track Namespace Field Length fields. If an endpoint receives a Track
+Namespace or a Full Track Name exceeding 4,096 bytes, it MUST close the session
+with a `PROTOCOL_VIOLATION`.
 
 In this specification, both the Track Namespace Fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -1340,6 +1346,11 @@ to different subscriptions or FETCH responses, but have the same subscriber and
 publisher priority.  The ordering in those cases is implementation-defined,
 though the expectation is that all subscriptions will be able to send some data.
 
+A publisher might not utilize the entire available congestion window,
+session flow control, or all available streams for lower
+priority Objects if it expects higher priority Objects will be available to send
+in the near future or it wants to reserve some bandwidth for control messages.
+
 Given the critical nature of control messages and their relatively
 small size, the control stream SHOULD be prioritized higher than all
 subscribed Objects.
@@ -1480,7 +1491,7 @@ all possible Objects matching the filter have been delivered to the subscriber.
 Since tracking this can be prohibitively expensive, Relays are not required or
 expected to do so.
 
-### Graceful Subscriber Relay Switchover
+### Graceful Subscriber Relay Switchover {#graceful-subscriber-switchover}
 
 This section describes behavior a subscriber MAY implement
 to allow for a better user experience when a relay sends a GOAWAY.
@@ -1568,7 +1579,7 @@ the Relay MUST NOT propagate that message or Object to another Session, because
 it would enable a single Session error to force an unrelated Session, which
 might be handling other subscriptions, to be closed.
 
-### Graceful Publisher Network Switchover
+### Graceful Publisher Network Switchover {#graceful-publisher-switchover}
 
 This section describes a behavior that a publisher MAY
 choose to implement to allow for a better user experience when
@@ -1741,11 +1752,11 @@ versions. All other messages use a version-specific namespace.
 For example, the integer '1' can refer to different parameters for Setup
 messages and for all other message types. SETUP message parameter types
 are defined in {{setup-params}}. Version-specific parameter types are defined
-in {{version-specific-params}}.
+in {{message-params}}.
 
-### Version Specific Parameters {#version-specific-params}
+### Message Parameters {#message-params}
 
-Each version-specific parameter definition indicates the message types in which
+Each message parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it MUST be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.
@@ -1753,10 +1764,9 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION TOKEN Parameter {#authorization-token}
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
-CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
-SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
-parameter conveys information to authorize the sender to perform the operation
-carrying the parameter.
+PUBLISH, SUBSCRIBE, REQUEST_UPDATE, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
+TRACK_STATUS or FETCH message. This parameter conveys information to authorize
+the sender to perform the operation carrying the parameter.
 
 The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
@@ -1896,7 +1906,9 @@ causing the publisher to exceed its resource limits, the publisher MAY terminate
 the subscription with error `TOO_FAR_BEHIND`.
 
 If an object in a subgroup exceeds the delivery timeout, the publisher MUST
-reset the underlying transport stream (see {{closing-subgroup-streams}}).
+reset the underlying transport stream (see {{closing-subgroup-streams}}) and
+SHOULD NOT attempt to open a new stream to deliver additional Objects in that
+Subgroup.
 
 When sent by a subscriber, this parameter is intended to be specific to a
 subscription, so it SHOULD NOT be forwarded upstream by a relay that intends
@@ -2161,9 +2173,10 @@ initiation.
 
 #### AUTHORIZATION TOKEN {#setup-auth-token}
 
-See {{authorization-token}}.  The endpoint can specify one or more tokens in
-CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT session
-establishment.
+The AUTHORIZATION TOKEN setup parameter (Parameter Type 0x03)) is funcionally
+equivalient to the AUTHORIZATION TOKEN message parameter, see {{authorization-token}}.
+The endpoint can specify one or more tokens in CLIENT_SETUP or SERVER_SETUP
+that the peer can use to authorize MOQT session establishment.
 
 If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
@@ -2193,7 +2206,13 @@ publisher MAY reject new requests after sending a GOAWAY.
 
 Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-SUBSCRIBE_NAMESPACE and TRACK_SATUS.
+SUBSCRIBE_NAMESPACE and TRACK_STATUS.
+
+Sending a GOAWAY does not prevent the sender from initiating new requests,
+though the sender SHOULD avoid initiating requests unless required by migration
+(see ({{graceful-subscriber-switchover}} and {{graceful-publisher-switchover}}).
+An endpoint that receives a GOAWAY MAY reject new requests with an appropriate
+error code (e.g., SUBSCRIBE_ERROR with error code GOING_AWAY).
 
 The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
 ({{session-termination}}) if it receives multiple GOAWAY messages.
@@ -2291,7 +2310,7 @@ REQUEST_OK Message {
 
 * Request ID: The Request ID to which this message is replying.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 ## REQUEST_ERROR {#message-request-error}
 
@@ -2408,7 +2427,7 @@ SUBSCRIBE Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -2450,7 +2469,7 @@ SUBSCRIBE_OK Message {
   uses the same Track Alias as a different track with an `Established` subscription,
   it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 * Track Extensions : A sequence of Extension Headers. See {{extension-headers}}.
 
@@ -2491,7 +2510,7 @@ REQUEST_UPDATE Message {
   specifies an invalid Existing Request ID, or if the parameters included
   in the REQUEST_UPDATE are invalid for the type of request being modified.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 ### Updating Subscriptions
 
@@ -2567,7 +2586,7 @@ PUBLISH Message {
   uses the same Track Alias as a different track with an `Established` subscription, it
   MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 * Track Extensions : A sequence of Extension Headers. See {{extension-headers}}.
 
@@ -2602,7 +2621,7 @@ PUBLISH_OK Message {
 * Request ID: The Request ID of the PUBLISH this message is replying to
   {{message-publish}}.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 TODO: A similar section to SUBSCRIBE about how the publisher handles a
 filter that is entirely behind Largest Object or is otherwise invalid.
@@ -2839,7 +2858,7 @@ FETCH Message {
 
 * Joining: Joining Fetch structure included when Fetch Type is 0x2 or 0x3.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a REQUEST_ERROR
 message.  The publisher creates a new unidirectional stream that is used to send the
@@ -2936,7 +2955,7 @@ FETCH_OK Message {
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 * Track Extensions : A sequence of Extension Headers. See {{extension-headers}}.
 
@@ -3007,7 +3026,7 @@ PUBLISH_NAMESPACE Message {
 * Track Namespace: Identifies a track's namespace as defined in
   {{track-name}}.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 ## NAMESPACE {#message-namespace}
 
@@ -3131,7 +3150,7 @@ SUBSCRIBE_NAMESPACE Message {
 * Subscribe Options: Allows subscribers to request PUBLISH (0x00),
   NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
@@ -3164,6 +3183,9 @@ from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
 set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 (see {{subscriptions}}).
 
+The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
+corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
+corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
 
 # Data Streams and Datagrams {#data-streams}
 
@@ -3633,6 +3655,9 @@ RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
 Subgroups in a Group at once.
 
+A publisher that receives a STOP_SENDING on a Subgroup stream SHOULD NOT attempt
+to open a new stream to deliver additional Objects in that Subgroup.
+
 The application SHOULD use a relevant error code in RESET_STREAM or
 RESET_STREAM_AT, as defined below:
 
@@ -4002,7 +4027,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x2  | USE_ALIAS  | {{authorization-token}}
 | 0x3  | USE_VALUE  | {{authorization-token}}
 
-## Version Specific Parameters
+## Message Parameters
 
 | Parameter Type | Parameter Name | Specification |
 |----------------|----------------|---------------|
