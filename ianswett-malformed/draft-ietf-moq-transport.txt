@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 10 July 2026                                      I. Swett, Ed.
+Expires: 12 July 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          6 January 2026
+                                                          8 January 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 July 2026.
+   This Internet-Draft will expire on 12 July 2026.
 
 Copyright Notice
 
@@ -714,7 +714,7 @@ Table of Contents
    6.  An Object is received with a different Forwarding Preference than
        previously observed.
 
-   Additionally, a FETCH responce is considered malformed if:
+   Additionally, a FETCH response is considered malformed if:
 
    1.  An Object is received in a FETCH response with the same Group ID
        as the previous Object, but whose Object ID is not strictly
