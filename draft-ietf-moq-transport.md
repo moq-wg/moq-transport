@@ -516,7 +516,7 @@ manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
 consisting of 0 or greater than 32 Track Namespace Fields, it MUST close the
 session with a `PROTOCOL_VIOLATION`.
 
-Track Name is a possibly empty sequence of bytes that identifies an individual
+Track Name is a sequence of bytes, possibly empty, that identifies an individual
 track within the namespace.
 
 The maximum total length of a Full Track Name is 4,096 bytes. The length of a
