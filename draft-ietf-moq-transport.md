@@ -2325,12 +2325,11 @@ as defined below and assigned in {{iana-request-error}}. Most codepoints have
 identical meanings for various request types, but some have request-specific
 meanings.
 
-If a request is retryable with the same parameters at a later time, the sender of
-REQUEST_ERROR includes a non-zero Retry Interval in the message. If it is
-sending more than one such message within a second or so across multiple
-sessions, it SHOULD apply randomization to each retry interval so that retries
-are spread out over time, minimizing the risk of synchronized retry storms.  A
-Retry Interval value of 1 indicates the request can be retried immediately.
+If a request is retryable with the same parameters at a later time, the sender
+of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
+the risk of synchronized retry storms, the sender can apply randomization to
+each retry interval so that retries are spread out over time.  A Retry Interval
+value of 1 indicates the request can be retried immediately.
 
 INTERNAL_ERROR:
 : An implementation specific or generic error occurred.
