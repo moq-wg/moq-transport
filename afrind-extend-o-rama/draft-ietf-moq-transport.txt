@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 23 June 2026                                      I. Swett, Ed.
+Expires: 13 July 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        20 December 2025
+                                                          9 January 2026
 
 
                        Media over QUIC Transport
@@ -57,11 +57,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 June 2026.
+   This Internet-Draft will expire on 13 July 2026.
 
 Copyright Notice
 
-   Copyright (c) 2025 IETF Trust and the persons identified as the
+   Copyright (c) 2026 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -87,6 +87,7 @@ Table of Contents
        1.4.1.  Location Structure
        1.4.2.  Key-Value-Pair Structure
        1.4.3.  Reason Phrase Structure
+     1.5.  Representing Namespace and Track Names
    2.  Object Data Model
      2.1.  Objects
      2.2.  Subgroups
@@ -139,7 +140,7 @@ Table of Contents
      9.1.  Request ID
      9.2.  Parameters
        9.2.1.  Parameter Scope
-       9.2.2.  Version Specific Parameters
+       9.2.2.  Message Parameters
      9.3.  CLIENT_SETUP and SERVER_SETUP
        9.3.1.  Setup Parameters
      9.4.  GOAWAY
@@ -194,7 +195,7 @@ Table of Contents
        12.3.2.  SUBSCRIBE_NAMESPACE with short prefixes
    13. IANA Considerations
      13.1.  Authorization Token Alias Type
-     13.2.  Version Specific Parameters
+     13.2.  Message Parameters
      13.3.  Error Codes
        13.3.1.  Session Termination Error Codes
        13.3.2.  REQUEST_ERROR Codes
@@ -453,6 +454,33 @@ Table of Contents
       would aid comprehension by any entity other than the one that
       created the text.
 
+1.5.  Representing Namespace and Track Names
+
+   There is often a need to render namespace tuples and track names for
+   purposes such as logging, representing track filenames, or use in
+   certain authorization verification schemes.  The namespace and track
+   name are binary, so they need to be converted to a safe form.
+
+   The following format is RECOMMENDED:
+
+   *  Each of the namespace tuples are rendered in order with a hyphen
+      (-) between them followed by the track name with a double hyphen
+      (--) between the last namespace and track name.
+
+   *  Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output as
+      is, while all other bytes are encoded as a period (.) symbol
+      followed by exactly two lower case hex digits.
+
+   The goal of this format is to have a format that is both filename and
+   URL safe.  It allows many common names to be rendered in an easily
+   human readable form while still supporting binary values.
+
+   Example:
+
+   example.2enet-team2-project_x--report
+     Namespace tuples: (example.net, team2, project_x)
+     Track name: report
+
 2.  Object Data Model
 
    MOQT has a hierarchical data model, comprised of tracks which contain
@@ -525,15 +553,17 @@ Table of Contents
    typically with a one-to-one mapping between Subgroups and streams.
 
    When an Object's forwarding preference (see Section 10.2.1) is
-   "Datagram", it is not sent in Subgroups and the description in the
-   remainder of this section does not apply.
+   "Datagram", it is not sent in Subgroups, does not belong to a
+   Subgroup in any way, and the description in the remainder of this
+   section does not apply.
 
    Streams offer in-order reliable delivery and the ability to cancel
    sending and retransmission of data.  Furthermore, many QUIC and
    WebTransport implementations offer the ability to control the
    relative scheduling priority of pending stream data.
 
-   Every object within a Group belongs to exactly one Subgroup.
+   Every Object within a Group belongs to exactly one Subgroup or
+   Datagram.
 
    When Objects are sent in a subscription (see Section 5.1), Objects
    from two subgroups MUST NOT be sent on the same stream, and Objects
@@ -634,20 +664,27 @@ Table of Contents
    *  Track Namespace Field Value: A sequence of bytes that forms a
       Track Namespace Field.
 
+   Each Track Namespace Field Value MUST contain at least one byte.  If
+   an endpoint receives a Track Namespace Field with a Track Namespace
+   Field Length of 0, it MUST close the session with a
+   PROTOCOL_VIOLATION.
+
    The structured nature of Track Namespace allows relays and
    applications to manipulate prefixes of a namespace.  If an endpoint
    receives a Track Namespace consisting of 0 or greater than 32 Track
    Namespace Fields, it MUST close the session with a
    PROTOCOL_VIOLATION.
 
-   Track Name is a sequence of bytes that identifies an individual track
-   within the namespace.
+   Track Name is a sequence of bytes, possibly empty, that identifies an
+   individual track within the namespace.
 
    The maximum total length of a Full Track Name is 4,096 bytes.  The
    length of a Full Track Name is computed as the sum of the Track
-   Namespace Field Length fields and the Track Name Length field.  If an
-   endpoint receives a Full Track Name exceeding this length, it MUST
-   close the session with a PROTOCOL_VIOLATION.
+   Namespace Field Length fields and the Track Name Length field.  The
+   length of a Track Namespace is the sum of the Track Namespace Field
+   Length fields.  If an endpoint receives a Track Namespace or a Full
+   Track Name exceeding 4,096 bytes, it MUST close the session with a
+   PROTOCOL_VIOLATION.
 
    In this specification, both the Track Namespace Fields and the Track
    Name are not constrained to a specific encoding.  They carry a
@@ -796,7 +833,7 @@ Table of Contents
    protocol when QUIC or WebTransport aren't available.
 
    MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-   ([WebTransport], Section 3.4) to perform version negotiation.
+   ([WebTransport], Section 3.3) to perform version negotiation.
 
    [[RFC editor: please remove the remainder of this section before
    publication.]]
@@ -1487,6 +1524,12 @@ Table of Contents
    cases is implementation-defined, though the expectation is that all
    subscriptions will be able to send some data.
 
+   A publisher might not utilize the entire available congestion window,
+   session flow control, or all available streams for lower priority
+   Objects if it expects higher priority Objects will be available to
+   send in the near future or it wants to reserve some bandwidth for
+   control messages.
+
    Given the critical nature of control messages and their relatively
    small size, the control stream SHOULD be prioritized higher than all
    subscribed Objects.
@@ -1697,8 +1740,11 @@ Table of Contents
    namespace=(foo) or namespace=(foo, bar).  It will not match a session
    with namespace=(foobar).
 
-   Relays MUST forward SUBSCRIBE messages to all matching publishers and
-   PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
+   Relays MUST send SUBSCRIBE messages to all matching publishers.  This
+   includes matching both Established subscriptions on the Full Track
+   Name and Namespace Prefix Matching against published Namespaces.
+   Relays MUST forward PUBLISH_NAMESPACE or PUBLISH messages to all
+   matching subscribers.
 
    When a Relay needs to make an upstream FETCH request, it determines
    the available publishers using the same matching rules as SUBSCRIBE.
@@ -1930,21 +1976,21 @@ Table of Contents
    the publisher that is forwarded to subscribers is sent as Track
    Extension header.
 
-9.2.2.  Version Specific Parameters
+9.2.2.  Message Parameters
 
-   Each version-specific parameter definition indicates the message
-   types in which it can appear.  If it appears in some other type of
-   message, it MUST be ignored.  Note that since Setup parameters use a
-   separate namespace, it is impossible for these parameters to appear
-   in Setup messages.
+   Each message parameter definition indicates the message types in
+   which it can appear.  If it appears in some other type of message, it
+   MUST be ignored.  Note that since Setup parameters use a separate
+   namespace, it is impossible for these parameters to appear in Setup
+   messages.
 
 9.2.2.1.  AUTHORIZATION TOKEN Parameter
 
    The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in
-   a CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
-   SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH
-   message.  This parameter conveys information to authorize the sender
-   to perform the operation carrying the parameter.
+   a PUBLISH, SUBSCRIBE, REQUEST_UPDATE, SUBSCRIBE_NAMESPACE,
+   PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message.  This parameter
+   conveys information to authorize the sender to perform the operation
+   carrying the parameter.
 
    The parameter value is a Token structure containing an optional
    Session-specific Alias.  The Alias allows the sender to reference a
@@ -2064,9 +2110,12 @@ Table of Contents
    It is the duration in milliseconds the relay SHOULD continue to
    attempt forwarding Objects after they have been received.  The start
    time for the timeout is based on when the Object Headers are
-   received, and does not depend upon the forwarding preference.  There
-   is no explicit signal that an Object was not sent because the
-   delivery timeout was exceeded.
+   received, and does not depend upon the forwarding preference.
+   Objects with forwarding preference 'Datagram' are not retransmitted
+   when lost, so the Delivery Timeout only limits the amount of time
+   they can be queued before being sent.  There is no explicit signal
+   that an Object was not sent because the delivery timeout was
+   exceeded.
 
    DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.
    If an endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close
@@ -2088,7 +2137,8 @@ Table of Contents
 
    If an object in a subgroup exceeds the delivery timeout, the
    publisher MUST reset the underlying transport stream (see
-   Section 10.4.3).
+   Section 10.4.3) and SHOULD NOT attempt to open a new stream to
+   deliver additional Objects in that Subgroup.
 
    This parameter is intended to be specific to a subscription, so it
    SHOULD NOT be forwarded upstream by a relay that intends to serve
@@ -2325,7 +2375,9 @@ Table of Contents
 
 9.3.1.5.  AUTHORIZATION TOKEN
 
-   See Section 9.2.2.1.  The endpoint can specify one or more tokens in
+   The AUTHORIZATION TOKEN setup parameter (Parameter Type 0x03)) is
+   funcionally equivalient to the AUTHORIZATION TOKEN message parameter,
+   see Section 9.2.2.1.  The endpoint can specify one or more tokens in
    CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT
    session establishment.
 
@@ -2358,7 +2410,14 @@ Table of Contents
 
    Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests
    to the peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-   SUBSCRIBE_NAMESPACE and TRACK_SATUS.
+   SUBSCRIBE_NAMESPACE and TRACK_STATUS.
+
+   Sending a GOAWAY does not prevent the sender from initiating new
+   requests, though the sender SHOULD avoid initiating requests unless
+   required by migration (see (Section 8.4.1 and Section 8.5.1).  An
+   endpoint that receives a GOAWAY MAY reject new requests with an
+   appropriate error code (e.g., SUBSCRIBE_ERROR with error code
+   GOING_AWAY).
 
    The endpoint MUST close the session with a PROTOCOL_VIOLATION
    (Section 3.4) if it receives multiple GOAWAY messages.
@@ -3362,6 +3421,11 @@ Table of Contents
    parameter to 1, or indicate that value by omitting the parameter (see
    Section 5.1).
 
+   The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix
+   before the corresponding NAMESPACE.  If a subscriber receives a
+   NAMESPACE_DONE before the corresponding NAMESPACE, it MUST close the
+   session with a 'PROTOCOL_VIOLATION'.
+
 10.  Data Streams and Datagrams
 
    A publisher sends Objects matching a subscription on Data Streams or
@@ -3388,8 +3452,8 @@ Table of Contents
    close the session.
 
    Every Object has a 'Object Forwarding Preference' and the Original
-   Publisher MAY mix different forwarding preference within a single
-   track.
+   Publisher MAY use both Subgroups and Datagrams within a Group or
+   Track.
 
 10.1.  Track Alias
 
@@ -3902,6 +3966,10 @@ Table of Contents
    impact on other Subgroups in the Group or the subscription, although
    applications might cancel all Subgroups in a Group at once.
 
+   A publisher that receives a STOP_SENDING on a Subgroup stream SHOULD
+   NOT attempt to open a new stream to deliver additional Objects in
+   that Subgroup.
+
    The application SHOULD use a relevant error code in RESET_STREAM or
    RESET_STREAM_AT, as defined below:
 
@@ -3954,7 +4022,7 @@ Table of Contents
                     Figure 31: MOQT Fetch Object Fields
 
    The Serialization Flags field defines the serialization of the
-   Object.  It is a variable-length integer.  When less than 64, the
+   Object.  It is a variable-length integer.  When less than 128, the
    bits represent flags described below.  The following additional
    values are defined:
 
@@ -3999,21 +4067,24 @@ Table of Contents
    Flags field.  Each flag is an independent boolean value, where a set
    bit (1) indicates the corresponding condition is true.
 
-    +=========+============================+==========================+
-    | Bitmask | Condition if set           | Condition if not set (0) |
-    +=========+============================+==========================+
-    | 0x04    | Object ID field is present | Object ID is the prior   |
-    |         |                            | Object's ID plus one     |
-    +---------+----------------------------+--------------------------+
-    | 0x08    | Group ID field is present  | Group ID is the prior    |
-    |         |                            | Object's Group ID        |
-    +---------+----------------------------+--------------------------+
-    | 0x10    | Priority field is present  | Priority is the prior    |
-    |         |                            | Object's Priority        |
-    +---------+----------------------------+--------------------------+
-    | 0x20    | Extensions field is        | Extensions field is not  |
-    |         | present                    | present                  |
-    +---------+----------------------------+--------------------------+
+   +=========+============================+============================+
+   | Bitmask | Condition if set           | Condition if not set (0)   |
+   +=========+============================+============================+
+   | 0x04    | Object ID field is         | Object ID is the prior     |
+   |         | present                    | Object's ID plus one       |
+   +---------+----------------------------+----------------------------+
+   | 0x08    | Group ID field is          | Group ID is the prior      |
+   |         | present                    | Object's Group ID          |
+   +---------+----------------------------+----------------------------+
+   | 0x10    | Priority field is          | Priority is the prior      |
+   |         | present                    | Object's Priority          |
+   +---------+----------------------------+----------------------------+
+   | 0x20    | Extensions field is        | Extensions field is not    |
+   |         | present                    | present                    |
+   +---------+----------------------------+----------------------------+
+   | 0x40    | Datagram: ignore the two   | Use the subgroup ID in the |
+   |         | least significant bits     | two least significant bits |
+   +---------+----------------------------+----------------------------+
 
                                   Table 8
 
@@ -4024,8 +4095,10 @@ Table of Contents
    The Extensions structure is defined in Section 10.2.1.2.
 
    When encoding an Object with a Forwarding Preference of "Datagram"
-   (see Section 10.2.1), the Publisher treats it as having a Subgroup ID
-   equal to the Object ID.
+   (see Section 10.2.1), the object has no Subgroup ID.  The publisher
+   MUST SET bit 0x40 to '1'.  When 0x40 is set, it SHOULD set the two
+   least significant bits to zero and the subscriber MUST ignore the
+   bits.
 
 10.4.4.2.  End of Range
 
@@ -4386,7 +4459,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                  Table 9
 
-13.2.  Version Specific Parameters
+13.2.  Message Parameters
 
         +================+=====================+==================+
         | Parameter Type | Parameter Name      | Specification    |
