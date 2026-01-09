@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 July 2026                                      I. Swett, Ed.
+Expires: 13 July 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          8 January 2026
+                                                          9 January 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 July 2026.
+   This Internet-Draft will expire on 13 July 2026.
 
 Copyright Notice
 
@@ -458,7 +458,7 @@ Table of Contents
    certain authorization verification schemes.  The namespace and track
    name are binary, so they need to be converted to a safe form.
 
-   The following format is RECOMMONDED:
+   The following format is RECOMMENDED:
 
    *  Each of the namespace tuples are rendered in order with a hyphen
       (-) between them followed by the track name with a double hyphen
