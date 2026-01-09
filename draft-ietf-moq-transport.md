@@ -1730,33 +1730,43 @@ sequence or exceeds the received MAX_REQUEST_ID, it MUST close the session with
 
 ## Parameters {#params}
 
-Some messages include a Parameters field that encodes optional message
-elements.
+Some messages include a Parameters field that encodes optional message elements.
+Parameters in the CLIENT_SETUP and SERVER_SETUP messages are called Setup
+Parameters.  Parameters in other control messages are Message Parameters.
+Receivers ignore unrecognized Setup Parameters.  All Message Parameters MUST be
+defined in the negotiated version of MOQT or negotiated via Setup Parameters.
+An endpoint that receives an unknown Message Parameter MUST close the session
+with `PROTOCOL_VIOLATION`.
 
 Senders MUST NOT repeat the same parameter type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers SHOULD check that there are no
-unauthorized duplicate parameters and close the session as a
+unexpected duplicate parameters and close the session as a
 `PROTOCOL_VIOLATION` if found.  Receivers MUST allow duplicates of unknown
-parameters.
-
-The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
-to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in {{track-scope}}.
-
-Receivers ignore unrecognized parameters.
+Setup Parameters.
 
 The number of parameters in a message is not specifically limited, but the
 total length of a control message is limited to 2^16-1 bytes.
 
 Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
 
-Setup message parameters use a namespace that is constant across all MOQT
+Setup Parameters use a namespace that is constant across all MOQT
 versions. All other messages use a version-specific namespace.
 For example, the integer '1' can refer to different parameters for Setup
 messages and for all other message types. SETUP message parameter types
 are defined in {{setup-params}}. Version-specific parameter types are defined
 in {{message-params}}.
+
+Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
+to alter the payload of the objects it sends, as that would violate the track
+uniqueness guarantee described in {{track-scope}}.
+
+### Parameter Scope
+
+Message Parameters are always intended for the peer endpoint only and are not
+forwarded by Relays, though relays can consider received parameter values when
+making a request.  Any Track metadata sent by the publisher that is forwarded to
+subscribers is sent as Track Extension header.
 
 ### Message Parameters {#message-params}
 
@@ -1880,8 +1890,7 @@ aliases.
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-REQUEST_OK (in response to TRACK_STATUS), PUBLISH, PUBLISH_OK,
-SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
+PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
 
 It is the duration in milliseconds the relay SHOULD
 continue to attempt forwarding Objects after they have been received.  The start
@@ -1895,10 +1904,9 @@ DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
 endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session
 with `PROTOCOL_VIOLATION`.
 
-If both the subscriber and publisher specify the parameter, they use the min of
-the two values for the subscription.  The publisher SHOULD always specify the
-value received from an upstream subscription when there is one, and nothing
-otherwise.
+If both the subscriber specifies this parameter and the Track has a
+DELIVERY_TIMEOUT extension, the endpoints use the min of
+the two values for the subscription.
 
 Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
@@ -1914,7 +1922,7 @@ reset the underlying transport stream (see {{closing-subgroup-streams}}) and
 SHOULD NOT attempt to open a new stream to deliver additional Objects in that
 Subgroup.
 
-When sent by a subscriber, this parameter is intended to be specific to a
+This parameter is intended to be specific to a
 subscription, so it SHOULD NOT be forwarded upstream by a relay that intends
 to serve multiple subscriptions for the same track.
 
@@ -1922,34 +1930,6 @@ Publishers SHOULD consider whether the entire Object can likely be
 successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
 any other relevant information.
-
-#### MAX CACHE DURATION Parameter {#max-cache-duration}
-
-The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a PUBLISH,
-SUBSCRIBE_OK, FETCH_OK or REQUEST_OK (in response to TRACK_STATUS) message.
-
-It is an integer expressing
-the number of milliseconds an Object can be served from a cache. If present, the
-relay MUST NOT start forwarding any individual Object received through this
-subscription or fetch after the specified number of milliseconds has elapsed
-since the beginning of the Object was received.  This means Objects earlier in a
-multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes unknown, and a relay that
-handles a downstream request that includes those Objects re-requests them.
-
-If the MAX_CACHE_DURATION parameter is not sent by the publisher, the Objects
-can be cached until implementation constraints cause them to be evicted.
-
-#### PUBLISHER PRIORITY Parameter {#publisher-priority}
-
-The PUBLISHER PRIORITY parameter (Parameter Type 0x0E) specifies the priority of
-a subscription relative to other subscriptions in the same session.  The value
-is from 0 to 255 and lower numbers get higher priority.  See
-{{priorities}}. Priorities above 255 are invalid. The PUBLISHER PRIORITY
-parameter is valid in SUBSCRIBE_OK and PUBLISH. Subgroups and Datagrams for this
-subscription inherit this priority, unless they specifically override it.
-
-The subscription has Publisher Priorty 128 if this parameter is omitted.
 
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
@@ -1968,8 +1948,7 @@ the value 128.
 #### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_OK, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
-PUBLISH_OK or FETCH.
+PUBLISH_OK, or FETCH.
 
 It
 is an enum indicating how to prioritize Objects from different groups within the
@@ -1979,9 +1958,7 @@ Descending (0x2). If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
 
 If omitted from SUBSCRIBE, the publisher's preference from
-SUBSCRIBE_OK or REQUEST_OK is used. If omitted in PUBLISH_OK, the
-publisher's preference from PUBLISH is used. If omitted from SUBSCRIBE_OK,
-REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
+the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
@@ -2038,27 +2015,14 @@ If the parameter is omitted from REQUEST_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
 message, the default value is 1.
 
-#### DYNAMIC GROUPS Parameter {#dynamic-groups}
-
-The DYNAMIC_GROUPS parameter (parameter type 0x30) MAY appear in PUBLISH or
-SUBSCRIBE_OK. The allowed values are 0 or 1. When the value is 1, it indicates
-that the subscriber can request the Original Publisher to start a new Group
-by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
-for this Track. If an endpoint receives a value larger than 1, it MUST close
-the session with `PROTOCOL_VIOLATION`.
-
-Relays MUST preserve the value of this parameter received from an upstream
-publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
-subscribers.
-
 #### NEW GROUP REQUEST Parameter {#new-group-request}
 
 The NEW_GROUP_REQUEST parameter (parameter type 0x32) MAY appear in PUBLISH_OK,
 SUBSCRIBE or REQUEST_UPDATE for a subscription.  It is an integer representing the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
-this parameter in PUBLISH_OK or REQUEST_UPDATE if the publisher did not
-include DYNAMIC_GROUPS=1 when establishing the subscription.  A subscriber MAY
+this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
+include the DYNAMIC_GROUPS Extension with value 1.  A subscriber MAY
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
 case.
@@ -3850,6 +3814,70 @@ SUBGROUP_HEADER {
 
 The following Extension Headers are defined in MOQT. Each Extension Header
 specifies whether it can be used with Tracks, Objects, or both.
+
+
+#### DELIVERY TIMEOUT {#delivery-timeout-ext}
+
+The DELIVERY TIMEOUT extension (Extension Header Type 0x02) is a Track
+Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
+{{delivery-timeout}}).
+
+DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
+endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session with
+`PROTOCOL_VIOLATION`.
+
+If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
+specified a timeout, Objects do not time out.
+
+#### MAX CACHE DURATION {#max-cache-duration}
+
+The MAX_CACHE_DURATION extension (Extension Header Type 0x04) is a Track Extension.
+
+It is an integer expressing
+the number of milliseconds an Object can be served from a cache. If present, the
+relay MUST NOT start forwarding any individual Object received through this
+subscription or fetch after the specified number of milliseconds has elapsed
+since the beginning of the Object was received.  This means Objects earlier in a
+multi-object stream will expire earlier than Objects later in the stream. Once
+Objects have expired from cache, their state becomes unknown, and a relay that
+handles a downstream request that includes those Objects re-requests them.
+
+If the MAX_CACHE_DURATION extension is not sent by the publisher, the Objects
+can be cached until implementation constraints cause them to be evicted.
+
+#### DEFAULT PUBLISHER PRIORITY {#publisher-priority}
+
+The DEFAULT PUBLISHER PRIORITY extension (Extension Header Type 0x0E) is a Track
+Extension that specifies the priority of
+a subscription relative to other subscriptions in the same session.  The value
+is from 0 to 255 and lower numbers get higher priority.  See
+{{priorities}}. Priorities above 255 are invalid. Subgroups and Datagrams for this
+subscription inherit this priority, unless they specifically override it.
+
+A subscription has Publisher Priorty 128 if this extension is omitted.
+
+#### DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
+
+The DEFAULT_PUBLISHER_GROUP_ORDER extension (Extension Header Type 0x22) is a
+Track Extension.
+
+It is an enum indicating the publisher's preference for prioritizing Objects
+from different groups within the
+same subscription (see {{priorities}}). The allowed values are Ascending (0x1) or
+Descending (0x2). If an endpoint receives a value outside this range, it MUST
+close the session with `PROTOCOL_VIOLATION`.
+
+If omitted, the publisher's preference is Ascending (0x1).
+
+#### DYNAMIC GROUPS {#dynamic-groups}
+
+The DYNAMIC_GROUPS Extension (Extension Header Type 0x30) is a Track Extension.
+The allowed values are 0 or 1. When the value is 1, it indicates
+that the subscriber can request the Original Publisher to start a new Group
+by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
+for this Track. If an endpoint receives a value larger than 1, it MUST close
+the session with `PROTOCOL_VIOLATION`.
+
 
 ## Immutable Extensions
 
