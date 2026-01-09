@@ -2329,6 +2329,7 @@ REQUEST_ERROR Message {
   Length (16),
   Request ID (i),
   Error Code (i),
+  Retry Interval (i),
   Error Reason (Reason Phrase),
 }
 ~~~
@@ -2338,33 +2339,43 @@ REQUEST_ERROR Message {
 
 * Error Code: Identifies an integer error code for request failure.
 
+* Retry Interval: The minimum time (in milliseconds) before the request SHOULD be
+  sent again, plus one. If the value is 0, the request SHOULD NOT be retried.
+
 * Error Reason: Provides a text description of the request error. See
  {{reason-phrase}}.
 
 The application SHOULD use a relevant error code in REQUEST_ERROR,
-as defined below. Most codepoints have identical meanings for various request
-types, but some have request-specific meanings.
+as defined below and assigned in {{iana-request-error}}. Most codepoints have
+identical meanings for various request types, but some have request-specific
+meanings.
 
-INTERNAL_ERROR (0x0):
+If a request is retryable with the same parameters at a later time, the sender
+of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
+the risk of synchronized retry storms, the sender can apply randomization to
+each retry interval so that retries are spread out over time.  A Retry Interval
+value of 1 indicates the request can be retried immediately.
+
+INTERNAL_ERROR:
 : An implementation specific or generic error occurred.
 
-UNAUTHORIZED (0x1):
+UNAUTHORIZED:
 : The subscriber is not authorized to perform the requested action on the given
-track.
+track.  This might be retryable if the authorization token is not yet valid.
 
-TIMEOUT (0x2):
+TIMEOUT:
 : The subscription could not be completed before an implementation specific
   timeout. For example, a relay could not establish an upstream subscription
   within the timeout.
 
-NOT_SUPPORTED (0x3):
+NOT_SUPPORTED:
 : The endpoint does not support the type of request.
 
-MALFORMED_AUTH_TOKEN (0x4):
+MALFORMED_AUTH_TOKEN:
 : Invalid Auth Token serialization during registration (see
   {{authorization-token}}).
 
-EXPIRED_AUTH_TOKEN (0x5):
+EXPIRED_AUTH_TOKEN:
 : Authorization token has expired ({{authorization-token}}).
 
 DUPLICATE_SUBSCRIPTION (0x19):
@@ -2374,30 +2385,30 @@ with the same role as an existing subscription.
 Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
 
-DOES_NOT_EXIST (0x10):
+DOES_NOT_EXIST:
 : The track or namespace is not available at the publisher.
 
-INVALID_RANGE (0x11):
+INVALID_RANGE:
 : In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
 cannot be satisfied.
 
-MALFORMED_TRACK (0x12):
-: In response to a FETCH, a relay publisher detected that the track was
+MALFORMED_TRACK:
+: In response to a FETCH, a relay publisher detected the track was
 malformed (see {{malformed-tracks}}).
 
 The following are errors for use by the subscriber. They can appear in response
 to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
 
-UNINTERESTED (0x20):
+UNINTERESTED:
 : The subscriber is not interested in the track or namespace.
 
 Errors below can only be used in response to one message type.
 
-PREFIX_OVERLAP (0x30):
+PREFIX_OVERLAP:
 : In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
 SUBSCRIBE_NAMESPACE in the same session.
 
-INVALID_JOINING_REQUEST_ID(0x32):
+INVALID_JOINING_REQUEST_ID:
 : In response to a Joining FETCH, the referenced Request ID is not an
 `Established` Subscription.
 
