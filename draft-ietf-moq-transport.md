@@ -339,7 +339,7 @@ purposes such as logging, representing track filenames, or use in
 certain authorization verification schemes. The namespace and track name
 are binary, so they need to be converted to a safe form.
 
-The following format is RECOMMONDED:
+The following format is RECOMMENDED:
 
 * Each of the namespace tuples are rendered in order with a hyphen (-)
   between them followed by the track name with a double hyphen (--)
