@@ -4374,6 +4374,7 @@ REQUEST_ERROR Message {
   Length (16),
   Request ID (i),
   Error Code (i),
+  Retry Interval (i),
   Error Reason (Reason Phrase),
 }
 </pre>
@@ -4390,97 +4391,107 @@ REQUEST_ERROR Message {
             <p id="section-9.8-3.2.1">Error Code: Identifies an integer error code for request failure.<a href="#section-9.8-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.8-3.3">
-            <p id="section-9.8-3.3.1">Error Reason: Provides a text description of the request error. See
- <a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.8-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.8-3.3.1">Retry Interval: The minimum time (in milliseconds) before the request <span class="bcp14">SHOULD</span> be
+sent again, plus one. If the value is 0, the request <span class="bcp14">SHOULD NOT</span> be retried.<a href="#section-9.8-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.8-3.4">
+            <p id="section-9.8-3.4.1">Error Reason: Provides a text description of the request error. See
+ <a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.8-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.8-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in REQUEST_ERROR,
-as defined below. Most codepoints have identical meanings for various request
-types, but some have request-specific meanings.<a href="#section-9.8-4" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-9.8-5">
-          <dt id="section-9.8-5.1">INTERNAL_ERROR (0x0):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-5.2">
-            <p id="section-9.8-5.2.1">An implementation specific or generic error occurred.<a href="#section-9.8-5.2.1" class="pilcrow">¶</a></p>
+as defined below and assigned in <a href="#iana-request-error" class="auto internal xref">Section 13.3.2</a>. Most codepoints have
+identical meanings for various request types, but some have request-specific
+meanings.<a href="#section-9.8-4" class="pilcrow">¶</a></p>
+<p id="section-9.8-5">If a request is retryable with the same parameters at a later time, the sender
+of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
+the risk of synchronized retry storms, the sender can apply randomization to
+each retry interval so that retries are spread out over time.  A Retry Interval
+value of 1 indicates the request can be retried immediately.<a href="#section-9.8-5" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.8-6">
+          <dt id="section-9.8-6.1">INTERNAL_ERROR:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-6.2">
+            <p id="section-9.8-6.2.1">An implementation specific or generic error occurred.<a href="#section-9.8-6.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-5.3">UNAUTHORIZED (0x1):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-5.4">
-            <p id="section-9.8-5.4.1">The subscriber is not authorized to perform the requested action on the given
-track.<a href="#section-9.8-5.4.1" class="pilcrow">¶</a></p>
+<dt id="section-9.8-6.3">UNAUTHORIZED:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-6.4">
+            <p id="section-9.8-6.4.1">The subscriber is not authorized to perform the requested action on the given
+track.  This might be retryable if the authorization token is not yet valid.<a href="#section-9.8-6.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-5.5">TIMEOUT (0x2):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-5.6">
-            <p id="section-9.8-5.6.1">The subscription could not be completed before an implementation specific
+<dt id="section-9.8-6.5">TIMEOUT:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-6.6">
+            <p id="section-9.8-6.6.1">The subscription could not be completed before an implementation specific
 timeout. For example, a relay could not establish an upstream subscription
-within the timeout.<a href="#section-9.8-5.6.1" class="pilcrow">¶</a></p>
+within the timeout.<a href="#section-9.8-6.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-5.7">NOT_SUPPORTED (0x3):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-5.8">
-            <p id="section-9.8-5.8.1">The endpoint does not support the type of request.<a href="#section-9.8-5.8.1" class="pilcrow">¶</a></p>
+<dt id="section-9.8-6.7">NOT_SUPPORTED:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-6.8">
+            <p id="section-9.8-6.8.1">The endpoint does not support the type of request.<a href="#section-9.8-6.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-5.9">MALFORMED_AUTH_TOKEN (0x4):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-5.10">
-            <p id="section-9.8-5.10.1">Invalid Auth Token serialization during registration (see
-<a href="#authorization-token" class="auto internal xref">Section 9.2.1.1</a>).<a href="#section-9.8-5.10.1" class="pilcrow">¶</a></p>
+<dt id="section-9.8-6.9">MALFORMED_AUTH_TOKEN:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-6.10">
+            <p id="section-9.8-6.10.1">Invalid Auth Token serialization during registration (see
+<a href="#authorization-token" class="auto internal xref">Section 9.2.1.1</a>).<a href="#section-9.8-6.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-5.11">EXPIRED_AUTH_TOKEN (0x5):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-5.12">
-            <p id="section-9.8-5.12.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 9.2.1.1</a>).<a href="#section-9.8-5.12.1" class="pilcrow">¶</a></p>
+<dt id="section-9.8-6.11">EXPIRED_AUTH_TOKEN:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-6.12">
+            <p id="section-9.8-6.12.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 9.2.1.1</a>).<a href="#section-9.8-6.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-5.13">DUPLICATE_SUBSCRIPTION (0x19):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-5.14">
-            <p id="section-9.8-5.14.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
-with the same role as an existing subscription.<a href="#section-9.8-5.14.1" class="pilcrow">¶</a></p>
+<dt id="section-9.8-6.13">DUPLICATE_SUBSCRIPTION (0x19):</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-6.14">
+            <p id="section-9.8-6.14.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
+with the same role as an existing subscription.<a href="#section-9.8-6.14.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-9.8-6">Below are errors for use by the publisher. They can appear in response to
-SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.<a href="#section-9.8-6" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-9.8-7">
-          <dt id="section-9.8-7.1">DOES_NOT_EXIST (0x10):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-7.2">
-            <p id="section-9.8-7.2.1">The track or namespace is not available at the publisher.<a href="#section-9.8-7.2.1" class="pilcrow">¶</a></p>
+<p id="section-9.8-7">Below are errors for use by the publisher. They can appear in response to
+SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.<a href="#section-9.8-7" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.8-8">
+          <dt id="section-9.8-8.1">DOES_NOT_EXIST:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-8.2">
+            <p id="section-9.8-8.2.1">The track or namespace is not available at the publisher.<a href="#section-9.8-8.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-7.3">INVALID_RANGE (0x11):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-7.4">
-            <p id="section-9.8-7.4.1">In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
-cannot be satisfied.<a href="#section-9.8-7.4.1" class="pilcrow">¶</a></p>
+<dt id="section-9.8-8.3">INVALID_RANGE:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-8.4">
+            <p id="section-9.8-8.4.1">In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
+cannot be satisfied.<a href="#section-9.8-8.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-7.5">MALFORMED_TRACK (0x12):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-7.6">
-            <p id="section-9.8-7.6.1">In response to a FETCH, a relay publisher detected that the track was
-malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-9.8-7.6.1" class="pilcrow">¶</a></p>
+<dt id="section-9.8-8.5">MALFORMED_TRACK:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-8.6">
+            <p id="section-9.8-8.6.1">In response to a FETCH, a relay publisher detected the track was
+malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-9.8-8.6.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-9.8-8">The following are errors for use by the subscriber. They can appear in response
-to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.<a href="#section-9.8-8" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-9.8-9">
-          <dt id="section-9.8-9.1">UNINTERESTED (0x20):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-9.2">
-            <p id="section-9.8-9.2.1">The subscriber is not interested in the track or namespace.<a href="#section-9.8-9.2.1" class="pilcrow">¶</a></p>
+<p id="section-9.8-9">The following are errors for use by the subscriber. They can appear in response
+to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.<a href="#section-9.8-9" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.8-10">
+          <dt id="section-9.8-10.1">UNINTERESTED:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-10.2">
+            <p id="section-9.8-10.2.1">The subscriber is not interested in the track or namespace.<a href="#section-9.8-10.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-9.8-10">Errors below can only be used in response to one message type.<a href="#section-9.8-10" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-9.8-11">
-          <dt id="section-9.8-11.1">PREFIX_OVERLAP (0x30):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-11.2">
-            <p id="section-9.8-11.2.1">In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
-SUBSCRIBE_NAMESPACE in the same session.<a href="#section-9.8-11.2.1" class="pilcrow">¶</a></p>
+<p id="section-9.8-11">Errors below can only be used in response to one message type.<a href="#section-9.8-11" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.8-12">
+          <dt id="section-9.8-12.1">PREFIX_OVERLAP:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-12.2">
+            <p id="section-9.8-12.2.1">In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
+SUBSCRIBE_NAMESPACE in the same session.<a href="#section-9.8-12.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-11.3">INVALID_JOINING_REQUEST_ID(0x32):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.8-11.4">
-            <p id="section-9.8-11.4.1">In response to a Joining FETCH, the referenced Request ID is not an
-<code>Established</code> Subscription.<a href="#section-9.8-11.4.1" class="pilcrow">¶</a></p>
+<dt id="section-9.8-12.3">INVALID_JOINING_REQUEST_ID:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-12.4">
+            <p id="section-9.8-12.4.1">In response to a Joining FETCH, the referenced Request ID is not an
+<code>Established</code> Subscription.<a href="#section-9.8-12.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
