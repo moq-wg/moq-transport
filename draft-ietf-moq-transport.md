@@ -3320,7 +3320,8 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x00-0x1F,0x20-21,0x24-25,0x28-29,0x2C-2D
+  Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
+             0x28..0x29 / 0x2C..0x2D,
   Track Alias (i),
   Group ID (i),
   [Object ID (i),]
@@ -3332,63 +3333,47 @@ OBJECT_DATAGRAM {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
-The Type value determines which fields are present in the OBJECT_DATAGRAM.
-There are 10 defined Type values for OBJECT_DATAGRAM.
+The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or the set of
+values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
+range are valid. The four low-order bits and bit 5 of the Type field determine
+which fields are present in the datagram:
 
-| Type | End Of Group | Extensions | Object ID | Priority Present | Status / Payload |
-| 0x00 | No | No | Yes | Yes | Payload |
-| 0x01 | No | Yes | Yes | Yes | Payload |
-| 0x02 | Yes | No | Yes | Yes | Payload |
-| 0x03 | Yes | Yes | Yes | Yes | Payload |
-| 0x04 | No | No | No | Yes | Payload |
-| 0x05 | No | Yes | No | Yes | Payload |
-| 0x06 | Yes | No | No | Yes | Payload |
-| 0x07 | Yes | Yes | No | Yes | Payload |
-| 0x20 | No | No | Yes | Yes | Status |
-| 0x21 | No | Yes | Yes | Yes | Status |
-| 0x24 | No | No | No | Yes | Status |
-| 0x25 | No | Yes | No | Yes | Status |
-| 0x08 | No | No | Yes | No | Payload |
-| 0x09 | No | Yes | Yes | No | Payload |
-| 0x0A | Yes | No | Yes | No | Payload |
-| 0x0B | Yes | Yes | Yes | No | Payload |
-| 0x0C | No | No | No | No | Payload |
-| 0x0D | No | Yes | No | No | Payload |
-| 0x0E | Yes | No | No | No | Payload |
-| 0x0F | Yes | Yes | No | No | Payload |
-| 0x28 | No | No | Yes | No | Status |
-| 0x29 | No | Yes | Yes | No | Status |
-| 0x2C | No | No | Yes | No | Status |
-| 0x2D | No | Yes | Yes | No | Status |
+* The **EXTENSIONS** bit (0x01) indicates when the Extensions field is
+  present. When set to 1, the Extensions structure defined in
+  {{object-extensions}} is present. When set to 0, the Extensions field is
+  absent.  If an endpoint receives a datagram with the EXTENSIONS bit set and an
+  Extension Headers Length of 0, it MUST close the session with a
+  `PROTOCOL_VIOLATION`.
 
-* End of Group: For Type values where End of Group is "Yes", indicates that no
-  Object with the same Group ID and an Object ID greater than `Object ID` exists.
+* The **END_OF_GROUP** bit (0x02) indicates End of Group. When set to 1, this
+  indicates that no Object with the same Group ID and an Object ID greater than
+  the Object ID in this datagram exists.
 
-* Extensions Present: If Extensions Present is "Yes" the Extensions structure
-  defined in {{object-extensions}} is included. If an endpoint receives a
-  datagram with Extensions Present as "Yes" and a Extension Headers Length of 0,
-  it MUST close the session with a `PROTOCOL_VIOLATION`.
+* The **ZERO_OBJECT_ID** bit (0x04) indicates when the Object ID field is
+  present.  When set to 1, the Object ID field is omitted and the Object ID is
+  0. When set to 0, the Object ID field is present.
 
-* Object ID Present: If Object ID Present is No, the Object ID field is omitted
-  and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
-  present and encodes the Object ID.
+* The **DEFAULT_PRIORITY** bit (0x08) indicates when the Priority field is
+  present. When set to 1, the Priority field is omitted and this Object inherits
+  the Publisher Priority specified in the control message that established the
+  subscription. When set to 0, the Priority field is present.
 
-* Priority Present: If Priority Present is No, Priority is not present and this
-  Object inherits the Publisher Priority specified in the control message that
-  established the subscription.  When Priority Present is Yes, the Priority field
-  is present.
+* The **STATUS** bit (0x20) indicates whether the datagram contains an Object
+  Status or Object Payload. When set to 1, the Object Status field is present
+  and there is no Object Payload. When set to 0, the Object Payload is present
+  and the Object Status field is omitted. There is no explicit length field for
+  the Object Payload; the entirety of the transport datagram following the
+  Object header fields contains the payload.
 
-* Payload and Status: The Object Status field and Object Payload are mutually
-  exclusive.
+The following Type values are invalid. If an endpoint receives a datagram with
+any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 
-  * For Type values 0x00 through 0x07, the Object Payload is present
-    and the Object Status field is omitted.
+* Type values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set: 0x22,
+  0x23, 0x26, 0x27, 0x2A, 0x2B, 0x2E, 0x2F. An object status message cannot signal
+  end of group.
 
-    There is no explicit length field for the Object Payload. The entirety of the
-    transport datagram following the Object header fields contains the payload.
-
-  * For Type values 0x20, 0x21, 0x24 and 0x25 the Object Status field is present
-    and there is no Object Payload.
+* Type values that do not match the form 0b00X0XXXX (i.e., Type values outside the
+  ranges 0x00..0x0F and 0x20..0x2F).
 
 
 ## Streams
@@ -3426,7 +3411,7 @@ flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i) = 0x10..0x1D,
+  Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D,
   Track Alias (i),
   Group ID (i),
   [Subgroup ID (i),]
@@ -3438,81 +3423,49 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-There are 24 defined Type values for SUBGROUP_HEADER:
+The Type field in the SUBGROUP_HEADER takes the form 0b00X1XXXX (or the set of
+values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to
+1. However, not all Type values in this range are valid. The four low-order bits
+and bit 5 determine which fields are present in the header:
 
-|------|---------------|-----------------|------------|--------------|---------------|
-| Type | Subgroup ID   | Subgroup ID     | Extensions | Contains End | Priority      |
-|      | Field Present | Value           | Present    | of Group     | Present       |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x10 | No            | 0               | No         | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x11 | No            | 0               | Yes        | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x12 | No            | First Object ID | No         | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x13 | No            | First Object ID | Yes        | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x14 | Yes           | N/A             | No         | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x15 | Yes           | N/A             | Yes        | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x18 | No            | 0               | No         | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x19 | No            | 0               | Yes        | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x1A | No            | First Object ID | No         | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x1B | No            | First Object ID | Yes        | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x1C | Yes           | N/A             | No         | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x1D | Yes           | N/A             | Yes        | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x30 | No            | 0               | No         | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x31 | No            | 0               | Yes        | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x32 | No            | First Object ID | No         | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x33 | No            | First Object ID | Yes        | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x34 | Yes           | N/A             | No         | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x35 | Yes           | N/A             | Yes        | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x38 | No            | 0               | No         | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x39 | No            | 0               | Yes        | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x3A | No            | First Object ID | No         | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x3B | No            | First Object ID | Yes        | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x3C | Yes           | N/A             | No         | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x3D | Yes           | N/A             | Yes        | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
+* The **EXTENSIONS** bit (0x01) indicates when the Extensions field is present
+  in all Objects in this Subgroup. When set to 1, the Extensions structure
+  defined in {{object-extensions}} is present in all Objects. When set to 0, the
+  Extensions field is never present. Objects with no extensions set Extension
+  Headers Length to 0.
 
-For Type values where Contains End of Group is Yes, the subscriber can infer the
-final Object in the Group when the data stream is terminated by a FIN.  In this
-case, Objects that have the same Group ID and an Object ID larger than the last
-Object received on the stream do not exist.  This does not apply when the data
-stream is terminated with a RESET_STREAM or RESET_STREAM_AT.
+* The **SUBGROUP_ID_MODE** field (bits 1-2, mask 0x06) is a two-bit field that
+  determines the encoding of the Subgroup ID. To extract this value, perform a
+  bitwise AND with mask 0x06 and right-shift by 1 bit:
 
-For Type values where Subgroup ID Field Present is No, there is no explicit
-Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
-0x10-11 and 0x18-19) or the Object ID of the first object transmitted in this
-subgroup (for Types 0x12-13 and 0x1A-1B).
+  * 0b00: The Subgroup ID field is absent and the Subgroup ID is 0.
+  * 0b01: The Subgroup ID field is absent and the Subgroup ID is the Object ID
+    of the first Object transmitted in this Subgroup.
+  * 0b10: The Subgroup ID field is present in the header.
+  * 0b11: Reserved for future use.
 
-For Type values where Extensions Present is No, the Extensions field is never
-present and all Objects have no extensions.  When Extensions Present is Yes, the
-Extensions structure defined in {{object-extensions}} is present in all Objects
-in this subgroup.  Objects with no extensions set Extension Headers Length to 0.
+* The **END_OF_GROUP** bit (0x08) indicates that this subgroup contains the
+  largest Object in the Group. When set to 1, the subscriber can infer the final
+  Object in the Group when the data stream is terminated by a FIN. In this case,
+  Objects that have the same Group ID and an Object ID larger than the last
+  Object received on the stream do not exist. This does not apply when the data
+  stream is terminated with a RESET_STREAM or RESET_STREAM_AT.
 
-For Type values where Priority Present is No, Priority is not present and this
-Subgroup inherits the Publisher Priority specified in the control message that
-established the subscription.  When Priority Present is Yes, the Priority field
-is present in the Subgroup header.
+* The **DEFAULT_PRIORITY** bit (0x20) indicates when the Priority field is
+  present. When set to 1, the Priority field is omitted and this Subgroup
+  inherits the Publisher Priority specified in the control message that
+  established the subscription. When set to 0, the Priority field is present in
+  the Subgroup header.
+
+The following Type values are invalid. If an endpoint receives a stream header
+with any of these Type values, it MUST close the session with a
+`PROTOCOL_VIOLATION`:
+
+* Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36, 0x37,
+  0x3E, 0x3F. This mode is reserved for future use.
+
+* Type values that do not match the form 0b00X1XXXX (i.e., Type values outside the
+  ranges 0x10..0x1F and 0x30..0x3F, or values where bit 4 is not set).
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
