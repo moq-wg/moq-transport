@@ -3333,39 +3333,39 @@ OBJECT_DATAGRAM {
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
 The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or the set of
-values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this range
-are valid. The four low-order bits and bit 5 of the Type field determine which fields
-are present in the datagram:
+values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
+range are valid. The four low-order bits and bit 5 of the Type field determine
+which fields are present in the datagram:
 
-* The **EXTENSIONS** bit (0x01) in the Type is set to indicate that there is an
-  Extensions field present. When set to 1, the Extensions structure defined in
-  {{object-extensions}} is present. When set to 0, the Extensions field is absent.
-  If an endpoint receives a datagram with the EXTENSIONS bit set and an Extension
-  Headers Length of 0, it MUST close the session with a `PROTOCOL_VIOLATION`.
+* The **EXTENSIONS** bit (0x01) indicates when the Extensions field is
+  present. When set to 1, the Extensions structure defined in
+  {{object-extensions}} is present. When set to 0, the Extensions field is
+  absent.  If an endpoint receives a datagram with the EXTENSIONS bit set and an
+  Extension Headers Length of 0, it MUST close the session with a
+  `PROTOCOL_VIOLATION`.
 
 * The **END_OF_GROUP** bit (0x02) indicates End of Group. When set to 1, this
-  indicates that no Object with the same Group ID and an Object ID greater than the
-  Object ID in this datagram exists.
+  indicates that no Object with the same Group ID and an Object ID greater than
+  the Object ID in this datagram exists.
 
-* The **NO_OBJECT_ID** bit (0x04) in the Type is set to indicate that the Object ID
-  field is absent and the Object ID is 0. When set to 1, the Object ID field is
-  omitted. When set to 0, the Object ID field is present.
+* The **ZERO_OBJECT_ID** bit (0x04) indicates when the Object ID field is
+  present.  When set to 1, the Object ID field is omitted and the Object ID is
+  0. When set to 0, the Object ID field is present.
 
-* The **NO_PRIORITY** bit (0x08) in the Type is set to indicate that the Priority
-  field is absent. When set to 1, the Priority field is omitted and this Object
-  inherits the Publisher Priority specified in the control message that established
-  the subscription. When set to 0, the Priority field is present.
+* The **DEFAULT_PRIORITY** bit (0x08) indicates when the Priority field is
+  present. When set to 1, the Priority field is omitted and this Object inherits
+  the Publisher Priority specified in the control message that established the
+  subscription. When set to 0, the Priority field is present.
 
-* The **STATUS** bit (0x20) determines whether the datagram contains an Object Status
-  or Object Payload. When set to 1, the Object Status field is present and there is
-  no Object Payload. When set to 0, the Object Payload is present and the Object
-  Status field is omitted. There is no explicit length field for the Object Payload;
-  the entirety of the transport datagram following the Object header fields contains
-  the payload.
+* The **STATUS** bit (0x20) indicates whether the datagram contains an Object
+  Status or Object Payload. When set to 1, the Object Status field is present
+  and there is no Object Payload. When set to 0, the Object Payload is present
+  and the Object Status field is omitted. There is no explicit length field for
+  the Object Payload; the entirety of the transport datagram following the
+  Object header fields contains the payload.
 
-The following Type values are invalid protocol violations. If an endpoint receives a
-datagram with any of these Type values, it MUST close the session with a
-`PROTOCOL_VIOLATION`:
+The following Type values are invalid. If an endpoint receives a datagram with
+any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 
 * Type values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set: 0x22,
   0x23, 0x26, 0x27, 0x2A, 0x2B, 0x2E, 0x2F. An object status message cannot signal
@@ -3423,19 +3423,19 @@ All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
 The Type field in the SUBGROUP_HEADER takes the form 0b00X1XXXX (or the set of
-values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to 1. However,
-not all Type values in this range are valid. The four low-order bits and bit 5
-determine which fields are present in the header:
+values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to
+1. However, not all Type values in this range are valid. The four low-order bits
+and bit 5 determine which fields are present in the header:
 
-* The **EXTENSIONS** bit (0x01) in the Type is set to indicate that an Extensions
-  field is present in all Objects in this Subgroup. When set to 1, the Extensions
-  structure defined in {{object-extensions}} is present in all Objects. When set to 0,
-  the Extensions field is never present. Objects with no extensions set Extension
+* The **EXTENSIONS** bit (0x01) indicates when the Extensions field is present
+  in all Objects in this Subgroup. When set to 1, the Extensions structure
+  defined in {{object-extensions}} is present in all Objects. When set to 0, the
+  Extensions field is never present. Objects with no extensions set Extension
   Headers Length to 0.
 
 * The **SUBGROUP_ID_MODE** field (bits 1-2, mask 0x06) is a two-bit field that
-  determines the encoding of the Subgroup ID. To extract this value, perform a bitwise
-  AND with mask 0x06 and right-shift by 1 bit:
+  determines the encoding of the Subgroup ID. To extract this value, perform a
+  bitwise AND with mask 0x06 and right-shift by 1 bit:
 
   * 0b00: The Subgroup ID field is absent and the Subgroup ID is 0.
   * 0b01: The Subgroup ID field is absent and the Subgroup ID is the Object ID
@@ -3443,21 +3443,21 @@ determine which fields are present in the header:
   * 0b10: The Subgroup ID field is present in the header.
   * 0b11: Reserved for future use.
 
-* The **END_OF_GROUP** bit (0x08) indicates that this stream can contain the End of
-  Group. When set to 1, the subscriber can infer the final Object in the Group when
-  the data stream is terminated by a FIN. In this case, Objects that have the same
-  Group ID and an Object ID larger than the last Object received on the stream do
-  not exist. This does not apply when the data stream is terminated with a
-  RESET_STREAM or RESET_STREAM_AT.
+* The **END_OF_GROUP** bit (0x08) indicates that this subgroup contains the
+  largest Object in the Group. When set to 1, the subscriber can infer the final
+  Object in the Group when the data stream is terminated by a FIN. In this case,
+  Objects that have the same Group ID and an Object ID larger than the last
+  Object received on the stream do not exist. This does not apply when the data
+  stream is terminated with a RESET_STREAM or RESET_STREAM_AT.
 
-* The **NO_PRIORITY** bit (0x20) in the Type is set to indicate that the Priority
-  field is absent. When set to 1, the Priority field is omitted and this Subgroup
-  inherits the Publisher Priority specified in the control message that established
-  the subscription. When set to 0, the Priority field is present in the Subgroup
-  header.
+* The **DEFAULT_PRIORITY** bit (0x20) indicates when the Priority field is
+  present. When set to 1, the Priority field is omitted and this Subgroup
+  inherits the Publisher Priority specified in the control message that
+  established the subscription. When set to 0, the Priority field is present in
+  the Subgroup header.
 
-The following Type values are invalid protocol violations. If an endpoint receives a
-stream header with any of these Type values, it MUST close the session with a
+The following Type values are invalid. If an endpoint receives a stream header
+with any of these Type values, it MUST close the session with a
 `PROTOCOL_VIOLATION`:
 
 * Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36, 0x37,
