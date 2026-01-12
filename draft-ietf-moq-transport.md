@@ -1497,8 +1497,9 @@ expected to do so.
 
 ### Graceful Subscriber Relay Switchover {#graceful-subscriber-switchover}
 
-This section describes behavior a subscriber MAY implement
-to allow for a better user experience when a relay sends a GOAWAY.
+This section describes a behavior that a Subscriber MAY implement to improve
+user experience when a relay sends a GOAWAY or the Subscriber switches between
+networks, such as WiFi to Cellular, and QUIC Connection Migration is not possible.
 
 When a subscriber receives the GOAWAY message, it starts the process
 of connecting to a new relay and sending the SUBSCRIBE requests for
@@ -1574,44 +1575,31 @@ When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it MUST
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
 matching subscription.  When it receives an authorized PUBLISH message for a
-Track that has `Established` downstream subscriptions, it MUST respond with PUBLISH_OK.  If at least
-one downstream subscriber for the Track has Forward State=1, the Relay MUST use
-Forward State=1 in the reply.
+Track that has `Established` downstream subscriptions, it MUST respond with
+PUBLISH_OK.  If at least one downstream subscriber for the Track has
+Forward State=1, the Relay MUST use Forward State=1 in the reply.
 
 If a Session is closed due to an unknown or invalid control message or Object,
 the Relay MUST NOT propagate that message or Object to another Session, because
 it would enable a single Session error to force an unrelated Session, which
 might be handling other subscriptions, to be closed.
 
-### Graceful Publisher Network Switchover {#graceful-publisher-switchover}
+### Graceful Publisher Relay Switchover {#graceful-publisher-switchover}
 
-This section describes a behavior that a publisher MAY
-choose to implement to allow for a better user experience when
-switching between networks, such as WiFi to Cellular or vice versa.
+This section describes a behavior that a publisher MAY implement to improve
+user experience when a relay sends a GOAWAY or the publisher switches between
+networks, such as WiFi to Cellular, and QUIC Connection Migration is not possible.
 
-If the original publisher detects it is likely to need to switch networks, for
-example because the WiFi signal is getting weaker, and it does not have QUIC
-connection migration available, it establishes a new session over the new
-interface and sends PUBLISH_NAMESPACE and/or PUBLISH messages. The relay will
-establish subscriptions and the publisher publishes Objects on both sessions.
-Once the subscriptions have migrated over to the session on the new network, the
-publisher can stop publishing Objects on the old network. The relay will attempt
+A new Session is established, to a new URI if specified in a GOAWAY. The
+publisher sends PUBLISH_NAMESPACE and/or PUBLISH messages to begin publishing
+on the new Session, but it does not immediately stop publishing Objects on the
+old Session.
+
+Once the subscriptions have migrated over to the new session, the publisher
+can stop publishing Objects on the old session. The relay will attempt
 to deduplicate Objects received on both subscriptions. Ideally, the
 subscriptions downstream from the relay do not observe this change, and keep
 receiving the Objects on the same subscription.
-
-### Graceful Publisher Relay Switchover
-
-This section describes a behavior that a publisher MAY choose to implement
-to allow for a better user experience when a relay sends them a GOAWAY.
-
-When a publisher receives a GOAWAY, it starts the process of connecting to a new
-relay and sends PUBLISH_NAMESPACE and/or PUBLISH messages, but it does not
-immediately stop publishing Objects to the old Relay. The new Relay will
-establish subscriptions and the publisher can start sending new Objects to the
-new relay instead of the old Relay. Once Objects are going to the new Relay, the
-published namespaces and subscriptions to the old relay can be withdrawn or
-terminated.
 
 ## Relay Track Handling
 
