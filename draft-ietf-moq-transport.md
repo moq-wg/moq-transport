@@ -4133,6 +4133,50 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 
 Issue and pull request numbers are listed with a leading octothorp.
 
+## Since draft-ietf-moq-transport-15
+
+**Setup and Control Plane**
+
+* Delta encode Key-Value-Pairs for Parameters and Headers (#1315)
+* Use Request ID in PUBLISH_NAMESPACE_{DONE/CANCEL} (#1329)
+* Remove delivery related params from TRACK_STATUS for Subscribers (#1325)
+* PUBLISH does not imply PUBLISH_NAMESPACE (#1364)
+* Allow Start Location to decrease in SUBSCRIBE_UPDATE (#1323)
+* Change SUBSCRIBE_UPDATE to REQUEST_UPDATE and expand ability to update (#1332)
+* Put SUBSCRIBE_NAMESPACE on a stream, make Namespaces and PUBLISH independent
+  (#1344)
+* Require NAMESPACE before NAMESPACE_DONE (#1392)
+* Allow the '*' or the empty namespace in SUBSCRIBE_NAMESPACE (#1393)
+* Relays match SUBSCRIBE to both Tracks and Namespaces (#1397)
+* Clarify sending requests after sending GOAWAY (#1398)
+* Add Retry Interval to REQUEST_ERROR (#1339)
+* Add Extension Headers to PUBLISH, SUBSCRIBE_OK, and FETCH_OK (#1374)
+* Move track properties to extensions, scope parameters (#1390)
+* Add LARGEST_OBJECT parameter to TRACK_STATUS (#1367)
+* Duplicate subscription processing (#1341)
+* Address Track Name/Namespace edge cases (#1399)
+
+**Data Plane Wire Format and Handling**
+
+* Enable mixing datagrams with streams in one track (#1350)
+* Clarify datagrams and subgroups (#1382)
+* Redo the way we deal with missing Objects and Object Status (#1342)
+* Allow unknown ranges in a FETCH response (#1331)
+* Do not reopen subgroups after delivery timeout or STOP_SENDING (#1396)
+* Clarify handling of unknown extensions (#1395)
+* Clarify Delivery Timeout for datagrams (#1406)
+* Disallow DELIVERY_TIMEOUT=0 (#1330)
+* Malformed track due to multiple priorities for one subgroup (#1317)
+
+**Notable Editorial Changes**
+
+* Subscribers can migrate networks too (#1410)
+* Rename Version Specific Parameters to Message Parameters (#1411)
+* Clarify valid joining fetch subscription states (#1363)
+* Formatting names for logs (#1355)
+* A Publisher might not use the congestion window (#1408)
+
+
 ## Since draft-ietf-moq-transport-14
 
 **Setup and Control Plane**
