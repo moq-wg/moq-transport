@@ -339,7 +339,7 @@ purposes such as logging, representing track filenames, or use in
 certain authorization verification schemes. The namespace and track name
 are binary, so they need to be converted to a safe form.
 
-The following format is RECOMMONDED:
+The following format is RECOMMENDED:
 
 * Each of the namespace tuples are rendered in order with a hyphen (-)
   between them followed by the track name with a double hyphen (--)
@@ -430,15 +430,15 @@ using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.
 
 When an Object's forwarding preference (see {{object-properties}}) is
-"Datagram", it is not sent in Subgroups and the
-description in the remainder of this section does not apply.
+"Datagram", it is not sent in Subgroups, does not belong to a Subgroup in any
+way, and the description in the remainder of this section does not apply.
 
 Streams offer in-order reliable delivery and the ability to cancel sending and
 retransmission of data. Furthermore, many QUIC and WebTransport implementations
 offer the ability to control the relative scheduling priority of pending stream
 data.
 
-Every object within a Group belongs to exactly one Subgroup.
+Every Object within a Group belongs to exactly one Subgroup or Datagram.
 
 When Objects are sent in a subscription (see {{subscriptions}}),  Objects
 from two subgroups MUST NOT be sent on the same stream, and Objects from the
@@ -536,18 +536,24 @@ Track Namespace Field {
 * Track Namespace Field Value: A sequence of bytes that forms a Track Namespace
   Field.
 
+Each Track Namespace Field Value MUST contain at least one byte. If an endpoint
+receives a Track Namespace Field with a Track Namespace Field Length of 0, it
+MUST close the session with a `PROTOCOL_VIOLATION`.
+
 The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
 consisting of 0 or greater than 32 Track Namespace Fields, it MUST close the
 session with a `PROTOCOL_VIOLATION`.
 
-Track Name is a sequence of bytes that identifies an individual track within the
-namespace.
+Track Name is a sequence of bytes, possibly empty, that identifies an individual
+track within the namespace.
 
-The maximum total length of a Full Track Name is 4,096 bytes. The length of a Full
-Track Name is computed as the sum of the Track Namespace Field Length fields
-and the Track Name Length field.  If an endpoint receives a Full Track Name
-exceeding this length, it MUST close the session with a `PROTOCOL_VIOLATION`.
+The maximum total length of a Full Track Name is 4,096 bytes. The length of a
+Full Track Name is computed as the sum of the Track Namespace Field Length
+fields and the Track Name Length field. The length of a Track Namespace is the
+sum of the Track Namespace Field Length fields. If an endpoint receives a Track
+Namespace or a Full Track Name exceeding 4,096 bytes, it MUST close the session
+with a `PROTOCOL_VIOLATION`.
 
 In this specification, both the Track Namespace Fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -646,7 +652,11 @@ specifications define the type and value of the header, along with any rules
 concerning processing, modification, caching and forwarding.
 
 If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
-cached as part of the Track or Object and MUST be forwarded by relays.
+cached as part of the Track or Object and MUST be forwarded by relays.  If a
+Track or Object arrives with a different set of unknown extensions than
+previously cached, the most recent set SHOULD replace any cached values,
+removing any unknown values not present in the new set.  Relays MUST NOT attempt
+to merge sets of unknown extensions received in different messages.
 
 If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers MAY be modified, added, removed,
@@ -1340,6 +1350,11 @@ to different subscriptions or FETCH responses, but have the same subscriber and
 publisher priority.  The ordering in those cases is implementation-defined,
 though the expectation is that all subscriptions will be able to send some data.
 
+A publisher might not utilize the entire available congestion window,
+session flow control, or all available streams for lower
+priority Objects if it expects higher priority Objects will be available to send
+in the near future or it wants to reserve some bandwidth for control messages.
+
 Given the critical nature of control messages and their relatively
 small size, the control stream SHOULD be prioritized higher than all
 subscribed Objects.
@@ -1703,33 +1718,43 @@ sequence or exceeds the received MAX_REQUEST_ID, it MUST close the session with
 
 ## Parameters {#params}
 
-Some messages include a Parameters field that encodes optional message
-elements.
+Some messages include a Parameters field that encodes optional message elements.
+Parameters in the CLIENT_SETUP and SERVER_SETUP messages are called Setup
+Parameters.  Parameters in other control messages are Message Parameters.
+Receivers ignore unrecognized Setup Parameters.  All Message Parameters MUST be
+defined in the negotiated version of MOQT or negotiated via Setup Parameters.
+An endpoint that receives an unknown Message Parameter MUST close the session
+with `PROTOCOL_VIOLATION`.
 
 Senders MUST NOT repeat the same parameter type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers SHOULD check that there are no
-unauthorized duplicate parameters and close the session as a
+unexpected duplicate parameters and close the session as a
 `PROTOCOL_VIOLATION` if found.  Receivers MUST allow duplicates of unknown
-parameters.
-
-The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
-to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in {{track-scope}}.
-
-Receivers ignore unrecognized parameters.
+Setup Parameters.
 
 The number of parameters in a message is not specifically limited, but the
 total length of a control message is limited to 2^16-1 bytes.
 
 Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
 
-Setup message parameters use a namespace that is constant across all MOQT
+Setup Parameters use a namespace that is constant across all MOQT
 versions. All other messages use a version-specific namespace.
 For example, the integer '1' can refer to different parameters for Setup
 messages and for all other message types. SETUP message parameter types
 are defined in {{setup-params}}. Version-specific parameter types are defined
 in {{message-params}}.
+
+Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
+to alter the payload of the objects it sends, as that would violate the track
+uniqueness guarantee described in {{track-scope}}.
+
+### Parameter Scope
+
+Message Parameters are always intended for the peer endpoint only and are not
+forwarded by Relays, though relays can consider received parameter values when
+making a request.  Any Track metadata sent by the publisher that is forwarded to
+subscribers is sent as Track Extension header.
 
 ### Message Parameters {#message-params}
 
@@ -1853,8 +1878,7 @@ aliases.
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-REQUEST_OK (in response to TRACK_STATUS), PUBLISH, PUBLISH_OK,
-SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
+PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
 
 It is the duration in milliseconds the relay SHOULD
 continue to attempt forwarding Objects after they have been received.  The start
@@ -1868,10 +1892,9 @@ DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
 endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session
 with `PROTOCOL_VIOLATION`.
 
-If both the subscriber and publisher specify the parameter, they use the min of
-the two values for the subscription.  The publisher SHOULD always specify the
-value received from an upstream subscription when there is one, and nothing
-otherwise.
+If both the subscriber specifies this parameter and the Track has a
+DELIVERY_TIMEOUT extension, the endpoints use the min of
+the two values for the subscription.
 
 Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
@@ -1883,9 +1906,11 @@ causing the publisher to exceed its resource limits, the publisher MAY terminate
 the subscription with error `TOO_FAR_BEHIND`.
 
 If an object in a subgroup exceeds the delivery timeout, the publisher MUST
-reset the underlying transport stream (see {{closing-subgroup-streams}}).
+reset the underlying transport stream (see {{closing-subgroup-streams}}) and
+SHOULD NOT attempt to open a new stream to deliver additional Objects in that
+Subgroup.
 
-When sent by a subscriber, this parameter is intended to be specific to a
+This parameter is intended to be specific to a
 subscription, so it SHOULD NOT be forwarded upstream by a relay that intends
 to serve multiple subscriptions for the same track.
 
@@ -1893,34 +1918,6 @@ Publishers SHOULD consider whether the entire Object can likely be
 successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
 any other relevant information.
-
-#### MAX CACHE DURATION Parameter {#max-cache-duration}
-
-The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a PUBLISH,
-SUBSCRIBE_OK, FETCH_OK or REQUEST_OK (in response to TRACK_STATUS) message.
-
-It is an integer expressing
-the number of milliseconds an Object can be served from a cache. If present, the
-relay MUST NOT start forwarding any individual Object received through this
-subscription or fetch after the specified number of milliseconds has elapsed
-since the beginning of the Object was received.  This means Objects earlier in a
-multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes unknown, and a relay that
-handles a downstream request that includes those Objects re-requests them.
-
-If the MAX_CACHE_DURATION parameter is not sent by the publisher, the Objects
-can be cached until implementation constraints cause them to be evicted.
-
-#### PUBLISHER PRIORITY Parameter {#publisher-priority}
-
-The PUBLISHER PRIORITY parameter (Parameter Type 0x0E) specifies the priority of
-a subscription relative to other subscriptions in the same session.  The value
-is from 0 to 255 and lower numbers get higher priority.  See
-{{priorities}}. Priorities above 255 are invalid. The PUBLISHER PRIORITY
-parameter is valid in SUBSCRIBE_OK and PUBLISH. Subgroups and Datagrams for this
-subscription inherit this priority, unless they specifically override it.
-
-The subscription has Publisher Priorty 128 if this parameter is omitted.
 
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
@@ -1939,8 +1936,7 @@ the value 128.
 #### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_OK, REQUEST_OK (in response to TRACK_STATUS), PUBLISH,
-PUBLISH_OK or FETCH.
+PUBLISH_OK, or FETCH.
 
 It
 is an enum indicating how to prioritize Objects from different groups within the
@@ -1950,9 +1946,7 @@ Descending (0x2). If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
 
 If omitted from SUBSCRIBE, the publisher's preference from
-SUBSCRIBE_OK or REQUEST_OK is used. If omitted in PUBLISH_OK, the
-publisher's preference from PUBLISH is used. If omitted from SUBSCRIBE_OK,
-REQUEST_OK, PUBLISH or FETCH, the receiver uses Ascending (0x1).
+the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 
 #### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
@@ -2009,27 +2003,14 @@ If the parameter is omitted from REQUEST_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
 message, the default value is 1.
 
-#### DYNAMIC GROUPS Parameter {#dynamic-groups}
-
-The DYNAMIC_GROUPS parameter (parameter type 0x30) MAY appear in PUBLISH or
-SUBSCRIBE_OK. The allowed values are 0 or 1. When the value is 1, it indicates
-that the subscriber can request the Original Publisher to start a new Group
-by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
-for this Track. If an endpoint receives a value larger than 1, it MUST close
-the session with `PROTOCOL_VIOLATION`.
-
-Relays MUST preserve the value of this parameter received from an upstream
-publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
-subscribers.
-
 #### NEW GROUP REQUEST Parameter {#new-group-request}
 
 The NEW_GROUP_REQUEST parameter (parameter type 0x32) MAY appear in PUBLISH_OK,
 SUBSCRIBE or REQUEST_UPDATE for a subscription.  It is an integer representing the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
-this parameter in PUBLISH_OK or REQUEST_UPDATE if the publisher did not
-include DYNAMIC_GROUPS=1 when establishing the subscription.  A subscriber MAY
+this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
+include the DYNAMIC_GROUPS Extension with value 1.  A subscriber MAY
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
 case.
@@ -2300,6 +2281,7 @@ REQUEST_ERROR Message {
   Length (16),
   Request ID (i),
   Error Code (i),
+  Retry Interval (i),
   Error Reason (Reason Phrase),
 }
 ~~~
@@ -2309,33 +2291,43 @@ REQUEST_ERROR Message {
 
 * Error Code: Identifies an integer error code for request failure.
 
+* Retry Interval: The minimum time (in milliseconds) before the request SHOULD be
+  sent again, plus one. If the value is 0, the request SHOULD NOT be retried.
+
 * Error Reason: Provides a text description of the request error. See
  {{reason-phrase}}.
 
 The application SHOULD use a relevant error code in REQUEST_ERROR,
-as defined below. Most codepoints have identical meanings for various request
-types, but some have request-specific meanings.
+as defined below and assigned in {{iana-request-error}}. Most codepoints have
+identical meanings for various request types, but some have request-specific
+meanings.
 
-INTERNAL_ERROR (0x0):
+If a request is retryable with the same parameters at a later time, the sender
+of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
+the risk of synchronized retry storms, the sender can apply randomization to
+each retry interval so that retries are spread out over time.  A Retry Interval
+value of 1 indicates the request can be retried immediately.
+
+INTERNAL_ERROR:
 : An implementation specific or generic error occurred.
 
-UNAUTHORIZED (0x1):
+UNAUTHORIZED:
 : The subscriber is not authorized to perform the requested action on the given
-track.
+track.  This might be retryable if the authorization token is not yet valid.
 
-TIMEOUT (0x2):
+TIMEOUT:
 : The subscription could not be completed before an implementation specific
   timeout. For example, a relay could not establish an upstream subscription
   within the timeout.
 
-NOT_SUPPORTED (0x3):
+NOT_SUPPORTED:
 : The endpoint does not support the type of request.
 
-MALFORMED_AUTH_TOKEN (0x4):
+MALFORMED_AUTH_TOKEN:
 : Invalid Auth Token serialization during registration (see
   {{authorization-token}}).
 
-EXPIRED_AUTH_TOKEN (0x5):
+EXPIRED_AUTH_TOKEN:
 : Authorization token has expired ({{authorization-token}}).
 
 DUPLICATE_SUBSCRIPTION (0x19):
@@ -2345,30 +2337,30 @@ with the same role as an existing subscription.
 Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
 
-DOES_NOT_EXIST (0x10):
+DOES_NOT_EXIST:
 : The track or namespace is not available at the publisher.
 
-INVALID_RANGE (0x11):
+INVALID_RANGE:
 : In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
 cannot be satisfied.
 
-MALFORMED_TRACK (0x12):
-: In response to a FETCH, a relay publisher detected that the track was
+MALFORMED_TRACK:
+: In response to a FETCH, a relay publisher detected the track was
 malformed (see {{malformed-tracks}}).
 
 The following are errors for use by the subscriber. They can appear in response
 to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
 
-UNINTERESTED (0x20):
+UNINTERESTED:
 : The subscriber is not interested in the track or namespace.
 
 Errors below can only be used in response to one message type.
 
-PREFIX_OVERLAP (0x30):
+PREFIX_OVERLAP:
 : In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
 SUBSCRIBE_NAMESPACE in the same session.
 
-INVALID_JOINING_REQUEST_ID(0x32):
+INVALID_JOINING_REQUEST_ID:
 : In response to a Joining FETCH, the referenced Request ID is not an
 `Established` Subscription.
 
@@ -3158,6 +3150,9 @@ from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
 set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 (see {{subscriptions}}).
 
+The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
+corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
+corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
 
 # Data Streams and Datagrams {#data-streams}
 
@@ -3182,7 +3177,7 @@ An endpoint that receives an unknown stream or datagram type MUST close the
 session.
 
 Every Object has a 'Object Forwarding Preference' and the Original Publisher
-MAY mix different forwarding preference within a single track.
+MAY use both Subgroups and Datagrams within a Group or Track.
 
 ## Track Alias
 
@@ -3313,7 +3308,8 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x00-0x1F,0x20-21,0x24-25,0x28-29,0x2C-2D
+  Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
+             0x28..0x29 / 0x2C..0x2D,
   Track Alias (i),
   Group ID (i),
   [Object ID (i),]
@@ -3325,63 +3321,47 @@ OBJECT_DATAGRAM {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
-The Type value determines which fields are present in the OBJECT_DATAGRAM.
-There are 10 defined Type values for OBJECT_DATAGRAM.
+The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or the set of
+values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
+range are valid. The four low-order bits and bit 5 of the Type field determine
+which fields are present in the datagram:
 
-| Type | End Of Group | Extensions | Object ID | Priority Present | Status / Payload |
-| 0x00 | No | No | Yes | Yes | Payload |
-| 0x01 | No | Yes | Yes | Yes | Payload |
-| 0x02 | Yes | No | Yes | Yes | Payload |
-| 0x03 | Yes | Yes | Yes | Yes | Payload |
-| 0x04 | No | No | No | Yes | Payload |
-| 0x05 | No | Yes | No | Yes | Payload |
-| 0x06 | Yes | No | No | Yes | Payload |
-| 0x07 | Yes | Yes | No | Yes | Payload |
-| 0x20 | No | No | Yes | Yes | Status |
-| 0x21 | No | Yes | Yes | Yes | Status |
-| 0x24 | No | No | No | Yes | Status |
-| 0x25 | No | Yes | No | Yes | Status |
-| 0x08 | No | No | Yes | No | Payload |
-| 0x09 | No | Yes | Yes | No | Payload |
-| 0x0A | Yes | No | Yes | No | Payload |
-| 0x0B | Yes | Yes | Yes | No | Payload |
-| 0x0C | No | No | No | No | Payload |
-| 0x0D | No | Yes | No | No | Payload |
-| 0x0E | Yes | No | No | No | Payload |
-| 0x0F | Yes | Yes | No | No | Payload |
-| 0x28 | No | No | Yes | No | Status |
-| 0x29 | No | Yes | Yes | No | Status |
-| 0x2C | No | No | Yes | No | Status |
-| 0x2D | No | Yes | Yes | No | Status |
+* The **EXTENSIONS** bit (0x01) indicates when the Extensions field is
+  present. When set to 1, the Extensions structure defined in
+  {{object-extensions}} is present. When set to 0, the Extensions field is
+  absent.  If an endpoint receives a datagram with the EXTENSIONS bit set and an
+  Extension Headers Length of 0, it MUST close the session with a
+  `PROTOCOL_VIOLATION`.
 
-* End of Group: For Type values where End of Group is "Yes", indicates that no
-  Object with the same Group ID and an Object ID greater than `Object ID` exists.
+* The **END_OF_GROUP** bit (0x02) indicates End of Group. When set to 1, this
+  indicates that no Object with the same Group ID and an Object ID greater than
+  the Object ID in this datagram exists.
 
-* Extensions Present: If Extensions Present is "Yes" the Extensions structure
-  defined in {{object-extensions}} is included. If an endpoint receives a
-  datagram with Extensions Present as "Yes" and a Extension Headers Length of 0,
-  it MUST close the session with a `PROTOCOL_VIOLATION`.
+* The **ZERO_OBJECT_ID** bit (0x04) indicates when the Object ID field is
+  present.  When set to 1, the Object ID field is omitted and the Object ID is
+  0. When set to 0, the Object ID field is present.
 
-* Object ID Present: If Object ID Present is No, the Object ID field is omitted
-  and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
-  present and encodes the Object ID.
+* The **DEFAULT_PRIORITY** bit (0x08) indicates when the Priority field is
+  present. When set to 1, the Priority field is omitted and this Object inherits
+  the Publisher Priority specified in the control message that established the
+  subscription. When set to 0, the Priority field is present.
 
-* Priority Present: If Priority Present is No, Priority is not present and this
-  Object inherits the Publisher Priority specified in the control message that
-  established the subscription.  When Priority Present is Yes, the Priority field
-  is present.
+* The **STATUS** bit (0x20) indicates whether the datagram contains an Object
+  Status or Object Payload. When set to 1, the Object Status field is present
+  and there is no Object Payload. When set to 0, the Object Payload is present
+  and the Object Status field is omitted. There is no explicit length field for
+  the Object Payload; the entirety of the transport datagram following the
+  Object header fields contains the payload.
 
-* Payload and Status: The Object Status field and Object Payload are mutually
-  exclusive.
+The following Type values are invalid. If an endpoint receives a datagram with
+any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 
-  * For Type values 0x00 through 0x07, the Object Payload is present
-    and the Object Status field is omitted.
+* Type values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set: 0x22,
+  0x23, 0x26, 0x27, 0x2A, 0x2B, 0x2E, 0x2F. An object status message cannot signal
+  end of group.
 
-    There is no explicit length field for the Object Payload. The entirety of the
-    transport datagram following the Object header fields contains the payload.
-
-  * For Type values 0x20, 0x21, 0x24 and 0x25 the Object Status field is present
-    and there is no Object Payload.
+* Type values that do not match the form 0b00X0XXXX (i.e., Type values outside the
+  ranges 0x00..0x0F and 0x20..0x2F).
 
 
 ## Streams
@@ -3419,7 +3399,7 @@ flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i) = 0x10..0x1D,
+  Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D,
   Track Alias (i),
   Group ID (i),
   [Subgroup ID (i),]
@@ -3431,81 +3411,49 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-There are 24 defined Type values for SUBGROUP_HEADER:
+The Type field in the SUBGROUP_HEADER takes the form 0b00X1XXXX (or the set of
+values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to
+1. However, not all Type values in this range are valid. The four low-order bits
+and bit 5 determine which fields are present in the header:
 
-|------|---------------|-----------------|------------|--------------|---------------|
-| Type | Subgroup ID   | Subgroup ID     | Extensions | Contains End | Priority      |
-|      | Field Present | Value           | Present    | of Group     | Present       |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x10 | No            | 0               | No         | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x11 | No            | 0               | Yes        | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x12 | No            | First Object ID | No         | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x13 | No            | First Object ID | Yes        | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x14 | Yes           | N/A             | No         | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x15 | Yes           | N/A             | Yes        | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x18 | No            | 0               | No         | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x19 | No            | 0               | Yes        | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x1A | No            | First Object ID | No         | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x1B | No            | First Object ID | Yes        | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x1C | Yes           | N/A             | No         | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x1D | Yes           | N/A             | Yes        | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x30 | No            | 0               | No         | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x31 | No            | 0               | Yes        | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x32 | No            | First Object ID | No         | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x33 | No            | First Object ID | Yes        | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x34 | Yes           | N/A             | No         | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x35 | Yes           | N/A             | Yes        | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x38 | No            | 0               | No         | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x39 | No            | 0               | Yes        | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x3A | No            | First Object ID | No         | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x3B | No            | First Object ID | Yes        | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x3C | Yes           | N/A             | No         | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x3D | Yes           | N/A             | Yes        | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
+* The **EXTENSIONS** bit (0x01) indicates when the Extensions field is present
+  in all Objects in this Subgroup. When set to 1, the Extensions structure
+  defined in {{object-extensions}} is present in all Objects. When set to 0, the
+  Extensions field is never present. Objects with no extensions set Extension
+  Headers Length to 0.
 
-For Type values where Contains End of Group is Yes, the subscriber can infer the
-final Object in the Group when the data stream is terminated by a FIN.  In this
-case, Objects that have the same Group ID and an Object ID larger than the last
-Object received on the stream do not exist.  This does not apply when the data
-stream is terminated with a RESET_STREAM or RESET_STREAM_AT.
+* The **SUBGROUP_ID_MODE** field (bits 1-2, mask 0x06) is a two-bit field that
+  determines the encoding of the Subgroup ID. To extract this value, perform a
+  bitwise AND with mask 0x06 and right-shift by 1 bit:
 
-For Type values where Subgroup ID Field Present is No, there is no explicit
-Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
-0x10-11 and 0x18-19) or the Object ID of the first object transmitted in this
-subgroup (for Types 0x12-13 and 0x1A-1B).
+  * 0b00: The Subgroup ID field is absent and the Subgroup ID is 0.
+  * 0b01: The Subgroup ID field is absent and the Subgroup ID is the Object ID
+    of the first Object transmitted in this Subgroup.
+  * 0b10: The Subgroup ID field is present in the header.
+  * 0b11: Reserved for future use.
 
-For Type values where Extensions Present is No, the Extensions field is never
-present and all Objects have no extensions.  When Extensions Present is Yes, the
-Extensions structure defined in {{object-extensions}} is present in all Objects
-in this subgroup.  Objects with no extensions set Extension Headers Length to 0.
+* The **END_OF_GROUP** bit (0x08) indicates that this subgroup contains the
+  largest Object in the Group. When set to 1, the subscriber can infer the final
+  Object in the Group when the data stream is terminated by a FIN. In this case,
+  Objects that have the same Group ID and an Object ID larger than the last
+  Object received on the stream do not exist. This does not apply when the data
+  stream is terminated with a RESET_STREAM or RESET_STREAM_AT.
 
-For Type values where Priority Present is No, Priority is not present and this
-Subgroup inherits the Publisher Priority specified in the control message that
-established the subscription.  When Priority Present is Yes, the Priority field
-is present in the Subgroup header.
+* The **DEFAULT_PRIORITY** bit (0x20) indicates when the Priority field is
+  present. When set to 1, the Priority field is omitted and this Subgroup
+  inherits the Publisher Priority specified in the control message that
+  established the subscription. When set to 0, the Priority field is present in
+  the Subgroup header.
+
+The following Type values are invalid. If an endpoint receives a stream header
+with any of these Type values, it MUST close the session with a
+`PROTOCOL_VIOLATION`:
+
+* Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36, 0x37,
+  0x3E, 0x3F. This mode is reserved for future use.
+
+* Type values that do not match the form 0b00X1XXXX (i.e., Type values outside the
+  ranges 0x10..0x1F and 0x30..0x3F, or values where bit 4 is not set).
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
@@ -3627,6 +3575,9 @@ RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
 Subgroups in a Group at once.
 
+A publisher that receives a STOP_SENDING on a Subgroup stream SHOULD NOT attempt
+to open a new stream to deliver additional Objects in that Subgroup.
+
 The application SHOULD use a relevant error code in RESET_STREAM or
 RESET_STREAM_AT, as defined below:
 
@@ -3685,7 +3636,7 @@ format:
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
 
 The Serialization Flags field defines the serialization of the Object.  It is
-a variable-length integer.  When less than 64, the bits represent flags described
+a variable-length integer.  When less than 128, the bits represent flags described
 below.  The following additional values are defined:
 
 Value | Meaning
@@ -3716,6 +3667,7 @@ Bitmask | Condition if set | Condition if not set (0)
 0x08 | Group ID field is present | Group ID is the prior Object's Group ID
 0x10 | Priority field is present | Priority is the prior Object's Priority
 0x20 | Extensions field is present | Extensions field is not present
+0x40 | Datagram: ignore the two least significant bits | Use the subgroup ID in the two least significant bits
 
 If the first Object in the FETCH response uses a flag that references fields in
 the prior Object, the Subscriber MUST close the session with a
@@ -3724,8 +3676,9 @@ the prior Object, the Subscriber MUST close the session with a
 The Extensions structure is defined in {{object-extensions}}.
 
 When encoding an Object with a Forwarding Preference of "Datagram" (see
-{{object-properties}}), the Publisher treats it as having a Subgroup ID equal to
-the Object ID.
+{{object-properties}}), the object has no Subgroup ID. The publisher MUST SET bit 0x40 to '1'.
+When 0x40 is set, it SHOULD set the two least significant bits to zero and the subscriber
+MUST ignore the bits.
 
 #### End of Range
 
@@ -3802,6 +3755,70 @@ SUBGROUP_HEADER {
 
 The following Extension Headers are defined in MOQT. Each Extension Header
 specifies whether it can be used with Tracks, Objects, or both.
+
+
+#### DELIVERY TIMEOUT {#delivery-timeout-ext}
+
+The DELIVERY TIMEOUT extension (Extension Header Type 0x02) is a Track
+Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
+{{delivery-timeout}}).
+
+DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
+endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session with
+`PROTOCOL_VIOLATION`.
+
+If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
+specified a timeout, Objects do not time out.
+
+#### MAX CACHE DURATION {#max-cache-duration}
+
+The MAX_CACHE_DURATION extension (Extension Header Type 0x04) is a Track Extension.
+
+It is an integer expressing
+the number of milliseconds an Object can be served from a cache. If present, the
+relay MUST NOT start forwarding any individual Object received through this
+subscription or fetch after the specified number of milliseconds has elapsed
+since the beginning of the Object was received.  This means Objects earlier in a
+multi-object stream will expire earlier than Objects later in the stream. Once
+Objects have expired from cache, their state becomes unknown, and a relay that
+handles a downstream request that includes those Objects re-requests them.
+
+If the MAX_CACHE_DURATION extension is not sent by the publisher, the Objects
+can be cached until implementation constraints cause them to be evicted.
+
+#### DEFAULT PUBLISHER PRIORITY {#publisher-priority}
+
+The DEFAULT PUBLISHER PRIORITY extension (Extension Header Type 0x0E) is a Track
+Extension that specifies the priority of
+a subscription relative to other subscriptions in the same session.  The value
+is from 0 to 255 and lower numbers get higher priority.  See
+{{priorities}}. Priorities above 255 are invalid. Subgroups and Datagrams for this
+subscription inherit this priority, unless they specifically override it.
+
+A subscription has Publisher Priorty 128 if this extension is omitted.
+
+#### DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
+
+The DEFAULT_PUBLISHER_GROUP_ORDER extension (Extension Header Type 0x22) is a
+Track Extension.
+
+It is an enum indicating the publisher's preference for prioritizing Objects
+from different groups within the
+same subscription (see {{priorities}}). The allowed values are Ascending (0x1) or
+Descending (0x2). If an endpoint receives a value outside this range, it MUST
+close the session with `PROTOCOL_VIOLATION`.
+
+If omitted, the publisher's preference is Ascending (0x1).
+
+#### DYNAMIC GROUPS {#dynamic-groups}
+
+The DYNAMIC_GROUPS Extension (Extension Header Type 0x30) is a Track Extension.
+The allowed values are 0 or 1. When the value is 1, it indicates
+that the subscriber can request the Original Publisher to start a new Group
+by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
+for this Track. If an endpoint receives a value larger than 1, it MUST close
+the session with `PROTOCOL_VIOLATION`.
+
 
 ## Immutable Extensions
 
