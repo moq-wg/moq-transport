@@ -253,13 +253,13 @@ MoQT requires a variable-length integer encoding with the following properties:
 2. The range of 1 byte values is as large as possible.
 3. All 64 bit numbers can be encoded.
 
-The variable-length integer encoding uses the most significant one to five
-bits of the first byte to indicate the length of the encoding in bytes. The
-remaining bits represent the integer value, encoded in network byte order.
+The variable-length integer encoding uses the number of leading 1 bits of the
+first byte to indicate the length of the encoding in bytes. The remaining bits
+after the first 0 and subsequent bytes, if any, represent the integer value,
+encoded in network byte order.
 
-Integers are encoded in 1, 2, 4, 6, 8, or 9 bytes and can encode 7-, 14-, 29-,
-44-, 59-, or 64-bit values, respectively. The following table summarizes the
-encoding properties.
+Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can encode up to 64
+bit unsinged integers. The following table summarizes the encoding properties.
 
 |--------------|----------------|-------------|------------------------|
 | Leading Bits | Length (bytes) | Usable Bits | Range                  |
@@ -268,26 +268,37 @@ encoding properties.
 |--------------|----------------|-------------|------------------------|
 | 10           | 2              | 14          | 0-16383                |
 |--------------|----------------|-------------|------------------------|
-| 110          | 4              | 29          | 0-536870911            |
+| 110          | 3              | 21          | 0-2097151              |
 |--------------|----------------|-------------|------------------------|
-| 1110         | 6              | 44          | 0-17592186044415       |
+| 1110         | 4              | 28          | 0-268435455            |
 |--------------|----------------|-------------|------------------------|
-| 11110        | 8              | 59          | 0-576460752303423487   |
+| 11110        | 5              | 35          | 0-34359738367          |
 |--------------|----------------|-------------|------------------------|
-| 11111000     | 9              | 64          | 0-18446744073709551615 |
+| 111110       | 6              | 42          | 0-4398046511103        |
+|--------------|----------------|-------------|------------------------|
+| 11111110     | 8              | 56          | 0-72057594037927935    |
+|--------------|----------------|-------------|------------------------|
+| 11111111     | 9              | 64          | 0-18446744073709551615 |
 |--------------|----------------|-------------|------------------------|
 {: format title="Summary of Integer Encodings"}
 
-For example, the nine-byte sequence 0xf8ffffffffffffffff decodes to the decimal
-value 18,446,744,073,709,551,615; the eight-byte sequence 0xf2197c5eff14e88c
-decodes to the decimal value 151,288,809,941,952,652; the six-byte sequence
-0xe2a1a0e403d8 decodes to 2,893,212,287,960; the four-byte sequence 0xdd7f3e7d
-decodes to 494,878,333; the two-byte sequence 0xbbbd decodes to 15,293; and the
-single byte 0x25 decodes to 37 (as does the two-byte sequence 0x8025).
+The following table contains some example encodings:
 
-The three least significant bits of the first byte in 9-byte encodings MUST be
-set to 000.  An endpoint that receives any other value MUST close the session
-with a `PROTOCOL_VIOLATION`.
+|----------------------|----------------------------|
+| Byte Sequence        | Decimal Value              |
+|----------------------|----------------------------|
+| 0x25                 | 37                         |
+| 0x8025               | 37                         |
+| 0xbbbd               | 15,293                     |
+| 0xdd7f3e7d           | 494,878,333                |
+| 0xfaa1a0e403d8       | 2,893,212,287,960          |
+| 0xfefa318fa8e3ca11   | 70,423,237,261,249,041     |
+| 0xffffffffffffffffff | 18,446,744,073,709,551,615 |
+|----------------------|----------------------------|
+{: format title="Example Integer Encodings"}
+
+11111100 is an invalid code point.  An endpoint that receives this value MUST
+close the session with a `PROTOCOL_VIOLATION`.
 
 To reduce unnecessary use of bandwidth, variable length integers SHOULD be
 encoded using the least number of bytes possible to represent the required
