@@ -5732,45 +5732,49 @@ OBJECT_DATAGRAM {
             </figcaption></figure>
 </div>
 <p id="section-10.3.1-3">The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or the set of
-values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this range
-are valid. The four low-order bits and bit 5 of the Type field determine which fields
-are present in the datagram:<a href="#section-10.3.1-3" class="pilcrow">¶</a></p>
+values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
+range are valid. The four low-order bits and bit 5 of the Type field determine
+which fields are present in the datagram:<a href="#section-10.3.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.3.1-4.1">
-              <p id="section-10.3.1-4.1.1">The <strong>EXTENSIONS</strong> bit (0x01) in the Type is set to indicate that there is an
-Extensions field present. When set to 1, the Extensions structure defined in
-<a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a> is present. When set to 0, the Extensions field is absent.
-If an endpoint receives a datagram with the EXTENSIONS bit set and an Extension
-Headers Length of 0, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.3.1-4.1.1" class="pilcrow">¶</a></p>
+              <p id="section-10.3.1-4.1.1">The <strong>EXTENSIONS</strong> bit (0x01) indicates when the Extensions field is
+present. When set to 1, the Extensions structure defined in
+<a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a> is present. When set to 0, the Extensions field is
+absent.  If an endpoint receives a datagram with the EXTENSIONS bit set and an
+Extension Headers Length of 0, it <span class="bcp14">MUST</span> close the session with a
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-10.3.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.3.1-4.2">
               <p id="section-10.3.1-4.2.1">The <strong>END_OF_GROUP</strong> bit (0x02) indicates End of Group. When set to 1, this
-indicates that no Object with the same Group ID and an Object ID greater than the
-Object ID in this datagram exists.<a href="#section-10.3.1-4.2.1" class="pilcrow">¶</a></p>
+indicates that no Object with the same Group ID and an Object ID greater than
+the Object ID in this datagram exists.<a href="#section-10.3.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.3.1-4.3">
-              <p id="section-10.3.1-4.3.1">The <strong>NO_OBJECT_ID</strong> bit (0x04) in the Type is set to indicate that the Object ID
-field is absent and the Object ID is 0. When set to 1, the Object ID field is
-omitted. When set to 0, the Object ID field is present.<a href="#section-10.3.1-4.3.1" class="pilcrow">¶</a></p>
+              <p id="section-10.3.1-4.3.1">The <strong>ZERO_OBJECT_ID</strong> bit (0x04) indicates when the Object ID field is
+present.  When set to 1, the Object ID field is omitted and the Object ID is<a href="#section-10.3.1-4.3.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-10.3.1-4.3.2">
+<li id="section-10.3.1-4.3.2.1">
+                  <p id="section-10.3.1-4.3.2.1.1">When set to 0, the Object ID field is present.<a href="#section-10.3.1-4.3.2.1.1" class="pilcrow">¶</a></p>
+</li>
+              </ol>
 </li>
             <li class="normal" id="section-10.3.1-4.4">
-              <p id="section-10.3.1-4.4.1">The <strong>NO_PRIORITY</strong> bit (0x08) in the Type is set to indicate that the Priority
-field is absent. When set to 1, the Priority field is omitted and this Object
-inherits the Publisher Priority specified in the control message that established
-the subscription. When set to 0, the Priority field is present.<a href="#section-10.3.1-4.4.1" class="pilcrow">¶</a></p>
+              <p id="section-10.3.1-4.4.1">The <strong>DEFAULT_PRIORITY</strong> bit (0x08) indicates when the Priority field is
+present. When set to 1, the Priority field is omitted and this Object inherits
+the Publisher Priority specified in the control message that established the
+subscription. When set to 0, the Priority field is present.<a href="#section-10.3.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.3.1-4.5">
-              <p id="section-10.3.1-4.5.1">The <strong>STATUS</strong> bit (0x20) determines whether the datagram contains an Object Status
-or Object Payload. When set to 1, the Object Status field is present and there is
-no Object Payload. When set to 0, the Object Payload is present and the Object
-Status field is omitted. There is no explicit length field for the Object Payload;
-the entirety of the transport datagram following the Object header fields contains
-the payload.<a href="#section-10.3.1-4.5.1" class="pilcrow">¶</a></p>
+              <p id="section-10.3.1-4.5.1">The <strong>STATUS</strong> bit (0x20) indicates whether the datagram contains an Object
+Status or Object Payload. When set to 1, the Object Status field is present
+and there is no Object Payload. When set to 0, the Object Payload is present
+and the Object Status field is omitted. There is no explicit length field for
+the Object Payload; the entirety of the transport datagram following the
+Object header fields contains the payload.<a href="#section-10.3.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-10.3.1-5">The following Type values are invalid protocol violations. If an endpoint receives a
-datagram with any of these Type values, it <span class="bcp14">MUST</span> close the session with a
-<code>PROTOCOL_VIOLATION</code>:<a href="#section-10.3.1-5" class="pilcrow">¶</a></p>
+<p id="section-10.3.1-5">The following Type values are invalid. If an endpoint receives a datagram with
+any of these Type values, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>:<a href="#section-10.3.1-5" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.3.1-6.1">
               <p id="section-10.3.1-6.1.1">Type values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set: 0x22,
@@ -5845,21 +5849,21 @@ SUBGROUP_HEADER {
 <p id="section-10.4.2-4">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
 <code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-10.4.2-4" class="pilcrow">¶</a></p>
 <p id="section-10.4.2-5">The Type field in the SUBGROUP_HEADER takes the form 0b00X1XXXX (or the set of
-values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to 1. However,
-not all Type values in this range are valid. The four low-order bits and bit 5
-determine which fields are present in the header:<a href="#section-10.4.2-5" class="pilcrow">¶</a></p>
+values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to
+1. However, not all Type values in this range are valid. The four low-order bits
+and bit 5 determine which fields are present in the header:<a href="#section-10.4.2-5" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.4.2-6.1">
-              <p id="section-10.4.2-6.1.1">The <strong>EXTENSIONS</strong> bit (0x01) in the Type is set to indicate that an Extensions
-field is present in all Objects in this Subgroup. When set to 1, the Extensions
-structure defined in <a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a> is present in all Objects. When set to 0,
-the Extensions field is never present. Objects with no extensions set Extension
+              <p id="section-10.4.2-6.1.1">The <strong>EXTENSIONS</strong> bit (0x01) indicates when the Extensions field is present
+in all Objects in this Subgroup. When set to 1, the Extensions structure
+defined in <a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a> is present in all Objects. When set to 0, the
+Extensions field is never present. Objects with no extensions set Extension
 Headers Length to 0.<a href="#section-10.4.2-6.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.4.2-6.2">
               <p id="section-10.4.2-6.2.1">The <strong>SUBGROUP_ID_MODE</strong> field (bits 1-2, mask 0x06) is a two-bit field that
-determines the encoding of the Subgroup ID. To extract this value, perform a bitwise
-AND with mask 0x06 and right-shift by 1 bit:<a href="#section-10.4.2-6.2.1" class="pilcrow">¶</a></p>
+determines the encoding of the Subgroup ID. To extract this value, perform a
+bitwise AND with mask 0x06 and right-shift by 1 bit:<a href="#section-10.4.2-6.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.4.2-6.2.2.1">
                   <p id="section-10.4.2-6.2.2.1.1">0b00: The Subgroup ID field is absent and the Subgroup ID is 0.<a href="#section-10.4.2-6.2.2.1.1" class="pilcrow">¶</a></p>
@@ -5877,23 +5881,23 @@ of the first Object transmitted in this Subgroup.<a href="#section-10.4.2-6.2.2.
               </ul>
 </li>
             <li class="normal" id="section-10.4.2-6.3">
-              <p id="section-10.4.2-6.3.1">The <strong>END_OF_GROUP</strong> bit (0x08) indicates that this stream can contain the End of
-Group. When set to 1, the subscriber can infer the final Object in the Group when
-the data stream is terminated by a FIN. In this case, Objects that have the same
-Group ID and an Object ID larger than the last Object received on the stream do
-not exist. This does not apply when the data stream is terminated with a
-RESET_STREAM or RESET_STREAM_AT.<a href="#section-10.4.2-6.3.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.2-6.3.1">The <strong>END_OF_GROUP</strong> bit (0x08) indicates that this subgroup contains the
+largest Object in the Group. When set to 1, the subscriber can infer the final
+Object in the Group when the data stream is terminated by a FIN. In this case,
+Objects that have the same Group ID and an Object ID larger than the last
+Object received on the stream do not exist. This does not apply when the data
+stream is terminated with a RESET_STREAM or RESET_STREAM_AT.<a href="#section-10.4.2-6.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.4.2-6.4">
-              <p id="section-10.4.2-6.4.1">The <strong>NO_PRIORITY</strong> bit (0x20) in the Type is set to indicate that the Priority
-field is absent. When set to 1, the Priority field is omitted and this Subgroup
-inherits the Publisher Priority specified in the control message that established
-the subscription. When set to 0, the Priority field is present in the Subgroup
-header.<a href="#section-10.4.2-6.4.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.2-6.4.1">The <strong>DEFAULT_PRIORITY</strong> bit (0x20) indicates when the Priority field is
+present. When set to 1, the Priority field is omitted and this Subgroup
+inherits the Publisher Priority specified in the control message that
+established the subscription. When set to 0, the Priority field is present in
+the Subgroup header.<a href="#section-10.4.2-6.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-10.4.2-7">The following Type values are invalid protocol violations. If an endpoint receives a
-stream header with any of these Type values, it <span class="bcp14">MUST</span> close the session with a
+<p id="section-10.4.2-7">The following Type values are invalid. If an endpoint receives a stream header
+with any of these Type values, it <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>:<a href="#section-10.4.2-7" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.4.2-8.1">
