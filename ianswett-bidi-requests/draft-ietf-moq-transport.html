@@ -1055,7 +1055,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 7 July 2026</td>
+<td class="center">Expires 16 July 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-01-03" class="published">3 January 2026</time>
+<time datetime="2026-01-12" class="published">12 January 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-07-07">7 July 2026</time></dd>
+<dd class="expires"><time datetime="2026-07-16">16 July 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 7 July 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 16 July 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1398,7 +1398,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-parameters" class="internal xref">Parameters</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1.2.1">
-                    <p id="section-toc.1-1.9.2.1.2.1.1"><a href="#section-9.1.1" class="auto internal xref">9.1.1</a>.  <a href="#name-version-specific-parameters" class="internal xref">Version Specific Parameters</a></p>
+                    <p id="section-toc.1-1.9.2.1.2.1.1"><a href="#section-9.1.1" class="auto internal xref">9.1.1</a>.  <a href="#name-message-parameters" class="internal xref">Message Parameters</a></p>
 </li>
                 </ul>
 </li>
@@ -1563,7 +1563,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.13.2.1.1"><a href="#section-13.1" class="auto internal xref">13.1</a>.  <a href="#name-authorization-token-alias-t" class="internal xref">Authorization Token Alias Type</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2">
-                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-version-specific-parameters-2" class="internal xref">Version Specific Parameters</a></p>
+                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-message-parameters-2" class="internal xref">Message Parameters</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3">
                 <p id="section-toc.1-1.13.2.3.1"><a href="#section-13.3" class="auto internal xref">13.3</a>.  <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
@@ -1988,7 +1988,7 @@ the one that created the text.<a href="#section-1.4.3-3.2.1" class="pilcrow">¶<
 purposes such as logging, representing track filenames, or use in
 certain authorization verification schemes. The namespace and track name
 are binary, so they need to be converted to a safe form.<a href="#section-1.5-1" class="pilcrow">¶</a></p>
-<p id="section-1.5-2">The following format is RECOMMONDED:<a href="#section-1.5-2" class="pilcrow">¶</a></p>
+<p id="section-1.5-2">The following format is <span class="bcp14">RECOMMENDED</span>:<a href="#section-1.5-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-1.5-3.1">
             <p id="section-1.5-3.1.1">Each of the namespace tuples are rendered in order with a hyphen (-)
@@ -2095,13 +2095,13 @@ stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
 <p id="section-2.2-2">When an Object's forwarding preference (see <a href="#object-properties" class="auto internal xref">Section 10.2.1</a>) is
-"Datagram", it is not sent in Subgroups and the
-description in the remainder of this section does not apply.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
+"Datagram", it is not sent in Subgroups, does not belong to a Subgroup in any
+way, and the description in the remainder of this section does not apply.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
 <p id="section-2.2-3">Streams offer in-order reliable delivery and the ability to cancel sending and
 retransmission of data. Furthermore, many QUIC and WebTransport implementations
 offer the ability to control the relative scheduling priority of pending stream
 data.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
-<p id="section-2.2-4">Every object within a Group belongs to exactly one Subgroup.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
+<p id="section-2.2-4">Every Object within a Group belongs to exactly one Subgroup or Datagram.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
 <p id="section-2.2-5">When Objects are sent in a subscription (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>),  Objects
 from two subgroups <span class="bcp14">MUST NOT</span> be sent on the same stream, and Objects from the
 same Subgroup <span class="bcp14">MUST NOT</span> be sent on different streams, unless one of the streams
@@ -2211,23 +2211,28 @@ of the Track Namespace Field in bytes.<a href="#section-2.4.1-7.1.1" class="pilc
 Field.<a href="#section-2.4.1-7.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-2.4.1-8">The structured nature of Track Namespace allows relays and applications to
+<p id="section-2.4.1-8">Each Track Namespace Field Value <span class="bcp14">MUST</span> contain at least one byte. If an endpoint
+receives a Track Namespace Field with a Track Namespace Field Length of 0, it
+<span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-2.4.1-8" class="pilcrow">¶</a></p>
+<p id="section-2.4.1-9">The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
 consisting of 0 or greater than 32 Track Namespace Fields, it <span class="bcp14">MUST</span> close the
-session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-2.4.1-8" class="pilcrow">¶</a></p>
-<p id="section-2.4.1-9">Track Name is a sequence of bytes that identifies an individual track within the
-namespace.<a href="#section-2.4.1-9" class="pilcrow">¶</a></p>
-<p id="section-2.4.1-10">The maximum total length of a Full Track Name is 4,096 bytes. The length of a Full
-Track Name is computed as the sum of the Track Namespace Field Length fields
-and the Track Name Length field.  If an endpoint receives a Full Track Name
-exceeding this length, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-2.4.1-10" class="pilcrow">¶</a></p>
-<p id="section-2.4.1-11">In this specification, both the Track Namespace Fields and the Track Name
+session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-2.4.1-9" class="pilcrow">¶</a></p>
+<p id="section-2.4.1-10">Track Name is a sequence of bytes, possibly empty, that identifies an individual
+track within the namespace.<a href="#section-2.4.1-10" class="pilcrow">¶</a></p>
+<p id="section-2.4.1-11">The maximum total length of a Full Track Name is 4,096 bytes. The length of a
+Full Track Name is computed as the sum of the Track Namespace Field Length
+fields and the Track Name Length field. The length of a Track Namespace is the
+sum of the Track Namespace Field Length fields. If an endpoint receives a Track
+Namespace or a Full Track Name exceeding 4,096 bytes, it <span class="bcp14">MUST</span> close the session
+with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-2.4.1-11" class="pilcrow">¶</a></p>
+<p id="section-2.4.1-12">In this specification, both the Track Namespace Fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace Fields or Track Names is done by
 exact comparison of the bytes. Specifications that use MOQT may constrain the
 information in these fields, for example by restricting them to UTF-8. Any such
 specification needs to specify the canonicalization into the bytes in the Track
-Namespace Fields or Track Name such that exact comparison works.<a href="#section-2.4.1-11" class="pilcrow">¶</a></p>
+Namespace Fields or Track Name such that exact comparison works.<a href="#section-2.4.1-12" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="malformed-tracks">
@@ -2355,7 +2360,11 @@ specifications and are registered in an IANA table <a href="#iana" class="auto i
 specifications define the type and value of the header, along with any rules
 concerning processing, modification, caching and forwarding.<a href="#section-2.5-2" class="pilcrow">¶</a></p>
 <p id="section-2.5-3">If unsupported by the relay, Extension Headers <span class="bcp14">MUST NOT</span> be modified, <span class="bcp14">MUST</span> be
-cached as part of the Track or Object and <span class="bcp14">MUST</span> be forwarded by relays.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
+cached as part of the Track or Object and <span class="bcp14">MUST</span> be forwarded by relays.  If a
+Track or Object arrives with a different set of unknown extensions than
+previously cached, the most recent set <span class="bcp14">SHOULD</span> replace any cached values,
+removing any unknown values not present in the new set.  Relays <span class="bcp14">MUST NOT</span> attempt
+to merge sets of unknown extensions received in different messages.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
 <p id="section-2.5-4">If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers <span class="bcp14">MAY</span> be modified, added, removed,
 and/or cached by relays.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
@@ -3152,9 +3161,13 @@ control the order packets are initially transmitted.<a href="#section-7.2-3" cla
 to different subscriptions or FETCH responses, but have the same subscriber and
 publisher priority.  The ordering in those cases is implementation-defined,
 though the expectation is that all subscriptions will be able to send some data.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
-<p id="section-7.2-5">Given the critical nature of control messages and their relatively
+<p id="section-7.2-5">A publisher might not utilize the entire available congestion window,
+session flow control, or all available streams for lower
+priority Objects if it expects higher priority Objects will be available to send
+in the near future or it wants to reserve some bandwidth for control messages.<a href="#section-7.2-5" class="pilcrow">¶</a></p>
+<p id="section-7.2-6">Given the critical nature of control messages and their relatively
 small size, the control stream and bidi request streams <span class="bcp14">SHOULD</span> be prioritized
-higher than all subscribed Objects.<a href="#section-7.2-5" class="pilcrow">¶</a></p>
+higher than all subscribed Objects.<a href="#section-7.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="considerations-for-setting-priorities">
@@ -3305,7 +3318,7 @@ upstream publisher terminates the subscription, or the subscription expires (see
 all possible Objects matching the filter have been delivered to the subscriber.
 Since tracking this can be prohibitively expensive, Relays are not required or
 expected to do so.<a href="#section-8.4-6" class="pilcrow">¶</a></p>
-<div id="graceful-subscriber-relay-switchover">
+<div id="graceful-subscriber-switchover">
 <section id="section-8.4.1">
           <h4 id="name-graceful-subscriber-relay-s">
 <a href="#section-8.4.1" class="section-number selfRef">8.4.1. </a><a href="#name-graceful-subscriber-relay-s" class="section-name selfRef">Graceful Subscriber Relay Switchover</a>
@@ -3392,7 +3405,7 @@ Forward State=1 in the reply.<a href="#section-8.5-12" class="pilcrow">¶</a></p
 the Relay <span class="bcp14">MUST NOT</span> propagate that message or Object to another Session, because
 it would enable a single Session error to force an unrelated Session, which
 might be handling other subscriptions, to be closed.<a href="#section-8.5-13" class="pilcrow">¶</a></p>
-<div id="graceful-publisher-network-switchover">
+<div id="graceful-publisher-switchover">
 <section id="section-8.5.1">
           <h4 id="name-graceful-publisher-network-">
 <a href="#section-8.5.1" class="section-number selfRef">8.5.1. </a><a href="#name-graceful-publisher-network-" class="section-name selfRef">Graceful Publisher Network Switchover</a>
@@ -3606,13 +3619,13 @@ versions. All other messages use a version-specific namespace.
 For example, the integer '1' can refer to different parameters for Setup
 messages and for all other message types. SETUP message parameter types
 are defined in <a href="#setup-params" class="auto internal xref">Section 9.2.1</a>. Version-specific parameter types are defined
-in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.1-7" class="pilcrow">¶</a></p>
-<div id="version-specific-params">
+in <a href="#message-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.1-7" class="pilcrow">¶</a></p>
+<div id="message-params">
 <section id="section-9.1.1">
-          <h4 id="name-version-specific-parameters">
-<a href="#section-9.1.1" class="section-number selfRef">9.1.1. </a><a href="#name-version-specific-parameters" class="section-name selfRef">Version Specific Parameters</a>
+          <h4 id="name-message-parameters">
+<a href="#section-9.1.1" class="section-number selfRef">9.1.1. </a><a href="#name-message-parameters" class="section-name selfRef">Message Parameters</a>
           </h4>
-<p id="section-9.1.1-1">Each version-specific parameter definition indicates the message types in which
+<p id="section-9.1.1-1">Each message parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it <span class="bcp14">MUST</span> be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.<a href="#section-9.1.1-1" class="pilcrow">¶</a></p>
@@ -3622,10 +3635,9 @@ these parameters to appear in Setup messages.<a href="#section-9.1.1-1" class="p
 <a href="#section-9.1.1.1" class="section-number selfRef">9.1.1.1. </a><a href="#name-authorization-token-paramet" class="section-name selfRef">AUTHORIZATION TOKEN Parameter</a>
             </h5>
 <p id="section-9.1.1.1-1">The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) <span class="bcp14">MAY</span> appear in a
-CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
-SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
-parameter conveys information to authorize the sender to perform the operation
-carrying the parameter.<a href="#section-9.1.1.1-1" class="pilcrow">¶</a></p>
+PUBLISH, SUBSCRIBE, REQUEST_UPDATE, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
+TRACK_STATUS or FETCH message. This parameter conveys information to authorize
+the sender to perform the operation carrying the parameter.<a href="#section-9.1.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.1.1.1-2">The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
 Type and Token Value in future messages. The Token structure is serialized as
@@ -3758,8 +3770,10 @@ SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.<a href="#section-9.1.1.2-1
 <p id="section-9.1.1.2-2">It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span>
 continue to attempt forwarding Objects after they have been received.  The start
 time for the timeout is based on when the Object Headers are received, and does
-not depend upon the forwarding preference. There is no explicit signal that an
-Object was not sent because the delivery timeout was exceeded.<a href="#section-9.1.1.2-2" class="pilcrow">¶</a></p>
+not depend upon the forwarding preference. Objects with forwarding preference
+'Datagram' are not retransmitted when lost, so the Delivery Timeout only limits
+the amount of time they can be queued before being sent. There is no explicit
+signal that an Object was not sent because the delivery timeout was exceeded.<a href="#section-9.1.1.2-2" class="pilcrow">¶</a></p>
 <p id="section-9.1.1.2-3">DELIVERY_TIMEOUT, if present, <span class="bcp14">MUST</span> contain a value greater than 0.  If an
 endpoint receives a DELIVERY_TIMEOUT equal to 0 it <span class="bcp14">MUST</span> close the session
 with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.1.1.2-3" class="pilcrow">¶</a></p>
@@ -3776,7 +3790,9 @@ and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher <span class="bcp14">MAY</span> terminate
 the subscription with error <code>TOO_FAR_BEHIND</code>.<a href="#section-9.1.1.2-5" class="pilcrow">¶</a></p>
 <p id="section-9.1.1.2-6">If an object in a subgroup exceeds the delivery timeout, the publisher <span class="bcp14">MUST</span>
-reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>).<a href="#section-9.1.1.2-6" class="pilcrow">¶</a></p>
+reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>) and
+<span class="bcp14">SHOULD NOT</span> attempt to open a new stream to deliver additional Objects in that
+Subgroup.<a href="#section-9.1.1.2-6" class="pilcrow">¶</a></p>
 <p id="section-9.1.1.2-7">When sent by a subscriber, this parameter is intended to be specific to a
 subscription, so it <span class="bcp14">SHOULD NOT</span> be forwarded upstream by a relay that intends
 to serve multiple subscriptions for the same track.<a href="#section-9.1.1.2-7" class="pilcrow">¶</a></p>
@@ -4085,9 +4101,10 @@ initiation.<a href="#section-9.2.1.3-2" class="pilcrow">¶</a></p>
             <h5 id="name-authorization-token">
 <a href="#section-9.2.1.4" class="section-number selfRef">9.2.1.4. </a><a href="#name-authorization-token" class="section-name selfRef">AUTHORIZATION TOKEN</a>
             </h5>
-<p id="section-9.2.1.4-1">See <a href="#authorization-token" class="auto internal xref">Section 9.1.1.1</a>.  The endpoint can specify one or more tokens in
-CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT session
-establishment.<a href="#section-9.2.1.4-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.4-1">The AUTHORIZATION TOKEN setup parameter (Parameter Type 0x03)) is funcionally
+equivalient to the AUTHORIZATION TOKEN message parameter, see <a href="#authorization-token" class="auto internal xref">Section 9.1.1.1</a>.
+The endpoint can specify one or more tokens in CLIENT_SETUP or SERVER_SETUP
+that the peer can use to authorize MOQT session establishment.<a href="#section-9.2.1.4-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.4-2">If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it <span class="bcp14">MUST NOT</span> fail
 the session with <code>AUTH_TOKEN_CACHE_OVERFLOW</code>.  Instead, it <span class="bcp14">MUST</span> treat the
@@ -4125,12 +4142,17 @@ the session soon.  Servers can use GOAWAY to initiate session migration
 publisher <span class="bcp14">MAY</span> reject new requests after sending a GOAWAY.<a href="#section-9.3-2" class="pilcrow">¶</a></p>
 <p id="section-9.3-3">Upon receiving a GOAWAY, an endpoint <span class="bcp14">SHOULD NOT</span> initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-SUBSCRIBE_NAMESPACE and TRACK_SATUS.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
-<p id="section-9.3-4">The endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>
-(<a href="#session-termination" class="auto internal xref">Section 3.4</a>) if it receives multiple GOAWAY messages.<a href="#section-9.3-4" class="pilcrow">¶</a></p>
+SUBSCRIBE_NAMESPACE and TRACK_STATUS.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+<p id="section-9.3-4">Sending a GOAWAY does not prevent the sender from initiating new requests,
+though the sender <span class="bcp14">SHOULD</span> avoid initiating requests unless required by migration
+(see (<a href="#graceful-subscriber-switchover" class="auto internal xref">Section 8.4.1</a> and <a href="#graceful-publisher-switchover" class="auto internal xref">Section 8.5.1</a>).
+An endpoint that receives a GOAWAY <span class="bcp14">MAY</span> reject new requests with an appropriate
+error code (e.g., SUBSCRIBE_ERROR with error code GOING_AWAY).<a href="#section-9.3-4" class="pilcrow">¶</a></p>
+<p id="section-9.3-5">The endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>
+(<a href="#session-termination" class="auto internal xref">Section 3.4</a>) if it receives multiple GOAWAY messages.<a href="#section-9.3-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
 <figure id="figure-6">
-          <div class="alignLeft art-text artwork" id="section-9.3-5.1">
+          <div class="alignLeft art-text artwork" id="section-9.3-6.1">
 <pre>
 GOAWAY Message {
   Type (i) = 0x10,
@@ -4145,17 +4167,17 @@ GOAWAY Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.3-6.1">
-            <p id="section-9.3-6.1.1">New Session URI: When received by a client, indicates where the client can
+<li class="normal" id="section-9.3-7.1">
+            <p id="section-9.3-7.1.1">New Session URI: When received by a client, indicates where the client can
 connect to continue this session.  The client <span class="bcp14">MUST</span> use this URI for the new
 session if provided. If the URI is zero bytes long, the current URI is reused
 instead. The new session URI <span class="bcp14">SHOULD</span> use the same scheme
 as the current URI to ensure compatibility.  The maxmimum length of the New
 Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
-maximum, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.3-6.1.1" class="pilcrow">¶</a></p>
-<p id="section-9.3-6.1.2">
+maximum, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.3-7.1.1" class="pilcrow">¶</a></p>
+<p id="section-9.3-7.1.2">
 If a server receives a GOAWAY with a non-zero New Session URI Length it <span class="bcp14">MUST</span>
-close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.3-6.1.2" class="pilcrow">¶</a></p>
+close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.3-7.1.2" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4185,7 +4207,7 @@ REQUEST_OK Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-9.4-3.1">
-            <p id="section-9.4-3.1.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.4-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-9.4-3.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.4-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4205,6 +4227,7 @@ REQUEST_ERROR Message {
   Type (i) = 0x5,
   Length (16),
   Error Code (i),
+  Retry Interval (i),
   Error Reason (Reason Phrase),
 }
 </pre>
@@ -4218,97 +4241,107 @@ REQUEST_ERROR Message {
             <p id="section-9.5-3.1.1">Error Code: Identifies an integer error code for request failure.<a href="#section-9.5-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.5-3.2">
-            <p id="section-9.5-3.2.1">Error Reason: Provides a text description of the request error. See
- <a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.5-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.5-3.2.1">Retry Interval: The minimum time (in milliseconds) before the request <span class="bcp14">SHOULD</span> be
+sent again, plus one. If the value is 0, the request <span class="bcp14">SHOULD NOT</span> be retried.<a href="#section-9.5-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.5-3.3">
+            <p id="section-9.5-3.3.1">Error Reason: Provides a text description of the request error. See
+ <a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.5-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.5-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in REQUEST_ERROR,
-as defined below. Most codepoints have identical meanings for various request
-types, but some have request-specific meanings.<a href="#section-9.5-4" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-9.5-5">
-          <dt id="section-9.5-5.1">INTERNAL_ERROR (0x0):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-5.2">
-            <p id="section-9.5-5.2.1">An implementation specific or generic error occurred.<a href="#section-9.5-5.2.1" class="pilcrow">¶</a></p>
+as defined below and assigned in <a href="#iana-request-error" class="auto internal xref">Section 13.3.2</a>. Most codepoints have
+identical meanings for various request types, but some have request-specific
+meanings.<a href="#section-9.5-4" class="pilcrow">¶</a></p>
+<p id="section-9.5-5">If a request is retryable with the same parameters at a later time, the sender
+of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
+the risk of synchronized retry storms, the sender can apply randomization to
+each retry interval so that retries are spread out over time.  A Retry Interval
+value of 1 indicates the request can be retried immediately.<a href="#section-9.5-5" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.5-6">
+          <dt id="section-9.5-6.1">INTERNAL_ERROR:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-6.2">
+            <p id="section-9.5-6.2.1">An implementation specific or generic error occurred.<a href="#section-9.5-6.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.5-5.3">UNAUTHORIZED (0x1):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-5.4">
-            <p id="section-9.5-5.4.1">The subscriber is not authorized to perform the requested action on the given
-track.<a href="#section-9.5-5.4.1" class="pilcrow">¶</a></p>
+<dt id="section-9.5-6.3">UNAUTHORIZED:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-6.4">
+            <p id="section-9.5-6.4.1">The subscriber is not authorized to perform the requested action on the given
+track.  This might be retryable if the authorization token is not yet valid.<a href="#section-9.5-6.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.5-5.5">TIMEOUT (0x2):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-5.6">
-            <p id="section-9.5-5.6.1">The subscription could not be completed before an implementation specific
+<dt id="section-9.5-6.5">TIMEOUT:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-6.6">
+            <p id="section-9.5-6.6.1">The subscription could not be completed before an implementation specific
 timeout. For example, a relay could not establish an upstream subscription
-within the timeout.<a href="#section-9.5-5.6.1" class="pilcrow">¶</a></p>
+within the timeout.<a href="#section-9.5-6.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.5-5.7">NOT_SUPPORTED (0x3):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-5.8">
-            <p id="section-9.5-5.8.1">The endpoint does not support the type of request.<a href="#section-9.5-5.8.1" class="pilcrow">¶</a></p>
+<dt id="section-9.5-6.7">NOT_SUPPORTED:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-6.8">
+            <p id="section-9.5-6.8.1">The endpoint does not support the type of request.<a href="#section-9.5-6.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.5-5.9">MALFORMED_AUTH_TOKEN (0x4):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-5.10">
-            <p id="section-9.5-5.10.1">Invalid Auth Token serialization during registration (see
-<a href="#authorization-token" class="auto internal xref">Section 9.1.1.1</a>).<a href="#section-9.5-5.10.1" class="pilcrow">¶</a></p>
+<dt id="section-9.5-6.9">MALFORMED_AUTH_TOKEN:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-6.10">
+            <p id="section-9.5-6.10.1">Invalid Auth Token serialization during registration (see
+<a href="#authorization-token" class="auto internal xref">Section 9.1.1.1</a>).<a href="#section-9.5-6.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.5-5.11">EXPIRED_AUTH_TOKEN (0x5):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-5.12">
-            <p id="section-9.5-5.12.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 9.1.1.1</a>).<a href="#section-9.5-5.12.1" class="pilcrow">¶</a></p>
+<dt id="section-9.5-6.11">EXPIRED_AUTH_TOKEN:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-6.12">
+            <p id="section-9.5-6.12.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 9.1.1.1</a>).<a href="#section-9.5-6.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.5-5.13">DUPLICATE_SUBSCRIPTION (0x19):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-5.14">
-            <p id="section-9.5-5.14.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
-with the same role as an existing subscription.<a href="#section-9.5-5.14.1" class="pilcrow">¶</a></p>
+<dt id="section-9.5-6.13">DUPLICATE_SUBSCRIPTION (0x19):</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-6.14">
+            <p id="section-9.5-6.14.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
+with the same role as an existing subscription.<a href="#section-9.5-6.14.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-9.5-6">Below are errors for use by the publisher. They can appear in response to
-SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.<a href="#section-9.5-6" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-9.5-7">
-          <dt id="section-9.5-7.1">DOES_NOT_EXIST (0x10):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-7.2">
-            <p id="section-9.5-7.2.1">The track or namespace is not available at the publisher.<a href="#section-9.5-7.2.1" class="pilcrow">¶</a></p>
+<p id="section-9.5-7">Below are errors for use by the publisher. They can appear in response to
+SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.<a href="#section-9.5-7" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.5-8">
+          <dt id="section-9.5-8.1">DOES_NOT_EXIST:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-8.2">
+            <p id="section-9.5-8.2.1">The track or namespace is not available at the publisher.<a href="#section-9.5-8.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.5-7.3">INVALID_RANGE (0x11):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-7.4">
-            <p id="section-9.5-7.4.1">In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
-cannot be satisfied.<a href="#section-9.5-7.4.1" class="pilcrow">¶</a></p>
+<dt id="section-9.5-8.3">INVALID_RANGE:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-8.4">
+            <p id="section-9.5-8.4.1">In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
+cannot be satisfied.<a href="#section-9.5-8.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.5-7.5">MALFORMED_TRACK (0x12):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-7.6">
-            <p id="section-9.5-7.6.1">In response to a FETCH, a relay publisher detected that the track was
-malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-9.5-7.6.1" class="pilcrow">¶</a></p>
+<dt id="section-9.5-8.5">MALFORMED_TRACK:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-8.6">
+            <p id="section-9.5-8.6.1">In response to a FETCH, a relay publisher detected the track was
+malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-9.5-8.6.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-9.5-8">The following are errors for use by the subscriber. They can appear in response
-to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.<a href="#section-9.5-8" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-9.5-9">
-          <dt id="section-9.5-9.1">UNINTERESTED (0x20):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-9.2">
-            <p id="section-9.5-9.2.1">The subscriber is not interested in the track or namespace.<a href="#section-9.5-9.2.1" class="pilcrow">¶</a></p>
+<p id="section-9.5-9">The following are errors for use by the subscriber. They can appear in response
+to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.<a href="#section-9.5-9" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.5-10">
+          <dt id="section-9.5-10.1">UNINTERESTED:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-10.2">
+            <p id="section-9.5-10.2.1">The subscriber is not interested in the track or namespace.<a href="#section-9.5-10.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-9.5-10">Errors below can only be used in response to one message type.<a href="#section-9.5-10" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-9.5-11">
-          <dt id="section-9.5-11.1">PREFIX_OVERLAP (0x30):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-11.2">
-            <p id="section-9.5-11.2.1">In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
-SUBSCRIBE_NAMESPACE in the same session.<a href="#section-9.5-11.2.1" class="pilcrow">¶</a></p>
+<p id="section-9.5-11">Errors below can only be used in response to one message type.<a href="#section-9.5-11" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.5-12">
+          <dt id="section-9.5-12.1">PREFIX_OVERLAP:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-12.2">
+            <p id="section-9.5-12.2.1">In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
+SUBSCRIBE_NAMESPACE in the same session.<a href="#section-9.5-12.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.5-11.3">INVALID_JOINING_SUBSCRIBE_ID(0x32):</dt>
-          <dd style="margin-left: 1.5em" id="section-9.5-11.4">
-            <p id="section-9.5-11.4.1">In response to a Joining FETCH, the referenced Subscribe ID is not an
-<code>Established</code> Subscription.<a href="#section-9.5-11.4.1" class="pilcrow">¶</a></p>
+<dt id="section-9.5-12.3">INVALID_JOINING_SUBSCRIBE_ID(0x32):</dt>
+          <dd style="margin-left: 1.5em" id="section-9.5-12.4">
+            <p id="section-9.5-12.4.1">In response to a Joining FETCH, the referenced Subscribe ID is not an
+<code>Established</code> Subscription.<a href="#section-9.5-12.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -4356,7 +4389,7 @@ Joining Fetch. The ID <span class="bcp14">MUST</span> be unique within a Session
             <p id="section-9.6-5.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-9.6-5.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.6-5.4">
-            <p id="section-9.6-5.4.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.6-5.4.1" class="pilcrow">¶</a></p>
+            <p id="section-9.6-5.4.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.6-5.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.6-6">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
@@ -4404,7 +4437,7 @@ uses the same Track Alias as a different track with an <code>Established</code> 
 it <span class="bcp14">MUST</span> close the session with error <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-9.7-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.7-3.2">
-            <p id="section-9.7-3.2.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.7-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.7-3.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.7-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.7-3.3">
             <p id="section-9.7-3.3.1">Track Extensions : A sequence of Extension Headers. See <a href="#extension-headers" class="auto internal xref">Section 2.5</a>.<a href="#section-9.7-3.3.1" class="pilcrow">¶</a></p>
@@ -4445,7 +4478,7 @@ REQUEST_UPDATE Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-9.8-7.1">
-            <p id="section-9.8-7.1.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.8-7.1.1" class="pilcrow">¶</a></p>
+            <p id="section-9.8-7.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.8-7.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <div id="updating-subscriptions">
@@ -4516,7 +4549,7 @@ uses the same Track Alias as a different track with an <code>Established</code> 
 <span class="bcp14">MUST</span> close the session with error <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-9.9-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.9-3.4">
-            <p id="section-9.9-3.4.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.9-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-9.9-3.4.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.9-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.9-3.5">
             <p id="section-9.9-3.5.1">Track Extensions : A sequence of Extension Headers. See <a href="#extension-headers" class="auto internal xref">Section 2.5</a>.<a href="#section-9.9-3.5.1" class="pilcrow">¶</a></p>
@@ -4559,7 +4592,7 @@ PUBLISH_OK Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-9.10-3.1">
-            <p id="section-9.10-3.1.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.10-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-9.10-3.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.10-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.10-4">TODO: A similar section to SUBSCRIBE about how the publisher handles a
@@ -4876,7 +4909,7 @@ Joining or Absolute Joining.<a href="#section-9.12.3-3.2.1" class="pilcrow">¶</
               <p id="section-9.12.3-3.4.1">Joining: Joining Fetch structure included when Fetch Type is 0x2 or 0x3.<a href="#section-9.12.3-3.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.12.3-3.5">
-              <p id="section-9.12.3-3.5.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.12.3-3.5.1" class="pilcrow">¶</a></p>
+              <p id="section-9.12.3-3.5.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.12.3-3.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-9.12.3-4">A publisher responds to a FETCH request with either a FETCH_OK or a REQUEST_ERROR
@@ -4986,7 +5019,7 @@ If End Location is smaller than the Start Location in the corresponding FETCH
 the receiver <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.13-3.2.4" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.13-3.3">
-            <p id="section-9.13-3.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.13-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.13-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.13-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.13-3.4">
             <p id="section-9.13-3.4.1">Track Extensions : A sequence of Extension Headers. See <a href="#extension-headers" class="auto internal xref">Section 2.5</a>.<a href="#section-9.13-3.4.1" class="pilcrow">¶</a></p>
@@ -5050,7 +5083,7 @@ PUBLISH_NAMESPACE Message {
 <a href="#track-name" class="auto internal xref">Section 2.4.1</a>.<a href="#section-9.15-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.15-3.2">
-            <p id="section-9.15-3.2.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.15-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.15-3.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.15-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5167,7 +5200,7 @@ Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOC
 NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.<a href="#section-9.18-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.18-3.3">
-            <p id="section-9.18-3.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.18-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.18-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.1.1</a>.<a href="#section-9.18-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.18-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
@@ -5196,6 +5229,9 @@ the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
 from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
 set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).<a href="#section-9.18-8" class="pilcrow">¶</a></p>
+<p id="section-9.18-9">The publisher <span class="bcp14">MUST NOT</span> send NAMESPACE_DONE for a namespace suffix before the
+corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
+corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session with a 'PROTOCOL_VIOLATION'.<a href="#section-9.18-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -5233,7 +5269,7 @@ the datagram.  See <a href="#object-datagram" class="auto internal xref">Section
 <p id="section-10-5">An endpoint that receives an unknown stream or datagram type <span class="bcp14">MUST</span> close the
 session.<a href="#section-10-5" class="pilcrow">¶</a></p>
 <p id="section-10-6">Every Object has a 'Object Forwarding Preference' and the Original Publisher
-<span class="bcp14">MAY</span> mix different forwarding preference within a single track.<a href="#section-10-6" class="pilcrow">¶</a></p>
+<span class="bcp14">MAY</span> use both Subgroups and Datagrams within a Group or Track.<a href="#section-10-6" class="pilcrow">¶</a></p>
 <div id="track-alias">
 <section id="section-10.1">
         <h3 id="name-track-alias">
@@ -6087,40 +6123,42 @@ stream header is of questionable utility.<a href="#section-10.4.3-15" class="pil
 <p id="section-10.4.3-16">RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
 Subgroups in a Group at once.<a href="#section-10.4.3-16" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-17">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
-RESET_STREAM_AT, as defined below:<a href="#section-10.4.3-17" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-10.4.3-18">
-            <dt id="section-10.4.3-18.1">INTERNAL_ERROR (0x0):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-18.2">
-              <p id="section-10.4.3-18.2.1">An implementation specific error.<a href="#section-10.4.3-18.2.1" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-17">A publisher that receives a STOP_SENDING on a Subgroup stream <span class="bcp14">SHOULD NOT</span> attempt
+to open a new stream to deliver additional Objects in that Subgroup.<a href="#section-10.4.3-17" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-18">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
+RESET_STREAM_AT, as defined below:<a href="#section-10.4.3-18" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-10.4.3-19">
+            <dt id="section-10.4.3-19.1">INTERNAL_ERROR (0x0):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.2">
+              <p id="section-10.4.3-19.2.1">An implementation specific error.<a href="#section-10.4.3-19.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-18.3">CANCELLED (0x1):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-18.4">
-              <p id="section-10.4.3-18.4.1">The subscriber or publisher cancelled the Request. For Subscriptions,
-PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.11</a>) will have a more detailed status code.<a href="#section-10.4.3-18.4.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-19.3">CANCELLED (0x1):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.4">
+              <p id="section-10.4.3-19.4.1">The subscriber or publisher cancelled the Request. For Subscriptions,
+PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.11</a>) will have a more detailed status code.<a href="#section-10.4.3-19.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-18.5">DELIVERY_TIMEOUT (0x2):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-18.6">
-              <p id="section-10.4.3-18.6.1">The DELIVERY TIMEOUT <a href="#delivery-timeout" class="auto internal xref">Section 9.1.1.2</a> was exceeded for this stream.<a href="#section-10.4.3-18.6.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-19.5">DELIVERY_TIMEOUT (0x2):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.6">
+              <p id="section-10.4.3-19.6.1">The DELIVERY TIMEOUT <a href="#delivery-timeout" class="auto internal xref">Section 9.1.1.2</a> was exceeded for this stream.<a href="#section-10.4.3-19.6.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-18.7">SESSION_CLOSED (0x3):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-18.8">
-              <p id="section-10.4.3-18.8.1">The publisher session is being closed.<a href="#section-10.4.3-18.8.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-19.7">SESSION_CLOSED (0x3):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.8">
+              <p id="section-10.4.3-19.8.1">The publisher session is being closed.<a href="#section-10.4.3-19.8.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-18.9">UNKNOWN_OBJECT_STATUS (0x4):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-18.10">
-              <p id="section-10.4.3-18.10.1">In response to a FETCH, the publisher is unable to determine the Status
-of the next Object in the requested range.<a href="#section-10.4.3-18.10.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-19.9">UNKNOWN_OBJECT_STATUS (0x4):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.10">
+              <p id="section-10.4.3-19.10.1">In response to a FETCH, the publisher is unable to determine the Status
+of the next Object in the requested range.<a href="#section-10.4.3-19.10.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-18.11">MALFORMED_TRACK (0x12):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-18.12">
-              <p id="section-10.4.3-18.12.1">A relay publisher detected that the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-18.12.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-19.11">MALFORMED_TRACK (0x12):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.12">
+              <p id="section-10.4.3-19.12.1">A relay publisher detected that the track was malformed (see
+<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-19.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -6170,7 +6208,7 @@ format:<a href="#section-10.4.4-3" class="pilcrow">¶</a></p>
             </figcaption></figure>
 </div>
 <p id="section-10.4.4-5">The Serialization Flags field defines the serialization of the Object.  It is
-a variable-length integer.  When less than 64, the bits represent flags described
+a variable-length integer.  When less than 128, the bits represent flags described
 below.  The following additional values are defined:<a href="#section-10.4.4-5" class="pilcrow">¶</a></p>
 <table class="center" id="table-6">
             <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
@@ -6260,6 +6298,11 @@ the corresponding condition is true.<a href="#section-10.4.4.1-3" class="pilcrow
                   <td class="text-left" rowspan="1" colspan="1">Extensions field is present</td>
                   <td class="text-left" rowspan="1" colspan="1">Extensions field is not present</td>
                 </tr>
+                <tr>
+                  <td class="text-left" rowspan="1" colspan="1">0x40</td>
+                  <td class="text-left" rowspan="1" colspan="1">Datagram: ignore the two least significant bits</td>
+                  <td class="text-left" rowspan="1" colspan="1">Use the subgroup ID in the two least significant bits</td>
+                </tr>
               </tbody>
             </table>
 <p id="section-10.4.4.1-5">If the first Object in the FETCH response uses a flag that references fields in
@@ -6267,8 +6310,9 @@ the prior Object, the Subscriber <span class="bcp14">MUST</span> close the sessi
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4.4.1-5" class="pilcrow">¶</a></p>
 <p id="section-10.4.4.1-6">The Extensions structure is defined in <a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a>.<a href="#section-10.4.4.1-6" class="pilcrow">¶</a></p>
 <p id="section-10.4.4.1-7">When encoding an Object with a Forwarding Preference of "Datagram" (see
-<a href="#object-properties" class="auto internal xref">Section 10.2.1</a>), the Publisher treats it as having a Subgroup ID equal to
-the Object ID.<a href="#section-10.4.4.1-7" class="pilcrow">¶</a></p>
+<a href="#object-properties" class="auto internal xref">Section 10.2.1</a>), the object has no Subgroup ID. The publisher <span class="bcp14">MUST</span> SET bit 0x40 to '1'.
+When 0x40 is set, it <span class="bcp14">SHOULD</span> set the two least significant bits to zero and the subscriber
+<span class="bcp14">MUST</span> ignore the bits.<a href="#section-10.4.4.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="end-of-range">
@@ -6654,10 +6698,10 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
         </table>
 </section>
 </div>
-<div id="version-specific-parameters">
+<div id="message-parameters">
 <section id="section-13.2">
-        <h3 id="name-version-specific-parameters-2">
-<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-version-specific-parameters-2" class="section-name selfRef">Version Specific Parameters</a>
+        <h3 id="name-message-parameters-2">
+<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-message-parameters-2" class="section-name selfRef">Message Parameters</a>
         </h3>
 <table class="center" id="table-10">
           <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
