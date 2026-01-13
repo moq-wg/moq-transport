@@ -1957,7 +1957,7 @@ length of the Subscription Filter does not match the parameter length, the
 publisher MUST close the session with `PROTOCOL_VIOLATION`.
 
 If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
-unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.
+unfiltered.  If omitted from REQUEST_UDPATE, the value is unchanged.
 
 #### EXPIRES Parameter {#expires}
 
@@ -2215,7 +2215,7 @@ MAX_REQUEST_ID Message {
 * Max Request ID: The new Maximum Request ID for the session plus 1. If a
   Request ID equal to or larger than this is received by the endpoint that sent
   the MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE, FETCH,
-  SUBSCRIBE, SUBSCRIBE_NAMESPACE, SUBSCRIBE_UDPATE or TRACK_STATUS), the
+  SUBSCRIBE, SUBSCRIBE_NAMESPACE, REQUEST_UDPATE or TRACK_STATUS), the
   endpoint MUST close the session with an error of `TOO_MANY_REQUESTS`.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
