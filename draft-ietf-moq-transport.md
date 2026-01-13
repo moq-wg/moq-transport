@@ -4017,16 +4017,26 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 |----------------|----------------|---------------|
 | 0x02 | DELIVERY_TIMEOUT | {{delivery-timeout}} |
 | 0x03 | AUTHORIZATION_TOKEN | {{authorization-token}} |
-| 0x04 | MAX_CACHE_DURATION | {{max-cache-duration}} |
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
-| 0x0E | PUBLISHER_PRIORITY | {{publisher-priority}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
-| 0x30 | DYNAMIC_GROUPS | {{dynamic-groups}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
+
+## Extension Headers {#iana-extension-headers}
+
+| Type | Name | Scope | Specification |
+|-----:|:-----|:------|:--------------|
+| 0x02 | DELIVERY_TIMEOUT | Track | {{delivery-timeout-ext}} |
+| 0x04 | MAX_CACHE_DURATION | Track | {{max-cache-duration}} |
+| 0x0B | IMMUTABLE_EXTENSIONS | Track, Object | {{immutable-extensions}} |
+| 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | {{publisher-priority}} |
+| 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track | {{group-order-pref}} |
+| 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
+| 0x3C | PRIOR_GROUP_ID_GAP | Object | {{prior-group-id-gap}} |
+| 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
 
 ## Error Codes {#iana-error-codes}
 
@@ -4085,8 +4095,8 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | GOING_AWAY         | 0x4  | {{message-publish-done}} |
 | EXPIRED            | 0x5  | {{message-publish-done}} |
 | TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
-| MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
 | UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
+| MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
 
