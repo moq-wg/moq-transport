@@ -3908,7 +3908,7 @@ length-prefixed Subscription Filter (see <a href="#subscription-filters" class="
 length of the Subscription Filter does not match the parameter length, the
 publisher <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.2.5-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.5-2">If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
-unfiltered.  If omitted from SUBSCRIBE_UDPATE, the value is unchanged.<a href="#section-9.2.2.5-2" class="pilcrow">¶</a></p>
+unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.<a href="#section-9.2.2.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="expires">
@@ -4231,7 +4231,7 @@ MAX_REQUEST_ID Message {
             <p id="section-9.5-4.1.1">Max Request ID: The new Maximum Request ID for the session plus 1. If a
 Request ID equal to or larger than this is received by the endpoint that sent
 the MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE, FETCH,
-SUBSCRIBE, SUBSCRIBE_NAMESPACE, SUBSCRIBE_UDPATE or TRACK_STATUS), the
+SUBSCRIBE, SUBSCRIBE_NAMESPACE, REQUEST_UPDATE or TRACK_STATUS), the
 endpoint <span class="bcp14">MUST</span> close the session with an error of <code>TOO_MANY_REQUESTS</code>.<a href="#section-9.5-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
