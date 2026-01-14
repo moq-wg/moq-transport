@@ -3819,6 +3819,7 @@ by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
 for this Track. If an endpoint receives a value larger than 1, it MUST close
 the session with `PROTOCOL_VIOLATION`.
 
+If omitted, the value is 0.
 
 ## Immutable Extensions
 
