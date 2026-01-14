@@ -4163,6 +4163,8 @@ Table of Contents
    a value larger than 1, it MUST close the session with
    PROTOCOL_VIOLATION.
 
+   If omitted, the value is 0.
+
 11.2.  Immutable Extensions
 
    The Immutable Extensions (Extension Header Type 0xB) contains a
