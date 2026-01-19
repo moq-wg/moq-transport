@@ -356,7 +356,7 @@ readable form while still supporting binary values.
 Example:
 
 ~~~
-example.2enet-team2-project_x--report
+example.net-team2-project_x--report
   Namespace tuples: (example.net, team2, project_x)
   Track name: report
 ~~~
