@@ -1367,8 +1367,9 @@ priority Objects if it expects higher priority Objects will be available to send
 in the near future or it wants to reserve some bandwidth for control messages.
 
 Given the critical nature of control messages and their relatively
-small size, the control stream and bidi request streams SHOULD be prioritized
-higher than all subscribed Objects.
+small size, the control stream SHOULD be prioritized highest, followed by the
+bidi request streams and then all subscribed Objects. Control streams MAY be
+prioritized within themselves by Subscriber Priority if specified.
 
 ## Considerations for Setting Priorities
 
