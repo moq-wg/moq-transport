@@ -975,7 +975,8 @@ can terminate an `Established` subscription, moving it to the
 `Terminated` state.  The subscriber terminates a subscription in the
 `Pending (Subscriber)` or `Established` states by sending STOP_SENDING.
 The publisher terminates a subscription in the
-`Pending (Publisher)` or `Established` states using PUBLISH_DONE.
+`Pending (Publisher)` or `Established` states by sending PUBLISH_DONE
+and closing the stream.
 
 This diagram shows the subscription state machine:
 
