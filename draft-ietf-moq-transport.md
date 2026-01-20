@@ -1453,7 +1453,7 @@ explain how Relays maintain subscriptions to all available publishers for a
 given Track.
 
 There is no specified limit to the number of publishers of a Track Namespace or
-Track.  An implementation can use mechanisms such as REQUEST_ERROR,
+Track.  An implementation can use mechanisms such as REQUEST_ERROR or
 unsubscribing (see {{request-cancellation}}) if it cannot accept an additional
 publisher due to implementation constraints. Implementations can consider the
 establishment or idle time of the session or subscription to determine which
