@@ -2780,7 +2780,8 @@ can terminate an <code>Established</code> subscription, moving it to the
 <code>Terminated</code> state.  The subscriber terminates a subscription in the
 <code>Pending (Subscriber)</code> or <code>Established</code> states by sending STOP_SENDING.
 The publisher terminates a subscription in the
-<code>Pending (Publisher)</code> or <code>Established</code> states using PUBLISH_DONE.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<code>Pending (Publisher)</code> or <code>Established</code> states by sending PUBLISH_DONE
+and closing the stream.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1-2">This diagram shows the subscription state machine:<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5.1-3">
 <pre>
