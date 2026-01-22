@@ -6330,9 +6330,9 @@ Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
 <p id="section-11.1-2">DELIVERY_TIMEOUT, if present, <span class="bcp14">MUST</span> contain a value greater than 0.  If an
 endpoint receives a DELIVERY_TIMEOUT equal to 0 it <span class="bcp14">MUST</span> close the session with
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.1-2" class="pilcrow">¶</a></p>
-<p id="section-11.1-3">If both the subscriber specifies this parameter and the Track has a
-DELIVERY_TIMEOUT extension, the endpoints use the min of
-the two values for the subscription.<a href="#section-11.1-3" class="pilcrow">¶</a></p>
+<p id="section-11.1-3">If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the Track has
+a DELIVERY_TIMEOUT extension, the endpoints use the min of the two values for
+the subscription.<a href="#section-11.1-3" class="pilcrow">¶</a></p>
 <p id="section-11.1-4">If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
 specified a timeout, Objects do not time out.<a href="#section-11.1-4" class="pilcrow">¶</a></p>
 <div id="max-cache-duration">
