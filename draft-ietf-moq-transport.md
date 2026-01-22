@@ -3767,6 +3767,10 @@ DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
 endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session with
 `PROTOCOL_VIOLATION`.
 
+If both the subscriber specifies this parameter and the Track has a
+DELIVERY_TIMEOUT extension, the endpoints use the min of
+the two values for the subscription.
+
 If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
 specified a timeout, Objects do not time out.
 
