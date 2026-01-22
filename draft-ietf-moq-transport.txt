@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 18 July 2026                                      I. Swett, Ed.
+Expires: 26 July 2026                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         14 January 2026
+                                                         22 January 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 July 2026.
+   This Internet-Draft will expire on 26 July 2026.
 
 Copyright Notice
 
@@ -4105,6 +4105,10 @@ Table of Contents
    DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.
    If an endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close
    the session with PROTOCOL_VIOLATION.
+
+   If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the
+   Track has a DELIVERY_TIMEOUT extension, the endpoints use the min of
+   the two values for the subscription.
 
    If unspecified, the subscriber's DELIVERY_TIMEOUT is used.  If
    neither endpoint specified a timeout, Objects do not time out.
