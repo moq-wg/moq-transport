@@ -2431,10 +2431,10 @@ SUBSCRIBE_OK Message {
   {{message-subscribe-req}}.
 
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}). The same Track Alias MUST NOT be used to refer to two
-  different Tracks simultaneously. If a subscriber receives a SUBSCRIBE_OK that
-  uses the same Track Alias as a different track with an `Established` subscription,
-  it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
+  {{track-alias}}). The same Track Alias MUST NOT be used by a publisher to refer to
+  two different Tracks simultaneously in the same session. If a subscriber receives a
+  SUBSCRIBE_OK that uses the same Track Alias as a different track with an
+  `Established` subscription, it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -2548,10 +2548,10 @@ PUBLISH Message {
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}). The same Track Alias MUST NOT be used to refer to two
-  different Tracks simultaneously. If a subscriber receives a PUBLISH that
-  uses the same Track Alias as a different track with an `Established` subscription, it
-  MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
+  {{track-alias}}). The same Track Alias MUST NOT be used by a publisher to refer to
+  two different Tracks simultaneously in the same session. If a subscriber receives a
+  PUBLISH that uses the same Track Alias as a different track with an `Established`
+  subscription, it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
