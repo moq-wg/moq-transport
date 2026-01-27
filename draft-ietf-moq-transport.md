@@ -2168,7 +2168,7 @@ Sending a GOAWAY does not prevent the sender from initiating new requests,
 though the sender SHOULD avoid initiating requests unless required by migration
 (see ({{graceful-subscriber-switchover}} and {{graceful-publisher-switchover}}).
 An endpoint that receives a GOAWAY MAY reject new requests with an appropriate
-error code (e.g., SUBSCRIBE_ERROR with error code GOING_AWAY).
+error code (e.g., REQUEST_ERROR with error code GOING_AWAY).
 
 The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
 ({{session-termination}}) if it receives multiple GOAWAY messages.
@@ -2329,6 +2329,9 @@ MALFORMED_AUTH_TOKEN:
 
 EXPIRED_AUTH_TOKEN:
 : Authorization token has expired ({{authorization-token}}).
+
+GOING_AWAY:
+: The endpoint has received a GOAWAY and MAY reject new requests.
 
 DUPLICATE_SUBSCRIPTION (0x19):
 : The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
@@ -4081,6 +4084,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | NOT_SUPPORTED              | 0x3  | {{message-request-error}} |
 | MALFORMED_AUTH_TOKEN       | 0x4  | {{message-request-error}} |
 | EXPIRED_AUTH_TOKEN         | 0x5  | {{message-request-error}} |
+| GOING_AWAY                 | 0x6  | {{message-request-error}} |
 | DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
 | INVALID_RANGE              | 0x11 | {{message-request-error}} |
 | MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
