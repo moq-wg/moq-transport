@@ -2442,7 +2442,7 @@ SUBSCRIBE_OK Message {
 
 ## REQUEST_UPDATE {#message-request-update}
 
-The sender of a request (SUBSCRIBE, PUBLISH, FETCH, TRACK_STATUS,
+The sender of a request (SUBSCRIBE, PUBLISH, FETCH,
 PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE) can later send a REQUEST_UPDATE to
 modify it.  A subscriber can also send REQUEST_UPDATE to modify parameters of a
 subscription established with PUBLISH.
