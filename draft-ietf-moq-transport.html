@@ -573,6 +573,7 @@ aside, blockquote {
 }
 blockquote {
   margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
 }
 cite {
   display: block;
@@ -643,7 +644,7 @@ a.pilcrow {
   }
 }
 @media not print {
-  :hover > a.pilcrow {
+  :hover > a.pilcrow, a.pilcrow:focus {
     opacity: 1;
   }
   a.pilcrow[href]:hover {
@@ -1055,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 26 July 2026</td>
+<td class="center">Expires 2 August 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-01-22" class="published">22 January 2026</time>
+<time datetime="2026-01-29" class="published">29 January 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-07-26">26 July 2026</time></dd>
+<dd class="expires"><time datetime="2026-08-02">2 August 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 26 July 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 2 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1201,13 +1202,16 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.1.2.4.1"><a href="#section-1.4" class="auto internal xref">1.4</a>.  <a href="#name-notational-conventions" class="internal xref">Notational Conventions</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.4.2.1">
-                    <p id="section-toc.1-1.1.2.4.2.1.1"><a href="#section-1.4.1" class="auto internal xref">1.4.1</a>.  <a href="#name-location-structure" class="internal xref">Location Structure</a></p>
+                    <p id="section-toc.1-1.1.2.4.2.1.1"><a href="#section-1.4.1" class="auto internal xref">1.4.1</a>.  <a href="#name-variable-length-integers" class="internal xref">Variable-Length Integers</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.4.2.2">
-                    <p id="section-toc.1-1.1.2.4.2.2.1"><a href="#section-1.4.2" class="auto internal xref">1.4.2</a>.  <a href="#name-key-value-pair-structure" class="internal xref">Key-Value-Pair Structure</a></p>
+                    <p id="section-toc.1-1.1.2.4.2.2.1"><a href="#section-1.4.2" class="auto internal xref">1.4.2</a>.  <a href="#name-location-structure" class="internal xref">Location Structure</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.4.2.3">
-                    <p id="section-toc.1-1.1.2.4.2.3.1"><a href="#section-1.4.3" class="auto internal xref">1.4.3</a>.  <a href="#name-reason-phrase-structure" class="internal xref">Reason Phrase Structure</a></p>
+                    <p id="section-toc.1-1.1.2.4.2.3.1"><a href="#section-1.4.3" class="auto internal xref">1.4.3</a>.  <a href="#name-key-value-pair-structure" class="internal xref">Key-Value-Pair Structure</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.4.2.4">
+                    <p id="section-toc.1-1.1.2.4.2.4.1"><a href="#section-1.4.4" class="auto internal xref">1.4.4</a>.  <a href="#name-reason-phrase-structure" class="internal xref">Reason Phrase Structure</a></p>
 </li>
                 </ul>
 </li>
@@ -1891,22 +1895,164 @@ bytes. Objects form the base element in the MOQT data model. See
         </h3>
 <p id="section-1.4-1">This document uses the conventions detailed in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-1.3" class="relref">Section 1.3</a></span>)
 when describing the binary encoding.<a href="#section-1.4-1" class="pilcrow">¶</a></p>
-<p id="section-1.4-2">To reduce unnecessary use of bandwidth, variable length integers <span class="bcp14">SHOULD</span>
-be encoded using the least number of bytes possible to represent the
-required value.<a href="#section-1.4-2" class="pilcrow">¶</a></p>
-<div id="location-structure">
+<div id="variable-length-integers">
 <section id="section-1.4.1">
-          <h4 id="name-location-structure">
-<a href="#section-1.4.1" class="section-number selfRef">1.4.1. </a><a href="#name-location-structure" class="section-name selfRef">Location Structure</a>
+          <h4 id="name-variable-length-integers">
+<a href="#section-1.4.1" class="section-number selfRef">1.4.1. </a><a href="#name-variable-length-integers" class="section-name selfRef">Variable-Length Integers</a>
           </h4>
-<p id="section-1.4.1-1">Location identifies a particular Object in a Group within a Track.<a href="#section-1.4.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.4.1-1">MoQT requires a variable-length integer encoding with the following properties:<a href="#section-1.4.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-1.4.1-2">
+<li id="section-1.4.1-2.1">
+              <p id="section-1.4.1-2.1.1">The encoded length can be determined from the first encoded byte.<a href="#section-1.4.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-1.4.1-2.2">
+              <p id="section-1.4.1-2.2.1">The range of 1 byte values is as large as possible.<a href="#section-1.4.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-1.4.1-2.3">
+              <p id="section-1.4.1-2.3.1">All 64 bit numbers can be encoded.<a href="#section-1.4.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ol>
+<p id="section-1.4.1-3">The variable-length integer encoding uses the number of leading 1 bits of the
+first byte to indicate the length of the encoding in bytes. The remaining bits
+after the first 0 and subsequent bytes, if any, represent the integer value,
+encoded in network byte order.<a href="#section-1.4.1-3" class="pilcrow">¶</a></p>
+<p id="section-1.4.1-4">Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can encode up to 64
+bit unsinged integers. The following table summarizes the encoding properties.<a href="#section-1.4.1-4" class="pilcrow">¶</a></p>
+<span id="name-summary-of-integer-encoding"></span><table class="center" id="table-1">
+            <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-summary-of-integer-encoding" class="selfRef">Summary of Integer Encodings</a>
+            </caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Leading Bits</th>
+                <th class="text-left" rowspan="1" colspan="1">Length (bytes)</th>
+                <th class="text-left" rowspan="1" colspan="1">Usable Bits</th>
+                <th class="text-left" rowspan="1" colspan="1">Range</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0</td>
+                <td class="text-left" rowspan="1" colspan="1">1</td>
+                <td class="text-left" rowspan="1" colspan="1">7</td>
+                <td class="text-left" rowspan="1" colspan="1">0-127</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">10</td>
+                <td class="text-left" rowspan="1" colspan="1">2</td>
+                <td class="text-left" rowspan="1" colspan="1">14</td>
+                <td class="text-left" rowspan="1" colspan="1">0-16383</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">110</td>
+                <td class="text-left" rowspan="1" colspan="1">3</td>
+                <td class="text-left" rowspan="1" colspan="1">21</td>
+                <td class="text-left" rowspan="1" colspan="1">0-2097151</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">1110</td>
+                <td class="text-left" rowspan="1" colspan="1">4</td>
+                <td class="text-left" rowspan="1" colspan="1">28</td>
+                <td class="text-left" rowspan="1" colspan="1">0-268435455</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">11110</td>
+                <td class="text-left" rowspan="1" colspan="1">5</td>
+                <td class="text-left" rowspan="1" colspan="1">35</td>
+                <td class="text-left" rowspan="1" colspan="1">0-34359738367</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">111110</td>
+                <td class="text-left" rowspan="1" colspan="1">6</td>
+                <td class="text-left" rowspan="1" colspan="1">42</td>
+                <td class="text-left" rowspan="1" colspan="1">0-4398046511103</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">11111110</td>
+                <td class="text-left" rowspan="1" colspan="1">8</td>
+                <td class="text-left" rowspan="1" colspan="1">56</td>
+                <td class="text-left" rowspan="1" colspan="1">0-72057594037927935</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">11111111</td>
+                <td class="text-left" rowspan="1" colspan="1">9</td>
+                <td class="text-left" rowspan="1" colspan="1">64</td>
+                <td class="text-left" rowspan="1" colspan="1">0-18446744073709551615</td>
+              </tr>
+            </tbody>
+          </table>
+<p id="section-1.4.1-6">The following table contains some example encodings:<a href="#section-1.4.1-6" class="pilcrow">¶</a></p>
+<span id="name-example-integer-encodings"></span><table class="center" id="table-2">
+            <caption>
+<a href="#table-2" class="selfRef">Table 2</a>:
+<a href="#name-example-integer-encodings" class="selfRef">Example Integer Encodings</a>
+            </caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Byte Sequence</th>
+                <th class="text-left" rowspan="1" colspan="1">Decimal Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x25</td>
+                <td class="text-left" rowspan="1" colspan="1">37</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x8025</td>
+                <td class="text-left" rowspan="1" colspan="1">37</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0xbbbd</td>
+                <td class="text-left" rowspan="1" colspan="1">15,293</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0xdd7f3e7d</td>
+                <td class="text-left" rowspan="1" colspan="1">494,878,333</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0xfaa1a0e403d8</td>
+                <td class="text-left" rowspan="1" colspan="1">2,893,212,287,960</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0xfefa318fa8e3ca11</td>
+                <td class="text-left" rowspan="1" colspan="1">70,423,237,261,249,041</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0xffffffffffffffffff</td>
+                <td class="text-left" rowspan="1" colspan="1">18,446,744,073,709,551,615</td>
+              </tr>
+            </tbody>
+          </table>
+<p id="section-1.4.1-8">11111100 is an invalid code point.  An endpoint that receives this value <span class="bcp14">MUST</span>
+close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-1.4.1-8" class="pilcrow">¶</a></p>
+<p id="section-1.4.1-9">To reduce unnecessary use of bandwidth, variable length integers <span class="bcp14">SHOULD</span> be
+encoded using the least number of bytes possible to represent the required
+value.<a href="#section-1.4.1-9" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-1.4.1-10">
+            <dt id="section-1.4.1-10.1">x (vi64):</dt>
+            <dd style="margin-left: 1.5em" id="section-1.4.1-10.2">
+              <p id="section-1.4.1-10.2.1">Indicates that x holds an integer value using the variable-length
+encoding as described above.<a href="#section-1.4.1-10.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="location-structure">
+<section id="section-1.4.2">
+          <h4 id="name-location-structure">
+<a href="#section-1.4.2" class="section-number selfRef">1.4.2. </a><a href="#name-location-structure" class="section-name selfRef">Location Structure</a>
+          </h4>
+<p id="section-1.4.2-1">Location identifies a particular Object in a Group within a Track.<a href="#section-1.4.2-1" class="pilcrow">¶</a></p>
 <span id="name-location-structure-2"></span><div id="moq-location">
 <figure id="figure-1">
-            <div class="alignLeft art-text artwork" id="section-1.4.1-2.1">
+            <div class="alignLeft art-text artwork" id="section-1.4.2-2.1">
 <pre>
 Location {
-  Group (i),
-  Object (i)
+  Group (vi64),
+  Object (vi64)
 }
 </pre>
 </div>
@@ -1914,38 +2060,38 @@ Location {
 <a href="#name-location-structure-2" class="selfRef">Location structure</a>
             </figcaption></figure>
 </div>
-<p id="section-1.4.1-3">In this document, a Location can be expressed in the form of {GroupID,
+<p id="section-1.4.2-3">In this document, a Location can be expressed in the form of {GroupID,
 ObjectID}, where GroupID and ObjectID indicate the Group ID and Object ID of the
 Location, respectively.  The constituent parts of any Location A can be referred
-to using A.Group or A.Object.<a href="#section-1.4.1-3" class="pilcrow">¶</a></p>
-<p id="section-1.4.1-4">Location A &lt; Location B if:<a href="#section-1.4.1-4" class="pilcrow">¶</a></p>
-<p id="section-1.4.1-5"><code>A.Group &lt; B.Group || (A.Group == B.Group &amp;&amp; A.Object &lt; B.Object)</code><a href="#section-1.4.1-5" class="pilcrow">¶</a></p>
+to using A.Group or A.Object.<a href="#section-1.4.2-3" class="pilcrow">¶</a></p>
+<p id="section-1.4.2-4">Location A &lt; Location B if:<a href="#section-1.4.2-4" class="pilcrow">¶</a></p>
+<p id="section-1.4.2-5"><code>A.Group &lt; B.Group || (A.Group == B.Group &amp;&amp; A.Object &lt; B.Object)</code><a href="#section-1.4.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="key-value-pair-structure">
-<section id="section-1.4.2">
+<section id="section-1.4.3">
           <h4 id="name-key-value-pair-structure">
-<a href="#section-1.4.2" class="section-number selfRef">1.4.2. </a><a href="#name-key-value-pair-structure" class="section-name selfRef">Key-Value-Pair Structure</a>
+<a href="#section-1.4.3" class="section-number selfRef">1.4.3. </a><a href="#name-key-value-pair-structure" class="section-name selfRef">Key-Value-Pair Structure</a>
           </h4>
-<p id="section-1.4.2-1">Key-Value-Pair is a flexible structure designed to carry key/value
+<p id="section-1.4.3-1">Key-Value-Pair is a flexible structure designed to carry key/value
 pairs in which the key is a variable length integer and the value
 is either a variable length integer or a byte field of arbitrary
-length.<a href="#section-1.4.2-1" class="pilcrow">¶</a></p>
-<p id="section-1.4.2-2">Key-Value-Pairs encode a Type value as a delta from the previous Type value,
+length.<a href="#section-1.4.3-1" class="pilcrow">¶</a></p>
+<p id="section-1.4.3-2">Key-Value-Pairs encode a Type value as a delta from the previous Type value,
 or from 0 if there is no previous Type value. This is efficient on the wire
 and makes it easy to ensure there is only one instance of a type when needed.
 The previous Type value plus the Delta Type <span class="bcp14">MUST NOT</span> be greater than 2^64 - 1.
 If a Delta Type is received that would be too large, the Session <span class="bcp14">MUST</span> be closed
-with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-1.4.2-2" class="pilcrow">¶</a></p>
-<p id="section-1.4.2-3">Key-Value-Pair is used in both the data plane and control plane, but
-is optimized for use in the data plane.<a href="#section-1.4.2-3" class="pilcrow">¶</a></p>
+with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-1.4.3-2" class="pilcrow">¶</a></p>
+<p id="section-1.4.3-3">Key-Value-Pair is used in both the data plane and control plane, but
+is optimized for use in the data plane.<a href="#section-1.4.3-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-key-value-pair"></span><div id="moq-key-value-pair">
 <figure id="figure-2">
-            <div class="alignLeft art-text artwork" id="section-1.4.2-4.1">
+            <div class="alignLeft art-text artwork" id="section-1.4.3-4.1">
 <pre>
 Key-Value-Pair {
-  Delta Type (i),
-  [Length (i),]
+  Delta Type (vi64),
+  [Length (vi64),]
   Value (..)
 }
 </pre>
@@ -1955,54 +2101,54 @@ Key-Value-Pair {
             </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-1.4.2-5.1">
-              <p id="section-1.4.2-5.1.1">Delta Type: an unsigned integer, encoded as a varint, identifying the Type
+<li class="normal" id="section-1.4.3-5.1">
+              <p id="section-1.4.3-5.1.1">Delta Type: an unsigned integer, encoded as a varint, identifying the Type
 as a delta encoded value from the previous Type, if any. The Type identifies
-the type of value and also the subsequent serialization.<a href="#section-1.4.2-5.1.1" class="pilcrow">¶</a></p>
+the type of value and also the subsequent serialization.<a href="#section-1.4.3-5.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-1.4.2-5.2">
-              <p id="section-1.4.2-5.2.1">Length: Only present when Type is odd. Specifies the length of the Value field
+            <li class="normal" id="section-1.4.3-5.2">
+              <p id="section-1.4.3-5.2.1">Length: Only present when Type is odd. Specifies the length of the Value field
 in bytes. The maximum length of a value is 2^16-1 bytes.  If an endpoint
 receives a length larger than the maximum, it <span class="bcp14">MUST</span> close the session with a
-<code>PROTOCOL_VIOLATION</code>.<a href="#section-1.4.2-5.2.1" class="pilcrow">¶</a></p>
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-1.4.3-5.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-1.4.2-5.3">
-              <p id="section-1.4.2-5.3.1">Value: A single varint encoded value when Type is even, otherwise a
-sequence of Length bytes.<a href="#section-1.4.2-5.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-1.4.3-5.3">
+              <p id="section-1.4.3-5.3.1">Value: A single varint encoded value when Type is even, otherwise a
+sequence of Length bytes.<a href="#section-1.4.3-5.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-1.4.2-6">If a receiver understands a Type, and the following Value or Length/Value does
+<p id="section-1.4.3-6">If a receiver understands a Type, and the following Value or Length/Value does
 not match the serialization defined by that Type, the receiver <span class="bcp14">MUST</span> close
-the session with error code <code>KEY_VALUE_FORMATTING_ERROR</code>.<a href="#section-1.4.2-6" class="pilcrow">¶</a></p>
+the session with error code <code>KEY_VALUE_FORMATTING_ERROR</code>.<a href="#section-1.4.3-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="reason-phrase">
-<section id="section-1.4.3">
+<section id="section-1.4.4">
           <h4 id="name-reason-phrase-structure">
-<a href="#section-1.4.3" class="section-number selfRef">1.4.3. </a><a href="#name-reason-phrase-structure" class="section-name selfRef">Reason Phrase Structure</a>
+<a href="#section-1.4.4" class="section-number selfRef">1.4.4. </a><a href="#name-reason-phrase-structure" class="section-name selfRef">Reason Phrase Structure</a>
           </h4>
-<p id="section-1.4.3-1">Reason Phrase provides a way for the sender to encode additional diagnostic
-information about the error condition, where appropriate.<a href="#section-1.4.3-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-1.4.3-2">
+<p id="section-1.4.4-1">Reason Phrase provides a way for the sender to encode additional diagnostic
+information about the error condition, where appropriate.<a href="#section-1.4.4-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-1.4.4-2">
 <pre>
 Reason Phrase {
-  Reason Phrase Length (i),
+  Reason Phrase Length (vi64),
   Reason Phrase Value (..)
 }
-</pre><a href="#section-1.4.3-2" class="pilcrow">¶</a>
+</pre><a href="#section-1.4.4-2" class="pilcrow">¶</a>
 </div>
 <ul class="normal">
-<li class="normal" id="section-1.4.3-3.1">
-              <p id="section-1.4.3-3.1.1">Reason Phrase Length: A variable-length integer specifying the length of the
+<li class="normal" id="section-1.4.4-3.1">
+              <p id="section-1.4.4-3.1.1">Reason Phrase Length: A variable-length integer specifying the length of the
 reason phrase in bytes. The reason phrase length has a maximum value of
 1024 bytes. If an endpoint receives a length exceeding the maximum, it <span class="bcp14">MUST</span>
-close the session with a <code>PROTOCOL_VIOLATION</code><a href="#section-1.4.3-3.1.1" class="pilcrow">¶</a></p>
+close the session with a <code>PROTOCOL_VIOLATION</code><a href="#section-1.4.4-3.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-1.4.3-3.2">
-              <p id="section-1.4.3-3.2.1">Reason Phrase Value: Additional diagnostic information about the error condition.
+            <li class="normal" id="section-1.4.4-3.2">
+              <p id="section-1.4.4-3.2.1">Reason Phrase Value: Additional diagnostic information about the error condition.
 The reason phrase value is encoded as UTF-8 string and does not carry information,
 such as language tags, that would aid comprehension by any entity other than
-the one that created the text.<a href="#section-1.4.3-3.2.1" class="pilcrow">¶</a></p>
+the one that created the text.<a href="#section-1.4.4-3.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -2211,7 +2357,7 @@ encoded as follows:<a href="#section-2.4.1-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-2.4.1-3">
 <pre>
 Track Namespace {
-  Number of Track Namespace Fields (i),
+  Number of Track Namespace Fields (vi64),
   Track Namespace Field (..) ...
 }
 </pre><a href="#section-2.4.1-3" class="pilcrow">¶</a>
@@ -2226,7 +2372,7 @@ the number of Track Namespace Fields in the Track Namespace.<a href="#section-2.
 <div class="alignLeft art-text artwork" id="section-2.4.1-6">
 <pre>
 Track Namespace Field {
-  Track Namespace Field Length (i),
+  Track Namespace Field Length (vi64),
   Track Namespace Field Value (..)
 }
 </pre><a href="#section-2.4.1-6" class="pilcrow">¶</a>
@@ -2896,7 +3042,7 @@ published or received via a subscription having Locations greater than or
 equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.<a href="#section-5.1.2-2" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-3">Some filters are defined to be relative to the <code>Largest Object</code>. The <code>Largest
-Object</code> is the Object with the largest Location (<a href="#location-structure" class="auto internal xref">Section 1.4.1</a>) in the
+Object</code> is the Object with the largest Location (<a href="#location-structure" class="auto internal xref">Section 1.4.2</a>) in the
 Track from the perspective of the publisher processing the message. Largest
 Object updates when the first byte of an Object with a Location larger than the
 previous value is published or received through a subscription.<a href="#section-5.1.2-3" class="pilcrow">¶</a></p>
@@ -2904,9 +3050,9 @@ previous value is published or received through a subscription.<a href="#section
 <div class="alignLeft art-text artwork" id="section-5.1.2-5">
 <pre>
 Subscription Filter {
-  Filter Type (i),
+  Filter Type (vi64),
   [Start Location (Location),]
-  [End Group (i),]
+  [End Group (vi64),]
 }
 </pre><a href="#section-5.1.2-5" class="pilcrow">¶</a>
 </div>
@@ -3489,7 +3635,7 @@ formatted as follows:<a href="#section-9-1" class="pilcrow">¶</a></p>
         <div class="alignLeft art-text artwork" id="section-9-2.1">
 <pre>
 MOQT Control Message {
-  Message Type (i),
+  Message Type (vi64),
   Message Length (16),
   Message Payload (..),
 }
@@ -3500,8 +3646,8 @@ MOQT Control Message {
         </figcaption></figure>
 </div>
 <p id="section-9-3">The following Message Types are defined:<a href="#section-9-3" class="pilcrow">¶</a></p>
-<table class="center" id="table-1">
-        <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<table class="center" id="table-3">
+        <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
           <tr>
             <th class="text-right" rowspan="1" colspan="1">ID</th>
@@ -3713,9 +3859,9 @@ follows:<a href="#section-9.2.2.1-2" class="pilcrow">¶</a></p>
               <div class="alignLeft art-text artwork" id="section-9.2.2.1-3.1">
 <pre>
 Token {
-  Alias Type (i),
-  [Token Alias (i),]
-  [Token Type (i),]
+  Alias Type (vi64),
+  [Token Alias (vi64),]
+  [Token Type (vi64),]
   [Token Value (..)]
 }
 </pre>
@@ -3942,7 +4088,7 @@ does not expire or expires at an unknown time.<a href="#section-9.2.2.6-3" class
             </h5>
 <p id="section-9.2.2.7-1">The LARGEST_OBJECT parameter (Parameter Type 0x9) <span class="bcp14">MAY</span> appear in SUBSCRIBE_OK,
 PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE or TRACK_STATUS).  It is a
-length-prefixed Location structure (see <a href="#location-structure" class="auto internal xref">Section 1.4.1</a>) containing the
+length-prefixed Location structure (see <a href="#location-structure" class="auto internal xref">Section 1.4.2</a>) containing the
 largest Location in the Track observed by the sending endpoint (see
 <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>.  If Objects have been published on this Track the
 Publisher <span class="bcp14">MUST</span> include this parameter.<a href="#section-9.2.2.7-1" class="pilcrow">¶</a></p>
@@ -4030,16 +4176,16 @@ TODO: describe GREASE for Setup Parameters.<a href="#section-9.3-1" class="pilcr
           <div class="alignLeft art-text artwork" id="section-9.3-3.1">
 <pre>
 CLIENT_SETUP Message {
-  Type (i) = 0x20,
+  Type (vi64) = 0x20,
   Length (16),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Setup Parameters (..) ...,
 }
 
 SERVER_SETUP Message {
-  Type (i) = 0x21,
+  Type (vi64) = 0x21,
   Length (16),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Setup Parameters (..) ...,
 }
 </pre>
@@ -4177,9 +4323,9 @@ error code (e.g., SUBSCRIBE_ERROR with error code GOING_AWAY).<a href="#section-
           <div class="alignLeft art-text artwork" id="section-9.4-6.1">
 <pre>
 GOAWAY Message {
-  Type (i) = 0x10,
+  Type (vi64) = 0x10,
   Length (16),
-  New Session URI Length (i),
+  New Session URI Length (vi64),
   New Session URI (..),
 }
 </pre>
@@ -4219,9 +4365,9 @@ close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.5-2
           <div class="alignLeft art-text artwork" id="section-9.5-3.1">
 <pre>
 MAX_REQUEST_ID Message {
-  Type (i) = 0x15,
+  Type (vi64) = 0x15,
   Length (16),
-  Max Request ID (i),
+  Max Request ID (vi64),
 }
 </pre>
 </div>
@@ -4262,9 +4408,9 @@ sending REQUESTS_BLOCKED is not required.<a href="#section-9.6-2" class="pilcrow
           <div class="alignLeft art-text artwork" id="section-9.6-3.1">
 <pre>
 REQUESTS_BLOCKED Message {
-  Type (i) = 0x1A,
+  Type (vi64) = 0x1A,
   Length (16),
-  Maximum Request ID (i),
+  Maximum Request ID (vi64),
 }
 </pre>
 </div>
@@ -4293,10 +4439,10 @@ REQUEST_OK is used to associate it with the correct type of request.<a href="#se
           <div class="alignLeft art-text artwork" id="section-9.7-2.1">
 <pre>
 REQUEST_OK Message {
-  Type (i) = 0x7,
+  Type (vi64) = 0x7,
   Length (16),
-  Request ID (i),
-  Number of Parameters (i),
+  Request ID (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 </pre>
@@ -4329,11 +4475,9 @@ request.<a href="#section-9.8-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-9.8-2.1">
 <pre>
 REQUEST_ERROR Message {
-  Type (i) = 0x5,
+  Type (vi64) = 0x5,
   Length (16),
-  Request ID (i),
-  Error Code (i),
-  Retry Interval (i),
+  Retry Interval (vi64),
   Error Reason (Reason Phrase),
 }
 </pre>
@@ -4355,7 +4499,7 @@ sent again, plus one. If the value is 0, the request <span class="bcp14">SHOULD 
 </li>
           <li class="normal" id="section-9.8-3.4">
             <p id="section-9.8-3.4.1">Error Reason: Provides a text description of the request error. See
- <a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.8-3.4.1" class="pilcrow">¶</a></p>
+ <a href="#reason-phrase" class="auto internal xref">Section 1.4.4</a>.<a href="#section-9.8-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.8-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in REQUEST_ERROR,
@@ -4470,13 +4614,13 @@ past are retrieved using FETCH (<a href="#message-fetch" class="auto internal xr
           <div class="alignLeft art-text artwork" id="section-9.9-4.1">
 <pre>
 SUBSCRIBE Message {
-  Type (i) = 0x3,
+  Type (vi64) = 0x3,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (..),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 </pre>
@@ -4523,11 +4667,11 @@ subscriptions.<a href="#section-9.10-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-9.10-2.1">
 <pre>
 SUBSCRIBE_OK Message {
-  Type (i) = 0x4,
+  Type (vi64) = 0x4,
   Length (16),
-  Request ID (i),
-  Track Alias (i),
-  Number of Parameters (i),
+  Request ID (vi64),
+  Track Alias (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...,
   Track Extensions (..),
 }
@@ -4578,11 +4722,11 @@ or REQUEST_ERROR message indicating if the update was successful.<a href="#secti
           <div class="alignLeft art-text artwork" id="section-9.11-6.1">
 <pre>
 REQUEST_UPDATE Message {
-  Type (i) = 0x2,
+  Type (vi64) = 0x2,
   Length (16),
-  Request ID (i),
-  Existing Request ID (i),
-  Number of Parameters (i),
+  Request ID (vi64),
+  Existing Request ID (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 </pre>
@@ -4644,9 +4788,9 @@ Publisher stop sending Objects as soon as possible.<a href="#section-9.12-1" cla
           <div class="alignLeft art-text artwork" id="section-9.12-3.1">
 <pre>
 UNSUBSCRIBE Message {
-  Type (i) = 0xA,
+  Type (vi64) = 0xA,
   Length (16),
-  Request ID (i)
+  Request ID (vi64)
 }
 </pre>
 </div>
@@ -4674,14 +4818,14 @@ track. The receiver verifies the publisher is authorized to publish this track.<
           <div class="alignLeft art-text artwork" id="section-9.13-2.1">
 <pre>
 PUBLISH Message {
-  Type (i) = 0x1D,
+  Type (vi64) = 0x1D,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (..),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
-  Track Alias (i),
-  Number of Parameters (i),
+  Track Alias (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...,
   Track Extensions (..),
 }
@@ -4738,10 +4882,10 @@ authorization and acceptance of a PUBLISH message, and establish a subscription.
           <div class="alignLeft art-text artwork" id="section-9.14-2.1">
 <pre>
 PUBLISH_OK Message {
-  Type (i) = 0x1E,
+  Type (vi64) = 0x1E,
   Length (16),
-  Request ID (i),
-  Number of Parameters (i),
+  Request ID (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...,
 }
 </pre>
@@ -4802,11 +4946,11 @@ the subscription when it deletes subscription state.<a href="#section-9.15-5" cl
           <div class="alignLeft art-text artwork" id="section-9.15-7.1">
 <pre>
 PUBLISH_DONE Message {
-  Type (i) = 0xB,
+  Type (vi64) = 0xB,
   Length (16),
-  Request ID (i),
-  Status Code (i),
-  Stream Count (i),
+  Request ID (vi64),
+  Status Code (vi64),
+  Stream Count (vi64),
   Error Reason (Reason Phrase)
 }
 </pre>
@@ -4839,7 +4983,7 @@ subscription than specified in Stream Count, it <span class="bcp14">MAY</span> c
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.15-8.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.15-8.4">
-            <p id="section-9.15-8.4.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.15-8.4.1" class="pilcrow">¶</a></p>
+            <p id="section-9.15-8.4.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 1.4.4</a>.<a href="#section-9.15-8.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.15-9">The application <span class="bcp14">SHOULD</span> use a relevant status code in PUBLISH_DONE, as defined
@@ -4904,8 +5048,8 @@ its implementation defined limit.<a href="#section-9.15-10.14.1" class="pilcrow"
 <p id="section-9.16-1">A subscriber issues a FETCH to a publisher to request a range of already
 published objects within a track.<a href="#section-9.16-1" class="pilcrow">¶</a></p>
 <p id="section-9.16-2">There are three types of Fetch messages.<a href="#section-9.16-2" class="pilcrow">¶</a></p>
-<table class="center" id="table-2">
-          <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<table class="center" id="table-4">
+          <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Code</th>
@@ -4940,7 +5084,7 @@ the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.16-4" cla
 <pre>
 Standalone Fetch {
   Track Namespace (..),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
   Start Location (Location),
   End Location (Location)
@@ -4990,8 +5134,8 @@ respond with a REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href=
 <div class="alignLeft art-text artwork" id="section-9.16.2-6">
 <pre>
 Joining Fetch {
-  Joining Request ID (i),
-  Joining Start (i)
+  Joining Request ID (vi64),
+  Joining Start (vi64)
 }
 </pre><a href="#section-9.16.2-6" class="pilcrow">¶</a>
 </div>
@@ -5041,13 +5185,13 @@ encoding.<a href="#section-9.16.2.1-3" class="pilcrow">¶</a></p>
             <div class="alignLeft art-text artwork" id="section-9.16.3-2.1">
 <pre>
 FETCH Message {
-  Type (i) = 0x16,
+  Type (vi64) = 0x16,
   Length (16),
-  Request ID (i),
-  Fetch Type (i),
+  Request ID (vi64),
+  Fetch Type (vi64),
   [Standalone (Standalone Fetch),]
   [Joining (Joining Fetch),]
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 </pre>
@@ -5132,12 +5276,12 @@ but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the End Locat
           <div class="alignLeft art-text artwork" id="section-9.17-2.1">
 <pre>
 FETCH_OK Message {
-  Type (i) = 0x18,
+  Type (vi64) = 0x18,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   End Of Track (8),
   End Location (Location),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
   Track Extensions (..),
 }
@@ -5208,9 +5352,9 @@ is in the middle of delivering an object.<a href="#section-9.18-1" class="pilcro
           <div class="alignLeft art-text artwork" id="section-9.18-3.1">
 <pre>
 FETCH_CANCEL Message {
-  Type (i) = 0x17,
+  Type (vi64) = 0x17,
   Length (16),
-  Request ID (i)
+  Request ID (vi64)
 }
 </pre>
 </div>
@@ -5262,11 +5406,11 @@ publisher is authorized to publish tracks under this namespace.<a href="#section
           <div class="alignLeft art-text artwork" id="section-9.20-2.1">
 <pre>
 PUBLISH_NAMESPACE Message {
-  Type (i) = 0x6,
+  Type (vi64) = 0x6,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (..),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 </pre>
@@ -5336,9 +5480,9 @@ Namespace.<a href="#section-9.22-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-9.22-2.1">
 <pre>
 PUBLISH_NAMESPACE_DONE Message {
-  Type (i) = 0x9,
+  Type (vi64) = 0x9,
   Length (16),
-  Request ID (i)
+  Request ID (vi64)
 }
 </pre>
 </div>
@@ -5401,10 +5545,10 @@ within the provided Track Namespace.<a href="#section-9.24-1" class="pilcrow">¶
           <div class="alignLeft art-text artwork" id="section-9.24-2.1">
 <pre>
 PUBLISH_NAMESPACE_CANCEL Message {
-  Type (i) = 0xC,
+  Type (vi64) = 0xC,
   Length (16),
-  Request ID (i),
-  Error Code (i),
+  Request ID (vi64),
+  Error Code (vi64),
   Error Reason (Reason Phrase)
 }
 </pre>
@@ -5425,7 +5569,7 @@ PUBLISH_NAMESPACE_CANCEL uses the same error codes as REQUEST_ERROR
 </li>
           <li class="normal" id="section-9.24-3.3">
             <p id="section-9.24-3.3.1">Error Reason: Provides the reason for publish cancelation. See
-<a href="#reason-phrase" class="auto internal xref">Section 1.4.3</a>.<a href="#section-9.24-3.3.1" class="pilcrow">¶</a></p>
+<a href="#reason-phrase" class="auto internal xref">Section 1.4.4</a>.<a href="#section-9.24-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5444,12 +5588,12 @@ updates to the set.<a href="#section-9.25-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-9.25-2.1">
 <pre>
 SUBSCRIBE_NAMESPACE Message {
-  Type (i) = 0x11,
+  Type (vi64) = 0x11,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace Prefix (..),
-  Subscribe Options (i),
-  Number of Parameters (i),
+  Subscribe Options (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 </pre>
@@ -5523,8 +5667,8 @@ corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session wi
 and sends Objects matching a FETCH request on one Data Stream.<a href="#section-10-1" class="pilcrow">¶</a></p>
 <p id="section-10-2">All unidirectional MOQT streams start with a variable-length integer indicating
 the type of the stream in question.<a href="#section-10-2" class="pilcrow">¶</a></p>
-<table class="center" id="table-3">
-        <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<table class="center" id="table-5">
+        <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
 <thead>
           <tr>
             <th class="text-right" rowspan="1" colspan="1">ID</th>
@@ -5663,7 +5807,7 @@ Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Fi
 <div class="alignLeft art-text artwork" id="section-10.2.1.2-4">
 <pre>
 Extensions {
-  Extension Headers Length (i),
+  Extension Headers Length (vi64),
   Extension Headers (..),
 }
 </pre><a href="#section-10.2.1.2-4" class="pilcrow">¶</a>
@@ -5710,12 +5854,12 @@ exceed the maximum datagram size of a downstream session and be dropped.<a href=
 OBJECT_DATAGRAM {
   Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
              0x28..0x29 / 0x2C..0x2D,
-  Track Alias (i),
-  Group ID (i),
-  [Object ID (i),]
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Object ID (vi64),]
   [Publisher Priority (8),]
   [Extensions (..),]
-  [Object Status (i),]
+  [Object Status (vi64),]
   [Object Payload (..),]
 }
 </pre>
@@ -5828,9 +5972,9 @@ flow control, while the sender waits for flow control to send the message.<a hre
 <pre>
 SUBGROUP_HEADER {
   Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D,
-  Track Alias (i),
-  Group ID (i),
-  [Subgroup ID (i),]
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Subgroup ID (vi64),]
   [Publisher Priority (8),]
 }
 </pre>
@@ -5920,10 +6064,10 @@ unless there is an Prior Object ID Gap extesnion header (see
             <div class="alignLeft art-text artwork" id="section-10.4.2-12.1">
 <pre>
 {
-  Object ID Delta (i),
+  Object ID Delta (vi64),
   [Extensions (..),]
-  Object Payload Length (i),
-  [Object Status (i),]
+  Object Payload Length (vi64),
+  [Object Status (vi64),]
   [Object Payload (..),]
 }
 </pre>
@@ -6088,8 +6232,8 @@ track requested in the Fetch message identified by <code>Request ID</code>.<a hr
             <div class="alignLeft art-text artwork" id="section-10.4.4-2.1">
 <pre>
 FETCH_HEADER {
-  Type (i) = 0x5,
-  Request ID (i),
+  Type (vi64) = 0x5,
+  Request ID (vi64),
 }
 </pre>
 </div>
@@ -6104,13 +6248,13 @@ format:<a href="#section-10.4.4-3" class="pilcrow">¶</a></p>
             <div class="alignLeft art-text artwork" id="section-10.4.4-4.1">
 <pre>
 {
-  Serialization Flags (i),
-  [Group ID (i),]
-  [Subgroup ID (i),]
-  [Object ID (i),]
+  Serialization Flags (vi64),
+  [Group ID (vi64),]
+  [Subgroup ID (vi64),]
+  [Object ID (vi64),]
   [Publisher Priority (8),]
   [Extensions (..),]
-  Object Payload Length (i),
+  Object Payload Length (vi64),
   [Object Payload (..),]
 }
 </pre>
@@ -6122,8 +6266,8 @@ format:<a href="#section-10.4.4-3" class="pilcrow">¶</a></p>
 <p id="section-10.4.4-5">The Serialization Flags field defines the serialization of the Object.  It is
 a variable-length integer.  When less than 128, the bits represent flags described
 below.  The following additional values are defined:<a href="#section-10.4.4-5" class="pilcrow">¶</a></p>
-<table class="center" id="table-4">
-            <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
+<table class="center" id="table-6">
+            <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Value</th>
@@ -6150,8 +6294,8 @@ below.  The following additional values are defined:<a href="#section-10.4.4-5" 
 <p id="section-10.4.4.1-1">The two least significant bits (LSBs) of the Serialization Flags form a two-bit
 field that defines the encoding of the Subgroup.  To extract this value, the
 Subscriber performs a bitwise AND operation with the mask 0x03.<a href="#section-10.4.4.1-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-5">
-              <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
+<table class="center" id="table-7">
+              <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
 <thead>
                 <tr>
                   <th class="text-left" rowspan="1" colspan="1">Bitmask Result (Serialization Flags &amp; 0x03)</th>
@@ -6180,8 +6324,8 @@ Subscriber performs a bitwise AND operation with the mask 0x03.<a href="#section
 <p id="section-10.4.4.1-3">The following table defines additional flags within the Serialization Flags
 field. Each flag is an independent boolean value, where a set bit (1) indicates
 the corresponding condition is true.<a href="#section-10.4.4.1-3" class="pilcrow">¶</a></p>
-<table class="center" id="table-6">
-              <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
+<table class="center" id="table-8">
+              <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
 <thead>
                 <tr>
                   <th class="text-left" rowspan="1" colspan="1">Bitmask</th>
@@ -6410,7 +6554,7 @@ Extension Headers.<a href="#section-11.2-1" class="pilcrow">¶</a></p>
 <pre>
 Immutable Extensions {
   Type (0xB),
-  Length (i),
+  Length (vi64),
   Key-Value-Pair (..) ...
 }
 </pre><a href="#section-11.2-2" class="pilcrow">¶</a>
@@ -6647,8 +6791,8 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
         <h3 id="name-authorization-token-alias-t">
 <a href="#section-13.1" class="section-number selfRef">13.1. </a><a href="#name-authorization-token-alias-t" class="section-name selfRef">Authorization Token Alias Type</a>
         </h3>
-<table class="center" id="table-7">
-          <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
+<table class="center" id="table-9">
+          <caption><a href="#table-9" class="selfRef">Table 9</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Code</th>
@@ -6694,8 +6838,8 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
         <h3 id="name-message-parameters-2">
 <a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-message-parameters-2" class="section-name selfRef">Message Parameters</a>
         </h3>
-<table class="center" id="table-8">
-          <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
+<table class="center" id="table-10">
+          <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Parameter Type</th>
@@ -6776,8 +6920,8 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
         <h3 id="name-extension-headers-3">
 <a href="#section-13.3" class="section-number selfRef">13.3. </a><a href="#name-extension-headers-3" class="section-name selfRef">Extension Headers</a>
         </h3>
-<table class="center" id="table-9">
-          <caption><a href="#table-9" class="selfRef">Table 9</a></caption>
+<table class="center" id="table-11">
+          <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Type</th>
@@ -6865,8 +7009,8 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
           <h4 id="name-session-termination-error-c">
 <a href="#section-13.4.1" class="section-number selfRef">13.4.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
           </h4>
-<table class="center" id="table-10">
-            <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
+<table class="center" id="table-12">
+            <caption><a href="#table-12" class="selfRef">Table 12</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -7031,8 +7175,8 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
           <h4 id="name-request_error-codes">
 <a href="#section-13.4.2" class="section-number selfRef">13.4.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
           </h4>
-<table class="center" id="table-11">
-            <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
+<table class="center" id="table-13">
+            <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -7141,8 +7285,8 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
           <h4 id="name-publish_done-codes">
 <a href="#section-13.4.3" class="section-number selfRef">13.4.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
           </h4>
-<table class="center" id="table-12">
-            <caption><a href="#table-12" class="selfRef">Table 12</a></caption>
+<table class="center" id="table-14">
+            <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -7223,8 +7367,8 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
           <h4 id="name-data-stream-reset-error-cod">
 <a href="#section-13.4.4" class="section-number selfRef">13.4.4. </a><a href="#name-data-stream-reset-error-cod" class="section-name selfRef">Data Stream Reset Error Codes</a>
           </h4>
-<table class="center" id="table-13">
-            <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
+<table class="center" id="table-15">
+            <caption><a href="#table-15" class="selfRef">Table 15</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
