@@ -2020,6 +2020,26 @@ publisher MUST close the session with `PROTOCOL_VIOLATION`.
 If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
+#### MAX_SEND_LOCATION Parameter {#pause-at}
+
+The MAX_SEND_LOCATION parameter (Parameter Type 0x23) MAY appear in a
+SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE (for a subscription) message.
+It is a length-prefixed Group ID and Subgroup ID.  Objects with a larger
+Group ID or an equal Group ID and larger or equal Subgroup ID SHOULD NOT
+be sent for the Subscription until MAX_SEND_LOCATION is increased.
+
+MAX_SEND_LOCATION is different from the end of a Subscription filter because it
+only prevents too many Objects from being sent at once. The Subscription will
+still deliver the same Objects that it would without MAX_SEND_LOCATION, once the
+MAX_SEND_LOCATION Parameter is removed or increased to a sufficiently large value.
+
+MAX_SEND_LOCATION can limit the streams and bandwidth consumed by a single
+Subscription, reducing the likelihood of the Session running out of stream
+or data flow control.
+
+If a Subscription remains paused for too long, a Publisher MAY decide to
+terminate the Subscription with error `TOO_FAR_BEHIND`.
+
 #### EXPIRES Parameter {#expires}
 
 The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH
@@ -3433,7 +3453,10 @@ middle of a serialized Object, the session SHOULD be closed with a
 `PROTOCOL_VIOLATION`.
 
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
-Header field values.
+Header field values. A publisher SHOULD NOT open a new stream for a Subgroup
+until Objects are going to be sent on the stream, to both reduce the number of
+open streams and reduce the chance a stream will be opened and no Objects sent
+on it due to Delivery Timeout, REQUEST_UPDATE, or cancellation.
 
 ### Stream Cancellation
 
