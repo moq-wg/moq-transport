@@ -4399,7 +4399,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    A MoQT session may become idle when a publisher has no active
    subscribers, or when a subscriber has no active subscriptions.  In
-   these cases, the underlying transport connection (e.g., QUIC) may
+   these cases, the underlying transport connection (e.g., QUIC) can
    close due to idle timeout if no data is exchanged.
 
    Implementations that need to maintain idle sessions have several
