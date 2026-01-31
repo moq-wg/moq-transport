@@ -1980,6 +1980,39 @@ successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
 any other relevant information.
 
+#### RENDEZVOUS TIMEOUT Parameter {#rendezvous-timeout}
+
+The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) MAY appear in a
+SUBSCRIBE message.
+
+It is the duration in milliseconds the subscriber is willing to wait for a
+publisher to become available. This applies when a relay receives a SUBSCRIBE
+for a track that has no current publisher, or when a publisher disconnects
+during an active subscription.
+
+If the RENDEZVOUS_TIMEOUT is present, the relay SHOULD hold the subscription
+and wait for a publisher to appear or reconnect, up to the specified duration.
+If a publisher becomes available within this time, the relay proceeds with
+the subscription normally. If the timeout expires without a publisher, the
+relay SHOULD respond with REQUEST_ERROR with error code TIMEOUT.
+
+Note that in the reconnection case, Objects can be lost during the period
+when no publisher was connected. This can result in unsignalled gaps in
+the Track, even when DELIVERY_TIMEOUT (see {{delivery-timeout}}) is not
+specified. Subscribers that require complete delivery of all Objects without
+gaps SHOULD NOT set RENDEZVOUS_TIMEOUT, or should be prepared to handle
+potential discontinuities.
+
+The relay or publisher MAY use a shorter timeout than requested by the
+subscriber. For example, a relay might limit the maximum rendezvous timeout
+to protect its resources.
+
+If RENDEZVOUS_TIMEOUT is absent, the relay SHOULD immediately return
+REQUEST_ERROR with error code DOES_NOT_EXIST if no publisher is available.
+
+A value of 0 indicates the subscriber does not want to wait and expects
+an immediate response.
+
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
@@ -4082,6 +4115,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 |----------------|----------------|---------------|
 | 0x02 | DELIVERY_TIMEOUT | {{delivery-timeout}} |
 | 0x03 | AUTHORIZATION_TOKEN | {{authorization-token}} |
+| 0x04 | RENDEZVOUS_TIMEOUT | {{rendezvous-timeout}} |
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
