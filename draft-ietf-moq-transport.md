@@ -3900,9 +3900,11 @@ Immutable Extensions {
 ~~~
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
-Relays. This extension MUST NOT be modified or removed. Relays MUST cache this
-extension if the Object is cached and MUST forward this extension if the
-enclosing Object is forwarded. Relays MAY decode and view these extensions.
+Relays. This extension MUST NOT be modified or removed and the serialization
+(e.g. variable-length integer encodings) of the Key-Value-Pairs MUST NOT
+change). Relays MUST cache this extension if the Object is cached and MUST
+forward this extension if the enclosing Object is forwarded. Relays MAY decode
+and view these extensions.
 
 A Track is considered malformed (see {{malformed-tracks}}) if any of the
 following conditions are detected:
