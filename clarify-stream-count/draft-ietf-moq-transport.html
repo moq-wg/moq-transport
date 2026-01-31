@@ -4970,17 +4970,18 @@ PUBLISH_DONE Message {
           <li class="normal" id="section-9.15-8.3">
             <p id="section-9.15-8.3.1">Stream Count: An integer indicating the number of data streams the publisher
 opened for this subscription, including streams that contained no Objects (e.g.,
-an empty Subgroup). This helps the subscriber know if it has received all of the
-data published in this subscription by comparing the number of streams received.
-The subscriber can immediately remove all subscription state once the same
-number of streams have been processed. If the publisher did not open any streams
-for this subscription, it <span class="bcp14">MUST</span> set Stream Count to 0. If the publisher is unable
-to set Stream Count to the exact number of streams opened for the subscription,
-it <span class="bcp14">MUST</span> set Stream Count to 2^62 - 1. Subscribers <span class="bcp14">SHOULD</span> use a timeout or other
-mechanism to remove subscription state in case the publisher set an incorrect
-value, reset a stream before the SUBGROUP_HEADER, or set the maximum value. If a
-subscriber receives more streams for a subscription than specified in Stream
-Count, it <span class="bcp14">MAY</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.15-8.3.1" class="pilcrow">¶</a></p>
+an empty Subgroup).  This helps the subscriber know if it has received
+all of the data published in this subscription by comparing the number of
+streams received.  The subscriber can immediately remove all subscription state
+once the same number of streams have been processed.  If the publisher did not open any streams
+for this subscription, the publisher <span class="bcp14">MUST</span> set Stream Count to 0.  If
+the publisher is unable to set Stream Count to the exact number of streams
+opened for the subscription, it <span class="bcp14">MUST</span> set Stream Count to 2^62 - 1. Subscribers
+<span class="bcp14">SHOULD</span> use a timeout or other mechanism to remove subscription state in case
+the publisher set an incorrect value, reset a stream before the SUBGROUP_HEADER,
+or set the maximum value.  If a subscriber receives more streams for a
+subscription than specified in Stream Count, it <span class="bcp14">MAY</span> close the session with a
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-9.15-8.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.15-8.4">
             <p id="section-9.15-8.4.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 1.4.4</a>.<a href="#section-9.15-8.4.1" class="pilcrow">¶</a></p>
