@@ -3911,7 +3911,7 @@ processors MUST search both the mutable extension list and the contents of
 Immutable Extensions.
 
 If an Extension Header allows multiple values, the same Extension Header Type
-MAY appears in both the mutable list and inside Immutable Extensions, unless
+MAY appear in both the mutable list and inside Immutable Extensions, unless
 prohibited by the Extension Header specification.
 
 A Track is considered malformed (see {{malformed-tracks}}) if any of the
