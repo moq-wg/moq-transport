@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 4 August 2026                                     I. Swett, Ed.
+Expires: 5 August 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         31 January 2026
+                                                         1 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 August 2026.
+   This Internet-Draft will expire on 5 August 2026.
 
 Copyright Notice
 
@@ -4270,7 +4270,7 @@ Table of Contents
    list and the contents of Immutable Extensions.
 
    If an Extension Header allows multiple values, the same Extension
-   Header Type MAY appears in both the mutable list and inside Immutable
+   Header Type MAY appear in both the mutable list and inside Immutable
    Extensions, unless prohibited by the Extension Header specification.
 
    A Track is considered malformed (see Section 2.4.2) if any of the
