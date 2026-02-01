@@ -1251,10 +1251,11 @@ Table of Contents
    endpoints, and all published Objects will be forwarded back to the
    endpoint, subject to priority and congestion response rules.
 
-   For a given Track, an endpoint SHOULD avoid overlapping Subscriptions
-   because it could be unclear which Subscription an Object is for.  If
-   a Publisher has multiple overlapping Subscriptions within a Session,
-   it MAY send duplicate Objects.
+   For a given Track, an endpoint SHOULD avoid overlapping
+   Subscriptions, because they can have the same Track Alias
+   (Section 10.1), so it could be unclear which Subscription an Object
+   is for.  If a Publisher has multiple overlapping Subscriptions within
+   a Session, it MAY send duplicate Objects.
 
    If a publisher receives an identical SUBSCRIBE request for a Track
    with an existing subscription in Pending (publisher) state, it MAY
@@ -3539,6 +3540,10 @@ Table of Contents
    Subscribers SHOULD retain sufficient state to quickly discard these
    unwanted Objects, rather than treating them as belonging to an
    unknown Track Alias.
+
+   If multiple Subscriptions are established for the same Track, the
+   Publisher MAY use the same Track Alias for all of them, but it is not
+   required to.
 
 10.2.  Objects
 
