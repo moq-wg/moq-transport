@@ -3231,7 +3231,7 @@ response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after the
 'Track Namespace Prefix' are included in the 'Track Namespace Suffix'.
 
 ~~~
-NAMESPACE_DONE Message {
+PUBLISH_BLOCKED Message {
   Type (i) = 0xE,
   Length (16),
   Track Namespace Suffix (..),
@@ -3239,7 +3239,7 @@ NAMESPACE_DONE Message {
   Track Name (..),
 }
 ~~~
-{: #moq-transport-ns-done-format title="MOQT NAMESPACE_DONE Message"}
+{: #moq-transport-publish-blocked-format title="MOQT PUBLISH_BLOCKED Message"}
 
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}}. The namespace begins with the
