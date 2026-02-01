@@ -1089,18 +1089,14 @@ subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
 rules.
 
-For a given Track, an endpoint can have at most one subscription to a Track
-acting as the publisher and at most one acting as a subscriber.  If an endpoint
-receives a message attempting to establish a second subscription to a Track
-with the same role, it MUST fail that request with a `DUPLICATE_SUBSCRIPTION`
-error.
+For a given Track, an endpoint SHOULD avoid overlapping Subscriptions because
+it could be unclear which Subscription an Object is for. If a Publisher has
+multiple overlapping Subscriptions within a Session, it MAY send duplicate
+Objects.
 
-If a publisher receives a SUBSCRIBE request for a Track with an existing
-subscription in `Pending (publisher)` state, it MUST fail that request with
-a `DUPLICATE_SUBSCRIPTION` error. If a subscriber receives a PUBLISH for a Track
-with a subscription in the `Pending (Subscriber)` state, it MUST ensure the
-subscription it initiated transitions to the `Terminated` state before sending
-PUBLISH_OK.
+If a publisher receives an identical SUBSCRIBE request for a Track with an
+existing subscription in `Pending (publisher)` state, it MAY fail that request
+with a `DUPLICATE_SUBSCRIPTION` error.
 
 A publisher SHOULD begin sending incomplete objects when available to avoid
 incurring additional latency.
