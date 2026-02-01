@@ -1280,7 +1280,7 @@ If a Subscription cannot be created because there is no available Request ID,
 the Publisher sends a PUBLISH_BLOCKED message on the response stream to indicate
 the Full Track Name of the Subscription that could not be established. The Publisher
 MUST NOT create a new Subscription for that Track when more Request IDs become
-available.
+available.  The subscriber can instead issue a SUBSCRIBE to establish a subscription to that track.
 
 The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
