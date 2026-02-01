@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 4 August 2026                                     I. Swett, Ed.
+Expires: 5 August 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         31 January 2026
+                                                         1 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 August 2026.
+   This Internet-Draft will expire on 5 August 2026.
 
 Copyright Notice
 
@@ -3729,7 +3729,8 @@ Table of Contents
 
    If an Object Datagram includes both the STATUS bit and EXTENSIONS
    bit, and the Object Status is not Normal (0x0), the endpoint MUST
-   close the session with a PROTOCOL_VIOLATION.
+   close the session with a PROTOCOL_VIOLATION, because only Normal
+   Objects can have extensions.
 
 10.4.  Streams
 
