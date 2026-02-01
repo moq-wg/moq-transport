@@ -3425,7 +3425,7 @@ any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 
 If an Object Datagram includes both the STATUS bit and EXTENSIONS bit, and the
 Object Status is not Normal (0x0), the endpoint MUST close the session with a
-`PROTOCOL_VIOLATION`.
+`PROTOCOL_VIOLATION`, because only Normal Objects can have extensions.
 
 ## Streams
 
