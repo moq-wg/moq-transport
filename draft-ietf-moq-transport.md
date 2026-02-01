@@ -1759,7 +1759,7 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
 |-------|-----------------------------------------------------|
-| 0xF   | NAMESPACE_BLOCKED ({{message-namespace-blocked}})   |
+| 0xF   | PUBLISH_BLOCKED  ({{message-publish-blocked}})      |
 |-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
