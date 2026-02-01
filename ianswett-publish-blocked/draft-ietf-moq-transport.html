@@ -3187,7 +3187,7 @@ than one.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 the Publisher sends a PUBLISH_BLOCKED message on the response stream to indicate
 the Full Track Name of the Subscription that could not be established. The Publisher
 <span class="bcp14">MUST NOT</span> create a new Subscription for that Track when more Request IDs become
-available.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+available.  The subscriber can instead issue a SUBSCRIBE to establish a subscription to that track.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 <p id="section-6.1-4">The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
