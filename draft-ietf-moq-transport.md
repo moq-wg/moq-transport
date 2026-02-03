@@ -53,8 +53,11 @@ author:
 normative:
   QUIC: RFC9000
   WebTransport: I-D.ietf-webtrans-http3
+  CAT: I-D.ietf-moq-c4m
+  PPA: I-D.ietf-moq-privacy-pass-auth
 
 informative:
+  I-D.jennings-moq-secure-objects:
 
 --- abstract
 
@@ -3846,6 +3849,65 @@ relays. This extension MUST NOT be modified or removed.
 TODO: Expand this section, including subscriptions.
 
 TODO: Describe Cache Poisoning attacks
+
+## Communication Security
+
+MOQT depends on a secure transport with confidentiality, integrity and
+endpoint authentication between subscriber and
+publisher. Implementations use QUIC or WebTransport that both fulfill
+the basic communication security requirements and these
+implementations SHOULD follow best practices for TLS 1.3 and QUIC
+(certificate validation, supported cipher suites, OCSP/CRL checks or
+short-lived certificates, etc.). Server authentication is required to
+prevent impersonation of publishers or relays.
+
+It must be noted that the basic security protection offered by QUIC or
+TCP/TLS does not prevent traffic pattern analysis as media object
+sizes, sizes of request messages etc can make it possible for an
+observer of the traffic between subscriber and publisher to identify
+media content, user patterns and analyse media stream origin.
+
+## Authorization
+
+Subscriber authorization to use relays and access published media
+tracks are primarily fullfilled using security token based schemes,
+although mutual TLS would be possible to use in some deployments where
+one have the certificate deployment in place. Mutual TLS only
+allows the publisher to identify the directly connected subscriber,
+thus make it mostly useful for relay to verify their peer relays.
+
+MOQT has functionality to carry Authorization tokens as message
+parameters when requests are sent. These tokens can be of type the
+service requires to meet its security goals which can be
+varied. Therefore, already two variants of authorization tokens have
+been defined for MOQT and more may be defined in the future. The
+current tokens are Privacy Pass Authentication for Media over QUIC
+{{PPA}} and Authentication scheme for MOQT using Common Access Tokens
+{{CAT}}.
+
+
+## Media Security
+
+The media content transported by MOQT over various tracks from various
+original publishers are subject to several consideration. The first is
+source authenticity, i.e. to know that the received media objects are
+what the original publisher actually published. The second aspect is
+to enable content confidentiality so that no relays will have access
+to the content and preferably be unable to deduce what the content is
+at all. However, as noted media object sizes and traffic patterns do
+enable some analysis of the content. Also the track namespace and track
+name is possible to analyse and correlate between end subscribers by
+relays.
+
+The media security are handled by mechanisms external to this
+specification. They need to provide source authenticity and
+confidentiality. MOQT's media object model do enable both the media
+data itself as well as media object headers to be confidentiality and
+integrity protected, as well a supporting a class of visible to relay
+headers that are integiryt protected.
+
+Current proposals for media security include:
+ - An E2EE scheme based on SFRAME: {{I-D.jennings-moq-secure-objects}}.
 
 ## Resource Exhaustion
 
