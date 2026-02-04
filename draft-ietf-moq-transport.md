@@ -3865,7 +3865,7 @@ It must be noted that the basic security protection offered by QUIC or
 TCP/TLS does not prevent traffic pattern analysis as media object
 sizes, sizes of request messages etc can make it possible for an
 observer of the traffic between subscriber and publisher to identify
-media content, user patterns and analyse media stream origin.
+media content, user patterns and analyze media stream origin.
 
 ## Authorization
 
