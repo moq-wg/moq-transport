@@ -3889,7 +3889,7 @@ current tokens are Privacy Pass Authentication for Media over QUIC
 ## Media Security
 
 The media content transported by MOQT over various tracks from various
-original publishers are subject to several consideration. The first is
+original publishers are subject to several considerations. The first is
 source authenticity, i.e. to know that the received media objects are
 what the original publisher actually published. The second aspect is
 to enable content confidentiality so that no relays will have access
