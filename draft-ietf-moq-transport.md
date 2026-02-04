@@ -3871,8 +3871,8 @@ media content, user patterns and analyse media stream origin.
 
 Subscriber authorization to use relays and access published media
 tracks are primarily fullfilled using security token based schemes,
-although mutual TLS would be possible to use in some deployments where
-one have the certificate deployment in place. Mutual TLS only
+although mutual TLS is possible to use in some deployments where
+the certificate deployments are in place. Mutual TLS only
 allows the publisher to identify the directly connected subscriber,
 thus make it mostly useful for relay to verify their peer relays.
 
