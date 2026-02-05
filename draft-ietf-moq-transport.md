@@ -4039,7 +4039,8 @@ Implementations that need to maintain idle sessions have several options:
 * Use transport-layer keep-alive mechanisms, such as QUIC PING frames, to
   prevent idle timeout closure.
 
-* Send periodic MoQT control messages (TODO: Grease once it's defined?).
+* Send periodic MoQT control messages, for example REQUEST_UPDATE with no
+  modified Message Parameters.
 
 * Accept that idle connections may close and implement reconnection logic when
   needed.
