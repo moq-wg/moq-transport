@@ -651,13 +651,13 @@ include:
    END_OF_GROUP or the last Object sent in a FETCH that requested the entire
    Group or the last object before a FIN in a subgroup which has the END_OF_GROUP
    bit set.
-9. An Object is received on a Track whose Group and Object ID are larger than the
+8. An Object is received on a Track whose Group and Object ID are larger than the
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
    End of Track.
-10. The same Object is received more than once with different Payload or
+9. The same Object is received more than once with different Payload or
     other immutable properties.
-11. An Object is received with a different Forwarding Preference than previously
+10. An Object is received with a different Forwarding Preference than previously
     observed.
 
 The above list of conditions is not considered exhaustive.
