@@ -1876,12 +1876,12 @@ the combination of Token Type and Token Value are unique after resolving any
 aliases.
 
 Messages carrying the AUTHORIZATION TOKEN parameter can appear on different
-streams. Because stream processing order can be different than send order, the
+control streams. Because stream processing order can be different than send order, the
 receiver and sender can have inconsistent views of the token cache state.
 
-Senders MUST NOT send USE_ALIAS on one stream for an alias registered on a
+Senders MUST NOT send USE_ALIAS on one control stream for an alias registered on a
 different stream until the sender has received a response to the message
-containing the REGISTER. Senders MAY use USE_ALIAS on the same stream as the
+containing the REGISTER. Senders MAY use USE_ALIAS on the same control stream as the
 REGISTER without waiting for a response.
 
 Senders MUST NOT send DELETE for an alias while any message using USE_ALIAS with
