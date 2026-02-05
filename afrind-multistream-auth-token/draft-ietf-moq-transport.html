@@ -3825,11 +3825,11 @@ to be exceeded, the receiver <span class="bcp14">MUST</span> termiate the Sessio
 the combination of Token Type and Token Value are unique after resolving any
 aliases.<a href="#section-9.2.2.1-15" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.1-16">Messages carrying the AUTHORIZATION TOKEN parameter can appear on different
-streams. Because stream processing order can be different than send order, the
+control streams. Because stream processing order can be different than send order, the
 receiver and sender can have inconsistent views of the token cache state.<a href="#section-9.2.2.1-16" class="pilcrow">¶</a></p>
-<p id="section-9.2.2.1-17">Senders <span class="bcp14">MUST NOT</span> send USE_ALIAS on one stream for an alias registered on a
+<p id="section-9.2.2.1-17">Senders <span class="bcp14">MUST NOT</span> send USE_ALIAS on one control stream for an alias registered on a
 different stream until the sender has received a response to the message
-containing the REGISTER. Senders <span class="bcp14">MAY</span> use USE_ALIAS on the same stream as the
+containing the REGISTER. Senders <span class="bcp14">MAY</span> use USE_ALIAS on the same control stream as the
 REGISTER without waiting for a response.<a href="#section-9.2.2.1-17" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.1-18">Senders <span class="bcp14">MUST NOT</span> send DELETE for an alias while any message using USE_ALIAS with
 that alias has not received a response.<a href="#section-9.2.2.1-18" class="pilcrow">¶</a></p>
