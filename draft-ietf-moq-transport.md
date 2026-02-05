@@ -2210,6 +2210,13 @@ string {{!RFC3629}}, though the message does not carry information, such as
 language tags, that would aid comprehension by any entity other than the one
 that created the text.
 
+#### Reserved Setup Parameters
+
+Transport parameters with an identifier of the form 67 * N + 43 for integer
+values of N are reserved to exercise the requirement endpoints MUST ignore unknown
+setup parameters. These setup parameters have no semantics and can carry
+arbitrary values.
+
 
 ## GOAWAY {#message-goaway}
 
