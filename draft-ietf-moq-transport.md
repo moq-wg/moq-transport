@@ -3905,8 +3905,8 @@ extension if the Object is cached and MUST forward this extension if the
 enclosing Object is forwarded. Relays MAY decode and view these extensions.
 
 Unless specified by a particular Extension Header specification, Extension Headers
-MAY appear either in the outer (mutable) extension list or
-inside the Immutable Extensions. When looking for the value of an extension,
+MAY appear either in the mutable extension list or
+inside Immutable Extensions. When looking for the value of an extension,
 processors MUST search both the mutable extension list and the contents of
 Immutable Extensions.
 
