@@ -1876,8 +1876,8 @@ the combination of Token Type and Token Value are unique after resolving any
 aliases.
 
 Messages carrying the AUTHORIZATION TOKEN parameter can appear on different
-streams. Because stream processing order is not guaranteed, the receiver and
-sender can have inconsistent views of the token cache state.
+streams. Because stream processing order can be different than send order, the
+receiver and sender can have inconsistent views of the token cache state.
 
 Senders MUST NOT send USE_ALIAS on one stream for an alias registered on a
 different stream until the sender has received a response to the message
