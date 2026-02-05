@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 5 August 2026                                     I. Swett, Ed.
+Expires: 9 August 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         1 February 2026
+                                                         5 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 August 2026.
+   This Internet-Draft will expire on 9 August 2026.
 
 Copyright Notice
 
@@ -4264,10 +4264,10 @@ Table of Contents
    MAY decode and view these extensions.
 
    Unless specified by a particular Extension Header specification,
-   Extension Headers MAY appear either in the outer (mutable) extension
-   list or inside the Immutable Extensions.  When looking for the value
-   of an extension, processors MUST search both the mutable extension
-   list and the contents of Immutable Extensions.
+   Extension Headers MAY appear either in the mutable extension list or
+   inside Immutable Extensions.  When looking for the value of an
+   extension, processors MUST search both the mutable extension list and
+   the contents of Immutable Extensions.
 
    If an Extension Header allows multiple values, the same Extension
    Header Type MAY appear in both the mutable list and inside Immutable
