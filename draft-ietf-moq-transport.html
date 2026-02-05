@@ -1052,11 +1052,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">January 2026</td>
+<td class="right">February 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 2 August 2026</td>
+<td class="center">Expires 9 August 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-01-29" class="published">29 January 2026</time>
+<time datetime="2026-02-05" class="published">5 February 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-02">2 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-08-09">9 August 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 2 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 9 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -4315,7 +4315,7 @@ SUBSCRIBE_NAMESPACE and TRACK_STATUS.<a href="#section-9.4-3" class="pilcrow">¶
 though the sender <span class="bcp14">SHOULD</span> avoid initiating requests unless required by migration
 (see (<a href="#graceful-subscriber-switchover" class="auto internal xref">Section 8.4.1</a> and <a href="#graceful-publisher-switchover" class="auto internal xref">Section 8.5.1</a>).
 An endpoint that receives a GOAWAY <span class="bcp14">MAY</span> reject new requests with an appropriate
-error code (e.g., SUBSCRIBE_ERROR with error code GOING_AWAY).<a href="#section-9.4-4" class="pilcrow">¶</a></p>
+error code (e.g., REQUEST_ERROR with error code GOING_AWAY).<a href="#section-9.4-4" class="pilcrow">¶</a></p>
 <p id="section-9.4-5">The endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>
 (<a href="#session-termination" class="auto internal xref">Section 3.4</a>) if it receives multiple GOAWAY messages.<a href="#section-9.4-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
@@ -4546,10 +4546,15 @@ within the timeout.<a href="#section-9.8-6.6.1" class="pilcrow">¶</a></p>
             <p id="section-9.8-6.12.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 9.2.2.1</a>).<a href="#section-9.8-6.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-6.13">DUPLICATE_SUBSCRIPTION (0x19):</dt>
+<dt id="section-9.8-6.13">GOING_AWAY:</dt>
           <dd style="margin-left: 1.5em" id="section-9.8-6.14">
-            <p id="section-9.8-6.14.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
-with the same role as an existing subscription.<a href="#section-9.8-6.14.1" class="pilcrow">¶</a></p>
+            <p id="section-9.8-6.14.1">The endpoint has received a GOAWAY and <span class="bcp14">MAY</span> reject new requests.<a href="#section-9.8-6.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.8-6.15">DUPLICATE_SUBSCRIPTION (0x19):</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-6.16">
+            <p id="section-9.8-6.16.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
+with the same role as an existing subscription.<a href="#section-9.8-6.16.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -7223,6 +7228,13 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">EXPIRED_AUTH_TOKEN</td>
                 <td class="text-center" rowspan="1" colspan="1">0x5</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#message-request-error" class="auto internal xref">Section 9.8</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">GOING_AWAY</td>
+                <td class="text-center" rowspan="1" colspan="1">0x6</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#message-request-error" class="auto internal xref">Section 9.8</a>
 </td>

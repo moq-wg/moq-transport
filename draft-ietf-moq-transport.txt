@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 2 August 2026                                     I. Swett, Ed.
+Expires: 9 August 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         29 January 2026
+                                                         5 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 August 2026.
+   This Internet-Draft will expire on 9 August 2026.
 
 Copyright Notice
 
@@ -2480,7 +2480,7 @@ Table of Contents
    requests, though the sender SHOULD avoid initiating requests unless
    required by migration (see (Section 8.4.1 and Section 8.5.1).  An
    endpoint that receives a GOAWAY MAY reject new requests with an
-   appropriate error code (e.g., SUBSCRIBE_ERROR with error code
+   appropriate error code (e.g., REQUEST_ERROR with error code
    GOING_AWAY).
 
    The endpoint MUST close the session with a PROTOCOL_VIOLATION
@@ -2638,6 +2638,9 @@ Table of Contents
 
    EXPIRED_AUTH_TOKEN:  Authorization token has expired
       (Section 9.2.2.1).
+
+   GOING_AWAY:  The endpoint has received a GOAWAY and MAY reject new
+      requests.
 
    DUPLICATE_SUBSCRIPTION (0x19):  The PUBLISH or SUBSCRIBE request
       attempted to create a subscription to a Track with the same role
@@ -4582,6 +4585,8 @@ EXT 1 and EXT N can be modified or removed by Relays
            | MALFORMED_AUTH_TOKEN       | 0x4  | Section 9.8   |
            +----------------------------+------+---------------+
            | EXPIRED_AUTH_TOKEN         | 0x5  | Section 9.8   |
+           +----------------------------+------+---------------+
+           | GOING_AWAY                 | 0x6  | Section 9.8   |
            +----------------------------+------+---------------+
            | DOES_NOT_EXIST             | 0x10 | Section 9.8   |
            +----------------------------+------+---------------+
