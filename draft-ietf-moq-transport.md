@@ -1795,14 +1795,15 @@ Message Parameters are serialized as follows:
 
 ~~~
 Message Parameter {
-  Type (vi64),
+  Type Delta (vi64),
   Value (..)
 }
 ~~~
 {: #moq-message-param format title="Message Parameter"}
 
-* Type: An unsigned integer identifying the parameter. Unlike Key-Value-Pairs,
-  the Type is not delta-encoded and does not use the even/odd convention.
+Type Delta: The difference between this Parameter Type and the previous
+   Parameter Type in the message, or the Parameter Type itself for the first
+   parameter. Parameters MUST be serialized in ascending order by Type.
 
 * Value: The encoding is specified by each parameter definition and is one of:
   * uint8: A single-byte unsigned integer (0-255)
