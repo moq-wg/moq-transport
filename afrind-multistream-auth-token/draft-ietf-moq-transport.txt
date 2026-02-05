@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 July 2026                                      I. Swett, Ed.
+Expires: 9 August 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         23 January 2026
+                                                         5 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 July 2026.
+   This Internet-Draft will expire on 9 August 2026.
 
 Copyright Notice
 
@@ -2096,9 +2096,9 @@ Table of Contents
    after resolving any aliases.
 
    Messages carrying the AUTHORIZATION TOKEN parameter can appear on
-   different streams.  Because stream processing order is not
-   guaranteed, the receiver and sender can have inconsistent views of
-   the token cache state.
+   different streams.  Because stream processing order can be different
+   than send order, the receiver and sender can have inconsistent views
+   of the token cache state.
 
    Senders MUST NOT send USE_ALIAS on one stream for an alias registered
    on a different stream until the sender has received a response to the
