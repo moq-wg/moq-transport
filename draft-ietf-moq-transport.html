@@ -6565,9 +6565,11 @@ Immutable Extensions {
 </pre><a href="#section-11.2-2" class="pilcrow">¶</a>
 </div>
 <p id="section-11.2-3">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
-Relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed. Relays <span class="bcp14">MUST</span> cache this
-extension if the Object is cached and <span class="bcp14">MUST</span> forward this extension if the
-enclosing Object is forwarded. Relays <span class="bcp14">MAY</span> decode and view these extensions.<a href="#section-11.2-3" class="pilcrow">¶</a></p>
+Relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed and the serialization
+(e.g. variable-length integer encodings) of the Key-Value-Pairs <span class="bcp14">MUST NOT</span>
+change). Relays <span class="bcp14">MUST</span> cache this extension if the Object is cached and <span class="bcp14">MUST</span>
+forward this extension if the enclosing Object is forwarded. Relays <span class="bcp14">MAY</span> decode
+and view these extensions.<a href="#section-11.2-3" class="pilcrow">¶</a></p>
 <p id="section-11.2-4">A Track is considered malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the
 following conditions are detected:<a href="#section-11.2-4" class="pilcrow">¶</a></p>
 <ul class="normal">
