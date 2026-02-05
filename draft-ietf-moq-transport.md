@@ -649,7 +649,8 @@ include:
 7. An Object is received in a Group whose Object ID is larger than the final
    Object in the Group.  The final Object in a Group is the Object with Status
    END_OF_GROUP or the last Object sent in a FETCH that requested the entire
-   Group.
+   Group or the last object before a FIN in a subgroup which has the END_OF_GROUP
+   bit set.
 8. An Object is received on a Track whose Group and Object ID are larger than the
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
