@@ -1936,6 +1936,18 @@ The AUTHORIZATION TOKEN parameter MAY be repeated within a message as long as
 the combination of Token Type and Token Value are unique after resolving any
 aliases.
 
+Messages carrying the AUTHORIZATION TOKEN parameter can appear on different
+control streams. Because stream processing order can be different than send order, the
+receiver and sender can have inconsistent views of the token cache state.
+
+Senders MUST NOT send USE_ALIAS on one control stream for an alias registered on a
+different stream until the sender has received a response to the message
+containing the REGISTER. Senders MAY use USE_ALIAS on the same control stream as the
+REGISTER without waiting for a response.
+
+Senders MUST NOT send DELETE for an alias while any message using USE_ALIAS with
+that alias has not received a response.
+
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
