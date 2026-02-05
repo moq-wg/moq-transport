@@ -4032,6 +4032,28 @@ Implementations are advised to use timeouts to prevent resource
 exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own timeouts.
 
+### Idle Connection Handling
+
+A MoQT session may become idle when a publisher has no active subscribers, or
+when a subscriber has no active subscriptions. In these cases, the underlying
+transport connection (e.g., QUIC) can close due to idle timeout if no data is
+exchanged.
+
+Implementations that need to maintain idle sessions have several options:
+
+* Use transport-layer keep-alive mechanisms, such as QUIC PING frames, to
+  prevent idle timeout closure.
+
+* Send periodic MoQT control messages, for example REQUEST_UPDATE with no
+  modified Message Parameters.
+
+* Accept that idle connections may close and implement reconnection logic when
+  needed.
+
+The choice of mechanism is implementation-specific. Publishers connecting to
+relays SHOULD be prepared to handle disconnection due to idle timeout and
+reconnect if necessary.
+
 ## Relay security considerations
 
 ### State maintenance
