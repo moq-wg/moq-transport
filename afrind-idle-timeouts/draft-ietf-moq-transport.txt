@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 4 August 2026                                     I. Swett, Ed.
+Expires: 9 August 2026                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         31 January 2026
+                                                         5 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 August 2026.
+   This Internet-Draft will expire on 9 August 2026.
 
 Copyright Notice
 
@@ -4408,8 +4408,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    *  Use transport-layer keep-alive mechanisms, such as QUIC PING
       frames, to prevent idle timeout closure.
 
-   *  Send periodic MoQT control messages (TODO: Grease once it's
-      defined?).
+   *  Send periodic MoQT control messages, for example REQUEST_UPDATE
+      with no modified Message Parameters.
 
    *  Accept that idle connections may close and implement reconnection
       logic when needed.
