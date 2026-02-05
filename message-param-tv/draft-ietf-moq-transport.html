@@ -3824,7 +3824,7 @@ Message Parameters are serialized as follows:<a href="#section-9.2-1" class="pil
           <div class="alignLeft art-text artwork" id="section-9.2-2.1">
 <pre>
 Message Parameter {
-  Type (vi64),
+  Type Delta (vi64),
   Value (..)
 }
 </pre>
@@ -3833,53 +3833,52 @@ Message Parameter {
 <a href="#name-message-parameter" class="selfRef">Message Parameter</a>
           </figcaption></figure>
 </div>
+<p id="section-9.2-3">Type Delta: The difference between this Parameter Type and the previous
+   Parameter Type in the message, or the Parameter Type itself for the first
+   parameter. Parameters <span class="bcp14">MUST</span> be serialized in ascending order by Type.<a href="#section-9.2-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-9.2-3.1">
-            <p id="section-9.2-3.1.1">Type: An unsigned integer identifying the parameter. Unlike Key-Value-Pairs,
-the Type is not delta-encoded and does not use the even/odd convention.<a href="#section-9.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-9.2-3.2">
-            <p id="section-9.2-3.2.1">Value: The encoding is specified by each parameter definition and is one of:<a href="#section-9.2-3.2.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.2-4.1">
+            <p id="section-9.2-4.1.1">Value: The encoding is specified by each parameter definition and is one of:<a href="#section-9.2-4.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-9.2-3.2.2.1">
-                <p id="section-9.2-3.2.2.1.1">uint8: A single-byte unsigned integer (0-255)<a href="#section-9.2-3.2.2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.2-4.1.2.1">
+                <p id="section-9.2-4.1.2.1.1">uint8: A single-byte unsigned integer (0-255)<a href="#section-9.2-4.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.2-3.2.2.2">
-                <p id="section-9.2-3.2.2.2.1">varint: A variable-length integer<a href="#section-9.2-3.2.2.2.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-9.2-4.1.2.2">
+                <p id="section-9.2-4.1.2.2.1">varint: A variable-length integer<a href="#section-9.2-4.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.2-3.2.2.3">
-                <p id="section-9.2-3.2.2.3.1">Location: Two consecutive varints (Group, Object)<a href="#section-9.2-3.2.2.3.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-9.2-4.1.2.3">
+                <p id="section-9.2-4.1.2.3.1">Location: Two consecutive varints (Group, Object)<a href="#section-9.2-4.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.2-3.2.2.4">
-                <p id="section-9.2-3.2.2.4.1">Length-prefixed: A varint length followed by that many bytes<a href="#section-9.2-3.2.2.4.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-9.2-4.1.2.4">
+                <p id="section-9.2-4.1.2.4.1">Length-prefixed: A varint length followed by that many bytes<a href="#section-9.2-4.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
         </ul>
-<p id="section-9.2-4">Message Parameters are always intended for the peer endpoint only and are not
+<p id="section-9.2-5">Message Parameters are always intended for the peer endpoint only and are not
 forwarded by Relays, though relays can consider received parameter values when
 making a request. Any Track metadata sent by the publisher that is forwarded to
-subscribers is sent as Track Extension header.<a href="#section-9.2-4" class="pilcrow">¶</a></p>
-<p id="section-9.2-5">All Message Parameters <span class="bcp14">MUST</span> be defined in the negotiated version of MOQT or
+subscribers is sent as Track Extension header.<a href="#section-9.2-5" class="pilcrow">¶</a></p>
+<p id="section-9.2-6">All Message Parameters <span class="bcp14">MUST</span> be defined in the negotiated version of MOQT or
 negotiated via Setup Options. An endpoint that receives an unknown Message
 Parameter <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>. Because the receiver
 must understand every Message Parameter, there is no need for a mechanism to
-skip unknown parameters.<a href="#section-9.2-5" class="pilcrow">¶</a></p>
-<p id="section-9.2-6">The Message Parameter types defined in this version of MOQT are listed below.<a href="#section-9.2-6" class="pilcrow">¶</a></p>
-<p id="section-9.2-7">Senders <span class="bcp14">MUST NOT</span> repeat the same Parameter Type in a message unless the
+skip unknown parameters.<a href="#section-9.2-6" class="pilcrow">¶</a></p>
+<p id="section-9.2-7">The Message Parameter types defined in this version of MOQT are listed below.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
+<p id="section-9.2-8">Senders <span class="bcp14">MUST NOT</span> repeat the same Parameter Type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers <span class="bcp14">SHOULD</span> check that there are no
 unexpected duplicate parameters and close the session with <code>PROTOCOL_VIOLATION</code>
-if found.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
-<p id="section-9.2-8">The number of Message Parameters is not specifically limited, but the total
-length of a control message is limited to 2^16-1 bytes.<a href="#section-9.2-8" class="pilcrow">¶</a></p>
-<p id="section-9.2-9">Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the
+if found.<a href="#section-9.2-8" class="pilcrow">¶</a></p>
+<p id="section-9.2-9">The number of Message Parameters is not specifically limited, but the total
+length of a control message is limited to 2^16-1 bytes.<a href="#section-9.2-9" class="pilcrow">¶</a></p>
+<p id="section-9.2-10">Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the
 publisher to alter the payload of the objects it sends, as that would violate
-the track uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.4.3</a>.<a href="#section-9.2-9" class="pilcrow">¶</a></p>
-<p id="section-9.2-10">Each Message Parameter definition indicates the message types in which it can
+the track uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.4.3</a>.<a href="#section-9.2-10" class="pilcrow">¶</a></p>
+<p id="section-9.2-11">Each Message Parameter definition indicates the message types in which it can
 appear. If it appears in some other type of message, it <span class="bcp14">MUST</span> be ignored. Note
 that since Setup Options use a separate namespace, it is impossible for
-Message Parameters to appear in Setup messages.<a href="#section-9.2-10" class="pilcrow">¶</a></p>
+Message Parameters to appear in Setup messages.<a href="#section-9.2-11" class="pilcrow">¶</a></p>
 <div id="authorization-token">
 <section id="section-9.2.1">
           <h4 id="name-authorization-token-paramet">
