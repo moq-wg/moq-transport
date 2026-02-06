@@ -2120,8 +2120,10 @@ from other messages, the default is no filter.
 
 All filter types can be combined using logical "and" operations
 to further restrict which tracks and objects pass all filter criteria.
-The track filter MUST be evaluated after all other filters which can
-be evaluated in any order.
+The track filter MUST be evaluated first before all other filters which can
+be evaluated in any order. The track filter may select fewer tracks than
+MaxTracksSelected if other filters further restrict which tracks and
+objects pass all filter criteria.
 
 ##### LOCATION FILTER
 
