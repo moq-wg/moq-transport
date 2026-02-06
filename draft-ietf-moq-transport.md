@@ -2132,12 +2132,12 @@ End Object ID.
 
 ~~~
 LOCATION_FILTER Parameter {
-  Type (i) = 0x21,
-  Length (i),
-  [Start Group ID (i),
-  [Start Object ID (i),
-  [End Group ID (i),
-  [End Object iD (i)]]]
+  Type (vi64) = 0x21,
+  Length (vi64),
+  [Start Group ID (vi64),
+  [Start Object ID (vi64),
+  [End Group ID (vi64),
+  [End Object iD (vi64)]]]
 }
 ~~~
 
@@ -2176,10 +2176,10 @@ End MAY be omitted to indicate no end.
 
 ~~~
 GROUP_FILTER Parameter {
-  Type (i) = 0x23,
-  Length (i),
-  [Start Group ID (i),
-  [End Group ID (i)]]...
+  Type (vi64) = 0x23,
+  Length (vi64),
+  [Start Group ID (vi64),
+  [End Group ID (vi64)]]...
 }
 ~~~
 
@@ -2193,10 +2193,10 @@ End MAY be omitted to indicate no end.
 
 ~~~
 SUBGROUP_FILTER Parameter {
-  Type (i) = 0x25,
-  Length (i),
-  [Start Subgroup ID (i),
-  [End Subgroup ID (i)]]...
+  Type (vi64) = 0x25,
+  Length (vi64),
+  [Start Subgroup ID (vi64),
+  [End Subgroup ID (vi64)]]...
 }
 ~~~
 
@@ -2210,10 +2210,10 @@ End MAY be omitted to indicate no end.
 
 ~~~
 OBJECT_FILTER Parameter {
-  Type (i) = 0x27,
-  Length (i),
-  [Start Object ID (i),
-  [End Object ID (i)]]...
+  Type (vi64) = 0x27,
+  Length (vi64),
+  [Start Object ID (vi64),
+  [End Object ID (vi64)]]...
 }
 ~~~
 
@@ -2227,8 +2227,8 @@ End MAY be omitted to indicate no end.
 
 ~~~
 PRIORITY_FILTER Parameter {
-  Type (i) = 0x29,
-  Length (i),
+  Type (vi64) = 0x29,
+  Length (vi64),
   [Start Publisher Priority (8),
   [End Publisher Priority (8)]]...
 }
@@ -2247,11 +2247,11 @@ Start>0, to allow no end for non-final Extension Types.
 
 ~~~
 EXTENSION_FILTER Parameter {
-  Type (i) = 0x2B,
-  Length (i),
-  [Extension Type (i),
-  Start Value (i),
-  [End Value (i)]]...
+  Type (vi64) = 0x2B,
+  Length (vi64),
+  [Extension Type (vi64),
+  Start Value (vi64),
+  [End Value (vi64)]]...
 }
 ~~~
 
@@ -2265,12 +2265,12 @@ MaxTracksSelected, MaxTracksDeselected, and MaxTimeSelected.
 
 ~~~
 TRACK_FILTER Parameter {
-  Type (i) = 0x2D,
-  Length (i),
-  [Extension Type (i),
-  MaxTracksSelected (i),
-  MaxTracksDeselected (i),
-  MaxTimeSelected (i)]
+  Type (vi64) = 0x2D,
+  Length (vi64),
+  [Extension Type (vi64),
+  MaxTracksSelected (vi64),
+  MaxTracksDeselected (vi64),
+  MaxTimeSelected (vi64)]
 }
 ~~~
 
