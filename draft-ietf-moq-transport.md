@@ -2093,7 +2093,7 @@ Filters are parameters in control messages that tell a publisher to
 filter tracks and objects according to subscriber criteria which are
 comparisons of integer values in object headers.
 
-There are seven filter types, 0x21-0x2D odd (with length prefix),
+There are seven filter types, with odd values between 0x21-0x2D (length prefixed),
 with similar structures and behavior as summarized below.
 
 ~~~
