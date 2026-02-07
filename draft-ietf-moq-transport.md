@@ -1190,7 +1190,7 @@ request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE with the
-Special Location Filter
+Special Location Filter {{special-location-filters}}
  `Largest Object` followed by a Joining FETCH (see {{joining-fetches}}) for
 the intended start Group, which can be relative.  To join a Track at the next
 Group, the subscriber sends a SUBSCRIBE with the Special Location Filter
