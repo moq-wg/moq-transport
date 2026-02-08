@@ -1964,7 +1964,7 @@ subscriber nor publisher specifies DELIVERY TIMEOUT, all Objects in the track
 matching the subscription filter are delivered as indicated by their Group Order
 and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher MAY terminate
-the subscription with error `TOO_FAR_BEHIND`.
+the subscription using PUBLISH_DONE with error `TOO_FAR_BEHIND`.
 
 If an object in a subgroup exceeds the delivery timeout, the publisher MUST
 reset the underlying transport stream (see {{closing-subgroup-streams}}) and
@@ -3666,6 +3666,10 @@ UNKNOWN_OBJECT_STATUS (0x4):
 : In response to a FETCH, the publisher is unable to determine the Status
 of the next Object in the requested range.
 
+TOO_FAR_BEHIND (0x5):
+: The corresponding subscription has exceeded the publisher's resource limits and
+is being terminated (see {{delivery-timeout}}).
+
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
@@ -4181,6 +4185,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | DELIVERY_TIMEOUT      | 0x2  | {{closing-subgroup-streams}} |
 | SESSION_CLOSED        | 0x3  | {{closing-subgroup-streams}} |
 | UNKNOWN_OBJECT_STATUS | 0x4  | {{closing-subgroup-streams}} |
+| TOO_FAR_BEHIND        | 0x5  | {{closing-subgroup-streams}} |
 | MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
 
 # Contributors
