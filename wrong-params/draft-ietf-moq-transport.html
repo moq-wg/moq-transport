@@ -4749,7 +4749,7 @@ REQUEST_UPDATE Message {
 updating.  This <span class="bcp14">MUST</span> match the Request ID of an existing request.  The
 receiver <span class="bcp14">SHOULD</span> close the session with <code>PROTOCOL_VIOLATION</code> if it can verify
 that the Existing Request ID does not corresponding to an existing request
-or one that was recently closed locally. If it cannot verify this but cannot
+or one that was recently closed locally. If it cannot verify this and cannot
 match the request, it <span class="bcp14">MUST</span> send REQUEST_ERROR.<a href="#section-9.11-7.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.11-7.3">
