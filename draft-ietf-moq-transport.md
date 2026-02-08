@@ -1135,7 +1135,7 @@ Subscribers can specify a filter on a subscription indicating to the publisher
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.
 
-All filters have a Start Location and an optional End Group Diff.  Only objects
+All filters have a Start Location and an optional End Group Delta.  Only objects
 published or received via a subscription having Locations greater than or
 equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.
