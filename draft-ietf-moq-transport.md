@@ -1670,10 +1670,9 @@ the extension's specification (see {{extension-headers}}).
 
 ## Relay Object Handling
 
-MOQT encodes the delivery information via Object headers
-({{message-object}}).  A relay MUST NOT modify Object properties
-when forwarding, except for Object Extension Headers as specified in
-{{extension-headers}}.
+MOQT encodes the delivery information via Object properties ({{message-object}}).
+A relay MUST NOT modify Object properties when forwarding, except for
+Object Extension Headers as specified in {{extension-headers}}.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
@@ -3414,7 +3413,7 @@ which fields are present in the datagram:
   and there is no Object Payload. When set to 0, the Object Payload is present
   and the Object Status field is omitted. There is no explicit length field for
   the Object Payload; the entirety of the transport datagram following the
-  Object header fields contains the payload.
+  Object fields contains the payload.
 
 The following Type values are invalid. If an endpoint receives a datagram with
 any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
