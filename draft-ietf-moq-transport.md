@@ -1484,9 +1484,9 @@ Note that due to reordering, an implementation can receive an Object after
 receiving an indication that the Object in question does not exist.  The
 endpoint SHOULD NOT cache or forward the object in this case.
 
-A cache MUST store all properties of an Object defined in
-{{object-properties}}, with the exception of any extensions
-({{object-extensions}}) that specify otherwise.
+A cache MUST store all properties of an Object defined in {{object-properties}},
+with the exception of any Object Extension Headers ({{object-extension-headers}})
+that specify otherwise.
 
 ## Forward Handling
 
@@ -3287,8 +3287,8 @@ according to its `Object Forwarding Preference`.
 * Object Status: An enumeration used to indicate whether the Object is a normal Object
   or mark the end of a group or track. See {{object-status}} below.
 
-* Object Extensions : A sequence of Extensions associated with the object. See
-  {{object-extensions}}.
+* Object Extension Headers : A sequence of Extension Headers associated with the object.
+  See {{object-extension-headers}}.
 
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
 NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
@@ -3318,7 +3318,7 @@ Any other value SHOULD be treated as a protocol error and the session SHOULD
 be closed with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
-#### Object Extension Headers {#object-extensions}
+#### Object Extension Headers {#object-extension-headers}
 
 Any Object with status Normal can have extension headers ({{extension-headers}}).
 If an endpoint receives extension headers on Objects with status that is
@@ -3333,7 +3333,7 @@ Object Extension Headers are serialized as a length in bytes followed by
 Key-Value-Pairs (see {{moq-key-value-pair}}).
 
 ~~~
-Extensions {
+Object Extension Headers {
   Extension Headers Length (vi64),
   Extension Headers (..),
 }
@@ -3360,9 +3360,9 @@ will be dropped without any explicit notification.
 
 Each session along the path between the Original Publisher and End Subscriber
 might have different maximum datagram sizes. Additionally, Object Extension
-Headers ({{object-extensions}}) can be added to Objects as they pass through
-the MOQT network, increasing the size of the Object and the chances it will
-exceed the maximum datagram size of a downstream session and be dropped.
+Headers ({{object-extension-headers}}) can be added to Objects as they pass
+through the MOQT network, increasing the size of the Object and the chances it
+will exceed the maximum datagram size of a downstream session and be dropped.
 
 
 ### Object Datagram {#object-datagram}
@@ -3389,10 +3389,10 @@ values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
 range are valid. The four low-order bits and bit 5 of the Type field determine
 which fields are present in the datagram:
 
-* The **EXTENSIONS** bit (0x01) indicates when the Extensions field is
-  present. When set to 1, the Extensions structure defined in
-  {{object-extensions}} is present. When set to 0, the Extensions field is
-  absent.  If an endpoint receives a datagram with the EXTENSIONS bit set and an
+* The **EXTENSIONS** bit (0x01) indicates when the Extension Headers field is
+  present. When set to 1, the Object Extension Headers structure defined in
+  {{object-extension-headers}} is present. When set to 0, the field is absent.
+  If an endpoint receives a datagram with the EXTENSIONS bit set and an
   Extension Headers Length of 0, it MUST close the session with a
   `PROTOCOL_VIOLATION`.
 
@@ -3479,11 +3479,10 @@ values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to
 1. However, not all Type values in this range are valid. The four low-order bits
 and bit 5 determine which fields are present in the header:
 
-* The **EXTENSIONS** bit (0x01) indicates when the Extensions field is present
-  in all Objects in this Subgroup. When set to 1, the Extensions structure
-  defined in {{object-extensions}} is present in all Objects. When set to 0, the
-  Extensions field is never present. Objects with no extensions set Extension
-  Headers Length to 0.
+* The **EXTENSIONS** bit (0x01) indicates when the Extension Headers field is present
+  in all Objects in this Subgroup. When set to 1, the Object Extension Headers structure
+  defined in {{object-extension-headers}} is present in all Objects. When set to 0, the
+  field is never present. Objects with no extensions set Extension Headers Length to 0.
 
 * The **SUBGROUP_ID_MODE** field (bits 1-2, mask 0x06) is a two-bit field that
   determines the encoding of the Subgroup ID. To extract this value, perform a
@@ -3736,7 +3735,7 @@ If the first Object in the FETCH response uses a flag that references fields in
 the prior Object, the Subscriber MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
-The Extensions structure is defined in {{object-extensions}}.
+The Object Extension Headers structure is defined in {{object-extension-headers}}.
 
 When encoding an Object with a Forwarding Preference of "Datagram" (see
 {{object-properties}}), the object has no Subgroup ID. The publisher MUST SET bit 0x40 to '1'.
