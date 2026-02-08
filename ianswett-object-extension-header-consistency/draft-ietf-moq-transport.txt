@@ -1887,7 +1887,7 @@ Table of Contents
 
 8.7.  Relay Object Handling
 
-   MOQT encodes the delivery information via Object headers
+   MOQT encodes the delivery information via Object properties
    (Section 10.2).  A relay MUST NOT modify Object properties when
    forwarding, except for Object Extension Headers as specified in
    Section 2.5.
@@ -3717,7 +3717,7 @@ Table of Contents
       the Object Payload is present and the Object Status field is
       omitted.  There is no explicit length field for the Object
       Payload; the entirety of the transport datagram following the
-      Object header fields contains the payload.
+      Object fields contains the payload.
 
    The following Type values are invalid.  If an endpoint receives a
    datagram with any of these Type values, it MUST close the session

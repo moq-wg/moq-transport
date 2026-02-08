@@ -3611,10 +3611,9 @@ the extension's specification (see <a href="#extension-headers" class="auto inte
         <h3 id="name-relay-object-handling">
 <a href="#section-8.7" class="section-number selfRef">8.7. </a><a href="#name-relay-object-handling" class="section-name selfRef">Relay Object Handling</a>
         </h3>
-<p id="section-8.7-1">MOQT encodes the delivery information via Object headers
-(<a href="#message-object" class="auto internal xref">Section 10.2</a>).  A relay <span class="bcp14">MUST NOT</span> modify Object properties
-when forwarding, except for Object Extension Headers as specified in
-<a href="#extension-headers" class="auto internal xref">Section 2.5</a>.<a href="#section-8.7-1" class="pilcrow">¶</a></p>
+<p id="section-8.7-1">MOQT encodes the delivery information via Object properties (<a href="#message-object" class="auto internal xref">Section 10.2</a>).
+A relay <span class="bcp14">MUST NOT</span> modify Object properties when forwarding, except for
+Object Extension Headers as specified in <a href="#extension-headers" class="auto internal xref">Section 2.5</a>.<a href="#section-8.7-1" class="pilcrow">¶</a></p>
 <p id="section-8.7-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
 combine, split, or otherwise modify object payloads.  A relay <span class="bcp14">SHOULD</span>
 prioritize sending Objects based on <a href="#priorities" class="auto internal xref">Section 7</a>.<a href="#section-8.7-2" class="pilcrow">¶</a></p>
@@ -5912,7 +5911,7 @@ Status or Object Payload. When set to 1, the Object Status field is present
 and there is no Object Payload. When set to 0, the Object Payload is present
 and the Object Status field is omitted. There is no explicit length field for
 the Object Payload; the entirety of the transport datagram following the
-Object header fields contains the payload.<a href="#section-10.3.1-4.5.1" class="pilcrow">¶</a></p>
+Object fields contains the payload.<a href="#section-10.3.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-10.3.1-5">The following Type values are invalid. If an endpoint receives a datagram with
