@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 9 August 2026                                     I. Swett, Ed.
+Expires: 12 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         5 February 2026
+                                                         8 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 August 2026.
+   This Internet-Draft will expire on 12 August 2026.
 
 Copyright Notice
 
@@ -2199,7 +2199,7 @@ Table of Contents
    are delivered as indicated by their Group Order and Priority.  If a
    subscriber fails to consume Objects at a sufficient rate, causing the
    publisher to exceed its resource limits, the publisher MAY terminate
-   the subscription with error TOO_FAR_BEHIND.
+   the subscription using PUBLISH_DONE with error TOO_FAR_BEHIND.
 
    If an object in a subgroup exceeds the delivery timeout, the
    publisher MUST reset the underlying transport stream (see
@@ -2481,7 +2481,7 @@ Table of Contents
    requests, though the sender SHOULD avoid initiating requests unless
    required by migration (see (Section 8.4.1 and Section 8.5.1).  An
    endpoint that receives a GOAWAY MAY reject new requests with an
-   appropriate error code (e.g., SUBSCRIBE_ERROR with error code
+   appropriate error code (e.g., REQUEST_ERROR with error code
    GOING_AWAY).
 
    The endpoint MUST close the session with a PROTOCOL_VIOLATION
@@ -2640,6 +2640,9 @@ Table of Contents
    EXPIRED_AUTH_TOKEN:  Authorization token has expired
       (Section 9.2.2.1).
 
+   GOING_AWAY:  The endpoint has received a GOAWAY and MAY reject new
+      requests.
+
    DUPLICATE_SUBSCRIPTION (0x19):  The PUBLISH or SUBSCRIBE request
       attempted to create a subscription to a Track with the same role
       as an existing subscription.
@@ -2753,7 +2756,7 @@ Table of Contents
 
 9.11.  REQUEST_UPDATE
 
-   The sender of a request (SUBSCRIBE, PUBLISH, FETCH, TRACK_STATUS,
+   The sender of a request (SUBSCRIBE, PUBLISH, FETCH,
    PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE) can later send a
    REQUEST_UPDATE to modify it.  A subscriber can also send
    REQUEST_UPDATE to modify parameters of a subscription established
@@ -3728,6 +3731,11 @@ Table of Contents
    *  Type values that do not match the form 0b00X0XXXX (i.e., Type
       values outside the ranges 0x00..0x0F and 0x20..0x2F).
 
+   If an Object Datagram includes both the STATUS bit and EXTENSIONS
+   bit, and the Object Status is not Normal (0x0), the endpoint MUST
+   close the session with a PROTOCOL_VIOLATION, because only Normal
+   Objects can have extensions.
+
 10.4.  Streams
 
    When Objects are sent on streams, the stream begins with a Subgroup
@@ -3984,6 +3992,10 @@ Table of Contents
    UNKNOWN_OBJECT_STATUS (0x4):  In response to a FETCH, the publisher
       is unable to determine the Status of the next Object in the
       requested range.
+
+   TOO_FAR_BEHIND (0x5):  The corresponding subscription has exceeded
+      the publisher's resource limits and is being terminated (see
+      Section 9.2.2.2).
 
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 2.4.2).
@@ -4256,10 +4268,12 @@ Table of Contents
    }
 
    This extension can be added by the Original Publisher, but MUST NOT
-   be added by Relays.  This extension MUST NOT be modified or removed.
-   Relays MUST cache this extension if the Object is cached and MUST
-   forward this extension if the enclosing Object is forwarded.  Relays
-   MAY decode and view these extensions.
+   be added by Relays.  This extension MUST NOT be modified or removed
+   and the serialization (e.g. variable-length integer encodings) of the
+   Key-Value-Pairs MUST NOT change).  Relays MUST cache this extension
+   if the Object is cached and MUST forward this extension if the
+   enclosing Object is forwarded.  Relays MAY decode and view these
+   extensions.
 
    A Track is considered malformed (see Section 2.4.2) if any of the
    following conditions are detected:
@@ -4607,6 +4621,8 @@ EXT 1 and EXT N can be modified or removed by Relays
            +----------------------------+------+---------------+
            | EXPIRED_AUTH_TOKEN         | 0x5  | Section 9.8   |
            +----------------------------+------+---------------+
+           | GOING_AWAY                 | 0x6  | Section 9.8   |
+           +----------------------------+------+---------------+
            | DOES_NOT_EXIST             | 0x10 | Section 9.8   |
            +----------------------------+------+---------------+
            | INVALID_RANGE              | 0x11 | Section 9.8   |
@@ -4664,6 +4680,8 @@ EXT 1 and EXT N can be modified or removed by Relays
              | SESSION_CLOSED        | 0x3  | Section 10.4.3 |
              +-----------------------+------+----------------+
              | UNKNOWN_OBJECT_STATUS | 0x4  | Section 10.4.3 |
+             +-----------------------+------+----------------+
+             | TOO_FAR_BEHIND        | 0x5  | Section 10.4.3 |
              +-----------------------+------+----------------+
              | MALFORMED_TRACK       | 0x12 | Section 10.4.3 |
              +-----------------------+------+----------------+
