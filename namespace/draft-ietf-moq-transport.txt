@@ -1443,7 +1443,7 @@ Table of Contents
    described in Section 5.1.
 
    A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the
-   sender is interest in all tracks or namespaces from the receiver.
+   sender is interested in all tracks or namespaces from the receiver.
 
    The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional
    stream and the publisher MUST send a single REQUEST_OK or
