@@ -1129,13 +1129,13 @@ A REQUEST_ERROR indicates no objects will be delivered, and both endpoints can
 immediately destroy relevant state. Objects MUST NOT be sent for requests that
 end with an error.
 
-### Subscription Filters
+### Subscription Filters {#subscription-filters}
 
 Subscribers can specify a filter on a subscription indicating to the publisher
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.
 
-All filters have a Start Location and an optional End Group.  Only objects
+All filters have a Start Location and an optional End Group Diff.  Only objects
 published or received via a subscription having Locations greater than or
 equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.
@@ -1152,7 +1152,7 @@ A Subscription Filter has the following structure:
 Subscription Filter {
   Filter Type (vi64),
   [Start Location (Location),]
-  [End Group (vi64),]
+  [End Group Diff (vi64),]
 }
 ~~~
 
@@ -1181,10 +1181,9 @@ subscription.
 
 AbsoluteRange (0x4): The filter Start Location and End Group are specified
 explicitly. The specified `Start Location` MAY be less than the `Largest Object`
-observed at the publisher. If the specified `End Group` is the same group
-specified in `Start Location`, the remainder of that Group passes the
-filter. `End Group` MUST specify the same or a larger Group than specified in
-`Start Location`.
+observed at the publisher. If the specified `End Group Diff` is zero, the
+remainder of that Group passes the filter. Otherwise, the last Group ID to be
+delivered will the Group ID in 'Start Location' plus the 'End Group Diff'.
 
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
