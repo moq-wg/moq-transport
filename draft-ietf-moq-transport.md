@@ -1152,7 +1152,7 @@ A Subscription Filter has the following structure:
 Subscription Filter {
   Filter Type (vi64),
   [Start Location (Location),]
-  [End Group Diff (vi64),]
+  [End Group Delta (vi64),]
 }
 ~~~
 
