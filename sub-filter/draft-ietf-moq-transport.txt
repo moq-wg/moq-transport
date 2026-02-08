@@ -1317,7 +1317,7 @@ Table of Contents
    Subscription Filter {
      Filter Type (vi64),
      [Start Location (Location),]
-     [End Group Diff (vi64),]
+     [End Group Delta (vi64),]
    }
 
    Filter Type can have one of the following values:
@@ -1348,9 +1348,9 @@ Table of Contents
    AbsoluteRange (0x4): The filter Start Location and End Group are
    specified explicitly.  The specified Start Location MAY be less than
    the Largest Object observed at the publisher.  If the specified End
-   Group Diff is zero, the remainder of that Group passes the filter.
+   Group Delta is zero, the remainder of that Group passes the filter.
    Otherwise, the last Group ID to be delivered will the Group ID in
-   'Start Location' plus the 'End Group Diff'.
+   'Start Location' plus the 'End Group Delta'.
 
    An endpoint that receives a filter type other than the above MUST
    close the session with PROTOCOL_VIOLATION.
