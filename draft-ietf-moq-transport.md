@@ -4041,10 +4041,11 @@ an expected time.  Each implementation is expected to set its own timeouts.
 
 ### Idle Connection Handling
 
-A MoQT session may become idle when a publisher has no active subscribers, or
-when a subscriber has no active subscriptions. In these cases, the underlying
-transport connection (e.g., QUIC) can close due to idle timeout if no data is
-exchanged.
+The transport connection (e.g., QUIC) underlying a MOQT session can close due to
+idle timeout if no data is exchanged, either because there are no established
+subscriptions or the established subscriptions are not publishing Objects
+frequently.  This includes publisher sessions that have issued a
+PUBLISH_NAMESPACE and are waiting for subscribers.
 
 Implementations that need to maintain idle sessions have several options:
 
