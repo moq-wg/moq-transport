@@ -1181,9 +1181,9 @@ subscription.
 
 AbsoluteRange (0x4): The filter Start Location and End Group are specified
 explicitly. The specified `Start Location` MAY be less than the `Largest Object`
-observed at the publisher. If the specified `End Group Diff` is zero, the
+observed at the publisher. If the specified `End Group Delta` is zero, the
 remainder of that Group passes the filter. Otherwise, the last Group ID to be
-delivered will the Group ID in 'Start Location' plus the 'End Group Diff'.
+delivered will the Group ID in 'Start Location' plus the 'End Group Delta'.
 
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
