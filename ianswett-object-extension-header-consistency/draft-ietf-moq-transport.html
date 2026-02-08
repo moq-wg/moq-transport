@@ -3977,13 +3977,13 @@ aliases.<a href="#section-9.2.2.1-15" class="pilcrow">¶</a></p>
             </h5>
 <p id="section-9.2.2.2-1">The DELIVERY TIMEOUT parameter (Parameter Type 0x02) <span class="bcp14">MAY</span> appear in a
 PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.<a href="#section-9.2.2.2-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.2.2-2">It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span>
-continue to attempt forwarding Objects after they have been received.  The start
-time for the timeout is based on when the Object Headers are received, and does
-not depend upon the forwarding preference. Objects with forwarding preference
-'Datagram' are not retransmitted when lost, so the Delivery Timeout only limits
-the amount of time they can be queued before being sent. There is no explicit
-signal that an Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.2.2-2" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.2-2">It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span> continue to attempt
+forwarding Objects after they have been received.  The start time for the timeout
+is based on when the Object Properties are received, and does not depend upon
+the forwarding preference. Objects with forwarding preference 'Datagram' are
+not retransmitted when lost, so the Delivery Timeout only limits the amount of
+time they can be queued before being sent. There is no explicit signal that an
+Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.2.2-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.2-3">DELIVERY_TIMEOUT, if present, <span class="bcp14">MUST</span> contain a value greater than 0.  If an
 endpoint receives a DELIVERY_TIMEOUT equal to 0 it <span class="bcp14">MUST</span> close the session
 with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.2.2-3" class="pilcrow">¶</a></p>
