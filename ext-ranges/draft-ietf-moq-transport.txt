@@ -2877,11 +2877,8 @@ Table of Contents
 9.13.  PUBLISH
 
    The publisher sends the PUBLISH control message to initiate a
-   subscription to a track.  When a relay receives PUBLISH, it verifies
-   the publisher is authorized to publish this track.  When an end
-   subscriber receives PUBLISH, it is either for a namespace it
-   previously indicated interest in via SUBSCRIBE_NAMESPACE, or directly
-   from a publisher with an AUTHORIZATION_TOKEN.
+   subscription to a track.  The receiver verifies the publisher is
+   authorized to publish this track.
 
    PUBLISH Message {
      Type (vi64) = 0x1D,
@@ -3360,11 +3357,9 @@ Table of Contents
 9.20.  PUBLISH_NAMESPACE
 
    The publisher sends the PUBLISH_NAMESPACE control message to
-   advertise that it has tracks available within a Track Namespace.
-   When a relay receives PUBLISH_NAMESPACE, it verifies the publisher is
-   authorized to publish tracks under this namespace.  In direct
-   publisher to subscriber sessions, the receiver verifies authorization
-   via the included AUTHORIZATION_TOKEN.
+   advertise that it has tracks available within a Track Namespace.  The
+   receiver verifies the publisher is authorized to publish tracks under
+   this namespace.
 
    PUBLISH_NAMESPACE Message {
      Type (vi64) = 0x6,

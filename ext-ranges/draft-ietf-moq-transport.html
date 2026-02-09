@@ -4849,10 +4849,7 @@ UNSUBSCRIBE Message {
 <a href="#section-9.13" class="section-number selfRef">9.13. </a><a href="#name-publish" class="section-name selfRef">PUBLISH</a>
         </h3>
 <p id="section-9.13-1">The publisher sends the PUBLISH control message to initiate a subscription to a
-track. When a relay receives PUBLISH, it verifies the publisher is authorized to
-publish this track. When an end subscriber receives PUBLISH, it is either for a
-namespace it previously indicated interest in via SUBSCRIBE_NAMESPACE, or
-directly from a publisher with an AUTHORIZATION_TOKEN.<a href="#section-9.13-1" class="pilcrow">¶</a></p>
+track. The receiver verifies the publisher is authorized to publish this track.<a href="#section-9.13-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish-message"></span><div id="moq-transport-publish-format">
 <figure id="figure-15">
           <div class="alignLeft art-text artwork" id="section-9.13-2.1">
@@ -5439,10 +5436,8 @@ REQUEST_UPDATE or UNSUBSCRIBE.<a href="#section-9.19-4" class="pilcrow">¶</a></
 <a href="#section-9.20" class="section-number selfRef">9.20. </a><a href="#name-publish_namespace" class="section-name selfRef">PUBLISH_NAMESPACE</a>
         </h3>
 <p id="section-9.20-1">The publisher sends the PUBLISH_NAMESPACE control message to advertise that it
-has tracks available within a Track Namespace. When a relay receives
-PUBLISH_NAMESPACE, it verifies the publisher is authorized to publish tracks
-under this namespace. In direct publisher to subscriber sessions, the receiver
-verifies authorization via the included AUTHORIZATION_TOKEN.<a href="#section-9.20-1" class="pilcrow">¶</a></p>
+has tracks available within a Track Namespace. The receiver verifies the
+publisher is authorized to publish tracks under this namespace.<a href="#section-9.20-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_namespace-mess"></span><div id="moq-transport-pub-ns-format">
 <figure id="figure-21">
           <div class="alignLeft art-text artwork" id="section-9.20-2.1">
