@@ -2661,13 +2661,13 @@ Table of Contents
    GOING_AWAY:  The endpoint has received a GOAWAY and MAY reject new
       requests.
 
-   DUPLICATE_SUBSCRIPTION (0x19):  The PUBLISH or SUBSCRIBE request
-      attempted to create a subscription to a Track with the same role
-      as an existing subscription.
-
    OVERLOADED:  The responder is overloaded and cannot process the
       request at this time.  The sender SHOULD use the Retry Interval to
       indicate when the request can be retried.
+
+   DUPLICATE_SUBSCRIPTION (0x19):  The PUBLISH or SUBSCRIBE request
+      attempted to create a subscription to a Track with the same role
+      as an existing subscription.
 
    Below are errors for use by the publisher.  They can appear in
    response to SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE,
@@ -4022,11 +4022,11 @@ Table of Contents
       the publisher's resource limits and is being terminated (see
       Section 9.2.2.2).
 
-   MALFORMED_TRACK (0x12):  A relay publisher detected that the track
-      was malformed (see Section 2.4.2).
-
    OVERLOADED (0x9):  The publisher is overloaded and is resetting this
       stream.
+
+   MALFORMED_TRACK (0x12):  A relay publisher detected that the track
+      was malformed (see Section 2.4.2).
 
 10.4.4.  Fetch Header
 
@@ -4637,6 +4637,8 @@ EXT 1 and EXT N can be modified or removed by Relays
            +----------------------------+------+---------------+
            | GOING_AWAY                 | 0x6  | Section 9.8   |
            +----------------------------+------+---------------+
+           | OVERLOADED                 | 0x9  | Section 9.8   |
+           +----------------------------+------+---------------+
            | DOES_NOT_EXIST             | 0x10 | Section 9.8   |
            +----------------------------+------+---------------+
            | INVALID_RANGE              | 0x11 | Section 9.8   |
@@ -4650,8 +4652,6 @@ EXT 1 and EXT N can be modified or removed by Relays
            | PREFIX_OVERLAP             | 0x30 | Section 9.8   |
            +----------------------------+------+---------------+
            | INVALID_JOINING_REQUEST_ID | 0x32 | Section 9.8   |
-           +----------------------------+------+---------------+
-           | OVERLOADED                 | 0x9  | Section 9.8   |
            +----------------------------+------+---------------+
 
                                   Table 13

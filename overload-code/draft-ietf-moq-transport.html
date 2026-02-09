@@ -4569,16 +4569,16 @@ within the timeout.<a href="#section-9.8-6.6.1" class="pilcrow">¶</a></p>
             <p id="section-9.8-6.14.1">The endpoint has received a GOAWAY and <span class="bcp14">MAY</span> reject new requests.<a href="#section-9.8-6.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-6.15">DUPLICATE_SUBSCRIPTION (0x19):</dt>
+<dt id="section-9.8-6.15">OVERLOADED:</dt>
           <dd style="margin-left: 1.5em" id="section-9.8-6.16">
-            <p id="section-9.8-6.16.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
-with the same role as an existing subscription.<a href="#section-9.8-6.16.1" class="pilcrow">¶</a></p>
+            <p id="section-9.8-6.16.1">The responder is overloaded and cannot process the request at this time. The
+sender <span class="bcp14">SHOULD</span> use the Retry Interval to indicate when the request can be retried.<a href="#section-9.8-6.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-6.17">OVERLOADED:</dt>
+<dt id="section-9.8-6.17">DUPLICATE_SUBSCRIPTION (0x19):</dt>
           <dd style="margin-left: 1.5em" id="section-9.8-6.18">
-            <p id="section-9.8-6.18.1">The responder is overloaded and cannot process the request at this time. The
-sender <span class="bcp14">SHOULD</span> use the Retry Interval to indicate when the request can be retried.<a href="#section-9.8-6.18.1" class="pilcrow">¶</a></p>
+            <p id="section-9.8-6.18.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
+with the same role as an existing subscription.<a href="#section-9.8-6.18.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -6254,15 +6254,15 @@ of the next Object in the requested range.<a href="#section-10.4.3-19.10.1" clas
 is being terminated (see <a href="#delivery-timeout" class="auto internal xref">Section 9.2.2.2</a>).<a href="#section-10.4.3-19.12.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-19.13">MALFORMED_TRACK (0x12):</dt>
+<dt id="section-10.4.3-19.13">OVERLOADED (0x9):</dt>
             <dd style="margin-left: 1.5em" id="section-10.4.3-19.14">
-              <p id="section-10.4.3-19.14.1">A relay publisher detected that the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-19.14.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.3-19.14.1">The publisher is overloaded and is resetting this stream.<a href="#section-10.4.3-19.14.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-19.15">OVERLOADED (0x9):</dt>
+<dt id="section-10.4.3-19.15">MALFORMED_TRACK (0x12):</dt>
             <dd style="margin-left: 1.5em" id="section-10.4.3-19.16">
-              <p id="section-10.4.3-19.16.1">The publisher is overloaded and is resetting this stream.<a href="#section-10.4.3-19.16.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.3-19.16.1">A relay publisher detected that the track was malformed (see
+<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-19.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -7293,6 +7293,13 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
 </td>
               </tr>
               <tr>
+                <td class="text-left" rowspan="1" colspan="1">OVERLOADED</td>
+                <td class="text-center" rowspan="1" colspan="1">0x9</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#message-request-error" class="auto internal xref">Section 9.8</a>
+</td>
+              </tr>
+              <tr>
                 <td class="text-left" rowspan="1" colspan="1">DOES_NOT_EXIST</td>
                 <td class="text-center" rowspan="1" colspan="1">0x10</td>
                 <td class="text-left" rowspan="1" colspan="1">
@@ -7337,13 +7344,6 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">INVALID_JOINING_REQUEST_ID</td>
                 <td class="text-center" rowspan="1" colspan="1">0x32</td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#message-request-error" class="auto internal xref">Section 9.8</a>
-</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">OVERLOADED</td>
-                <td class="text-center" rowspan="1" colspan="1">0x9</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#message-request-error" class="auto internal xref">Section 9.8</a>
 </td>
