@@ -1953,9 +1953,9 @@ DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
 endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session
 with `PROTOCOL_VIOLATION`.
 
-If both the subscriber specifies this parameter and the Track has a
-DELIVERY_TIMEOUT extension, the endpoints use the min of
-the two values for the subscription.
+If both the subscriber specifies this parameter and the publisher specifies a
+DELIVERY_TIMEOUT extension (Track or Object), the endpoints use the min of
+the two values for each Object.
 
 Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
@@ -3819,17 +3819,19 @@ specifies whether it can be used with Tracks, Objects, or both.
 
 #### DELIVERY TIMEOUT {#delivery-timeout-ext}
 
-The DELIVERY TIMEOUT extension (Extension Header Type 0x02) is a Track
-Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
-{{delivery-timeout}}).
+The DELIVERY TIMEOUT extension (Extension Header Type 0x02) is a Track and
+Object Extension.  As a Track Extension, it expresses the publisher's
+DELIVERY_TIMEOUT for all Objects in the Track (see {{delivery-timeout}}).
+As an Object Extension, it expresses the publisher's DELIVERY_TIMEOUT for that
+specific Object, overriding any Track-level DELIVERY_TIMEOUT.
 
 DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
 endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session with
 `PROTOCOL_VIOLATION`.
 
-If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the Track has
-a DELIVERY_TIMEOUT extension, the endpoints use the min of the two values for
-the subscription.
+If the subscriber specifies a DELIVERY_TIMEOUT parameter, the endpoint uses the
+min of the subscriber's value and the publisher's value (whether from a Track or
+Object Extension) for each Object.
 
 If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
 specified a timeout, Objects do not time out.
@@ -4094,7 +4096,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 | Type | Name | Scope | Specification |
 |-----:|:-----|:------|:--------------|
-| 0x02 | DELIVERY_TIMEOUT | Track | {{delivery-timeout-ext}} |
+| 0x02 | DELIVERY_TIMEOUT | Track, Object | {{delivery-timeout-ext}} |
 | 0x04 | MAX_CACHE_DURATION | Track | {{max-cache-duration}} |
 | 0x0B | IMMUTABLE_EXTENSIONS | Track, Object | {{immutable-extensions}} |
 | 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | {{publisher-priority}} |
