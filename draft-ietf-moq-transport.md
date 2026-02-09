@@ -1258,7 +1258,7 @@ subscriber MUST send exactly one REQUEST_OK or REQUEST_ERROR as the first
 message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
 SHOULD close the session with a protocol error if it receives more than one.
 
-A PUBLISH_NAMESPACE is withdrawn by cancelling the Request
+A PUBLISH_NAMESPACE is withdrawn by cancelling the request
 (see {{request-cancellation}}), although it is not a protocol error for
 the subscriber to send a SUBSCRIBE or FETCH message for a track in a
 namespace after the namespace is withdrawn.
