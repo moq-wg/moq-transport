@@ -3841,7 +3841,7 @@ The following Extension Headers are defined in MOQT. Each Extension Header
 specifies whether it can be used with Tracks, Objects, or both.
 
 
-#### DELIVERY TIMEOUT {#delivery-timeout-ext}
+## DELIVERY TIMEOUT {#delivery-timeout-ext}
 
 The DELIVERY TIMEOUT extension (Extension Header Type 0x02) is a Track
 Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
@@ -3858,7 +3858,7 @@ the subscription.
 If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
 specified a timeout, Objects do not time out.
 
-#### MAX CACHE DURATION {#max-cache-duration}
+## MAX CACHE DURATION {#max-cache-duration}
 
 The MAX_CACHE_DURATION extension (Extension Header Type 0x04) is a Track Extension.
 
@@ -3874,7 +3874,7 @@ handles a downstream request that includes those Objects re-requests them.
 If the MAX_CACHE_DURATION extension is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
 
-#### DEFAULT PUBLISHER PRIORITY {#publisher-priority}
+## DEFAULT PUBLISHER PRIORITY {#publisher-priority}
 
 The DEFAULT PUBLISHER PRIORITY extension (Extension Header Type 0x0E) is a Track
 Extension that specifies the priority of
@@ -3885,7 +3885,7 @@ subscription inherit this priority, unless they specifically override it.
 
 A subscription has Publisher Priorty 128 if this extension is omitted.
 
-#### DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
+## DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
 
 The DEFAULT_PUBLISHER_GROUP_ORDER extension (Extension Header Type 0x22) is a
 Track Extension.
@@ -3898,7 +3898,7 @@ close the session with `PROTOCOL_VIOLATION`.
 
 If omitted, the publisher's preference is Ascending (0x1).
 
-#### DYNAMIC GROUPS {#dynamic-groups}
+## DYNAMIC GROUPS {#dynamic-groups}
 
 The DYNAMIC_GROUPS Extension (Extension Header Type 0x30) is a Track Extension.
 The allowed values are 0 or 1. When the value is 1, it indicates
@@ -3929,6 +3929,16 @@ Relays. This extension MUST NOT be modified or removed and the serialization
 change). Relays MUST cache this extension if the Object is cached and MUST
 forward this extension if the enclosing Object is forwarded. Relays MAY decode
 and view these extensions.
+
+Unless specified by a particular Extension Header specification, Extension Headers
+MAY appear either in the mutable extension list or
+inside Immutable Extensions. When looking for the value of an extension,
+processors MUST search both the mutable extension list and the contents of
+Immutable Extensions.
+
+If an Extension Header allows multiple values, the same Extension Header Type
+MAY appear in both the mutable list and inside Immutable Extensions, unless
+prohibited by the Extension Header specification.
 
 A Track is considered malformed (see {{malformed-tracks}}) if any of the
 following conditions are detected:
