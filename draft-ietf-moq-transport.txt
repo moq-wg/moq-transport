@@ -183,10 +183,13 @@ Table of Contents
      10.5.  Examples
    11. Extension Headers
      11.1.  DELIVERY TIMEOUT
-       11.1.1.  MAX CACHE DURATION
-     11.2.  Immutable Extensions
-     11.3.  Prior Group ID Gap
-     11.4.  Prior Object ID Gap
+     11.2.  MAX CACHE DURATION
+     11.3.  DEFAULT PUBLISHER PRIORITY
+     11.4.  DEFAULT PUBLISHER GROUP ORDER
+     11.5.  DYNAMIC GROUPS
+     11.6.  Immutable Extensions
+     11.7.  Prior Group ID Gap
+     11.8.  Prior Object ID Gap
    12. Security Considerations
      12.1.  Resource Exhaustion
      12.2.  Timeouts
@@ -1376,7 +1379,7 @@ Table of Contents
    subscriber joining a Track might detect that it is more efficient to
    request the Original Publisher create a new group than issue a
    Joining FETCH.  Publishers indicate a Track supports dynamic group
-   creation using the DYNAMIC_GROUPS parameter (Section 11.1.1.3).
+   creation using the DYNAMIC_GROUPS parameter (Section 11.5).
 
    One possible subscriber pattern is to SUBSCRIBE to a Track using
    Filter Type Largest Object and observe the Largest Location in the
@@ -3866,7 +3869,7 @@ Table of Contents
    Object ID Delta values.  A consumer cannot infer information about
    the existence of Objects between the current and previous Object ID
    in the Subgroup (e.g. when Object ID Delta is non-zero) unless there
-   is an Prior Object ID Gap extesnion header (see Section 11.4).
+   is an Prior Object ID Gap extesnion header (see Section 11.8).
 
    {
      Object ID Delta (vi64),
@@ -4215,7 +4218,7 @@ Table of Contents
    If unspecified, the subscriber's DELIVERY_TIMEOUT is used.  If
    neither endpoint specified a timeout, Objects do not time out.
 
-11.1.1.  MAX CACHE DURATION
+11.2.  MAX CACHE DURATION
 
    The MAX_CACHE_DURATION extension (Extension Header Type 0x04) is a
    Track Extension.
@@ -4234,7 +4237,7 @@ Table of Contents
    Objects can be cached until implementation constraints cause them to
    be evicted.
 
-11.1.1.1.  DEFAULT PUBLISHER PRIORITY
+11.3.  DEFAULT PUBLISHER PRIORITY
 
    The DEFAULT PUBLISHER PRIORITY extension (Extension Header Type 0x0E)
    is a Track Extension that specifies the priority of a subscription
@@ -4247,7 +4250,7 @@ Table of Contents
    A subscription has Publisher Priorty 128 if this extension is
    omitted.
 
-11.1.1.2.  DEFAULT PUBLISHER GROUP ORDER
+11.4.  DEFAULT PUBLISHER GROUP ORDER
 
    The DEFAULT_PUBLISHER_GROUP_ORDER extension (Extension Header Type
    0x22) is a Track Extension.
@@ -4260,7 +4263,7 @@ Table of Contents
 
    If omitted, the publisher's preference is Ascending (0x1).
 
-11.1.1.3.  DYNAMIC GROUPS
+11.5.  DYNAMIC GROUPS
 
    The DYNAMIC_GROUPS Extension (Extension Header Type 0x30) is a Track
    Extension.  The allowed values are 0 or 1.  When the value is 1, it
@@ -4272,7 +4275,7 @@ Table of Contents
 
    If omitted, the value is 0.
 
-11.2.  Immutable Extensions
+11.6.  Immutable Extensions
 
    The Immutable Extensions (Extension Header Type 0xB) contains a
    sequence of Key-Value-Pairs (see Figure 2) which are also Track or
@@ -4291,6 +4294,16 @@ Table of Contents
    if the Object is cached and MUST forward this extension if the
    enclosing Object is forwarded.  Relays MAY decode and view these
    extensions.
+
+   Unless specified by a particular Extension Header specification,
+   Extension Headers MAY appear either in the mutable extension list or
+   inside Immutable Extensions.  When looking for the value of an
+   extension, processors MUST search both the mutable extension list and
+   the contents of Immutable Extensions.
+
+   If an Extension Header allows multiple values, the same Extension
+   Header Type MAY appear in both the mutable list and inside Immutable
+   Extensions, unless prohibited by the Extension Header specification.
 
    A Track is considered malformed (see Section 2.4.2) if any of the
    following conditions are detected:
@@ -4319,7 +4332,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    An Object MUST NOT contain more than one instance of this extension
    header.
 
-11.3.  Prior Group ID Gap
+11.7.  Prior Group ID Gap
 
    Prior Group ID Gap only applies to Objects, not Tracks.
 
@@ -4359,7 +4372,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    An Object MUST NOT contain more than one instance of this extension
    header.
 
-11.4.  Prior Object ID Gap
+11.8.  Prior Object ID Gap
 
    Prior Object ID Gap only applies to Objects, not Tracks.
 
@@ -4520,31 +4533,28 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 13.3.  Extension Headers
 
-    +======+===============================+========+================+
-    | Type | Name                          | Scope  | Specification  |
-    +======+===============================+========+================+
-    | 0x02 | DELIVERY_TIMEOUT              | Track  | Section 11.1   |
-    +------+-------------------------------+--------+----------------+
-    | 0x04 | MAX_CACHE_DURATION            | Track  | Section 11.1.1 |
-    +------+-------------------------------+--------+----------------+
-    | 0x0B | IMMUTABLE_EXTENSIONS          | Track, | Section 11.2   |
-    |      |                               | Object |                |
-    +------+-------------------------------+--------+----------------+
-    | 0x0E | DEFAULT_PUBLISHER_PRIORITY    | Track  | Section        |
-    |      |                               |        | 11.1.1.1       |
-    +------+-------------------------------+--------+----------------+
-    | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track  | Section        |
-    |      |                               |        | 11.1.1.2       |
-    +------+-------------------------------+--------+----------------+
-    | 0x30 | DYNAMIC_GROUPS                | Track  | Section        |
-    |      |                               |        | 11.1.1.3       |
-    +------+-------------------------------+--------+----------------+
-    | 0x3C | PRIOR_GROUP_ID_GAP            | Object | Section 11.3   |
-    +------+-------------------------------+--------+----------------+
-    | 0x3E | PRIOR_OBJECT_ID_GAP           | Object | Section 11.4   |
-    +------+-------------------------------+--------+----------------+
+     +======+===============================+========+===============+
+     | Type | Name                          | Scope  | Specification |
+     +======+===============================+========+===============+
+     | 0x02 | DELIVERY_TIMEOUT              | Track  | Section 11.1  |
+     +------+-------------------------------+--------+---------------+
+     | 0x04 | MAX_CACHE_DURATION            | Track  | Section 11.2  |
+     +------+-------------------------------+--------+---------------+
+     | 0x0B | IMMUTABLE_EXTENSIONS          | Track, | Section 11.6  |
+     |      |                               | Object |               |
+     +------+-------------------------------+--------+---------------+
+     | 0x0E | DEFAULT_PUBLISHER_PRIORITY    | Track  | Section 11.3  |
+     +------+-------------------------------+--------+---------------+
+     | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track  | Section 11.4  |
+     +------+-------------------------------+--------+---------------+
+     | 0x30 | DYNAMIC_GROUPS                | Track  | Section 11.5  |
+     +------+-------------------------------+--------+---------------+
+     | 0x3C | PRIOR_GROUP_ID_GAP            | Object | Section 11.7  |
+     +------+-------------------------------+--------+---------------+
+     | 0x3E | PRIOR_OBJECT_ID_GAP           | Object | Section 11.8  |
+     +------+-------------------------------+--------+---------------+
 
-                                 Table 11
+                                  Table 11
 
 13.4.  Error Codes
 
