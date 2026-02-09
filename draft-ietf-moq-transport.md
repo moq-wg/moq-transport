@@ -988,6 +988,14 @@ applications might need to periodically ensure the congestion controller is not
 app-limited for at least a full round trip to ensure the available bandwidth can be
 measured.
 
+Applications can address this by subscribing to additional tracks at a lower priority
+or by using padding streams ({{padding-streams}}) to fill the congestion window
+during probing intervals without affecting the delivery of higher priority media.
+Network-assisted bandwidth estimation mechanisms such as SCONE
+{{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
+which subscribers can use to inform track selection decisions without relying on
+application-level probing.
+
 ### Consistent Throughput
 
 Congestion control algorithms are commonly optimized for throughput, not consistency.
