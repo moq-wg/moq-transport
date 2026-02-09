@@ -2393,6 +2393,10 @@ DUPLICATE_SUBSCRIPTION (0x19):
 : The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
 with the same role as an existing subscription.
 
+OVERLOADED:
+: The responder is overloaded and cannot process the request at this time. The
+sender SHOULD use the Retry Interval to indicate when the request can be retried.
+
 Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
 
@@ -2754,6 +2758,9 @@ MALFORMED_TRACK (0x12):
 UPDATE_FAILED (0x8):
 : REQUEST_UPDATE failed on this subscription (see
   {{message-request-update}}).
+
+OVERLOADED (0x9):
+: The publisher is overloaded and is terminating the subscription.
 
 ## FETCH {#message-fetch}
 
@@ -3664,6 +3671,9 @@ MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
 
+OVERLOADED (0x9):
+: The publisher is overloaded and is resetting this stream.
+
 ### Fetch Header {#fetch-header}
 
 When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
@@ -4148,6 +4158,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| OVERLOADED                 | 0x9  | {{message-request-error}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
@@ -4161,6 +4172,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | EXPIRED            | 0x5  | {{message-publish-done}} |
 | TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
 | UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
+| OVERLOADED         | 0x9  | {{message-publish-done}} |
 | MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
@@ -4172,6 +4184,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | DELIVERY_TIMEOUT      | 0x2  | {{closing-subgroup-streams}} |
 | SESSION_CLOSED        | 0x3  | {{closing-subgroup-streams}} |
 | UNKNOWN_OBJECT_STATUS | 0x4  | {{closing-subgroup-streams}} |
+| OVERLOADED            | 0x9  | {{closing-subgroup-streams}} |
 | MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
 
 # Contributors
