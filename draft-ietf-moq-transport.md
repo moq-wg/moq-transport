@@ -3857,7 +3857,7 @@ securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
 within the chain from original publisher to end subscribers will have
-an access to media track identifiers as well as the media content
+access to track identifiers as well as the Objects content
 unless it is end-to-end encrypted {{sec-media}}.
 
 TODO: Expand this section, including subscriptions.
@@ -3868,25 +3868,24 @@ TODO: Describe Cache Poisoning attacks
 
 MOQT depends on a secure transport to provide confidentiality,
 integrity and endpoint authentication between subscriber and
-publisher. Implementations use QUIC or WebTransport that both fulfill
+publisher. Implementations use QUIC or WebTransport to fulfill
 the basic communication security requirements and these
-implementations SHOULD follow best practices for TLS 1.3 and QUIC
-(certificate validation, supported cipher suites, OCSP/CRL checks or
-short-lived certificates, etc.). Relay authentication is required to
+implementations SHOULD follow best practices for TLS 1.3 and QUIC.
+Relay authentication is required to
 prevent impersonation of relays.
 
-Authentication of original publishers and end subscribers will not
+Authentication of original publishers and end subscribers does not
 depend on TLS based mechanisms due to challenges with identifiers and
 certificate distribution, although mutual TLS MAY be used when
-appropriate in the protocol deployment. See {{sec-authorization}} for
+appropriate. See {{sec-authorization}} for
 discussion of how authorization of original publishers and end
 subscribers is achived.
 
 It must be noted that the basic security protection offered by QUIC or
-TCP/TLS does not prevent traffic pattern analysis as media object
+TCP/TLS does not prevent traffic pattern analysis as object
 sizes, sizes of request messages etc can make it possible for an third
 party observer of the traffic between subscriber and publisher to
-identify media content, user patterns and analyze media stream origin.
+identify media content, user patterns and media stream origin.
 
 ## Authorization {#sec-authorization}
 
