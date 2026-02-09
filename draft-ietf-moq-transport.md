@@ -3856,7 +3856,7 @@ This results in a trust model where on each hop the nodes need to be
 securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
-within the chain from origianal publisher to end subscribers will have
+within the chain from original publisher to end subscribers will have
 an access to media track identifiers as well as the media content
 unless it is end-to-end encrypted {{sec-media}}.
 
