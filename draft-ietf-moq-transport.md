@@ -2210,7 +2210,7 @@ string {{!RFC3629}}, though the message does not carry information, such as
 language tags, that would aid comprehension by any entity other than the one
 that created the text.
 
-#### Reserved Setup Parameters
+### Reserved Setup Parameters
 
 Setup parameters with an identifier of the form 53 * N + 43 for integer
 values of N are reserved to exercise the requirement endpoints MUST ignore unknown
