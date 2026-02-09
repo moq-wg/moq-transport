@@ -2340,6 +2340,8 @@ request.
 REQUEST_ERROR Message {
   Type (vi64) = 0x5,
   Length (16),
+  Request ID (vi64),
+  Error Code (vi64),
   Retry Interval (vi64),
   Error Reason (Reason Phrase),
 }
