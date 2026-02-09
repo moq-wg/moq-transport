@@ -2212,7 +2212,7 @@ that created the text.
 
 #### Reserved Setup Parameters
 
-Setup parameters with an identifier of the form 67 * N + 43 for integer
+Setup parameters with an identifier of the form 53 * N + 43 for integer
 values of N are reserved to exercise the requirement endpoints MUST ignore unknown
 setup parameters. These setup parameters have no semantics and can carry
 arbitrary values.
