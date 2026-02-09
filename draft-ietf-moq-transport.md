@@ -3857,7 +3857,7 @@ securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
 within the chain from original publisher to end subscribers will have
-access to track identifiers as well as the Objects content
+access to track identifiers as well as the object's content
 unless it is end-to-end encrypted {{sec-media}}.
 
 TODO: Expand this section, including subscriptions.
@@ -3877,9 +3877,7 @@ prevent impersonation of relays.
 Authentication of original publishers and end subscribers does not
 depend on TLS based mechanisms due to challenges with identifiers and
 certificate distribution, although mutual TLS MAY be used when
-appropriate. See {{sec-authorization}} for
-discussion of how authorization of original publishers and end
-subscribers is achived.
+appropriate  {{sec-authorization}}.
 
 It must be noted that the basic security protection offered by QUIC or
 TCP/TLS does not prevent traffic pattern analysis as object
@@ -3889,13 +3887,18 @@ identify media content, user patterns and media stream origin.
 
 ## Authorization {#sec-authorization}
 
-Original publisher and end subscriber authorization to use relays and
-publish or subscribe to media tracks are primarily fullfilled using security
-token based schemes, although mutual TLS MAY be use in some
-deployments where the certificate deployments are in place. Mutual TLS
-only allows the publisher to identify the directly connected
-node, thus make it mostly useful for relay to verify their peer
-relays and authorization to use a relay.
+Authentication of original publishers and end subscribers does not
+depend on TLS based mechanisms due to challenges with identifiers and
+certificate distribution. Instead they rely primarily on
+token based schemes.
+
+Relays will be identified using TLS based authentication to prevent
+impersanation attacks. Mutual TLS is expected to be widely used for
+node level identification between relays, especially within one
+organization. However, in some deployments mutual TLS may be possible
+to use also for end subscribers or original publishers. However, as
+only node level authentication is provided, what a particular
+identified node is allowed to do is not provided at TLS level.
 
 MOQT has functionality to carry Authorization tokens as message
 parameters when requests are sent. These tokens can be of type the
