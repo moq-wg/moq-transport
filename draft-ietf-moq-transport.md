@@ -915,11 +915,14 @@ the type of the stream.
 |-------------|-------------------------------------------------|
 | 0x2F00      | SETUP ({{message-setup}})                       |
 |-------------|-------------------------------------------------|
+| 0x132B3E28  | PADDING  ({{padding-streams}})                  |
+|-------------|-------------------------------------------------|
 
 An endpoint that receives an unknown stream type MUST close the session.
 
 Control streams (SETUP) are described in {{session-init}}.
 Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
+Padding streams are described in {{padding-streams}}.
 
 ## Termination  {#session-termination}
 
@@ -3855,6 +3858,33 @@ the "prior Object", the prior Object fields are determined as follows:
 * Prior Priority: The Priority from the last actual Object before the End of
   Range indicator. If there was no prior Object, using a flag that references
   the prior Priority is a `PROTOCOL_VIOLATION`.
+
+## Padding Streams {#padding-streams}
+
+An endpoint MAY open a unidirectional stream with a stream type of 0x132B3E28 to send
+padding data. The stream begins with the stream type, followed by zero or more
+bytes that MUST all be set to zero.
+
+~~~
+PADDING {
+  Type (vi64) = 0x132B3E28,
+  Padding Data (..) = 0x00..
+}
+~~~
+{: #padding-format title="MOQT Padding Stream"}
+
+The receiver MUST discard all data received on a padding stream. The receiver
+MUST NOT close the session upon receiving a padding stream.
+
+Padding streams do not carry Objects or any other application data. An endpoint
+can use padding streams to probe for additional bandwidth without affecting the
+delivery of media data. To avoid interfering with the delivery of Objects,
+senders SHOULD send padding streams at a lower priority than any data stream
+carrying media.
+
+Either the sender or the receiver MAY cancel a padding stream at any time
+without affecting any MOQT application state. The receiver MAY send STOP_SENDING
+on a padding stream to indicate it no longer wishes to receive padding data.
 
 ## Examples
 
