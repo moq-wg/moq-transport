@@ -1150,7 +1150,7 @@ previous value is published or received through a subscription.
 There are four uses of Subscription Location Filters.
 
 Largest Object: The Special Location Filter ({{special-location-filters}})
-with only Start Group = 0 and Start Object = 0 indicates
+with only Start Group = 0 and Start Object = 0 and the rest ommitted indicates
 the filter Start Location is `{Largest Object.Group,
 Largest Object.Object + 1}` and `Largest Object` is communicated in
 SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
@@ -1160,27 +1160,27 @@ Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass the Largest Object filter.
 
 Next Group Start: The Special Location Filter ({{special-location-filters}})
-with only Start Group = 0 indicates
+with only Start Group = 0 and the rest omitted indicates
 the filter Start Location is `{Largest Object.Group + 1,
 0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
 delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
 the subscription is open ended. For scenarios where the subscriber intends to
-start from more than one group in the future, it can use an AbsoluteStart filter
+start from more than one group in the future, it can use an Absolute Start filter
 instead.
 
-AbsoluteStart: The Location Filter Start Location is specified explicitly with
-either a Start Group or Start Object greater than zero. The
-specified `Start Location` MAY be less than the `Largest Object` observed at the
-publisher. There is no End Group - the subscription is open ended.  An
-AbsoluteStart filter with `Start` = {0, 0} is equivalent to an unfiltered
-subscription, and is therefore not allowed since that indicates Largest Object.
+Absolute Start: The Location Filter Start Location is specified explicitly with
+either a Start Group or Start Object greater than zero and the rest omitted.
+A Location Filter with Start Location set to {0, 0} indicates Largest Object
+not Absolute Start. The specified Start Location MAY be less than the 
+`Largest Object` observed at the publisher. There is no End Group - the 
+subscription is open ended.
 
-AbsoluteRange: The Location Filter Start Location and End Group are specified
-explicitly. The specified `Start Location` MAY be less than the `Largest Object`
-observed at the publisher. If the specified `End Group` is the same group
-specified in `Start Location`, the remainder of that Group passes the
-filter. `End Group` MUST specify the same or a larger Group than specified in
-`Start Location`.
+Absolute Range: The Location Filter Start Location and End Group are specified
+explicitly. The specified Start Location MAY be less than the `Largest Object`
+observed at the publisher. If the specified End Group is the same group
+specified in Start Location, the remainder of that Group passes the
+filter. End Group MUST specify the same or a larger Group than specified in
+Start Location.
 
 ### Joining an Ongoing Track
 
@@ -2422,7 +2422,6 @@ The MAX_FILTER_RANGES parameter (Type 0x06) limits the peer's number of
 start/end ranges allowed in each filter parameter which allows multiple ranges.
 The default value is 0, so if not specified, the peer MUST NOT send any such
 filter parameters.
-This parameter is independent in client and server directions. 
 
 #### MAX TRACKS SELECTED
 
@@ -2430,14 +2429,14 @@ The MAX_TRACKS_SELECTED parameter (Type 0x08) limits the peer's value of
 MaxTracksSelected in the TRACK_FILTER parameter.  The default value is 0,
 so if not specified, the peer MUST NOT send any TRACK_FILTER parameter.
 The peer MUST NOT send any TRACK_FILTER parameter with MaxTracksSelected
-greater than this parameter. It is independent in client and server directions. 
+greater than this parameter.
 
 #### MAX TRACKS DESELECTED
 
 The MAX_TRACKS_DESELECTED parameter (Type 0x0A) limits the peer's value of
 MaxTracksDeselected in the TRACK_FILTER parameter.  The default value is 0. 
 The peer MUST NOT send any TRACK_FILTER parameter with MaxTracksDeselected
-greater than this parameter. It is independent in client and server directions. 
+greater than this parameter. 
 
 ## GOAWAY {#message-goaway}
 
