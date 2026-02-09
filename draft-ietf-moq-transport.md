@@ -3225,9 +3225,11 @@ the type of the stream in question.
 |-------------|-------------------------------------------------|
 | ID          | Type                                            |
 |------------:|:------------------------------------------------|
+| 0x05        | FETCH_HEADER  ({{fetch-header}})                |
+|-------------|-------------------------------------------------|
 | 0x10-0x1D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
 |-------------|-------------------------------------------------|
-| 0x05        | FETCH_HEADER  ({{fetch-header}})                |
+| 0x132B3E28  | PADDING  ({{padding-streams}})                  |
 |-------------|-------------------------------------------------|
 
 All MOQT datagrams start with a variable-length integer indicating the type of
@@ -3750,6 +3752,33 @@ serialized Object, if any, and this Location, inclusive, either do not exist
 NOT use `End of Non-Existent Range` in a FETCH response except to split a range
 of Objects that will not be serialized into those that are known not to exist
 and those with unknown status.
+
+## Padding Streams {#padding-streams}
+
+An endpoint MAY open a unidirectional stream with a stream type of 0x132B3E28 to send
+padding data. The stream begins with the stream type, followed by zero or more
+bytes that MUST all be set to zero.
+
+~~~
+PADDING {
+  Type (vi64) = 0x132B3E28,
+  Padding Data (..) = 0x00..
+}
+~~~
+{: #padding-format title="MOQT Padding Stream"}
+
+The receiver MUST discard all data received on a padding stream. The receiver
+MUST NOT close the session upon receiving a padding stream.
+
+Padding streams do not carry Objects or any other application data. An endpoint
+can use padding streams to probe for additional bandwidth without affecting the
+delivery of media data. To avoid interfering with the delivery of Objects,
+senders SHOULD send padding streams at a lower priority than any data stream
+carrying media.
+
+Either the sender or the receiver MAY cancel a padding stream at any time
+without affecting any MOQT application state. The receiver MAY send STOP_SENDING
+on a padding stream to indicate it no longer wishes to receive padding data.
 
 ## Examples
 
