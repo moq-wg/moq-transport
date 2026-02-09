@@ -84,9 +84,10 @@ Table of Contents
      1.2.  Terms and Definitions
      1.3.  Stream Management Terms
      1.4.  Notational Conventions
-       1.4.1.  Location Structure
-       1.4.2.  Key-Value-Pair Structure
-       1.4.3.  Reason Phrase Structure
+       1.4.1.  Variable-Length Integers
+       1.4.2.  Location Structure
+       1.4.3.  Key-Value-Pair Structure
+       1.4.4.  Reason Phrase Structure
      1.5.  Representing Namespace and Track Names
    2.  Object Data Model
      2.1.  Objects
@@ -176,10 +177,13 @@ Table of Contents
      10.5.  Examples
    11. Extension Headers
      11.1.  DELIVERY TIMEOUT
-       11.1.1.  MAX CACHE DURATION
-     11.2.  Immutable Extensions
-     11.3.  Prior Group ID Gap
-     11.4.  Prior Object ID Gap
+     11.2.  MAX CACHE DURATION
+     11.3.  DEFAULT PUBLISHER PRIORITY
+     11.4.  DEFAULT PUBLISHER GROUP ORDER
+     11.5.  DYNAMIC GROUPS
+     11.6.  Immutable Extensions
+     11.7.  Prior Group ID Gap
+     11.8.  Prior Object ID Gap
    12. Security Considerations
      12.1.  Resource Exhaustion
      12.2.  Timeouts
@@ -360,17 +364,88 @@ Table of Contents
    This document uses the conventions detailed in ([RFC9000],
    Section 1.3) when describing the binary encoding.
 
+1.4.1.  Variable-Length Integers
+
+   MoQT requires a variable-length integer encoding with the following
+   properties:
+
+   1.  The encoded length can be determined from the first encoded byte.
+
+   2.  The range of 1 byte values is as large as possible.
+
+   3.  All 64 bit numbers can be encoded.
+
+   The variable-length integer encoding uses the number of leading 1
+   bits of the first byte to indicate the length of the encoding in
+   bytes.  The remaining bits after the first 0 and subsequent bytes, if
+   any, represent the integer value, encoded in network byte order.
+
+   Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can
+   encode up to 64 bit unsinged integers.  The following table
+   summarizes the encoding properties.
+
+    +==============+================+========+========================+
+    | Leading Bits | Length (bytes) | Usable | Range                  |
+    |              |                | Bits   |                        |
+    +==============+================+========+========================+
+    | 0            | 1              | 7      | 0-127                  |
+    +--------------+----------------+--------+------------------------+
+    | 10           | 2              | 14     | 0-16383                |
+    +--------------+----------------+--------+------------------------+
+    | 110          | 3              | 21     | 0-2097151              |
+    +--------------+----------------+--------+------------------------+
+    | 1110         | 4              | 28     | 0-268435455            |
+    +--------------+----------------+--------+------------------------+
+    | 11110        | 5              | 35     | 0-34359738367          |
+    +--------------+----------------+--------+------------------------+
+    | 111110       | 6              | 42     | 0-4398046511103        |
+    +--------------+----------------+--------+------------------------+
+    | 11111110     | 8              | 56     | 0-72057594037927935    |
+    +--------------+----------------+--------+------------------------+
+    | 11111111     | 9              | 64     | 0-18446744073709551615 |
+    +--------------+----------------+--------+------------------------+
+
+                   Table 1: Summary of Integer Encodings
+
+   The following table contains some example encodings:
+
+           +======================+============================+
+           | Byte Sequence        | Decimal Value              |
+           +======================+============================+
+           | 0x25                 | 37                         |
+           +----------------------+----------------------------+
+           | 0x8025               | 37                         |
+           +----------------------+----------------------------+
+           | 0xbbbd               | 15,293                     |
+           +----------------------+----------------------------+
+           | 0xdd7f3e7d           | 494,878,333                |
+           +----------------------+----------------------------+
+           | 0xfaa1a0e403d8       | 2,893,212,287,960          |
+           +----------------------+----------------------------+
+           | 0xfefa318fa8e3ca11   | 70,423,237,261,249,041     |
+           +----------------------+----------------------------+
+           | 0xffffffffffffffffff | 18,446,744,073,709,551,615 |
+           +----------------------+----------------------------+
+
+                     Table 2: Example Integer Encodings
+
+   11111100 is an invalid code point.  An endpoint that receives this
+   value MUST close the session with a PROTOCOL_VIOLATION.
+
    To reduce unnecessary use of bandwidth, variable length integers
    SHOULD be encoded using the least number of bytes possible to
    represent the required value.
 
-1.4.1.  Location Structure
+   x (vi64):  Indicates that x holds an integer value using the
+      variable-length encoding as described above.
+
+1.4.2.  Location Structure
 
    Location identifies a particular Object in a Group within a Track.
 
    Location {
-     Group (i),
-     Object (i)
+     Group (vi64),
+     Object (vi64)
    }
 
                         Figure 1: Location structure
@@ -384,7 +459,7 @@ Table of Contents
 
    A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)
 
-1.4.2.  Key-Value-Pair Structure
+1.4.3.  Key-Value-Pair Structure
 
    Key-Value-Pair is a flexible structure designed to carry key/value
    pairs in which the key is a variable length integer and the value is
@@ -402,8 +477,8 @@ Table of Contents
    is optimized for use in the data plane.
 
    Key-Value-Pair {
-     Delta Type (i),
-     [Length (i),]
+     Delta Type (vi64),
+     [Length (vi64),]
      Value (..)
    }
 
@@ -427,13 +502,13 @@ Table of Contents
    receiver MUST close the session with error code
    KEY_VALUE_FORMATTING_ERROR.
 
-1.4.3.  Reason Phrase Structure
+1.4.4.  Reason Phrase Structure
 
    Reason Phrase provides a way for the sender to encode additional
    diagnostic information about the error condition, where appropriate.
 
    Reason Phrase {
-     Reason Phrase Length (i),
+     Reason Phrase Length (vi64),
      Reason Phrase Value (..)
    }
 
@@ -638,7 +713,7 @@ Table of Contents
    Fields, encoded as follows:
 
    Track Namespace {
-     Number of Track Namespace Fields (i),
+     Number of Track Namespace Fields (vi64),
      Track Namespace Field (..) ...
    }
 
@@ -649,7 +724,7 @@ Table of Contents
    Each Track Namespace Field is encoded as follows:
 
    Track Namespace Field {
-     Track Namespace Field Length (i),
+     Track Namespace Field Length (vi64),
      Track Namespace Field Value (..)
    }
 
@@ -1239,7 +1314,7 @@ Table of Contents
 
    Some filters are defined to be relative to the Largest Object.  The
    Largest Object is the Object with the largest Location
-   (Section 1.4.1) in the Track from the perspective of the publisher
+   (Section 1.4.2) in the Track from the perspective of the publisher
    processing the message.  Largest Object updates when the first byte
    of an Object with a Location larger than the previous value is
    published or received through a subscription.
@@ -1247,9 +1322,9 @@ Table of Contents
    A Subscription Filter has the following structure:
 
    Subscription Filter {
-     Filter Type (i),
+     Filter Type (vi64),
      [Start Location (Location),]
-     [End Group (i),]
+     [End Group (vi64),]
    }
 
    Filter Type can have one of the following values:
@@ -1308,7 +1383,7 @@ Table of Contents
    subscriber joining a Track might detect that it is more efficient to
    request the Original Publisher create a new group than issue a
    Joining FETCH.  Publishers indicate a Track supports dynamic group
-   creation using the DYNAMIC_GROUPS parameter (Section 11.1.1.3).
+   creation using the DYNAMIC_GROUPS parameter (Section 11.5).
 
    One possible subscriber pattern is to SUBSCRIBE to a Track using
    Filter Type Largest Object and observe the Largest Location in the
@@ -1838,7 +1913,7 @@ Table of Contents
    is formatted as follows:
 
    MOQT Control Message {
-     Message Type (i),
+     Message Type (vi64),
      Message Length (16),
      Message Payload (..),
    }
@@ -1893,7 +1968,7 @@ Table of Contents
            | 0x11 | SUBSCRIBE_NAMESPACE (Section 9.18)         |
            +------+--------------------------------------------+
 
-                                  Table 1
+                                  Table 3
 
    An endpoint that receives an unknown message type MUST close the
    session.  Control messages have a length to make parsing easier, but
@@ -1968,9 +2043,9 @@ Table of Contents
    The Token structure is serialized as follows:
 
    Token {
-     Alias Type (i),
-     [Token Alias (i),]
-     [Token Type (i),]
+     Alias Type (vi64),
+     [Token Alias (vi64),]
+     [Token Type (vi64),]
      [Token Value (..)]
    }
 
@@ -2072,6 +2147,20 @@ Table of Contents
    long as the combination of Token Type and Token Value are unique
    after resolving any aliases.
 
+   Messages carrying the AUTHORIZATION TOKEN parameter can appear on
+   different control streams.  Because stream processing order can be
+   different than send order, the receiver and sender can have
+   inconsistent views of the token cache state.
+
+   Senders MUST NOT send USE_ALIAS on one control stream for an alias
+   registered on a different stream until the sender has received a
+   response to the message containing the REGISTER.  Senders MAY use
+   USE_ALIAS on the same control stream as the REGISTER without waiting
+   for a response.
+
+   Senders MUST NOT send DELETE for an alias while any message using
+   USE_ALIAS with that alias has not received a response.
+
 9.1.2.2.  DELIVERY TIMEOUT Parameter
 
    The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
@@ -2103,7 +2192,7 @@ Table of Contents
    are delivered as indicated by their Group Order and Priority.  If a
    subscriber fails to consume Objects at a sufficient rate, causing the
    publisher to exceed its resource limits, the publisher MAY terminate
-   the subscription with error TOO_FAR_BEHIND.
+   the subscription using PUBLISH_DONE with error TOO_FAR_BEHIND.
 
    If an object in a subgroup exceeds the delivery timeout, the
    publisher MUST reset the underlying transport stream (see
@@ -2186,7 +2275,7 @@ Table of Contents
    The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in
    SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE
    or TRACK_STATUS).  It is a length-prefixed Location structure (see
-   Section 1.4.1) containing the largest Location in the Track observed
+   Section 1.4.2) containing the largest Location in the Track observed
    by the sending endpoint (see Section 5.1.2.  If Objects have been
    published on this Track the Publisher MUST include this parameter.
 
@@ -2266,16 +2355,16 @@ Table of Contents
    The wire format of the Setup messages are as follows:
 
    CLIENT_SETUP Message {
-     Type (i) = 0x20,
+     Type (vi64) = 0x20,
      Length (16),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Setup Parameters (..) ...,
    }
 
    SERVER_SETUP Message {
-     Type (i) = 0x21,
+     Type (vi64) = 0x21,
      Length (16),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Setup Parameters (..) ...,
    }
 
@@ -2378,16 +2467,16 @@ Table of Contents
    requests, though the sender SHOULD avoid initiating requests unless
    required by migration (see (Section 8.4.1 and Section 8.5.1).  An
    endpoint that receives a GOAWAY MAY reject new requests with an
-   appropriate error code (e.g., SUBSCRIBE_ERROR with error code
+   appropriate error code (e.g., REQUEST_ERROR with error code
    GOING_AWAY).
 
    The endpoint MUST close the session with a PROTOCOL_VIOLATION
    (Section 3.4) if it receives multiple GOAWAY messages.
 
    GOAWAY Message {
-     Type (i) = 0x10,
+     Type (vi64) = 0x10,
      Length (16),
-     New Session URI Length (i),
+     New Session URI Length (vi64),
      New Session URI (..),
    }
 
@@ -2411,9 +2500,9 @@ Table of Contents
    TRACK_STATUS, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests.
 
    REQUEST_OK Message {
-     Type (i) = 0x7,
+     Type (vi64) = 0x7,
      Length (16),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Parameters (..) ...
    }
 
@@ -2428,10 +2517,10 @@ Table of Contents
    TRACK_STATUS).
 
    REQUEST_ERROR Message {
-     Type (i) = 0x5,
+     Type (vi64) = 0x5,
      Length (16),
-     Error Code (i),
-     Retry Interval (i),
+     Error Code (vi64),
+     Retry Interval (vi64),
      Error Reason (Reason Phrase),
    }
 
@@ -2444,7 +2533,7 @@ Table of Contents
       request SHOULD NOT be retried.
 
    *  Error Reason: Provides a text description of the request error.
-      See Section 1.4.3.
+      See Section 1.4.4.
 
    The application SHOULD use a relevant error code in REQUEST_ERROR, as
    defined below and assigned in Section 13.4.2.  Most codepoints have
@@ -2476,6 +2565,9 @@ Table of Contents
 
    EXPIRED_AUTH_TOKEN:  Authorization token has expired
       (Section 9.1.2.1).
+
+   GOING_AWAY:  The endpoint has received a GOAWAY and MAY reject new
+      requests.
 
    DUPLICATE_SUBSCRIPTION (0x19):  The PUBLISH or SUBSCRIBE request
       attempted to create a subscription to a Track with the same role
@@ -2520,13 +2612,13 @@ Table of Contents
    The format of SUBSCRIBE is as follows:
 
    SUBSCRIBE Message {
-     Type (i) = 0x3,
+     Type (vi64) = 0x3,
      Length (16),
-     Subscribe ID (i),
+     Subscribe ID (vi64),
      Track Namespace (..),
-     Track Name Length (i),
+     Track Name Length (vi64),
      Track Name (..),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Parameters (..) ...
    }
 
@@ -2562,10 +2654,10 @@ Table of Contents
    bidi stream for successful subscriptions.
 
    SUBSCRIBE_OK Message {
-     Type (i) = 0x4,
+     Type (vi64) = 0x4,
      Length (16),
-     Track Alias (i),
-     Number of Parameters (i),
+     Track Alias (vi64),
+     Number of Parameters (vi64),
      Parameters (..) ...,
      Track Extensions (..),
    }
@@ -2587,7 +2679,7 @@ Table of Contents
 
 9.8.  REQUEST_UPDATE
 
-   The sender of a request (SUBSCRIBE, PUBLISH, FETCH, TRACK_STATUS,
+   The sender of a request (SUBSCRIBE, PUBLISH, FETCH,
    PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE) can later send a
    REQUEST_UPDATE on the same bidi stream as the request to modify it.
    A subscriber can also send REQUEST_UPDATE to modify parameters of a
@@ -2605,9 +2697,9 @@ Table of Contents
    The format of REQUEST_UPDATE is as follows:
 
    REQUEST_UPDATE Message {
-     Type (i) = 0x2,
+     Type (vi64) = 0x2,
      Length (16),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Parameters (..) ...
    }
 
@@ -2646,13 +2738,13 @@ Table of Contents
    receiver verifies the publisher is authorized to publish this track.
 
    PUBLISH Message {
-     Type (i) = 0x1D,
+     Type (vi64) = 0x1D,
      Length (16),
      Track Namespace (..),
-     Track Name Length (i),
+     Track Name Length (vi64),
      Track Name (..),
-     Track Alias (i),
-     Number of Parameters (i),
+     Track Alias (vi64),
+     Number of Parameters (vi64),
      Parameters (..) ...,
      Track Extensions (..),
    }
@@ -2696,9 +2788,9 @@ Table of Contents
    acceptance of a PUBLISH message, and establish a subscription.
 
    PUBLISH_OK Message {
-     Type (i) = 0x1E,
+     Type (vi64) = 0x1E,
      Length (16),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Parameters (..) ...,
    }
 
@@ -2754,10 +2846,10 @@ Table of Contents
    The format of PUBLISH_DONE is as follows:
 
    PUBLISH_DONE Message {
-     Type (i) = 0xB,
+     Type (vi64) = 0xB,
      Length (16),
-     Status Code (i),
-     Stream Count (i),
+     Status Code (vi64),
+     Stream Count (vi64),
      Error Reason (Reason Phrase)
    }
 
@@ -2783,7 +2875,7 @@ Table of Contents
       Count, it MAY close the session with a PROTOCOL_VIOLATION.
 
    *  Error Reason: Provides the reason for subscription error.  See
-      Section 1.4.3.
+      Section 1.4.4.
 
    The application SHOULD use a relevant status code in PUBLISH_DONE, as
    defined below:
@@ -2832,7 +2924,7 @@ Table of Contents
                      | 0x3  | Absolute Joining Fetch |
                      +------+------------------------+
 
-                                  Table 2
+                                  Table 4
 
    An endpoint that receives a Fetch Type other than 0x1, 0x2 or 0x3
    MUST close the session with a PROTOCOL_VIOLATION.
@@ -2845,7 +2937,7 @@ Table of Contents
 
    Standalone Fetch {
      Track Namespace (..),
-     Track Name Length (i),
+     Track Name Length (vi64),
      Track Name (..),
      Start Location (Location),
      End Location (Location)
@@ -2894,8 +2986,8 @@ Table of Contents
    A Joining Fetch includes this structure:
 
    Joining Fetch {
-     Joining Subscribe ID (i),
-     Joining Start (i)
+     Joining Subscribe ID (vi64),
+     Joining Start (vi64)
    }
 
    *  Joining Subscribe ID: The Subscribe ID of the subscription to be
@@ -2934,13 +3026,13 @@ Table of Contents
    The format of FETCH is as follows:
 
    FETCH Message {
-     Type (i) = 0x16,
+     Type (vi64) = 0x16,
      Length (16),
-     Fetch ID (i),
-     Fetch Type (i),
+     Fetch ID (vi64),
+     Fetch Type (vi64),
      [Standalone (Standalone Fetch),]
      [Joining (Joining Fetch),]
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Parameters (..) ...
    }
 
@@ -3025,11 +3117,11 @@ Table of Contents
    FETCH_OK MUST NOT be sent until the End Location is known.
 
    FETCH_OK Message {
-     Type (i) = 0x18,
+     Type (vi64) = 0x18,
      Length (16),
      End Of Track (8),
      End Location (Location),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Parameters (..) ...
      Track Extensions (..),
    }
@@ -3102,10 +3194,10 @@ Table of Contents
    publisher is authorized to publish tracks under this namespace.
 
    PUBLISH_NAMESPACE Message {
-     Type (i) = 0x6,
+     Type (vi64) = 0x6,
      Length (16),
      Track Namespace (..),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Parameters (..) ...
    }
 
@@ -3166,11 +3258,11 @@ Table of Contents
    well as future updates to the set.
 
    SUBSCRIBE_NAMESPACE Message {
-     Type (i) = 0x11,
+     Type (vi64) = 0x11,
      Length (16),
      Track Namespace Prefix (..),
-     Subscribe Options (i),
-     Number of Parameters (i),
+     Subscribe Options (vi64),
+     Number of Parameters (vi64),
      Parameters (..) ...
    }
 
@@ -3249,7 +3341,7 @@ Table of Contents
              |      0x05 | FETCH_HEADER (Section 10.4.4)    |
              +-----------+----------------------------------+
 
-                                 Table 3
+                                 Table 5
 
    All MOQT datagrams start with a variable-length integer indicating
    the type of the datagram.  See Section 10.3.1.
@@ -3359,7 +3451,7 @@ Table of Contents
    by Key-Value-Pairs (see Figure 2).
 
    Extensions {
-     Extension Headers Length (i),
+     Extension Headers Length (vi64),
      Extension Headers (..),
    }
 
@@ -3397,12 +3489,12 @@ Table of Contents
    OBJECT_DATAGRAM {
      Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
                 0x28..0x29 / 0x2C..0x2D,
-     Track Alias (i),
-     Group ID (i),
-     [Object ID (i),]
+     Track Alias (vi64),
+     Group ID (vi64),
+     [Object ID (vi64),]
      [Publisher Priority (8),]
      [Extensions (..),]
-     [Object Status (i),]
+     [Object Status (vi64),]
      [Object Payload (..),]
    }
 
@@ -3456,6 +3548,11 @@ Table of Contents
    *  Type values that do not match the form 0b00X0XXXX (i.e., Type
       values outside the ranges 0x00..0x0F and 0x20..0x2F).
 
+   If an Object Datagram includes both the STATUS bit and EXTENSIONS
+   bit, and the Object Status is not Normal (0x0), the endpoint MUST
+   close the session with a PROTOCOL_VIOLATION, because only Normal
+   Objects can have extensions.
+
 10.4.  Streams
 
    When Objects are sent on streams, the stream begins with a Subgroup
@@ -3498,9 +3595,9 @@ Table of Contents
 
    SUBGROUP_HEADER {
      Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D,
-     Track Alias (i),
-     Group ID (i),
-     [Subgroup ID (i),]
+     Track Alias (vi64),
+     Group ID (vi64),
+     [Subgroup ID (vi64),]
      [Publisher Priority (8),]
    }
 
@@ -3576,13 +3673,13 @@ Table of Contents
    Object ID Delta values.  A consumer cannot infer information about
    the existence of Objects between the current and previous Object ID
    in the Subgroup (e.g. when Object ID Delta is non-zero) unless there
-   is an Prior Object ID Gap extesnion header (see Section 11.4).
+   is an Prior Object ID Gap extesnion header (see Section 11.8).
 
    {
-     Object ID Delta (i),
+     Object ID Delta (vi64),
      [Extensions (..),]
-     Object Payload Length (i),
-     [Object Status (i),]
+     Object Payload Length (vi64),
+     [Object Status (vi64),]
      [Object Payload (..),]
    }
 
@@ -3717,6 +3814,10 @@ Table of Contents
       is unable to determine the Status of the next Object in the
       requested range.
 
+   TOO_FAR_BEHIND (0x5):  The corresponding subscription has exceeded
+      the publisher's resource limits and is being terminated (see
+      Section 9.1.2.2).
+
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 2.4.2).
 
@@ -3727,8 +3828,8 @@ Table of Contents
    Fetch ID.
 
    FETCH_HEADER {
-     Type (i) = 0x5,
-     Fetch ID (i),
+     Type (vi64) = 0x5,
+     Fetch ID (vi64),
    }
 
                         Figure 24: MOQT FETCH_HEADER
@@ -3737,13 +3838,13 @@ Table of Contents
    following format:
 
    {
-     Serialization Flags (i),
-     [Group ID (i),]
-     [Subgroup ID (i),]
-     [Object ID (i),]
+     Serialization Flags (vi64),
+     [Group ID (vi64),]
+     [Subgroup ID (vi64),]
+     [Object ID (vi64),]
      [Publisher Priority (8),]
      [Extensions (..),]
-     Object Payload Length (i),
+     Object Payload Length (vi64),
      [Object Payload (..),]
    }
 
@@ -3762,7 +3863,7 @@ Table of Contents
                    | 0x10C | End of Unknown Range      |
                    +-------+---------------------------+
 
-                                  Table 4
+                                  Table 6
 
    Any other value is a PROTOCOL_VIOLATION.
 
@@ -3789,32 +3890,34 @@ Table of Contents
      |                              | present                       |
      +------------------------------+-------------------------------+
 
-                                 Table 5
+                                 Table 7
 
    The following table defines additional flags within the Serialization
    Flags field.  Each flag is an independent boolean value, where a set
    bit (1) indicates the corresponding condition is true.
 
-   +=========+============================+============================+
-   | Bitmask | Condition if set           | Condition if not set (0)   |
-   +=========+============================+============================+
-   | 0x04    | Object ID field is         | Object ID is the prior     |
-   |         | present                    | Object's ID plus one       |
-   +---------+----------------------------+----------------------------+
-   | 0x08    | Group ID field is          | Group ID is the prior      |
-   |         | present                    | Object's Group ID          |
-   +---------+----------------------------+----------------------------+
-   | 0x10    | Priority field is          | Priority is the prior      |
-   |         | present                    | Object's Priority          |
-   +---------+----------------------------+----------------------------+
-   | 0x20    | Extensions field is        | Extensions field is not    |
-   |         | present                    | present                    |
-   +---------+----------------------------+----------------------------+
-   | 0x40    | Datagram: ignore the two   | Use the subgroup ID in the |
-   |         | least significant bits     | two least significant bits |
-   +---------+----------------------------+----------------------------+
+     +=========+==========================+=========================+
+     | Bitmask | Condition if set         | Condition if not set    |
+     |         |                          | (0)                     |
+     +=========+==========================+=========================+
+     | 0x04    | Object ID field is       | Object ID is the prior  |
+     |         | present                  | Object's ID plus one    |
+     +---------+--------------------------+-------------------------+
+     | 0x08    | Group ID field is        | Group ID is the prior   |
+     |         | present                  | Object's Group ID       |
+     +---------+--------------------------+-------------------------+
+     | 0x10    | Priority field is        | Priority is the prior   |
+     |         | present                  | Object's Priority       |
+     +---------+--------------------------+-------------------------+
+     | 0x20    | Extensions field is      | Extensions field is not |
+     |         | present                  | present                 |
+     +---------+--------------------------+-------------------------+
+     | 0x40    | Datagram: ignore the two | Decode the Subgroup ID  |
+     |         | least significant bits   | as indicated by the two |
+     |         |                          | least significant bits  |
+     +---------+--------------------------+-------------------------+
 
-                                  Table 6
+                                 Table 8
 
    If the first Object in the FETCH response uses a flag that references
    fields in the prior Object, the Subscriber MUST close the session
@@ -3918,7 +4021,7 @@ Table of Contents
    If unspecified, the subscriber's DELIVERY_TIMEOUT is used.  If
    neither endpoint specified a timeout, Objects do not time out.
 
-11.1.1.  MAX CACHE DURATION
+11.2.  MAX CACHE DURATION
 
    The MAX_CACHE_DURATION extension (Extension Header Type 0x04) is a
    Track Extension.
@@ -3937,7 +4040,7 @@ Table of Contents
    Objects can be cached until implementation constraints cause them to
    be evicted.
 
-11.1.1.1.  DEFAULT PUBLISHER PRIORITY
+11.3.  DEFAULT PUBLISHER PRIORITY
 
    The DEFAULT PUBLISHER PRIORITY extension (Extension Header Type 0x0E)
    is a Track Extension that specifies the priority of a subscription
@@ -3950,7 +4053,7 @@ Table of Contents
    A subscription has Publisher Priorty 128 if this extension is
    omitted.
 
-11.1.1.2.  DEFAULT PUBLISHER GROUP ORDER
+11.4.  DEFAULT PUBLISHER GROUP ORDER
 
    The DEFAULT_PUBLISHER_GROUP_ORDER extension (Extension Header Type
    0x22) is a Track Extension.
@@ -3963,7 +4066,7 @@ Table of Contents
 
    If omitted, the publisher's preference is Ascending (0x1).
 
-11.1.1.3.  DYNAMIC GROUPS
+11.5.  DYNAMIC GROUPS
 
    The DYNAMIC_GROUPS Extension (Extension Header Type 0x30) is a Track
    Extension.  The allowed values are 0 or 1.  When the value is 1, it
@@ -3975,7 +4078,7 @@ Table of Contents
 
    If omitted, the value is 0.
 
-11.2.  Immutable Extensions
+11.6.  Immutable Extensions
 
    The Immutable Extensions (Extension Header Type 0xB) contains a
    sequence of Key-Value-Pairs (see Figure 2) which are also Track or
@@ -3983,15 +4086,27 @@ Table of Contents
 
    Immutable Extensions {
      Type (0xB),
-     Length (i),
+     Length (vi64),
      Key-Value-Pair (..) ...
    }
 
    This extension can be added by the Original Publisher, but MUST NOT
-   be added by Relays.  This extension MUST NOT be modified or removed.
-   Relays MUST cache this extension if the Object is cached and MUST
-   forward this extension if the enclosing Object is forwarded.  Relays
-   MAY decode and view these extensions.
+   be added by Relays.  This extension MUST NOT be modified or removed
+   and the serialization (e.g. variable-length integer encodings) of the
+   Key-Value-Pairs MUST NOT change).  Relays MUST cache this extension
+   if the Object is cached and MUST forward this extension if the
+   enclosing Object is forwarded.  Relays MAY decode and view these
+   extensions.
+
+   Unless specified by a particular Extension Header specification,
+   Extension Headers MAY appear either in the mutable extension list or
+   inside Immutable Extensions.  When looking for the value of an
+   extension, processors MUST search both the mutable extension list and
+   the contents of Immutable Extensions.
+
+   If an Extension Header allows multiple values, the same Extension
+   Header Type MAY appear in both the mutable list and inside Immutable
+   Extensions, unless prohibited by the Extension Header specification.
 
    A Track is considered malformed (see Section 2.4.2) if any of the
    following conditions are detected:
@@ -4020,7 +4135,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    An Object MUST NOT contain more than one instance of this extension
    header.
 
-11.3.  Prior Group ID Gap
+11.7.  Prior Group ID Gap
 
    Prior Group ID Gap only applies to Objects, not Tracks.
 
@@ -4060,7 +4175,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    An Object MUST NOT contain more than one instance of this extension
    header.
 
-11.4.  Prior Object ID Gap
+11.8.  Prior Object ID Gap
 
    Prior Object ID Gap only applies to Objects, not Tracks.
 
@@ -4190,7 +4305,7 @@ EXT 1 and EXT N can be modified or removed by Relays
                   |  0x3 | USE_VALUE | Section 9.1.2.1 |
                   +------+-----------+-----------------+
 
-                                 Table 7
+                                 Table 9
 
 13.2.  Message Parameters
 
@@ -4216,35 +4331,32 @@ EXT 1 and EXT N can be modified or removed by Relays
         | 0x32           | NEW_GROUP_REQUEST   | Section 9.1.2.9 |
         +----------------+---------------------+-----------------+
 
-                                 Table 8
+                                 Table 10
 
 13.3.  Extension Headers
 
-    +======+===============================+========+================+
-    | Type | Name                          | Scope  | Specification  |
-    +======+===============================+========+================+
-    | 0x02 | DELIVERY_TIMEOUT              | Track  | Section 11.1   |
-    +------+-------------------------------+--------+----------------+
-    | 0x04 | MAX_CACHE_DURATION            | Track  | Section 11.1.1 |
-    +------+-------------------------------+--------+----------------+
-    | 0x0B | IMMUTABLE_EXTENSIONS          | Track, | Section 11.2   |
-    |      |                               | Object |                |
-    +------+-------------------------------+--------+----------------+
-    | 0x0E | DEFAULT_PUBLISHER_PRIORITY    | Track  | Section        |
-    |      |                               |        | 11.1.1.1       |
-    +------+-------------------------------+--------+----------------+
-    | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track  | Section        |
-    |      |                               |        | 11.1.1.2       |
-    +------+-------------------------------+--------+----------------+
-    | 0x30 | DYNAMIC_GROUPS                | Track  | Section        |
-    |      |                               |        | 11.1.1.3       |
-    +------+-------------------------------+--------+----------------+
-    | 0x3C | PRIOR_GROUP_ID_GAP            | Object | Section 11.3   |
-    +------+-------------------------------+--------+----------------+
-    | 0x3E | PRIOR_OBJECT_ID_GAP           | Object | Section 11.4   |
-    +------+-------------------------------+--------+----------------+
+     +======+===============================+========+===============+
+     | Type | Name                          | Scope  | Specification |
+     +======+===============================+========+===============+
+     | 0x02 | DELIVERY_TIMEOUT              | Track  | Section 11.1  |
+     +------+-------------------------------+--------+---------------+
+     | 0x04 | MAX_CACHE_DURATION            | Track  | Section 11.2  |
+     +------+-------------------------------+--------+---------------+
+     | 0x0B | IMMUTABLE_EXTENSIONS          | Track, | Section 11.6  |
+     |      |                               | Object |               |
+     +------+-------------------------------+--------+---------------+
+     | 0x0E | DEFAULT_PUBLISHER_PRIORITY    | Track  | Section 11.3  |
+     +------+-------------------------------+--------+---------------+
+     | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track  | Section 11.4  |
+     +------+-------------------------------+--------+---------------+
+     | 0x30 | DYNAMIC_GROUPS                | Track  | Section 11.5  |
+     +------+-------------------------------+--------+---------------+
+     | 0x3C | PRIOR_GROUP_ID_GAP            | Object | Section 11.7  |
+     +------+-------------------------------+--------+---------------+
+     | 0x3E | PRIOR_OBJECT_ID_GAP           | Object | Section 11.8  |
+     +------+-------------------------------+--------+---------------+
 
-                                 Table 9
+                                  Table 11
 
 13.4.  Error Codes
 
@@ -4296,7 +4408,7 @@ EXT 1 and EXT N can be modified or removed by Relays
            | MALFORMED_AUTHORITY        | 0x1A | Section 3.4   |
            +----------------------------+------+---------------+
 
-                                  Table 10
+                                  Table 12
 
 13.4.2.  REQUEST_ERROR Codes
 
@@ -4315,6 +4427,8 @@ EXT 1 and EXT N can be modified or removed by Relays
            +----------------------------+------+---------------+
            | EXPIRED_AUTH_TOKEN         | 0x5  | Section 9.5   |
            +----------------------------+------+---------------+
+           | GOING_AWAY                 | 0x6  | Section 9.5   |
+           +----------------------------+------+---------------+
            | DOES_NOT_EXIST             | 0x10 | Section 9.5   |
            +----------------------------+------+---------------+
            | INVALID_RANGE              | 0x11 | Section 9.5   |
@@ -4330,7 +4444,7 @@ EXT 1 and EXT N can be modified or removed by Relays
            | INVALID_JOINING_REQUEST_ID | 0x32 | Section 9.5   |
            +----------------------------+------+---------------+
 
-                                  Table 11
+                                  Table 13
 
 13.4.3.  PUBLISH_DONE Codes
 
@@ -4356,7 +4470,7 @@ EXT 1 and EXT N can be modified or removed by Relays
                | MALFORMED_TRACK    | 0x12 | Section 9.11  |
                +--------------------+------+---------------+
 
-                                  Table 12
+                                  Table 14
 
 13.4.4.  Data Stream Reset Error Codes
 
@@ -4373,10 +4487,12 @@ EXT 1 and EXT N can be modified or removed by Relays
              +-----------------------+------+----------------+
              | UNKNOWN_OBJECT_STATUS | 0x4  | Section 10.4.3 |
              +-----------------------+------+----------------+
+             | TOO_FAR_BEHIND        | 0x5  | Section 10.4.3 |
+             +-----------------------+------+----------------+
              | MALFORMED_TRACK       | 0x12 | Section 10.4.3 |
              +-----------------------+------+----------------+
 
-                                  Table 13
+                                  Table 15
 
 Contributors
 
