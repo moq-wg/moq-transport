@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 12 August 2026</td>
+<td class="center">Expires 13 August 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-08" class="published">8 February 2026</time>
+<time datetime="2026-02-09" class="published">9 February 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-12">12 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-08-13">13 August 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 12 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 13 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3971,6 +3971,15 @@ to be exceeded, the receiver <span class="bcp14">MUST</span> termiate the Sessio
 <p id="section-9.2.2.1-15">The AUTHORIZATION TOKEN parameter <span class="bcp14">MAY</span> be repeated within a message as long as
 the combination of Token Type and Token Value are unique after resolving any
 aliases.<a href="#section-9.2.2.1-15" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.1-16">Messages carrying the AUTHORIZATION TOKEN parameter can appear on different
+control streams. Because stream processing order can be different than send order, the
+receiver and sender can have inconsistent views of the token cache state.<a href="#section-9.2.2.1-16" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.1-17">Senders <span class="bcp14">MUST NOT</span> send USE_ALIAS on one control stream for an alias registered on a
+different stream until the sender has received a response to the message
+containing the REGISTER. Senders <span class="bcp14">MAY</span> use USE_ALIAS on the same control stream as the
+REGISTER without waiting for a response.<a href="#section-9.2.2.1-17" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.1-18">Senders <span class="bcp14">MUST NOT</span> send DELETE for an alias while any message using USE_ALIAS with
+that alias has not received a response.<a href="#section-9.2.2.1-18" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="delivery-timeout">
@@ -4000,7 +4009,7 @@ subscriber nor publisher specifies DELIVERY TIMEOUT, all Objects in the track
 matching the subscription filter are delivered as indicated by their Group Order
 and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher <span class="bcp14">MAY</span> terminate
-the subscription with error <code>TOO_FAR_BEHIND</code>.<a href="#section-9.2.2.2-5" class="pilcrow">¶</a></p>
+the subscription using PUBLISH_DONE with error <code>TOO_FAR_BEHIND</code>.<a href="#section-9.2.2.2-5" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.2-6">If an object in a subgroup exceeds the delivery timeout, the publisher <span class="bcp14">MUST</span>
 reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>) and
 <span class="bcp14">SHOULD NOT</span> attempt to open a new stream to deliver additional Objects in that
@@ -4479,6 +4488,8 @@ request.<a href="#section-9.8-1" class="pilcrow">¶</a></p>
 REQUEST_ERROR Message {
   Type (vi64) = 0x5,
   Length (16),
+  Request ID (vi64),
+  Error Code (vi64),
   Retry Interval (vi64),
   Error Reason (Reason Phrase),
 }
@@ -5930,6 +5941,9 @@ end of group.<a href="#section-10.3.1-6.1.1" class="pilcrow">¶</a></p>
 ranges 0x00..0x0F and 0x20..0x2F).<a href="#section-10.3.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
+<p id="section-10.3.1-7">If an Object Datagram includes both the STATUS bit and EXTENSIONS bit, and the
+Object Status is not Normal (0x0), the endpoint <span class="bcp14">MUST</span> close the session with a
+<code>PROTOCOL_VIOLATION</code>, because only Normal Objects can have extensions.<a href="#section-10.3.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -6218,10 +6232,16 @@ code.<a href="#section-10.4.3-19.4.1" class="pilcrow">¶</a></p>
 of the next Object in the requested range.<a href="#section-10.4.3-19.10.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-19.11">MALFORMED_TRACK (0x12):</dt>
+<dt id="section-10.4.3-19.11">TOO_FAR_BEHIND (0x5):</dt>
             <dd style="margin-left: 1.5em" id="section-10.4.3-19.12">
-              <p id="section-10.4.3-19.12.1">A relay publisher detected that the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-19.12.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.3-19.12.1">The corresponding subscription has exceeded the publisher's resource limits and
+is being terminated (see <a href="#delivery-timeout" class="auto internal xref">Section 9.2.2.2</a>).<a href="#section-10.4.3-19.12.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-10.4.3-19.13">MALFORMED_TRACK (0x12):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.14">
+              <p id="section-10.4.3-19.14.1">A relay publisher detected that the track was malformed (see
+<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-19.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -6364,7 +6384,7 @@ the corresponding condition is true.<a href="#section-10.4.4.1-3" class="pilcrow
                 <tr>
                   <td class="text-left" rowspan="1" colspan="1">0x40</td>
                   <td class="text-left" rowspan="1" colspan="1">Datagram: ignore the two least significant bits</td>
-                  <td class="text-left" rowspan="1" colspan="1">Use the subgroup ID in the two least significant bits</td>
+                  <td class="text-left" rowspan="1" colspan="1">Decode the Subgroup ID as indicated by the two least significant bits</td>
                 </tr>
               </tbody>
             </table>
@@ -7424,6 +7444,13 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">UNKNOWN_OBJECT_STATUS</td>
                 <td class="text-center" rowspan="1" colspan="1">0x4</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">TOO_FAR_BEHIND</td>
+                <td class="text-center" rowspan="1" colspan="1">0x5</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>
 </td>

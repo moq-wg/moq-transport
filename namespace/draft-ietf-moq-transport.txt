@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 August 2026                                    I. Swett, Ed.
+Expires: 13 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         8 February 2026
+                                                         9 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 August 2026.
+   This Internet-Draft will expire on 13 August 2026.
 
 Copyright Notice
 
@@ -2170,6 +2170,20 @@ Table of Contents
    long as the combination of Token Type and Token Value are unique
    after resolving any aliases.
 
+   Messages carrying the AUTHORIZATION TOKEN parameter can appear on
+   different control streams.  Because stream processing order can be
+   different than send order, the receiver and sender can have
+   inconsistent views of the token cache state.
+
+   Senders MUST NOT send USE_ALIAS on one control stream for an alias
+   registered on a different stream until the sender has received a
+   response to the message containing the REGISTER.  Senders MAY use
+   USE_ALIAS on the same control stream as the REGISTER without waiting
+   for a response.
+
+   Senders MUST NOT send DELETE for an alias while any message using
+   USE_ALIAS with that alias has not received a response.
+
 9.2.2.2.  DELIVERY TIMEOUT Parameter
 
    The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
@@ -2201,7 +2215,7 @@ Table of Contents
    are delivered as indicated by their Group Order and Priority.  If a
    subscriber fails to consume Objects at a sufficient rate, causing the
    publisher to exceed its resource limits, the publisher MAY terminate
-   the subscription with error TOO_FAR_BEHIND.
+   the subscription using PUBLISH_DONE with error TOO_FAR_BEHIND.
 
    If an object in a subgroup exceeds the delivery timeout, the
    publisher MUST reset the underlying transport stream (see
@@ -2594,6 +2608,8 @@ Table of Contents
    REQUEST_ERROR Message {
      Type (vi64) = 0x5,
      Length (16),
+     Request ID (vi64),
+     Error Code (vi64),
      Retry Interval (vi64),
      Error Reason (Reason Phrase),
    }
@@ -3733,6 +3749,11 @@ Table of Contents
    *  Type values that do not match the form 0b00X0XXXX (i.e., Type
       values outside the ranges 0x00..0x0F and 0x20..0x2F).
 
+   If an Object Datagram includes both the STATUS bit and EXTENSIONS
+   bit, and the Object Status is not Normal (0x0), the endpoint MUST
+   close the session with a PROTOCOL_VIOLATION, because only Normal
+   Objects can have extensions.
+
 10.4.  Streams
 
    When Objects are sent on streams, the stream begins with a Subgroup
@@ -3990,6 +4011,10 @@ Table of Contents
       is unable to determine the Status of the next Object in the
       requested range.
 
+   TOO_FAR_BEHIND (0x5):  The corresponding subscription has exceeded
+      the publisher's resource limits and is being terminated (see
+      Section 9.2.2.2).
+
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 2.4.2).
 
@@ -4068,26 +4093,28 @@ Table of Contents
    Flags field.  Each flag is an independent boolean value, where a set
    bit (1) indicates the corresponding condition is true.
 
-   +=========+============================+============================+
-   | Bitmask | Condition if set           | Condition if not set (0)   |
-   +=========+============================+============================+
-   | 0x04    | Object ID field is         | Object ID is the prior     |
-   |         | present                    | Object's ID plus one       |
-   +---------+----------------------------+----------------------------+
-   | 0x08    | Group ID field is          | Group ID is the prior      |
-   |         | present                    | Object's Group ID          |
-   +---------+----------------------------+----------------------------+
-   | 0x10    | Priority field is          | Priority is the prior      |
-   |         | present                    | Object's Priority          |
-   +---------+----------------------------+----------------------------+
-   | 0x20    | Extensions field is        | Extensions field is not    |
-   |         | present                    | present                    |
-   +---------+----------------------------+----------------------------+
-   | 0x40    | Datagram: ignore the two   | Use the subgroup ID in the |
-   |         | least significant bits     | two least significant bits |
-   +---------+----------------------------+----------------------------+
+     +=========+==========================+=========================+
+     | Bitmask | Condition if set         | Condition if not set    |
+     |         |                          | (0)                     |
+     +=========+==========================+=========================+
+     | 0x04    | Object ID field is       | Object ID is the prior  |
+     |         | present                  | Object's ID plus one    |
+     +---------+--------------------------+-------------------------+
+     | 0x08    | Group ID field is        | Group ID is the prior   |
+     |         | present                  | Object's Group ID       |
+     +---------+--------------------------+-------------------------+
+     | 0x10    | Priority field is        | Priority is the prior   |
+     |         | present                  | Object's Priority       |
+     +---------+--------------------------+-------------------------+
+     | 0x20    | Extensions field is      | Extensions field is not |
+     |         | present                  | present                 |
+     +---------+--------------------------+-------------------------+
+     | 0x40    | Datagram: ignore the two | Decode the Subgroup ID  |
+     |         | least significant bits   | as indicated by the two |
+     |         |                          | least significant bits  |
+     +---------+--------------------------+-------------------------+
 
-                                  Table 8
+                                 Table 8
 
    If the first Object in the FETCH response uses a flag that references
    fields in the prior Object, the Subscriber MUST close the session
@@ -4650,6 +4677,8 @@ EXT 1 and EXT N can be modified or removed by Relays
              | SESSION_CLOSED        | 0x3  | Section 10.4.3 |
              +-----------------------+------+----------------+
              | UNKNOWN_OBJECT_STATUS | 0x4  | Section 10.4.3 |
+             +-----------------------+------+----------------+
+             | TOO_FAR_BEHIND        | 0x5  | Section 10.4.3 |
              +-----------------------+------+----------------+
              | MALFORMED_TRACK       | 0x12 | Section 10.4.3 |
              +-----------------------+------+----------------+
