@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 August 2026                                    I. Swett, Ed.
+Expires: 13 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         8 February 2026
+                                                         9 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 August 2026.
+   This Internet-Draft will expire on 13 August 2026.
 
 Copyright Notice
 
@@ -4074,26 +4074,28 @@ Table of Contents
    Flags field.  Each flag is an independent boolean value, where a set
    bit (1) indicates the corresponding condition is true.
 
-   +=========+============================+============================+
-   | Bitmask | Condition if set           | Condition if not set (0)   |
-   +=========+============================+============================+
-   | 0x04    | Object ID field is         | Object ID is the prior     |
-   |         | present                    | Object's ID plus one       |
-   +---------+----------------------------+----------------------------+
-   | 0x08    | Group ID field is          | Group ID is the prior      |
-   |         | present                    | Object's Group ID          |
-   +---------+----------------------------+----------------------------+
-   | 0x10    | Priority field is          | Priority is the prior      |
-   |         | present                    | Object's Priority          |
-   +---------+----------------------------+----------------------------+
-   | 0x20    | Extensions field is        | Extensions field is not    |
-   |         | present                    | present                    |
-   +---------+----------------------------+----------------------------+
-   | 0x40    | Datagram: ignore the two   | Use the subgroup ID in the |
-   |         | least significant bits     | two least significant bits |
-   +---------+----------------------------+----------------------------+
+     +=========+==========================+=========================+
+     | Bitmask | Condition if set         | Condition if not set    |
+     |         |                          | (0)                     |
+     +=========+==========================+=========================+
+     | 0x04    | Object ID field is       | Object ID is the prior  |
+     |         | present                  | Object's ID plus one    |
+     +---------+--------------------------+-------------------------+
+     | 0x08    | Group ID field is        | Group ID is the prior   |
+     |         | present                  | Object's Group ID       |
+     +---------+--------------------------+-------------------------+
+     | 0x10    | Priority field is        | Priority is the prior   |
+     |         | present                  | Object's Priority       |
+     +---------+--------------------------+-------------------------+
+     | 0x20    | Extensions field is      | Extensions field is not |
+     |         | present                  | present                 |
+     +---------+--------------------------+-------------------------+
+     | 0x40    | Datagram: ignore the two | Decode the Subgroup ID  |
+     |         | least significant bits   | as indicated by the two |
+     |         |                          | least significant bits  |
+     +---------+--------------------------+-------------------------+
 
-                                  Table 8
+                                 Table 8
 
    If the first Object in the FETCH response uses a flag that references
    fields in the prior Object, the Subscriber MUST close the session
