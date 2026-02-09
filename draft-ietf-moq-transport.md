@@ -1131,7 +1131,7 @@ end with an error.
 
 ### Subscription Location Filter
 
-Subscribers can specify a Location Filter ({{location-filter}}) 
+Subscribers can specify a Location Filter ({{location-filter}})
 on a subscription indicating to the publisher
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.
@@ -1171,8 +1171,8 @@ instead.
 Absolute Start: The Location Filter Start Location is specified explicitly with
 either a Start Group or Start Object greater than zero and the rest omitted.
 A Location Filter with Start Location set to {0, 0} indicates Largest Object
-not Absolute Start. The specified Start Location MAY be less than the 
-`Largest Object` observed at the publisher. There is no End Group - the 
+not Absolute Start. The specified Start Location MAY be less than the
+`Largest Object` observed at the publisher. There is no End Group - the
 subscription is open ended.
 
 Absolute Range: The Location Filter Start Location and End Group are specified
@@ -2131,7 +2131,7 @@ objects pass all filter criteria.
 The LOCATION_FILTER parameter (Parameter Type 0x21) selects objects
 within a single specified Location range.  It is a length-prefixed
 sequence of Start Group ID, Start Object ID, End Group ID, and
-End Object ID. 
+End Object ID.
 
 ~~~
 LOCATION_FILTER Parameter {
@@ -2175,7 +2175,7 @@ The GROUP_FILTER parameter (Type 0x23) selects objects with
 specified ranges of Group ID.  It is a length-prefixed sequence of
 Group ID Start/End inclusive range pairs.  The number of ranges
 MUST NOT exceed the MAX_FILTER_RANGES parameter value.  The final
-End MAY be omitted to indicate no end.  
+End MAY be omitted to indicate no end.
 
 ~~~
 GROUP_FILTER Parameter {
@@ -2246,7 +2246,7 @@ It is a length-prefixed sequence of tuples of Extension Type followed by
 Extension Value Start/End inclusive range.  The number of tuples/ranges
 MUST NOT exceed the MAX_FILTER_RANGES parameter value.  The final
 End MAY be omitted to indicate no end.  End=0 also indicates no end if
-Start>0, to allow no end for non-final Extension Types. 
+Start>0, to allow no end for non-final Extension Types.
 
 ~~~
 EXTENSION_FILTER Parameter {
@@ -2434,9 +2434,9 @@ greater than this parameter.
 #### MAX TRACKS DESELECTED
 
 The MAX_TRACKS_DESELECTED parameter (Type 0x0A) limits the peer's value of
-MaxTracksDeselected in the TRACK_FILTER parameter.  The default value is 0. 
+MaxTracksDeselected in the TRACK_FILTER parameter.  The default value is 0.
 The peer MUST NOT send any TRACK_FILTER parameter with MaxTracksDeselected
-greater than this parameter. 
+greater than this parameter.
 
 ## GOAWAY {#message-goaway}
 
@@ -3040,8 +3040,8 @@ a Location relative to the current group.
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
 
-A Joining Fetch is only permitted when the associated Subscribe has the 
-Special Location Filter ({{special-location-filters}}) type 
+A Joining Fetch is only permitted when the associated Subscribe has the
+Special Location Filter ({{special-location-filters}}) type
 Largest Object; any other value results in closing the session with a
 `PROTOCOL_VIOLATION`.
 
@@ -3124,7 +3124,7 @@ The publisher responding to a FETCH is
 responsible for delivering all available Objects in the requested range in the
 requested order (see {{group-order}}). The Objects in the response are delivered on a single
 unidirectional stream. Any gaps in the Group and Object IDs in the response
-stream indicate objects that do not exist unless filters beyond the 
+stream indicate objects that do not exist unless filters beyond the
 Location Filter were applied.  For Ascending Group Order this
 includes ranges between the first requested object and the first object in the
 stream; between objects in the stream; and between the last object in the
