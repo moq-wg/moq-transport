@@ -728,6 +728,24 @@ Extension Headers are serialized as Key-Value-Pairs (see {{moq-key-value-pair}})
 Header types are registered in the IANA table 'MOQ Extension Headers'.
 See {{iana}}.
 
+Certain Extension Header type ranges are reserved for application-specific
+use and will never be allocated by IANA or future MOQT specifications:
+
+* 0x38 to 0x3F (1-byte encoding): 8 code points for applications requiring
+  compact per-object metadata
+* 0x3800 to 0x3FFF (2-byte encoding): 2048 code points for applications
+  with moderate space constraints
+* 0x40000000 to 0x4FFFFFFF (5-byte encoding): Large range for applications
+  without space constraints
+
+Applications MAY use code points in these ranges without registration for
+format-specific metadata or other application-defined purposes. Relays that
+do not understand the application format MUST forward these extensions
+unchanged but MUST NOT attempt to interpret their semantic meaning. Different
+applications using the same code point in these ranges may assign different
+meanings; the interpretation depends on the track format or application
+context known to the publisher and subscriber.
+
 # Sessions {#session}
 
 ## Session establishment {#session-establishment}
@@ -3838,6 +3856,9 @@ SUBGROUP_HEADER {
 The following Extension Headers are defined in MOQT. Each Extension Header
 specifies whether it can be used with Tracks, Objects, or both.
 
+Extension Header types in ranges reserved for application-specific use
+(0x38-0x3F, 0x3800-0x3FFF, 0x40000000-0x4FFFFFFF) are not defined by MOQT.
+See {{extension-headers}} for usage guidance.
 
 #### DELIVERY TIMEOUT {#delivery-timeout-ext}
 
@@ -4082,10 +4103,22 @@ TODO: fill out currently missing registries:
 * Setup parameters
 * Non-setup Parameters - List which params can be repeated in the table.
 * Message types
-* MOQ Extension headers - we wish to reserve extension types 0-63 for
-  standards utilization where space is a premium, 64 - 16383 for
-  standards utilization where space is less of a concern, and 16384 and
-  above for first-come-first-served non-standardization usage.
+* MOQ Extension headers - we wish to define the following registration policies:
+  - 0x00 to 0x37: Standards Action or IESG Approval (1-byte encoding)
+  - 0x38 to 0x3F: Reserved for application-specific use (1-byte encoding,
+    no registration permitted)
+  - 0x40 to 0x37FF: Specification Required (2-byte encoding)
+  - 0x3800 to 0x3FFF: Reserved for application-specific use (2-byte encoding,
+    no registration permitted)
+  - 0x4000 to 0x3FFFFFFF: First Come First Served
+  - 0x40000000 to 0x4FFFFFFF: Reserved for application-specific use
+    (no registration permitted)
+  - 0x50000000 and above: First Come First Served
+
+  Code points reserved for application-specific use will never be allocated
+  by IANA. Applications using these values do not need to coordinate with
+  IANA, but SHOULD coordinate with other applications using the same track
+  format to avoid collisions within that format.
   List which headers can be repeated in the table.
 * MOQT Auth Token Type
 
