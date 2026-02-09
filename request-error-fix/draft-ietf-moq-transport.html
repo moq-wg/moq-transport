@@ -3969,6 +3969,15 @@ to be exceeded, the receiver <span class="bcp14">MUST</span> termiate the Sessio
 <p id="section-9.2.2.1-15">The AUTHORIZATION TOKEN parameter <span class="bcp14">MAY</span> be repeated within a message as long as
 the combination of Token Type and Token Value are unique after resolving any
 aliases.<a href="#section-9.2.2.1-15" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.1-16">Messages carrying the AUTHORIZATION TOKEN parameter can appear on different
+control streams. Because stream processing order can be different than send order, the
+receiver and sender can have inconsistent views of the token cache state.<a href="#section-9.2.2.1-16" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.1-17">Senders <span class="bcp14">MUST NOT</span> send USE_ALIAS on one control stream for an alias registered on a
+different stream until the sender has received a response to the message
+containing the REGISTER. Senders <span class="bcp14">MAY</span> use USE_ALIAS on the same control stream as the
+REGISTER without waiting for a response.<a href="#section-9.2.2.1-17" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.1-18">Senders <span class="bcp14">MUST NOT</span> send DELETE for an alias while any message using USE_ALIAS with
+that alias has not received a response.<a href="#section-9.2.2.1-18" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="delivery-timeout">
@@ -3998,7 +4007,7 @@ subscriber nor publisher specifies DELIVERY TIMEOUT, all Objects in the track
 matching the subscription filter are delivered as indicated by their Group Order
 and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher <span class="bcp14">MAY</span> terminate
-the subscription with error <code>TOO_FAR_BEHIND</code>.<a href="#section-9.2.2.2-5" class="pilcrow">¶</a></p>
+the subscription using PUBLISH_DONE with error <code>TOO_FAR_BEHIND</code>.<a href="#section-9.2.2.2-5" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.2-6">If an object in a subgroup exceeds the delivery timeout, the publisher <span class="bcp14">MUST</span>
 reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>) and
 <span class="bcp14">SHOULD NOT</span> attempt to open a new stream to deliver additional Objects in that
@@ -4315,7 +4324,7 @@ SUBSCRIBE_NAMESPACE and TRACK_STATUS.<a href="#section-9.4-3" class="pilcrow">¶
 though the sender <span class="bcp14">SHOULD</span> avoid initiating requests unless required by migration
 (see (<a href="#graceful-subscriber-switchover" class="auto internal xref">Section 8.4.1</a> and <a href="#graceful-publisher-switchover" class="auto internal xref">Section 8.5.1</a>).
 An endpoint that receives a GOAWAY <span class="bcp14">MAY</span> reject new requests with an appropriate
-error code (e.g., SUBSCRIBE_ERROR with error code GOING_AWAY).<a href="#section-9.4-4" class="pilcrow">¶</a></p>
+error code (e.g., REQUEST_ERROR with error code GOING_AWAY).<a href="#section-9.4-4" class="pilcrow">¶</a></p>
 <p id="section-9.4-5">The endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>
 (<a href="#session-termination" class="auto internal xref">Section 3.4</a>) if it receives multiple GOAWAY messages.<a href="#section-9.4-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
@@ -4548,10 +4557,15 @@ within the timeout.<a href="#section-9.8-6.6.1" class="pilcrow">¶</a></p>
             <p id="section-9.8-6.12.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 9.2.2.1</a>).<a href="#section-9.8-6.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-6.13">DUPLICATE_SUBSCRIPTION (0x19):</dt>
+<dt id="section-9.8-6.13">GOING_AWAY:</dt>
           <dd style="margin-left: 1.5em" id="section-9.8-6.14">
-            <p id="section-9.8-6.14.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
-with the same role as an existing subscription.<a href="#section-9.8-6.14.1" class="pilcrow">¶</a></p>
+            <p id="section-9.8-6.14.1">The endpoint has received a GOAWAY and <span class="bcp14">MAY</span> reject new requests.<a href="#section-9.8-6.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.8-6.15">DUPLICATE_SUBSCRIPTION (0x19):</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-6.16">
+            <p id="section-9.8-6.16.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
+with the same role as an existing subscription.<a href="#section-9.8-6.16.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -4709,7 +4723,7 @@ SUBSCRIBE_OK that uses the same Track Alias as a different track with an
         <h3 id="name-request_update">
 <a href="#section-9.11" class="section-number selfRef">9.11. </a><a href="#name-request_update" class="section-name selfRef">REQUEST_UPDATE</a>
         </h3>
-<p id="section-9.11-1">The sender of a request (SUBSCRIBE, PUBLISH, FETCH, TRACK_STATUS,
+<p id="section-9.11-1">The sender of a request (SUBSCRIBE, PUBLISH, FETCH,
 PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE) can later send a REQUEST_UPDATE to
 modify it.  A subscriber can also send REQUEST_UPDATE to modify parameters of a
 subscription established with PUBLISH.<a href="#section-9.11-1" class="pilcrow">¶</a></p>
@@ -5925,6 +5939,9 @@ end of group.<a href="#section-10.3.1-6.1.1" class="pilcrow">¶</a></p>
 ranges 0x00..0x0F and 0x20..0x2F).<a href="#section-10.3.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
+<p id="section-10.3.1-7">If an Object Datagram includes both the STATUS bit and EXTENSIONS bit, and the
+Object Status is not Normal (0x0), the endpoint <span class="bcp14">MUST</span> close the session with a
+<code>PROTOCOL_VIOLATION</code>, because only Normal Objects can have extensions.<a href="#section-10.3.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -6213,10 +6230,16 @@ code.<a href="#section-10.4.3-19.4.1" class="pilcrow">¶</a></p>
 of the next Object in the requested range.<a href="#section-10.4.3-19.10.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-19.11">MALFORMED_TRACK (0x12):</dt>
+<dt id="section-10.4.3-19.11">TOO_FAR_BEHIND (0x5):</dt>
             <dd style="margin-left: 1.5em" id="section-10.4.3-19.12">
-              <p id="section-10.4.3-19.12.1">A relay publisher detected that the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-19.12.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.3-19.12.1">The corresponding subscription has exceeded the publisher's resource limits and
+is being terminated (see <a href="#delivery-timeout" class="auto internal xref">Section 9.2.2.2</a>).<a href="#section-10.4.3-19.12.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-10.4.3-19.13">MALFORMED_TRACK (0x12):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.14">
+              <p id="section-10.4.3-19.14.1">A relay publisher detected that the track was malformed (see
+<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-19.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -6359,7 +6382,7 @@ the corresponding condition is true.<a href="#section-10.4.4.1-3" class="pilcrow
                 <tr>
                   <td class="text-left" rowspan="1" colspan="1">0x40</td>
                   <td class="text-left" rowspan="1" colspan="1">Datagram: ignore the two least significant bits</td>
-                  <td class="text-left" rowspan="1" colspan="1">Use the subgroup ID in the two least significant bits</td>
+                  <td class="text-left" rowspan="1" colspan="1">Decode the Subgroup ID as indicated by the two least significant bits</td>
                 </tr>
               </tbody>
             </table>
@@ -6562,9 +6585,11 @@ Immutable Extensions {
 </pre><a href="#section-11.2-2" class="pilcrow">¶</a>
 </div>
 <p id="section-11.2-3">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
-Relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed. Relays <span class="bcp14">MUST</span> cache this
-extension if the Object is cached and <span class="bcp14">MUST</span> forward this extension if the
-enclosing Object is forwarded. Relays <span class="bcp14">MAY</span> decode and view these extensions.<a href="#section-11.2-3" class="pilcrow">¶</a></p>
+Relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed and the serialization
+(e.g. variable-length integer encodings) of the Key-Value-Pairs <span class="bcp14">MUST NOT</span>
+change). Relays <span class="bcp14">MUST</span> cache this extension if the Object is cached and <span class="bcp14">MUST</span>
+forward this extension if the enclosing Object is forwarded. Relays <span class="bcp14">MAY</span> decode
+and view these extensions.<a href="#section-11.2-3" class="pilcrow">¶</a></p>
 <p id="section-11.2-4">A Track is considered malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the
 following conditions are detected:<a href="#section-11.2-4" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -7230,6 +7255,13 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
 </td>
               </tr>
               <tr>
+                <td class="text-left" rowspan="1" colspan="1">GOING_AWAY</td>
+                <td class="text-center" rowspan="1" colspan="1">0x6</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#message-request-error" class="auto internal xref">Section 9.8</a>
+</td>
+              </tr>
+              <tr>
                 <td class="text-left" rowspan="1" colspan="1">DOES_NOT_EXIST</td>
                 <td class="text-center" rowspan="1" colspan="1">0x10</td>
                 <td class="text-left" rowspan="1" colspan="1">
@@ -7410,6 +7442,13 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">UNKNOWN_OBJECT_STATUS</td>
                 <td class="text-center" rowspan="1" colspan="1">0x4</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">TOO_FAR_BEHIND</td>
+                <td class="text-center" rowspan="1" colspan="1">0x5</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>
 </td>
