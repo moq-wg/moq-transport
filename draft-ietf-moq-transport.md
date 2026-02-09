@@ -3852,7 +3852,7 @@ subscribers. Thus, the security consideration need to consider first
 what happens between two nodes, but also consider the impacts end to
 end over several hops of MOQT.
 
-This results in a trust model where on each hop the nodes needs to be
+This results in a trust model where on each hop the nodes need to be
 securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
