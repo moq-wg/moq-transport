@@ -2406,13 +2406,13 @@ EXPIRED_AUTH_TOKEN:
 GOING_AWAY:
 : The endpoint has received a GOAWAY and MAY reject new requests.
 
-DUPLICATE_SUBSCRIPTION (0x19):
-: The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
-with the same role as an existing subscription.
-
 OVERLOADED:
 : The responder is overloaded and cannot process the request at this time. The
 sender SHOULD use the Retry Interval to indicate when the request can be retried.
+
+DUPLICATE_SUBSCRIPTION (0x19):
+: The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
+with the same role as an existing subscription.
 
 Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
@@ -3691,12 +3691,12 @@ TOO_FAR_BEHIND (0x5):
 : The corresponding subscription has exceeded the publisher's resource limits and
 is being terminated (see {{delivery-timeout}}).
 
+OVERLOADED (0x9):
+: The publisher is overloaded and is resetting this stream.
+
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
-
-OVERLOADED (0x9):
-: The publisher is overloaded and is resetting this stream.
 
 ### Fetch Header {#fetch-header}
 
@@ -4188,6 +4188,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | MALFORMED_AUTH_TOKEN       | 0x4  | {{message-request-error}} |
 | EXPIRED_AUTH_TOKEN         | 0x5  | {{message-request-error}} |
 | GOING_AWAY                 | 0x6  | {{message-request-error}} |
+| OVERLOADED                 | 0x9  | {{message-request-error}} |
 | DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
 | INVALID_RANGE              | 0x11 | {{message-request-error}} |
 | MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
@@ -4195,7 +4196,6 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
-| OVERLOADED                 | 0x9  | {{message-request-error}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
