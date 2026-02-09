@@ -3111,7 +3111,7 @@ FETCH Message {
 
 * Joining: Joining Fetch structure included when Fetch Type is 0x2 or 0x3.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{setup-params}}.
   This MUST include a Location Filter parameter ({{location-filter}}).
 
 
