@@ -2458,8 +2458,9 @@ different final Objects.<a href="#section-2.4.2-2.6.1" class="pilcrow">¶</a></p
             <li id="section-2.4.2-2.7">
               <p id="section-2.4.2-2.7.1">An Object is received in a Group whose Object ID is larger than the final
 Object in the Group.  The final Object in a Group is the Object with Status
-END_OF_GROUP or the last Object sent in a FETCH that requested the entire
-Group.<a href="#section-2.4.2-2.7.1" class="pilcrow">¶</a></p>
+END_OF_GROUP, the last Object before a FIN in a Subgroup which has the
+END_OF_GROUP bit set, or the last Object sent in a FETCH that requested the
+entire Group.<a href="#section-2.4.2-2.7.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-2.4.2-2.8">
               <p id="section-2.4.2-2.8.1">An Object is received on a Track whose Group and Object ID are larger than the
