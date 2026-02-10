@@ -779,6 +779,20 @@ This protocol does not specify any semantics on the `path-abempty` and
 `query` portions of the URI.  The contents of those are left up to the
 application.
 
+The `moqt` URI scheme follows the generic URI syntax of {{!RFC3986}} for
+the `authority`, `path-abempty`, and `query` components, including the
+use of reserved characters and percent-encoding defined therein. Fragment
+identifiers are not used with `moqt` URIs; if a fragment component is
+present, it MUST be ignored.
+
+The default operation for dereferencing a `moqt` URI is to establish a
+MOQT session to the identified server.
+
+TODO: Add URI scheme security considerations per RFC 7595 Section 3.7
+(e.g., authority in SNI, path/query exposure).
+
+TODO: Add internationalization statement per RFC 7595 Section 3.6.
+
 If the port is omitted in the URI, a default port of 443 is used.
 
 The URI scheme determines the transport protocol(s) the client MAY use
@@ -4093,7 +4107,57 @@ TODO: fill out currently missing registries:
   List which headers can be repeated in the table.
 * MOQT Auth Token Type
 
-TODO: register the URI scheme and the ALPN and grease the Extension types
+TODO: register the ALPN and grease the Extension types
+
+## URI Scheme Registrations
+
+This document requests the registration of the following URI schemes in the
+"Uniform Resource Identifier (URI) Schemes" registry, per {{!RFC7595}}:
+
+### "moqt" URI Scheme Registration
+
+Scheme name: moqt
+
+Status: Permanent
+
+Applications/protocols that use this scheme name: Media over QUIC Transport
+(MOQT), as defined in this document.
+
+Contact: IETF MoQ Working Group (moq@ietf.org)
+
+Change controller: IETF
+
+References: This document
+
+### "moqt+q" URI Scheme Registration
+
+Scheme name: moqt+q
+
+Status: Permanent
+
+Applications/protocols that use this scheme name: Media over QUIC Transport
+(MOQT) over native QUIC, as defined in this document.
+
+Contact: IETF MoQ Working Group (moq@ietf.org)
+
+Change controller: IETF
+
+References: This document
+
+### "moqt+wt" URI Scheme Registration
+
+Scheme name: moqt+wt
+
+Status: Permanent
+
+Applications/protocols that use this scheme name: Media over QUIC Transport
+(MOQT) over WebTransport, as defined in this document.
+
+Contact: IETF MoQ Working Group (moq@ietf.org)
+
+Change controller: IETF
+
+References: This document
 
 ## Authorization Token Alias Type
 
