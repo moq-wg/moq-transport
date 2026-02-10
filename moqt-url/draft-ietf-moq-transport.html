@@ -2647,8 +2647,11 @@ The client then establishes a WebTransport session as described in
           <h4 id="name-webtransport">
 <a href="#section-3.1.2" class="section-number selfRef">3.1.2. </a><a href="#name-webtransport" class="section-name selfRef">WebTransport</a>
           </h4>
-<p id="section-3.1.2-1">When the client uses WebTransport, it sends an extended CONNECT request to the
-host and the path indicated by the URI, as described in
+<p id="section-3.1.2-1">When the client uses WebTransport, it constructs an <code>https</code> URI from the <code>moqt</code>
+URI by replacing the scheme with <code>https</code> and removing any transport suffix
+(<code>+q</code> or <code>+wt</code>).  For example, <code>moqt+wt://example.com/path</code> becomes
+<code>https://example.com/path</code>. The client sends an extended CONNECT request to this
+URI to establish a WebTransport session, as described in
 (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-14#section-3" class="relref">Section 3</a></span>). The client includes MOQT protocol identifiers in
 the WT-Available-Protocols header (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-14#section-3.3" class="relref">Section 3.3</a></span>).<a href="#section-3.1.2-1" class="pilcrow">¶</a></p>
 </section>
