@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 August 2026                                    I. Swett, Ed.
+Expires: 14 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         9 February 2026
+                                                        10 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 August 2026.
+   This Internet-Draft will expire on 14 August 2026.
 
 Copyright Notice
 
@@ -2275,20 +2275,20 @@ Table of Contents
 9.2.2.6.  EXPIRES Parameter
 
    The EXPIRES parameter (Parameter Type 0x8) MAY appear in
-   SUBSCRIBE_OK, PUBLISH or PUBLISH_OK (TODO: or REQUEST_OK).  It is a
-   variable length integer encoding the time in milliseconds after which
-   the sender of the parameter will terminate the subscription.  The
-   sender will terminate the subscription using PUBLISH_DONE or
-   UNSUBSCRIBE, depending on its role.  This value is advisory and the
-   sender can terminate the subscription prior to or after the expiry
-   time.
+   SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK.  It is a variable
+   length integer encoding the time in milliseconds after which the
+   sender of the parameter will terminate the subscription.  The sender
+   will terminate the subscription using PUBLISH_DONE or UNSUBSCRIBE,
+   depending on its role.  This value is advisory and the sender can
+   terminate the subscription prior to or after the expiry time.
 
-   The receiver of the parameter can extend the subscription by sending
-   a REQUEST_UPDATE.  If the receiver of the parameter has one or more
-   updated AUTHORIZATION_TOKENs, it SHOULD include those in the
-   REQUEST_UPDATE.  Relays that send this parameter and applications
-   that receive it MAY introduce jitter to prevent many endpoints from
-   updating simultaneously.
+   The receiver of the parameter can attempt to extend the subscription
+   by sending a REQUEST_UPDATE with 0 or more updated parameters.  If
+   the receiver has one or more updated AUTHORIZATION_TOKENs, it SHOULD
+   include those in the REQUEST_UPDATE.  If the extension is granted,
+   the sender includes a new EXPIRES value in REQUEST_OK.  Relays that
+   send this parameter and applications that receive it MAY introduce
+   jitter to prevent many endpoints from updating simultaneously.
 
    If the EXPIRES parameter is 0 or is not present in a message, the
    subscription does not expire or expires at an unknown time.
