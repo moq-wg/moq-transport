@@ -4001,12 +4001,12 @@ not depend upon the forwarding preference. Objects with forwarding preference
 'Datagram' are not retransmitted when lost, so the Delivery Timeout only limits
 the amount of time they can be queued before being sent. There is no explicit
 signal that an Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.2.2-2" class="pilcrow">¶</a></p>
-<p id="section-9.2.2.2-3">DELIVERY_TIMEOUT, if present, <span class="bcp14">MUST</span> contain a value greater than 0.  If an
-endpoint receives a DELIVERY_TIMEOUT equal to 0 it <span class="bcp14">MUST</span> close the session
-with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.2.2-3" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.2-3">A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
+due to delivery timeout.<a href="#section-9.2.2.2-3" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.2-4">If both the subscriber specifies this parameter and the Track has a
 DELIVERY_TIMEOUT extension, the endpoints use the min of
-the two values for the subscription.<a href="#section-9.2.2.2-4" class="pilcrow">¶</a></p>
+the two non-zero values for the subscription. If either value is 0, the
+non-zero value is used. If both are 0, there is no delivery timeout.<a href="#section-9.2.2.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.2-5">Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
 constraints described in <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>.  However, if neither the
@@ -6505,12 +6505,12 @@ specifies whether it can be used with Tracks, Objects, or both.<a href="#section
 <p id="section-11.1-1">The DELIVERY TIMEOUT extension (Extension Header Type 0x02) is a Track
 Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
 <a href="#delivery-timeout" class="auto internal xref">Section 9.2.2.2</a>).<a href="#section-11.1-1" class="pilcrow">¶</a></p>
-<p id="section-11.1-2">DELIVERY_TIMEOUT, if present, <span class="bcp14">MUST</span> contain a value greater than 0.  If an
-endpoint receives a DELIVERY_TIMEOUT equal to 0 it <span class="bcp14">MUST</span> close the session with
-<code>PROTOCOL_VIOLATION</code>.<a href="#section-11.1-2" class="pilcrow">¶</a></p>
+<p id="section-11.1-2">A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
+due to delivery timeout.<a href="#section-11.1-2" class="pilcrow">¶</a></p>
 <p id="section-11.1-3">If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the Track has
-a DELIVERY_TIMEOUT extension, the endpoints use the min of the two values for
-the subscription.<a href="#section-11.1-3" class="pilcrow">¶</a></p>
+a DELIVERY_TIMEOUT extension, the endpoints use the min of the two non-zero
+values for the subscription. If either value is 0, the non-zero value is used.
+If both are 0, there is no delivery timeout.<a href="#section-11.1-3" class="pilcrow">¶</a></p>
 <p id="section-11.1-4">If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
 specified a timeout, Objects do not time out.<a href="#section-11.1-4" class="pilcrow">¶</a></p>
 </section>
