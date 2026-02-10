@@ -809,8 +809,11 @@ moqt+wt:
 
 ### WebTransport {#webtransport}
 
-When the client uses WebTransport, it sends an extended CONNECT request to the
-host and the path indicated by the URI, as described in
+When the client uses WebTransport, it constructs an `https` URI from the `moqt`
+URI by replacing the scheme with `https` and removing any transport suffix
+(`+q` or `+wt`).  For example, `moqt+wt://example.com/path` becomes
+`https://example.com/path`. The client sends an extended CONNECT request to this
+URI to establish a WebTransport session, as described in
 ({{WebTransport, Section 3}}). The client includes MOQT protocol identifiers in
 the WT-Available-Protocols header ({{WebTransport, Section 3.3}}).
 
