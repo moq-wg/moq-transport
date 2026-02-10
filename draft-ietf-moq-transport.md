@@ -761,22 +761,14 @@ would be identified as "moqt-13".
 Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
 negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
 
-### WebTransport
+### MOQT URI Scheme
 
-An MOQT server that is accessible via WebTransport can be identified
-using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).  An MOQT session can be
-established by sending an extended CONNECT request to the host and the
-path indicated by the URI, as described in
-({{WebTransport, Section 3}}).
-
-### QUIC
-
-An MOQT server that is accessible via native QUIC can be identified by a
-URI with a "moqt" scheme.  The "moqt" URI scheme is defined as follows,
-using definitions from {{!RFC3986}}:
+An MOQT server is identified using a URI with the "moqt" scheme.  The "moqt"
+URI scheme is defined as follows, using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
-moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
+moqt-URI = "moqt" [ "+q" / "+wt" ] "://" authority
+            path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
 The `authority` portion MUST NOT contain an empty `host` portion.
@@ -787,12 +779,45 @@ This protocol does not specify any semantics on the `path-abempty` and
 `query` portions of the URI.  The contents of those are left up to the
 application.
 
-The client can establish a connection to an MOQT server identified by a given
-URI by setting up a QUIC connection to the host and port identified by the
-`authority` section of the URI. The `authority`, `path-abempty` and `query`
-portions of the URI are also transmitted in SETUP parameters (see
-{{setup-params}}). If the port is omitted in the URI, a default port of 443 is
-used for setting up the QUIC connection.
+If the port is omitted in the URI, a default port of 443 is used.
+
+The URI scheme determines the transport protocol(s) the client MAY use
+to connect to the server:
+
+moqt:
+: The client MAY use either native QUIC or WebTransport. On a QUIC connection,
+  the client offers any combination of MOQT ALPNs (e.g. `moqt/1`, `moqt/2`)
+  and `h3` that it supports in its TLS ClientHello, in preference order. If the
+  server selects an MOQT ALPN, the session proceeds as described in
+  {{native-quic}}. If the server selects `h3`, the client establishes a
+  WebTransport session as described in {{webtransport}}. On a TCP+TLS
+  connection, the client offers `h2` in its TLS ClientHello and establishes a
+  WebTransport session as described in {{webtransport}}.
+
+moqt+q:
+: The client MUST use native QUIC. The client offers only MOQT ALPNs
+  (e.g. `moqt/1`, `moqt/2`) in its TLS ClientHello. If ALPN negotiation
+  fails, the connection fails; the client MUST NOT fall back to WebTransport.
+
+TODO: consider fallback to QMUX
+
+moqt+wt:
+: The client MUST use WebTransport. On a QUIC connection, the client offers
+  `h3` in its TLS ClientHello. On a TCP+TLS connection, the client offers `h2`.
+  The client then establishes a WebTransport session as described in
+  {{webtransport}}.
+
+### WebTransport {#webtransport}
+
+When the client uses WebTransport, it sends an extended CONNECT request to the
+host and the path indicated by the URI, as described in
+({{WebTransport, Section 3}}). The client includes MOQT protocol identifiers in
+the WT-Available-Protocols header ({{WebTransport, Section 3.3}}).
+
+### Native QUIC {#native-quic}
+
+When the client uses native QUIC, the `authority`, `path-abempty` and `query`
+portions of the URI are transmitted in SETUP parameters (see {{setup-params}}).
 
 ### Connection URL
 
@@ -2139,7 +2164,7 @@ The available Setup parameters are detailed in the next sections.
 #### AUTHORITY {#authority}
 
 The AUTHORITY parameter (Parameter Type 0x05) allows the client to specify the
-authority component of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST
+authority component of the MoQ URI when using native QUIC ({{native-quic}}).  It MUST
 NOT be used by the server, or when WebTransport is used.  When an AUTHORITY
 parameter is received from a server, or when an AUTHORITY parameter is received
 while WebTransport is used, or when an AUTHORITY parameter is received by a
@@ -2155,7 +2180,7 @@ these rules, the session MUST be closed with `MALFORMED_AUTHORITY`.
 #### PATH {#path}
 
 The PATH parameter (Parameter Type 0x01) allows the client to specify the path
-of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
+of the MoQ URI when using native QUIC ({{native-quic}}).  It MUST NOT be used by
 the server, or when WebTransport is used.  When a PATH parameter is received
 from a server, or when a PATH parameter is received while WebTransport is used,
 or when a PATH parameter is received by a server but the server does not
