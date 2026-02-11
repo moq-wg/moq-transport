@@ -6453,8 +6453,8 @@ PADDING {
 <a href="#name-moqt-padding-stream" class="selfRef">MOQT Padding Stream</a>
           </figcaption></figure>
 </div>
-<p id="section-10.5-3">The receiver <span class="bcp14">MUST</span> discard all data received on a padding stream. The receiver
-<span class="bcp14">MUST NOT</span> close the session upon receiving a padding stream.<a href="#section-10.5-3" class="pilcrow">¶</a></p>
+<p id="section-10.5-3">The receiver <span class="bcp14">MUST</span> read and discard all data received on a padding stream. The
+receiver <span class="bcp14">MUST NOT</span> close the session upon receiving a padding stream.<a href="#section-10.5-3" class="pilcrow">¶</a></p>
 <p id="section-10.5-4">Padding streams do not carry Objects or any other application data. An endpoint
 can use padding streams to probe for additional bandwidth without affecting the
 delivery of media data. To avoid interfering with the delivery of Objects,
