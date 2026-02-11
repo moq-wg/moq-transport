@@ -988,13 +988,16 @@ applications might need to periodically ensure the congestion controller is not
 app-limited for at least a full round trip to ensure the available bandwidth can be
 measured.
 
-Applications can address this by subscribing to additional tracks at a lower priority
+Some applications might have APIs to allow sending duplicate data or forward error correction to probe for more bandwidth while also limiting the impact of probing
+in case it causes packet loss. Applications wanting to switch to an alternate
+representation of a Track can request that Track at a lower priority to probe.
+Applications can subscribe to additional tracks at the lowest (255) priority
 or by using padding streams ({{padding-streams}}) to fill the congestion window
-during probing intervals without affecting the delivery of higher priority media.
+during probing intervals while minimizing the impact on higher priority media.
 Network-assisted bandwidth estimation mechanisms such as SCONE
 {{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
-which subscribers can use to inform track selection decisions without relying on
-application-level probing.
+which subscribers can use to inform track selection decisions and potentially avoid
+unnecessary probing.
 
 ### Consistent Throughput
 
