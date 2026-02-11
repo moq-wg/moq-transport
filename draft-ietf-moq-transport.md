@@ -1993,6 +1993,29 @@ successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
 any other relevant information.
 
+#### FILL TIMEOUT Parameter {#fill-timeout}
+
+The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a FETCH message.
+
+It is the duration in milliseconds a relay SHOULD wait for an upstream source to
+provide Objects that are not immediately available before reporting them as
+Unknown gaps in the FETCH response. When a relay encounters a range of Objects
+within the requested range that are not immediately available and have unknown
+status, it issues an upstream FETCH to retrieve them. The Fill Timeout applies
+independently to each such upstream FETCH, not an overall timeout for the
+entire request. If an upstream FETCH does not complete within the Fill Timeout,
+the relay reports the corresponding Objects as gaps and continues processing
+subsequent Objects in the range.
+
+A value of 0 indicates the subscriber only wants Objects that are immediately
+available; the relay MUST NOT wait for upstream delivery and MUST report any
+unavailable Objects as gaps.
+
+If the Fill Timeout parameter is absent, the relay waits for an implementation
+specific duration before reporting gaps. If the subscriber specifies a Fill
+Timeout larger than the relay is willing to wait, the relay MAY use a shorter
+timeout without informing the subscriber.
+
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
@@ -4123,6 +4146,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x03 | AUTHORIZATION_TOKEN | {{authorization-token}} |
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
+| 0x0A | FILL_TIMEOUT | {{fill-timeout}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
