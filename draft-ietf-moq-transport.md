@@ -3425,7 +3425,7 @@ which fields are present in the datagram:
   and there is no Object Payload. When set to 0, the Object Payload is present
   and the Object Status field is omitted. There is no explicit length field for
   the Object Payload; the entirety of the transport datagram following the
-  Object fields contains the payload.
+  Object header contains the payload.
 
 The following Type values are invalid. If an endpoint receives a datagram with
 any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
