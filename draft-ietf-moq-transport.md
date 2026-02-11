@@ -1198,10 +1198,11 @@ is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
-To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or SUBSCRIBE_UPDATE with Filter
-Type `Largest Object` followed by a Joining FETCH (see {{joining-fetches}}) for
-the intended start Group, which can be relative.  To join a Track at the next
-Group, the subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
+REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
+{{joining-fetches}}) for the intended start Group, which can be relative.  To
+join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter
+Type `Next Group Start`.
 
 #### Dynamically Starting New Groups
 
@@ -2830,9 +2831,9 @@ a Location relative to the Largest group.
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
 
-A Joining Fetch is only permitted when the associated subscription Filter
-Type is Largest Object and the Forward State is 1; any other value results in closing
-the session with a `PROTOCOL_VIOLATION`.
+A Joining Fetch is only permitted when the associated subscription has
+Forward State 1; otherwise the publisher MUST close the session with a
+`PROTOCOL_VIOLATION`.
 
 If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
