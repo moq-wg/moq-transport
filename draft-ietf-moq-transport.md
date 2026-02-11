@@ -791,8 +791,8 @@ application.
 The client can establish a connection to an MOQT server identified by a given
 URI by setting up a QUIC connection to the host and port identified by the
 `authority` section of the URI. The `authority`, `path-abempty` and `query`
-portions of the URI are also transmitted in SETUP parameters (see
-{{setup-params}}). If the port is omitted in the URI, a default port of 443 is
+portions of the URI are also transmitted in Setup Options (see
+{{setup-options}}). If the port is omitted in the URI, a default port of 443 is
 used for setting up the QUIC connection.
 
 ### Connection URL
@@ -808,7 +808,7 @@ Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
 Extensions can define new Message types, new Parameters, or new framing for
 Data Streams and Datagrams.
 
-The client and server MUST include all Setup Parameters {{setup-params}}
+The client and server MUST include all Setup Options {{setup-options}}
 required for the negotiated MOQT version in CLIENT_SETUP and SERVER_SETUP.
 
 Clients request the use of extensions by specifying Parameters in CLIENT_SETUP.
@@ -1065,17 +1065,18 @@ a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
-A publisher MUST save the Largest Location communicated in PUBLISH or
-SUBSCRIBE_OK when establishing a subscription. This value can be used in a
-Joining FETCH (see {{joining-fetches}}) at any time while the subscription is
-active.
-
 All `Established` subscriptions have a Forward State which is either 0 or 1.
 The publisher does not send Objects if the Forward State is 0, and does send them
 if the Forward State is 1.  The initiator of the subscription sets the initial
 Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_OK
 or REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
+
+A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
+or REQUEST_OK (in response to a REQUEST_UPDATE) that changes the Forward State
+from 0 to 1.  This value is called the Joining Location and can be used in a
+Joining FETCH (see {{joining-fetches}}) while the subscription is in the
+`Established` state.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -1197,10 +1198,11 @@ is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
-To join a Track at a past Group, the subscriber sends a SUBSCRIBE with Filter
-Type `Largest Object` followed by a Joining FETCH (see {{joining-fetches}}) for
-the intended start Group, which can be relative.  To join a Track at the next
-Group, the subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
+REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
+{{joining-fetches}}) for the intended start Group, which can be relative.  To
+join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter
+Type `Next Group Start`.
 
 #### Dynamically Starting New Groups
 
@@ -1778,34 +1780,25 @@ for the peer, or a new request with a Request ID that is not the next in
 sequence or exceeds the received MAX_REQUEST_ID, it MUST close the session with
 `INVALID_REQUEST_ID`.
 
-## Parameters {#params}
+## Message Parameters {#message-params}
 
-Some messages include a Parameters field that encodes optional message elements.
-Parameters in the CLIENT_SETUP and SERVER_SETUP messages are called Setup
-Parameters.  Parameters in other control messages are Message Parameters.
-Receivers ignore unrecognized Setup Parameters.  All Message Parameters MUST be
-defined in the negotiated version of MOQT or negotiated via Setup Parameters.
-An endpoint that receives an unknown Message Parameter MUST close the session
-with `PROTOCOL_VIOLATION`.
+Some control messages include a field that encodes optional Message Parameters.
+All Message Parameters MUST be defined in the negotiated version of MOQT or
+negotiated via Setup Options. An endpoint that receives an unknown Message
+Parameter MUST close the session with `PROTOCOL_VIOLATION`.
 
-Senders MUST NOT repeat the same parameter type in a message unless the
+Senders MUST NOT repeat the same Parameter Type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers SHOULD check that there are no
 unexpected duplicate parameters and close the session as a
-`PROTOCOL_VIOLATION` if found.  Receivers MUST allow duplicates of unknown
-Setup Parameters.
+`PROTOCOL_VIOLATION` if found.
 
 The number of parameters in a message is not specifically limited, but the
 total length of a control message is limited to 2^16-1 bytes.
 
-Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
-
-Setup Parameters use a namespace that is constant across all MOQT
-versions. All other messages use a version-specific namespace.
-For example, the integer '1' can refer to different parameters for Setup
-messages and for all other message types. SETUP message parameter types
-are defined in {{setup-params}}. Version-specific parameter types are defined
-in {{message-params}}.
+Message Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
+The Message Parameter types defined in this version of MOQT are listed in
+this section.
 
 Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
 to alter the payload of the objects it sends, as that would violate the track
@@ -1818,12 +1811,10 @@ forwarded by Relays, though relays can consider received parameter values when
 making a request.  Any Track metadata sent by the publisher that is forwarded to
 subscribers is sent as Track Extension header.
 
-### Message Parameters {#message-params}
-
-Each message parameter definition indicates the message types in which
+Each Message Parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it MUST be ignored.
-Note that since Setup parameters use a separate namespace, it is impossible for
-these parameters to appear in Setup messages.
+Note that since Setup Options use a separate namespace, it is impossible for
+Message Parameters to appear in Setup messages.
 
 #### AUTHORIZATION TOKEN Parameter {#authorization-token}
 
@@ -1927,7 +1918,7 @@ has passed.
 
 By registering a Token, the sender is requiring the receiver to store the Token
 Alias and Token Value until they are deleted, or the Session ends. The receiver
-can protect its resources by sending a SETUP parameter defining the
+can protect its resources by sending a Setup Option defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
 willing to accept. If a registration is attempted which would cause this limit
 to be exceeded, the receiver MUST termiate the Session with a
@@ -2080,7 +2071,7 @@ message, the default value is 1.
 
 #### NEW GROUP REQUEST Parameter {#new-group-request}
 
-The NEW_GROUP_REQUEST parameter (parameter type 0x32) MAY appear in PUBLISH_OK,
+The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) MAY appear in PUBLISH_OK,
 SUBSCRIBE or REQUEST_UPDATE for a subscription.  It is an integer representing the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
@@ -2122,10 +2113,10 @@ outstanding until the Largest Group increases.
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
 by the client and the server; they allow the endpoints to agree on the initial
 configuration before any control messsages are exchanged. The messages contain
-a sequence of key-value pairs called Setup parameters; the semantics and format
+a sequence of key-value pairs called Setup Options; the semantics and format
 of which can vary based on whether the client or server is sending.  To ensure
-future extensibility of MOQT, endpoints MUST ignore unknown setup parameters.
-TODO: describe GREASE for Setup Parameters.
+future extensibility of MOQT, endpoints MUST ignore unknown Setup Options.
+TODO: describe GREASE for Setup Options.
 
 The wire format of the Setup messages are as follows:
 
@@ -2133,92 +2124,99 @@ The wire format of the Setup messages are as follows:
 CLIENT_SETUP Message {
   Type (vi64) = 0x20,
   Length (16),
-  Number of Parameters (vi64),
-  Setup Parameters (..) ...,
+  Number of Setup Options (vi64),
+  Setup Options (..) ...,
 }
 
 SERVER_SETUP Message {
   Type (vi64) = 0x21,
   Length (16),
-  Number of Parameters (vi64),
-  Setup Parameters (..) ...,
+  Number of Setup Options (vi64),
+  Setup Options (..) ...,
 }
 ~~~
 {: #moq-transport-setup-format title="MOQT Setup Messages"}
 
-The available Setup parameters are detailed in the next sections.
+Setup Options are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
+Setup Options use a namespace that is constant across all MOQT versions,
+separate from Message Parameters.  Receivers MUST ignore unrecognized Setup
+Options.  Senders MUST NOT repeat the same Option Type in a message unless
+the option definition explicitly allows multiple instances. Receivers MUST
+allow duplicates of unknown Setup Options.
 
-### Setup Parameters {#setup-params}
+The available Setup Options are detailed in the next sections.
+
+### Setup Options {#setup-options}
 
 #### AUTHORITY {#authority}
 
-The AUTHORITY parameter (Parameter Type 0x05) allows the client to specify the
+The AUTHORITY option (Option Type 0x05) allows the client to specify the
 authority component of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST
 NOT be used by the server, or when WebTransport is used.  When an AUTHORITY
-parameter is received from a server, or when an AUTHORITY parameter is received
-while WebTransport is used, or when an AUTHORITY parameter is received by a
+option is received from a server, or when an AUTHORITY option is received
+while WebTransport is used, or when an AUTHORITY option is received by a
 server but the server does not support the specified authority, the session MUST
 be closed with `INVALID_AUTHORITY`.
 
-The AUTHORITY parameter follows the URI formatting rules {{!RFC3986}}.
+The AUTHORITY option follows the URI formatting rules {{!RFC3986}}.
 When connecting to a server using a URI with the "moqt" scheme, the
-client MUST set the AUTHORITY parameter to the `authority` portion of the
-URI. If an AUTHORITY parameter does not conform to
+client MUST set the AUTHORITY option to the `authority` portion of the
+URI. If an AUTHORITY option does not conform to
 these rules, the session MUST be closed with `MALFORMED_AUTHORITY`.
 
 #### PATH {#path}
 
-The PATH parameter (Parameter Type 0x01) allows the client to specify the path
+The PATH option (Option Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
-the server, or when WebTransport is used.  When a PATH parameter is received
-from a server, or when a PATH parameter is received while WebTransport is used,
-or when a PATH parameter is received by a server but the server does not
+the server, or when WebTransport is used.  When a PATH option is received
+from a server, or when a PATH option is received while WebTransport is used,
+or when a PATH option is received by a server but the server does not
 support the specified path, the session MUST be closed with `INVALID_PATH`.
 
-The PATH parameter follows the URI formatting rules {{!RFC3986}}.
+The PATH option follows the URI formatting rules {{!RFC3986}}.
 When connecting to a server using a URI with the "moqt" scheme, the
-client MUST set the PATH parameter to the `path-abempty` portion of the
+client MUST set the PATH option to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
-the `query` portion of the URI to the parameter. If a PATH does not conform to
+the `query` portion of the URI to the option. If a PATH does not conform to
 these rules, the session MUST be closed with `MALFORMED_PATH`.
 
 #### MAX_REQUEST_ID {#max-request-id}
 
-The MAX_REQUEST_ID parameter (Parameter Type 0x02) communicates an initial
+The MAX_REQUEST_ID option (Option Type 0x02) communicates an initial
 value for the Maximum Request ID to the receiving endpoint. The default
 value is 0, so if not specified, the peer MUST NOT send requests.
 
 #### MAX_AUTH_TOKEN_CACHE_SIZE {#max-auth-token-cache-size}
 
-The MAX_AUTH_TOKEN_CACHE_SIZE parameter (Parameter Type 0x04) communicates the
+The MAX_AUTH_TOKEN_CACHE_SIZE option (Option Type 0x04) communicates the
 maximum size in bytes of all actively registered Authorization tokens that the
-endpoint is willing to store per Session. This parameter is optional. The default
+endpoint is willing to store per Session. This option is optional. The default
 value is 0 which prohibits the use of token Aliases.
 
 The token size is calculated as 16 bytes + the size of the Token Value field
 (see {{moq-token}}). The total size as restricted by the
-MAX_AUTH_TOKEN_CACHE_SIZE parameter is calculated as the sum of the token sizes
+MAX_AUTH_TOKEN_CACHE_SIZE option is calculated as the sum of the token sizes
 for all registered tokens (Alias Type value of 0x01) minus the sum of the token
 sizes for all deregistered tokens (Alias Type value of 0x00), since Session
 initiation.
 
 #### AUTHORIZATION TOKEN {#setup-auth-token}
 
-The AUTHORIZATION TOKEN setup parameter (Parameter Type 0x03)) is funcionally
-equivalient to the AUTHORIZATION TOKEN message parameter, see {{authorization-token}}.
+The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is functionally
+equivalent to the AUTHORIZATION TOKEN message parameter, see {{authorization-token}}.
 The endpoint can specify one or more tokens in CLIENT_SETUP or SERVER_SETUP
 that the peer can use to authorize MOQT session establishment.
 
-If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP with Alias
+If a server receives an AUTHORIZATION TOKEN option in CLIENT_SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
 the session with `AUTH_TOKEN_CACHE_OVERFLOW`.  Instead, it MUST treat the
-parameter as Alias Type USE_VALUE.  A client MUST handle registration failures
+option as Alias Type USE_VALUE.  A client MUST handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
-MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
+MAX_AUTH_TOKEN_CACHE_SIZE option in SERVER_SETUP (or the default value of 0).
 
 #### MOQT IMPLEMENTATION
 
-The MOQT_IMPLEMENTATION parameter (Parameter Type 0x07) identifies the name and
+The MOQT_IMPLEMENTATION option (Option Type 0x07) identifies the name and
 version of the sender's MOQT implementation.  This SHOULD be a UTF-8 encoded
 string {{!RFC3629}}, though the message does not carry information, such as
 language tags, that would aid comprehension by any entity other than the one
@@ -2818,24 +2816,22 @@ Standalone Fetch {
 
 ### Joining Fetches
 
-A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of a subscription in the `Established` or
-`Pending (subscriber)` state.
+A Joining Fetch is associated with a subscription in the `Established` or
+`Pending (subscriber)` state by specifying its Request ID.
 A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track Name
+subscription to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
-Subscribe.  The subscriber can set the Start Location to an absolute Location or
-a Location relative to the current group.
+subscription.  The subscriber can set the Start Location to an absolute Location or
+a Location relative to the Largest group.
 
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
 
-A Joining Fetch is only permitted when the associated Subscribe has the Filter
-Type Largest Object; any other value results in closing the session with a
+A Joining Fetch is only permitted when the associated subscription has
+Forward State 1; otherwise the publisher MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
-If no Objects have been published for the track, and the SUBSCRIBE_OK did not
-include a LARGEST_OBJECT parameter ({{largest-param}}), the publisher MUST
+If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
 
 A Joining Fetch includes this structure:
@@ -2858,20 +2854,19 @@ Joining Fetch {
 
 #### Joining Fetch Range Calculation
 
-The Largest Location value from the corresponding
+The Joining Location value from the corresponding
 subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
-The publisher receiving a Joining Fetch sets the End Location to {Subscribe
-Largest Location.Object + 1}. Here Subscribe Largest Location is the
-saved value from when the subscription started (see {{subscriptions}}).
+The publisher receiving a Joining Fetch sets the End Location to
+{Joining Location.Group, Joining Location.Object + 1} (see {{subscriptions}}.
 
-Note: the last Object included in the Joining FETCH response is Subscribe
-Largest Location.  The `+ 1` above indicates the equivalent Standalone Fetch
-encoding.
+Note: the last Object included in the Joining FETCH response is the Object
+at the Joining Location.  The `+ 1` above indicates the equivalent Standalone
+Fetch encoding.
 
 For a Relative Joining Fetch, the publisher sets the Start Location to
-{Subscribe Largest Location.Group - Joining Start, 0}.
+{Joining Location.Group - Joining Start, 0}.
 
 For an Absolute Joining Fetch, the publisher sets the Start Location to
 {Joining Start, 0}.
@@ -4115,8 +4110,8 @@ TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 TODO: fill out currently missing registries:
 
 * MOQT ALPN values
-* Setup parameters
-* Non-setup Parameters - List which params can be repeated in the table.
+* Setup Options
+* Message Parameters - List which params can be repeated in the table.
 * Message types
 * MOQ Extension headers - we wish to reserve extension types 0-63 for
   standards utilization where space is a premium, 64 - 16383 for
