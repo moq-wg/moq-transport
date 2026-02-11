@@ -3794,8 +3794,8 @@ PADDING {
 ~~~
 {: #padding-format title="MOQT Padding Stream"}
 
-The receiver MUST discard all data received on a padding stream. The receiver
-MUST NOT close the session upon receiving a padding stream.
+The receiver MUST read and discard all data received on a padding stream. The
+receiver MUST NOT close the session upon receiving a padding stream.
 
 Padding streams do not carry Objects or any other application data. An endpoint
 can use padding streams to probe for additional bandwidth without affecting the
