@@ -6782,17 +6782,15 @@ PUBLISH_NAMESPACE and are waiting for subscribers.<a href="#section-12.2.1-1" cl
 prevent idle timeout closure.<a href="#section-12.2.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-12.2.1-3.2">
-              <p id="section-12.2.1-3.2.1">Send periodic MoQT control messages, for example REQUEST_UPDATE with no
+              <p id="section-12.2.1-3.2.1">Send periodic control messages, for example REQUEST_UPDATE with no
 modified Message Parameters.<a href="#section-12.2.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-12.2.1-3.3">
-              <p id="section-12.2.1-3.3.1">Accept that idle connections may close and implement reconnection logic when
+              <p id="section-12.2.1-3.3.1">Accept that idle connections can close and implement reconnection logic when
 needed.<a href="#section-12.2.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-12.2.1-4">The choice of mechanism is implementation-specific. Publishers connecting to
-relays <span class="bcp14">SHOULD</span> be prepared to handle disconnection due to idle timeout and
-reconnect if necessary.<a href="#section-12.2.1-4" class="pilcrow">¶</a></p>
+<p id="section-12.2.1-4">The choice of mechanism is implementation-specific.<a href="#section-12.2.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
