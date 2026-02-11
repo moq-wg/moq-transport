@@ -993,7 +993,7 @@ correction to probe for more bandwidth while also limiting the impact of probing
 in case it causes packet loss. Applications wanting to switch to an alternate
 representation of a Track can request that Track at a lower priority to probe.
 Applications can subscribe to additional tracks at the lowest (255) priority
-or by using padding streams ({{padding-streams}}) to fill the congestion window
+or use padding streams ({{padding-streams}}) to fill the congestion window
 during probing intervals while minimizing the impact on higher priority media.
 Network-assisted bandwidth estimation mechanisms such as SCONE
 {{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
