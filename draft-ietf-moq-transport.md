@@ -988,7 +988,8 @@ applications might need to periodically ensure the congestion controller is not
 app-limited for at least a full round trip to ensure the available bandwidth can be
 measured.
 
-Some applications might have APIs to allow sending duplicate data or forward error correction to probe for more bandwidth while also limiting the impact of probing
+Some applications might have APIs to allow sending duplicate data or forward error
+correction to probe for more bandwidth while also limiting the impact of probing
 in case it causes packet loss. Applications wanting to switch to an alternate
 representation of a Track can request that Track at a lower priority to probe.
 Applications can subscribe to additional tracks at the lowest (255) priority
