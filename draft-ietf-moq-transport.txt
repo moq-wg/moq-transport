@@ -206,6 +206,7 @@ Table of Contents
        13.4.3.  PUBLISH_DONE Codes
        13.4.4.  Data Stream Reset Error Codes
    Contributors
+   Use of Generative AI
    References
      Normative References
      Informative References
@@ -4747,6 +4748,12 @@ Contributors
    *  Mo Zanaty
 
    *  Will Law
+
+Use of Generative AI
+
+   Anthropic's Claude was used to assist with drafting and editing text
+   for this document.  All AI-generated content was reviewed and
+   approved by the editors.
 
 References
 
