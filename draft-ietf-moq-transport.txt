@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 14 August 2026                                    I. Swett, Ed.
+Expires: 15 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        10 February 2026
+                                                        11 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 August 2026.
+   This Internet-Draft will expire on 15 August 2026.
 
 Copyright Notice
 
@@ -2603,8 +2603,9 @@ Table of Contents
 
    The REQUEST_ERROR message is sent to a response to any request
    (SUBSCRIBE, FETCH, PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
-   TRACK_STATUS).  The unique request ID in the REQUEST_ERROR is used to
-   associate it with the correct type of request.
+   TRACK_STATUS, REQUEST_UPDATE).  The unique request ID in the
+   REQUEST_ERROR is used to associate it with the correct type of
+   request.
 
    REQUEST_ERROR Message {
      Type (vi64) = 0x5,
