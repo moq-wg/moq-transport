@@ -648,8 +648,9 @@ include:
    different final Objects.
 7. An Object is received in a Group whose Object ID is larger than the final
    Object in the Group.  The final Object in a Group is the Object with Status
-   END_OF_GROUP or the last Object sent in a FETCH that requested the entire
-   Group.
+   END_OF_GROUP, the last Object before a FIN in a Subgroup which has the
+   END_OF_GROUP bit set, or the last Object sent in a FETCH that requested the
+   entire Group.
 8. An Object is received on a Track whose Group and Object ID are larger than the
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
@@ -1936,6 +1937,18 @@ The AUTHORIZATION TOKEN parameter MAY be repeated within a message as long as
 the combination of Token Type and Token Value are unique after resolving any
 aliases.
 
+Messages carrying the AUTHORIZATION TOKEN parameter can appear on different
+control streams. Because stream processing order can be different than send order, the
+receiver and sender can have inconsistent views of the token cache state.
+
+Senders MUST NOT send USE_ALIAS on one control stream for an alias registered on a
+different stream until the sender has received a response to the message
+containing the REGISTER. Senders MAY use USE_ALIAS on the same control stream as the
+REGISTER without waiting for a response.
+
+Senders MUST NOT send DELETE for an alias while any message using USE_ALIAS with
+that alias has not received a response.
+
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
@@ -1949,13 +1962,13 @@ not depend upon the forwarding preference. Objects with forwarding preference
 the amount of time they can be queued before being sent. There is no explicit
 signal that an Object was not sent because the delivery timeout was exceeded.
 
-DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
-endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session
-with `PROTOCOL_VIOLATION`.
+A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
+due to delivery timeout.
 
 If both the subscriber specifies this parameter and the Track has a
 DELIVERY_TIMEOUT extension, the endpoints use the min of
-the two values for the subscription.
+the two non-zero values for the subscription. If either value is 0, the
+non-zero value is used. If both are 0, there is no delivery timeout.
 
 Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
@@ -1964,7 +1977,7 @@ subscriber nor publisher specifies DELIVERY TIMEOUT, all Objects in the track
 matching the subscription filter are delivered as indicated by their Group Order
 and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher MAY terminate
-the subscription with error `TOO_FAR_BEHIND`.
+the subscription using PUBLISH_DONE with error `TOO_FAR_BEHIND`.
 
 If an object in a subgroup exceeds the delivery timeout, the publisher MUST
 reset the underlying transport stream (see {{closing-subgroup-streams}}) and
@@ -2055,18 +2068,19 @@ unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
 #### EXPIRES Parameter {#expires}
 
-The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH
-or PUBLISH_OK (TODO: or REQUEST_OK).  It is a variable length integer encoding
+The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH,
+PUBLISH_OK, or REQUEST_OK. It is a variable length integer encoding
 the time in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
 can terminate the subscription prior to or after the expiry time.
 
-The receiver of the parameter can extend the subscription by sending a
-REQUEST_UPDATE. If the receiver of the parameter
-has one or more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
-REQUEST_UPDATE. Relays that send this parameter and applications that receive
-it MAY introduce jitter to prevent many endpoints from updating
+The receiver of the parameter can attempt to extend the subscription by sending
+a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
+more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
+REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
+value in REQUEST_OK. Relays that send this parameter and applications that
+receive it MAY introduce jitter to prevent many endpoints from updating
 simultaneously.
 
 If the EXPIRES parameter is 0 or is not present in a message, the subscription
@@ -2262,7 +2276,7 @@ Sending a GOAWAY does not prevent the sender from initiating new requests,
 though the sender SHOULD avoid initiating requests unless required by migration
 (see ({{graceful-subscriber-switchover}} and {{graceful-publisher-switchover}}).
 An endpoint that receives a GOAWAY MAY reject new requests with an appropriate
-error code (e.g., SUBSCRIBE_ERROR with error code GOING_AWAY).
+error code (e.g., REQUEST_ERROR with error code GOING_AWAY).
 
 The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
 ({{session-termination}}) if it receives multiple GOAWAY messages.
@@ -2365,7 +2379,7 @@ REQUEST_OK Message {
 ## REQUEST_ERROR {#message-request-error}
 
 The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
-PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS). The unique
+PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS, REQUEST_UPDATE). The unique
 request ID in the REQUEST_ERROR is used to associate it with the correct type of
 request.
 
@@ -2373,6 +2387,8 @@ request.
 REQUEST_ERROR Message {
   Type (vi64) = 0x5,
   Length (16),
+  Request ID (vi64),
+  Error Code (vi64),
   Retry Interval (vi64),
   Error Reason (Reason Phrase),
 }
@@ -2421,6 +2437,9 @@ MALFORMED_AUTH_TOKEN:
 
 EXPIRED_AUTH_TOKEN:
 : Authorization token has expired ({{authorization-token}}).
+
+GOING_AWAY:
+: The endpoint has received a GOAWAY and MAY reject new requests.
 
 DUPLICATE_SUBSCRIPTION (0x19):
 : The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
@@ -2534,7 +2553,7 @@ SUBSCRIBE_OK Message {
 
 ## REQUEST_UPDATE {#message-request-update}
 
-The sender of a request (SUBSCRIBE, PUBLISH, FETCH, TRACK_STATUS,
+The sender of a request (SUBSCRIBE, PUBLISH, FETCH,
 PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE) can later send a REQUEST_UPDATE to
 modify it.  A subscriber can also send REQUEST_UPDATE to modify parameters of a
 subscription established with PUBLISH.
@@ -2740,11 +2759,12 @@ PUBLISH_DONE Message {
 * Status Code: An integer status code indicating why the subscription ended.
 
 * Stream Count: An integer indicating the number of data streams the publisher
-opened for this subscription.  This helps the subscriber know if it has received
+opened for this subscription, including streams that contained no Objects (e.g.,
+an empty Subgroup).  This helps the subscriber know if it has received
 all of the data published in this subscription by comparing the number of
 streams received.  The subscriber can immediately remove all subscription state
-once the same number of streams have been processed.  If the track had only Objects with
-Forwarding Preference = Datagram, the publisher MUST set Stream Count to 0.  If
+once the same number of streams have been processed.  If the publisher did not open any streams
+for this subscription, the publisher MUST set Stream Count to 0.  If
 the publisher is unable to set Stream Count to the exact number of streams
 opened for the subscription, it MUST set Stream Count to 2^62 - 1. Subscribers
 SHOULD use a timeout or other mechanism to remove subscription state in case
@@ -3456,6 +3476,9 @@ any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 * Type values that do not match the form 0b00X0XXXX (i.e., Type values outside the
   ranges 0x00..0x0F and 0x20..0x2F).
 
+If an Object Datagram includes both the STATUS bit and EXTENSIONS bit, and the
+Object Status is not Normal (0x0), the endpoint MUST close the session with a
+`PROTOCOL_VIOLATION`, because only Normal Objects can have extensions.
 
 ## Streams
 
@@ -3693,6 +3716,10 @@ UNKNOWN_OBJECT_STATUS (0x4):
 : In response to a FETCH, the publisher is unable to determine the Status
 of the next Object in the requested range.
 
+TOO_FAR_BEHIND (0x5):
+: The corresponding subscription has exceeded the publisher's resource limits and
+is being terminated (see {{delivery-timeout}}).
+
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
@@ -3760,7 +3787,7 @@ Bitmask | Condition if set | Condition if not set (0)
 0x08 | Group ID field is present | Group ID is the prior Object's Group ID
 0x10 | Priority field is present | Priority is the prior Object's Priority
 0x20 | Extensions field is present | Extensions field is not present
-0x40 | Datagram: ignore the two least significant bits | Use the subgroup ID in the two least significant bits
+0x40 | Datagram: ignore the two least significant bits | Decode the Subgroup ID as indicated by the two least significant bits
 
 If the first Object in the FETCH response uses a flag that references fields in
 the prior Object, the Subscriber MUST close the session with a
@@ -3850,24 +3877,24 @@ The following Extension Headers are defined in MOQT. Each Extension Header
 specifies whether it can be used with Tracks, Objects, or both.
 
 
-#### DELIVERY TIMEOUT {#delivery-timeout-ext}
+## DELIVERY TIMEOUT {#delivery-timeout-ext}
 
 The DELIVERY TIMEOUT extension (Extension Header Type 0x02) is a Track
 Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
 {{delivery-timeout}}).
 
-DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
-endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session with
-`PROTOCOL_VIOLATION`.
+A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
+due to delivery timeout.
 
 If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the Track has
-a DELIVERY_TIMEOUT extension, the endpoints use the min of the two values for
-the subscription.
+a DELIVERY_TIMEOUT extension, the endpoints use the min of the two non-zero
+values for the subscription. If either value is 0, the non-zero value is used.
+If both are 0, there is no delivery timeout.
 
 If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
 specified a timeout, Objects do not time out.
 
-#### MAX CACHE DURATION {#max-cache-duration}
+## MAX CACHE DURATION {#max-cache-duration}
 
 The MAX_CACHE_DURATION extension (Extension Header Type 0x04) is a Track Extension.
 
@@ -3883,7 +3910,7 @@ handles a downstream request that includes those Objects re-requests them.
 If the MAX_CACHE_DURATION extension is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
 
-#### DEFAULT PUBLISHER PRIORITY {#publisher-priority}
+## DEFAULT PUBLISHER PRIORITY {#publisher-priority}
 
 The DEFAULT PUBLISHER PRIORITY extension (Extension Header Type 0x0E) is a Track
 Extension that specifies the priority of
@@ -3894,7 +3921,7 @@ subscription inherit this priority, unless they specifically override it.
 
 A subscription has Publisher Priorty 128 if this extension is omitted.
 
-#### DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
+## DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
 
 The DEFAULT_PUBLISHER_GROUP_ORDER extension (Extension Header Type 0x22) is a
 Track Extension.
@@ -3907,7 +3934,7 @@ close the session with `PROTOCOL_VIOLATION`.
 
 If omitted, the publisher's preference is Ascending (0x1).
 
-#### DYNAMIC GROUPS {#dynamic-groups}
+## DYNAMIC GROUPS {#dynamic-groups}
 
 The DYNAMIC_GROUPS Extension (Extension Header Type 0x30) is a Track Extension.
 The allowed values are 0 or 1. When the value is 1, it indicates
@@ -3933,9 +3960,21 @@ Immutable Extensions {
 ~~~
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
-Relays. This extension MUST NOT be modified or removed. Relays MUST cache this
-extension if the Object is cached and MUST forward this extension if the
-enclosing Object is forwarded. Relays MAY decode and view these extensions.
+Relays. This extension MUST NOT be modified or removed and the serialization
+(e.g. variable-length integer encodings) of the Key-Value-Pairs MUST NOT
+change). Relays MUST cache this extension if the Object is cached and MUST
+forward this extension if the enclosing Object is forwarded. Relays MAY decode
+and view these extensions.
+
+Unless specified by a particular Extension Header specification, Extension Headers
+MAY appear either in the mutable extension list or
+inside Immutable Extensions. When looking for the value of an extension,
+processors MUST search both the mutable extension list and the contents of
+Immutable Extensions.
+
+If an Extension Header allows multiple values, the same Extension Header Type
+MAY appear in both the mutable list and inside Immutable Extensions, unless
+prohibited by the Extension Header specification.
 
 A Track is considered malformed (see {{malformed-tracks}}) if any of the
 following conditions are detected:
@@ -4175,6 +4214,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | NOT_SUPPORTED              | 0x3  | {{message-request-error}} |
 | MALFORMED_AUTH_TOKEN       | 0x4  | {{message-request-error}} |
 | EXPIRED_AUTH_TOKEN         | 0x5  | {{message-request-error}} |
+| GOING_AWAY                 | 0x6  | {{message-request-error}} |
 | DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
 | INVALID_RANGE              | 0x11 | {{message-request-error}} |
 | MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
@@ -4206,6 +4246,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | DELIVERY_TIMEOUT      | 0x2  | {{closing-subgroup-streams}} |
 | SESSION_CLOSED        | 0x3  | {{closing-subgroup-streams}} |
 | UNKNOWN_OBJECT_STATUS | 0x4  | {{closing-subgroup-streams}} |
+| TOO_FAR_BEHIND        | 0x5  | {{closing-subgroup-streams}} |
 | MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
 
 # Contributors
