@@ -3988,7 +3988,7 @@ that alias has not received a response.<a href="#section-9.2.1.1-18" class="pilc
 PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.<a href="#section-9.2.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.2-2">It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span> continue to attempt
 forwarding Objects after they have been received.  The start time for the timeout
-is based on when the Object Properties are received, and does not depend upon
+is based on when the Object fields are received, and does not depend upon
 the forwarding preference. Objects with forwarding preference 'Datagram' are
 not retransmitted when lost, so the Delivery Timeout only limits the amount of
 time they can be queued before being sent. There is no explicit signal that an
