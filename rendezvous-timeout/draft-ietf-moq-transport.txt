@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 4 August 2026                                     I. Swett, Ed.
+Expires: 15 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         31 January 2026
+                                                        11 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 August 2026.
+   This Internet-Draft will expire on 15 August 2026.
 
 Copyright Notice
 
@@ -183,10 +183,13 @@ Table of Contents
      10.5.  Examples
    11. Extension Headers
      11.1.  DELIVERY TIMEOUT
-       11.1.1.  MAX CACHE DURATION
-     11.2.  Immutable Extensions
-     11.3.  Prior Group ID Gap
-     11.4.  Prior Object ID Gap
+     11.2.  MAX CACHE DURATION
+     11.3.  DEFAULT PUBLISHER PRIORITY
+     11.4.  DEFAULT PUBLISHER GROUP ORDER
+     11.5.  DYNAMIC GROUPS
+     11.6.  Immutable Extensions
+     11.7.  Prior Group ID Gap
+     11.8.  Prior Object ID Gap
    12. Security Considerations
      12.1.  Resource Exhaustion
      12.2.  Timeouts
@@ -799,8 +802,9 @@ Table of Contents
 
    7.   An Object is received in a Group whose Object ID is larger than
         the final Object in the Group.  The final Object in a Group is
-        the Object with Status END_OF_GROUP or the last Object sent in a
-        FETCH that requested the entire Group.
+        the Object with Status END_OF_GROUP, the last Object before a
+        FIN in a Subgroup which has the END_OF_GROUP bit set, or the
+        last Object sent in a FETCH that requested the entire Group.
 
    8.   An Object is received on a Track whose Group and Object ID are
         larger than the final Object in the Track.  The final Object in
@@ -1376,7 +1380,7 @@ Table of Contents
    subscriber joining a Track might detect that it is more efficient to
    request the Original Publisher create a new group than issue a
    Joining FETCH.  Publishers indicate a Track supports dynamic group
-   creation using the DYNAMIC_GROUPS parameter (Section 11.1.1.3).
+   creation using the DYNAMIC_GROUPS parameter (Section 11.5).
 
    One possible subscriber pattern is to SUBSCRIBE to a Track using
    Filter Type Largest Object and observe the Largest Location in the
@@ -2167,6 +2171,20 @@ Table of Contents
    long as the combination of Token Type and Token Value are unique
    after resolving any aliases.
 
+   Messages carrying the AUTHORIZATION TOKEN parameter can appear on
+   different control streams.  Because stream processing order can be
+   different than send order, the receiver and sender can have
+   inconsistent views of the token cache state.
+
+   Senders MUST NOT send USE_ALIAS on one control stream for an alias
+   registered on a different stream until the sender has received a
+   response to the message containing the REGISTER.  Senders MAY use
+   USE_ALIAS on the same control stream as the REGISTER without waiting
+   for a response.
+
+   Senders MUST NOT send DELETE for an alias while any message using
+   USE_ALIAS with that alias has not received a response.
+
 9.2.2.2.  DELIVERY TIMEOUT Parameter
 
    The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
@@ -2182,13 +2200,13 @@ Table of Contents
    that an Object was not sent because the delivery timeout was
    exceeded.
 
-   DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.
-   If an endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close
-   the session with PROTOCOL_VIOLATION.
+   A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not
+   expire due to delivery timeout.
 
    If both the subscriber specifies this parameter and the Track has a
-   DELIVERY_TIMEOUT extension, the endpoints use the min of the two
-   values for the subscription.
+   DELIVERY_TIMEOUT extension, the endpoints use the min of the two non-
+   zero values for the subscription.  If either value is 0, the non-zero
+   value is used.  If both are 0, there is no delivery timeout.
 
    Publishers can, at their discretion, discontinue forwarding Objects
    earlier than the negotiated DELIVERY TIMEOUT, subject to stream
@@ -2198,7 +2216,7 @@ Table of Contents
    are delivered as indicated by their Group Order and Priority.  If a
    subscriber fails to consume Objects at a sufficient rate, causing the
    publisher to exceed its resource limits, the publisher MAY terminate
-   the subscription with error TOO_FAR_BEHIND.
+   the subscription using PUBLISH_DONE with error TOO_FAR_BEHIND.
 
    If an object in a subgroup exceeds the delivery timeout, the
    publisher MUST reset the underlying transport stream (see
@@ -2294,20 +2312,20 @@ Table of Contents
 9.2.2.7.  EXPIRES Parameter
 
    The EXPIRES parameter (Parameter Type 0x8) MAY appear in
-   SUBSCRIBE_OK, PUBLISH or PUBLISH_OK (TODO: or REQUEST_OK).  It is a
-   variable length integer encoding the time in milliseconds after which
-   the sender of the parameter will terminate the subscription.  The
-   sender will terminate the subscription using PUBLISH_DONE or
-   UNSUBSCRIBE, depending on its role.  This value is advisory and the
-   sender can terminate the subscription prior to or after the expiry
-   time.
+   SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK.  It is a variable
+   length integer encoding the time in milliseconds after which the
+   sender of the parameter will terminate the subscription.  The sender
+   will terminate the subscription using PUBLISH_DONE or UNSUBSCRIBE,
+   depending on its role.  This value is advisory and the sender can
+   terminate the subscription prior to or after the expiry time.
 
-   The receiver of the parameter can extend the subscription by sending
-   a REQUEST_UPDATE.  If the receiver of the parameter has one or more
-   updated AUTHORIZATION_TOKENs, it SHOULD include those in the
-   REQUEST_UPDATE.  Relays that send this parameter and applications
-   that receive it MAY introduce jitter to prevent many endpoints from
-   updating simultaneously.
+   The receiver of the parameter can attempt to extend the subscription
+   by sending a REQUEST_UPDATE with 0 or more updated parameters.  If
+   the receiver has one or more updated AUTHORIZATION_TOKENs, it SHOULD
+   include those in the REQUEST_UPDATE.  If the extension is granted,
+   the sender includes a new EXPIRES value in REQUEST_OK.  Relays that
+   send this parameter and applications that receive it MAY introduce
+   jitter to prevent many endpoints from updating simultaneously.
 
    If the EXPIRES parameter is 0 or is not present in a message, the
    subscription does not expire or expires at an unknown time.
@@ -2516,7 +2534,7 @@ Table of Contents
    requests, though the sender SHOULD avoid initiating requests unless
    required by migration (see (Section 8.4.1 and Section 8.5.1).  An
    endpoint that receives a GOAWAY MAY reject new requests with an
-   appropriate error code (e.g., SUBSCRIBE_ERROR with error code
+   appropriate error code (e.g., REQUEST_ERROR with error code
    GOING_AWAY).
 
    The endpoint MUST close the session with a PROTOCOL_VIOLATION
@@ -2621,12 +2639,15 @@ Table of Contents
 
    The REQUEST_ERROR message is sent to a response to any request
    (SUBSCRIBE, FETCH, PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
-   TRACK_STATUS).  The unique request ID in the REQUEST_ERROR is used to
-   associate it with the correct type of request.
+   TRACK_STATUS, REQUEST_UPDATE).  The unique request ID in the
+   REQUEST_ERROR is used to associate it with the correct type of
+   request.
 
    REQUEST_ERROR Message {
      Type (vi64) = 0x5,
      Length (16),
+     Request ID (vi64),
+     Error Code (vi64),
      Retry Interval (vi64),
      Error Reason (Reason Phrase),
    }
@@ -2674,6 +2695,9 @@ Table of Contents
 
    EXPIRED_AUTH_TOKEN:  Authorization token has expired
       (Section 9.2.2.1).
+
+   GOING_AWAY:  The endpoint has received a GOAWAY and MAY reject new
+      requests.
 
    DUPLICATE_SUBSCRIPTION (0x19):  The PUBLISH or SUBSCRIBE request
       attempted to create a subscription to a Track with the same role
@@ -2788,7 +2812,7 @@ Table of Contents
 
 9.11.  REQUEST_UPDATE
 
-   The sender of a request (SUBSCRIBE, PUBLISH, FETCH, TRACK_STATUS,
+   The sender of a request (SUBSCRIBE, PUBLISH, FETCH,
    PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE) can later send a
    REQUEST_UPDATE to modify it.  A subscriber can also send
    REQUEST_UPDATE to modify parameters of a subscription established
@@ -3009,12 +3033,13 @@ Table of Contents
       subscription ended.
 
    *  Stream Count: An integer indicating the number of data streams the
-      publisher opened for this subscription.  This helps the subscriber
-      know if it has received all of the data published in this
-      subscription by comparing the number of streams received.  The
-      subscriber can immediately remove all subscription state once the
-      same number of streams have been processed.  If the track had only
-      Objects with Forwarding Preference = Datagram, the publisher MUST
+      publisher opened for this subscription, including streams that
+      contained no Objects (e.g., an empty Subgroup).  This helps the
+      subscriber know if it has received all of the data published in
+      this subscription by comparing the number of streams received.
+      The subscriber can immediately remove all subscription state once
+      the same number of streams have been processed.  If the publisher
+      did not open any streams for this subscription, the publisher MUST
       set Stream Count to 0.  If the publisher is unable to set Stream
       Count to the exact number of streams opened for the subscription,
       it MUST set Stream Count to 2^62 - 1.  Subscribers SHOULD use a
@@ -3763,6 +3788,11 @@ Table of Contents
    *  Type values that do not match the form 0b00X0XXXX (i.e., Type
       values outside the ranges 0x00..0x0F and 0x20..0x2F).
 
+   If an Object Datagram includes both the STATUS bit and EXTENSIONS
+   bit, and the Object Status is not Normal (0x0), the endpoint MUST
+   close the session with a PROTOCOL_VIOLATION, because only Normal
+   Objects can have extensions.
+
 10.4.  Streams
 
    When Objects are sent on streams, the stream begins with a Subgroup
@@ -3878,7 +3908,7 @@ Table of Contents
    Object ID Delta values.  A consumer cannot infer information about
    the existence of Objects between the current and previous Object ID
    in the Subgroup (e.g. when Object ID Delta is non-zero) unless there
-   is an Prior Object ID Gap extesnion header (see Section 11.4).
+   is an Prior Object ID Gap extesnion header (see Section 11.8).
 
    {
      Object ID Delta (vi64),
@@ -4020,6 +4050,10 @@ Table of Contents
       is unable to determine the Status of the next Object in the
       requested range.
 
+   TOO_FAR_BEHIND (0x5):  The corresponding subscription has exceeded
+      the publisher's resource limits and is being terminated (see
+      Section 9.2.2.2).
+
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 2.4.2).
 
@@ -4098,26 +4132,28 @@ Table of Contents
    Flags field.  Each flag is an independent boolean value, where a set
    bit (1) indicates the corresponding condition is true.
 
-   +=========+============================+============================+
-   | Bitmask | Condition if set           | Condition if not set (0)   |
-   +=========+============================+============================+
-   | 0x04    | Object ID field is         | Object ID is the prior     |
-   |         | present                    | Object's ID plus one       |
-   +---------+----------------------------+----------------------------+
-   | 0x08    | Group ID field is          | Group ID is the prior      |
-   |         | present                    | Object's Group ID          |
-   +---------+----------------------------+----------------------------+
-   | 0x10    | Priority field is          | Priority is the prior      |
-   |         | present                    | Object's Priority          |
-   +---------+----------------------------+----------------------------+
-   | 0x20    | Extensions field is        | Extensions field is not    |
-   |         | present                    | present                    |
-   +---------+----------------------------+----------------------------+
-   | 0x40    | Datagram: ignore the two   | Use the subgroup ID in the |
-   |         | least significant bits     | two least significant bits |
-   +---------+----------------------------+----------------------------+
+     +=========+==========================+=========================+
+     | Bitmask | Condition if set         | Condition if not set    |
+     |         |                          | (0)                     |
+     +=========+==========================+=========================+
+     | 0x04    | Object ID field is       | Object ID is the prior  |
+     |         | present                  | Object's ID plus one    |
+     +---------+--------------------------+-------------------------+
+     | 0x08    | Group ID field is        | Group ID is the prior   |
+     |         | present                  | Object's Group ID       |
+     +---------+--------------------------+-------------------------+
+     | 0x10    | Priority field is        | Priority is the prior   |
+     |         | present                  | Object's Priority       |
+     +---------+--------------------------+-------------------------+
+     | 0x20    | Extensions field is      | Extensions field is not |
+     |         | present                  | present                 |
+     +---------+--------------------------+-------------------------+
+     | 0x40    | Datagram: ignore the two | Decode the Subgroup ID  |
+     |         | least significant bits   | as indicated by the two |
+     |         |                          | least significant bits  |
+     +---------+--------------------------+-------------------------+
 
-                                  Table 8
+                                 Table 8
 
    If the first Object in the FETCH response uses a flag that references
    fields in the prior Object, the Subscriber MUST close the session
@@ -4210,18 +4246,19 @@ Table of Contents
    Track Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a
    Track (see Section 9.2.2.2).
 
-   DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.
-   If an endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close
-   the session with PROTOCOL_VIOLATION.
+   A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not
+   expire due to delivery timeout.
 
    If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the
    Track has a DELIVERY_TIMEOUT extension, the endpoints use the min of
-   the two values for the subscription.
+   the two non-zero values for the subscription.  If either value is 0,
+   the non-zero value is used.  If both are 0, there is no delivery
+   timeout.
 
    If unspecified, the subscriber's DELIVERY_TIMEOUT is used.  If
    neither endpoint specified a timeout, Objects do not time out.
 
-11.1.1.  MAX CACHE DURATION
+11.2.  MAX CACHE DURATION
 
    The MAX_CACHE_DURATION extension (Extension Header Type 0x04) is a
    Track Extension.
@@ -4240,7 +4277,7 @@ Table of Contents
    Objects can be cached until implementation constraints cause them to
    be evicted.
 
-11.1.1.1.  DEFAULT PUBLISHER PRIORITY
+11.3.  DEFAULT PUBLISHER PRIORITY
 
    The DEFAULT PUBLISHER PRIORITY extension (Extension Header Type 0x0E)
    is a Track Extension that specifies the priority of a subscription
@@ -4253,7 +4290,7 @@ Table of Contents
    A subscription has Publisher Priorty 128 if this extension is
    omitted.
 
-11.1.1.2.  DEFAULT PUBLISHER GROUP ORDER
+11.4.  DEFAULT PUBLISHER GROUP ORDER
 
    The DEFAULT_PUBLISHER_GROUP_ORDER extension (Extension Header Type
    0x22) is a Track Extension.
@@ -4266,7 +4303,7 @@ Table of Contents
 
    If omitted, the publisher's preference is Ascending (0x1).
 
-11.1.1.3.  DYNAMIC GROUPS
+11.5.  DYNAMIC GROUPS
 
    The DYNAMIC_GROUPS Extension (Extension Header Type 0x30) is a Track
    Extension.  The allowed values are 0 or 1.  When the value is 1, it
@@ -4278,7 +4315,7 @@ Table of Contents
 
    If omitted, the value is 0.
 
-11.2.  Immutable Extensions
+11.6.  Immutable Extensions
 
    The Immutable Extensions (Extension Header Type 0xB) contains a
    sequence of Key-Value-Pairs (see Figure 2) which are also Track or
@@ -4291,10 +4328,22 @@ Table of Contents
    }
 
    This extension can be added by the Original Publisher, but MUST NOT
-   be added by Relays.  This extension MUST NOT be modified or removed.
-   Relays MUST cache this extension if the Object is cached and MUST
-   forward this extension if the enclosing Object is forwarded.  Relays
-   MAY decode and view these extensions.
+   be added by Relays.  This extension MUST NOT be modified or removed
+   and the serialization (e.g. variable-length integer encodings) of the
+   Key-Value-Pairs MUST NOT change).  Relays MUST cache this extension
+   if the Object is cached and MUST forward this extension if the
+   enclosing Object is forwarded.  Relays MAY decode and view these
+   extensions.
+
+   Unless specified by a particular Extension Header specification,
+   Extension Headers MAY appear either in the mutable extension list or
+   inside Immutable Extensions.  When looking for the value of an
+   extension, processors MUST search both the mutable extension list and
+   the contents of Immutable Extensions.
+
+   If an Extension Header allows multiple values, the same Extension
+   Header Type MAY appear in both the mutable list and inside Immutable
+   Extensions, unless prohibited by the Extension Header specification.
 
    A Track is considered malformed (see Section 2.4.2) if any of the
    following conditions are detected:
@@ -4323,7 +4372,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    An Object MUST NOT contain more than one instance of this extension
    header.
 
-11.3.  Prior Group ID Gap
+11.7.  Prior Group ID Gap
 
    Prior Group ID Gap only applies to Objects, not Tracks.
 
@@ -4363,7 +4412,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    An Object MUST NOT contain more than one instance of this extension
    header.
 
-11.4.  Prior Object ID Gap
+11.8.  Prior Object ID Gap
 
    Prior Object ID Gap only applies to Objects, not Tracks.
 
@@ -4526,31 +4575,28 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 13.3.  Extension Headers
 
-    +======+===============================+========+================+
-    | Type | Name                          | Scope  | Specification  |
-    +======+===============================+========+================+
-    | 0x02 | DELIVERY_TIMEOUT              | Track  | Section 11.1   |
-    +------+-------------------------------+--------+----------------+
-    | 0x04 | MAX_CACHE_DURATION            | Track  | Section 11.1.1 |
-    +------+-------------------------------+--------+----------------+
-    | 0x0B | IMMUTABLE_EXTENSIONS          | Track, | Section 11.2   |
-    |      |                               | Object |                |
-    +------+-------------------------------+--------+----------------+
-    | 0x0E | DEFAULT_PUBLISHER_PRIORITY    | Track  | Section        |
-    |      |                               |        | 11.1.1.1       |
-    +------+-------------------------------+--------+----------------+
-    | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track  | Section        |
-    |      |                               |        | 11.1.1.2       |
-    +------+-------------------------------+--------+----------------+
-    | 0x30 | DYNAMIC_GROUPS                | Track  | Section        |
-    |      |                               |        | 11.1.1.3       |
-    +------+-------------------------------+--------+----------------+
-    | 0x3C | PRIOR_GROUP_ID_GAP            | Object | Section 11.3   |
-    +------+-------------------------------+--------+----------------+
-    | 0x3E | PRIOR_OBJECT_ID_GAP           | Object | Section 11.4   |
-    +------+-------------------------------+--------+----------------+
+     +======+===============================+========+===============+
+     | Type | Name                          | Scope  | Specification |
+     +======+===============================+========+===============+
+     | 0x02 | DELIVERY_TIMEOUT              | Track  | Section 11.1  |
+     +------+-------------------------------+--------+---------------+
+     | 0x04 | MAX_CACHE_DURATION            | Track  | Section 11.2  |
+     +------+-------------------------------+--------+---------------+
+     | 0x0B | IMMUTABLE_EXTENSIONS          | Track, | Section 11.6  |
+     |      |                               | Object |               |
+     +------+-------------------------------+--------+---------------+
+     | 0x0E | DEFAULT_PUBLISHER_PRIORITY    | Track  | Section 11.3  |
+     +------+-------------------------------+--------+---------------+
+     | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track  | Section 11.4  |
+     +------+-------------------------------+--------+---------------+
+     | 0x30 | DYNAMIC_GROUPS                | Track  | Section 11.5  |
+     +------+-------------------------------+--------+---------------+
+     | 0x3C | PRIOR_GROUP_ID_GAP            | Object | Section 11.7  |
+     +------+-------------------------------+--------+---------------+
+     | 0x3E | PRIOR_OBJECT_ID_GAP           | Object | Section 11.8  |
+     +------+-------------------------------+--------+---------------+
 
-                                 Table 11
+                                  Table 11
 
 13.4.  Error Codes
 
@@ -4621,6 +4667,8 @@ EXT 1 and EXT N can be modified or removed by Relays
            +----------------------------+------+---------------+
            | EXPIRED_AUTH_TOKEN         | 0x5  | Section 9.8   |
            +----------------------------+------+---------------+
+           | GOING_AWAY                 | 0x6  | Section 9.8   |
+           +----------------------------+------+---------------+
            | DOES_NOT_EXIST             | 0x10 | Section 9.8   |
            +----------------------------+------+---------------+
            | INVALID_RANGE              | 0x11 | Section 9.8   |
@@ -4678,6 +4726,8 @@ EXT 1 and EXT N can be modified or removed by Relays
              | SESSION_CLOSED        | 0x3  | Section 10.4.3 |
              +-----------------------+------+----------------+
              | UNKNOWN_OBJECT_STATUS | 0x4  | Section 10.4.3 |
+             +-----------------------+------+----------------+
+             | TOO_FAR_BEHIND        | 0x5  | Section 10.4.3 |
              +-----------------------+------+----------------+
              | MALFORMED_TRACK       | 0x12 | Section 10.4.3 |
              +-----------------------+------+----------------+
