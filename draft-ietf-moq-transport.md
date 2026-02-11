@@ -4078,15 +4078,13 @@ Implementations that want to keep idle sessions open have several options:
 * Use transport-layer keep-alive mechanisms, such as QUIC PING frames, to
   prevent idle timeout closure.
 
-* Send periodic MoQT control messages, for example REQUEST_UPDATE with no
+* Send periodic control messages, for example REQUEST_UPDATE with no
   modified Message Parameters.
 
-* Accept that idle connections may close and implement reconnection logic when
+* Accept that idle connections can close and implement reconnection logic when
   needed.
 
-The choice of mechanism is implementation-specific. Publishers connecting to
-relays SHOULD be prepared to handle disconnection due to idle timeout and
-reconnect if necessary.
+The choice of mechanism is implementation-specific. 
 
 ## Relay security considerations
 
