@@ -4073,7 +4073,7 @@ subscriptions or the established subscriptions are not publishing Objects
 frequently.  This includes publisher sessions that have issued a
 PUBLISH_NAMESPACE and are waiting for subscribers.
 
-Implementations that need to maintain idle sessions have several options:
+Implementations that want to keep idle sessions open have several options:
 
 * Use transport-layer keep-alive mechanisms, such as QUIC PING frames, to
   prevent idle timeout closure.
