@@ -4038,26 +4038,20 @@ any other relevant information.<a href="#section-9.2.2.2-8" class="pilcrow">¶</
 SUBSCRIBE message.<a href="#section-9.2.2.3-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.3-2">It is the duration in milliseconds the subscriber is willing to wait for a
 publisher to become available. This applies when a relay receives a SUBSCRIBE
-for a track that has no current publisher, or when a publisher disconnects
-during an active subscription.<a href="#section-9.2.2.3-2" class="pilcrow">¶</a></p>
+for a Track that has no current publisher.<a href="#section-9.2.2.3-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.3-3">If the RENDEZVOUS_TIMEOUT is present, the relay <span class="bcp14">SHOULD</span> hold the subscription
-and wait for a publisher to appear or reconnect, up to the specified duration.
-If a publisher becomes available within this time, the relay proceeds with
-the subscription normally. If the timeout expires without a publisher, the
-relay <span class="bcp14">SHOULD</span> respond with REQUEST_ERROR with error code TIMEOUT.<a href="#section-9.2.2.3-3" class="pilcrow">¶</a></p>
-<p id="section-9.2.2.3-4">Note that in the reconnection case, Objects can be lost during the period
-when no publisher was connected. This can result in unsignalled gaps in
-the Track, even when DELIVERY_TIMEOUT (see <a href="#delivery-timeout" class="auto internal xref">Section 9.2.2.2</a>) is not
-specified. Subscribers that require complete delivery of all Objects without
-gaps <span class="bcp14">SHOULD NOT</span> set RENDEZVOUS_TIMEOUT, or should be prepared to handle
-potential discontinuities.<a href="#section-9.2.2.3-4" class="pilcrow">¶</a></p>
-<p id="section-9.2.2.3-5">The relay or publisher <span class="bcp14">MAY</span> use a shorter timeout than requested by the
-subscriber. For example, a relay might limit the maximum rendezvous timeout
-to protect its resources.<a href="#section-9.2.2.3-5" class="pilcrow">¶</a></p>
-<p id="section-9.2.2.3-6">If RENDEZVOUS_TIMEOUT is absent, the relay <span class="bcp14">SHOULD</span> immediately return
+and wait for a publisher to appear, up to the specified duration. The relay
+does not send SUBSCRIBE_OK until a publisher becomes available. If a publisher
+becomes available within this time, the relay proceeds with the subscription
+normally. If the timeout expires without a publisher, the relay <span class="bcp14">SHOULD</span> respond
+with REQUEST_ERROR with error code TIMEOUT.<a href="#section-9.2.2.3-3" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.3-4">The relay <span class="bcp14">MAY</span> use a shorter timeout than requested by the subscriber. For
+example, a relay might limit the maximum rendezvous timeout to protect its
+resources.<a href="#section-9.2.2.3-4" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.3-5">A value of 0 indicates the subscriber does not want to wait and expects
+an immediate response.<a href="#section-9.2.2.3-5" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.3-6">If RENDEZVOUS_TIMEOUT is absent, the relay <span class="bcp14">MUST</span> immediately return
 REQUEST_ERROR with error code DOES_NOT_EXIST if no publisher is available.<a href="#section-9.2.2.3-6" class="pilcrow">¶</a></p>
-<p id="section-9.2.2.3-7">A value of 0 indicates the subscriber does not want to wait and expects
-an immediate response.<a href="#section-9.2.2.3-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscriber-priority">
