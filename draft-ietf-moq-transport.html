@@ -3426,9 +3426,9 @@ where it's redundant.<a href="#section-8.1-5" class="pilcrow">¶</a></p>
 <p id="section-8.1-6">Note that due to reordering, an implementation can receive an Object after
 receiving an indication that the Object in question does not exist.  The
 endpoint <span class="bcp14">SHOULD NOT</span> cache or forward the object in this case.<a href="#section-8.1-6" class="pilcrow">¶</a></p>
-<p id="section-8.1-7">A cache <span class="bcp14">MUST</span> store all properties of an Object defined in
-<a href="#object-properties" class="auto internal xref">Section 10.2.1</a>, with the exception of any extensions
-(<a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a>) that specify otherwise.<a href="#section-8.1-7" class="pilcrow">¶</a></p>
+<p id="section-8.1-7">A cache <span class="bcp14">MUST</span> store all properties of an Object defined in <a href="#object-properties" class="auto internal xref">Section 10.2.1</a>,
+with the exception of any Object Extension Headers (<a href="#object-extension-headers" class="auto internal xref">Section 10.2.1.2</a>)
+that specify otherwise.<a href="#section-8.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="forward-handling">
@@ -3626,10 +3626,9 @@ the extension's specification (see <a href="#extension-headers" class="auto inte
         <h3 id="name-relay-object-handling">
 <a href="#section-8.7" class="section-number selfRef">8.7. </a><a href="#name-relay-object-handling" class="section-name selfRef">Relay Object Handling</a>
         </h3>
-<p id="section-8.7-1">MOQT encodes the delivery information via Object headers
-(<a href="#message-object" class="auto internal xref">Section 10.2</a>).  A relay <span class="bcp14">MUST NOT</span> modify Object properties
-when forwarding, except for Object Extension Headers as specified in
-<a href="#extension-headers" class="auto internal xref">Section 2.5</a>.<a href="#section-8.7-1" class="pilcrow">¶</a></p>
+<p id="section-8.7-1">MOQT encodes the delivery information via Object properties (<a href="#message-object" class="auto internal xref">Section 10.2</a>).
+A relay <span class="bcp14">MUST NOT</span> modify Object properties when forwarding, except for
+Object Extension Headers as specified in <a href="#extension-headers" class="auto internal xref">Section 2.5</a>.<a href="#section-8.7-1" class="pilcrow">¶</a></p>
 <p id="section-8.7-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
 combine, split, or otherwise modify object payloads.  A relay <span class="bcp14">SHOULD</span>
 prioritize sending Objects based on <a href="#priorities" class="auto internal xref">Section 7</a>.<a href="#section-8.7-2" class="pilcrow">¶</a></p>
@@ -3987,13 +3986,13 @@ that alias has not received a response.<a href="#section-9.2.1.1-18" class="pilc
             </h5>
 <p id="section-9.2.1.2-1">The DELIVERY TIMEOUT parameter (Parameter Type 0x02) <span class="bcp14">MAY</span> appear in a
 PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.<a href="#section-9.2.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.2-2">It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span>
-continue to attempt forwarding Objects after they have been received.  The start
-time for the timeout is based on when the Object Headers are received, and does
-not depend upon the forwarding preference. Objects with forwarding preference
-'Datagram' are not retransmitted when lost, so the Delivery Timeout only limits
-the amount of time they can be queued before being sent. There is no explicit
-signal that an Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-2">It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span> continue to attempt
+forwarding Objects after they have been received.  The start time for the timeout
+is based on when the Object header is received, and does not depend upon
+the forwarding preference. Objects with forwarding preference 'Datagram' are
+not retransmitted when lost, so the Delivery Timeout only limits the amount of
+time they can be queued before being sent. There is no explicit signal that an
+Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.1.2-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.2-3">A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
 due to delivery timeout.<a href="#section-9.2.1.2-3" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.2-4">If both the subscriber specifies this parameter and the Track has a
@@ -5773,8 +5772,8 @@ is Datagram.<a href="#section-10.2.1-2.6.1" class="pilcrow">¶</a></p>
 or mark the end of a group or track. See <a href="#object-status" class="auto internal xref">Section 10.2.1.1</a> below.<a href="#section-10.2.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.2.1-2.8">
-              <p id="section-10.2.1-2.8.1">Object Extensions : A sequence of Extensions associated with the object. See
-<a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a>.<a href="#section-10.2.1-2.8.1" class="pilcrow">¶</a></p>
+              <p id="section-10.2.1-2.8.1">Object Extension Headers : A sequence of Extension Headers associated with the object.
+See <a href="#object-extension-headers" class="auto internal xref">Section 10.2.1.2</a>.<a href="#section-10.2.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.2.1-2.9">
               <p id="section-10.2.1-2.9.1">Object Payload: An opaque payload intended for an End Subscriber and <span class="bcp14">SHOULD NOT</span> be processed by a relay. Only present when 'Object Status' is Normal (0x0).<a href="#section-10.2.1-2.9.1" class="pilcrow">¶</a></p>
@@ -5811,7 +5810,7 @@ be closed with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination"
 Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-10.2.1.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="object-extensions">
+<div id="object-extension-headers">
 <section id="section-10.2.1.2">
             <h5 id="name-object-extension-headers">
 <a href="#section-10.2.1.2" class="section-number selfRef">10.2.1.2. </a><a href="#name-object-extension-headers" class="section-name selfRef">Object Extension Headers</a>
@@ -5827,7 +5826,7 @@ and not as an extension header.<a href="#section-10.2.1.2-2" class="pilcrow">¶<
 Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-10.2.1.2-3" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-10.2.1.2-4">
 <pre>
-Extensions {
+Object Extension Headers {
   Extension Headers Length (vi64),
   Extension Headers (..),
 }
@@ -5859,9 +5858,9 @@ total size is larger than the maximum datagram size for the session, the Object
 will be dropped without any explicit notification.<a href="#section-10.3-3" class="pilcrow">¶</a></p>
 <p id="section-10.3-4">Each session along the path between the Original Publisher and End Subscriber
 might have different maximum datagram sizes. Additionally, Object Extension
-Headers (<a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a>) can be added to Objects as they pass through
-the MOQT network, increasing the size of the Object and the chances it will
-exceed the maximum datagram size of a downstream session and be dropped.<a href="#section-10.3-4" class="pilcrow">¶</a></p>
+Headers (<a href="#object-extension-headers" class="auto internal xref">Section 10.2.1.2</a>) can be added to Objects as they pass
+through the MOQT network, increasing the size of the Object and the chances it
+will exceed the maximum datagram size of a downstream session and be dropped.<a href="#section-10.3-4" class="pilcrow">¶</a></p>
 <div id="object-datagram">
 <section id="section-10.3.1">
           <h4 id="name-object-datagram">
@@ -5895,10 +5894,10 @@ range are valid. The four low-order bits and bit 5 of the Type field determine
 which fields are present in the datagram:<a href="#section-10.3.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.3.1-4.1">
-              <p id="section-10.3.1-4.1.1">The <strong>EXTENSIONS</strong> bit (0x01) indicates when the Extensions field is
-present. When set to 1, the Extensions structure defined in
-<a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a> is present. When set to 0, the Extensions field is
-absent.  If an endpoint receives a datagram with the EXTENSIONS bit set and an
+              <p id="section-10.3.1-4.1.1">The <strong>EXTENSIONS</strong> bit (0x01) indicates when the Extension Headers field is
+present. When set to 1, the Object Extension Headers structure defined in
+<a href="#object-extension-headers" class="auto internal xref">Section 10.2.1.2</a> is present. When set to 0, the field is absent.
+If an endpoint receives a datagram with the EXTENSIONS bit set and an
 Extension Headers Length of 0, it <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.3.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
@@ -5928,7 +5927,7 @@ Status or Object Payload. When set to 1, the Object Status field is present
 and there is no Object Payload. When set to 0, the Object Payload is present
 and the Object Status field is omitted. There is no explicit length field for
 the Object Payload; the entirety of the transport datagram following the
-Object header fields contains the payload.<a href="#section-10.3.1-4.5.1" class="pilcrow">¶</a></p>
+Object header contains the payload.<a href="#section-10.3.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-10.3.1-5">The following Type values are invalid. If an endpoint receives a datagram with
@@ -6015,11 +6014,10 @@ values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to
 and bit 5 determine which fields are present in the header:<a href="#section-10.4.2-5" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.4.2-6.1">
-              <p id="section-10.4.2-6.1.1">The <strong>EXTENSIONS</strong> bit (0x01) indicates when the Extensions field is present
-in all Objects in this Subgroup. When set to 1, the Extensions structure
-defined in <a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a> is present in all Objects. When set to 0, the
-Extensions field is never present. Objects with no extensions set Extension
-Headers Length to 0.<a href="#section-10.4.2-6.1.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.2-6.1.1">The <strong>EXTENSIONS</strong> bit (0x01) indicates when the Extension Headers field is present
+in all Objects in this Subgroup. When set to 1, the Object Extension Headers structure
+defined in <a href="#object-extension-headers" class="auto internal xref">Section 10.2.1.2</a> is present in all Objects. When set to 0, the
+field is never present. Objects with no extensions set Extension Headers Length to 0.<a href="#section-10.4.2-6.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.4.2-6.2">
               <p id="section-10.4.2-6.2.1">The <strong>SUBGROUP_ID_MODE</strong> field (bits 1-2, mask 0x06) is a two-bit field that
@@ -6394,7 +6392,7 @@ the corresponding condition is true.<a href="#section-10.4.4.1-3" class="pilcrow
 <p id="section-10.4.4.1-5">If the first Object in the FETCH response uses a flag that references fields in
 the prior Object, the Subscriber <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4.4.1-5" class="pilcrow">¶</a></p>
-<p id="section-10.4.4.1-6">The Extensions structure is defined in <a href="#object-extensions" class="auto internal xref">Section 10.2.1.2</a>.<a href="#section-10.4.4.1-6" class="pilcrow">¶</a></p>
+<p id="section-10.4.4.1-6">The Object Extension Headers structure is defined in <a href="#object-extension-headers" class="auto internal xref">Section 10.2.1.2</a>.<a href="#section-10.4.4.1-6" class="pilcrow">¶</a></p>
 <p id="section-10.4.4.1-7">When encoding an Object with a Forwarding Preference of "Datagram" (see
 <a href="#object-properties" class="auto internal xref">Section 10.2.1</a>), the object has no Subgroup ID. The publisher <span class="bcp14">MUST</span> SET bit 0x40 to '1'.
 When 0x40 is set, it <span class="bcp14">SHOULD</span> set the two least significant bits to zero and the subscriber

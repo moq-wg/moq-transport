@@ -1689,7 +1689,7 @@ Table of Contents
    case.
 
    A cache MUST store all properties of an Object defined in
-   Section 10.2.1, with the exception of any extensions
+   Section 10.2.1, with the exception of any Object Extension Headers
    (Section 10.2.1.2) that specify otherwise.
 
 8.2.  Forward Handling
@@ -1893,7 +1893,7 @@ Table of Contents
 
 8.7.  Relay Object Handling
 
-   MOQT encodes the delivery information via Object headers
+   MOQT encodes the delivery information via Object properties
    (Section 10.2).  A relay MUST NOT modify Object properties when
    forwarding, except for Object Extension Headers as specified in
    Section 2.5.
@@ -2183,13 +2183,12 @@ Table of Contents
 
    It is the duration in milliseconds the relay SHOULD continue to
    attempt forwarding Objects after they have been received.  The start
-   time for the timeout is based on when the Object Headers are
-   received, and does not depend upon the forwarding preference.
-   Objects with forwarding preference 'Datagram' are not retransmitted
-   when lost, so the Delivery Timeout only limits the amount of time
-   they can be queued before being sent.  There is no explicit signal
-   that an Object was not sent because the delivery timeout was
-   exceeded.
+   time for the timeout is based on when the Object header is received,
+   and does not depend upon the forwarding preference.  Objects with
+   forwarding preference 'Datagram' are not retransmitted when lost, so
+   the Delivery Timeout only limits the amount of time they can be
+   queued before being sent.  There is no explicit signal that an Object
+   was not sent because the delivery timeout was exceeded.
 
    A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not
    expire due to delivery timeout.
@@ -3597,8 +3596,8 @@ Table of Contents
       is a normal Object or mark the end of a group or track.  See
       Section 10.2.1.1 below.
 
-   *  Object Extensions : A sequence of Extensions associated with the
-      object.  See Section 10.2.1.2.
+   *  Object Extension Headers : A sequence of Extension Headers
+      associated with the object.  See Section 10.2.1.2.
 
    *  Object Payload: An opaque payload intended for an End Subscriber
       and SHOULD NOT be processed by a relay.  Only present when 'Object
@@ -3647,7 +3646,7 @@ Table of Contents
    Object Extension Headers are serialized as a length in bytes followed
    by Key-Value-Pairs (see Figure 2).
 
-   Extensions {
+   Object Extension Headers {
      Extension Headers Length (vi64),
      Extension Headers (..),
    }
@@ -3703,12 +3702,12 @@ Table of Contents
    5 of the Type field determine which fields are present in the
    datagram:
 
-   *  The *EXTENSIONS* bit (0x01) indicates when the Extensions field is
-      present.  When set to 1, the Extensions structure defined in
-      Section 10.2.1.2 is present.  When set to 0, the Extensions field
-      is absent.  If an endpoint receives a datagram with the EXTENSIONS
-      bit set and an Extension Headers Length of 0, it MUST close the
-      session with a PROTOCOL_VIOLATION.
+   *  The *EXTENSIONS* bit (0x01) indicates when the Extension Headers
+      field is present.  When set to 1, the Object Extension Headers
+      structure defined in Section 10.2.1.2 is present.  When set to 0,
+      the field is absent.  If an endpoint receives a datagram with the
+      EXTENSIONS bit set and an Extension Headers Length of 0, it MUST
+      close the session with a PROTOCOL_VIOLATION.
 
    *  The *END_OF_GROUP* bit (0x02) indicates End of Group.  When set to
       1, this indicates that no Object with the same Group ID and an
@@ -3732,7 +3731,7 @@ Table of Contents
       the Object Payload is present and the Object Status field is
       omitted.  There is no explicit length field for the Object
       Payload; the entirety of the transport datagram following the
-      Object header fields contains the payload.
+      Object header contains the payload.
 
    The following Type values are invalid.  If an endpoint receives a
    datagram with any of these Type values, it MUST close the session
@@ -3804,11 +3803,12 @@ Table of Contents
    valid.  The four low-order bits and bit 5 determine which fields are
    present in the header:
 
-   *  The *EXTENSIONS* bit (0x01) indicates when the Extensions field is
-      present in all Objects in this Subgroup.  When set to 1, the
-      Extensions structure defined in Section 10.2.1.2 is present in all
-      Objects.  When set to 0, the Extensions field is never present.
-      Objects with no extensions set Extension Headers Length to 0.
+   *  The *EXTENSIONS* bit (0x01) indicates when the Extension Headers
+      field is present in all Objects in this Subgroup.  When set to 1,
+      the Object Extension Headers structure defined in Section 10.2.1.2
+      is present in all Objects.  When set to 0, the field is never
+      present.  Objects with no extensions set Extension Headers Length
+      to 0.
 
    *  The *SUBGROUP_ID_MODE* field (bits 1-2, mask 0x06) is a two-bit
       field that determines the encoding of the Subgroup ID.  To extract
@@ -4116,7 +4116,8 @@ Table of Contents
    fields in the prior Object, the Subscriber MUST close the session
    with a PROTOCOL_VIOLATION.
 
-   The Extensions structure is defined in Section 10.2.1.2.
+   The Object Extension Headers structure is defined in
+   Section 10.2.1.2.
 
    When encoding an Object with a Forwarding Preference of "Datagram"
    (see Section 10.2.1), the object has no Subgroup ID.  The publisher
