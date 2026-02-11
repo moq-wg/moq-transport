@@ -2540,7 +2540,9 @@ REQUEST_UPDATE Message {
   or one that was recently closed locally. If it cannot verify this and cannot
   match the request, it MUST send REQUEST_ERROR.
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}. The receiver MUST
+  close the session with `PROTOCOL_VIOLATION` if the parameters included in the
+  REQUEST_UPDATE are invalid for the type of request being modified.
 
 ### Updating Subscriptions
 
