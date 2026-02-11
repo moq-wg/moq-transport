@@ -1545,20 +1545,27 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
                 <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-delivery-timeout" class="internal xref">DELIVERY TIMEOUT</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1.2.1">
-                    <p id="section-toc.1-1.11.2.1.2.1.1"><a href="#section-11.1.1" class="auto internal xref">11.1.1</a>.  <a href="#name-max-cache-duration" class="internal xref">MAX CACHE DURATION</a></p>
-</li>
-                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
-                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-immutable-extensions" class="internal xref">Immutable Extensions</a></p>
+                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-max-cache-duration" class="internal xref">MAX CACHE DURATION</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.3">
-                <p id="section-toc.1-1.11.2.3.1"><a href="#section-11.3" class="auto internal xref">11.3</a>.  <a href="#name-prior-group-id-gap" class="internal xref">Prior Group ID Gap</a></p>
+                <p id="section-toc.1-1.11.2.3.1"><a href="#section-11.3" class="auto internal xref">11.3</a>.  <a href="#name-default-publisher-priority" class="internal xref">DEFAULT PUBLISHER PRIORITY</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.4">
-                <p id="section-toc.1-1.11.2.4.1"><a href="#section-11.4" class="auto internal xref">11.4</a>.  <a href="#name-prior-object-id-gap" class="internal xref">Prior Object ID Gap</a></p>
+                <p id="section-toc.1-1.11.2.4.1"><a href="#section-11.4" class="auto internal xref">11.4</a>.  <a href="#name-default-publisher-group-ord" class="internal xref">DEFAULT PUBLISHER GROUP ORDER</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.5">
+                <p id="section-toc.1-1.11.2.5.1"><a href="#section-11.5" class="auto internal xref">11.5</a>.  <a href="#name-dynamic-groups" class="internal xref">DYNAMIC GROUPS</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.6">
+                <p id="section-toc.1-1.11.2.6.1"><a href="#section-11.6" class="auto internal xref">11.6</a>.  <a href="#name-immutable-extensions" class="internal xref">Immutable Extensions</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.7">
+                <p id="section-toc.1-1.11.2.7.1"><a href="#section-11.7" class="auto internal xref">11.7</a>.  <a href="#name-prior-group-id-gap" class="internal xref">Prior Group ID Gap</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.8">
+                <p id="section-toc.1-1.11.2.8.1"><a href="#section-11.8" class="auto internal xref">11.8</a>.  <a href="#name-prior-object-id-gap" class="internal xref">Prior Object ID Gap</a></p>
 </li>
             </ul>
 </li>
@@ -1570,6 +1577,11 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
                 <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="auto internal xref">12.2</a>.  <a href="#name-timeouts" class="internal xref">Timeouts</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2.2.1">
+                    <p id="section-toc.1-1.12.2.2.2.1.1"><a href="#section-12.2.1" class="auto internal xref">12.2.1</a>.  <a href="#name-idle-connection-handling" class="internal xref">Idle Connection Handling</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.3">
                 <p id="section-toc.1-1.12.2.3.1"><a href="#section-12.3" class="auto internal xref">12.3</a>.  <a href="#name-relay-security-consideratio" class="internal xref">Relay security considerations</a></p>
@@ -2451,8 +2463,9 @@ different final Objects.<a href="#section-2.4.2-2.6.1" class="pilcrow">¶</a></p
             <li id="section-2.4.2-2.7">
               <p id="section-2.4.2-2.7.1">An Object is received in a Group whose Object ID is larger than the final
 Object in the Group.  The final Object in a Group is the Object with Status
-END_OF_GROUP or the last Object sent in a FETCH that requested the entire
-Group.<a href="#section-2.4.2-2.7.1" class="pilcrow">¶</a></p>
+END_OF_GROUP, the last Object before a FIN in a Subgroup which has the
+END_OF_GROUP bit set, or the last Object sent in a FETCH that requested the
+entire Group.<a href="#section-2.4.2-2.7.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-2.4.2-2.8">
               <p id="section-2.4.2-2.8.1">An Object is received on a Track whose Group and Object ID are larger than the
@@ -3108,7 +3121,7 @@ applications might want to only begin a new Group when needed.  A subscriber
 joining a Track might detect that it is more efficient to request the Original
 Publisher create a new group than issue a Joining FETCH.  Publishers indicate a
 Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
-(<a href="#dynamic-groups" class="auto internal xref">Section 11.1.1.3</a>).<a href="#section-5.1.3.1-1" class="pilcrow">¶</a></p>
+(<a href="#dynamic-groups" class="auto internal xref">Section 11.5</a>).<a href="#section-5.1.3.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1.3.1-2">One possible subscriber pattern is to SUBSCRIBE to a Track using Filter Type
 <code>Largest Object</code> and observe the <code>Largest Location</code> in the response.  If the
 Object ID is below the application's threshold, the subscriber sends a FETCH for
@@ -3969,6 +3982,15 @@ to be exceeded, the receiver <span class="bcp14">MUST</span> termiate the Sessio
 <p id="section-9.2.2.1-15">The AUTHORIZATION TOKEN parameter <span class="bcp14">MAY</span> be repeated within a message as long as
 the combination of Token Type and Token Value are unique after resolving any
 aliases.<a href="#section-9.2.2.1-15" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.1-16">Messages carrying the AUTHORIZATION TOKEN parameter can appear on different
+control streams. Because stream processing order can be different than send order, the
+receiver and sender can have inconsistent views of the token cache state.<a href="#section-9.2.2.1-16" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.1-17">Senders <span class="bcp14">MUST NOT</span> send USE_ALIAS on one control stream for an alias registered on a
+different stream until the sender has received a response to the message
+containing the REGISTER. Senders <span class="bcp14">MAY</span> use USE_ALIAS on the same control stream as the
+REGISTER without waiting for a response.<a href="#section-9.2.2.1-17" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.1-18">Senders <span class="bcp14">MUST NOT</span> send DELETE for an alias while any message using USE_ALIAS with
+that alias has not received a response.<a href="#section-9.2.2.1-18" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="delivery-timeout">
@@ -3985,12 +4007,12 @@ not depend upon the forwarding preference. Objects with forwarding preference
 'Datagram' are not retransmitted when lost, so the Delivery Timeout only limits
 the amount of time they can be queued before being sent. There is no explicit
 signal that an Object was not sent because the delivery timeout was exceeded.<a href="#section-9.2.2.2-2" class="pilcrow">¶</a></p>
-<p id="section-9.2.2.2-3">DELIVERY_TIMEOUT, if present, <span class="bcp14">MUST</span> contain a value greater than 0.  If an
-endpoint receives a DELIVERY_TIMEOUT equal to 0 it <span class="bcp14">MUST</span> close the session
-with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.2.2-3" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.2-3">A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
+due to delivery timeout.<a href="#section-9.2.2.2-3" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.2-4">If both the subscriber specifies this parameter and the Track has a
 DELIVERY_TIMEOUT extension, the endpoints use the min of
-the two values for the subscription.<a href="#section-9.2.2.2-4" class="pilcrow">¶</a></p>
+the two non-zero values for the subscription. If either value is 0, the
+non-zero value is used. If both are 0, there is no delivery timeout.<a href="#section-9.2.2.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.2-5">Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
 constraints described in <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>.  However, if neither the
@@ -3998,7 +4020,7 @@ subscriber nor publisher specifies DELIVERY TIMEOUT, all Objects in the track
 matching the subscription filter are delivered as indicated by their Group Order
 and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher <span class="bcp14">MAY</span> terminate
-the subscription with error <code>TOO_FAR_BEHIND</code>.<a href="#section-9.2.2.2-5" class="pilcrow">¶</a></p>
+the subscription using PUBLISH_DONE with error <code>TOO_FAR_BEHIND</code>.<a href="#section-9.2.2.2-5" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.2-6">If an object in a subgroup exceeds the delivery timeout, the publisher <span class="bcp14">MUST</span>
 reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>) and
 <span class="bcp14">SHOULD NOT</span> attempt to open a new stream to deliver additional Objects in that
@@ -4065,17 +4087,18 @@ unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.<a href="#se
             <h5 id="name-expires-parameter">
 <a href="#section-9.2.2.6" class="section-number selfRef">9.2.2.6. </a><a href="#name-expires-parameter" class="section-name selfRef">EXPIRES Parameter</a>
             </h5>
-<p id="section-9.2.2.6-1">The EXPIRES parameter (Parameter Type 0x8) <span class="bcp14">MAY</span> appear in SUBSCRIBE_OK, PUBLISH
-or PUBLISH_OK (TODO: or REQUEST_OK).  It is a variable length integer encoding
+<p id="section-9.2.2.6-1">The EXPIRES parameter (Parameter Type 0x8) <span class="bcp14">MAY</span> appear in SUBSCRIBE_OK, PUBLISH,
+PUBLISH_OK, or REQUEST_OK. It is a variable length integer encoding
 the time in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
 can terminate the subscription prior to or after the expiry time.<a href="#section-9.2.2.6-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.2.6-2">The receiver of the parameter can extend the subscription by sending a
-REQUEST_UPDATE. If the receiver of the parameter
-has one or more updated AUTHORIZATION_TOKENs, it <span class="bcp14">SHOULD</span> include those in the
-REQUEST_UPDATE. Relays that send this parameter and applications that receive
-it <span class="bcp14">MAY</span> introduce jitter to prevent many endpoints from updating
+<p id="section-9.2.2.6-2">The receiver of the parameter can attempt to extend the subscription by sending
+a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
+more updated AUTHORIZATION_TOKENs, it <span class="bcp14">SHOULD</span> include those in the
+REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
+value in REQUEST_OK. Relays that send this parameter and applications that
+receive it <span class="bcp14">MAY</span> introduce jitter to prevent many endpoints from updating
 simultaneously.<a href="#section-9.2.2.6-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.6-3">If the EXPIRES parameter is 0 or is not present in a message, the subscription
 does not expire or expires at an unknown time.<a href="#section-9.2.2.6-3" class="pilcrow">¶</a></p>
@@ -4467,7 +4490,7 @@ REQUEST_OK Message {
 <a href="#section-9.8" class="section-number selfRef">9.8. </a><a href="#name-request_error" class="section-name selfRef">REQUEST_ERROR</a>
         </h3>
 <p id="section-9.8-1">The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
-PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS). The unique
+PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS, REQUEST_UPDATE). The unique
 request ID in the REQUEST_ERROR is used to associate it with the correct type of
 request.<a href="#section-9.8-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_error-message"></span><div id="moq-transport-request-error">
@@ -4477,6 +4500,8 @@ request.<a href="#section-9.8-1" class="pilcrow">¶</a></p>
 REQUEST_ERROR Message {
   Type (vi64) = 0x5,
   Length (16),
+  Request ID (vi64),
+  Error Code (vi64),
   Retry Interval (vi64),
   Error Reason (Reason Phrase),
 }
@@ -4977,11 +5002,12 @@ PUBLISH_DONE Message {
 </li>
           <li class="normal" id="section-9.15-8.3">
             <p id="section-9.15-8.3.1">Stream Count: An integer indicating the number of data streams the publisher
-opened for this subscription.  This helps the subscriber know if it has received
+opened for this subscription, including streams that contained no Objects (e.g.,
+an empty Subgroup).  This helps the subscriber know if it has received
 all of the data published in this subscription by comparing the number of
 streams received.  The subscriber can immediately remove all subscription state
-once the same number of streams have been processed.  If the track had only Objects with
-Forwarding Preference = Datagram, the publisher <span class="bcp14">MUST</span> set Stream Count to 0.  If
+once the same number of streams have been processed.  If the publisher did not open any streams
+for this subscription, the publisher <span class="bcp14">MUST</span> set Stream Count to 0.  If
 the publisher is unable to set Stream Count to the exact number of streams
 opened for the subscription, it <span class="bcp14">MUST</span> set Stream Count to 2^62 - 1. Subscribers
 <span class="bcp14">SHOULD</span> use a timeout or other mechanism to remove subscription state in case
@@ -5931,6 +5957,9 @@ end of group.<a href="#section-10.3.1-6.1.1" class="pilcrow">¶</a></p>
 ranges 0x00..0x0F and 0x20..0x2F).<a href="#section-10.3.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
+<p id="section-10.3.1-7">If an Object Datagram includes both the STATUS bit and EXTENSIONS bit, and the
+Object Status is not Normal (0x0), the endpoint <span class="bcp14">MUST</span> close the session with a
+<code>PROTOCOL_VIOLATION</code>, because only Normal Objects can have extensions.<a href="#section-10.3.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -6066,7 +6095,7 @@ starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
 unless there is an Prior Object ID Gap extesnion header (see
-<a href="#prior-object-id-gap" class="auto internal xref">Section 11.4</a>).<a href="#section-10.4.2-11" class="pilcrow">¶</a></p>
+<a href="#prior-object-id-gap" class="auto internal xref">Section 11.8</a>).<a href="#section-10.4.2-11" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
 <figure id="figure-29">
             <div class="alignLeft art-text artwork" id="section-10.4.2-12.1">
@@ -6219,10 +6248,16 @@ code.<a href="#section-10.4.3-19.4.1" class="pilcrow">¶</a></p>
 of the next Object in the requested range.<a href="#section-10.4.3-19.10.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-19.11">MALFORMED_TRACK (0x12):</dt>
+<dt id="section-10.4.3-19.11">TOO_FAR_BEHIND (0x5):</dt>
             <dd style="margin-left: 1.5em" id="section-10.4.3-19.12">
-              <p id="section-10.4.3-19.12.1">A relay publisher detected that the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-19.12.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.3-19.12.1">The corresponding subscription has exceeded the publisher's resource limits and
+is being terminated (see <a href="#delivery-timeout" class="auto internal xref">Section 9.2.2.2</a>).<a href="#section-10.4.3-19.12.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-10.4.3-19.13">MALFORMED_TRACK (0x12):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.14">
+              <p id="section-10.4.3-19.14.1">A relay publisher detected that the track was malformed (see
+<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-19.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -6365,7 +6400,7 @@ the corresponding condition is true.<a href="#section-10.4.4.1-3" class="pilcrow
                 <tr>
                   <td class="text-left" rowspan="1" colspan="1">0x40</td>
                   <td class="text-left" rowspan="1" colspan="1">Datagram: ignore the two least significant bits</td>
-                  <td class="text-left" rowspan="1" colspan="1">Use the subgroup ID in the two least significant bits</td>
+                  <td class="text-left" rowspan="1" colspan="1">Decode the Subgroup ID as indicated by the two least significant bits</td>
                 </tr>
               </tbody>
             </table>
@@ -6479,115 +6514,123 @@ specifies whether it can be used with Tracks, Objects, or both.<a href="#section
 <p id="section-11.1-1">The DELIVERY TIMEOUT extension (Extension Header Type 0x02) is a Track
 Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
 <a href="#delivery-timeout" class="auto internal xref">Section 9.2.2.2</a>).<a href="#section-11.1-1" class="pilcrow">¶</a></p>
-<p id="section-11.1-2">DELIVERY_TIMEOUT, if present, <span class="bcp14">MUST</span> contain a value greater than 0.  If an
-endpoint receives a DELIVERY_TIMEOUT equal to 0 it <span class="bcp14">MUST</span> close the session with
-<code>PROTOCOL_VIOLATION</code>.<a href="#section-11.1-2" class="pilcrow">¶</a></p>
+<p id="section-11.1-2">A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
+due to delivery timeout.<a href="#section-11.1-2" class="pilcrow">¶</a></p>
 <p id="section-11.1-3">If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the Track has
-a DELIVERY_TIMEOUT extension, the endpoints use the min of the two values for
-the subscription.<a href="#section-11.1-3" class="pilcrow">¶</a></p>
+a DELIVERY_TIMEOUT extension, the endpoints use the min of the two non-zero
+values for the subscription. If either value is 0, the non-zero value is used.
+If both are 0, there is no delivery timeout.<a href="#section-11.1-3" class="pilcrow">¶</a></p>
 <p id="section-11.1-4">If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
 specified a timeout, Objects do not time out.<a href="#section-11.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
 <div id="max-cache-duration">
-<section id="section-11.1.1">
-          <h4 id="name-max-cache-duration">
-<a href="#section-11.1.1" class="section-number selfRef">11.1.1. </a><a href="#name-max-cache-duration" class="section-name selfRef">MAX CACHE DURATION</a>
-          </h4>
-<p id="section-11.1.1-1">The MAX_CACHE_DURATION extension (Extension Header Type 0x04) is a Track Extension.<a href="#section-11.1.1-1" class="pilcrow">¶</a></p>
-<p id="section-11.1.1-2">It is an integer expressing
+<section id="section-11.2">
+        <h3 id="name-max-cache-duration">
+<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-max-cache-duration" class="section-name selfRef">MAX CACHE DURATION</a>
+        </h3>
+<p id="section-11.2-1">The MAX_CACHE_DURATION extension (Extension Header Type 0x04) is a Track Extension.<a href="#section-11.2-1" class="pilcrow">¶</a></p>
+<p id="section-11.2-2">It is an integer expressing
 the number of milliseconds an Object can be served from a cache. If present, the
 relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through this
 subscription or fetch after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier in a
 multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
-handles a downstream request that includes those Objects re-requests them.<a href="#section-11.1.1-2" class="pilcrow">¶</a></p>
-<p id="section-11.1.1-3">If the MAX_CACHE_DURATION extension is not sent by the publisher, the Objects
-can be cached until implementation constraints cause them to be evicted.<a href="#section-11.1.1-3" class="pilcrow">¶</a></p>
+handles a downstream request that includes those Objects re-requests them.<a href="#section-11.2-2" class="pilcrow">¶</a></p>
+<p id="section-11.2-3">If the MAX_CACHE_DURATION extension is not sent by the publisher, the Objects
+can be cached until implementation constraints cause them to be evicted.<a href="#section-11.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
 <div id="publisher-priority">
-<section id="section-11.1.1.1">
-            <h5 id="name-default-publisher-priority">
-<a href="#section-11.1.1.1" class="section-number selfRef">11.1.1.1. </a><a href="#name-default-publisher-priority" class="section-name selfRef">DEFAULT PUBLISHER PRIORITY</a>
-            </h5>
-<p id="section-11.1.1.1-1">The DEFAULT PUBLISHER PRIORITY extension (Extension Header Type 0x0E) is a Track
+<section id="section-11.3">
+        <h3 id="name-default-publisher-priority">
+<a href="#section-11.3" class="section-number selfRef">11.3. </a><a href="#name-default-publisher-priority" class="section-name selfRef">DEFAULT PUBLISHER PRIORITY</a>
+        </h3>
+<p id="section-11.3-1">The DEFAULT PUBLISHER PRIORITY extension (Extension Header Type 0x0E) is a Track
 Extension that specifies the priority of
 a subscription relative to other subscriptions in the same session.  The value
 is from 0 to 255 and lower numbers get higher priority.  See
 <a href="#priorities" class="auto internal xref">Section 7</a>. Priorities above 255 are invalid. Subgroups and Datagrams for this
-subscription inherit this priority, unless they specifically override it.<a href="#section-11.1.1.1-1" class="pilcrow">¶</a></p>
-<p id="section-11.1.1.1-2">A subscription has Publisher Priorty 128 if this extension is omitted.<a href="#section-11.1.1.1-2" class="pilcrow">¶</a></p>
+subscription inherit this priority, unless they specifically override it.<a href="#section-11.3-1" class="pilcrow">¶</a></p>
+<p id="section-11.3-2">A subscription has Publisher Priorty 128 if this extension is omitted.<a href="#section-11.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="group-order-pref">
-<section id="section-11.1.1.2">
-            <h5 id="name-default-publisher-group-ord">
-<a href="#section-11.1.1.2" class="section-number selfRef">11.1.1.2. </a><a href="#name-default-publisher-group-ord" class="section-name selfRef">DEFAULT PUBLISHER GROUP ORDER</a>
-            </h5>
-<p id="section-11.1.1.2-1">The DEFAULT_PUBLISHER_GROUP_ORDER extension (Extension Header Type 0x22) is a
-Track Extension.<a href="#section-11.1.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-11.1.1.2-2">It is an enum indicating the publisher's preference for prioritizing Objects
+<section id="section-11.4">
+        <h3 id="name-default-publisher-group-ord">
+<a href="#section-11.4" class="section-number selfRef">11.4. </a><a href="#name-default-publisher-group-ord" class="section-name selfRef">DEFAULT PUBLISHER GROUP ORDER</a>
+        </h3>
+<p id="section-11.4-1">The DEFAULT_PUBLISHER_GROUP_ORDER extension (Extension Header Type 0x22) is a
+Track Extension.<a href="#section-11.4-1" class="pilcrow">¶</a></p>
+<p id="section-11.4-2">It is an enum indicating the publisher's preference for prioritizing Objects
 from different groups within the
 same subscription (see <a href="#priorities" class="auto internal xref">Section 7</a>). The allowed values are Ascending (0x1) or
 Descending (0x2). If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span>
-close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.1.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-11.1.1.2-3">If omitted, the publisher's preference is Ascending (0x1).<a href="#section-11.1.1.2-3" class="pilcrow">¶</a></p>
+close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.4-2" class="pilcrow">¶</a></p>
+<p id="section-11.4-3">If omitted, the publisher's preference is Ascending (0x1).<a href="#section-11.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="dynamic-groups">
-<section id="section-11.1.1.3">
-            <h5 id="name-dynamic-groups">
-<a href="#section-11.1.1.3" class="section-number selfRef">11.1.1.3. </a><a href="#name-dynamic-groups" class="section-name selfRef">DYNAMIC GROUPS</a>
-            </h5>
-<p id="section-11.1.1.3-1">The DYNAMIC_GROUPS Extension (Extension Header Type 0x30) is a Track Extension.
+<section id="section-11.5">
+        <h3 id="name-dynamic-groups">
+<a href="#section-11.5" class="section-number selfRef">11.5. </a><a href="#name-dynamic-groups" class="section-name selfRef">DYNAMIC GROUPS</a>
+        </h3>
+<p id="section-11.5-1">The DYNAMIC_GROUPS Extension (Extension Header Type 0x30) is a Track Extension.
 The allowed values are 0 or 1. When the value is 1, it indicates
 that the subscriber can request the Original Publisher to start a new Group
 by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
 for this Track. If an endpoint receives a value larger than 1, it <span class="bcp14">MUST</span> close
-the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.1.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-11.1.1.3-2">If omitted, the value is 0.<a href="#section-11.1.1.3-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
+the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.5-1" class="pilcrow">¶</a></p>
+<p id="section-11.5-2">If omitted, the value is 0.<a href="#section-11.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="immutable-extensions">
-<section id="section-11.2">
+<section id="section-11.6">
         <h3 id="name-immutable-extensions">
-<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-immutable-extensions" class="section-name selfRef">Immutable Extensions</a>
+<a href="#section-11.6" class="section-number selfRef">11.6. </a><a href="#name-immutable-extensions" class="section-name selfRef">Immutable Extensions</a>
         </h3>
-<p id="section-11.2-1">The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
+<p id="section-11.6-1">The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
 Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>) which are also Track or Object
-Extension Headers.<a href="#section-11.2-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-11.2-2">
+Extension Headers.<a href="#section-11.6-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-11.6-2">
 <pre>
 Immutable Extensions {
   Type (0xB),
   Length (vi64),
   Key-Value-Pair (..) ...
 }
-</pre><a href="#section-11.2-2" class="pilcrow">¶</a>
+</pre><a href="#section-11.6-2" class="pilcrow">¶</a>
 </div>
-<p id="section-11.2-3">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
+<p id="section-11.6-3">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
 Relays. This extension <span class="bcp14">MUST NOT</span> be modified or removed and the serialization
 (e.g. variable-length integer encodings) of the Key-Value-Pairs <span class="bcp14">MUST NOT</span>
 change). Relays <span class="bcp14">MUST</span> cache this extension if the Object is cached and <span class="bcp14">MUST</span>
 forward this extension if the enclosing Object is forwarded. Relays <span class="bcp14">MAY</span> decode
-and view these extensions.<a href="#section-11.2-3" class="pilcrow">¶</a></p>
-<p id="section-11.2-4">A Track is considered malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the
-following conditions are detected:<a href="#section-11.2-4" class="pilcrow">¶</a></p>
+and view these extensions.<a href="#section-11.6-3" class="pilcrow">¶</a></p>
+<p id="section-11.6-4">Unless specified by a particular Extension Header specification, Extension Headers
+<span class="bcp14">MAY</span> appear either in the mutable extension list or
+inside Immutable Extensions. When looking for the value of an extension,
+processors <span class="bcp14">MUST</span> search both the mutable extension list and the contents of
+Immutable Extensions.<a href="#section-11.6-4" class="pilcrow">¶</a></p>
+<p id="section-11.6-5">If an Extension Header allows multiple values, the same Extension Header Type
+<span class="bcp14">MAY</span> appear in both the mutable list and inside Immutable Extensions, unless
+prohibited by the Extension Header specification.<a href="#section-11.6-5" class="pilcrow">¶</a></p>
+<p id="section-11.6-6">A Track is considered malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the
+following conditions are detected:<a href="#section-11.6-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.2-5.1">
-            <p id="section-11.2-5.1.1">An Object contains an Immutable Extensions header that contains another
-Immutable Extensions key.<a href="#section-11.2-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.6-7.1">
+            <p id="section-11.6-7.1.1">An Object contains an Immutable Extensions header that contains another
+Immutable Extensions key.<a href="#section-11.6-7.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.2-5.2">
-            <p id="section-11.2-5.2.1">A Key-Value-Pair cannot be parsed.<a href="#section-11.2-5.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.6-7.2">
+            <p id="section-11.6-7.2.1">A Key-Value-Pair cannot be parsed.<a href="#section-11.6-7.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.2-6">The following figure shows an example Object structure with a combination of
+<p id="section-11.6-8">The following figure shows an example Object structure with a combination of
 mutable and immutable extensions and end to end encrypted metadata in the Object
-payload.<a href="#section-11.2-6" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-11.2-7">
+payload.<a href="#section-11.6-8" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-11.6-9">
 <pre>
                    Object Header                      Object Payload
 &lt;------------------------------------------------&gt; &lt;-------------------&gt;
@@ -6600,94 +6643,94 @@ payload.<a href="#section-11.2-6" class="pilcrow">¶</a></p>
 x = e2e Authenticated Data
 y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
-</pre><a href="#section-11.2-7" class="pilcrow">¶</a>
+</pre><a href="#section-11.6-9" class="pilcrow">¶</a>
 </div>
-<p id="section-11.2-8">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.2-8" class="pilcrow">¶</a></p>
+<p id="section-11.6-10">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.6-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="prior-group-id-gap">
-<section id="section-11.3">
+<section id="section-11.7">
         <h3 id="name-prior-group-id-gap">
-<a href="#section-11.3" class="section-number selfRef">11.3. </a><a href="#name-prior-group-id-gap" class="section-name selfRef">Prior Group ID Gap</a>
+<a href="#section-11.7" class="section-number selfRef">11.7. </a><a href="#name-prior-group-id-gap" class="section-name selfRef">Prior Group ID Gap</a>
         </h3>
-<p id="section-11.3-1">Prior Group ID Gap only applies to Objects, not Tracks.<a href="#section-11.3-1" class="pilcrow">¶</a></p>
-<p id="section-11.3-2">Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
+<p id="section-11.7-1">Prior Group ID Gap only applies to Objects, not Tracks.<a href="#section-11.7-1" class="pilcrow">¶</a></p>
+<p id="section-11.7-2">Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
 containing the number of Groups prior to the current Group that do not and will
 never exist. For example, if the Original Publisher is publishing an Object in
 Group 7 and knows it will never publish any Objects in Group 8 or Group 9, it
 can include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it
 sees fit.  A Track is considered malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of
-the following conditions are detected:<a href="#section-11.3-2" class="pilcrow">¶</a></p>
+the following conditions are detected:<a href="#section-11.7-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.3-3.1">
-            <p id="section-11.3-3.1.1">An Object contains more than one instance of Prior Group ID Gap.<a href="#section-11.3-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.7-3.1">
+            <p id="section-11.7-3.1.1">An Object contains more than one instance of Prior Group ID Gap.<a href="#section-11.7-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.3-3.2">
-            <p id="section-11.3-3.2.1">A Group contains more than one Object with different values for Prior Group
- ID Gap.<a href="#section-11.3-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.7-3.2">
+            <p id="section-11.7-3.2.1">A Group contains more than one Object with different values for Prior Group
+ ID Gap.<a href="#section-11.7-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.3-3.3">
-            <p id="section-11.3-3.3.1">An Object has a Prior Group ID Gap larger than the Group ID.<a href="#section-11.3-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.7-3.3">
+            <p id="section-11.7-3.3.1">An Object has a Prior Group ID Gap larger than the Group ID.<a href="#section-11.7-3.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.3-3.4">
-            <p id="section-11.3-3.4.1">An endpoint receives an Object with a Prior Group ID Gap covering an Object
-it previously received.<a href="#section-11.3-3.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.7-3.4">
+            <p id="section-11.7-3.4.1">An endpoint receives an Object with a Prior Group ID Gap covering an Object
+it previously received.<a href="#section-11.7-3.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.3-3.5">
-            <p id="section-11.3-3.5.1">An endpoint receives an Object with a Group ID within a previously
-communicated gap.<a href="#section-11.3-3.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.7-3.5">
+            <p id="section-11.7-3.5.1">An endpoint receives an Object with a Group ID within a previously
+communicated gap.<a href="#section-11.7-3.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.3-4">This extension is optional, as publishers might not know the prior gap gize, or
+<p id="section-11.7-4">This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
-<a href="#group-ids" class="auto internal xref">Section 2.3.1</a>).<a href="#section-11.3-4" class="pilcrow">¶</a></p>
-<p id="section-11.3-5">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
+<a href="#group-ids" class="auto internal xref">Section 2.3.1</a>).<a href="#section-11.7-4" class="pilcrow">¶</a></p>
+<p id="section-11.7-5">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
 relays. This extension <span class="bcp14">MAY</span> be removed by relay when the object in question is
 served via FETCH, and the gap that the extension communicates is already
 communicated implicitly in the FETCH response; it <span class="bcp14">MUST NOT</span> be modified or
-removed otherwise.<a href="#section-11.3-5" class="pilcrow">¶</a></p>
-<p id="section-11.3-6">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.3-6" class="pilcrow">¶</a></p>
+removed otherwise.<a href="#section-11.7-5" class="pilcrow">¶</a></p>
+<p id="section-11.7-6">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.7-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="prior-object-id-gap">
-<section id="section-11.4">
+<section id="section-11.8">
         <h3 id="name-prior-object-id-gap">
-<a href="#section-11.4" class="section-number selfRef">11.4. </a><a href="#name-prior-object-id-gap" class="section-name selfRef">Prior Object ID Gap</a>
+<a href="#section-11.8" class="section-number selfRef">11.8. </a><a href="#name-prior-object-id-gap" class="section-name selfRef">Prior Object ID Gap</a>
         </h3>
-<p id="section-11.4-1">Prior Object ID Gap only applies to Objects, not Tracks.<a href="#section-11.4-1" class="pilcrow">¶</a></p>
-<p id="section-11.4-2">Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
+<p id="section-11.8-1">Prior Object ID Gap only applies to Objects, not Tracks.<a href="#section-11.8-1" class="pilcrow">¶</a></p>
+<p id="section-11.8-2">Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
 containing the number of Objects prior to the current Object that do not and
 will never exist. For example, if the Original Publisher is publishing Object
 10 in Group 3 and knows it will never publish Objects 8 or 9 in this Group, it
 can include Prior Object ID Gap = 2.  A Track is considered malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the following conditions are detected:<a href="#section-11.4-2" class="pilcrow">¶</a></p>
+<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the following conditions are detected:<a href="#section-11.8-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.4-3.1">
-            <p id="section-11.4-3.1.1">An Object contains more than one instance of Prior Object ID Gap.<a href="#section-11.4-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.8-3.1">
+            <p id="section-11.8-3.1.1">An Object contains more than one instance of Prior Object ID Gap.<a href="#section-11.8-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.4-3.2">
-            <p id="section-11.4-3.2.1">An Object has a Prior Object ID Gap larger than the Object ID.<a href="#section-11.4-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.8-3.2">
+            <p id="section-11.8-3.2.1">An Object has a Prior Object ID Gap larger than the Object ID.<a href="#section-11.8-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.4-3.3">
-            <p id="section-11.4-3.3.1">An endpoint receives an Object with a Prior Object ID Gap covering an Object
-it previously received.<a href="#section-11.4-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.8-3.3">
+            <p id="section-11.8-3.3.1">An endpoint receives an Object with a Prior Object ID Gap covering an Object
+it previously received.<a href="#section-11.8-3.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-11.4-3.4">
-            <p id="section-11.4-3.4.1">An endpoint receives an Object with an Object ID within a previously
-communicated gap.<a href="#section-11.4-3.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.8-3.4">
+            <p id="section-11.8-3.4.1">An endpoint receives an Object with an Object ID within a previously
+communicated gap.<a href="#section-11.8-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.4-4">This extension is optional, as publishers might not know the prior gap gize, or
+<p id="section-11.8-4">This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
-<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-11.4-4" class="pilcrow">¶</a></p>
-<p id="section-11.4-5">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
+<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-11.8-4" class="pilcrow">¶</a></p>
+<p id="section-11.8-5">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
 relays. This extension <span class="bcp14">MAY</span> be removed by relay when the object in question is
 served via FETCH, and the gap that the extension communicates is already
 communicated implicitly in the FETCH response; it <span class="bcp14">MUST NOT</span> be modified or
-removed otherwise.<a href="#section-11.4-5" class="pilcrow">¶</a></p>
-<p id="section-11.4-6">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.4-6" class="pilcrow">¶</a></p>
+removed otherwise.<a href="#section-11.8-5" class="pilcrow">¶</a></p>
+<p id="section-11.8-6">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this extension header.<a href="#section-11.8-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -6726,6 +6769,34 @@ priority, after reaching a resource limit.<a href="#section-12.1-4" class="pilcr
 <p id="section-12.2-1">Implementations are advised to use timeouts to prevent resource
 exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own timeouts.<a href="#section-12.2-1" class="pilcrow">¶</a></p>
+<div id="idle-connection-handling">
+<section id="section-12.2.1">
+          <h4 id="name-idle-connection-handling">
+<a href="#section-12.2.1" class="section-number selfRef">12.2.1. </a><a href="#name-idle-connection-handling" class="section-name selfRef">Idle Connection Handling</a>
+          </h4>
+<p id="section-12.2.1-1">The transport connection (e.g., QUIC) underlying a MOQT session can close due to
+idle timeout if no data is exchanged, either because there are no established
+subscriptions or the established subscriptions are not publishing Objects
+frequently.  This includes publisher sessions that have issued a
+PUBLISH_NAMESPACE and are waiting for subscribers.<a href="#section-12.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-12.2.1-2">Implementations that want to keep idle sessions open have several options:<a href="#section-12.2.1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-12.2.1-3.1">
+              <p id="section-12.2.1-3.1.1">Use transport-layer keep-alive mechanisms, such as QUIC PING frames, to
+prevent idle timeout closure.<a href="#section-12.2.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-12.2.1-3.2">
+              <p id="section-12.2.1-3.2.1">Send periodic control messages, for example REQUEST_UPDATE with no
+modified Message Parameters.<a href="#section-12.2.1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-12.2.1-3.3">
+              <p id="section-12.2.1-3.3.1">Accept that idle connections can close and implement reconnection logic when
+needed.<a href="#section-12.2.1-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-12.2.1-4">The choice of mechanism is implementation-specific.<a href="#section-12.2.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="relay-security-considerations">
@@ -6954,7 +7025,7 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <td class="text-left" rowspan="1" colspan="1">MAX_CACHE_DURATION</td>
               <td class="text-left" rowspan="1" colspan="1">Track</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#max-cache-duration" class="auto internal xref">Section 11.1.1</a>
+                <a href="#max-cache-duration" class="auto internal xref">Section 11.2</a>
 </td>
             </tr>
             <tr>
@@ -6962,7 +7033,7 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <td class="text-left" rowspan="1" colspan="1">IMMUTABLE_EXTENSIONS</td>
               <td class="text-left" rowspan="1" colspan="1">Track, Object</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#immutable-extensions" class="auto internal xref">Section 11.2</a>
+                <a href="#immutable-extensions" class="auto internal xref">Section 11.6</a>
 </td>
             </tr>
             <tr>
@@ -6970,7 +7041,7 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <td class="text-left" rowspan="1" colspan="1">DEFAULT_PUBLISHER_PRIORITY</td>
               <td class="text-left" rowspan="1" colspan="1">Track</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#publisher-priority" class="auto internal xref">Section 11.1.1.1</a>
+                <a href="#publisher-priority" class="auto internal xref">Section 11.3</a>
 </td>
             </tr>
             <tr>
@@ -6978,7 +7049,7 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <td class="text-left" rowspan="1" colspan="1">DEFAULT_PUBLISHER_GROUP_ORDER</td>
               <td class="text-left" rowspan="1" colspan="1">Track</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#group-order-pref" class="auto internal xref">Section 11.1.1.2</a>
+                <a href="#group-order-pref" class="auto internal xref">Section 11.4</a>
 </td>
             </tr>
             <tr>
@@ -6986,7 +7057,7 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <td class="text-left" rowspan="1" colspan="1">DYNAMIC_GROUPS</td>
               <td class="text-left" rowspan="1" colspan="1">Track</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#dynamic-groups" class="auto internal xref">Section 11.1.1.3</a>
+                <a href="#dynamic-groups" class="auto internal xref">Section 11.5</a>
 </td>
             </tr>
             <tr>
@@ -6994,7 +7065,7 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <td class="text-left" rowspan="1" colspan="1">PRIOR_GROUP_ID_GAP</td>
               <td class="text-left" rowspan="1" colspan="1">Object</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#prior-group-id-gap" class="auto internal xref">Section 11.3</a>
+                <a href="#prior-group-id-gap" class="auto internal xref">Section 11.7</a>
 </td>
             </tr>
             <tr>
@@ -7002,7 +7073,7 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <td class="text-left" rowspan="1" colspan="1">PRIOR_OBJECT_ID_GAP</td>
               <td class="text-left" rowspan="1" colspan="1">Object</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#prior-object-id-gap" class="auto internal xref">Section 11.4</a>
+                <a href="#prior-object-id-gap" class="auto internal xref">Section 11.8</a>
 </td>
             </tr>
           </tbody>
@@ -7425,6 +7496,13 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">UNKNOWN_OBJECT_STATUS</td>
                 <td class="text-center" rowspan="1" colspan="1">0x4</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">TOO_FAR_BEHIND</td>
+                <td class="text-center" rowspan="1" colspan="1">0x5</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>
 </td>
