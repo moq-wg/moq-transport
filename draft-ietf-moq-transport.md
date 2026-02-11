@@ -4084,7 +4084,7 @@ Implementations that want to keep idle sessions open have several options:
 * Accept that idle connections can close and implement reconnection logic when
   needed.
 
-The choice of mechanism is implementation-specific. 
+The choice of mechanism is implementation-specific.
 
 ## Relay security considerations
 
