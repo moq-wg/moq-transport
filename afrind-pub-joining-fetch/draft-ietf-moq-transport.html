@@ -3103,10 +3103,11 @@ session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-11" class="
 is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.<a href="#section-5.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-5.1.3-2">To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or SUBSCRIBE_UPDATE with Filter
-Type <code>Largest Object</code> followed by a Joining FETCH (see <a href="#joining-fetches" class="auto internal xref">Section 9.16.2</a>) for
-the intended start Group, which can be relative.  To join a Track at the next
-Group, the subscriber sends a SUBSCRIBE with Filter Type <code>Next Group Start</code>.<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.1.3-2">To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
+REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
+<a href="#joining-fetches" class="auto internal xref">Section 9.16.2</a>) for the intended start Group, which can be relative.  To
+join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter
+Type <code>Next Group Start</code>.<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
 <div id="dynamically-starting-new-groups">
 <section id="section-5.1.3.1">
             <h5 id="name-dynamically-starting-new-gr">
@@ -5150,9 +5151,9 @@ subscription.  The subscriber can set the Start Location to an absolute Location
 a Location relative to the Largest group.<a href="#section-9.16.2-1" class="pilcrow">¶</a></p>
 <p id="section-9.16.2-2">A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.<a href="#section-9.16.2-2" class="pilcrow">¶</a></p>
-<p id="section-9.16.2-3">A Joining Fetch is only permitted when the associated subscription Filter
-Type is Largest Object and the Forward State is 1; any other value results in closing
-the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.16.2-3" class="pilcrow">¶</a></p>
+<p id="section-9.16.2-3">A Joining Fetch is only permitted when the associated subscription has
+Forward State 1; otherwise the publisher <span class="bcp14">MUST</span> close the session with a
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-9.16.2-3" class="pilcrow">¶</a></p>
 <p id="section-9.16.2-4">If no Objects have been published for the track the publisher <span class="bcp14">MUST</span>
 respond with a REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-9.16.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.16.2-5">A Joining Fetch includes this structure:<a href="#section-9.16.2-5" class="pilcrow">¶</a></p>
