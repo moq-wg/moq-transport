@@ -1946,7 +1946,7 @@ PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
 
 It is the duration in milliseconds the relay SHOULD continue to attempt
 forwarding Objects after they have been received.  The start time for the timeout
-is based on when the Object Properties are received, and does not depend upon
+is based on when the Object fields are received, and does not depend upon
 the forwarding preference. Objects with forwarding preference 'Datagram' are
 not retransmitted when lost, so the Delivery Timeout only limits the amount of
 time they can be queued before being sent. There is no explicit signal that an
