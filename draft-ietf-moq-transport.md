@@ -2000,31 +2000,24 @@ SUBSCRIBE message.
 
 It is the duration in milliseconds the subscriber is willing to wait for a
 publisher to become available. This applies when a relay receives a SUBSCRIBE
-for a track that has no current publisher, or when a publisher disconnects
-during an active subscription.
+for a Track that has no current publisher.
 
 If the RENDEZVOUS_TIMEOUT is present, the relay SHOULD hold the subscription
-and wait for a publisher to appear or reconnect, up to the specified duration.
-If a publisher becomes available within this time, the relay proceeds with
-the subscription normally. If the timeout expires without a publisher, the
-relay SHOULD respond with REQUEST_ERROR with error code TIMEOUT.
+and wait for a publisher to appear, up to the specified duration. The relay
+does not send SUBSCRIBE_OK until a publisher becomes available. If a publisher
+becomes available within this time, the relay proceeds with the subscription
+normally. If the timeout expires without a publisher, the relay SHOULD respond
+with REQUEST_ERROR with error code TIMEOUT.
 
-Note that in the reconnection case, Objects can be lost during the period
-when no publisher was connected. This can result in unsignalled gaps in
-the Track, even when DELIVERY_TIMEOUT (see {{delivery-timeout}}) is not
-specified. Subscribers that require complete delivery of all Objects without
-gaps SHOULD NOT set RENDEZVOUS_TIMEOUT, or should be prepared to handle
-potential discontinuities.
-
-The relay or publisher MAY use a shorter timeout than requested by the
-subscriber. For example, a relay might limit the maximum rendezvous timeout
-to protect its resources.
-
-If RENDEZVOUS_TIMEOUT is absent, the relay SHOULD immediately return
-REQUEST_ERROR with error code DOES_NOT_EXIST if no publisher is available.
+The relay MAY use a shorter timeout than requested by the subscriber. For
+example, a relay might limit the maximum rendezvous timeout to protect its
+resources.
 
 A value of 0 indicates the subscriber does not want to wait and expects
 an immediate response.
+
+If RENDEZVOUS_TIMEOUT is absent, the relay MUST immediately return
+REQUEST_ERROR with error code DOES_NOT_EXIST if no publisher is available.
 
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
