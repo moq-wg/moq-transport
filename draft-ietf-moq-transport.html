@@ -2984,16 +2984,17 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
 a SUBSCRIBE. A subscriber <span class="bcp14">MUST</span> send exactly one PUBLISH_OK or REQUEST_ERROR in
 response to a PUBLISH. The peer <span class="bcp14">SHOULD</span> close the session with a protocol error
 if it receives more than one.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.1-5">A publisher <span class="bcp14">MUST</span> save the Largest Location communicated in PUBLISH or
-SUBSCRIBE_OK when establishing a subscription. This value can be used in a
-Joining FETCH (see <a href="#joining-fetches" class="auto internal xref">Section 9.16.2</a>) at any time while the subscription is
-active.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">All <code>Established</code> subscriptions have a Forward State which is either 0 or 1.
+<p id="section-5.1-5">All <code>Established</code> subscriptions have a Forward State which is either 0 or 1.
 The publisher does not send Objects if the Forward State is 0, and does send them
 if the Forward State is 1.  The initiator of the subscription sets the initial
 Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_OK
 or REQUEST_UPDATE to update the Forward State. Control messages, such as
-PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.15</a>) are sent regardless of the forward state.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.15</a>) are sent regardless of the forward state.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">A publisher <span class="bcp14">MUST</span> save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
+or REQUEST_OK (in response to a REQUEST_UPDATE) that changes the Forward State
+from 0 to 1.  This value is called the Joining Location and can be used in a
+Joining FETCH (see <a href="#joining-fetches" class="auto internal xref">Section 9.16.2</a>) while the subscription is in the
+<code>Established</code> state.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
 <p id="section-5.1-7">Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays <span class="bcp14">MUST NOT</span> send any PUBLISH messages
 without knowing the client is interested in and authorized to receive the
@@ -3107,10 +3108,11 @@ session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-11" class="
 is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.<a href="#section-5.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-5.1.3-2">To join a Track at a past Group, the subscriber sends a SUBSCRIBE with Filter
-Type <code>Largest Object</code> followed by a Joining FETCH (see <a href="#joining-fetches" class="auto internal xref">Section 9.16.2</a>) for
-the intended start Group, which can be relative.  To join a Track at the next
-Group, the subscriber sends a SUBSCRIBE with Filter Type <code>Next Group Start</code>.<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.1.3-2">To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
+REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
+<a href="#joining-fetches" class="auto internal xref">Section 9.16.2</a>) for the intended start Group, which can be relative.  To
+join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter
+Type <code>Next Group Start</code>.<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
 <div id="dynamically-starting-new-groups">
 <section id="section-5.1.3.1">
             <h5 id="name-dynamically-starting-new-gr">
@@ -5145,21 +5147,19 @@ means the entire group is requested.<a href="#section-9.16.1-4.4.1" class="pilcr
           <h4 id="name-joining-fetches">
 <a href="#section-9.16.2" class="section-number selfRef">9.16.2. </a><a href="#name-joining-fetches" class="section-name selfRef">Joining Fetches</a>
           </h4>
-<p id="section-9.16.2-1">A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of a subscription in the <code>Established</code> or
-<code>Pending (subscriber)</code> state.
+<p id="section-9.16.2-1">A Joining Fetch is associated with a subscription in the <code>Established</code> or
+<code>Pending (subscriber)</code> state by specifying its Request ID.
 A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track Name
+subscription to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
-Subscribe.  The subscriber can set the Start Location to an absolute Location or
-a Location relative to the current group.<a href="#section-9.16.2-1" class="pilcrow">¶</a></p>
+subscription.  The subscriber can set the Start Location to an absolute Location or
+a Location relative to the Largest group.<a href="#section-9.16.2-1" class="pilcrow">¶</a></p>
 <p id="section-9.16.2-2">A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.<a href="#section-9.16.2-2" class="pilcrow">¶</a></p>
-<p id="section-9.16.2-3">A Joining Fetch is only permitted when the associated Subscribe has the Filter
-Type Largest Object; any other value results in closing the session with a
+<p id="section-9.16.2-3">A Joining Fetch is only permitted when the associated subscription has
+Forward State 1; otherwise the publisher <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.16.2-3" class="pilcrow">¶</a></p>
-<p id="section-9.16.2-4">If no Objects have been published for the track, and the SUBSCRIBE_OK did not
-include a LARGEST_OBJECT parameter (<a href="#largest-param" class="auto internal xref">Section 9.2.2.7</a>), the publisher <span class="bcp14">MUST</span>
+<p id="section-9.16.2-4">If no Objects have been published for the track the publisher <span class="bcp14">MUST</span>
 respond with a REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-9.16.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.16.2-5">A Joining Fetch includes this structure:<a href="#section-9.16.2-5" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.16.2-6">
@@ -5188,17 +5188,16 @@ Location, described below.<a href="#section-9.16.2-7.2.1" class="pilcrow">¶</a>
             <h5 id="name-joining-fetch-range-calcula">
 <a href="#section-9.16.2.1" class="section-number selfRef">9.16.2.1. </a><a href="#name-joining-fetch-range-calcula" class="section-name selfRef">Joining Fetch Range Calculation</a>
             </h5>
-<p id="section-9.16.2.1-1">The Largest Location value from the corresponding
+<p id="section-9.16.2.1-1">The Joining Location value from the corresponding
 subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.<a href="#section-9.16.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-9.16.2.1-2">The publisher receiving a Joining Fetch sets the End Location to {Subscribe
-Largest Location.Object + 1}. Here Subscribe Largest Location is the
-saved value from when the subscription started (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).<a href="#section-9.16.2.1-2" class="pilcrow">¶</a></p>
-<p id="section-9.16.2.1-3">Note: the last Object included in the Joining FETCH response is Subscribe
-Largest Location.  The <code>+ 1</code> above indicates the equivalent Standalone Fetch
-encoding.<a href="#section-9.16.2.1-3" class="pilcrow">¶</a></p>
+<p id="section-9.16.2.1-2">The publisher receiving a Joining Fetch sets the End Location to
+{Joining Location.Group, Joining Location.Object + 1} (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>.<a href="#section-9.16.2.1-2" class="pilcrow">¶</a></p>
+<p id="section-9.16.2.1-3">Note: the last Object included in the Joining FETCH response is the Object
+at the Joining Location.  The <code>+ 1</code> above indicates the equivalent Standalone
+Fetch encoding.<a href="#section-9.16.2.1-3" class="pilcrow">¶</a></p>
 <p id="section-9.16.2.1-4">For a Relative Joining Fetch, the publisher sets the Start Location to
-{Subscribe Largest Location.Group - Joining Start, 0}.<a href="#section-9.16.2.1-4" class="pilcrow">¶</a></p>
+{Joining Location.Group - Joining Start, 0}.<a href="#section-9.16.2.1-4" class="pilcrow">¶</a></p>
 <p id="section-9.16.2.1-5">For an Absolute Joining Fetch, the publisher sets the Start Location to
 {Joining Start, 0}.<a href="#section-9.16.2.1-5" class="pilcrow">¶</a></p>
 </section>
