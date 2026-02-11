@@ -648,8 +648,9 @@ include:
    different final Objects.
 7. An Object is received in a Group whose Object ID is larger than the final
    Object in the Group.  The final Object in a Group is the Object with Status
-   END_OF_GROUP or the last Object sent in a FETCH that requested the entire
-   Group.
+   END_OF_GROUP, the last Object before a FIN in a Subgroup which has the
+   END_OF_GROUP bit set, or the last Object sent in a FETCH that requested the
+   entire Group.
 8. An Object is received on a Track whose Group and Object ID are larger than the
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
@@ -1961,13 +1962,13 @@ not depend upon the forwarding preference. Objects with forwarding preference
 the amount of time they can be queued before being sent. There is no explicit
 signal that an Object was not sent because the delivery timeout was exceeded.
 
-DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
-endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session
-with `PROTOCOL_VIOLATION`.
+A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
+due to delivery timeout.
 
 If both the subscriber specifies this parameter and the Track has a
 DELIVERY_TIMEOUT extension, the endpoints use the min of
-the two values for the subscription.
+the two non-zero values for the subscription. If either value is 0, the
+non-zero value is used. If both are 0, there is no delivery timeout.
 
 Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
@@ -2034,18 +2035,19 @@ unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
 #### EXPIRES Parameter {#expires}
 
-The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH
-or PUBLISH_OK (TODO: or REQUEST_OK).  It is a variable length integer encoding
+The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH,
+PUBLISH_OK, or REQUEST_OK. It is a variable length integer encoding
 the time in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
 can terminate the subscription prior to or after the expiry time.
 
-The receiver of the parameter can extend the subscription by sending a
-REQUEST_UPDATE. If the receiver of the parameter
-has one or more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
-REQUEST_UPDATE. Relays that send this parameter and applications that receive
-it MAY introduce jitter to prevent many endpoints from updating
+The receiver of the parameter can attempt to extend the subscription by sending
+a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
+more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
+REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
+value in REQUEST_OK. Relays that send this parameter and applications that
+receive it MAY introduce jitter to prevent many endpoints from updating
 simultaneously.
 
 If the EXPIRES parameter is 0 or is not present in a message, the subscription
@@ -2728,11 +2730,12 @@ PUBLISH_DONE Message {
 * Status Code: An integer status code indicating why the subscription ended.
 
 * Stream Count: An integer indicating the number of data streams the publisher
-opened for this subscription.  This helps the subscriber know if it has received
+opened for this subscription, including streams that contained no Objects (e.g.,
+an empty Subgroup).  This helps the subscriber know if it has received
 all of the data published in this subscription by comparing the number of
 streams received.  The subscriber can immediately remove all subscription state
-once the same number of streams have been processed.  If the track had only Objects with
-Forwarding Preference = Datagram, the publisher MUST set Stream Count to 0.  If
+once the same number of streams have been processed.  If the publisher did not open any streams
+for this subscription, the publisher MUST set Stream Count to 0.  If
 the publisher is unable to set Stream Count to the exact number of streams
 opened for the subscription, it MUST set Stream Count to 2^62 - 1. Subscribers
 SHOULD use a timeout or other mechanism to remove subscription state in case
@@ -3857,13 +3860,13 @@ The DELIVERY TIMEOUT extension (Extension Header Type 0x02) is a Track
 Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
 {{delivery-timeout}}).
 
-DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
-endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session with
-`PROTOCOL_VIOLATION`.
+A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
+due to delivery timeout.
 
 If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the Track has
-a DELIVERY_TIMEOUT extension, the endpoints use the min of the two values for
-the subscription.
+a DELIVERY_TIMEOUT extension, the endpoints use the min of the two non-zero
+values for the subscription. If either value is 0, the non-zero value is used.
+If both are 0, there is no delivery timeout.
 
 If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
 specified a timeout, Objects do not time out.
