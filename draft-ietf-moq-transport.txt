@@ -138,11 +138,10 @@ Table of Contents
      8.7.  Relay Object Handling
    9.  Control Messages
      9.1.  Request ID
-     9.2.  Parameters
+     9.2.  Message Parameters
        9.2.1.  Parameter Scope
-       9.2.2.  Message Parameters
      9.3.  CLIENT_SETUP and SERVER_SETUP
-       9.3.1.  Setup Parameters
+       9.3.1.  Setup Options
      9.4.  GOAWAY
      9.5.  MAX_REQUEST_ID
      9.6.  REQUESTS_BLOCKED
@@ -955,8 +954,8 @@ Table of Contents
    The client can establish a connection to an MOQT server identified by
    a given URI by setting up a QUIC connection to the host and port
    identified by the authority section of the URI.  The authority, path-
-   abempty and query portions of the URI are also transmitted in SETUP
-   parameters (see Section 9.3.1).  If the port is omitted in the URI, a
+   abempty and query portions of the URI are also transmitted in Setup
+   Options (see Section 9.3.1).  If the port is omitted in the URI, a
    default port of 443 is used for setting up the QUIC connection.
 
 3.1.3.  Connection URL
@@ -972,7 +971,7 @@ Table of Contents
    extensions.  Extensions can define new Message types, new Parameters,
    or new framing for Data Streams and Datagrams.
 
-   The client and server MUST include all Setup Parameters Section 9.3.1
+   The client and server MUST include all Setup Options Section 9.3.1
    required for the negotiated MOQT version in CLIENT_SETUP and
    SERVER_SETUP.
 
@@ -1069,19 +1068,19 @@ Table of Contents
       exceeded.
 
    DUPLICATE_AUTH_TOKEN_ALIAS (0x14):  Authorization Token attempted to
-      register an Alias that was in use (see Section 9.2.2.1).
+      register an Alias that was in use (see Section 9.2.1.1).
 
    VERSION_NEGOTIATION_FAILED (0x15):  The client didn't offer a version
       supported by the server.
 
    MALFORMED_AUTH_TOKEN (0x16):  Invalid Auth Token serialization during
-      registration (see Section 9.2.2.1).
+      registration (see Section 9.2.1.1).
 
    UNKNOWN_AUTH_TOKEN_ALIAS (0x17):  No registered token found for the
-      provided Alias (see Section 9.2.2.1).
+      provided Alias (see Section 9.2.1.1).
 
    EXPIRED_AUTH_TOKEN (0x18):  Authorization token has expired
-      (Section 9.2.2.1).
+      (Section 9.2.1.1).
 
    INVALID_AUTHORITY (0x19):  The specified AUTHORITY does not
       correspond to this server or cannot be used in this context.
@@ -1391,7 +1390,7 @@ Table of Contents
    Object ID is above the threshold and the Track supports dynamic
    groups, the subscriber sends a REQUEST_UPDATE message with the
    NEW_GROUP_REQUEST parameter equal to the Largest Location's Group,
-   plus one (see Section 9.2.2.9).
+   plus one (see Section 9.2.1.9).
 
    Another possible subscriber pattern is to send a SUBSCRIBE with
    Filter Type Next Group Start and NEW_GROUP_REQUEST equal to 0.  The
@@ -1743,7 +1742,7 @@ Table of Contents
    subscribers.  Each new Object belonging to the Track is forwarded to
    each subscriber, as allowed by the subscription's filter (see
    Section 9.9), and delivered according to the priority (see Section 7)
-   and delivery timeout (see Section 9.2.2.2).
+   and delivery timeout (see Section 9.2.1.2).
 
    A relay MUST NOT reorder or drop objects received on a multi-object
    stream when forwarding to subscribers, unless it has application
@@ -2004,35 +2003,26 @@ Table of Contents
    the received MAX_REQUEST_ID, it MUST close the session with
    INVALID_REQUEST_ID.
 
-9.2.  Parameters
+9.2.  Message Parameters
 
-   Some messages include a Parameters field that encodes optional
-   message elements.  Parameters in the CLIENT_SETUP and SERVER_SETUP
-   messages are called Setup Parameters.  Parameters in other control
-   messages are Message Parameters.  Receivers ignore unrecognized Setup
+   Some control messages include a field that encodes optional Message
    Parameters.  All Message Parameters MUST be defined in the negotiated
-   version of MOQT or negotiated via Setup Parameters.  An endpoint that
+   version of MOQT or negotiated via Setup Options.  An endpoint that
    receives an unknown Message Parameter MUST close the session with
    PROTOCOL_VIOLATION.
 
-   Senders MUST NOT repeat the same parameter type in a message unless
+   Senders MUST NOT repeat the same Parameter Type in a message unless
    the parameter definition explicitly allows multiple instances of that
    type to be sent in a single message.  Receivers SHOULD check that
    there are no unexpected duplicate parameters and close the session as
-   a PROTOCOL_VIOLATION if found.  Receivers MUST allow duplicates of
-   unknown Setup Parameters.
+   a PROTOCOL_VIOLATION if found.
 
    The number of parameters in a message is not specifically limited,
    but the total length of a control message is limited to 2^16-1 bytes.
 
-   Parameters are serialized as Key-Value-Pairs Figure 2.
-
-   Setup Parameters use a namespace that is constant across all MOQT
-   versions.  All other messages use a version-specific namespace.  For
-   example, the integer '1' can refer to different parameters for Setup
-   messages and for all other message types.  SETUP message parameter
-   types are defined in Section 9.3.1.  Version-specific parameter types
-   are defined in Section 9.2.2.
+   Message Parameters are serialized as Key-Value-Pairs Figure 2.  The
+   Message Parameter types defined in this version of MOQT are listed in
+   this section.
 
    Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause
    the publisher to alter the payload of the objects it sends, as that
@@ -2047,15 +2037,13 @@ Table of Contents
    the publisher that is forwarded to subscribers is sent as Track
    Extension header.
 
-9.2.2.  Message Parameters
-
-   Each message parameter definition indicates the message types in
+   Each Message Parameter definition indicates the message types in
    which it can appear.  If it appears in some other type of message, it
-   MUST be ignored.  Note that since Setup parameters use a separate
-   namespace, it is impossible for these parameters to appear in Setup
+   MUST be ignored.  Note that since Setup Options use a separate
+   namespace, it is impossible for Message Parameters to appear in Setup
    messages.
 
-9.2.2.1.  AUTHORIZATION TOKEN Parameter
+9.2.1.1.  AUTHORIZATION TOKEN Parameter
 
    The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in
    a PUBLISH, SUBSCRIBE, REQUEST_UPDATE, SUBSCRIBE_NAMESPACE,
@@ -2164,7 +2152,7 @@ Table of Contents
    By registering a Token, the sender is requiring the receiver to store
    the Token Alias and Token Value until they are deleted, or the
    Session ends.  The receiver can protect its resources by sending a
-   SETUP parameter defining the MAX_AUTH_TOKEN_CACHE_SIZE limit (see
+   Setup Option defining the MAX_AUTH_TOKEN_CACHE_SIZE limit (see
    Section 9.3.1.4) it is willing to accept.  If a registration is
    attempted which would cause this limit to be exceeded, the receiver
    MUST termiate the Session with a AUTH_TOKEN_CACHE_OVERFLOW error.
@@ -2187,7 +2175,7 @@ Table of Contents
    Senders MUST NOT send DELETE for an alias while any message using
    USE_ALIAS with that alias has not received a response.
 
-9.2.2.2.  DELIVERY TIMEOUT Parameter
+9.2.1.2.  DELIVERY TIMEOUT Parameter
 
    The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
    PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
@@ -2234,7 +2222,7 @@ Table of Contents
    data for that Object, taking into account priorities, congestion
    control, and any other relevant information.
 
-9.2.2.3.  SUBSCRIBER PRIORITY Parameter
+9.2.1.3.  SUBSCRIBER PRIORITY Parameter
 
    The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in
    a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
@@ -2248,7 +2236,7 @@ Table of Contents
    If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
    the value 128.
 
-9.2.2.4.  GROUP ORDER Parameter
+9.2.1.4.  GROUP ORDER Parameter
 
    The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a
    SUBSCRIBE, PUBLISH_OK, or FETCH.
@@ -2263,7 +2251,7 @@ Table of Contents
    If omitted from SUBSCRIBE, the publisher's preference from the Track
    is used.  If omitted from FETCH, the receiver uses Ascending (0x1).
 
-9.2.2.5.  SUBSCRIPTION FILTER Parameter
+9.2.1.5.  SUBSCRIPTION FILTER Parameter
 
    The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) MAY appear in
    a SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a subscription)
@@ -2275,7 +2263,7 @@ Table of Contents
    If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
    unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
-9.2.2.6.  EXPIRES Parameter
+9.2.1.6.  EXPIRES Parameter
 
    The EXPIRES parameter (Parameter Type 0x8) MAY appear in
    SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK.  It is a variable
@@ -2296,7 +2284,7 @@ Table of Contents
    If the EXPIRES parameter is 0 or is not present in a message, the
    subscription does not expire or expires at an unknown time.
 
-9.2.2.7.  LARGEST OBJECT Parameter
+9.2.1.7.  LARGEST OBJECT Parameter
 
    The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in
    SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE
@@ -2308,7 +2296,7 @@ Table of Contents
    If omitted from a message, the sending endpoint has not published or
    received any Objects in the Track.
 
-9.2.2.8.  FORWARD Parameter
+9.2.1.8.  FORWARD Parameter
 
    The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
    REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
@@ -2322,9 +2310,9 @@ Table of Contents
    subscription remains unchanged.  If the parameter is omitted from any
    other message, the default value is 1.
 
-9.2.2.9.  NEW GROUP REQUEST Parameter
+9.2.1.9.  NEW GROUP REQUEST Parameter
 
-   The NEW_GROUP_REQUEST parameter (parameter type 0x32) MAY appear in
+   The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) MAY appear in
    PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a subscription.  It is an
    integer representing the largest Group ID in the Track known by the
    subscriber, plus 1.  A value of 0 indicates that the subscriber has
@@ -2373,114 +2361,120 @@ Table of Contents
    exchanged by the client and the server; they allow the endpoints to
    agree on the initial configuration before any control messsages are
    exchanged.  The messages contain a sequence of key-value pairs called
-   Setup parameters; the semantics and format of which can vary based on
+   Setup Options; the semantics and format of which can vary based on
    whether the client or server is sending.  To ensure future
-   extensibility of MOQT, endpoints MUST ignore unknown setup
-   parameters.  TODO: describe GREASE for Setup Parameters.
+   extensibility of MOQT, endpoints MUST ignore unknown Setup Options.
+   TODO: describe GREASE for Setup Options.
 
    The wire format of the Setup messages are as follows:
 
    CLIENT_SETUP Message {
      Type (vi64) = 0x20,
      Length (16),
-     Number of Parameters (vi64),
-     Setup Parameters (..) ...,
+     Number of Setup Options (vi64),
+     Setup Options (..) ...,
    }
 
    SERVER_SETUP Message {
      Type (vi64) = 0x21,
      Length (16),
-     Number of Parameters (vi64),
-     Setup Parameters (..) ...,
+     Number of Setup Options (vi64),
+     Setup Options (..) ...,
    }
 
                        Figure 5: MOQT Setup Messages
 
-   The available Setup parameters are detailed in the next sections.
+   Setup Options are serialized as Key-Value-Pairs Figure 2.  Setup
+   Options use a namespace that is constant across all MOQT versions,
+   separate from Message Parameters.  Receivers MUST ignore unrecognized
+   Setup Options.  Senders MUST NOT repeat the same Option Type in a
+   message unless the option definition explicitly allows multiple
+   instances.  Receivers MUST allow duplicates of unknown Setup Options.
 
-9.3.1.  Setup Parameters
+   The available Setup Options are detailed in the next sections.
+
+9.3.1.  Setup Options
 
 9.3.1.1.  AUTHORITY
 
-   The AUTHORITY parameter (Parameter Type 0x05) allows the client to
-   specify the authority component of the MoQ URI when using native QUIC
+   The AUTHORITY option (Option Type 0x05) allows the client to specify
+   the authority component of the MoQ URI when using native QUIC
    ([QUIC]).  It MUST NOT be used by the server, or when WebTransport is
-   used.  When an AUTHORITY parameter is received from a server, or when
-   an AUTHORITY parameter is received while WebTransport is used, or
-   when an AUTHORITY parameter is received by a server but the server
-   does not support the specified authority, the session MUST be closed
-   with INVALID_AUTHORITY.
+   used.  When an AUTHORITY option is received from a server, or when an
+   AUTHORITY option is received while WebTransport is used, or when an
+   AUTHORITY option is received by a server but the server does not
+   support the specified authority, the session MUST be closed with
+   INVALID_AUTHORITY.
 
-   The AUTHORITY parameter follows the URI formatting rules [RFC3986].
+   The AUTHORITY option follows the URI formatting rules [RFC3986].
    When connecting to a server using a URI with the "moqt" scheme, the
-   client MUST set the AUTHORITY parameter to the authority portion of
-   the URI.  If an AUTHORITY parameter does not conform to these rules,
-   the session MUST be closed with MALFORMED_AUTHORITY.
+   client MUST set the AUTHORITY option to the authority portion of the
+   URI.  If an AUTHORITY option does not conform to these rules, the
+   session MUST be closed with MALFORMED_AUTHORITY.
 
 9.3.1.2.  PATH
 
-   The PATH parameter (Parameter Type 0x01) allows the client to specify
-   the path of the MoQ URI when using native QUIC ([QUIC]).  It MUST NOT
-   be used by the server, or when WebTransport is used.  When a PATH
-   parameter is received from a server, or when a PATH parameter is
-   received while WebTransport is used, or when a PATH parameter is
-   received by a server but the server does not support the specified
-   path, the session MUST be closed with INVALID_PATH.
+   The PATH option (Option Type 0x01) allows the client to specify the
+   path of the MoQ URI when using native QUIC ([QUIC]).  It MUST NOT be
+   used by the server, or when WebTransport is used.  When a PATH option
+   is received from a server, or when a PATH option is received while
+   WebTransport is used, or when a PATH option is received by a server
+   but the server does not support the specified path, the session MUST
+   be closed with INVALID_PATH.
 
-   The PATH parameter follows the URI formatting rules [RFC3986].  When
+   The PATH option follows the URI formatting rules [RFC3986].  When
    connecting to a server using a URI with the "moqt" scheme, the client
-   MUST set the PATH parameter to the path-abempty portion of the URI;
-   if query is present, the client MUST concatenate ?, followed by the
-   query portion of the URI to the parameter.  If a PATH does not
-   conform to these rules, the session MUST be closed with
-   MALFORMED_PATH.
+   MUST set the PATH option to the path-abempty portion of the URI; if
+   query is present, the client MUST concatenate ?, followed by the
+   query portion of the URI to the option.  If a PATH does not conform
+   to these rules, the session MUST be closed with MALFORMED_PATH.
 
 9.3.1.3.  MAX_REQUEST_ID
 
-   The MAX_REQUEST_ID parameter (Parameter Type 0x02) communicates an
-   initial value for the Maximum Request ID to the receiving endpoint.
-   The default value is 0, so if not specified, the peer MUST NOT send
+   The MAX_REQUEST_ID option (Option Type 0x02) communicates an initial
+   value for the Maximum Request ID to the receiving endpoint.  The
+   default value is 0, so if not specified, the peer MUST NOT send
    requests.
 
 9.3.1.4.  MAX_AUTH_TOKEN_CACHE_SIZE
 
-   The MAX_AUTH_TOKEN_CACHE_SIZE parameter (Parameter Type 0x04)
-   communicates the maximum size in bytes of all actively registered
-   Authorization tokens that the endpoint is willing to store per
-   Session.  This parameter is optional.  The default value is 0 which
-   prohibits the use of token Aliases.
+   The MAX_AUTH_TOKEN_CACHE_SIZE option (Option Type 0x04) communicates
+   the maximum size in bytes of all actively registered Authorization
+   tokens that the endpoint is willing to store per Session.  This
+   option is optional.  The default value is 0 which prohibits the use
+   of token Aliases.
 
    The token size is calculated as 16 bytes + the size of the Token
    Value field (see Figure 4).  The total size as restricted by the
-   MAX_AUTH_TOKEN_CACHE_SIZE parameter is calculated as the sum of the
+   MAX_AUTH_TOKEN_CACHE_SIZE option is calculated as the sum of the
    token sizes for all registered tokens (Alias Type value of 0x01)
    minus the sum of the token sizes for all deregistered tokens (Alias
    Type value of 0x00), since Session initiation.
 
 9.3.1.5.  AUTHORIZATION TOKEN
 
-   The AUTHORIZATION TOKEN setup parameter (Parameter Type 0x03)) is
-   funcionally equivalient to the AUTHORIZATION TOKEN message parameter,
-   see Section 9.2.2.1.  The endpoint can specify one or more tokens in
+   The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is
+   functionally equivalent to the AUTHORIZATION TOKEN message parameter,
+   see Section 9.2.1.1.  The endpoint can specify one or more tokens in
    CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT
    session establishment.
 
-   If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP
+   If a server receives an AUTHORIZATION TOKEN option in CLIENT_SETUP
    with Alias Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE,
    it MUST NOT fail the session with AUTH_TOKEN_CACHE_OVERFLOW.
-   Instead, it MUST treat the parameter as Alias Type USE_VALUE.  A
-   client MUST handle registration failures of this kind by purging any
-   Token Aliases that failed to register based on the
-   MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default
+   Instead, it MUST treat the option as Alias Type USE_VALUE.  A client
+   MUST handle registration failures of this kind by purging any Token
+   Aliases that failed to register based on the
+   MAX_AUTH_TOKEN_CACHE_SIZE option in SERVER_SETUP (or the default
    value of 0).
 
 9.3.1.6.  MOQT IMPLEMENTATION
 
-   The MOQT_IMPLEMENTATION parameter (Parameter Type 0x07) identifies
-   the name and version of the sender's MOQT implementation.  This
-   SHOULD be a UTF-8 encoded string [RFC3629], though the message does
-   not carry information, such as language tags, that would aid
-   comprehension by any entity other than the one that created the text.
+   The MOQT_IMPLEMENTATION option (Option Type 0x07) identifies the name
+   and version of the sender's MOQT implementation.  This SHOULD be a
+   UTF-8 encoded string [RFC3629], though the message does not carry
+   information, such as language tags, that would aid comprehension by
+   any entity other than the one that created the text.
 
 9.4.  GOAWAY
 
@@ -2599,7 +2593,7 @@ Table of Contents
 
    *  Request ID: The Request ID to which this message is replying.
 
-   *  Parameters: The parameters are defined in Section 9.2.2.
+   *  Parameters: The parameters are defined in Section 9.2.
 
 9.8.  REQUEST_ERROR
 
@@ -2657,10 +2651,10 @@ Table of Contents
    NOT_SUPPORTED:  The endpoint does not support the type of request.
 
    MALFORMED_AUTH_TOKEN:  Invalid Auth Token serialization during
-      registration (see Section 9.2.2.1).
+      registration (see Section 9.2.1.1).
 
    EXPIRED_AUTH_TOKEN:  Authorization token has expired
-      (Section 9.2.2.1).
+      (Section 9.2.1.1).
 
    GOING_AWAY:  The endpoint has received a GOAWAY and MAY reject new
       requests.
@@ -2728,18 +2722,18 @@ Table of Contents
    *  Track Name: Identifies the track name as defined in
       (Section 2.4.1).
 
-   *  Parameters: The parameters are defined in Section 9.2.2.
+   *  Parameters: The parameters are defined in Section 9.2.
 
    On successful subscription, the publisher MUST reply with a
    SUBSCRIBE_OK, allowing the subscriber to determine the start group/
    object when not explicitly specified, and start sending objects.
 
    If the publisher cannot satisfy the requested Subscription Filter
-   (see Section 9.2.2.5) or if the entire End Group has already been
+   (see Section 9.2.1.5) or if the entire End Group has already been
    published it SHOULD send a REQUEST_ERROR with code INVALID_RANGE.  A
    publisher MUST NOT send objects from outside the requested range.
 
-   Subscribing with the FORWARD parameter (Section 9.2.2.8) equal to 0
+   Subscribing with the FORWARD parameter (Section 9.2.1.8) equal to 0
    allows publisher or relay to prepare to serve the subscription in
    advance, reducing the time to receive objects in the future.
 
@@ -2771,7 +2765,7 @@ Table of Contents
       with an Established subscription, it MUST close the session with
       error DUPLICATE_TRACK_ALIAS.
 
-   *  Parameters: The parameters are defined in Section 9.2.2.
+   *  Parameters: The parameters are defined in Section 9.2.
 
    *  Track Extensions : A sequence of Extension Headers.  See
       Section 2.5.
@@ -2815,7 +2809,7 @@ Table of Contents
       parameters included in the REQUEST_UPDATE are invalid for the type
       of request being modified.
 
-   *  Parameters: The parameters are defined in Section 9.2.2.
+   *  Parameters: The parameters are defined in Section 9.2.
 
 9.11.1.  Updating Subscriptions
 
@@ -2898,7 +2892,7 @@ Table of Contents
       an Established subscription, it MUST close the session with error
       DUPLICATE_TRACK_ALIAS.
 
-   *  Parameters: The parameters are defined in Section 9.2.2.
+   *  Parameters: The parameters are defined in Section 9.2.
 
    *  Track Extensions : A sequence of Extension Headers.  See
       Section 2.5.
@@ -2908,7 +2902,7 @@ Table of Contents
    abandon reading any publisher initiated streams associated with that
    subscription using a STOP_SENDING frame.
 
-   A publisher that sends the FORWARD parameter (Section 9.2.2.8) equal
+   A publisher that sends the FORWARD parameter (Section 9.2.1.8) equal
    to 0 indicates that it will not transmit any objects until the
    subscriber sets the Forward State to 1.  If the FORWARD parameter is
    omitted or equal to 1, the publisher will start transmitting objects
@@ -2933,7 +2927,7 @@ Table of Contents
    *  Request ID: The Request ID of the PUBLISH this message is replying
       to Section 9.13.
 
-   *  Parameters: The parameters are defined in Section 9.2.2.
+   *  Parameters: The parameters are defined in Section 9.2.
 
    TODO: A similar section to SUBSCRIBE about how the publisher handles
    a filter that is entirely behind Largest Object or is otherwise
@@ -3180,7 +3174,7 @@ Table of Contents
    *  Joining: Joining Fetch structure included when Fetch Type is 0x2
       or 0x3.
 
-   *  Parameters: The parameters are defined in Section 9.2.2.
+   *  Parameters: The parameters are defined in Section 9.2.
 
    A publisher responds to a FETCH request with either a FETCH_OK or a
    REQUEST_ERROR message.  The publisher creates a new unidirectional
@@ -3189,7 +3183,7 @@ Table of Contents
 
    The publisher responding to a FETCH is responsible for delivering all
    available Objects in the requested range in the requested order (see
-   Section 9.2.2.4).  The Objects in the response are delivered on a
+   Section 9.2.1.4).  The Objects in the response are delivered on a
    single unidirectional stream.  Any gaps in the Group and Object IDs
    in the response stream indicate objects that do not exist.  For
    Ascending Group Order this includes ranges between the first
@@ -3288,7 +3282,7 @@ Table of Contents
       corresponding FETCH the receiver MUST close the session with a
       PROTOCOL_VIOLATION.
 
-   *  Parameters: The parameters are defined in Section 9.2.2.
+   *  Parameters: The parameters are defined in Section 9.2.
 
    *  Track Extensions : A sequence of Extension Headers.  See
       Section 2.5.
@@ -3361,7 +3355,7 @@ Table of Contents
    *  Track Namespace: Identifies a track's namespace as defined in
       Section 2.4.1.
 
-   *  Parameters: The parameters are defined in Section 9.2.2.
+   *  Parameters: The parameters are defined in Section 9.2.
 
 9.21.  NAMESPACE
 
@@ -3485,7 +3479,7 @@ Table of Contents
       NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE
       request.
 
-   *  Parameters: The parameters are defined in Section 9.2.2.
+   *  Parameters: The parameters are defined in Section 9.2.
 
    The publisher will respond with REQUEST_OK or REQUEST_ERROR on the
    response half of the stream.  If the SUBSCRIBE_NAMESPACE is
@@ -3513,7 +3507,7 @@ Table of Contents
    are only interested in or authorized to access a subset of available
    namespaces and tracks.
 
-   If the FORWARD parameter (Section 9.2.2.8) is present in this message
+   If the FORWARD parameter (Section 9.2.1.8) is present in this message
    and equal to 0, PUBLISH messages resulting from this
    SUBSCRIBE_NAMESPACE will set the FORWARD parameter to 0.  If the
    FORWARD parameter is equal to 1 or omitted from this message, PUBLISH
@@ -4003,7 +3997,7 @@ Table of Contents
       the subscription, in which case PUBLISH_DONE (Section 9.15) will
       have a more detailed status code.
 
-   DELIVERY_TIMEOUT (0x2):  The DELIVERY TIMEOUT Section 9.2.2.2 was
+   DELIVERY_TIMEOUT (0x2):  The DELIVERY TIMEOUT Section 9.2.1.2 was
       exceeded for this stream.
 
    SESSION_CLOSED (0x3):  The publisher session is being closed.
@@ -4014,7 +4008,7 @@ Table of Contents
 
    TOO_FAR_BEHIND (0x5):  The corresponding subscription has exceeded
       the publisher's resource limits and is being terminated (see
-      Section 9.2.2.2).
+      Section 9.2.1.2).
 
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 2.4.2).
@@ -4206,7 +4200,7 @@ Table of Contents
 
    The DELIVERY TIMEOUT extension (Extension Header Type 0x02) is a
    Track Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a
-   Track (see Section 9.2.2.2).
+   Track (see Section 9.2.1.2).
 
    A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not
    expire due to delivery timeout.
@@ -4496,9 +4490,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  MOQT ALPN values
 
-   *  Setup parameters
+   *  Setup Options
 
-   *  Non-setup Parameters - List which params can be repeated in the
+   *  Message Parameters - List which params can be repeated in the
       table.
 
    *  Message types
@@ -4519,13 +4513,13 @@ EXT 1 and EXT N can be modified or removed by Relays
                   +======+===========+=================+
                   | Code | Name      | Specification   |
                   +======+===========+=================+
-                  |  0x0 | DELETE    | Section 9.2.2.1 |
+                  |  0x0 | DELETE    | Section 9.2.1.1 |
                   +------+-----------+-----------------+
-                  |  0x1 | REGISTER  | Section 9.2.2.1 |
+                  |  0x1 | REGISTER  | Section 9.2.1.1 |
                   +------+-----------+-----------------+
-                  |  0x2 | USE_ALIAS | Section 9.2.2.1 |
+                  |  0x2 | USE_ALIAS | Section 9.2.1.1 |
                   +------+-----------+-----------------+
-                  |  0x3 | USE_VALUE | Section 9.2.2.1 |
+                  |  0x3 | USE_VALUE | Section 9.2.1.1 |
                   +------+-----------+-----------------+
 
                                  Table 9
@@ -4535,23 +4529,23 @@ EXT 1 and EXT N can be modified or removed by Relays
         +================+=====================+=================+
         | Parameter Type | Parameter Name      | Specification   |
         +================+=====================+=================+
-        | 0x02           | DELIVERY_TIMEOUT    | Section 9.2.2.2 |
+        | 0x02           | DELIVERY_TIMEOUT    | Section 9.2.1.2 |
         +----------------+---------------------+-----------------+
-        | 0x03           | AUTHORIZATION_TOKEN | Section 9.2.2.1 |
+        | 0x03           | AUTHORIZATION_TOKEN | Section 9.2.1.1 |
         +----------------+---------------------+-----------------+
-        | 0x08           | EXPIRES             | Section 9.2.2.6 |
+        | 0x08           | EXPIRES             | Section 9.2.1.6 |
         +----------------+---------------------+-----------------+
-        | 0x09           | LARGEST_OBJECT      | Section 9.2.2.7 |
+        | 0x09           | LARGEST_OBJECT      | Section 9.2.1.7 |
         +----------------+---------------------+-----------------+
-        | 0x10           | FORWARD             | Section 9.2.2.8 |
+        | 0x10           | FORWARD             | Section 9.2.1.8 |
         +----------------+---------------------+-----------------+
-        | 0x20           | SUBSCRIBER_PRIORITY | Section 9.2.2.3 |
+        | 0x20           | SUBSCRIBER_PRIORITY | Section 9.2.1.3 |
         +----------------+---------------------+-----------------+
-        | 0x21           | SUBSCRIPTION_FILTER | Section 9.2.2.5 |
+        | 0x21           | SUBSCRIPTION_FILTER | Section 9.2.1.5 |
         +----------------+---------------------+-----------------+
-        | 0x22           | GROUP_ORDER         | Section 9.2.2.4 |
+        | 0x22           | GROUP_ORDER         | Section 9.2.1.4 |
         +----------------+---------------------+-----------------+
-        | 0x32           | NEW_GROUP_REQUEST   | Section 9.2.2.9 |
+        | 0x32           | NEW_GROUP_REQUEST   | Section 9.2.1.9 |
         +----------------+---------------------+-----------------+
 
                                  Table 10
