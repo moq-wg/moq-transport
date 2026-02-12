@@ -3194,13 +3194,15 @@ SUBSCRIBE_NAMESPACE Message {
 * Parameters: The parameters are defined in {{message-params}}.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
-of the stream.  If the SUBSCRIBE_NAMESPACE is successful, the publisher will
-send matching NAMESPACE messages on the response stream if they are requested.
-If it is an error, the stream will be immediately closed via FIN.
-Also, any matching PUBLISH messages without an `Established` Subscription will be
-sent on the control stream. When there are changes to the namespaces or
-subscriptions being published and the subscriber is subscribed to them,
-the publisher sends the corresponding NAMESPACE, NAMESPACE_DONE,
+of the stream. If the subscriber receives any frame other than a REQUEST_OK or a
+REQUEST_ERROR as the first frame on the response half of the stream, then it MUST
+close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
+successful, the publisher will send matching NAMESPACE messages on the response
+stream if they are requested. If it is an error, the stream will be immediately
+closed via FIN. Also, any matching PUBLISH messages without an `Established`
+Subscription will be sent on the control stream. When there are changes to the
+namespaces or subscriptions being published and the subscriber is subscribed to
+them, the publisher sends the corresponding NAMESPACE, NAMESPACE_DONE,
 or PUBLISH messages.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
