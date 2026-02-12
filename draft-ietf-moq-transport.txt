@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 15 August 2026                                    I. Swett, Ed.
+Expires: 16 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        11 February 2026
+                                                        12 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 August 2026.
+   This Internet-Draft will expire on 16 August 2026.
 
 Copyright Notice
 
@@ -3482,15 +3482,18 @@ Table of Contents
    *  Parameters: The parameters are defined in Section 9.2.
 
    The publisher will respond with REQUEST_OK or REQUEST_ERROR on the
-   response half of the stream.  If the SUBSCRIBE_NAMESPACE is
-   successful, the publisher will send matching NAMESPACE messages on
-   the response stream if they are requested.  If it is an error, the
-   stream will be immediately closed via FIN.  Also, any matching
-   PUBLISH messages without an Established Subscription will be sent on
-   the control stream.  When there are changes to the namespaces or
-   subscriptions being published and the subscriber is subscribed to
-   them, the publisher sends the corresponding NAMESPACE,
-   NAMESPACE_DONE, or PUBLISH messages.
+   response half of the stream.  If the subscriber receives any frame
+   other than a REQUEST_OK or a REQUEST_ERROR as the first frame on the
+   response half of the stream, then it MUST close the session with a
+   PROTOCOL_VIOLATION.  If the SUBSCRIBE_NAMESPACE is successful, the
+   publisher will send matching NAMESPACE messages on the response
+   stream if they are requested.  If it is an error, the stream will be
+   immediately closed via FIN.  Also, any matching PUBLISH messages
+   without an Established Subscription will be sent on the control
+   stream.  When there are changes to the namespaces or subscriptions
+   being published and the subscriber is subscribed to them, the
+   publisher sends the corresponding NAMESPACE, NAMESPACE_DONE, or
+   PUBLISH messages.
 
    A subscriber cannot make overlapping namespace subscriptions on a
    single session.  Within a session, if a publisher receives a
