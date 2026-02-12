@@ -1789,15 +1789,16 @@ If an endpoint receives a Request ID where the least significant bit is
 incorrect for the sender, or a duplicate Request ID, it MUST close the
 session with `INVALID_REQUEST_ID`.
 
-Every request message includes a Required Request ID field.  The receiver MUST
-deliver the referenced request to the application before delivering this
-request.  Required Request ID MUST have the same parity (least significant bit)
-as Request ID.  A Required Request ID equal to the Request ID of the message
-containing it indicates no dependency.  Required Request ID MUST NOT be greater
-than the Request ID of the message containing it.  If an endpoint receives a
-Required Request ID that violates these constraints, it MUST close the session
-with `INVALID_REQUIRED_REQUEST_ID`.  If the required request does not arrive,
-the receiver will time out the dependent request.
+## Required Request ID {#required-request-id}
+
+Every request message includes a Required Request ID field, which is a delta
+from the Request ID.  The receiver MUST deliver the referenced request to the
+application before delivering this request.  Required Request ID MUST have the
+same parity (least significant bit) as Request ID. If an endpoint receives a
+Required Request ID with different parity, it MUST close the session with
+`INVALID_REQUIRED_REQUEST_ID`. A Required Request ID value of 0 indicates
+there is no dependency. If the required request does not arrive, the receiver
+will time out the dependent request.
 
 ## Parameters {#params}
 
@@ -2420,7 +2421,7 @@ SUBSCRIBE Message {
 
 * Request ID: See {{request-id}}.
 
-* Required Request ID: See {{request-id}}.
+* Required Request ID: See {{required-request-id}}.
 
 * Track Namespace: Identifies the namespace of the track as defined in
   ({{track-name}}).
@@ -2500,7 +2501,7 @@ REQUEST_UPDATE Message {
 
 * Request ID: See {{request-id}}.
 
-* Required Request ID: See {{request-id}}.
+* Required Request ID: See {{required-request-id}}.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -2550,7 +2551,7 @@ PUBLISH Message {
 
 * Request ID: See {{request-id}}.
 
-* Required Request ID: See {{request-id}}.
+* Required Request ID: See {{required-request-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in ({{track-name}})
 
@@ -2826,7 +2827,7 @@ FETCH Message {
 
 * Request ID: See {{request-id}}.
 
-* Required Request ID: See {{request-id}}.
+* Required Request ID: See {{required-request-id}}.
 
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
@@ -2978,7 +2979,7 @@ PUBLISH_NAMESPACE Message {
 
 * Request ID: See {{request-id}}.
 
-* Required Request ID: See {{request-id}}.
+* Required Request ID: See {{required-request-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in
   {{track-name}}.
@@ -3050,7 +3051,7 @@ SUBSCRIBE_NAMESPACE Message {
 
 * Request ID: See {{request-id}}.
 
-* Required Request ID: See {{request-id}}.
+* Required Request ID: See {{required-request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
   {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
