@@ -883,6 +883,10 @@ PROTOCOL_VIOLATION (0x3):
 : The remote endpoint performed an action that was disallowed by the
   specification.
 
+INVALID_REQUEST_ID (0x4):
+: The endpoint received a Request ID with an incorrect least significant
+  bit for the sender, or a duplicate Request ID. See {{request-id}}.
+
 DUPLICATE_TRACK_ALIAS (0x5):
 : The endpoint attempted to use a Track Alias that was already in use.
 
@@ -1761,6 +1765,25 @@ Payload, which is defined by each message type.  If the length does not match
 the length of the Message Payload, the receiver MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
+## Request ID {#request-id}
+
+Request ID is included in request messages and is used to identify
+requests across messages. For example, Joining Fetch references
+the Request ID of a SUBSCRIBE.
+
+The client generates even numbered Request IDs, starting at 0, and the
+server generates odd numbered Request IDs, starting at 1.  Each
+endpoint increments its Request ID by 2 for each new request.
+
+Each SUBSCRIBE, PUBLISH, FETCH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
+REQUEST_UPDATE, and TRACK_STATUS message consumes a Request ID. Only
+request messages include a Request ID; response messages do not, since
+they are sent on the same bidirectional stream.
+
+If an endpoint receives a Request ID where the least significant bit is
+incorrect for the sender, or a duplicate Request ID, it MUST close the
+session with `INVALID_REQUEST_ID`.
+
 ## Parameters {#params}
 
 Some messages include a Parameters field that encodes optional message elements.
@@ -2352,8 +2375,8 @@ PREFIX_OVERLAP:
 : In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
 SUBSCRIBE_NAMESPACE in the same session.
 
-INVALID_JOINING_SUBSCRIBE_ID(0x32):
-: In response to a Joining FETCH, the referenced Subscribe ID is not an
+INVALID_JOINING_REQUEST_ID(0x32):
+: In response to a Joining FETCH, the referenced Request ID is not an
 `Established` Subscription.
 
 ## SUBSCRIBE {#message-subscribe-req}
@@ -2369,7 +2392,7 @@ The format of SUBSCRIBE is as follows:
 SUBSCRIBE Message {
   Type (vi64) = 0x3,
   Length (16),
-  Subscribe ID (vi64),
+  Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -2379,8 +2402,7 @@ SUBSCRIBE Message {
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
 
-* Subscribe ID: An ID used to identify the Subscription when using
-  Joining Fetch. The ID MUST be unique within a Session.
+* Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies the namespace of the track as defined in
   ({{track-name}}).
@@ -2450,11 +2472,14 @@ The format of REQUEST_UPDATE is as follows:
 REQUEST_UPDATE Message {
   Type (vi64) = 0x2,
   Length (16),
+  Request ID (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
 {: #moq-transport-request-update-format title="MOQT REQUEST_UPDATE Message"}
+
+* Request ID: See {{request-id}}.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -2489,6 +2514,7 @@ authorized to publish this track.
 PUBLISH Message {
   Type (vi64) = 0x1D,
   Length (16),
+  Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -2499,6 +2525,8 @@ PUBLISH Message {
 }
 ~~~
 {: #moq-transport-publish-format title="MOQT PUBLISH Message"}
+
+* Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in ({{track-name}})
 
@@ -2691,7 +2719,7 @@ Standalone Fetch {
 ### Joining Fetches
 
 A Joining Fetch is associated with a Subscribe request by
-specifying the Subscribe ID of a subscription in the `Established` or
+specifying the Request ID of a subscription in the `Established` or
 `Pending (subscriber)` state. Because Joining Fetch references an existing
 subscription, if that subscription has not yet been established, the Publisher
 receiving the Joining Fetch buffers the pending Joining Fetch until either
@@ -2718,16 +2746,16 @@ A Joining Fetch includes this structure:
 
 ~~~
 Joining Fetch {
-  Joining Subscribe ID (vi64),
+  Joining Request ID (vi64),
   Joining Start (vi64)
 }
 ~~~
 
-* Joining Subscribe ID: The Subscribe ID of the subscription to be joined. If a
-  publisher receives a Joining Fetch with a Subscribe ID that does not correspond
+* Joining Request ID: The Request ID of the subscription to be joined. If a
+  publisher receives a Joining Fetch with a Request ID that does not correspond
   to a subscription in the same session in the `Established` or `Pending
   (subscriber)` states, it MUST return a REQUEST_ERROR with error code
-  `INVALID_JOINING_SUBSCRIBE_ID`.
+  `INVALID_JOINING_REQUEST_ID`.
 
 * Joining Start : A relative or absolute value used to determing the Start
   Location, described below.
@@ -2761,7 +2789,7 @@ The format of FETCH is as follows:
 FETCH Message {
   Type (vi64) = 0x16,
   Length (16),
-  Fetch ID (vi64),
+  Request ID (vi64),
   Fetch Type (vi64),
   [Standalone (Standalone Fetch),]
   [Joining (Joining Fetch),]
@@ -2771,10 +2799,7 @@ FETCH Message {
 ~~~
 {: #moq-transport-fetch-format title="MOQT FETCH Message"}
 
-* Fetch ID: An ID used to identify the unidirectional stream containing
-  Objects requested by the Fetch. The ID MUST be unique within a Session.
-  To ensure Fetch IDs are not reused, implementations SHOULD issue them
-  sequentially.
+* Request ID: See {{request-id}}.
 
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
@@ -2915,12 +2940,15 @@ namespace.
 PUBLISH_NAMESPACE Message {
   Type (vi64) = 0x6,
   Length (16),
+  Request ID (vi64),
   Track Namespace (..),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
 {: #moq-transport-pub-ns-format title="MOQT PUBLISH_NAMESPACE Message"}
+
+* Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in
   {{track-name}}.
@@ -2980,6 +3008,7 @@ updates to the set.
 SUBSCRIBE_NAMESPACE Message {
   Type (vi64) = 0x11,
   Length (16),
+  Request ID (vi64),
   Track Namespace Prefix (..),
   Subscribe Options (vi64),
   Number of Parameters (vi64),
@@ -2987,6 +3016,8 @@ SUBSCRIBE_NAMESPACE Message {
 }
 ~~~
 {: #moq-transport-subscribe-ns-format title="MOQT SUBSCRIBE_NAMESPACE Message"}
+
+* Request ID: See {{request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
   {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
@@ -3499,12 +3530,12 @@ MALFORMED_TRACK (0x12):
 ### Fetch Header {#fetch-header}
 
 When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
-track requested in the Fetch message identified by `Fetch ID`.
+track requested in the Fetch message identified by `Request ID`.
 
 ~~~
 FETCH_HEADER {
   Type (vi64) = 0x5,
-  Fetch ID (vi64),
+  Request ID (vi64),
 }
 ~~~
 {: #fetch-header-format title="MOQT FETCH_HEADER"}
@@ -3877,7 +3908,7 @@ an expected time.  Each implementation is expected to set its own timeouts.
 
 A Relay SHOULD have mechanisms to prevent malicious endpoints from flooding it
 with PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that could bloat data
-structures. It could use the advertised MAX_REQUEST_ID to limit the number of
+structures. It could use QUIC stream limits to limit the number of
 such requests, or could have application-specific policies that can reject
 incoming PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that cause the state
 maintenance for the session to be excessive.
@@ -3960,7 +3991,6 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | INVALID_REQUEST_ID         | 0x4  | {{session-termination}} |
 | DUPLICATE_TRACK_ALIAS      | 0x5  | {{session-termination}} |
 | KEY_VALUE_FORMATTING_ERROR | 0x6  | {{session-termination}} |
-| TOO_MANY_REQUESTS          | 0x7  | {{session-termination}} |
 | INVALID_PATH               | 0x8  | {{session-termination}} |
 | MALFORMED_PATH             | 0x9  | {{session-termination}} |
 | GOAWAY_TIMEOUT             | 0x10 | {{session-termination}} |
