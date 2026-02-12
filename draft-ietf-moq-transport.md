@@ -648,8 +648,9 @@ include:
    different final Objects.
 7. An Object is received in a Group whose Object ID is larger than the final
    Object in the Group.  The final Object in a Group is the Object with Status
-   END_OF_GROUP or the last Object sent in a FETCH that requested the entire
-   Group.
+   END_OF_GROUP, the last Object before a FIN in a Subgroup which has the
+   END_OF_GROUP bit set, or the last Object sent in a FETCH that requested the
+   entire Group.
 8. An Object is received on a Track whose Group and Object ID are larger than the
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
@@ -791,8 +792,8 @@ application.
 The client can establish a connection to an MOQT server identified by a given
 URI by setting up a QUIC connection to the host and port identified by the
 `authority` section of the URI. The `authority`, `path-abempty` and `query`
-portions of the URI are also transmitted in SETUP parameters (see
-{{setup-params}}). If the port is omitted in the URI, a default port of 443 is
+portions of the URI are also transmitted in Setup Options (see
+{{setup-options}}). If the port is omitted in the URI, a default port of 443 is
 used for setting up the QUIC connection.
 
 ### Connection URL
@@ -808,7 +809,7 @@ Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
 Extensions can define new Message types, new Parameters, or new framing for
 Data Streams and Datagrams.
 
-The client and server MUST include all Setup Parameters {{setup-params}}
+The client and server MUST include all Setup Options {{setup-options}}
 required for the negotiated MOQT version in CLIENT_SETUP and SERVER_SETUP.
 
 Clients request the use of extensions by specifying Parameters in CLIENT_SETUP.
@@ -1083,17 +1084,18 @@ a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
-A publisher MUST save the Largest Location communicated in PUBLISH or
-SUBSCRIBE_OK when establishing a subscription. This value can be used in a
-Joining FETCH (see {{joining-fetches}}) at any time while the subscription is
-active.
-
 All `Established` subscriptions have a Forward State which is either 0 or 1.
 The publisher does not send Objects if the Forward State is 0, and does send them
 if the Forward State is 1.  The initiator of the subscription sets the initial
 Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_OK
 or REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
+
+A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
+or REQUEST_OK (in response to a REQUEST_UPDATE) that changes the Forward State
+from 0 to 1.  This value is called the Joining Location and can be used in a
+Joining FETCH (see {{joining-fetches}}) while the subscription is in the
+`Established` state.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -1215,10 +1217,11 @@ is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
-To join a Track at a past Group, the subscriber sends a SUBSCRIBE with Filter
-Type `Largest Object` followed by a Joining FETCH (see {{joining-fetches}}) for
-the intended start Group, which can be relative.  To join a Track at the next
-Group, the subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
+REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
+{{joining-fetches}}) for the intended start Group, which can be relative.  To
+join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter
+Type `Next Group Start`.
 
 #### Dynamically Starting New Groups
 
@@ -1504,9 +1507,9 @@ Note that due to reordering, an implementation can receive an Object after
 receiving an indication that the Object in question does not exist.  The
 endpoint SHOULD NOT cache or forward the object in this case.
 
-A cache MUST store all properties of an Object defined in
-{{object-properties}}, with the exception of any extensions
-({{object-extensions}}) that specify otherwise.
+A cache MUST store all properties of an Object defined in {{object-properties}},
+with the exception of any Object Extension Headers ({{object-extension-headers}})
+that specify otherwise.
 
 ## Forward Handling
 
@@ -1690,10 +1693,9 @@ unless allowed by the extension's specification (see {{extension-headers}}).
 
 ## Relay Object Handling
 
-MOQT encodes the delivery information via Object headers
-({{message-object}}).  A relay MUST NOT modify Object properties
-when forwarding, except for Object Extension Headers as specified in
-{{extension-headers}}.
+MOQT encodes the delivery information via Object properties ({{message-object}}).
+A relay MUST NOT modify Object properties when forwarding, except for
+Object Extension Headers as specified in {{extension-headers}}.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
@@ -1799,34 +1801,25 @@ Required Request ID with different parity, it MUST close the session with
 there is no dependency. If the required request does not arrive, the receiver
 will time out the dependent request.
 
-## Parameters {#params}
+## Message Parameters {#message-params}
 
-Some messages include a Parameters field that encodes optional message elements.
-Parameters in the CLIENT_SETUP and SERVER_SETUP messages are called Setup
-Parameters.  Parameters in other control messages are Message Parameters.
-Receivers ignore unrecognized Setup Parameters.  All Message Parameters MUST be
-defined in the negotiated version of MOQT or negotiated via Setup Parameters.
-An endpoint that receives an unknown Message Parameter MUST close the session
-with `PROTOCOL_VIOLATION`.
+Some control messages include a field that encodes optional Message Parameters.
+All Message Parameters MUST be defined in the negotiated version of MOQT or
+negotiated via Setup Options. An endpoint that receives an unknown Message
+Parameter MUST close the session with `PROTOCOL_VIOLATION`.
 
-Senders MUST NOT repeat the same parameter type in a message unless the
+Senders MUST NOT repeat the same Parameter Type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers SHOULD check that there are no
 unexpected duplicate parameters and close the session as a
-`PROTOCOL_VIOLATION` if found.  Receivers MUST allow duplicates of unknown
-Setup Parameters.
+`PROTOCOL_VIOLATION` if found.
 
 The number of parameters in a message is not specifically limited, but the
 total length of a control message is limited to 2^16-1 bytes.
 
-Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
-
-Setup Parameters use a namespace that is constant across all MOQT
-versions. All other messages use a version-specific namespace.
-For example, the integer '1' can refer to different parameters for Setup
-messages and for all other message types. SETUP message parameter types
-are defined in {{setup-params}}. Version-specific parameter types are defined
-in {{message-params}}.
+Message Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
+The Message Parameter types defined in this version of MOQT are listed in
+this section.
 
 Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
 to alter the payload of the objects it sends, as that would violate the track
@@ -1839,12 +1832,10 @@ forwarded by Relays, though relays can consider received parameter values when
 making a request.  Any Track metadata sent by the publisher that is forwarded to
 subscribers is sent as Track Extension header.
 
-### Message Parameters {#message-params}
-
-Each message parameter definition indicates the message types in which
+Each Message Parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it MUST be ignored.
-Note that since Setup parameters use a separate namespace, it is impossible for
-these parameters to appear in Setup messages.
+Note that since Setup Options use a separate namespace, it is impossible for
+Message Parameters to appear in Setup messages.
 
 #### AUTHORIZATION TOKEN Parameter {#authorization-token}
 
@@ -1948,7 +1939,7 @@ has passed.
 
 By registering a Token, the sender is requiring the receiver to store the Token
 Alias and Token Value until they are deleted, or the Session ends. The receiver
-can protect its resources by sending a SETUP parameter defining the
+can protect its resources by sending a Setup Option defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
 willing to accept. If a registration is attempted which would cause this limit
 to be exceeded, the receiver MUST termiate the Session with a
@@ -1975,21 +1966,21 @@ that alias has not received a response.
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
 PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
 
-It is the duration in milliseconds the relay SHOULD
-continue to attempt forwarding Objects after they have been received.  The start
-time for the timeout is based on when the Object Headers are received, and does
-not depend upon the forwarding preference. Objects with forwarding preference
-'Datagram' are not retransmitted when lost, so the Delivery Timeout only limits
-the amount of time they can be queued before being sent. There is no explicit
-signal that an Object was not sent because the delivery timeout was exceeded.
+It is the duration in milliseconds the relay SHOULD continue to attempt
+forwarding Objects after they have been received.  The start time for the timeout
+is based on when the Object header is received, and does not depend upon
+the forwarding preference. Objects with forwarding preference 'Datagram' are
+not retransmitted when lost, so the Delivery Timeout only limits the amount of
+time they can be queued before being sent. There is no explicit signal that an
+Object was not sent because the delivery timeout was exceeded.
 
-DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
-endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session
-with `PROTOCOL_VIOLATION`.
+A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
+due to delivery timeout.
 
 If both the subscriber specifies this parameter and the Track has a
 DELIVERY_TIMEOUT extension, the endpoints use the min of
-the two values for the subscription.
+the two non-zero values for the subscription. If either value is 0, the
+non-zero value is used. If both are 0, there is no delivery timeout.
 
 Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
@@ -2056,18 +2047,19 @@ unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
 #### EXPIRES Parameter {#expires}
 
-The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH
-or PUBLISH_OK (TODO: or REQUEST_OK).  It is a variable length integer encoding
+The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH,
+PUBLISH_OK, or REQUEST_OK. It is a variable length integer encoding
 the time in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
 can terminate the subscription prior to or after the expiry time.
 
-The receiver of the parameter can extend the subscription by sending a
-REQUEST_UPDATE. If the receiver of the parameter
-has one or more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
-REQUEST_UPDATE. Relays that send this parameter and applications that receive
-it MAY introduce jitter to prevent many endpoints from updating
+The receiver of the parameter can attempt to extend the subscription by sending
+a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
+more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
+REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
+value in REQUEST_OK. Relays that send this parameter and applications that
+receive it MAY introduce jitter to prevent many endpoints from updating
 simultaneously.
 
 If the EXPIRES parameter is 0 or is not present in a message, the subscription
@@ -2100,7 +2092,7 @@ message, the default value is 1.
 
 #### NEW GROUP REQUEST Parameter {#new-group-request}
 
-The NEW_GROUP_REQUEST parameter (parameter type 0x32) MAY appear in PUBLISH_OK,
+The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) MAY appear in PUBLISH_OK,
 SUBSCRIBE or REQUEST_UPDATE for a subscription.  It is an integer representing the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
@@ -2142,10 +2134,10 @@ outstanding until the Largest Group increases.
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
 by the client and the server; they allow the endpoints to agree on the initial
 configuration before any control messsages are exchanged. The messages contain
-a sequence of key-value pairs called Setup parameters; the semantics and format
+a sequence of key-value pairs called Setup Options; the semantics and format
 of which can vary based on whether the client or server is sending.  To ensure
-future extensibility of MOQT, endpoints MUST ignore unknown setup parameters.
-TODO: describe GREASE for Setup Parameters.
+future extensibility of MOQT, endpoints MUST ignore unknown Setup Options.
+TODO: describe GREASE for Setup Options.
 
 The wire format of the Setup messages are as follows:
 
@@ -2153,86 +2145,93 @@ The wire format of the Setup messages are as follows:
 CLIENT_SETUP Message {
   Type (vi64) = 0x20,
   Length (16),
-  Number of Parameters (vi64),
-  Setup Parameters (..) ...,
+  Number of Setup Options (vi64),
+  Setup Options (..) ...,
 }
 
 SERVER_SETUP Message {
   Type (vi64) = 0x21,
   Length (16),
-  Number of Parameters (vi64),
-  Setup Parameters (..) ...,
+  Number of Setup Options (vi64),
+  Setup Options (..) ...,
 }
 ~~~
 {: #moq-transport-setup-format title="MOQT Setup Messages"}
 
-The available Setup parameters are detailed in the next sections.
+Setup Options are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
+Setup Options use a namespace that is constant across all MOQT versions,
+separate from Message Parameters.  Receivers MUST ignore unrecognized Setup
+Options.  Senders MUST NOT repeat the same Option Type in a message unless
+the option definition explicitly allows multiple instances. Receivers MUST
+allow duplicates of unknown Setup Options.
 
-### Setup Parameters {#setup-params}
+The available Setup Options are detailed in the next sections.
+
+### Setup Options {#setup-options}
 
 #### AUTHORITY {#authority}
 
-The AUTHORITY parameter (Parameter Type 0x05) allows the client to specify the
+The AUTHORITY option (Option Type 0x05) allows the client to specify the
 authority component of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST
 NOT be used by the server, or when WebTransport is used.  When an AUTHORITY
-parameter is received from a server, or when an AUTHORITY parameter is received
-while WebTransport is used, or when an AUTHORITY parameter is received by a
+option is received from a server, or when an AUTHORITY option is received
+while WebTransport is used, or when an AUTHORITY option is received by a
 server but the server does not support the specified authority, the session MUST
 be closed with `INVALID_AUTHORITY`.
 
-The AUTHORITY parameter follows the URI formatting rules {{!RFC3986}}.
+The AUTHORITY option follows the URI formatting rules {{!RFC3986}}.
 When connecting to a server using a URI with the "moqt" scheme, the
-client MUST set the AUTHORITY parameter to the `authority` portion of the
-URI. If an AUTHORITY parameter does not conform to
+client MUST set the AUTHORITY option to the `authority` portion of the
+URI. If an AUTHORITY option does not conform to
 these rules, the session MUST be closed with `MALFORMED_AUTHORITY`.
 
 #### PATH {#path}
 
-The PATH parameter (Parameter Type 0x01) allows the client to specify the path
+The PATH option (Option Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
-the server, or when WebTransport is used.  When a PATH parameter is received
-from a server, or when a PATH parameter is received while WebTransport is used,
-or when a PATH parameter is received by a server but the server does not
+the server, or when WebTransport is used.  When a PATH option is received
+from a server, or when a PATH option is received while WebTransport is used,
+or when a PATH option is received by a server but the server does not
 support the specified path, the session MUST be closed with `INVALID_PATH`.
 
-The PATH parameter follows the URI formatting rules {{!RFC3986}}.
+The PATH option follows the URI formatting rules {{!RFC3986}}.
 When connecting to a server using a URI with the "moqt" scheme, the
-client MUST set the PATH parameter to the `path-abempty` portion of the
+client MUST set the PATH option to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
-the `query` portion of the URI to the parameter. If a PATH does not conform to
+the `query` portion of the URI to the option. If a PATH does not conform to
 these rules, the session MUST be closed with `MALFORMED_PATH`.
 
 #### MAX_AUTH_TOKEN_CACHE_SIZE {#max-auth-token-cache-size}
 
-The MAX_AUTH_TOKEN_CACHE_SIZE parameter (Parameter Type 0x04) communicates the
+The MAX_AUTH_TOKEN_CACHE_SIZE option (Option Type 0x04) communicates the
 maximum size in bytes of all actively registered Authorization tokens that the
-endpoint is willing to store per Session. This parameter is optional. The default
+endpoint is willing to store per Session. This option is optional. The default
 value is 0 which prohibits the use of token Aliases.
 
 The token size is calculated as 16 bytes + the size of the Token Value field
 (see {{moq-token}}). The total size as restricted by the
-MAX_AUTH_TOKEN_CACHE_SIZE parameter is calculated as the sum of the token sizes
+MAX_AUTH_TOKEN_CACHE_SIZE option is calculated as the sum of the token sizes
 for all registered tokens (Alias Type value of 0x01) minus the sum of the token
 sizes for all deregistered tokens (Alias Type value of 0x00), since Session
 initiation.
 
 #### AUTHORIZATION TOKEN {#setup-auth-token}
 
-The AUTHORIZATION TOKEN setup parameter (Parameter Type 0x03)) is funcionally
-equivalient to the AUTHORIZATION TOKEN message parameter, see {{authorization-token}}.
+The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is functionally
+equivalent to the AUTHORIZATION TOKEN message parameter, see {{authorization-token}}.
 The endpoint can specify one or more tokens in CLIENT_SETUP or SERVER_SETUP
 that the peer can use to authorize MOQT session establishment.
 
-If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP with Alias
+If a server receives an AUTHORIZATION TOKEN option in CLIENT_SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
 the session with `AUTH_TOKEN_CACHE_OVERFLOW`.  Instead, it MUST treat the
-parameter as Alias Type USE_VALUE.  A client MUST handle registration failures
+option as Alias Type USE_VALUE.  A client MUST handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
-MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
+MAX_AUTH_TOKEN_CACHE_SIZE option in SERVER_SETUP (or the default value of 0).
 
 #### MOQT IMPLEMENTATION
 
-The MOQT_IMPLEMENTATION parameter (Parameter Type 0x07) identifies the name and
+The MOQT_IMPLEMENTATION option (Option Type 0x07) identifies the name and
 version of the sender's MOQT implementation.  This SHOULD be a UTF-8 encoded
 string {{!RFC3629}}, though the message does not carry information, such as
 language tags, that would aid comprehension by any entity other than the one
@@ -2303,7 +2302,7 @@ REQUEST_OK Message {
 ## REQUEST_ERROR {#message-request-error}
 
 The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
-PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS).
+PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS, REQUEST_UPDATE).
 
 ~~~
 REQUEST_ERROR Message {
@@ -2651,11 +2650,12 @@ PUBLISH_DONE Message {
 * Status Code: An integer status code indicating why the subscription ended.
 
 * Stream Count: An integer indicating the number of data streams the publisher
-opened for this subscription.  This helps the subscriber know if it has received
+opened for this subscription, including streams that contained no Objects (e.g.,
+an empty Subgroup).  This helps the subscriber know if it has received
 all of the data published in this subscription by comparing the number of
 streams received.  The subscriber can immediately remove all subscription state
-once the same number of streams have been processed.  If the track had only Objects with
-Forwarding Preference = Datagram, the publisher MUST set Stream Count to 0.  If
+once the same number of streams have been processed.  If the publisher did not open any streams
+for this subscription, the publisher MUST set Stream Count to 0.  If
 the publisher is unable to set Stream Count to the exact number of streams
 opened for the subscription, it MUST set Stream Count to 2^62 - 1. Subscribers
 SHOULD use a timeout or other mechanism to remove subscription state in case
@@ -2750,20 +2750,19 @@ receiving the Joining Fetch buffers the pending Joining Fetch until either
 the Subscription is established or the request times out.
 
 A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track Name
+subscription to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
-Subscribe.  The subscriber can set the Start Location to an absolute Location or
-a Location relative to the current group.
+subscription.  The subscriber can set the Start Location to an absolute
+Location or a Location relative to the Largest group.
 
-A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
-certain number of groups prior to the live edge of a track.
+A Subscriber can use a Joining Fetch to, for example, fill a playback buffer
+with a certain number of groups prior to the live edge of a track.
 
-A Joining Fetch is only permitted when the associated Subscribe has the Filter
-Type Largest Object; any other value results in closing the session with a
+A Joining Fetch is only permitted when the associated subscription has
+Forward State 1; otherwise the publisher MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
-If no Objects have been published for the track, and the SUBSCRIBE_OK did not
-include a LARGEST_OBJECT parameter ({{largest-param}}), the publisher MUST
+If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
 
 A Joining Fetch includes this structure:
@@ -2786,20 +2785,19 @@ Joining Fetch {
 
 #### Joining Fetch Range Calculation
 
-The Largest Location value from the corresponding
+The Joining Location value from the corresponding
 subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
-The publisher receiving a Joining Fetch sets the End Location to {Subscribe
-Largest Location.Object + 1}. Here Subscribe Largest Location is the
-saved value from when the subscription started (see {{subscriptions}}).
+The publisher receiving a Joining Fetch sets the End Location to
+{Joining Location.Group, Joining Location.Object + 1} (see {{subscriptions}}.
 
-Note: the last Object included in the Joining FETCH response is Subscribe
-Largest Location.  The `+ 1` above indicates the equivalent Standalone Fetch
-encoding.
+Note: the last Object included in the Joining FETCH response is the Object
+at the Joining Location.  The `+ 1` above indicates the equivalent Standalone
+Fetch encoding.
 
 For a Relative Joining Fetch, the publisher sets the Start Location to
-{Subscribe Largest Location.Group - Joining Start, 0}.
+{Joining Location.Group - Joining Start, 0}.
 
 For an Absolute Joining Fetch, the publisher sets the Start Location to
 {Joining Start, 0}.
@@ -3172,8 +3170,8 @@ according to its `Object Forwarding Preference`.
 * Object Status: An enumeration used to indicate whether the Object is a normal Object
   or mark the end of a group or track. See {{object-status}} below.
 
-* Object Extensions : A sequence of Extensions associated with the object. See
-  {{object-extensions}}.
+* Object Extension Headers : A sequence of Extension Headers associated with the object.
+  See {{object-extension-headers}}.
 
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
 NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
@@ -3203,7 +3201,7 @@ Any other value SHOULD be treated as a protocol error and the session SHOULD
 be closed with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
-#### Object Extension Headers {#object-extensions}
+#### Object Extension Headers {#object-extension-headers}
 
 Any Object with status Normal can have extension headers ({{extension-headers}}).
 If an endpoint receives extension headers on Objects with status that is
@@ -3218,7 +3216,7 @@ Object Extension Headers are serialized as a length in bytes followed by
 Key-Value-Pairs (see {{moq-key-value-pair}}).
 
 ~~~
-Extensions {
+Object Extension Headers {
   Extension Headers Length (vi64),
   Extension Headers (..),
 }
@@ -3245,9 +3243,9 @@ will be dropped without any explicit notification.
 
 Each session along the path between the Original Publisher and End Subscriber
 might have different maximum datagram sizes. Additionally, Object Extension
-Headers ({{object-extensions}}) can be added to Objects as they pass through
-the MOQT network, increasing the size of the Object and the chances it will
-exceed the maximum datagram size of a downstream session and be dropped.
+Headers ({{object-extension-headers}}) can be added to Objects as they pass
+through the MOQT network, increasing the size of the Object and the chances it
+will exceed the maximum datagram size of a downstream session and be dropped.
 
 
 ### Object Datagram {#object-datagram}
@@ -3274,10 +3272,10 @@ values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
 range are valid. The four low-order bits and bit 5 of the Type field determine
 which fields are present in the datagram:
 
-* The **EXTENSIONS** bit (0x01) indicates when the Extensions field is
-  present. When set to 1, the Extensions structure defined in
-  {{object-extensions}} is present. When set to 0, the Extensions field is
-  absent.  If an endpoint receives a datagram with the EXTENSIONS bit set and an
+* The **EXTENSIONS** bit (0x01) indicates when the Extension Headers field is
+  present. When set to 1, the Object Extension Headers structure defined in
+  {{object-extension-headers}} is present. When set to 0, the field is absent.
+  If an endpoint receives a datagram with the EXTENSIONS bit set and an
   Extension Headers Length of 0, it MUST close the session with a
   `PROTOCOL_VIOLATION`.
 
@@ -3299,7 +3297,7 @@ which fields are present in the datagram:
   and there is no Object Payload. When set to 0, the Object Payload is present
   and the Object Status field is omitted. There is no explicit length field for
   the Object Payload; the entirety of the transport datagram following the
-  Object header fields contains the payload.
+  Object header contains the payload.
 
 The following Type values are invalid. If an endpoint receives a datagram with
 any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
@@ -3370,11 +3368,10 @@ values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to
 1. However, not all Type values in this range are valid. The four low-order bits
 and bit 5 determine which fields are present in the header:
 
-* The **EXTENSIONS** bit (0x01) indicates when the Extensions field is present
-  in all Objects in this Subgroup. When set to 1, the Extensions structure
-  defined in {{object-extensions}} is present in all Objects. When set to 0, the
-  Extensions field is never present. Objects with no extensions set Extension
-  Headers Length to 0.
+* The **EXTENSIONS** bit (0x01) indicates when the Extension Headers field is present
+  in all Objects in this Subgroup. When set to 1, the Object Extension Headers structure
+  defined in {{object-extension-headers}} is present in all Objects. When set to 0, the
+  field is never present. Objects with no extensions set Extension Headers Length to 0.
 
 * The **SUBGROUP_ID_MODE** field (bits 1-2, mask 0x06) is a two-bit field that
   determines the encoding of the Subgroup ID. To extract this value, perform a
@@ -3629,7 +3626,7 @@ If the first Object in the FETCH response uses a flag that references fields in
 the prior Object, the Subscriber MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
-The Extensions structure is defined in {{object-extensions}}.
+The Object Extension Headers structure is defined in {{object-extension-headers}}.
 
 When encoding an Object with a Forwarding Preference of "Datagram" (see
 {{object-properties}}), the object has no Subgroup ID. The publisher MUST SET bit 0x40 to '1'.
@@ -3719,13 +3716,13 @@ The DELIVERY TIMEOUT extension (Extension Header Type 0x02) is a Track
 Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
 {{delivery-timeout}}).
 
-DELIVERY_TIMEOUT, if present, MUST contain a value greater than 0.  If an
-endpoint receives a DELIVERY_TIMEOUT equal to 0 it MUST close the session with
-`PROTOCOL_VIOLATION`.
+A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
+due to delivery timeout.
 
 If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the Track has
-a DELIVERY_TIMEOUT extension, the endpoints use the min of the two values for
-the subscription.
+a DELIVERY_TIMEOUT extension, the endpoints use the min of the two non-zero
+values for the subscription. If either value is 0, the non-zero value is used.
+If both are 0, there is no delivery timeout.
 
 If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
 specified a timeout, Objects do not time out.
@@ -3935,6 +3932,27 @@ Implementations are advised to use timeouts to prevent resource
 exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own timeouts.
 
+### Idle Connection Handling
+
+The transport connection (e.g., QUIC) underlying a MOQT session can close due to
+idle timeout if no data is exchanged, either because there are no established
+subscriptions or the established subscriptions are not publishing Objects
+frequently.  This includes publisher sessions that have issued a
+PUBLISH_NAMESPACE and are waiting for subscribers.
+
+Implementations that want to keep idle sessions open have several options:
+
+* Use transport-layer keep-alive mechanisms, such as QUIC PING frames, to
+  prevent idle timeout closure.
+
+* Send periodic control messages, for example REQUEST_UPDATE with no
+  modified Message Parameters.
+
+* Accept that idle connections can close and implement reconnection logic when
+  needed.
+
+The choice of mechanism is implementation-specific.
+
 ## Relay security considerations
 
 ### State maintenance
@@ -3963,8 +3981,8 @@ TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 TODO: fill out currently missing registries:
 
 * MOQT ALPN values
-* Setup parameters
-* Non-setup Parameters - List which params can be repeated in the table.
+* Setup Options
+* Message Parameters - List which params can be repeated in the table.
 * Message types
 * MOQ Extension headers - we wish to reserve extension types 0-63 for
   standards utilization where space is a premium, 64 - 16383 for
@@ -4109,6 +4127,12 @@ document:
 - Mike English
 - Mo Zanaty
 - Will Law
+
+# Use of Generative AI
+{:numbered="false"}
+
+Anthropic's Claude was used to assist with drafting and editing text for this
+document. All AI-generated content was reviewed and approved by the editors.
 
 --- back
 
