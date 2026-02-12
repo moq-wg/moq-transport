@@ -6813,10 +6813,8 @@ maintenance for the session to be excessive.<a href="#section-12.3.1-1" class="p
 <p id="section-12.3.2-1">A Relay can use authorization rules in order to prevent subscriptions closer
 to the root of a large prefix tree. Otherwise, if an entity sends a relay a
 SUBSCRIBE_NAMESPACE message with a short prefix, it can cause the relay to send
-a large volume of PUBLISH_NAMESPACE messages. As churn continues in the tree of
-prefixes, the relay would have to continue to send
-PUBLISH_NAMESPACE/PUBLISH_NAMESPACE_DONE messages to the entity that had sent
-the SUBSCRIBE_NAMESPACE.<a href="#section-12.3.2-1" class="pilcrow">¶</a></p>
+a large volume of NAMESPACE messages. As changes occur in the tree of namespaces,
+the relay would have to send matching NAMESPACE/NAMESPACE_DONE messages.<a href="#section-12.3.2-1" class="pilcrow">¶</a></p>
 <p id="section-12.3.2-2">TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter<a href="#section-12.3.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
