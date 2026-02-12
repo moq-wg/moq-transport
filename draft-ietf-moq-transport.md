@@ -948,9 +948,10 @@ MOQT enables proactively draining sessions via the GOAWAY message ({{message-goa
 The server sends a GOAWAY message, signaling the client to establish a new
 session and migrate any `Established` subscriptions. The GOAWAY message optionally
 contains a new URI for the new session, otherwise the current URI is
-reused. The server SHOULD close the session with `GOAWAY_TIMEOUT` after a
-sufficient timeout if there are still open subscriptions or fetches on a
-connection.
+reused. The GOAWAY message contains a Timeout indicating how long the server
+intends to wait before closing the session. The server SHOULD close the session
+with `GOAWAY_TIMEOUT` after the indicated timeout if there are still open
+subscriptions or fetches on a connection.
 
 When the server is a subscriber, it SHOULD send a GOAWAY message to downstream
 subscribers prior to any UNSUBSCRIBE messages to upstream publishers.
@@ -961,7 +962,8 @@ Ideally this is transparent to the application using MOQT, which involves
 establishing a new session in the background and migrating `Established` subscriptions
 and published namespaces. The client can choose to delay closing the session if
 it expects more OBJECTs to be delivered. The server closes the session with a
-`GOAWAY_TIMEOUT` if the client doesn't close the session quickly enough.
+`GOAWAY_TIMEOUT` if the client doesn't close the session within the
+indicated Timeout.
 
 ## Congestion Control
 
@@ -2251,6 +2253,7 @@ GOAWAY Message {
   Length (16),
   New Session URI Length (vi64),
   New Session URI (..),
+  Timeout (vi64),
 }
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
@@ -2265,6 +2268,13 @@ GOAWAY Message {
 
   If a server receives a GOAWAY with a non-zero New Session URI Length it MUST
   close the session with a `PROTOCOL_VIOLATION`.
+
+* Timeout: The time in milliseconds the sender will wait for the session to be
+  gracefully closed before closing the session with `GOAWAY_TIMEOUT`. A value of
+  0 indicates the sender has no specific timeout, and the recipient SHOULD still
+  close the session as quickly as possible. This is a hint; the sender of the
+  GOAWAY MAY close the session before the indicated timeout has elapsed for
+  implementation specific reasons.
 
 ## MAX_REQUEST_ID {#message-max-request-id}
 
