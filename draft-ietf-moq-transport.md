@@ -889,8 +889,7 @@ INVALID_REQUEST_ID (0x4):
 
 INVALID_REQUIRED_REQUEST_ID (0x7):
 : The endpoint received a Required Request ID that does not have the same
-  parity as the Request ID, or is greater than the Request ID. See
-  {{request-id}}.
+  parity as the Request ID, or is less than 0. See {{required-request-id}}.
 
 DUPLICATE_TRACK_ALIAS (0x5):
 : The endpoint attempted to use a Track Alias that was already in use.
