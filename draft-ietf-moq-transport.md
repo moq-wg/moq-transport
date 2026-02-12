@@ -887,6 +887,11 @@ INVALID_REQUEST_ID (0x4):
 : The endpoint received a Request ID with an incorrect least significant
   bit for the sender, or a duplicate Request ID. See {{request-id}}.
 
+INVALID_REQUIRED_REQUEST_ID (0x7):
+: The endpoint received a Required Request ID that does not have the same
+  parity as the Request ID, or is greater than the Request ID. See
+  {{request-id}}.
+
 DUPLICATE_TRACK_ALIAS (0x5):
 : The endpoint attempted to use a Track Alias that was already in use.
 
@@ -1784,6 +1789,16 @@ If an endpoint receives a Request ID where the least significant bit is
 incorrect for the sender, or a duplicate Request ID, it MUST close the
 session with `INVALID_REQUEST_ID`.
 
+Every request message includes a Required Request ID field.  The receiver MUST
+deliver the referenced request to the application before delivering this
+request.  Required Request ID MUST have the same parity (least significant bit)
+as Request ID.  A Required Request ID equal to the Request ID of the message
+containing it indicates no dependency.  Required Request ID MUST NOT be greater
+than the Request ID of the message containing it.  If an endpoint receives a
+Required Request ID that violates these constraints, it MUST close the session
+with `INVALID_REQUIRED_REQUEST_ID`.  If the required request does not arrive,
+the receiver will time out the dependent request.
+
 ## Parameters {#params}
 
 Some messages include a Parameters field that encodes optional message elements.
@@ -2393,6 +2408,7 @@ SUBSCRIBE Message {
   Type (vi64) = 0x3,
   Length (16),
   Request ID (vi64),
+  Required Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -2403,6 +2419,8 @@ SUBSCRIBE Message {
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
 
 * Request ID: See {{request-id}}.
+
+* Required Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies the namespace of the track as defined in
   ({{track-name}}).
@@ -2473,6 +2491,7 @@ REQUEST_UPDATE Message {
   Type (vi64) = 0x2,
   Length (16),
   Request ID (vi64),
+  Required Request ID (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -2480,6 +2499,8 @@ REQUEST_UPDATE Message {
 {: #moq-transport-request-update-format title="MOQT REQUEST_UPDATE Message"}
 
 * Request ID: See {{request-id}}.
+
+* Required Request ID: See {{request-id}}.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -2515,6 +2536,7 @@ PUBLISH Message {
   Type (vi64) = 0x1D,
   Length (16),
   Request ID (vi64),
+  Required Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -2527,6 +2549,8 @@ PUBLISH Message {
 {: #moq-transport-publish-format title="MOQT PUBLISH Message"}
 
 * Request ID: See {{request-id}}.
+
+* Required Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in ({{track-name}})
 
@@ -2790,6 +2814,7 @@ FETCH Message {
   Type (vi64) = 0x16,
   Length (16),
   Request ID (vi64),
+  Required Request ID (vi64),
   Fetch Type (vi64),
   [Standalone (Standalone Fetch),]
   [Joining (Joining Fetch),]
@@ -2800,6 +2825,8 @@ FETCH Message {
 {: #moq-transport-fetch-format title="MOQT FETCH Message"}
 
 * Request ID: See {{request-id}}.
+
+* Required Request ID: See {{request-id}}.
 
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
@@ -2941,6 +2968,7 @@ PUBLISH_NAMESPACE Message {
   Type (vi64) = 0x6,
   Length (16),
   Request ID (vi64),
+  Required Request ID (vi64),
   Track Namespace (..),
   Number of Parameters (vi64),
   Parameters (..) ...
@@ -2949,6 +2977,8 @@ PUBLISH_NAMESPACE Message {
 {: #moq-transport-pub-ns-format title="MOQT PUBLISH_NAMESPACE Message"}
 
 * Request ID: See {{request-id}}.
+
+* Required Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in
   {{track-name}}.
@@ -3009,6 +3039,7 @@ SUBSCRIBE_NAMESPACE Message {
   Type (vi64) = 0x11,
   Length (16),
   Request ID (vi64),
+  Required Request ID (vi64),
   Track Namespace Prefix (..),
   Subscribe Options (vi64),
   Number of Parameters (vi64),
@@ -3018,6 +3049,8 @@ SUBSCRIBE_NAMESPACE Message {
 {: #moq-transport-subscribe-ns-format title="MOQT SUBSCRIBE_NAMESPACE Message"}
 
 * Request ID: See {{request-id}}.
+
+* Required Request ID: See {{request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
   {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
@@ -3991,6 +4024,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | INVALID_REQUEST_ID         | 0x4  | {{session-termination}} |
 | DUPLICATE_TRACK_ALIAS      | 0x5  | {{session-termination}} |
 | KEY_VALUE_FORMATTING_ERROR | 0x6  | {{session-termination}} |
+| INVALID_REQUIRED_REQUEST_ID | 0x7 | {{session-termination}} |
 | INVALID_PATH               | 0x8  | {{session-termination}} |
 | MALFORMED_PATH             | 0x9  | {{session-termination}} |
 | GOAWAY_TIMEOUT             | 0x10 | {{session-termination}} |
