@@ -2437,7 +2437,7 @@ SUBSCRIBE_NAMESPACE in the same session.
 
 NAMESPACE_TOO_LARGE:
 : In response to SUBSCRIBE_NAMESPACE, the namespace prefix matches more
-publishers than the publisher is willing to enumerate.
+publishers than the relay is willing to enumerate.
 
 INVALID_JOINING_REQUEST_ID:
 : In response to a Joining FETCH, the referenced Request ID is not an
