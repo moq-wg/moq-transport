@@ -2013,11 +2013,11 @@ The relay MAY use a shorter timeout than requested by the subscriber. For
 example, a relay might limit the maximum rendezvous timeout to protect its
 resources.
 
-A value of 0 indicates the subscriber does not want to wait and expects
-an immediate response.
+A value of 0 indicates the subscriber does not want to wait and expects an
+immediate response.  The relay MUST immediately return REQUEST_ERROR with error
+code DOES_NOT_EXIST if no publisher is available
 
-If RENDEZVOUS_TIMEOUT is absent, the relay MUST immediately return
-REQUEST_ERROR with error code DOES_NOT_EXIST if no publisher is available.
+If RENDEZVOUS_TIMEOUT is absent, the default is 0.
 
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
