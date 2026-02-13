@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 14 August 2026                                    I. Swett, Ed.
+Expires: 17 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        10 February 2026
+                                                        13 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 August 2026.
+   This Internet-Draft will expire on 17 August 2026.
 
 Copyright Notice
 
@@ -979,8 +979,6 @@ Table of Contents
       negotiation fails, the connection fails; the client MUST NOT fall
       back to WebTransport.
 
-   TODO: consider fallback to QMUX
-
    moqt+wt:  The client MUST use WebTransport.  On a QUIC connection,
       the client offers h3 in its TLS ClientHello.  On a TCP+TLS
       connection, the client offers h2.  The client then establishes a
@@ -989,13 +987,12 @@ Table of Contents
 3.1.2.  WebTransport
 
    When the client uses WebTransport, it constructs an https URI from
-   the moqt URI by replacing the scheme with https and removing any
-   transport suffix (+q or +wt).  For example, moqt+wt://example.com/
-   path becomes https://example.com/path.  The client sends an extended
-   CONNECT request to this URI to establish a WebTransport session, as
-   described in ([WebTransport], Section 3).  The client includes MOQT
-   protocol identifiers in the WT-Available-Protocols header
-   ([WebTransport], Section 3.3).
+   the moqt URI by replacing the scheme with https.  For example,
+   moqt+wt://example.com/path becomes https://example.com/path.  The
+   client sends an extended CONNECT request to this URI to establish a
+   WebTransport session, as described in ([WebTransport], Section 3).
+   The client includes MOQT protocol identifiers in the WT-Available-
+   Protocols header ([WebTransport], Section 3.3).
 
 3.1.3.  Native QUIC
 
