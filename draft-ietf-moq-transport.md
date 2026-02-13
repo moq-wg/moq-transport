@@ -702,7 +702,7 @@ ways, for example:
 3. Use TRACK_STATUS or similar mechanism to query the previous state to
    determine the largest published Group ID.
 
-## Properties {#Properties}
+## Properties {#properties}
 
 Tracks and Objects can have additional relay-visible fields, known as
 Properties, which do not require negotiation, and can be used to alter
