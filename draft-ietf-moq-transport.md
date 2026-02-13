@@ -726,7 +726,7 @@ and/or cached by relays.
 
 Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
 
-Header types are registered in the IANA table 'MOQ Properties'.
+Property types are registered in the IANA table 'MOQ Properties'.
 See {{iana}}.
 
 # Sessions {#session}
@@ -3273,7 +3273,7 @@ An Object contains a range of contiguous bytes from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it.  Objects are sent by publishers.
 
-### Canonical Object Properties {#object-properties}
+### Object Header {#object-header}
 
 A canonical MoQ Object has the following information:
 
