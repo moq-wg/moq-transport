@@ -813,8 +813,6 @@ moqt+q:
   (e.g. `moqt/1`, `moqt/2`) in its TLS ClientHello. If ALPN negotiation
   fails, the connection fails; the client MUST NOT fall back to WebTransport.
 
-TODO: consider fallback to QMUX
-
 moqt+wt:
 : The client MUST use WebTransport. On a QUIC connection, the client offers
   `h3` in its TLS ClientHello. On a TCP+TLS connection, the client offers `h2`.
@@ -824,8 +822,8 @@ moqt+wt:
 ### WebTransport {#webtransport}
 
 When the client uses WebTransport, it constructs an `https` URI from the `moqt`
-URI by replacing the scheme with `https` and removing any transport suffix
-(`+q` or `+wt`).  For example, `moqt+wt://example.com/path` becomes
+URI by replacing the scheme with `https`.
+For example, `moqt+wt://example.com/path` becomes
 `https://example.com/path`. The client sends an extended CONNECT request to this
 URI to establish a WebTransport session, as described in
 ({{WebTransport, Section 3}}). The client includes MOQT protocol identifiers in
