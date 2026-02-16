@@ -2162,7 +2162,6 @@ configuration before any control messages are exchanged. The messages contain
 a sequence of key-value pairs called Setup Options; the semantics and format
 of which can vary based on whether the client or server is sending.  To ensure
 future extensibility of MOQT, endpoints MUST ignore unknown Setup Options.
-TODO: describe GREASE for Setup Options.
 
 The wire format of the Setup messages are as follows:
 
@@ -4224,7 +4223,7 @@ TODO: fill out currently missing registries:
   List which Properties can be repeated in the table.
 * MOQT Auth Token Type
 
-TODO: register the URI scheme and the ALPN and grease the Extension types
+TODO: register the URI scheme and the ALPN
 
 ## Authorization Token Alias Type
 
