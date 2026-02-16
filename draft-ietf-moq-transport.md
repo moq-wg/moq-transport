@@ -4191,7 +4191,7 @@ fail when encountering extensions they do not understand, this document
 reserves a range of values for "Generate Random Extensions And Sustain
 Extensibility" (GREASE) as defined in {{!RFC8701}}.
 
-GREASE values follow the pattern `0x1f * N + 0x21` for non-negative
+Grease values follow the pattern `0x1f * N + 0x21` for non-negative
 integer values of N, producing values: 0x21, 0x40, 0x5F, 0x7E, 0x9D,
 0xBC, 0xDB, 0xFA, 0x119, 0x138, ...
 
