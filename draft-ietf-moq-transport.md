@@ -4185,6 +4185,30 @@ the relay would have to send matching NAMESPACE/NAMESPACE_DONE messages.
 
 TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 
+# GREASE {#grease}
+
+To ensure that implementations correctly handle unknown values and do not
+fail when encountering extensions they do not understand, this document
+reserves a range of values for "Generate Random Extensions And Sustain
+Extensibility" (GREASE) as defined in {{!RFC8701}}.
+
+GREASE values follow the pattern `0x1f * N + 0x21` for non-negative
+integer values of N, producing values: 0x21, 0x40, 0x5F, 0x7E, 0x9D,
+0xBC, 0xDB, 0xFA, 0x119, 0x138, ...
+
+The following registries include GREASE reservations:
+
+- Extension Header Types ({{iana-extension-headers}})
+- Session Termination Error Codes ({{iana-session-termination}})
+- REQUEST_ERROR Codes ({{iana-request-error}})
+- PUBLISH_DONE Codes ({{iana-publish-done}})
+- Data Stream Reset Error Codes ({{iana-reset-stream}})
+- MOQT Auth Token Type
+
+Endpoints SHOULD periodically include GREASE values in messages to exercise
+these extension points. Implementations MUST handle unknown values from
+these registries gracefully according to the rules defined in each section.
+
 # IANA Considerations {#iana}
 
 TODO: fill out currently missing registries:
