@@ -4270,6 +4270,11 @@ the length field.
 
 ## Error Codes {#iana-error-codes}
 
+All error code registries defined in this section reserve values of the form
+`0x1f * N + 0x21` for GREASE ({{grease}}). Endpoints SHOULD periodically send
+these reserved error codes to ensure peers correctly handle unknown error codes.
+Endpoints receiving a GREASE error code MUST treat it as an unknown error code.
+
 ### Session Termination Error Codes {#iana-session-termination}
 
 | Name                       | Code | Specification           |
@@ -4295,6 +4300,7 @@ the length field.
 | EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
 | INVALID_AUTHORITY          | 0x19 | {{session-termination}} |
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination}} |
+| GREASE                     | 0x1f * N + 0x21 | {{grease}} |
 
 ### REQUEST_ERROR Codes {#iana-request-error}
 
@@ -4315,6 +4321,7 @@ the length field.
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| GREASE                     | 0x1f * N + 0x21 | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
@@ -4330,6 +4337,7 @@ the length field.
 | UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
 | EXCESSIVE_LOAD     | 0x9  | {{message-publish-done}} |
 | MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
+| GREASE             | 0x1f * N + 0x21 | {{grease}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
 
@@ -4343,6 +4351,7 @@ the length field.
 | TOO_FAR_BEHIND        | 0x5  | {{closing-subgroup-streams}} |
 | EXCESSIVE_LOAD        | 0x9  | {{closing-subgroup-streams}} |
 | MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
+| GREASE                | 0x1f * N + 0x21 | {{grease}} |
 
 # Contributors
 {:numbered="false"}
