@@ -4262,6 +4262,11 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
 | 0x3C | PRIOR_GROUP_ID_GAP | Object | {{prior-group-id-gap}} |
 | 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
+| 0x1f * N + 0x21 | GREASE | Any | {{grease}} |
+
+Endpoints SHOULD periodically include extension headers with GREASE types.
+Endpoints MUST ignore unknown extension header types, skipping them using
+the length field.
 
 ## Error Codes {#iana-error-codes}
 
