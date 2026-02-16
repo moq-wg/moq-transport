@@ -4496,8 +4496,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    Section 3.3 of [RFC9170].
 
    Grease values follow the pattern 0x1f * N + 0x21 for non-negative
-   integer values of N, producing values: 0x21, 0x40, 0x5F, 0x7E, 0x9D,
-   0xBC, 0xDB, 0xFA, 0x119, 0x138, ...
+   integer values of N (that is, 0x21, 0x40, ..., 0x3ffffffffffffffe).
 
    The following registries include GREASE reservations:
 
@@ -4513,10 +4512,8 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  MOQT Auth Token Type
 
-   Endpoints SHOULD periodically include GREASE values in messages to
-   exercise these extension points.  Implementations MUST handle unknown
-   values from these registries gracefully according to the rules
-   defined in each section.
+   Implementations MUST handle unknown values from these registries
+   gracefully according to the rules defined in each section.
 
 14.  IANA Considerations
 
@@ -4557,21 +4554,20 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 14.2.  MOQT Auth Token Type
 
-   Token Type values of the form 0x1f * N + 0x21 are reserved for GREASE
-   (Section 13).  Endpoints SHOULD periodically use GREASE Token Types
-   with arbitrary Token Values.  Endpoints receiving a GREASE Token Type
+   Token Type values of the form 0x1f * N + 0x21 are reserved for
+   greasing (Section 13).  Endpoints receiving a reserved Token Type
    MUST ignore the token and continue processing as if the token were
    not present, unless the token is required for authorization.
 
-             +=================+==========+=================+
-             |            Code | Name     | Specification   |
-             +=================+==========+=================+
-             |             0x0 | Reserved | Section 9.2.1.1 |
-             +-----------------+----------+-----------------+
-             | 0x1f * N + 0x21 | GREASE   | Section 13      |
-             +-----------------+----------+-----------------+
+       +=================+=======================+=================+
+       |            Code | Name                  | Specification   |
+       +=================+=======================+=================+
+       |             0x0 | Reserved              | Section 9.2.1.1 |
+       +-----------------+-----------------------+-----------------+
+       | 0x1f * N + 0x21 | Reserved for greasing | Section 13      |
+       +-----------------+-----------------------+-----------------+
 
-                                 Table 10
+                                  Table 10
 
 14.3.  Message Parameters
 
@@ -4621,24 +4617,22 @@ EXT 1 and EXT N can be modified or removed by Relays
    +----------+-------------------------------+--------+---------------+
    |     0x3E | PRIOR_OBJECT_ID_GAP           | Object | Section 11.8  |
    +----------+-------------------------------+--------+---------------+
-   |     0x1f | GREASE                        | Any    | Section 13    |
+   |     0x1f | Reserved for greasing         | Any    | Section 13    |
    |    * N + |                               |        |               |
    |     0x21 |                               |        |               |
    +----------+-------------------------------+--------+---------------+
 
                                   Table 12
 
-   Endpoints SHOULD periodically include extension headers with GREASE
-   types.  Endpoints MUST ignore unknown extension header types,
-   skipping them using the length field.
+   Endpoints MUST ignore unknown extension header types, skipping them
+   using the length field.
 
 14.5.  Error Codes
 
    All error code registries defined in this section reserve values of
-   the form 0x1f * N + 0x21 for GREASE (Section 13).  Endpoints SHOULD
-   periodically send these reserved error codes to ensure peers
-   correctly handle unknown error codes.  Endpoints receiving a GREASE
-   error code MUST treat it as an unknown error code.
+   the form 0x1f * N + 0x21 for greasing (Section 13).  Endpoints
+   receiving a reserved error code MUST treat it as an unknown error
+   code.
 
 14.5.1.  Session Termination Error Codes
 
@@ -4687,7 +4681,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      +----------------------------+-----------------+---------------+
      | MALFORMED_AUTHORITY        |       0x1A      | Section 3.4   |
      +----------------------------+-----------------+---------------+
-     | GREASE                     | 0x1f * N + 0x21 | Section 13    |
+     | Reserved for greasing      | 0x1f * N + 0x21 | Section 13    |
      +----------------------------+-----------------+---------------+
 
                                  Table 13
@@ -4725,38 +4719,38 @@ EXT 1 and EXT N can be modified or removed by Relays
      +----------------------------+-----------------+---------------+
      | INVALID_JOINING_REQUEST_ID |       0x32      | Section 9.8   |
      +----------------------------+-----------------+---------------+
-     | GREASE                     | 0x1f * N + 0x21 | Section 13    |
+     | Reserved for greasing      | 0x1f * N + 0x21 | Section 13    |
      +----------------------------+-----------------+---------------+
 
                                  Table 14
 
 14.5.3.  PUBLISH_DONE Codes
 
-         +====================+=================+===============+
-         | Name               |       Code      | Specification |
-         +====================+=================+===============+
-         | INTERNAL_ERROR     |       0x0       | Section 9.15  |
-         +--------------------+-----------------+---------------+
-         | UNAUTHORIZED       |       0x1       | Section 9.15  |
-         +--------------------+-----------------+---------------+
-         | TRACK_ENDED        |       0x2       | Section 9.15  |
-         +--------------------+-----------------+---------------+
-         | SUBSCRIPTION_ENDED |       0x3       | Section 9.15  |
-         +--------------------+-----------------+---------------+
-         | GOING_AWAY         |       0x4       | Section 9.15  |
-         +--------------------+-----------------+---------------+
-         | EXPIRED            |       0x5       | Section 9.15  |
-         +--------------------+-----------------+---------------+
-         | TOO_FAR_BEHIND     |       0x6       | Section 9.15  |
-         +--------------------+-----------------+---------------+
-         | UPDATE_FAILED      |       0x8       | Section 9.15  |
-         +--------------------+-----------------+---------------+
-         | MALFORMED_TRACK    |       0x12      | Section 9.15  |
-         +--------------------+-----------------+---------------+
-         | GREASE             | 0x1f * N + 0x21 | Section 13    |
-         +--------------------+-----------------+---------------+
+        +=======================+=================+===============+
+        | Name                  |       Code      | Specification |
+        +=======================+=================+===============+
+        | INTERNAL_ERROR        |       0x0       | Section 9.15  |
+        +-----------------------+-----------------+---------------+
+        | UNAUTHORIZED          |       0x1       | Section 9.15  |
+        +-----------------------+-----------------+---------------+
+        | TRACK_ENDED           |       0x2       | Section 9.15  |
+        +-----------------------+-----------------+---------------+
+        | SUBSCRIPTION_ENDED    |       0x3       | Section 9.15  |
+        +-----------------------+-----------------+---------------+
+        | GOING_AWAY            |       0x4       | Section 9.15  |
+        +-----------------------+-----------------+---------------+
+        | EXPIRED               |       0x5       | Section 9.15  |
+        +-----------------------+-----------------+---------------+
+        | TOO_FAR_BEHIND        |       0x6       | Section 9.15  |
+        +-----------------------+-----------------+---------------+
+        | UPDATE_FAILED         |       0x8       | Section 9.15  |
+        +-----------------------+-----------------+---------------+
+        | MALFORMED_TRACK       |       0x12      | Section 9.15  |
+        +-----------------------+-----------------+---------------+
+        | Reserved for greasing | 0x1f * N + 0x21 | Section 13    |
+        +-----------------------+-----------------+---------------+
 
-                                 Table 15
+                                  Table 15
 
 14.5.4.  Data Stream Reset Error Codes
 
@@ -4777,7 +4771,7 @@ EXT 1 and EXT N can be modified or removed by Relays
        +-----------------------+-----------------+----------------+
        | MALFORMED_TRACK       |       0x12      | Section 10.4.3 |
        +-----------------------+-----------------+----------------+
-       | GREASE                | 0x1f * N + 0x21 | Section 13     |
+       | Reserved for greasing | 0x1f * N + 0x21 | Section 13     |
        +-----------------------+-----------------+----------------+
 
                                  Table 16
