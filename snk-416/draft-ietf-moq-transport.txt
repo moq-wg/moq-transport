@@ -4492,10 +4492,10 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    To ensure that implementations correctly handle unknown values and do
    not fail when encountering extensions they do not understand, this
-   document reserves a range of values for "Generate Random Extensions
-   And Sustain Extensibility" (GREASE) as defined in [RFC8701].
+   document reserves a range of values for the purpose of greasing; see
+   Section 3.3 of [RFC9170].
 
-   GREASE values follow the pattern 0x1f * N + 0x21 for non-negative
+   Grease values follow the pattern 0x1f * N + 0x21 for non-negative
    integer values of N, producing values: 0x21, 0x40, 0x5F, 0x7E, 0x9D,
    0xBC, 0xDB, 0xFA, 0x119, 0x138, ...
 
@@ -4868,11 +4868,6 @@ Normative References
               (URIs)", RFC 8615, DOI 10.17487/RFC8615, May 2019,
               <https://www.rfc-editor.org/rfc/rfc8615>.
 
-   [RFC8701]  Benjamin, D., "Applying Generate Random Extensions And
-              Sustain Extensibility (GREASE) to TLS Extensibility",
-              RFC 8701, DOI 10.17487/RFC8701, January 2020,
-              <https://www.rfc-editor.org/rfc/rfc8701>.
-
    [RFC9110]  Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
               Ed., "HTTP Semantics", STD 97, RFC 9110,
               DOI 10.17487/RFC9110, June 2022,
@@ -4930,6 +4925,10 @@ Informative References
               Multiplexed and Secure Transport", RFC 9000,
               DOI 10.17487/RFC9000, May 2021,
               <https://www.rfc-editor.org/rfc/rfc9000>.
+
+   [RFC9170]  Thomson, M. and T. Pauly, "Long-Term Viability of Protocol
+              Extension Mechanisms", RFC 9170, DOI 10.17487/RFC9170,
+              December 2021, <https://www.rfc-editor.org/rfc/rfc9170>.
 
    [RFC9438]  Xu, L., Ha, S., Rhee, I., Goel, V., and L. Eggert, Ed.,
               "CUBIC for Fast and Long-Distance Networks", RFC 9438,

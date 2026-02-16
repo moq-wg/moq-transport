@@ -6834,9 +6834,8 @@ the relay would have to send matching NAMESPACE/NAMESPACE_DONE messages.<a href=
       </h2>
 <p id="section-13-1">To ensure that implementations correctly handle unknown values and do not
 fail when encountering extensions they do not understand, this document
-reserves a range of values for "Generate Random Extensions And Sustain
-Extensibility" (GREASE) as defined in <span>[<a href="#RFC8701" class="cite xref">RFC8701</a>]</span>.<a href="#section-13-1" class="pilcrow">¶</a></p>
-<p id="section-13-2">GREASE values follow the pattern <code>0x1f * N + 0x21</code> for non-negative
+reserves a range of values for the purpose of greasing; see <span><a href="https://rfc-editor.org/rfc/rfc9170#section-3.3" class="relref">Section 3.3</a> of [<a href="#RFC9170" class="cite xref">RFC9170</a>]</span>.<a href="#section-13-1" class="pilcrow">¶</a></p>
+<p id="section-13-2">Grease values follow the pattern <code>0x1f * N + 0x21</code> for non-negative
 integer values of N, producing values: 0x21, 0x40, 0x5F, 0x7E, 0x9D,
 0xBC, 0xDB, 0xFA, 0x119, 0x138, ...<a href="#section-13-2" class="pilcrow">¶</a></p>
 <p id="section-13-3">The following registries include GREASE reservations:<a href="#section-13-3" class="pilcrow">¶</a></p>
@@ -7735,10 +7734,6 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
         <dd>
 <span class="refAuthor">Nottingham, M.</span>, <span class="refTitle">"Well-Known Uniform Resource Identifiers (URIs)"</span>, <span class="seriesInfo">RFC 8615</span>, <span class="seriesInfo">DOI 10.17487/RFC8615</span>, <time datetime="2019-05" class="refDate">May 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8615">https://www.rfc-editor.org/rfc/rfc8615</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="RFC8701">[RFC8701]</dt>
-        <dd>
-<span class="refAuthor">Benjamin, D.</span>, <span class="refTitle">"Applying Generate Random Extensions And Sustain Extensibility (GREASE) to TLS Extensibility"</span>, <span class="seriesInfo">RFC 8701</span>, <span class="seriesInfo">DOI 10.17487/RFC8701</span>, <time datetime="2020-01" class="refDate">January 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8701">https://www.rfc-editor.org/rfc/rfc8701</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="RFC9110">[RFC9110]</dt>
         <dd>
 <span class="refAuthor">Fielding, R., Ed.</span>, <span class="refAuthor">Nottingham, M., Ed.</span>, and <span class="refAuthor">J. Reschke, Ed.</span>, <span class="refTitle">"HTTP Semantics"</span>, <span class="seriesInfo">STD 97</span>, <span class="seriesInfo">RFC 9110</span>, <span class="seriesInfo">DOI 10.17487/RFC9110</span>, <time datetime="2022-06" class="refDate">June 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9110">https://www.rfc-editor.org/rfc/rfc9110</a>&gt;</span>. </dd>
@@ -7783,6 +7778,10 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dt id="RFC9000">[RFC9000]</dt>
         <dd>
 <span class="refAuthor">Iyengar, J., Ed.</span> and <span class="refAuthor">M. Thomson, Ed.</span>, <span class="refTitle">"QUIC: A UDP-Based Multiplexed and Secure Transport"</span>, <span class="seriesInfo">RFC 9000</span>, <span class="seriesInfo">DOI 10.17487/RFC9000</span>, <time datetime="2021-05" class="refDate">May 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9000">https://www.rfc-editor.org/rfc/rfc9000</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9170">[RFC9170]</dt>
+        <dd>
+<span class="refAuthor">Thomson, M.</span> and <span class="refAuthor">T. Pauly</span>, <span class="refTitle">"Long-Term Viability of Protocol Extension Mechanisms"</span>, <span class="seriesInfo">RFC 9170</span>, <span class="seriesInfo">DOI 10.17487/RFC9170</span>, <time datetime="2021-12" class="refDate">December 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9170">https://www.rfc-editor.org/rfc/rfc9170</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9438">[RFC9438]</dt>
       <dd>
