@@ -830,7 +830,8 @@ URI to establish a WebTransport session, as described in
 the WT-Available-Protocols header ({{WebTransport, Section 3.3}}).
 
 ### Native QUIC {#native-quic}
-
+The client establishes a QUIC connection to the host and port identified by the
+`authority` section of the URI.
 When the client uses native QUIC, the `authority`, `path-abempty` and `query`
 portions of the URI are transmitted in SETUP parameters (see {{setup-params}}).
 
@@ -4119,7 +4120,7 @@ Scheme name: moqt
 Status: Permanent
 
 Applications/protocols that use this scheme name: Media over QUIC Transport
-(MOQT), as defined in this document.
+(MOQT) over native QUIC or WebTransport, as defined in this document.
 
 Contact: IETF MoQ Working Group (moq@ietf.org)
 
