@@ -4235,6 +4235,19 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x2  | USE_ALIAS  | {{authorization-token}}
 | 0x3  | USE_VALUE  | {{authorization-token}}
 
+## MOQT Auth Token Type {#iana-auth-token-type}
+
+Token Type values of the form `0x1f * N + 0x21` are reserved for GREASE
+({{grease}}). Endpoints SHOULD periodically use GREASE Token Types with
+arbitrary Token Values. Endpoints receiving a GREASE Token Type MUST ignore
+the token and continue processing as if the token were not present, unless
+the token is required for authorization.
+
+| Code | Name       | Specification |
+|-----:|:-----------|:--------------|
+| 0x0  | Reserved   | {{authorization-token}} |
+| 0x1f * N + 0x21 | GREASE | {{grease}} |
+
 ## Message Parameters
 
 | Parameter Type | Parameter Name | Specification |
