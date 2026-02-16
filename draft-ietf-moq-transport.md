@@ -4188,8 +4188,7 @@ TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 
 To ensure that implementations correctly handle unknown values and do not
 fail when encountering extensions they do not understand, this document
-reserves a range of values for "Generate Random Extensions And Sustain
-Extensibility" (GREASE) as defined in {{!RFC8701}}.
+reserves a range of values for the purpose of greasing; see {{Section 3.3 of ?RFC9170}}.
 
 Grease values follow the pattern `0x1f * N + 0x21` for non-negative
 integer values of N, producing values: 0x21, 0x40, 0x5F, 0x7E, 0x9D,
