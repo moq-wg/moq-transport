@@ -4303,7 +4303,7 @@ Table of Contents
 
 11.6.  Immutable Properties
 
-   Immutable Extensions (Property Type 0xB) contains a sequence of Key-
+   Immutable Properties (Property Type 0xB) contain a sequence of Key-
    Value-Pairs (see Figure 2) which are also Track or Object Properties.
 
    Immutable Extensions {
