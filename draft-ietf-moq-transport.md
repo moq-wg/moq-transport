@@ -1672,8 +1672,8 @@ allowed by the property's specification (see {{properties}}).
 
 ## Relay Object Handling
 
-MOQT encodes the delivery information via Object properties ({{message-object}}).
-A relay MUST NOT modify Object properties when forwarding, except for
+MOQT encodes the delivery information in the Object header ({{object-header}}).
+A relay MUST NOT modify Object fields when forwarding, except for
 Object Properties as specified in {{properties}}.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
@@ -1806,8 +1806,8 @@ uniqueness guarantee described in {{track-scope}}.
 
 Message Parameters are always intended for the peer endpoint only and are not
 forwarded by Relays, though relays can consider received parameter values when
-making a request.  Any Track metadata sent by the publisher that is forwarded to
-subscribers is sent as Track Properties.
+making a request. Track information not specific to the Message or Session
+is encoded in Track Properties. See {{properties}}.
 
 Each Message Parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it MUST be ignored.
@@ -3307,7 +3307,7 @@ cache, and forward it.  Objects are sent by publishers.
 
 ### Object Header {#object-header}
 
-A canonical MoQ Object has the following information:
+A canonical MoQ Object has the following fields:
 
 * Track Namespace and Track Name: The track this object belongs to.
 
@@ -3366,7 +3366,7 @@ Any object with a status code other than zero MUST have an empty payload.
 #### Object Properties {#object-properties}
 
 Any Object with status Normal can have properties ({{properties}}).
-If an endpoint receives properties on Objects with status that is
+If an endpoint receives properties on an Object with status that is
 not Normal, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 Object Properties are visible to relays and are intended to be relevant
