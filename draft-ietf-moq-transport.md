@@ -3956,17 +3956,17 @@ Immutable Extensions {
 }
 ~~~
 
-This extension can be added by the Original Publisher, but MUST NOT be added by
-Relays. This extension MUST NOT be modified or removed and the serialization
+This Property can be added by the Original Publisher, but MUST NOT be added by
+Relays. This Property MUST NOT be modified or removed and the serialization
 (e.g. variable-length integer encodings) of the Key-Value-Pairs MUST NOT
-change). Relays MUST cache this extension if the Object is cached and MUST
-forward this extension if the enclosing Object is forwarded. Relays MAY decode
-and view these extensions.
+change). Like other Properties, Relays MUST cache Immutable Extensions if the
+Object or Track are cached and MUST forward it. Relays MAY decode and view
+the Properties in the Key-Value-Pairs.
 
 Unless specified by a particular Property specification, Properties
 MAY appear either in the mutable extension list or
-inside Immutable Extensions. When looking for the value of an extension,
-processors MUST search both the mutable extension list and the contents of
+inside Immutable Extensions. When looking for the value of a property,
+processors MUST search both the mutable properties and the contents of
 Immutable Extensions.
 
 If an Property allows multiple values, the same Property Type
