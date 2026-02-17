@@ -3798,7 +3798,7 @@ When encoding an Object with a Forwarding Preference of "Datagram" (see
 When 0x40 is set, it SHOULD set the two least significant bits to zero and the subscriber
 MUST ignore the bits.
 
-#### End of Range
+#### End of Range {#end-of-range}
 
 When Serialization Flags indicates an End of Range (e.g. values 0x8C or 0x10C),
 the Group ID and Object ID fields are present.  Subgroup ID, Priority and
@@ -3808,6 +3808,17 @@ serialized Object, if any, and this Location, inclusive, either do not exist
 NOT use `End of Non-Existent Range` in a FETCH response except to split a range
 of Objects that will not be serialized into those that are known not to exist
 and those with unknown status.
+
+When an Object follows an End of Range indicator and uses flags that reference
+the "prior Object", the prior Object fields are determined as follows:
+
+* Prior Group ID and prior Object ID: The values from the End of Range indicator.
+* Prior Subgroup ID: The Subgroup ID from the last actual Object before the
+  End of Range indicator. If there was no prior Object, using a flag that
+  references the prior Subgroup ID is a `PROTOCOL_VIOLATION`.
+* Prior Priority: The Priority from the last actual Object before the End of
+  Range indicator. If there was no prior Object, using a flag that references
+  the prior Priority is a `PROTOCOL_VIOLATION`.
 
 ## Examples
 
