@@ -1983,6 +1983,32 @@ successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
 any other relevant information.
 
+#### RENDEZVOUS TIMEOUT Parameter {#rendezvous-timeout}
+
+The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) MAY appear in a
+SUBSCRIBE message.
+
+It is the duration in milliseconds the subscriber is willing to wait for a
+publisher to become available. This applies when a relay receives a SUBSCRIBE
+for a Track that has no current publisher.
+
+If the RENDEZVOUS_TIMEOUT is present, the relay SHOULD hold the subscription
+and wait for a publisher to appear, up to the specified duration. The relay
+does not send SUBSCRIBE_OK until a publisher becomes available. If a publisher
+becomes available within this time, the relay proceeds with the subscription
+normally. If the timeout expires without a publisher, the relay SHOULD respond
+with REQUEST_ERROR with error code TIMEOUT.
+
+The relay MAY use a shorter timeout than requested by the subscriber. For
+example, a relay might limit the maximum rendezvous timeout to protect its
+resources.
+
+A value of 0 indicates the subscriber does not want to wait and expects an
+immediate response.  The relay MUST immediately return REQUEST_ERROR with error
+code DOES_NOT_EXIST if no publisher is available
+
+If RENDEZVOUS_TIMEOUT is absent, the default is 0.
+
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
@@ -2405,6 +2431,10 @@ EXPIRED_AUTH_TOKEN:
 GOING_AWAY:
 : The endpoint has received a GOAWAY and MAY reject new requests.
 
+EXCESSIVE_LOAD:
+: The responder is overloaded and cannot process the request at this time. The
+sender SHOULD use the Retry Interval to indicate when the request can be retried.
+
 DUPLICATE_SUBSCRIPTION (0x19):
 : The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
 with the same role as an existing subscription.
@@ -2771,6 +2801,9 @@ MALFORMED_TRACK (0x12):
 UPDATE_FAILED (0x8):
 : REQUEST_UPDATE failed on this subscription (see
   {{message-request-update}}).
+
+EXCESSIVE_LOAD (0x9):
+: The publisher is overloaded and is terminating the subscription.
 
 ## FETCH {#message-fetch}
 
@@ -3682,6 +3715,9 @@ TOO_FAR_BEHIND (0x5):
 : The corresponding subscription has exceeded the publisher's resource limits and
 is being terminated (see {{delivery-timeout}}).
 
+EXCESSIVE_LOAD (0x9):
+: The publisher is overloaded and is resetting this stream.
+
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
@@ -4135,6 +4171,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 |----------------|----------------|---------------|
 | 0x02 | DELIVERY_TIMEOUT | {{delivery-timeout}} |
 | 0x03 | AUTHORIZATION_TOKEN | {{authorization-token}} |
+| 0x04 | RENDEZVOUS_TIMEOUT | {{rendezvous-timeout}} |
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
@@ -4195,6 +4232,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | MALFORMED_AUTH_TOKEN       | 0x4  | {{message-request-error}} |
 | EXPIRED_AUTH_TOKEN         | 0x5  | {{message-request-error}} |
 | GOING_AWAY                 | 0x6  | {{message-request-error}} |
+| EXCESSIVE_LOAD             | 0x9  | {{message-request-error}} |
 | DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
 | INVALID_RANGE              | 0x11 | {{message-request-error}} |
 | MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
@@ -4215,6 +4253,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | EXPIRED            | 0x5  | {{message-publish-done}} |
 | TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
 | UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
+| EXCESSIVE_LOAD     | 0x9  | {{message-publish-done}} |
 | MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
@@ -4227,6 +4266,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | SESSION_CLOSED        | 0x3  | {{closing-subgroup-streams}} |
 | UNKNOWN_OBJECT_STATUS | 0x4  | {{closing-subgroup-streams}} |
 | TOO_FAR_BEHIND        | 0x5  | {{closing-subgroup-streams}} |
+| EXCESSIVE_LOAD        | 0x9  | {{closing-subgroup-streams}} |
 | MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
 
 # Contributors
