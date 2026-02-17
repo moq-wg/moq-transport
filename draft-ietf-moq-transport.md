@@ -3847,7 +3847,7 @@ relays. This extension MUST NOT be modified or removed.
 # Security Considerations {#security}
 
 MOQT is a protocol used hop-by-hop in a chain between original
-publishers to relay, relay to relay, and relay to end
+publishers to relay, (possibly) relay to relay, and relay to end
 subscribers. Thus, the security consideration need to consider first
 what happens between two nodes, but also consider the impacts end to
 end over several hops of MOQT.
