@@ -180,7 +180,7 @@ Table of Contents
        10.4.3.  Closing Subgroup Streams
        10.4.4.  Fetch Header
      10.5.  Examples
-   11. Properties
+   11. MOQT Properties
      11.1.  DELIVERY TIMEOUT
      11.2.  MAX CACHE DURATION
      11.3.  DEFAULT PUBLISHER PRIORITY
@@ -4226,7 +4226,7 @@ Table of Contents
      Payload = "efgh"
    }
 
-11.  Properties
+11.  MOQT Properties
 
    The following Properties are defined in MOQT.  Each Property
    specifies whether it can be used with Tracks, Objects, or both.
