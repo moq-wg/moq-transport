@@ -3876,8 +3876,8 @@ specifies whether it can be used with Tracks, Objects, or both.
 
 ## DELIVERY TIMEOUT {#delivery-timeout-ext}
 
-The DELIVERY TIMEOUT property (Property Type 0x02) is a Track
-Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
+DELIVERY TIMEOUT (Property Type 0x02) is a Track Property.
+It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
 {{delivery-timeout}}).
 
 A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
@@ -3893,7 +3893,7 @@ specified a timeout, Objects do not time out.
 
 ## MAX CACHE DURATION {#max-cache-duration}
 
-The MAX_CACHE_DURATION extension (Property Type 0x04) is a Track Extension.
+MAX_CACHE_DURATION (Property Type 0x04) is a Track Property.
 
 It is an integer expressing
 the number of milliseconds an Object can be served from a cache. If present, the
@@ -3904,24 +3904,23 @@ multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
 handles a downstream request that includes those Objects re-requests them.
 
-If the MAX_CACHE_DURATION extension is not sent by the publisher, the Objects
+If MAX_CACHE_DURATION is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
 
 ## DEFAULT PUBLISHER PRIORITY {#publisher-priority}
 
-The DEFAULT PUBLISHER PRIORITY extension (Property Type 0x0E) is a Track
-Extension that specifies the priority of
-a subscription relative to other subscriptions in the same session.  The value
-is from 0 to 255 and lower numbers get higher priority.  See
-{{priorities}}. Priorities above 255 are invalid. Subgroups and Datagrams for this
-subscription inherit this priority, unless they specifically override it.
+DEFAULT PUBLISHER PRIORITY (Property Type 0x0E) is a Track Property
+that specifies the priority of a subscription relative to other subscriptions
+in the same session.  The value is from 0 to 255 and lower numbers get higher
+priority.  See {{priorities}}. Priorities above 255 are invalid. Subgroups and
+Datagrams for this subscription inherit this priority, unless they specifically
+override it.
 
-A subscription has Publisher Priorty 128 if this extension is omitted.
+If omitted, the Default Publisher Priority is 128.
 
 ## DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
 
-The DEFAULT_PUBLISHER_GROUP_ORDER extension (Property Type 0x22) is a
-Track Extension.
+DEFAULT_PUBLISHER_GROUP_ORDER (Property Type 0x22) is a Track Property.
 
 It is an enum indicating the publisher's preference for prioritizing Objects
 from different groups within the
@@ -3933,7 +3932,7 @@ If omitted, the publisher's preference is Ascending (0x1).
 
 ## DYNAMIC GROUPS {#dynamic-groups}
 
-The DYNAMIC_GROUPS Extension (Property Type 0x30) is a Track Extension.
+DYNAMIC_GROUPS (Property Type 0x30) is a Track Property.
 The allowed values are 0 or 1. When the value is 1, it indicates
 that the subscriber can request the Original Publisher to start a new Group
 by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
@@ -4021,13 +4020,13 @@ the following conditions are detected:
  * An endpoint receives an Object with a Group ID within a previously
    communicated gap.
 
-This extension is optional, as publishers might not know the prior gap gize, or
-there may not be a gap. If Prior Group ID Gap is not present, the receiver
+Use of this property is optional, as publishers might not know the prior gap gize,
+or there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
 {{group-ids}}).
 
-This extension can be added by the Original Publisher, but MUST NOT be added by
-relays. This extension MAY be removed by relay when the object in question is
+This property can be added by the Original Publisher, but MUST NOT be added by
+relays. This property MAY be removed by a relay when the object in question is
 served via FETCH, and the gap that the extension communicates is already
 communicated implicitly in the FETCH response; it MUST NOT be modified or
 removed otherwise.
@@ -4052,13 +4051,13 @@ can include Prior Object ID Gap = 2.  A Track is considered malformed (see
  * An endpoint receives an Object with an Object ID within a previously
    communicated gap.
 
-This extension is optional, as publishers might not know the prior gap gize, or
-there may not be a gap. If Prior Object ID Gap is not present, the receiver
+Use of this property is optional, as publishers might not know the prior gap gize,
+or there might not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
 {{model-object}}).
 
-This extension can be added by the Original Publisher, but MUST NOT be added by
-relays. This extension MAY be removed by relay when the object in question is
+This property can be added by the Original Publisher, but MUST NOT be added by
+relays. This property MAY be removed by a relay when the object in question is
 served via FETCH, and the gap that the extension communicates is already
 communicated implicitly in the FETCH response; it MUST NOT be modified or
 removed otherwise.
