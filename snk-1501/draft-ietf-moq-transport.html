@@ -1597,9 +1597,6 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 </li>
                 </ul>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.4">
-                <p id="section-toc.1-1.12.2.4.1"><a href="#section-12.4" class="auto internal xref">12.4</a>.  <a href="#name-implementation-identificati" class="internal xref">Implementation Identification Fingerprinting</a></p>
-</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
@@ -4371,18 +4368,6 @@ version of the sender's MOQT implementation.  This <span class="bcp14">SHOULD</s
 string <span>[<a href="#RFC3629" class="cite xref">RFC3629</a>]</span>, though the message does not carry information, such as
 language tags, that would aid comprehension by any entity other than the one
 that created the text.<a href="#section-9.3.1.6-1" class="pilcrow">¶</a></p>
-<p id="section-9.3.1.6-2">An endpoint <span class="bcp14">SHOULD</span> send a MOQT_IMPLEMENTATION option unless specifically
-configured not to do so. The option is often used to help identify the scope
-of reported interoperability problems, to work around particular implementation
-limitations, and for analytics regarding implementation usage.<a href="#section-9.3.1.6-2" class="pilcrow">¶</a></p>
-<p id="section-9.3.1.6-3">Senders <span class="bcp14">SHOULD</span> limit the information in MOQT_IMPLEMENTATION to what is
-necessary for identification. Implementations <span class="bcp14">SHOULD NOT</span> generate advertising
-or other nonessential information within the value. Senders <span class="bcp14">SHOULD NOT</span> include
-information beyond the actual implementation name and version number.<a href="#section-9.3.1.6-3" class="pilcrow">¶</a></p>
-<p id="section-9.3.1.6-4">Implementations <span class="bcp14">SHOULD NOT</span> use the implementation identifiers of other
-implementations in order to declare compatibility with them, as this practice
-undermines the usefulness of implementation identification for debugging and
-interoperability analysis.<a href="#section-9.3.1.6-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -6906,47 +6891,9 @@ to the root of a large prefix tree. Otherwise, if an entity sends a relay a
 SUBSCRIBE_NAMESPACE message with a short prefix, it can cause the relay to send
 a large volume of NAMESPACE messages. As changes occur in the tree of namespaces,
 the relay would have to send matching NAMESPACE/NAMESPACE_DONE messages.<a href="#section-12.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-12.3.2-2">TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter<a href="#section-12.3.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-</section>
-</div>
-<div id="impl-fingerprinting">
-<section id="section-12.4">
-        <h3 id="name-implementation-identificati">
-<a href="#section-12.4" class="section-number selfRef">12.4. </a><a href="#name-implementation-identificati" class="section-name selfRef">Implementation Identification Fingerprinting</a>
-        </h3>
-<p id="section-12.4-1">The MOQT_IMPLEMENTATION option (<a href="#moqt-implementation" class="auto internal xref">Section 9.3.1.6</a>) can reveal information
-that contributes to fingerprinting, a set of techniques for identifying a
-specific endpoint over time through its unique set of characteristics.<a href="#section-12.4-1" class="pilcrow">¶</a></p>
-<p id="section-12.4-2">Detailed implementation information, including specific version numbers,
-build identifiers, or platform details, can create a unique fingerprint that
-enables tracking endpoints across sessions without their awareness. When
-combined with other session characteristics, even minimal implementation
-identification can contribute to distinguishing one endpoint from another.<a href="#section-12.4-2" class="pilcrow">¶</a></p>
-<p id="section-12.4-3">To mitigate fingerprinting risks:<a href="#section-12.4-3" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-12.4-4.1">
-            <p id="section-12.4-4.1.1">Implementations <span class="bcp14">SHOULD</span> send only the minimum information necessary for
-interoperability debugging. A short implementation name and major version
-number are typically sufficient.<a href="#section-12.4-4.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-12.4-4.2">
-            <p id="section-12.4-4.2.1">Implementations <span class="bcp14">SHOULD NOT</span> include detailed system information, build
-numbers, or other attributes that could uniquely identify a specific
-instance or user.<a href="#section-12.4-4.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-12.4-4.3">
-            <p id="section-12.4-4.3.1">Privacy-conscious deployments <span class="bcp14">MAY</span> omit the MOQT_IMPLEMENTATION option
-entirely or send a generic value.<a href="#section-12.4-4.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-12.4-4.4">
-            <p id="section-12.4-4.4.1">Implementations <span class="bcp14">MAY</span> provide users with the ability to configure or disable
-the MOQT_IMPLEMENTATION option.<a href="#section-12.4-4.4.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-12.4-5">Operators should be aware that detailed implementation identification
-facilitates the same privacy concerns as persistent identifiers, since it
-enables correlation of sessions across time.<a href="#section-12.4-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
