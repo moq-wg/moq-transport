@@ -2548,12 +2548,12 @@ MoQT Object distribution.<a href="#section-2.5-1" class="pilcrow">¶</a></p>
 specifications and are registered in an IANA table <a href="#iana" class="auto internal xref">Section 13</a>. These
 specifications define the type and value of the property, along with any rules
 concerning processing, modification, caching and forwarding.<a href="#section-2.5-2" class="pilcrow">¶</a></p>
-<p id="section-2.5-3">If unsupported by the relay, Properties <span class="bcp14">MUST NOT</span> be modified, <span class="bcp14">MUST</span> be
-cached as part of the Track or Object and <span class="bcp14">MUST</span> be forwarded by relays.  If a
-Track or Object arrives with a different set of unknown properties than
-previously cached, the most recent set <span class="bcp14">SHOULD</span> replace any cached values,
-removing any unknown values not present in the new set.  Relays <span class="bcp14">MUST NOT</span> attempt
-to merge sets of unknown properties received in different messages.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
+<p id="section-2.5-3">If a Relay does not support a Property, it <span class="bcp14">MUST NOT</span> be modified, <span class="bcp14">MUST</span> be
+forwarded, and <span class="bcp14">MUST</span> be cached with the Track or Object.  If a Track or Object
+arrives with a different set of unknown properties than previously cached,
+the most recent set <span class="bcp14">SHOULD</span> replace any cached values, removing any unknown
+values not present in the new set.  Relays <span class="bcp14">MUST NOT</span> attempt to merge sets
+of unknown properties received in different messages.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
 <p id="section-2.5-4">If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Properties <span class="bcp14">MAY</span> be modified, added, removed,
 and/or cached by relays.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
