@@ -2506,21 +2506,15 @@ Table of Contents
    any entity other than the one that created the text.
 
    An endpoint SHOULD send a MOQT_IMPLEMENTATION option unless
-   specifically configured not to do so.  The option is often used to
-   help identify the scope of reported interoperability problems, to
-   work around particular implementation limitations, and for analytics
-   regarding implementation usage.
+   specifically configured not to do so.  This option helps identify the
+   scope of interoperability problems and work around implementation-
+   specific limitations.
 
-   Senders SHOULD limit the information in MOQT_IMPLEMENTATION to what
-   is necessary for identification.  Implementations SHOULD NOT generate
-   advertising or other nonessential information within the value.
-   Senders SHOULD NOT include information beyond the actual
-   implementation name and version number.
-
-   Implementations SHOULD NOT use the implementation identifiers of
-   other implementations in order to declare compatibility with them, as
-   this practice undermines the usefulness of implementation
-   identification for debugging and interoperability analysis.
+   Senders SHOULD limit the value to the implementation name and
+   version, avoiding advertising or other nonessential information.
+   Implementations SHOULD NOT use the identifiers of other
+   implementations to declare compatibility, as this undermines the
+   usefulness of implementation identification for debugging.
 
 9.4.  GOAWAY
 

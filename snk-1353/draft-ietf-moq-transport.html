@@ -4336,17 +4336,12 @@ string <span>[<a href="#RFC3629" class="cite xref">RFC3629</a>]</span>, though t
 language tags, that would aid comprehension by any entity other than the one
 that created the text.<a href="#section-9.3.1.6-1" class="pilcrow">¶</a></p>
 <p id="section-9.3.1.6-2">An endpoint <span class="bcp14">SHOULD</span> send a MOQT_IMPLEMENTATION option unless specifically
-configured not to do so. The option is often used to help identify the scope
-of reported interoperability problems, to work around particular implementation
-limitations, and for analytics regarding implementation usage.<a href="#section-9.3.1.6-2" class="pilcrow">¶</a></p>
-<p id="section-9.3.1.6-3">Senders <span class="bcp14">SHOULD</span> limit the information in MOQT_IMPLEMENTATION to what is
-necessary for identification. Implementations <span class="bcp14">SHOULD NOT</span> generate advertising
-or other nonessential information within the value. Senders <span class="bcp14">SHOULD NOT</span> include
-information beyond the actual implementation name and version number.<a href="#section-9.3.1.6-3" class="pilcrow">¶</a></p>
-<p id="section-9.3.1.6-4">Implementations <span class="bcp14">SHOULD NOT</span> use the implementation identifiers of other
-implementations in order to declare compatibility with them, as this practice
-undermines the usefulness of implementation identification for debugging and
-interoperability analysis.<a href="#section-9.3.1.6-4" class="pilcrow">¶</a></p>
+configured not to do so. This option helps identify the scope of interoperability
+problems and work around implementation-specific limitations.<a href="#section-9.3.1.6-2" class="pilcrow">¶</a></p>
+<p id="section-9.3.1.6-3">Senders <span class="bcp14">SHOULD</span> limit the value to the implementation name and version, avoiding
+advertising or other nonessential information. Implementations <span class="bcp14">SHOULD NOT</span> use
+the identifiers of other implementations to declare compatibility, as this
+undermines the usefulness of implementation identification for debugging.<a href="#section-9.3.1.6-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
