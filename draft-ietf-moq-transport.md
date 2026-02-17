@@ -4183,7 +4183,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 |-----:|:-----|:------|:--------------|
 | 0x02 | DELIVERY_TIMEOUT | Track | {{delivery-timeout-ext}} |
 | 0x04 | MAX_CACHE_DURATION | Track | {{max-cache-duration}} |
-| 0x0B | IMMUTABLE_EXTENSIONS | Track, Object | {{immutable-extensions}} |
+| 0x0B | IMMUTABLE_PROPERTIES | Track, Object | {{immutable-properties}} |
 | 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | {{publisher-priority}} |
 | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track | {{group-order-pref}} |
 | 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
