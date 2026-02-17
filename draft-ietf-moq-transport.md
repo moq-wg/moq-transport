@@ -3943,7 +3943,7 @@ If omitted, the value is 0.
 
 ## Immutable Properties
 
-Immutable Extensions (Property Type 0xB) contains a sequence of
+Immutable Properties (Property Type 0xB) contain a sequence of
 Key-Value-Pairs (see {{moq-key-value-pair}}) which are also Track or Object
 Properties.
 
