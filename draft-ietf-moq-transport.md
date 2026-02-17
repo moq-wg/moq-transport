@@ -422,6 +422,12 @@ example.2enet-team2-project_x--report
   Track name: report
 ~~~
 
+When parsing this format, implementations MUST accept both upper and lowercase
+hex digits (e.g., `.2E` and `.2e` are equivalent). Implementations MUST also
+accept hex-encoded bytes for characters that could be represented literally
+(e.g., `.61` for `a`). This ensures the encoding is canonical for output while
+remaining permissive for input.
+
 # Object Data Model {#model}
 
 MOQT has a hierarchical data model, comprised of tracks which contain
