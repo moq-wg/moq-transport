@@ -2141,7 +2141,6 @@ configuration before any control messsages are exchanged. The messages contain
 a sequence of key-value pairs called Setup Options; the semantics and format
 of which can vary based on whether the client or server is sending.  To ensure
 future extensibility of MOQT, endpoints MUST ignore unknown Setup Options.
-TODO: describe GREASE for Setup Options.
 
 The wire format of the Setup messages are as follows:
 
@@ -4139,6 +4138,27 @@ the relay would have to send matching NAMESPACE/NAMESPACE_DONE messages.
 
 TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 
+# GREASE {#grease}
+
+To ensure that implementations correctly handle unknown values and do not
+fail when encountering extensions they do not understand, this document
+reserves a range of values for the purpose of greasing; see {{Section 3.3 of ?RFC9170}}.
+
+Grease values follow the pattern `0x1f * N + 0x21` for non-negative
+integer values of N (that is, 0x21, 0x40, ..., 0x3ffffffffffffffe).
+
+The following registries include GREASE reservations:
+
+- Extension Header Types ({{iana-extension-headers}})
+- Session Termination Error Codes ({{iana-session-termination}})
+- REQUEST_ERROR Codes ({{iana-request-error}})
+- PUBLISH_DONE Codes ({{iana-publish-done}})
+- Data Stream Reset Error Codes ({{iana-reset-stream}})
+- MOQT Auth Token Type
+
+Implementations MUST handle unknown values from these registries gracefully
+according to the rules defined in each section.
+
 # IANA Considerations {#iana}
 
 TODO: fill out currently missing registries:
@@ -4152,9 +4172,8 @@ TODO: fill out currently missing registries:
   standards utilization where space is less of a concern, and 16384 and
   above for first-come-first-served non-standardization usage.
   List which headers can be repeated in the table.
-* MOQT Auth Token Type
 
-TODO: register the URI scheme and the ALPN and grease the Extension types
+TODO: register the URI scheme and the ALPN
 
 ## Authorization Token Alias Type
 
@@ -4164,6 +4183,18 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x1  | REGISTER   | {{authorization-token}}
 | 0x2  | USE_ALIAS  | {{authorization-token}}
 | 0x3  | USE_VALUE  | {{authorization-token}}
+
+## MOQT Auth Token Type {#iana-auth-token-type}
+
+Token Type values of the form `0x1f * N + 0x21` are reserved for greasing
+({{grease}}). Endpoints receiving a reserved Token Type MUST ignore the token
+and continue processing as if the token were not present, unless the token is
+required for authorization.
+
+| Code | Name       | Specification |
+|-----:|:-----------|:--------------|
+| 0x0  | Reserved   | {{authorization-token}} |
+| 0x1f * N + 0x21 | Reserved for greasing | {{grease}} |
 
 ## Message Parameters
 
@@ -4192,8 +4223,16 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
 | 0x3C | PRIOR_GROUP_ID_GAP | Object | {{prior-group-id-gap}} |
 | 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
+| 0x1f * N + 0x21 | Reserved for greasing | Any | {{grease}} |
+
+Endpoints MUST ignore unknown extension header types, skipping them using
+the length field.
 
 ## Error Codes {#iana-error-codes}
+
+All error code registries defined in this section reserve values of the form
+`0x1f * N + 0x21` for greasing ({{grease}}). Endpoints receiving a reserved
+error code MUST treat it as an unknown error code.
 
 ### Session Termination Error Codes {#iana-session-termination}
 
@@ -4220,6 +4259,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
 | INVALID_AUTHORITY          | 0x19 | {{session-termination}} |
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination}} |
+| Reserved for greasing      | 0x1f * N + 0x21 | {{grease}} |
 
 ### REQUEST_ERROR Codes {#iana-request-error}
 
@@ -4240,6 +4280,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| Reserved for greasing      | 0x1f * N + 0x21 | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
@@ -4255,6 +4296,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
 | EXCESSIVE_LOAD     | 0x9  | {{message-publish-done}} |
 | MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
+| Reserved for greasing | 0x1f * N + 0x21 | {{grease}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
 
@@ -4268,6 +4310,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | TOO_FAR_BEHIND        | 0x5  | {{closing-subgroup-streams}} |
 | EXCESSIVE_LOAD        | 0x9  | {{closing-subgroup-streams}} |
 | MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
+| Reserved for greasing | 0x1f * N + 0x21 | {{grease}} |
 
 # Contributors
 {:numbered="false"}
