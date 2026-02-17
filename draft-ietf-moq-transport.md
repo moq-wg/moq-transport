@@ -2100,7 +2100,7 @@ SUBSCRIBE or REQUEST_UPDATE for a subscription.  It is an integer representing t
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
 this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
-include the DYNAMIC_GROUPS Parameter with value 1.  A subscriber MAY
+include the DYNAMIC_GROUPS Property with value 1.  A subscriber MAY
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
 case.
