@@ -2552,7 +2552,7 @@ REQUEST_UPDATE Message {
 * Existing Request ID: The Request ID of the request this message is
   updating.  This MUST match the Request ID of an existing request.  The
   receiver SHOULD close the session with `PROTOCOL_VIOLATION` if it can verify
-  that the Existing Request ID does not corresponding to an existing request
+  that the Existing Request ID does not correspond to an existing request
   or one that was recently closed locally. If it cannot verify this and cannot
   match the request, it MUST send REQUEST_ERROR.
 
