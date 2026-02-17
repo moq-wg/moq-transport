@@ -3941,9 +3941,9 @@ the session with `PROTOCOL_VIOLATION`.
 
 If omitted, the value is 0.
 
-## Immutable Extensions
+## Immutable Properties
 
-The Immutable Extensions (Property Type 0xB) contains a sequence of
+Immutable Extensions (Property Type 0xB) contains a sequence of
 Key-Value-Pairs (see {{moq-key-value-pair}}) which are also Track or Object
 Properties.
 
@@ -3958,37 +3958,36 @@ Immutable Extensions {
 This Property can be added by the Original Publisher, but MUST NOT be added by
 Relays. This Property MUST NOT be modified or removed and the serialization
 (e.g. variable-length integer encodings) of the Key-Value-Pairs MUST NOT
-change). Like other Properties, Relays MUST cache Immutable Extensions if the
+change). Like other Properties, Relays MUST cache Immutable Properties if the
 Object or Track are cached and MUST forward it. Relays MAY decode and view
 the Properties in the Key-Value-Pairs.
 
 Unless specified by a particular Property specification, Properties
-MAY appear either in the mutable extension list or
-inside Immutable Extensions. When looking for the value of a property,
-processors MUST search both the mutable properties and the contents of
-Immutable Extensions.
+MAY appear either in the mutable extension list or inside Immutable Properties.
+When looking for the value of a property, processors MUST search both the
+mutable properties and the contents of Immutable Extensions.
 
-If an Property allows multiple values, the same Property Type
-MAY appear in both the mutable list and inside Immutable Extensions, unless
-prohibited by the Property specification.
+If a Property allows multiple values, the same Property Type MAY appear in
+both the mutable list and inside Immutable Extensions, unless prohibited by
+the Property specification.
 
 A Track is considered malformed (see {{malformed-tracks}}) if any of the
 following conditions are detected:
 
- * An Object contains an Immutable Extensions header that contains another
-   Immutable Extensions key.
+ * An Object contains an Immutable Properties header that contains another
+   Immutable Properties key.
  * A Key-Value-Pair cannot be parsed.
 
 The following figure shows an example Object structure with a combination of
-mutable and immutable extensions and end to end encrypted metadata in the Object
+mutable and immutable properties and end to end encrypted metadata in the Object
 payload.
 
 ~~~
                    Object Header                      Object Payload
 <------------------------------------------------> <------------------->
 +--------+-------+------------+-------+-----------+--------------------+
-| Object | Ext 1 | Immutable  | Ext N | [Payload] | Private Extensions |
-| Fields |       | Extensions |       | [Length]  | App Payload        |
+| Object | Ext 1 | Immutable  | Ext N | [Payload] | Private Properties |
+| Fields |       | Properties |       | [Length]  | App Payload        |
 +--------+-------+------------+-------+-----------+--------------------+
                   xxxxxxxxxxxx                     xxxxxxxxxxxxxxxxxxxx
                                                    yyyyyyyyyyyyyyyyyyyy
