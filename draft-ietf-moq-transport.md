@@ -1983,6 +1983,32 @@ successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
 any other relevant information.
 
+#### RENDEZVOUS TIMEOUT Parameter {#rendezvous-timeout}
+
+The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) MAY appear in a
+SUBSCRIBE message.
+
+It is the duration in milliseconds the subscriber is willing to wait for a
+publisher to become available. This applies when a relay receives a SUBSCRIBE
+for a Track that has no current publisher.
+
+If the RENDEZVOUS_TIMEOUT is present, the relay SHOULD hold the subscription
+and wait for a publisher to appear, up to the specified duration. The relay
+does not send SUBSCRIBE_OK until a publisher becomes available. If a publisher
+becomes available within this time, the relay proceeds with the subscription
+normally. If the timeout expires without a publisher, the relay SHOULD respond
+with REQUEST_ERROR with error code TIMEOUT.
+
+The relay MAY use a shorter timeout than requested by the subscriber. For
+example, a relay might limit the maximum rendezvous timeout to protect its
+resources.
+
+A value of 0 indicates the subscriber does not want to wait and expects an
+immediate response.  The relay MUST immediately return REQUEST_ERROR with error
+code DOES_NOT_EXIST if no publisher is available
+
+If RENDEZVOUS_TIMEOUT is absent, the default is 0.
+
 #### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
@@ -4145,6 +4171,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 |----------------|----------------|---------------|
 | 0x02 | DELIVERY_TIMEOUT | {{delivery-timeout}} |
 | 0x03 | AUTHORIZATION_TOKEN | {{authorization-token}} |
+| 0x04 | RENDEZVOUS_TIMEOUT | {{rendezvous-timeout}} |
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
