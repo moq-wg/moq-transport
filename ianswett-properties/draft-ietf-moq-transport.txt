@@ -885,9 +885,9 @@ Table of Contents
    Relays MUST NOT attempt to merge sets of unknown properties received
    in different messages.
 
-   If supported by the relay and subject to the processing rules
-   specified in the definition of the extension, Properties MAY be
-   modified, added, removed, and/or cached by relays.
+   If a Relay supports a Property, it MAY be modified, added, removed,
+   and/or cached, subject to the processing rules specified in the
+   definition.
 
    Properties are serialized as Key-Value-Pairs (see Figure 2).
 
@@ -1893,8 +1893,8 @@ Table of Contents
 
 8.7.  Relay Object Handling
 
-   MOQT encodes the delivery information via Object properties
-   (Section 10.2).  A relay MUST NOT modify Object properties when
+   MOQT encodes the delivery information in the Object header
+   (Section 10.2.1).  A relay MUST NOT modify Object fields when
    forwarding, except for Object Properties as specified in Section 2.5.
 
    A relay MUST treat the object payload as opaque.  A relay MUST NOT
@@ -2033,9 +2033,9 @@ Table of Contents
 
    Message Parameters are always intended for the peer endpoint only and
    are not forwarded by Relays, though relays can consider received
-   parameter values when making a request.  Any Track metadata sent by
-   the publisher that is forwarded to subscribers is sent as Track
-   Properties.
+   parameter values when making a request.  Track information not
+   specific to the Message or Session is encoded in Track Properties.
+   See Section 2.5.
 
    Each Message Parameter definition indicates the message types in
    which it can appear.  If it appears in some other type of message, it
@@ -3603,7 +3603,7 @@ Table of Contents
 
 10.2.1.  Object Header
 
-   A canonical MoQ Object has the following information:
+   A canonical MoQ Object has the following fields:
 
    *  Track Namespace and Track Name: The track this object belongs to.
 
@@ -3667,7 +3667,7 @@ Table of Contents
 10.2.1.2.  Object Properties
 
    Any Object with status Normal can have properties (Section 2.5).  If
-   an endpoint receives properties on Objects with status that is not
+   an endpoint receives properties on an Object with status that is not
    Normal, it MUST close the session with a PROTOCOL_VIOLATION.
 
    Object Properties are visible to relays and are intended to be

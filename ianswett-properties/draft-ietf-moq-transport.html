@@ -2554,9 +2554,8 @@ arrives with a different set of unknown properties than previously cached,
 the most recent set <span class="bcp14">SHOULD</span> replace any cached values, removing any unknown
 values not present in the new set.  Relays <span class="bcp14">MUST NOT</span> attempt to merge sets
 of unknown properties received in different messages.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
-<p id="section-2.5-4">If supported by the relay and subject to the processing rules specified in the
-definition of the extension, Properties <span class="bcp14">MAY</span> be modified, added, removed,
-and/or cached by relays.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
+<p id="section-2.5-4">If a Relay supports a Property, it <span class="bcp14">MAY</span> be modified, added, removed, and/or
+cached, subject to the processing rules specified in the definition.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
 <p id="section-2.5-5">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-2.5-5" class="pilcrow">¶</a></p>
 <p id="section-2.5-6">Property types are registered in the IANA table 'MOQ Properties'.
 See <a href="#iana" class="auto internal xref">Section 13</a>.<a href="#section-2.5-6" class="pilcrow">¶</a></p>
@@ -3627,8 +3626,8 @@ allowed by the property's specification (see <a href="#properties" class="auto i
         <h3 id="name-relay-object-handling">
 <a href="#section-8.7" class="section-number selfRef">8.7. </a><a href="#name-relay-object-handling" class="section-name selfRef">Relay Object Handling</a>
         </h3>
-<p id="section-8.7-1">MOQT encodes the delivery information via Object properties (<a href="#message-object" class="auto internal xref">Section 10.2</a>).
-A relay <span class="bcp14">MUST NOT</span> modify Object properties when forwarding, except for
+<p id="section-8.7-1">MOQT encodes the delivery information in the Object header (<a href="#object-header" class="auto internal xref">Section 10.2.1</a>).
+A relay <span class="bcp14">MUST NOT</span> modify Object fields when forwarding, except for
 Object Properties as specified in <a href="#properties" class="auto internal xref">Section 2.5</a>.<a href="#section-8.7-1" class="pilcrow">¶</a></p>
 <p id="section-8.7-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
 combine, split, or otherwise modify object payloads.  A relay <span class="bcp14">SHOULD</span>
@@ -3835,8 +3834,8 @@ uniqueness guarantee described in <a href="#track-scope" class="auto internal xr
           </h4>
 <p id="section-9.2.1-1">Message Parameters are always intended for the peer endpoint only and are not
 forwarded by Relays, though relays can consider received parameter values when
-making a request.  Any Track metadata sent by the publisher that is forwarded to
-subscribers is sent as Track Properties.<a href="#section-9.2.1-1" class="pilcrow">¶</a></p>
+making a request. Track information not specific to the Message or Session
+is encoded in Track Properties. See <a href="#properties" class="auto internal xref">Section 2.5</a>.<a href="#section-9.2.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1-2">Each Message Parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it <span class="bcp14">MUST</span> be ignored.
 Note that since Setup Options use a separate namespace, it is impossible for
@@ -5778,7 +5777,7 @@ cache, and forward it.  Objects are sent by publishers.<a href="#section-10.2-1"
           <h4 id="name-object-header">
 <a href="#section-10.2.1" class="section-number selfRef">10.2.1. </a><a href="#name-object-header" class="section-name selfRef">Object Header</a>
           </h4>
-<p id="section-10.2.1-1">A canonical MoQ Object has the following information:<a href="#section-10.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-10.2.1-1">A canonical MoQ Object has the following fields:<a href="#section-10.2.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.2.1-2.1">
               <p id="section-10.2.1-2.1.1">Track Namespace and Track Name: The track this object belongs to.<a href="#section-10.2.1-2.1.1" class="pilcrow">¶</a></p>
@@ -5855,7 +5854,7 @@ Any object with a status code other than zero <span class="bcp14">MUST</span> ha
 <a href="#section-10.2.1.2" class="section-number selfRef">10.2.1.2. </a><a href="#name-object-properties" class="section-name selfRef">Object Properties</a>
             </h5>
 <p id="section-10.2.1.2-1">Any Object with status Normal can have properties (<a href="#properties" class="auto internal xref">Section 2.5</a>).
-If an endpoint receives properties on Objects with status that is
+If an endpoint receives properties on an Object with status that is
 not Normal, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.1.2-2">Object Properties are visible to relays and are intended to be relevant
 to MOQT Object distribution. Any Object metadata never intended to be accessed
