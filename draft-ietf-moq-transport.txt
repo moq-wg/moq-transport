@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 August 2026                                    I. Swett, Ed.
+Expires: 21 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        12 February 2026
+                                                        17 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 August 2026.
+   This Internet-Draft will expire on 21 August 2026.
 
 Copyright Notice
 
@@ -2659,6 +2659,10 @@ Table of Contents
    GOING_AWAY:  The endpoint has received a GOAWAY and MAY reject new
       requests.
 
+   EXCESSIVE_LOAD:  The responder is overloaded and cannot process the
+      request at this time.  The sender SHOULD use the Retry Interval to
+      indicate when the request can be retried.
+
    DUPLICATE_SUBSCRIPTION (0x19):  The PUBLISH or SUBSCRIBE request
       attempted to create a subscription to a Track with the same role
       as an existing subscription.
@@ -3040,6 +3044,9 @@ Table of Contents
 
    UPDATE_FAILED (0x8):  REQUEST_UPDATE failed on this subscription (see
       Section 9.11).
+
+   EXCESSIVE_LOAD (0x9):  The publisher is overloaded and is terminating
+      the subscription.
 
 9.16.  FETCH
 
@@ -4014,6 +4021,9 @@ Table of Contents
       the publisher's resource limits and is being terminated (see
       Section 9.2.1.2).
 
+   EXCESSIVE_LOAD (0x9):  The publisher is overloaded and is resetting
+      this stream.
+
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 2.4.2).
 
@@ -4649,6 +4659,8 @@ EXT 1 and EXT N can be modified or removed by Relays
            +----------------------------+------+---------------+
            | GOING_AWAY                 | 0x6  | Section 9.8   |
            +----------------------------+------+---------------+
+           | EXCESSIVE_LOAD             | 0x9  | Section 9.8   |
+           +----------------------------+------+---------------+
            | DOES_NOT_EXIST             | 0x10 | Section 9.8   |
            +----------------------------+------+---------------+
            | INVALID_RANGE              | 0x11 | Section 9.8   |
@@ -4687,6 +4699,8 @@ EXT 1 and EXT N can be modified or removed by Relays
                +--------------------+------+---------------+
                | UPDATE_FAILED      | 0x8  | Section 9.15  |
                +--------------------+------+---------------+
+               | EXCESSIVE_LOAD     | 0x9  | Section 9.15  |
+               +--------------------+------+---------------+
                | MALFORMED_TRACK    | 0x12 | Section 9.15  |
                +--------------------+------+---------------+
 
@@ -4708,6 +4722,8 @@ EXT 1 and EXT N can be modified or removed by Relays
              | UNKNOWN_OBJECT_STATUS | 0x4  | Section 10.4.3 |
              +-----------------------+------+----------------+
              | TOO_FAR_BEHIND        | 0x5  | Section 10.4.3 |
+             +-----------------------+------+----------------+
+             | EXCESSIVE_LOAD        | 0x9  | Section 10.4.3 |
              +-----------------------+------+----------------+
              | MALFORMED_TRACK       | 0x12 | Section 10.4.3 |
              +-----------------------+------+----------------+

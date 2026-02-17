@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 16 August 2026</td>
+<td class="center">Expires 21 August 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-12" class="published">12 February 2026</time>
+<time datetime="2026-02-17" class="published">17 February 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-16">16 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-08-21">21 August 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 16 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 21 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -4569,10 +4569,16 @@ within the timeout.<a href="#section-9.8-6.6.1" class="pilcrow">¶</a></p>
             <p id="section-9.8-6.14.1">The endpoint has received a GOAWAY and <span class="bcp14">MAY</span> reject new requests.<a href="#section-9.8-6.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.8-6.15">DUPLICATE_SUBSCRIPTION (0x19):</dt>
+<dt id="section-9.8-6.15">EXCESSIVE_LOAD:</dt>
           <dd style="margin-left: 1.5em" id="section-9.8-6.16">
-            <p id="section-9.8-6.16.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
-with the same role as an existing subscription.<a href="#section-9.8-6.16.1" class="pilcrow">¶</a></p>
+            <p id="section-9.8-6.16.1">The responder is overloaded and cannot process the request at this time. The
+sender <span class="bcp14">SHOULD</span> use the Retry Interval to indicate when the request can be retried.<a href="#section-9.8-6.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.8-6.17">DUPLICATE_SUBSCRIPTION (0x19):</dt>
+          <dd style="margin-left: 1.5em" id="section-9.8-6.18">
+            <p id="section-9.8-6.18.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
+with the same role as an existing subscription.<a href="#section-9.8-6.18.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -5059,6 +5065,11 @@ its implementation defined limit.<a href="#section-9.15-10.14.1" class="pilcrow"
           <dd style="margin-left: 1.5em" id="section-9.15-10.18">
             <p id="section-9.15-10.18.1">REQUEST_UPDATE failed on this subscription (see
 <a href="#message-request-update" class="auto internal xref">Section 9.11</a>).<a href="#section-9.15-10.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.15-10.19">EXCESSIVE_LOAD (0x9):</dt>
+          <dd style="margin-left: 1.5em" id="section-9.15-10.20">
+            <p id="section-9.15-10.20.1">The publisher is overloaded and is terminating the subscription.<a href="#section-9.15-10.20.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -6242,10 +6253,15 @@ of the next Object in the requested range.<a href="#section-10.4.3-19.10.1" clas
 is being terminated (see <a href="#delivery-timeout" class="auto internal xref">Section 9.2.1.2</a>).<a href="#section-10.4.3-19.12.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-19.13">MALFORMED_TRACK (0x12):</dt>
+<dt id="section-10.4.3-19.13">EXCESSIVE_LOAD (0x9):</dt>
             <dd style="margin-left: 1.5em" id="section-10.4.3-19.14">
-              <p id="section-10.4.3-19.14.1">A relay publisher detected that the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-19.14.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.3-19.14.1">The publisher is overloaded and is resetting this stream.<a href="#section-10.4.3-19.14.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-10.4.3-19.15">MALFORMED_TRACK (0x12):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-19.16">
+              <p id="section-10.4.3-19.16.1">A relay publisher detected that the track was malformed (see
+<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.4.3-19.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -7302,6 +7318,13 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
 </td>
               </tr>
               <tr>
+                <td class="text-left" rowspan="1" colspan="1">EXCESSIVE_LOAD</td>
+                <td class="text-center" rowspan="1" colspan="1">0x9</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#message-request-error" class="auto internal xref">Section 9.8</a>
+</td>
+              </tr>
+              <tr>
                 <td class="text-left" rowspan="1" colspan="1">DOES_NOT_EXIST</td>
                 <td class="text-center" rowspan="1" colspan="1">0x10</td>
                 <td class="text-left" rowspan="1" colspan="1">
@@ -7426,6 +7449,13 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
 </td>
               </tr>
               <tr>
+                <td class="text-left" rowspan="1" colspan="1">EXCESSIVE_LOAD</td>
+                <td class="text-center" rowspan="1" colspan="1">0x9</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#message-publish-done" class="auto internal xref">Section 9.15</a>
+</td>
+              </tr>
+              <tr>
                 <td class="text-left" rowspan="1" colspan="1">MALFORMED_TRACK</td>
                 <td class="text-center" rowspan="1" colspan="1">0x12</td>
                 <td class="text-left" rowspan="1" colspan="1">
@@ -7489,6 +7519,13 @@ List which headers can be repeated in the table.<a href="#section-13-2.5.1" clas
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">TOO_FAR_BEHIND</td>
                 <td class="text-center" rowspan="1" colspan="1">0x5</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">EXCESSIVE_LOAD</td>
+                <td class="text-center" rowspan="1" colspan="1">0x9</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#closing-subgroup-streams" class="auto internal xref">Section 10.4.3</a>
 </td>
