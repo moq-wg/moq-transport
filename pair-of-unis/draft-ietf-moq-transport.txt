@@ -98,7 +98,7 @@ Table of Contents
        2.4.1.  Track Naming
        2.4.2.  Malformed Tracks
        2.4.3.  Scope
-     2.5.  Extension Headers
+     2.5.  Properties
    3.  Sessions
      3.1.  Session establishment
        3.1.1.  WebTransport
@@ -172,7 +172,7 @@ Table of Contents
    10. Data Streams and Datagrams
      10.1.  Track Alias
      10.2.  Objects
-       10.2.1.  Canonical Object Properties
+       10.2.1.  Object Header
      10.3.  Datagrams
        10.3.1.  Object Datagram
      10.4.  Streams
@@ -181,13 +181,13 @@ Table of Contents
        10.4.3.  Closing Subgroup Streams
        10.4.4.  Fetch Header
      10.5.  Examples
-   11. Extension Headers
+   11. MOQT Properties
      11.1.  DELIVERY TIMEOUT
      11.2.  MAX CACHE DURATION
      11.3.  DEFAULT PUBLISHER PRIORITY
      11.4.  DEFAULT PUBLISHER GROUP ORDER
      11.5.  DYNAMIC GROUPS
-     11.6.  Immutable Extensions
+     11.6.  Immutable Properties
      11.7.  Prior Group ID Gap
      11.8.  Prior Object ID Gap
    12. Security Considerations
@@ -200,7 +200,7 @@ Table of Contents
    13. IANA Considerations
      13.1.  Authorization Token Alias Type
      13.2.  Message Parameters
-     13.3.  Extension Headers
+     13.3.  Properties
      13.4.  Error Codes
        13.4.1.  Session Termination Error Codes
        13.4.2.  REQUEST_ERROR Codes
@@ -617,8 +617,8 @@ Table of Contents
 
    Whenever the publisher communicates that certain objects do not
    exist, this fact is expressed as a contiguous range of non-existent
-   objects and by include extension headers indicating the group/object
-   gaps; MOQT implementers should take that into account when selecting
+   objects and by including Properties indicating the group/object gaps;
+   MOQT implementers should take that into account when selecting
    appropriate data structures.
 
 2.2.  Subgroups
@@ -630,7 +630,7 @@ Table of Contents
    delivered using at least as many streams as there are Subgroups,
    typically with a one-to-one mapping between Subgroups and streams.
 
-   When an Object's forwarding preference (see Section 10.2.1) is
+   When an Object's forwarding preference (see Section 10.2.1.2) is
    "Datagram", it is not sent in Subgroups, does not belong to a
    Subgroup in any way, and the description in the remainder of this
    section does not apply.
@@ -866,34 +866,34 @@ Table of Contents
    3.  Use TRACK_STATUS or similar mechanism to query the previous state
        to determine the largest published Group ID.
 
-2.5.  Extension Headers
+2.5.  Properties
 
    Tracks and Objects can have additional relay-visible fields, known as
-   Extension Headers, which do not require negotiation, and can be used
-   to alter MoQT Object distribution.
+   Properties, which do not require negotiation, and can be used to
+   alter MoQT Object distribution.
 
-   Extension Headers are defined in Section 11 as well as external
+   Properties are defined in Section 11 as well as external
    specifications and are registered in an IANA table Section 13.  These
-   specifications define the type and value of the header, along with
+   specifications define the type and value of the property, along with
    any rules concerning processing, modification, caching and
    forwarding.
 
-   If unsupported by the relay, Extension Headers MUST NOT be modified,
-   MUST be cached as part of the Track or Object and MUST be forwarded
-   by relays.  If a Track or Object arrives with a different set of
-   unknown extensions than previously cached, the most recent set SHOULD
-   replace any cached values, removing any unknown values not present in
-   the new set.  Relays MUST NOT attempt to merge sets of unknown
-   extensions received in different messages.
+   If a Relay does not support a Property, it MUST NOT be modified, MUST
+   be forwarded, and MUST be cached with the Track or Object.  If a
+   Track or Object arrives with a different set of unknown properties
+   than previously cached, the most recent set SHOULD replace any cached
+   values, removing any unknown values not present in the new set.
+   Relays MUST NOT attempt to merge sets of unknown properties received
+   in different messages.
 
-   If supported by the relay and subject to the processing rules
-   specified in the definition of the extension, Extension Headers MAY
-   be modified, added, removed, and/or cached by relays.
+   If a Relay supports a Property, it MAY be modified, added, removed,
+   and/or cached, subject to the processing rules specified in the
+   definition.
 
-   Extension Headers are serialized as Key-Value-Pairs (see Figure 2).
+   Properties are serialized as Key-Value-Pairs (see Figure 2).
 
-   Header types are registered in the IANA table 'MOQ Extension
-   Headers'.  See Section 13.
+   Property types are registered in the IANA table 'MOQ Properties'.
+   See Section 13.
 
 3.  Sessions
 
@@ -1701,8 +1701,8 @@ Table of Contents
    1.  Object can transition from existing to not existing in cases
        where the object is no longer available.
 
-   2.  Object Extension Headers can be added, removed or updated,
-       subject to the constraints of the specific header extension.
+   2.  Object Properties can be added, removed or updated, subject to
+       the constraints of the specific property.
 
    An endpoint that receives a duplicate Object with a different
    Forwarding Preference, Subgroup ID, Priority or Payload MUST treat
@@ -1719,9 +1719,9 @@ Table of Contents
    exist.  The endpoint SHOULD NOT cache or forward the object in this
    case.
 
-   A cache MUST store all properties of an Object defined in
-   Section 10.2.1, with the exception of any Object Extension Headers
-   (Section 10.2.1.2) that specify otherwise.
+   A cache MUST store all fields of an Object defined in Section 10.2.1,
+   with the exception of any Object Properties (Section 10.2.1.2) that
+   specify otherwise.
 
 8.2.  Forward Handling
 
@@ -1917,17 +1917,16 @@ Table of Contents
 
 8.6.  Relay Track Handling
 
-   A relay MUST include all Extension Headers associated with a Track
-   when sending any PUBLISH, SUBSCRIBE_OK, REQUEST_OK when in response
-   to a TRACK_STATUS, or FETCH_OK, unless allowed by the extension's
+   A relay MUST include all Properties associated with a Track when
+   sending any PUBLISH, SUBSCRIBE_OK, REQUEST_OK when in response to a
+   TRACK_STATUS, or FETCH_OK, unless allowed by the property's
    specification (see Section 2.5).
 
 8.7.  Relay Object Handling
 
-   MOQT encodes the delivery information via Object properties
-   (Section 10.2).  A relay MUST NOT modify Object properties when
-   forwarding, except for Object Extension Headers as specified in
-   Section 2.5.
+   MOQT encodes the delivery information in the Object header
+   (Section 10.2.1).  A relay MUST NOT modify Object fields when
+   forwarding, except for Object Properties as specified in Section 2.5.
 
    A relay MUST treat the object payload as opaque.  A relay MUST NOT
    combine, split, or otherwise modify object payloads.  A relay SHOULD
@@ -2069,13 +2068,14 @@ Table of Contents
 
    Message Parameters are always intended for the peer endpoint only and
    are not forwarded by Relays, though relays can consider received
-   parameter values when making a request.  Any Track metadata sent by
-   the publisher that is forwarded to subscribers is sent as Track
-   Extension header.
+   parameter values when making a request.  Track information not
+   specific to the Message or Session is encoded in Track Properties.
+   See Section 2.5.
 
    Each Message Parameter definition indicates the message types in
-   which it can appear.  If it appears in some other type of message, it
-   MUST be ignored.  Note that since Setup Options use a separate
+   which it can appear.  If it appears in some other type of message,
+   the receiving endpoint MUST close the connection with a
+   PROTOCOL_VIOLATION.  Note that since Setup Options use a separate
    namespace, it is impossible for Message Parameters to appear in Setup
    messages.
 
@@ -2381,7 +2381,7 @@ Table of Contents
    subscriber, plus 1.  A value of 0 indicates that the subscriber has
    no Group information for the Track.  A subscriber MUST NOT send this
    parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
-   include the DYNAMIC_GROUPS Extension with value 1.  A subscriber MAY
+   include the DYNAMIC_GROUPS Property with value 1.  A subscriber MAY
    include this parameter in SUBSCRIBE without foreknowledge of support.
    If the original publisher does not support dynamic Groups, it ignores
    the parameter in that case.
@@ -2822,7 +2822,7 @@ Table of Contents
      Track Alias (vi64),
      Number of Parameters (vi64),
      Parameters (..) ...,
-     Track Extensions (..),
+     Track Properties (..),
    }
 
                     Figure 12: MOQT SUBSCRIBE_OK Message
@@ -2840,8 +2840,7 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 9.2.
 
-   *  Track Extensions : A sequence of Extension Headers.  See
-      Section 2.5.
+   *  Track Properties : A sequence of Properties.  See Section 2.5.
 
 9.11.  REQUEST_UPDATE
 
@@ -2877,10 +2876,11 @@ Table of Contents
 
    *  Existing Request ID: The Request ID of the request this message is
       updating.  This MUST match the Request ID of an existing request.
-      The receiver MUST close the session with PROTOCOL_VIOLATION if the
-      sender specifies an invalid Existing Request ID, or if the
-      parameters included in the REQUEST_UPDATE are invalid for the type
-      of request being modified.
+      The receiver SHOULD close the session with PROTOCOL_VIOLATION if
+      it can verify that the Existing Request ID does not correspond to
+      an existing request or one that was recently closed locally.  If
+      it cannot verify this and cannot match the request, it MUST send
+      REQUEST_ERROR.
 
    *  Parameters: The parameters are defined in Section 9.2.
 
@@ -2944,7 +2944,7 @@ Table of Contents
      Track Alias (vi64),
      Number of Parameters (vi64),
      Parameters (..) ...,
-     Track Extensions (..),
+     Track Properties (..),
    }
 
                       Figure 15: MOQT PUBLISH Message
@@ -2967,8 +2967,7 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 9.2.
 
-   *  Track Extensions : A sequence of Extension Headers.  See
-      Section 2.5.
+   *  Track Properties : A sequence of Properties.  See Section 2.5.
 
    A subscriber receiving a PUBLISH for a Track it does not wish to
    receive SHOULD send REQUEST_ERROR with error code UNINTERESTED, and
@@ -3322,7 +3321,7 @@ Table of Contents
      End Location (Location),
      Number of Parameters (vi64),
      Parameters (..) ...
-     Track Extensions (..),
+     Track Properties (..),
    }
 
                       Figure 19: MOQT FETCH_OK Message
@@ -3360,8 +3359,7 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 9.2.
 
-   *  Track Extensions : A sequence of Extension Headers.  See
-      Section 2.5.
+   *  Track Properties : A sequence of Properties.  See Section 2.5.
 
 9.18.  FETCH_CANCEL
 
@@ -3636,9 +3634,9 @@ Table of Contents
    track, as well as associated metadata required to deliver, cache, and
    forward it.  Objects are sent by publishers.
 
-10.2.1.  Canonical Object Properties
+10.2.1.  Object Header
 
-   A canonical MoQ Object has the following information:
+   A canonical MoQ Object has the following fields:
 
    *  Track Namespace and Track Name: The track this object belongs to.
 
@@ -3665,8 +3663,8 @@ Table of Contents
       is a normal Object or mark the end of a group or track.  See
       Section 10.2.1.1 below.
 
-   *  Object Extension Headers : A sequence of Extension Headers
-      associated with the object.  See Section 10.2.1.2.
+   *  Object Properties : A sequence of Properties associated with the
+      object.  See Section 10.2.1.2.
 
    *  Object Payload: An opaque payload intended for an End Subscriber
       and SHOULD NOT be processed by a relay.  Only present when 'Object
@@ -3699,29 +3697,28 @@ Table of Contents
    SHOULD be closed with a PROTOCOL_VIOLATION (Section 3.5).  Any object
    with a status code other than zero MUST have an empty payload.
 
-10.2.1.2.  Object Extension Headers
+10.2.1.2.  Object Properties
 
-   Any Object with status Normal can have extension headers
-   (Section 2.5).  If an endpoint receives extension headers on Objects
-   with status that is not Normal, it MUST close the session with a
-   PROTOCOL_VIOLATION.
+   Any Object with status Normal can have properties (Section 2.5).  If
+   an endpoint receives properties on an Object with status that is not
+   Normal, it MUST close the session with a PROTOCOL_VIOLATION.
 
-   Object Extension Headers are visible to relays and are intended to be
+   Object Properties are visible to relays and are intended to be
    relevant to MOQT Object distribution.  Any Object metadata never
    intended to be accessed by the transport or Relays SHOULD be
-   serialized as part of the Object payload and not as an extension
-   header.
+   serialized as part of the Object payload and not as an Object
+   Property.
 
-   Object Extension Headers are serialized as a length in bytes followed
-   by Key-Value-Pairs (see Figure 2).
+   Object Properties are serialized as a length in bytes followed by
+   Key-Value-Pairs (see Figure 2).
 
-   Object Extension Headers {
-     Extension Headers Length (vi64),
-     Extension Headers (..),
+   Object Properties {
+     Properties Length (vi64),
+     Properties (..),
    }
 
-   Object Extension Header types are registered in the IANA table 'MOQ
-   Extension Headers'.  See Section 13.
+   Object Property types are registered in the IANA table 'MOQ
+   Properties'.  See Section 13.
 
 10.3.  Datagrams
 
@@ -3742,10 +3739,10 @@ Table of Contents
 
    Each session along the path between the Original Publisher and End
    Subscriber might have different maximum datagram sizes.
-   Additionally, Object Extension Headers (Section 10.2.1.2) can be
-   added to Objects as they pass through the MOQT network, increasing
-   the size of the Object and the chances it will exceed the maximum
-   datagram size of a downstream session and be dropped.
+   Additionally, Object Properties (Section 10.2.1.2) can be added to
+   Objects as they pass through the MOQT network, increasing the size of
+   the Object and the chances it will exceed the maximum datagram size
+   of a downstream session and be dropped.
 
 10.3.1.  Object Datagram
 
@@ -3758,7 +3755,7 @@ Table of Contents
      Group ID (vi64),
      [Object ID (vi64),]
      [Publisher Priority (8),]
-     [Extensions (..),]
+     [Properties (..),]
      [Object Status (vi64),]
      [Object Payload (..),]
    }
@@ -3771,12 +3768,12 @@ Table of Contents
    5 of the Type field determine which fields are present in the
    datagram:
 
-   *  The *EXTENSIONS* bit (0x01) indicates when the Extension Headers
-      field is present.  When set to 1, the Object Extension Headers
-      structure defined in Section 10.2.1.2 is present.  When set to 0,
-      the field is absent.  If an endpoint receives a datagram with the
-      EXTENSIONS bit set and an Extension Headers Length of 0, it MUST
-      close the session with a PROTOCOL_VIOLATION.
+   *  The *PROPERTIES* bit (0x01) indicates when the Properties field is
+      present.  When set to 1, the Object Properties structure defined
+      in Section 10.2.1.2 is present.  When set to 0, the field is
+      absent.  If an endpoint receives a datagram with the PROPERTIES
+      bit set and an Properties Length of 0, it MUST close the session
+      with a PROTOCOL_VIOLATION.
 
    *  The *END_OF_GROUP* bit (0x02) indicates End of Group.  When set to
       1, this indicates that no Object with the same Group ID and an
@@ -3813,10 +3810,10 @@ Table of Contents
    *  Type values that do not match the form 0b00X0XXXX (i.e., Type
       values outside the ranges 0x00..0x0F and 0x20..0x2F).
 
-   If an Object Datagram includes both the STATUS bit and EXTENSIONS
+   If an Object Datagram includes both the STATUS bit and PROPERTIES
    bit, and the Object Status is not Normal (0x0), the endpoint MUST
    close the session with a PROTOCOL_VIOLATION, because only Normal
-   Objects can have extensions.
+   Objects can have Properties.
 
 10.4.  Streams
 
@@ -3872,12 +3869,11 @@ Table of Contents
    valid.  The four low-order bits and bit 5 determine which fields are
    present in the header:
 
-   *  The *EXTENSIONS* bit (0x01) indicates when the Extension Headers
-      field is present in all Objects in this Subgroup.  When set to 1,
-      the Object Extension Headers structure defined in Section 10.2.1.2
-      is present in all Objects.  When set to 0, the field is never
-      present.  Objects with no extensions set Extension Headers Length
-      to 0.
+   *  The *PROPERTIES* bit (0x01) indicates when the Properties field is
+      present in all Objects in this Subgroup.  When set to 1, the
+      Object Properties structure defined in Section 10.2.1.2 is present
+      in all Objects.  When set to 0, the field is never present.
+      Objects with no properties set Properties Length to 0.
 
    *  The *SUBGROUP_ID_MODE* field (bits 1-2, mask 0x06) is a two-bit
       field that determines the encoding of the Subgroup ID.  To extract
@@ -3938,7 +3934,7 @@ Table of Contents
 
    {
      Object ID Delta (vi64),
-     [Extensions (..),]
+     [Properties (..),]
      Object Payload Length (vi64),
      [Object Status (vi64),]
      [Object Payload (..),]
@@ -4108,7 +4104,7 @@ Table of Contents
      [Subgroup ID (vi64),]
      [Object ID (vi64),]
      [Publisher Priority (8),]
-     [Extensions (..),]
+     [Properties (..),]
      Object Payload Length (vi64),
      [Object Payload (..),]
    }
@@ -4174,7 +4170,7 @@ Table of Contents
      | 0x10    | Priority field is        | Priority is the prior   |
      |         | present                  | Object's Priority       |
      +---------+--------------------------+-------------------------+
-     | 0x20    | Extensions field is      | Extensions field is not |
+     | 0x20    | Properties field is      | Properties field is not |
      |         | present                  | present                 |
      +---------+--------------------------+-------------------------+
      | 0x40    | Datagram: ignore the two | Decode the Subgroup ID  |
@@ -4188,11 +4184,10 @@ Table of Contents
    fields in the prior Object, the Subscriber MUST close the session
    with a PROTOCOL_VIOLATION.
 
-   The Object Extension Headers structure is defined in
-   Section 10.2.1.2.
+   The Object Properties structure is defined in Section 10.2.1.2.
 
    When encoding an Object with a Forwarding Preference of "Datagram"
-   (see Section 10.2.1), the object has no Subgroup ID.  The publisher
+   (see Section 10.2.1.2), the object has no Subgroup ID.  The publisher
    MUST SET bit 0x40 to '1'.  When 0x40 is set, it SHOULD set the two
    least significant bits to zero and the subscriber MUST ignore the
    bits.
@@ -4201,7 +4196,7 @@ Table of Contents
 
    When Serialization Flags indicates an End of Range (e.g. values 0x8C
    or 0x10C), the Group ID and Object ID fields are present.  Subgroup
-   ID, Priority and Extensions are not present.  All Objects with
+   ID, Priority and Properties are not present.  All Objects with
    Locations between the last serialized Object, if any, and this
    Location, inclusive, either do not exist (when Serialization Flags is
    0x8C) or are unknown (0x10C).  A publisher SHOULD NOT use End of Non-
@@ -4234,7 +4229,7 @@ Table of Contents
    }
 
    Sending a group on one stream, with the first object containing two
-   Extension Headers.
+   Properties.
 
    Stream = 2
 
@@ -4246,7 +4241,7 @@ Table of Contents
    }
    {
      Object ID Delta = 0 (Object ID is 0)
-     Extension Headers Length = 33
+     Properties Length = 33
        { Type = 4
          Value = 2186796243
        },
@@ -4259,28 +4254,27 @@ Table of Contents
    }
    {
      Object ID Delta = 0 (Object ID is 1)
-     Extension Headers Length = 0
+     Properties Length = 0
      Object Payload Length = 4
      Payload = "efgh"
    }
 
-11.  Extension Headers
+11.  MOQT Properties
 
-   The following Extension Headers are defined in MOQT.  Each Extension
-   Header specifies whether it can be used with Tracks, Objects, or
-   both.
+   The following Properties are defined in MOQT.  Each Property
+   specifies whether it can be used with Tracks, Objects, or both.
 
 11.1.  DELIVERY TIMEOUT
 
-   The DELIVERY TIMEOUT extension (Extension Header Type 0x02) is a
-   Track Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a
-   Track (see Section 9.2.1.2).
+   DELIVERY TIMEOUT (Property Type 0x02) is a Track Property.  It
+   expresses the publisher's DELIVERY_TIMEOUT for a Track (see
+   Section 9.2.1.2).
 
    A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not
    expire due to delivery timeout.
 
    If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the
-   Track has a DELIVERY_TIMEOUT extension, the endpoints use the min of
+   Track has a DELIVERY_TIMEOUT property, the endpoints use the min of
    the two non-zero values for the subscription.  If either value is 0,
    the non-zero value is used.  If both are 0, there is no delivery
    timeout.
@@ -4290,8 +4284,7 @@ Table of Contents
 
 11.2.  MAX CACHE DURATION
 
-   The MAX_CACHE_DURATION extension (Extension Header Type 0x04) is a
-   Track Extension.
+   MAX_CACHE_DURATION (Property Type 0x04) is a Track Property.
 
    It is an integer expressing the number of milliseconds an Object can
    be served from a cache.  If present, the relay MUST NOT start
@@ -4303,27 +4296,24 @@ Table of Contents
    becomes unknown, and a relay that handles a downstream request that
    includes those Objects re-requests them.
 
-   If the MAX_CACHE_DURATION extension is not sent by the publisher, the
-   Objects can be cached until implementation constraints cause them to
-   be evicted.
+   If MAX_CACHE_DURATION is not sent by the publisher, the Objects can
+   be cached until implementation constraints cause them to be evicted.
 
 11.3.  DEFAULT PUBLISHER PRIORITY
 
-   The DEFAULT PUBLISHER PRIORITY extension (Extension Header Type 0x0E)
-   is a Track Extension that specifies the priority of a subscription
-   relative to other subscriptions in the same session.  The value is
-   from 0 to 255 and lower numbers get higher priority.  See Section 7.
-   Priorities above 255 are invalid.  Subgroups and Datagrams for this
-   subscription inherit this priority, unless they specifically override
-   it.
+   DEFAULT PUBLISHER PRIORITY (Property Type 0x0E) is a Track Property
+   that specifies the priority of a subscription relative to other
+   subscriptions in the same session.  The value is from 0 to 255 and
+   lower numbers get higher priority.  See Section 7.  Priorities above
+   255 are invalid.  Subgroups and Datagrams for this subscription
+   inherit this priority, unless they specifically override it.
 
-   A subscription has Publisher Priorty 128 if this extension is
-   omitted.
+   If omitted, the Default Publisher Priority is 128.
 
 11.4.  DEFAULT PUBLISHER GROUP ORDER
 
-   The DEFAULT_PUBLISHER_GROUP_ORDER extension (Extension Header Type
-   0x22) is a Track Extension.
+   DEFAULT_PUBLISHER_GROUP_ORDER (Property Type 0x22) is a Track
+   Property.
 
    It is an enum indicating the publisher's preference for prioritizing
    Objects from different groups within the same subscription (see
@@ -4335,21 +4325,19 @@ Table of Contents
 
 11.5.  DYNAMIC GROUPS
 
-   The DYNAMIC_GROUPS Extension (Extension Header Type 0x30) is a Track
-   Extension.  The allowed values are 0 or 1.  When the value is 1, it
-   indicates that the subscriber can request the Original Publisher to
-   start a new Group by including the NEW_GROUP_REQUEST parameter in
-   PUBLISH_OK or REQUEST_UPDATE for this Track.  If an endpoint receives
-   a value larger than 1, it MUST close the session with
-   PROTOCOL_VIOLATION.
+   DYNAMIC_GROUPS (Property Type 0x30) is a Track Property.  The allowed
+   values are 0 or 1.  When the value is 1, it indicates that the
+   subscriber can request the Original Publisher to start a new Group by
+   including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or
+   REQUEST_UPDATE for this Track.  If an endpoint receives a value
+   larger than 1, it MUST close the session with PROTOCOL_VIOLATION.
 
    If omitted, the value is 0.
 
-11.6.  Immutable Extensions
+11.6.  Immutable Properties
 
-   The Immutable Extensions (Extension Header Type 0xB) contains a
-   sequence of Key-Value-Pairs (see Figure 2) which are also Track or
-   Object Extension Headers.
+   Immutable Properties (Property Type 0xB) contain a sequence of Key-
+   Value-Pairs (see Figure 2) which are also Track or Object Properties.
 
    Immutable Extensions {
      Type (0xB),
@@ -4357,41 +4345,41 @@ Table of Contents
      Key-Value-Pair (..) ...
    }
 
-   This extension can be added by the Original Publisher, but MUST NOT
-   be added by Relays.  This extension MUST NOT be modified or removed
-   and the serialization (e.g. variable-length integer encodings) of the
-   Key-Value-Pairs MUST NOT change).  Relays MUST cache this extension
-   if the Object is cached and MUST forward this extension if the
-   enclosing Object is forwarded.  Relays MAY decode and view these
-   extensions.
+   This Property can be added by the Original Publisher, but MUST NOT be
+   added by Relays.  This Property MUST NOT be modified or removed and
+   the serialization (e.g. variable-length integer encodings) of the
+   Key-Value-Pairs MUST NOT change).  Like other Properties, Relays MUST
+   cache Immutable Properties if the Object or Track are cached and MUST
+   forward it.  Relays MAY decode and view the Properties in the Key-
+   Value-Pairs.
 
-   Unless specified by a particular Extension Header specification,
-   Extension Headers MAY appear either in the mutable extension list or
-   inside Immutable Extensions.  When looking for the value of an
-   extension, processors MUST search both the mutable extension list and
-   the contents of Immutable Extensions.
+   Unless specified by a particular Property specification, Properties
+   MAY appear either in the mutable extension list or inside Immutable
+   Properties.  When looking for the value of a property, processors
+   MUST search both the mutable properties and the contents of Immutable
+   Extensions.
 
-   If an Extension Header allows multiple values, the same Extension
-   Header Type MAY appear in both the mutable list and inside Immutable
-   Extensions, unless prohibited by the Extension Header specification.
+   If a Property allows multiple values, the same Property Type MAY
+   appear in both the mutable list and inside Immutable Extensions,
+   unless prohibited by the Property specification.
 
    A Track is considered malformed (see Section 2.4.2) if any of the
    following conditions are detected:
 
-   *  An Object contains an Immutable Extensions header that contains
-      another Immutable Extensions key.
+   *  An Object contains an Immutable Properties property that contains
+      another Immutable Properties key.
 
    *  A Key-Value-Pair cannot be parsed.
 
    The following figure shows an example Object structure with a
-   combination of mutable and immutable extensions and end to end
+   combination of mutable and immutable properties and end to end
    encrypted metadata in the Object payload.
 
                    Object Header                      Object Payload
 <------------------------------------------------> <------------------->
 +--------+-------+------------+-------+-----------+--------------------+
-| Object | Ext 1 | Immutable  | Ext N | [Payload] | Private Extensions |
-| Fields |       | Extensions |       | [Length]  | App Payload        |
+| Object | Ext 1 | Immutable  | Ext N | [Payload] | Private Properties |
+| Fields |       | Properties |       | [Length]  | App Payload        |
 +--------+-------+------------+-------+-----------+--------------------+
                   xxxxxxxxxxxx                     xxxxxxxxxxxxxxxxxxxx
                                                    yyyyyyyyyyyyyyyyyyyy
@@ -4399,21 +4387,20 @@ x = e2e Authenticated Data
 y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
 
-   An Object MUST NOT contain more than one instance of this extension
-   header.
+   An Object MUST NOT contain more than one instance of this property.
 
 11.7.  Prior Group ID Gap
 
    Prior Group ID Gap only applies to Objects, not Tracks.
 
-   Prior Group ID Gap (Extension Header Type 0x3C) is a variable length
-   integer containing the number of Groups prior to the current Group
-   that do not and will never exist.  For example, if the Original
-   Publisher is publishing an Object in Group 7 and knows it will never
-   publish any Objects in Group 8 or Group 9, it can include Prior Group
-   ID Gap = 2 in any number of Objects in Group 10, as it sees fit.  A
-   Track is considered malformed (see Section 2.4.2) if any of the
-   following conditions are detected:
+   Prior Group ID Gap (Property Type 0x3C) is a variable length integer
+   containing the number of Groups prior to the current Group that do
+   not and will never exist.  For example, if the Original Publisher is
+   publishing an Object in Group 7 and knows it will never publish any
+   Objects in Group 8 or Group 9, it can include Prior Group ID Gap = 2
+   in any number of Objects in Group 10, as it sees fit.  A Track is
+   considered malformed (see Section 2.4.2) if any of the following
+   conditions are detected:
 
    *  An Object contains more than one instance of Prior Group ID Gap.
 
@@ -4428,31 +4415,30 @@ EXT 1 and EXT N can be modified or removed by Relays
    *  An endpoint receives an Object with a Group ID within a previously
       communicated gap.
 
-   This extension is optional, as publishers might not know the prior
-   gap gize, or there may not be a gap.  If Prior Group ID Gap is not
-   present, the receiver cannot infer any information about the
+   Use of this property is optional, as publishers might not know the
+   prior gap gize, or there may not be a gap.  If Prior Group ID Gap is
+   not present, the receiver cannot infer any information about the
    existence of prior groups (see Section 2.3.1).
 
-   This extension can be added by the Original Publisher, but MUST NOT
-   be added by relays.  This extension MAY be removed by relay when the
+   This property can be added by the Original Publisher, but MUST NOT be
+   added by relays.  This property MAY be removed by a relay when the
    object in question is served via FETCH, and the gap that the
    extension communicates is already communicated implicitly in the
    FETCH response; it MUST NOT be modified or removed otherwise.
 
-   An Object MUST NOT contain more than one instance of this extension
-   header.
+   An Object MUST NOT contain more than one instance of this property.
 
 11.8.  Prior Object ID Gap
 
    Prior Object ID Gap only applies to Objects, not Tracks.
 
-   Prior Object ID Gap (Extension Header Type 0x3E) is a variable length
-   integer containing the number of Objects prior to the current Object
-   that do not and will never exist.  For example, if the Original
-   Publisher is publishing Object 10 in Group 3 and knows it will never
-   publish Objects 8 or 9 in this Group, it can include Prior Object ID
-   Gap = 2.  A Track is considered malformed (see Section 2.4.2) if any
-   of the following conditions are detected:
+   Prior Object ID Gap (Property Type 0x3E) is a variable length integer
+   containing the number of Objects prior to the current Object that do
+   not and will never exist.  For example, if the Original Publisher is
+   publishing Object 10 in Group 3 and knows it will never publish
+   Objects 8 or 9 in this Group, it can include Prior Object ID Gap = 2.
+   A Track is considered malformed (see Section 2.4.2) if any of the
+   following conditions are detected:
 
    *  An Object contains more than one instance of Prior Object ID Gap.
 
@@ -4464,19 +4450,18 @@ EXT 1 and EXT N can be modified or removed by Relays
    *  An endpoint receives an Object with an Object ID within a
       previously communicated gap.
 
-   This extension is optional, as publishers might not know the prior
-   gap gize, or there may not be a gap.  If Prior Object ID Gap is not
-   present, the receiver cannot infer any information about the
+   Use of this property is optional, as publishers might not know the
+   prior gap gize, or there might not be a gap.  If Prior Object ID Gap
+   is not present, the receiver cannot infer any information about the
    existence of prior objects (see Section 2.1).
 
-   This extension can be added by the Original Publisher, but MUST NOT
-   be added by relays.  This extension MAY be removed by relay when the
+   This property can be added by the Original Publisher, but MUST NOT be
+   added by relays.  This property MAY be removed by a relay when the
    object in question is served via FETCH, and the gap that the
    extension communicates is already communicated implicitly in the
    FETCH response; it MUST NOT be modified or removed otherwise.
 
-   An Object MUST NOT contain more than one instance of this extension
-   header.
+   An Object MUST NOT contain more than one instance of this property.
 
 12.  Security Considerations
 
@@ -4569,11 +4554,11 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  Message types
 
-   *  MOQ Extension headers - we wish to reserve extension types 0-63
-      for standards utilization where space is a premium, 64 - 16383 for
+   *  MOQ Properties - we wish to reserve extension types 0-63 for
+      standards utilization where space is a premium, 64 - 16383 for
       standards utilization where space is less of a concern, and 16384
       and above for first-come-first-served non-standardization usage.
-      List which headers can be repeated in the table.
+      List which Properties can be repeated in the table.
 
    *  MOQT Auth Token Type
 
@@ -4624,7 +4609,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 10
 
-13.3.  Extension Headers
+13.3.  Properties
 
      +======+===============================+========+===============+
      | Type | Name                          | Scope  | Specification |
@@ -4633,7 +4618,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      +------+-------------------------------+--------+---------------+
      | 0x04 | MAX_CACHE_DURATION            | Track  | Section 11.2  |
      +------+-------------------------------+--------+---------------+
-     | 0x0B | IMMUTABLE_EXTENSIONS          | Track, | Section 11.6  |
+     | 0x0B | IMMUTABLE_PROPERTIES          | Track, | Section 11.6  |
      |      |                               | Object |               |
      +------+-------------------------------+--------+---------------+
      | 0x0E | DEFAULT_PUBLISHER_PRIORITY    | Track  | Section 11.3  |
