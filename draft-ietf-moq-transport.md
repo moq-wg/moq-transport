@@ -721,7 +721,7 @@ values not present in the new set.  Relays MUST NOT attempt to merge sets
 of unknown properties received in different messages.
 
 If a Relay supports a Property, it MAY be modified, added, removed, and/or
-cached, subject to the processing rules specified in the definition. 
+cached, subject to the processing rules specified in the definition.
 
 Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
 
