@@ -3868,7 +3868,7 @@ SUBGROUP_HEADER {
 
 ~~~
 
-# Properties {#moqt-properties}
+# MOQT Properties {#moqt-properties}
 
 The following Properties are defined in MOQT. Each Property
 specifies whether it can be used with Tracks, Objects, or both.
