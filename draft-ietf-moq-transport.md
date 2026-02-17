@@ -414,6 +414,30 @@ The goal of this format is to have a format that is both filename and
 URL safe. It allows many common names to be rendered in an easily human
 readable form while still supporting binary values.
 
+### Parsing Serialized Names
+
+When parsing a serialized namespace or track name back to its binary form,
+implementations MUST apply the following rules to ensure a canonical encoding:
+
+* The hex digits following a period (.) MUST be lowercase (a-f). Uppercase
+  hex digits (A-F) are invalid and MUST cause parsing to fail.
+
+* Bytes that can be represented literally (a-z, A-Z, 0-9, _) MUST NOT appear
+  in their hex-encoded form. For example, `.61` is invalid because `a` must
+  be represented as the literal character `a`. A parser MUST reject such
+  redundant encodings.
+
+* A period (.) MUST be followed by exactly two hex digits. A trailing period
+  or a period followed by fewer than two hex digits is invalid.
+
+These rules ensure that the encoding is bijective: every binary value has
+exactly one valid serialized representation, and every valid serialized
+string maps to exactly one binary value. This property simplifies comparison
+of serialized names without requiring full deserialization.
+
+Implementations that receive an invalid serialized name SHOULD treat it as
+an error. The specific error handling behavior is application-defined.
+
 Example:
 
 ~~~
