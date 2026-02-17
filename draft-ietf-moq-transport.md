@@ -3974,7 +3974,7 @@ the Property specification.
 A Track is considered malformed (see {{malformed-tracks}}) if any of the
 following conditions are detected:
 
- * An Object contains an Immutable Properties header that contains another
+ * An Object contains an Immutable Properties property that contains another
    Immutable Properties key.
  * A Key-Value-Pair cannot be parsed.
 
