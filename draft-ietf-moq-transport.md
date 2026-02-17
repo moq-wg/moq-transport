@@ -1811,7 +1811,8 @@ making a request.  Any Track metadata sent by the publisher that is forwarded to
 subscribers is sent as Track Extension header.
 
 Each Message Parameter definition indicates the message types in which
-it can appear. If it appears in some other type of message, it MUST be ignored.
+it can appear. If it appears in some other type of message, the receiving
+endpoint MUST close the connection with a `PROTOCOL_VIOLATION`.
 Note that since Setup Options use a separate namespace, it is impossible for
 Message Parameters to appear in Setup messages.
 
@@ -2583,9 +2584,7 @@ REQUEST_UPDATE Message {
   or one that was recently closed locally. If it cannot verify this and cannot
   match the request, it MUST send REQUEST_ERROR.
 
-* Parameters: The parameters are defined in {{message-params}}. The receiver MUST
-  close the session with `PROTOCOL_VIOLATION` if the parameters included in the
-  REQUEST_UPDATE are invalid for the type of request being modified.
+* Parameters: The parameters are defined in {{message-params}}.
 
 ### Updating Subscriptions
 
