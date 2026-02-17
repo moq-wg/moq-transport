@@ -1391,7 +1391,7 @@ Table of Contents
    Object ID is above the threshold and the Track supports dynamic
    groups, the subscriber sends a REQUEST_UPDATE message with the
    NEW_GROUP_REQUEST parameter equal to the Largest Location's Group,
-   plus one (see Section 9.2.1.9).
+   plus one (see Section 9.2.1.10).
 
    Another possible subscriber pattern is to send a SUBSCRIBE with
    Filter Type Next Group Start and NEW_GROUP_REQUEST equal to 0.  The
@@ -2222,7 +2222,35 @@ Table of Contents
    data for that Object, taking into account priorities, congestion
    control, and any other relevant information.
 
-9.2.1.3.  SUBSCRIBER PRIORITY Parameter
+9.2.1.3.  RENDEZVOUS TIMEOUT Parameter
+
+   The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) MAY appear in
+   a SUBSCRIBE message.
+
+   It is the duration in milliseconds the subscriber is willing to wait
+   for a publisher to become available.  This applies when a relay
+   receives a SUBSCRIBE for a Track that has no current publisher.
+
+   If the RENDEZVOUS_TIMEOUT is present, the relay SHOULD hold the
+   subscription and wait for a publisher to appear, up to the specified
+   duration.  The relay does not send SUBSCRIBE_OK until a publisher
+   becomes available.  If a publisher becomes available within this
+   time, the relay proceeds with the subscription normally.  If the
+   timeout expires without a publisher, the relay SHOULD respond with
+   REQUEST_ERROR with error code TIMEOUT.
+
+   The relay MAY use a shorter timeout than requested by the subscriber.
+   For example, a relay might limit the maximum rendezvous timeout to
+   protect its resources.
+
+   A value of 0 indicates the subscriber does not want to wait and
+   expects an immediate response.  The relay MUST immediately return
+   REQUEST_ERROR with error code DOES_NOT_EXIST if no publisher is
+   available
+
+   If RENDEZVOUS_TIMEOUT is absent, the default is 0.
+
+9.2.1.4.  SUBSCRIBER PRIORITY Parameter
 
    The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in
    a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
@@ -2236,7 +2264,7 @@ Table of Contents
    If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
    the value 128.
 
-9.2.1.4.  GROUP ORDER Parameter
+9.2.1.5.  GROUP ORDER Parameter
 
    The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a
    SUBSCRIBE, PUBLISH_OK, or FETCH.
@@ -2251,7 +2279,7 @@ Table of Contents
    If omitted from SUBSCRIBE, the publisher's preference from the Track
    is used.  If omitted from FETCH, the receiver uses Ascending (0x1).
 
-9.2.1.5.  SUBSCRIPTION FILTER Parameter
+9.2.1.6.  SUBSCRIPTION FILTER Parameter
 
    The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) MAY appear in
    a SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a subscription)
@@ -2263,7 +2291,7 @@ Table of Contents
    If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
    unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
-9.2.1.6.  EXPIRES Parameter
+9.2.1.7.  EXPIRES Parameter
 
    The EXPIRES parameter (Parameter Type 0x8) MAY appear in
    SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK.  It is a variable
@@ -2284,7 +2312,7 @@ Table of Contents
    If the EXPIRES parameter is 0 or is not present in a message, the
    subscription does not expire or expires at an unknown time.
 
-9.2.1.7.  LARGEST OBJECT Parameter
+9.2.1.8.  LARGEST OBJECT Parameter
 
    The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in
    SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE
@@ -2296,7 +2324,7 @@ Table of Contents
    If omitted from a message, the sending endpoint has not published or
    received any Objects in the Track.
 
-9.2.1.8.  FORWARD Parameter
+9.2.1.9.  FORWARD Parameter
 
    The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
    REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
@@ -2310,7 +2338,7 @@ Table of Contents
    subscription remains unchanged.  If the parameter is omitted from any
    other message, the default value is 1.
 
-9.2.1.9.  NEW GROUP REQUEST Parameter
+9.2.1.10.  NEW GROUP REQUEST Parameter
 
    The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) MAY appear in
    PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a subscription.  It is an
@@ -2733,11 +2761,11 @@ Table of Contents
    object when not explicitly specified, and start sending objects.
 
    If the publisher cannot satisfy the requested Subscription Filter
-   (see Section 9.2.1.5) or if the entire End Group has already been
+   (see Section 9.2.1.6) or if the entire End Group has already been
    published it SHOULD send a REQUEST_ERROR with code INVALID_RANGE.  A
    publisher MUST NOT send objects from outside the requested range.
 
-   Subscribing with the FORWARD parameter (Section 9.2.1.8) equal to 0
+   Subscribing with the FORWARD parameter (Section 9.2.1.9) equal to 0
    allows publisher or relay to prepare to serve the subscription in
    advance, reducing the time to receive objects in the future.
 
@@ -2906,7 +2934,7 @@ Table of Contents
    abandon reading any publisher initiated streams associated with that
    subscription using a STOP_SENDING frame.
 
-   A publisher that sends the FORWARD parameter (Section 9.2.1.8) equal
+   A publisher that sends the FORWARD parameter (Section 9.2.1.9) equal
    to 0 indicates that it will not transmit any objects until the
    subscriber sets the Forward State to 1.  If the FORWARD parameter is
    omitted or equal to 1, the publisher will start transmitting objects
@@ -3190,7 +3218,7 @@ Table of Contents
 
    The publisher responding to a FETCH is responsible for delivering all
    available Objects in the requested range in the requested order (see
-   Section 9.2.1.4).  The Objects in the response are delivered on a
+   Section 9.2.1.5).  The Objects in the response are delivered on a
    single unidirectional stream.  Any gaps in the Group and Object IDs
    in the response stream indicate objects that do not exist.  For
    Ascending Group Order this includes ranges between the first
@@ -3517,7 +3545,7 @@ Table of Contents
    are only interested in or authorized to access a subset of available
    namespaces and tracks.
 
-   If the FORWARD parameter (Section 9.2.1.8) is present in this message
+   If the FORWARD parameter (Section 9.2.1.9) is present in this message
    and equal to 0, PUBLISH messages resulting from this
    SUBSCRIBE_NAMESPACE will set the FORWARD parameter to 0.  If the
    FORWARD parameter is equal to 1 or omitted from this message, PUBLISH
@@ -4539,29 +4567,31 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 13.2.  Message Parameters
 
-        +================+=====================+=================+
-        | Parameter Type | Parameter Name      | Specification   |
-        +================+=====================+=================+
-        | 0x02           | DELIVERY_TIMEOUT    | Section 9.2.1.2 |
-        +----------------+---------------------+-----------------+
-        | 0x03           | AUTHORIZATION_TOKEN | Section 9.2.1.1 |
-        +----------------+---------------------+-----------------+
-        | 0x08           | EXPIRES             | Section 9.2.1.6 |
-        +----------------+---------------------+-----------------+
-        | 0x09           | LARGEST_OBJECT      | Section 9.2.1.7 |
-        +----------------+---------------------+-----------------+
-        | 0x10           | FORWARD             | Section 9.2.1.8 |
-        +----------------+---------------------+-----------------+
-        | 0x20           | SUBSCRIBER_PRIORITY | Section 9.2.1.3 |
-        +----------------+---------------------+-----------------+
-        | 0x21           | SUBSCRIPTION_FILTER | Section 9.2.1.5 |
-        +----------------+---------------------+-----------------+
-        | 0x22           | GROUP_ORDER         | Section 9.2.1.4 |
-        +----------------+---------------------+-----------------+
-        | 0x32           | NEW_GROUP_REQUEST   | Section 9.2.1.9 |
-        +----------------+---------------------+-----------------+
+        +================+=====================+==================+
+        | Parameter Type | Parameter Name      | Specification    |
+        +================+=====================+==================+
+        | 0x02           | DELIVERY_TIMEOUT    | Section 9.2.1.2  |
+        +----------------+---------------------+------------------+
+        | 0x03           | AUTHORIZATION_TOKEN | Section 9.2.1.1  |
+        +----------------+---------------------+------------------+
+        | 0x04           | RENDEZVOUS_TIMEOUT  | Section 9.2.1.3  |
+        +----------------+---------------------+------------------+
+        | 0x08           | EXPIRES             | Section 9.2.1.7  |
+        +----------------+---------------------+------------------+
+        | 0x09           | LARGEST_OBJECT      | Section 9.2.1.8  |
+        +----------------+---------------------+------------------+
+        | 0x10           | FORWARD             | Section 9.2.1.9  |
+        +----------------+---------------------+------------------+
+        | 0x20           | SUBSCRIBER_PRIORITY | Section 9.2.1.4  |
+        +----------------+---------------------+------------------+
+        | 0x21           | SUBSCRIPTION_FILTER | Section 9.2.1.6  |
+        +----------------+---------------------+------------------+
+        | 0x22           | GROUP_ORDER         | Section 9.2.1.5  |
+        +----------------+---------------------+------------------+
+        | 0x32           | NEW_GROUP_REQUEST   | Section 9.2.1.10 |
+        +----------------+---------------------+------------------+
 
-                                 Table 10
+                                  Table 10
 
 13.3.  Extension Headers
 
