@@ -1159,6 +1159,15 @@ Subscription Filter {
 
 Filter Type can have one of the following values:
 
+Prior Group (0x0): The filter specifies a 'GroupsPrior' value as a varint
+and starts that many groups prior to the current Group.
+Start Location is `{Largest Object.Group - GroupsPrior, 0}` and
+`Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
+delivered yet, the filter Start Location is {0, 0}. There is no End Group -
+the subscription is open ended. Note that Objects before or equal to
+'Largest Object' will only be delivered if they arrive at the Publisher after
+the Subscription is created.
+
 Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
 Largest Object.Object + 1}` and `Largest Object` is communicated in
 SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
