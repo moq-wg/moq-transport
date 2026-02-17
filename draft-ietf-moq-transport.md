@@ -1810,7 +1810,8 @@ making a request. Track information not specific to the Message or Session
 is encoded in Track Properties. See {{properties}}.
 
 Each Message Parameter definition indicates the message types in which
-it can appear. If it appears in some other type of message, it MUST be ignored.
+it can appear. If it appears in some other type of message, the receiving
+endpoint MUST close the connection with a `PROTOCOL_VIOLATION`.
 Note that since Setup Options use a separate namespace, it is impossible for
 Message Parameters to appear in Setup messages.
 
@@ -2577,9 +2578,10 @@ REQUEST_UPDATE Message {
 
 * Existing Request ID: The Request ID of the request this message is
   updating.  This MUST match the Request ID of an existing request.  The
-  receiver MUST close the session with `PROTOCOL_VIOLATION` if the sender
-  specifies an invalid Existing Request ID, or if the parameters included
-  in the REQUEST_UPDATE are invalid for the type of request being modified.
+  receiver SHOULD close the session with `PROTOCOL_VIOLATION` if it can verify
+  that the Existing Request ID does not correspond to an existing request
+  or one that was recently closed locally. If it cannot verify this and cannot
+  match the request, it MUST send REQUEST_ERROR.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
