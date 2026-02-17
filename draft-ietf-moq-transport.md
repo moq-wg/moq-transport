@@ -2100,7 +2100,7 @@ SUBSCRIBE or REQUEST_UPDATE for a subscription.  It is an integer representing t
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
 this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
-include the DYNAMIC_GROUPS Extension with value 1.  A subscriber MAY
+include the DYNAMIC_GROUPS Parameter with value 1.  A subscriber MAY
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
 case.
@@ -3884,7 +3884,7 @@ A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
 due to delivery timeout.
 
 If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the Track has
-a DELIVERY_TIMEOUT extension, the endpoints use the min of the two non-zero
+a DELIVERY_TIMEOUT property, the endpoints use the min of the two non-zero
 values for the subscription. If either value is 0, the non-zero value is used.
 If both are 0, there is no delivery timeout.
 
