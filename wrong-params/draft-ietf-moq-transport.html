@@ -3838,7 +3838,8 @@ forwarded by Relays, though relays can consider received parameter values when
 making a request.  Any Track metadata sent by the publisher that is forwarded to
 subscribers is sent as Track Extension header.<a href="#section-9.2.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.1-2">Each Message Parameter definition indicates the message types in which
-it can appear. If it appears in some other type of message, it <span class="bcp14">MUST</span> be ignored.
+it can appear. If it appears in some other type of message, the receiving
+endpoint <span class="bcp14">MUST</span> close the connection with a <code>PROTOCOL_VIOLATION</code>.
 Note that since Setup Options use a separate namespace, it is impossible for
 Message Parameters to appear in Setup messages.<a href="#section-9.2.1-2" class="pilcrow">¶</a></p>
 <div id="authorization-token">
@@ -4802,9 +4803,7 @@ or one that was recently closed locally. If it cannot verify this and cannot
 match the request, it <span class="bcp14">MUST</span> send REQUEST_ERROR.<a href="#section-9.11-7.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.11-7.3">
-            <p id="section-9.11-7.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.2</a>. The receiver <span class="bcp14">MUST</span>
-close the session with <code>PROTOCOL_VIOLATION</code> if the parameters included in the
-REQUEST_UPDATE are invalid for the type of request being modified.<a href="#section-9.11-7.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.11-7.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.2</a>.<a href="#section-9.11-7.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <div id="updating-subscriptions">

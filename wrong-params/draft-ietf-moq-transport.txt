@@ -2039,8 +2039,9 @@ Table of Contents
    Extension header.
 
    Each Message Parameter definition indicates the message types in
-   which it can appear.  If it appears in some other type of message, it
-   MUST be ignored.  Note that since Setup Options use a separate
+   which it can appear.  If it appears in some other type of message,
+   the receiving endpoint MUST close the connection with a
+   PROTOCOL_VIOLATION.  Note that since Setup Options use a separate
    namespace, it is impossible for Message Parameters to appear in Setup
    messages.
 
@@ -2842,10 +2843,7 @@ Table of Contents
       it cannot verify this and cannot match the request, it MUST send
       REQUEST_ERROR.
 
-   *  Parameters: The parameters are defined in Section 9.2.  The
-      receiver MUST close the session with PROTOCOL_VIOLATION if the
-      parameters included in the REQUEST_UPDATE are invalid for the type
-      of request being modified.
+   *  Parameters: The parameters are defined in Section 9.2.
 
 9.11.1.  Updating Subscriptions
 
