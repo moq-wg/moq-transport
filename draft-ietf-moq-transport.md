@@ -713,12 +713,12 @@ specifications and are registered in an IANA table {{iana}}. These
 specifications define the type and value of the property, along with any rules
 concerning processing, modification, caching and forwarding.
 
-If unsupported by the relay, Properties MUST NOT be modified, MUST be
-cached as part of the Track or Object and MUST be forwarded by relays.  If a
-Track or Object arrives with a different set of unknown properties than
-previously cached, the most recent set SHOULD replace any cached values,
-removing any unknown values not present in the new set.  Relays MUST NOT attempt
-to merge sets of unknown properties received in different messages.
+If a Relay does not support a Property, it MUST NOT be modified, MUST be
+forwarded, and MUST be cached with the Track or Object.  If a Track or Object
+arrives with a different set of unknown properties than previously cached,
+the most recent set SHOULD replace any cached values, removing any unknown
+values not present in the new set.  Relays MUST NOT attempt to merge sets
+of unknown properties received in different messages.
 
 If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Properties MAY be modified, added, removed,
