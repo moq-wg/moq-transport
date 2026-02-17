@@ -6539,8 +6539,8 @@ specifies whether it can be used with Tracks, Objects, or both.<a href="#section
         <h3 id="name-delivery-timeout">
 <a href="#section-11.1" class="section-number selfRef">11.1. </a><a href="#name-delivery-timeout" class="section-name selfRef">DELIVERY TIMEOUT</a>
         </h3>
-<p id="section-11.1-1">The DELIVERY TIMEOUT property (Property Type 0x02) is a Track
-Extension.  It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
+<p id="section-11.1-1">DELIVERY TIMEOUT (Property Type 0x02) is a Track Property.
+It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
 <a href="#delivery-timeout" class="auto internal xref">Section 9.2.1.2</a>).<a href="#section-11.1-1" class="pilcrow">¶</a></p>
 <p id="section-11.1-2">A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
 due to delivery timeout.<a href="#section-11.1-2" class="pilcrow">¶</a></p>
@@ -6557,7 +6557,7 @@ specified a timeout, Objects do not time out.<a href="#section-11.1-4" class="pi
         <h3 id="name-max-cache-duration">
 <a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-max-cache-duration" class="section-name selfRef">MAX CACHE DURATION</a>
         </h3>
-<p id="section-11.2-1">The MAX_CACHE_DURATION extension (Property Type 0x04) is a Track Extension.<a href="#section-11.2-1" class="pilcrow">¶</a></p>
+<p id="section-11.2-1">MAX_CACHE_DURATION (Property Type 0x04) is a Track Property.<a href="#section-11.2-1" class="pilcrow">¶</a></p>
 <p id="section-11.2-2">It is an integer expressing
 the number of milliseconds an Object can be served from a cache. If present, the
 relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through this
@@ -6566,7 +6566,7 @@ since the beginning of the Object was received.  This means Objects earlier in a
 multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
 handles a downstream request that includes those Objects re-requests them.<a href="#section-11.2-2" class="pilcrow">¶</a></p>
-<p id="section-11.2-3">If the MAX_CACHE_DURATION extension is not sent by the publisher, the Objects
+<p id="section-11.2-3">If MAX_CACHE_DURATION is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.<a href="#section-11.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -6575,13 +6575,13 @@ can be cached until implementation constraints cause them to be evicted.<a href=
         <h3 id="name-default-publisher-priority">
 <a href="#section-11.3" class="section-number selfRef">11.3. </a><a href="#name-default-publisher-priority" class="section-name selfRef">DEFAULT PUBLISHER PRIORITY</a>
         </h3>
-<p id="section-11.3-1">The DEFAULT PUBLISHER PRIORITY extension (Property Type 0x0E) is a Track
-Extension that specifies the priority of
-a subscription relative to other subscriptions in the same session.  The value
-is from 0 to 255 and lower numbers get higher priority.  See
-<a href="#priorities" class="auto internal xref">Section 7</a>. Priorities above 255 are invalid. Subgroups and Datagrams for this
-subscription inherit this priority, unless they specifically override it.<a href="#section-11.3-1" class="pilcrow">¶</a></p>
-<p id="section-11.3-2">A subscription has Publisher Priorty 128 if this extension is omitted.<a href="#section-11.3-2" class="pilcrow">¶</a></p>
+<p id="section-11.3-1">DEFAULT PUBLISHER PRIORITY (Property Type 0x0E) is a Track Property
+that specifies the priority of a subscription relative to other subscriptions
+in the same session.  The value is from 0 to 255 and lower numbers get higher
+priority.  See <a href="#priorities" class="auto internal xref">Section 7</a>. Priorities above 255 are invalid. Subgroups and
+Datagrams for this subscription inherit this priority, unless they specifically
+override it.<a href="#section-11.3-1" class="pilcrow">¶</a></p>
+<p id="section-11.3-2">If omitted, the Default Publisher Priority is 128.<a href="#section-11.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="group-order-pref">
@@ -6589,8 +6589,7 @@ subscription inherit this priority, unless they specifically override it.<a href
         <h3 id="name-default-publisher-group-ord">
 <a href="#section-11.4" class="section-number selfRef">11.4. </a><a href="#name-default-publisher-group-ord" class="section-name selfRef">DEFAULT PUBLISHER GROUP ORDER</a>
         </h3>
-<p id="section-11.4-1">The DEFAULT_PUBLISHER_GROUP_ORDER extension (Property Type 0x22) is a
-Track Extension.<a href="#section-11.4-1" class="pilcrow">¶</a></p>
+<p id="section-11.4-1">DEFAULT_PUBLISHER_GROUP_ORDER (Property Type 0x22) is a Track Property.<a href="#section-11.4-1" class="pilcrow">¶</a></p>
 <p id="section-11.4-2">It is an enum indicating the publisher's preference for prioritizing Objects
 from different groups within the
 same subscription (see <a href="#priorities" class="auto internal xref">Section 7</a>). The allowed values are Ascending (0x1) or
@@ -6604,7 +6603,7 @@ close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.4-2"
         <h3 id="name-dynamic-groups">
 <a href="#section-11.5" class="section-number selfRef">11.5. </a><a href="#name-dynamic-groups" class="section-name selfRef">DYNAMIC GROUPS</a>
         </h3>
-<p id="section-11.5-1">The DYNAMIC_GROUPS Extension (Property Type 0x30) is a Track Extension.
+<p id="section-11.5-1">DYNAMIC_GROUPS (Property Type 0x30) is a Track Property.
 The allowed values are 0 or 1. When the value is 1, it indicates
 that the subscriber can request the Original Publisher to start a new Group
 by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
@@ -6709,12 +6708,12 @@ it previously received.<a href="#section-11.7-3.4.1" class="pilcrow">¶</a></p>
 communicated gap.<a href="#section-11.7-3.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.7-4">This extension is optional, as publishers might not know the prior gap gize, or
-there may not be a gap. If Prior Group ID Gap is not present, the receiver
+<p id="section-11.7-4">Use of this property is optional, as publishers might not know the prior gap gize,
+or there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
 <a href="#group-ids" class="auto internal xref">Section 2.3.1</a>).<a href="#section-11.7-4" class="pilcrow">¶</a></p>
-<p id="section-11.7-5">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
-relays. This extension <span class="bcp14">MAY</span> be removed by relay when the object in question is
+<p id="section-11.7-5">This property can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
+relays. This property <span class="bcp14">MAY</span> be removed by a relay when the object in question is
 served via FETCH, and the gap that the extension communicates is already
 communicated implicitly in the FETCH response; it <span class="bcp14">MUST NOT</span> be modified or
 removed otherwise.<a href="#section-11.7-5" class="pilcrow">¶</a></p>
@@ -6749,12 +6748,12 @@ it previously received.<a href="#section-11.8-3.3.1" class="pilcrow">¶</a></p>
 communicated gap.<a href="#section-11.8-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.8-4">This extension is optional, as publishers might not know the prior gap gize, or
-there may not be a gap. If Prior Object ID Gap is not present, the receiver
+<p id="section-11.8-4">Use of this property is optional, as publishers might not know the prior gap gize,
+or there might not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
 <a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-11.8-4" class="pilcrow">¶</a></p>
-<p id="section-11.8-5">This extension can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
-relays. This extension <span class="bcp14">MAY</span> be removed by relay when the object in question is
+<p id="section-11.8-5">This property can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
+relays. This property <span class="bcp14">MAY</span> be removed by a relay when the object in question is
 served via FETCH, and the gap that the extension communicates is already
 communicated implicitly in the FETCH response; it <span class="bcp14">MUST NOT</span> be modified or
 removed otherwise.<a href="#section-11.8-5" class="pilcrow">¶</a></p>
