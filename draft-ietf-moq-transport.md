@@ -1278,6 +1278,11 @@ bidirectional stream in response to a SUBSCRIBE_NAMESPACE. The subscriber
 SHOULD close the session with a protocol error if it detects receiving more
 than one.
 
+If a Subscription cannot be created because there is no available Request ID,
+the Publisher sends a PUBLISH_BLOCKED message on the response stream to indicate
+the Full Track Name of the Subscription that could not be established. The Publisher
+MUST NOT send a PUBLISH for a Track after PUBLISH_BLOCKED has been sent.  The subscriber can instead issue a SUBSCRIBE to establish a subscription to that track.
+
 The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
@@ -1753,6 +1758,8 @@ The following Message Types are defined:
 | 0xC   | PUBLISH_NAMESPACE_CANCEL ({{message-pub-ns-cancel}})|
 |-------|-----------------------------------------------------|
 | 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
+|-------|-----------------------------------------------------|
+| 0xF   | PUBLISH_BLOCKED  ({{message-publish-blocked}})      |
 |-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
@@ -3263,6 +3270,32 @@ set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
 corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
 corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
+
+## PUBLISH_BLOCKED {#message-publish-blocked}
+
+The publisher sends the `PUBLISH_BLOCKED` control message to indicate it cannot
+send a PUBLISH message to initiate a new Subscription for a Track in the
+SUBSCRIBE_NAMESPACE's Track Namespace. All PUBLISH_BLOCKED messages are in
+response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after the
+'Track Namespace Prefix' are included in the 'Track Namespace Suffix'.
+
+~~~
+PUBLISH_BLOCKED Message {
+  Type (i) = 0xF,
+  Length (16),
+  Track Namespace Suffix (..),
+  Track Name Length (vi64),
+  Track Name (..),
+}
+~~~
+{: #moq-transport-publish-blocked-format title="MOQT PUBLISH_BLOCKED Message"}
+
+* Track Namespace Suffix: Specifies the final portion of a track's
+  namespace as defined in {{track-name}}. The namespace begins with the
+  'Track Namespace Prefix' specified in {message-subscribe-ns}.
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
 
 # Data Streams and Datagrams {#data-streams}
 
