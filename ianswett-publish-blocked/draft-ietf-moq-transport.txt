@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 14 August 2026                                    I. Swett, Ed.
+Expires: 23 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        10 February 2026
+                                                        19 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 August 2026.
+   This Internet-Draft will expire on 23 August 2026.
 
 Copyright Notice
 
@@ -1456,10 +1456,9 @@ Table of Contents
    If a Subscription cannot be created because there is no available
    Request ID, the Publisher sends a PUBLISH_BLOCKED message on the
    response stream to indicate the Full Track Name of the Subscription
-   that could not be established.  The Publisher MUST NOT create a new
-   Subscription for that Track when more Request IDs become available.
-   The subscriber can instead issue a SUBSCRIBE to establish a
-   subscription to that track.
+   that could not be established.  The Publisher MUST NOT send a PUBLISH
+   for a Track after PUBLISH_BLOCKED has been sent.  The subscriber can
+   instead issue a SUBSCRIBE to establish a subscription to that track.
 
    The receiver of a REQUEST_OK or REQUEST_ERROR ought to forward the
    result to the application, so the application can decide which other
