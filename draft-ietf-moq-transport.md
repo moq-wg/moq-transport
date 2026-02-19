@@ -1805,16 +1805,15 @@ Type Delta: The difference between this Parameter Type and the previous
    Parameter Type in the message, or the Parameter Type itself for the first
    parameter. Parameters MUST be serialized in ascending order by Type.
 
-* Value: The encoding is specified by each parameter definition and is one of:
+* Value: The encoding is specified by each parameter definition.  The parameters defined in this draft are:
   * uint8: A single-byte unsigned integer (0-255)
   * varint: A variable-length integer
   * Location: Two consecutive varints (Group, Object)
   * Length-prefixed: A varint length followed by that many bytes
 
-Message Parameters are always intended for the peer endpoint only and are not
+Message Parameters are only intended for the peer only and are not
 forwarded by Relays, though relays can consider received parameter values when
-making a request. Any Track metadata sent by the publisher that is forwarded to
-subscribers is sent as Track Extension header.
+making a request.
 
 All Message Parameters MUST be defined in the negotiated version of MOQT or
 negotiated via Setup Options. An endpoint that receives an unknown Message
@@ -2107,9 +2106,9 @@ does not expire or expires at an unknown time.
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
 in SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE or
-TRACK_STATUS). It contains the largest Location in the Track observed by the
-sending endpoint (see {{subscription-filters}}). If Objects have been published
-on this Track the Publisher MUST include this parameter.
+TRACK_STATUS). It contains the largest Location (see {{location-structure}}) in the
+Track observed by the sending endpoint (see {{subscription-filters}}). If Objects
+have been published on this Track the Publisher MUST include this parameter.
 
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
