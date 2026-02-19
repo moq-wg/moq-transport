@@ -3251,7 +3251,7 @@ response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after the
 
 ~~~
 PUBLISH_BLOCKED Message {
-  Type (i) = 0xE,
+  Type (i) = 0xF,
   Length (16),
   Track Namespace Suffix (..),
   Track Name Length (vi64),
