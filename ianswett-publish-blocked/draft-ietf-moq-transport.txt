@@ -3547,7 +3547,7 @@ Table of Contents
    included in the 'Track Namespace Suffix'.
 
    PUBLISH_BLOCKED Message {
-     Type (i) = 0xE,
+     Type (i) = 0xF,
      Length (16),
      Track Namespace Suffix (..),
      Track Name Length (vi64),
