@@ -569,7 +569,7 @@ active.
 In MOQT, every track is identified by a Full Track Name, consisting of a Track
 Namespace and a Track Name.
 
-Track Namespace is an ordered set of between 1 and 32 Track Namespace Fields,
+Track Namespace is an ordered set of between 0 and 32 Track Namespace Fields,
 encoded as follows:
 
 ~~~
@@ -603,7 +603,7 @@ MUST close the session with a `PROTOCOL_VIOLATION`.
 
 The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
-consisting of 0 or greater than 32 Track Namespace Fields, it MUST close the
+consisting of greater than 32 Track Namespace Fields, it MUST close the
 session with a `PROTOCOL_VIOLATION`.
 
 Track Name is a sequence of bytes, possibly empty, that identifies an individual
@@ -1271,6 +1271,9 @@ part of that namespace.  This includes echoing back published Tracks and/or Trac
 Namespaces under the SUBSCRIBE_NAMESPACE prefix to the endpoint that sent them.
 If an endpoint accepts its own PUBLISH, this behaves as self-subscription described
 in {{subscriptions}}.
+
+A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the sender is
+interested in all tracks and/or namespaces from the receiver.
 
 The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
 publisher MUST send a single REQUEST_OK or REQUEST_ERROR as the first message on the
