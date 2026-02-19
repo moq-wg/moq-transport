@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 August 2026                                    I. Swett, Ed.
+Expires: 23 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         9 February 2026
+                                                        19 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 August 2026.
+   This Internet-Draft will expire on 23 August 2026.
 
 Copyright Notice
 
@@ -1443,7 +1443,8 @@ Table of Contents
    described in Section 5.1.
 
    A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the
-   sender is interested in all tracks or namespaces from the receiver.
+   sender is interested in all tracks and/or namespaces from the
+   receiver.
 
    The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional
    stream and the publisher MUST send a single REQUEST_OK or
