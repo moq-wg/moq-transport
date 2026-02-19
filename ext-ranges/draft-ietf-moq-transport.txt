@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 15 August 2026                                    I. Swett, Ed.
+Expires: 23 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        11 February 2026
+                                                        19 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 August 2026.
+   This Internet-Draft will expire on 23 August 2026.
 
 Copyright Notice
 
@@ -898,7 +898,7 @@ Table of Contents
    specifications:
 
    *  0x38 to 0x3F (1-byte encoding): 8 code points for applications
-      requiring compact per-object metadata
+      with tight space constraints
 
    *  0x3800 to 0x3FFF (2-byte encoding): 2048 code points for
       applications with moderate space constraints
@@ -912,8 +912,8 @@ Table of Contents
    these extensions unchanged but MUST NOT attempt to interpret their
    semantic meaning.  Different applications using the same code point
    in these ranges may assign different meanings; the interpretation
-   depends on the track format or application context known to the
-   publisher and subscriber.
+   depends on the track or application context known to the publisher
+   and subscriber.
 
 3.  Sessions
 
