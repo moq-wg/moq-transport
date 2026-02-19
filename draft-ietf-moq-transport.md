@@ -732,8 +732,8 @@ See {{iana}}.
 Certain Extension Header type ranges are reserved for application-specific
 use and will never be allocated by IANA or future MOQT specifications:
 
-* 0x38 to 0x3F (1-byte encoding): 8 code points for applications requiring
-  compact per-object metadata
+* 0x38 to 0x3F (1-byte encoding): 8 code points for applications with
+  tight space constraints
 * 0x3800 to 0x3FFF (2-byte encoding): 2048 code points for applications
   with moderate space constraints
 * 0x40000000 to 0x4FFFFFFF (5-byte encoding): Large range for applications
@@ -744,7 +744,7 @@ format-specific metadata or other application-defined purposes. Relays that
 do not understand the application format MUST forward these extensions
 unchanged but MUST NOT attempt to interpret their semantic meaning. Different
 applications using the same code point in these ranges may assign different
-meanings; the interpretation depends on the track format or application
+meanings; the interpretation depends on the track or application
 context known to the publisher and subscriber.
 
 # Sessions {#session}
