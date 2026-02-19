@@ -1271,7 +1271,7 @@ If an endpoint accepts its own PUBLISH, this behaves as self-subscription descri
 in {{subscriptions}}.
 
 A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the sender is
-interested in all tracks or namespaces from the receiver.
+interested in all tracks and/or namespaces from the receiver.
 
 The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
 publisher MUST send a single REQUEST_OK or REQUEST_ERROR as the first message on the
