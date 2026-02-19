@@ -1203,6 +1203,35 @@ REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
 join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter
 Type `Next Group Start`.
 
+When a subscriber is already receiving one Track and intends to join another
+Track that carries equivalent content (for example a higher or lower bitrate
+variant), the subscriber can use a switching procedure. The subscriber
+identifies the current Track and the target Track and requests a transition at
+a suitable Group boundary.
+
+SWITCH is intended for use in applications where the publisher (or application)
+defines the two Tracks as switchable (e.g., CMAF switching sets). The Relay does
+not need to verify that two Tracks are switchable; it only executes the
+mechanism defined below.
+
+#### Coordinated Track Switching for Adaptive Bitrate Streaming
+Client-side Adaptive bitrate (ABR) streaming requires a subscriber to
+transition between two Tracks that represent alternative formats of the same
+content. The subscriber knows which Tracks are alternatives, based on
+information such as catalog metadata or an out-of-band manifest.
+
+To request a switch, the subscriber sends a SWITCH (see {{message-switch}})
+identifying the Track it is currently receiving and the Track it intends to
+receive next. The subscriber determines both Tracks locally and
+does not rely on the Relay or publisher to infer ABR intent from subscription
+patterns.
+
+When a Relay receives a SWITCH message, it SHOULD NOT forward it upstream.
+Instead, the Relay SHOULD perform the transition locally, preparing the
+subscription for the new Track and determining the point at which to stop
+forwarding objects from the old Track and begin forwarding objects from the
+new one (see {{relay-switch}}).
+
 #### Dynamically Starting New Groups
 
 While some publishers will deterministically create new Groups, other
@@ -1688,6 +1717,141 @@ A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
 prioritize sending Objects based on {{priorities}}.
 
+## Relay Processing of SWITCH {#relay-switch}
+
+A Relay that receives SWITCH is responsible for carrying out the transition
+locally and SHOULD NOT forward the SWITCH message upstream.
+
+### Common Group Boundaries
+
+For the purposes of SWITCH, a Group boundary is proven by the availability of
+Object (g,0). Object (g,0) is the only Object that is guaranteed to be
+independently decodable.
+
+A Relay considers GroupID g to be present for a Track if the Relay possesses
+Object (g,0) for that Track (from cache or upstream delivery). A GroupID g is a
+common Group boundary for two Tracks if it is present for both Tracks.
+
+### Processing Steps
+
+Upon receiving a SWITCH message, the Relay MUST first validate that the Old
+Request ID identifies an Established subscription. If no such subscription
+exists, the Relay MUST send a REQUEST_ERROR for the New Request ID and MUST
+NOT modify any existing subscription state.
+
+When preparing the upstream subscription for the new Track, the Relay computes
+subscription parameters as the union of the parameters associated with the Old
+Request ID and the subscription parameters carried in the SWITCH message; in
+case of conflict, the values in the SWITCH message take precedence. The Relay
+then determines whether these merged subscription parameters can be aggregated
+into an existing Established subscription for the target Track, following the
+rules in {{subscriber-interactions}}. If aggregation is possible, the Relay
+reuses that Established subscription. Otherwise, the Relay creates a new
+upstream subscription using the Track Namespace, Track Name, authorization
+information, and merged subscription parameters.
+
+The Relay MAY need to establish an upstream subscription for the new Track
+before it can identify a common Group boundary. While attempting to perform the
+SWITCH operation, the Relay MUST continue forwarding Objects from the old Track
+according to the Old Request ID.
+
+The Relay MUST either complete the SWITCH operation or fail it within an
+implementation-specific timeout T_switch. If the Relay fails to complete the
+SWITCH operation within T_switch, it MUST send a REQUEST_ERROR for the New
+Request ID with Error Code TIMEOUT.
+
+The Relay selects a transition GroupID G_switch as the smallest GroupID g such
+that:
+
+* g is greater than or equal to max(Target Group ID, G_current), where
+  G_current is the GroupID currently being forwarded on the Old Request ID; and
+* Object (g,0) is present at the Relay for both the old Track and the new Track.
+
+If the Relay cannot identify any such GroupID before T_switch expires, it MUST
+send a REQUEST_ERROR for the New Request ID and MUST NOT alter the behavior of
+the subscription associated with the Old Request ID.
+
+When G_switch is identified, the Relay MUST send SUBSCRIBE_OK for the New
+Request ID. The new subscription begins with its Forward state set to 0. The
+Relay internally sets its Forward state to 1 starting at (G_switch,0); no
+SUBSCRIBE_UPDATE from the subscriber is required for this transition. If
+G_switch equals G_current, the Relay sets Forward state to 1 immediately and
+begins forwarding from (G_switch,0).
+
+If G_switch is greater than G_current, the Relay forwards Objects from the old
+Track according to their natural order up to but excluding (G_switch,0), then
+forwards Objects from the new Track starting at (G_switch,0).
+
+If G_switch equals G_current, the Relay MAY cancel the delivery of remaining
+Objects from the old Track in GroupID G_switch and instead start forwarding the
+new Track from (G_switch,0). This can result in Objects for the same
+(GroupID,ObjectID) being received from both Tracks.
+
+Once the Relay begins forwarding Objects from the new Track starting at
+(G_switch,0), it MUST NOT deliver any further Objects from the old Track to
+that subscriber. If old-Track Objects are already queued on QUIC streams, the
+Relay MUST ensure they are not delivered; the Relay MAY use RESET_STREAM on
+affected subgroup streams to enforce this.
+
+If the Relay possesses cached Objects of the new Track starting at (G_switch,0),
+it MAY forward those cached Objects immediately after the transition using the
+normal Object delivery mechanisms of the subscription (subgroup streams and/or
+Datagrams), followed by live Objects as they arrive.
+
+After the transition at (G_switch,0) occurs, the Relay handles the old
+subscription according to the value of the close-after-switch flag (see
+{{message-switch}}). If close-after-switch is 1, the Relay MUST terminate the
+old subscription by sending PUBLISH_DONE for the Old Request ID. If
+close-after-switch is 0, the Relay MUST keep the old subscription active, set
+its Forward state to 0, and MUST NOT close or implicitly expire that
+subscription.
+
+### Error Handling Guidance
+
+If the Relay cannot perform the requested operation, it MUST respond with
+REQUEST_ERROR for the New Request ID. The following mappings are RECOMMENDED:
+
+* TIMEOUT: The Relay could not identify G_switch within T_switch, including
+  cases where it could not establish or use an upstream subscription for the
+  target Track.
+* DOES_NOT_EXIST: The target Track is not available at the publisher.
+* INVALID_RANGE: No common Group boundary exists at or beyond
+  max(Target Group ID, G_current).
+* NOT_SUPPORTED: The Relay does not support the SWITCH extension.
+
+While a SWITCH is pending, if the subscriber sends UNSUBSCRIBE for the Old
+Request ID before the transition occurs, the Relay SHOULD abandon the SWITCH
+attempt and respond to the New Request ID with REQUEST_ERROR.
+
+### Subscriber Considerations
+
+The subscriber can infer that the transition occurred when it receives the
+first Object on the New Request ID, which will be (G_switch,0).
+
+If close-after-switch is 0, the subscriber can switch back by sending another
+SWITCH message, setting Old Request ID to the currently-forwarded subscription
+and setting New Request ID to the preserved Established subscription for the
+previous Track.
+
+Because the Relay can restart the transition Group when G_switch equals
+G_current, a subscriber MUST be prepared to receive Objects for the same
+(GroupID,ObjectID) from both Tracks and MUST process Objects from at most one
+Track for a given (GroupID,ObjectID).
+
+### SWITCH Extension Negotiation {#switch-negotiation}
+
+SWITCH is defined as a MOQT extension and MUST be negotiated using Setup
+parameters ({{extension-negotiation}}). Endpoints MUST NOT send SWITCH unless
+this extension has been negotiated.
+
+A client requests SWITCH support by including the SWITCH_SUPPORTED Setup
+parameter in CLIENT_SETUP. A server indicates support by including the same
+parameter in SERVER_SETUP.
+
+SWITCH_SUPPORTED (TBD):
+: A Setup parameter with an empty value. Presence indicates support for the
+  SWITCH message.
+
 # Control Messages {#message}
 
 MOQT uses a single bidirectional stream to exchange control messages, as
@@ -1747,6 +1911,8 @@ The following Message Types are defined:
 | 0x18  | FETCH_OK ({{message-fetch-ok}})                     |
 |-------|-----------------------------------------------------|
 | 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})             |
+|-------|-----------------------------------------------------|
+| 0x12  | SWITCH ({{message-switch}})                         |
 |-------|-----------------------------------------------------|
 | 0xD   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
@@ -3064,6 +3230,91 @@ FETCH_CANCEL Message {
 
 * Request ID: The Request ID of the FETCH ({{message-fetch}}) this message is
   cancelling.
+
+## SWITCH {#message-switch}
+
+The SWITCH message allows a subscriber to request a coordinated transition
+from one Track to another Track.
+
+~~~
+SWITCH Message {
+  Type (i) = 0x12,
+  Length (16),
+
+  Old Request ID (i),
+  New Request ID (i),
+
+  Track Namespace (...),
+  Track Name Length (i),
+  Track Name (...),
+
+  Auth Info Length (i),
+  Auth Info (...),
+
+  Close-After-Switch (i),   ; 0 or 1
+
+  Target Group ID (i),
+
+  Number of Parameters (i),
+  Subscription Parameters (...) ...,
+}
+~~~
+
+The fields of the SWITCH message are as follows:
+
+* Old Request ID:
+  Identifies the Established subscription that is the source of objects
+  before the transition. If no such subscription exists, the receiver MUST
+  send a REQUEST_ERROR for New Request ID and MUST NOT modify any
+  subscription state.
+
+* New Request ID:
+  Identifies the subscription that will deliver objects after the transition.
+  This Request ID MUST either refer to an existing Established subscription
+  for the target Track or be unused, in which case the receiver creates a
+  new subscription for the Track.
+
+* Track Namespace and Track Name:
+  Identify the target Track and are encoded as in SUBSCRIBE.
+
+* Auth Info Length and Auth Info:
+  Optional authorization information for the target Track. If Auth Info
+  Length is zero, the receiver MAY reuse any authorization information
+  associated with Old Request ID.
+
+* Close-After-Switch:
+   A boolean indicating how the Relay handles the old subscription after the
+   transition at (G_switch,0) occurs. If flag is 1, the old subscription MUST
+   be terminated, and the receiver MUST send a PUBLISH_DONE for Old Request ID.
+   If flag is 0, the old subscription MUST remain active, its Forward state
+   MUST be set to 0, and the receiver MUST NOT close or implicitly expire it.
+
+* Target Group ID:
+   The earliest GroupID at which the subscriber permits the transition.
+   The receiver MUST select G_switch such that G_switch is greater than or
+   equal to max(Target Group ID, G_current), where G_current is the GroupID
+   currently being forwarded on the Old Request ID.
+
+* Subscription Parameters:
+  Version-specific subscription parameters encoded as in SUBSCRIBE. The
+   receiver MUST construct the upstream subscription for the New Request ID
+   using the union of the parameters from the Old Request ID and the
+   subscription parameters present in the SWITCH message. If both specify a
+   value for the same parameter, the value in the SWITCH message MUST take
+   precedence.
+
+Upon receiving SWITCH, the receiver prepares the subscription associated with
+New Request ID and attempts to select a transition point as described in
+{{relay-switch}}. If no suitable transition point can be identified, the
+receiver MUST send a REQUEST_ERROR for the New Request ID and MUST NOT alter
+the behavior of the subscription associated with the Old Request ID.
+
+If a transition point exists, the receiver completes preparation of the new
+subscription and MUST send SUBSCRIBE_OK for the New Request ID.
+
+A Relay that receives SWITCH performs the transition locally and SHOULD
+NOT forward the SWITCH message upstream.
+
 
 ## TRACK_STATUS {#message-track-status}
 
