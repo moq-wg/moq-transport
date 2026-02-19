@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 21 August 2026                                    I. Swett, Ed.
+Expires: 23 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        17 February 2026
+                                                        19 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 August 2026.
+   This Internet-Draft will expire on 23 August 2026.
 
 Copyright Notice
 
@@ -168,6 +168,7 @@ Table of Contents
      9.23. NAMESPACE_DONE
      9.24. PUBLISH_NAMESPACE_CANCEL
      9.25. SUBSCRIBE_NAMESPACE
+     9.26. PUBLISH_BLOCKED
    10. Data Streams and Datagrams
      10.1.  Track Alias
      10.2.  Objects
@@ -1454,6 +1455,13 @@ Table of Contents
    response to a SUBSCRIBE_NAMESPACE.  The subscriber SHOULD close the
    session with a protocol error if it detects receiving more than one.
 
+   If a Subscription cannot be created because there is no available
+   Request ID, the Publisher sends a PUBLISH_BLOCKED message on the
+   response stream to indicate the Full Track Name of the Subscription
+   that could not be established.  The Publisher MUST NOT send a PUBLISH
+   for a Track after PUBLISH_BLOCKED has been sent.  The subscriber can
+   instead issue a SUBSCRIBE to establish a subscription to that track.
+
    The receiver of a REQUEST_OK or REQUEST_ERROR ought to forward the
    result to the application, so the application can decide which other
    publishers to contact, if any.
@@ -1973,6 +1981,8 @@ Table of Contents
            |  0xC | PUBLISH_NAMESPACE_CANCEL (Section 9.24)    |
            +------+--------------------------------------------+
            | 0x11 | SUBSCRIBE_NAMESPACE (Section 9.25)         |
+           +------+--------------------------------------------+
+           |  0xF | PUBLISH_BLOCKED (Section 9.26)             |
            +------+--------------------------------------------+
 
                                   Table 3
@@ -3556,6 +3566,32 @@ Table of Contents
    NAMESPACE_DONE before the corresponding NAMESPACE, it MUST close the
    session with a 'PROTOCOL_VIOLATION'.
 
+9.26.  PUBLISH_BLOCKED
+
+   The publisher sends the PUBLISH_BLOCKED control message to indicate
+   it cannot send a PUBLISH message to initiate a new Subscription for a
+   Track in the SUBSCRIBE_NAMESPACE's Track Namespace.  All
+   PUBLISH_BLOCKED messages are in response to a SUBSCRIBE_NAMESPACE, so
+   only the namespace tuples after the 'Track Namespace Prefix' are
+   included in the 'Track Namespace Suffix'.
+
+   PUBLISH_BLOCKED Message {
+     Type (i) = 0xF,
+     Length (16),
+     Track Namespace Suffix (..),
+     Track Name Length (vi64),
+     Track Name (..),
+   }
+
+                  Figure 27: MOQT PUBLISH_BLOCKED Message
+
+   *  Track Namespace Suffix: Specifies the final portion of a track's
+      namespace as defined in Section 2.4.1.  The namespace begins with
+      the 'Track Namespace Prefix' specified in {message-subscribe-ns}.
+
+   *  Track Name: Identifies the track name as defined in
+      (Section 2.4.1).
+
 10.  Data Streams and Datagrams
 
    A publisher sends Objects matching a subscription on Data Streams or
@@ -3729,7 +3765,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                      Figure 27: MOQT OBJECT_DATAGRAM
+                      Figure 28: MOQT OBJECT_DATAGRAM
 
    The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or
    the set of values from 0x00 to 0x0F, 0x20 to 0x2F).  However, not all
@@ -3827,7 +3863,7 @@ Table of Contents
      [Publisher Priority (8),]
    }
 
-                      Figure 28: MOQT SUBGROUP_HEADER
+                      Figure 29: MOQT SUBGROUP_HEADER
 
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
@@ -3909,7 +3945,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                   Figure 29: MOQT Subgroup Object Fields
+                   Figure 30: MOQT Subgroup Object Fields
 
 10.4.3.  Closing Subgroup Streams
 
@@ -4062,7 +4098,7 @@ Table of Contents
      Request ID (vi64),
    }
 
-                        Figure 30: MOQT FETCH_HEADER
+                        Figure 31: MOQT FETCH_HEADER
 
    Each Object sent on a FETCH stream after the FETCH_HEADER has the
    following format:
@@ -4078,7 +4114,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                    Figure 31: MOQT Fetch Object Fields
+                    Figure 32: MOQT Fetch Object Fields
 
    The Serialization Flags field defines the serialization of the
    Object.  It is a variable-length integer.  When less than 128, the
