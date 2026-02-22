@@ -2894,6 +2894,17 @@ combination can lead to underestimating the available network bandwidth. As a re
 applications might need to periodically ensure the congestion controller is not
 app-limited for at least a full round trip to ensure the available bandwidth can be
 measured.<a href="#section-3.6.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.6.2-2">Some applications might have APIs to allow sending duplicate data or forward error
+correction to probe for more bandwidth while also limiting the impact of probing
+in case it causes packet loss. Applications wanting to switch to an alternate
+representation of a Track can request that Track at a lower priority to probe.
+Applications can subscribe to additional tracks at the lowest (255) priority
+to fill the congestion window during probing intervals while minimizing the
+impact on higher priority media.
+Network-assisted bandwidth estimation mechanisms such as SCONE
+<span>[<a href="#I-D.ietf-scone-protocol" class="cite xref">I-D.ietf-scone-protocol</a>]</span> can provide receivers with sustainable bandwidth hints,
+which subscribers can use to inform track selection decisions and potentially avoid
+unnecessary probing.<a href="#section-3.6.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="consistent-throughput">
@@ -7765,6 +7776,10 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dt id="I-D.draft-lcurley-warp">[I-D.draft-lcurley-warp]</dt>
         <dd>
 <span class="refAuthor">Curley, L.</span>, <span class="refAuthor">Pugin, K.</span>, <span class="refAuthor">Nandakumar, S.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"Warp - Live Media Transport over QUIC"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-lcurley-warp-04</span>, <time datetime="2023-03-13" class="refDate">13 March 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-lcurley-warp-04">https://datatracker.ietf.org/doc/html/draft-lcurley-warp-04</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
+        <dd>
+<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-04</span>, <time datetime="2025-12-14" class="refDate">14 December 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-04">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-04</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
