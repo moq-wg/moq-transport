@@ -1537,10 +1537,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.5">
-                <p id="section-toc.1-1.10.2.5.1"><a href="#section-10.5" class="auto internal xref">10.5</a>.  <a href="#name-padding-streams" class="internal xref">Padding Streams</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.6">
-                <p id="section-toc.1-1.10.2.6.1"><a href="#section-10.6" class="auto internal xref">10.6</a>.  <a href="#name-examples" class="internal xref">Examples</a></p>
+                <p id="section-toc.1-1.10.2.5.1"><a href="#section-10.5" class="auto internal xref">10.5</a>.  <a href="#name-examples" class="internal xref">Examples</a></p>
 </li>
             </ul>
 </li>
@@ -5802,16 +5799,12 @@ the type of the stream in question.<a href="#section-10-2" class="pilcrow">¶</a
         </thead>
         <tbody>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x05</td>
-            <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 10.4.4</a>)</td>
-          </tr>
-          <tr>
             <td class="text-right" rowspan="1" colspan="1">0x10-0x1D</td>
             <td class="text-left" rowspan="1" colspan="1">SUBGROUP_HEADER  (<a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>)</td>
           </tr>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x132B3E28</td>
-            <td class="text-left" rowspan="1" colspan="1">PADDING  (<a href="#padding-streams" class="auto internal xref">Section 10.5</a>)</td>
+            <td class="text-right" rowspan="1" colspan="1">0x05</td>
+            <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 10.4.4</a>)</td>
           </tr>
         </tbody>
       </table>
@@ -6531,47 +6524,13 @@ and those with unknown status.<a href="#section-10.4.4.2-1" class="pilcrow">¶</
 </div>
 </section>
 </div>
-<div id="padding-streams">
-<section id="section-10.5">
-        <h3 id="name-padding-streams">
-<a href="#section-10.5" class="section-number selfRef">10.5. </a><a href="#name-padding-streams" class="section-name selfRef">Padding Streams</a>
-        </h3>
-<p id="section-10.5-1">An endpoint <span class="bcp14">MAY</span> open a unidirectional stream with a stream type of 0x132B3E28 to send
-padding data. The stream begins with the stream type, followed by zero or more
-bytes that <span class="bcp14">MUST</span> all be set to zero.<a href="#section-10.5-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-padding-stream"></span><div id="padding-format">
-<figure id="figure-33">
-          <div class="alignLeft art-text artwork" id="section-10.5-2.1">
-<pre>
-PADDING {
-  Type (vi64) = 0x132B3E28,
-  Padding Data (..) = 0x00..
-}
-</pre>
-</div>
-<figcaption><a href="#figure-33" class="selfRef">Figure 33</a>:
-<a href="#name-moqt-padding-stream" class="selfRef">MOQT Padding Stream</a>
-          </figcaption></figure>
-</div>
-<p id="section-10.5-3">The receiver <span class="bcp14">MUST</span> discard all data received on a padding stream. The receiver
-<span class="bcp14">MUST NOT</span> close the session upon receiving a padding stream.<a href="#section-10.5-3" class="pilcrow">¶</a></p>
-<p id="section-10.5-4">Padding streams do not carry Objects or any other application data. An endpoint
-can use padding streams to probe for additional bandwidth without affecting the
-delivery of media data. To avoid interfering with the delivery of Objects,
-senders <span class="bcp14">SHOULD</span> send padding streams at a lower priority than any data stream
-carrying media.<a href="#section-10.5-4" class="pilcrow">¶</a></p>
-<p id="section-10.5-5">Either the sender or the receiver <span class="bcp14">MAY</span> cancel a padding stream at any time
-without affecting any MOQT application state. The receiver <span class="bcp14">MAY</span> send STOP_SENDING
-on a padding stream to indicate it no longer wishes to receive padding data.<a href="#section-10.5-5" class="pilcrow">¶</a></p>
-</section>
-</div>
 <div id="examples">
-<section id="section-10.6">
+<section id="section-10.5">
         <h3 id="name-examples">
-<a href="#section-10.6" class="section-number selfRef">10.6. </a><a href="#name-examples" class="section-name selfRef">Examples</a>
+<a href="#section-10.5" class="section-number selfRef">10.5. </a><a href="#name-examples" class="section-name selfRef">Examples</a>
         </h3>
-<p id="section-10.6-1">Sending a subgroup on one stream:<a href="#section-10.6-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-10.6-2">
+<p id="section-10.5-1">Sending a subgroup on one stream:<a href="#section-10.5-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-10.5-2">
 <pre>
 Stream = 2
 
@@ -6592,11 +6551,11 @@ SUBGROUP_HEADER {
   Object Payload Length = 4
   Payload = "efgh"
 }
-</pre><a href="#section-10.6-2" class="pilcrow">¶</a>
+</pre><a href="#section-10.5-2" class="pilcrow">¶</a>
 </div>
-<p id="section-10.6-3">Sending a group on one stream, with the first object containing two
-Properties.<a href="#section-10.6-3" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-10.6-4">
+<p id="section-10.5-3">Sending a group on one stream, with the first object containing two
+Properties.<a href="#section-10.5-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-10.5-4">
 <pre>
 Stream = 2
 
@@ -6626,7 +6585,7 @@ SUBGROUP_HEADER {
   Payload = "efgh"
 }
 
-</pre><a href="#section-10.6-4" class="pilcrow">¶</a>
+</pre><a href="#section-10.5-4" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
