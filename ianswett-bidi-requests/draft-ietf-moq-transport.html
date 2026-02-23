@@ -3798,12 +3798,12 @@ session with <code>INVALID_REQUEST_ID</code>.<a href="#section-9.1-4" class="pil
         <h3 id="name-required-request-id">
 <a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-required-request-id" class="section-name selfRef">Required Request ID</a>
         </h3>
-<p id="section-9.2-1">Every request message includes a Required Request ID Delta field, which is a delta
-subtracted from Request ID to determine the Required Request ID. The receiver
-<span class="bcp14">MUST</span> deliver the referenced request to the application before delivering this request.
-Required Request ID <span class="bcp14">MUST</span> have the same parity (least significant bit) as Request ID
-and Required Request ID Delta <span class="bcp14">MUST NOT</span> be larger than Request ID. If an endpoint
-receives an invalid Required Request ID, it <span class="bcp14">MUST</span> close the session with
+<p id="section-9.2-1">Every request message includes a Required Request ID Delta field, which is
+multiplied by two and subtracted from Request ID to determine the
+Required Request ID. The receiver <span class="bcp14">MUST</span> deliver the referenced request to the
+application before delivering this request. Two times the Required Request ID
+Delta <span class="bcp14">MUST NOT</span> be larger than Request ID. If an endpoint receives a delta that
+is too large for the Request ID, it <span class="bcp14">MUST</span> close the session with
 <code>INVALID_REQUIRED_REQUEST_ID</code>. A Required Request ID Delta value of 0 indicates
 there is no dependency. If the required request does not arrive, the receiver
 will time out the dependent request.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
