@@ -4477,7 +4477,6 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | LOCATION_FILTER | {{location-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
-| 0x23 | GROUP_FILTER | {{group-filter}} |
 | 0x25 | SUBGROUP_FILTER | {{subgroup-filter}} |
 | 0x27 | OBJECT_FILTER | {{object-filter}} |
 | 0x29 | PRIORITY_FILTER | {{priority-filter}} |
