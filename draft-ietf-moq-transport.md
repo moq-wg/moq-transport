@@ -2133,26 +2133,35 @@ Filters are parameters in control messages that tell a publisher to
 filter tracks and objects according to subscriber criteria which are
 comparisons of integer values in object headers.
 
-There are seven filter types, with odd values between 0x21-0x2D (length prefixed),
+There are six filter types, with odd values between 0x21-0x2D (length prefixed),
 with similar structures and behavior as summarized below.
 
 ~~~
- LOCATION_FILTER { Type=0x21, Len, [StartG, [StartO, [EndG, [EndO]]]] }
-    GROUP_FILTER { Type=0x23, Len, [StartG, [EndG]]... }
- SUBGROUP_FILTER { Type=0x25, Len, [StartS, [EndS]]... }
-   OBJECT_FILTER { Type=0x27, Len, [StartO, [EndO]]... }
- PRIORITY_FILTER { Type=0x29, Len, [StartP, [EndP]]... }
-EXTENSION_FILTER { Type=0x2B, Len, [ExtType, StartV, [EndV]]... }
-    TRACK_FILTER { Type=0x2D, Len, [ExtType, MaxS, MaxD, MaxT] }
+ LOCATION_FILTER { Type=0x21, Len, [Range] }
+ SUBGROUP_FILTER { Type=0x25, Len, [Range...] }
+   OBJECT_FILTER { Type=0x27, Len, [Range...] }
+ PRIORITY_FILTER { Type=0x29, Len, [Range...] }
+EXTENSION_FILTER { Type=0x2B, Len, [ExtType,] [Range...] }
+    TRACK_FILTER { Type=0x2D, Len, [ExtType,] [MaxS,] [MaxD,] [MaxT] }
+(MaxS=MaxTracksSelected, MaxD=MaxTracksDeselected, MaxT=MaxTimeSelected)
+~~~
 
-G=GroupID, S=SubgroupID, O=ObjectID, P=Priority, V=Value of Extension
-MaxS=MaxTracksSelected, MaxD=MaxTracksDeselected, MaxT=MaxTimeSelected
+Filters use a common Range structure of Start and End values.
+The Range End is delta encoded from the Start, and any subsequent
+Range Start in the same parameter is delta encoded from the prior End.
+
+~~~
+Range { Start (..), [End (..)] }
 ~~~
 
 The TRACK_FILTER parameter MAY appear in a SUBSCRIBE_NAMESPACE or
 REQUEST_UPDATE (for SUBSCRIBE_NAMESPACE) message.  All other filter
 parameters MAY appear in a FETCH, SUBSCRIBE, SUBSCRIBE_NAMESPACE,
-PUBLISH_OK, or REQUEST_UPDATE (for a subscription) message.
+PUBLISH_OK, or REQUEST_UPDATE (from a subscriber for a subscription)
+message.
+
+The EXTENSION_FILTER parameter MAY be repeated within a message
+with different values for Extension Type (ExtType).
 
 A filter parameter with zero length indicates no filter, which MAY
 be used in REQUEST_UPDATE to remove the filter.  If a filter parameter
@@ -2161,34 +2170,36 @@ from other messages, the default is no filter.
 
 All filter types can be combined using logical "and" operations
 to further restrict which tracks and objects pass all filter criteria.
-The track filter MUST be evaluated first before all other filters which can
-be evaluated in any order. The track filter may select fewer tracks than
+The extension filter for track extensions MUST be evaluated first
+before all other filters, followed by the track filter, follwed by
+all other filters which can be evaluated in any order.
+The track filter may select fewer tracks than
 MaxTracksSelected if other filters further restrict which tracks and
 objects pass all filter criteria.
 
 ##### LOCATION FILTER
 
 The LOCATION_FILTER parameter (Parameter Type 0x21) selects objects
-within a single specified Location range.  It is a length-prefixed
-sequence of Start Group ID, Start Object ID, End Group ID, and
-End Object ID.
+within a single specified Location Range.  It is a Length prefixed
+Range of Start and End Locations.  Delta encoding of the End Location
+only uses delta encoding of the End Group ID (from the Start Group ID),
+while Object ID is not delta encoded since it may not be ascending.
 
 ~~~
 LOCATION_FILTER Parameter {
   Type (vi64) = 0x21,
   Length (vi64),
-  [Start Group ID (vi64),
-  [Start Object ID (vi64),
-  [End Group ID (vi64),
-  [End Object iD (vi64)]]]
+  [Range (..)]
 }
 ~~~
 
-End Object ID MAY be omitted to indicate no end within End Group.
-End Group ID and End Object ID MAY be omitted to indicate no end,
+Range MAY be omitted to indicate no filter.
+Range End Location MAY be omitted to indicate no end,
 for an open ended subscription or a Joining Fetch ({{joining-fetches}})
 which implicitly ends at the associated subscription start Location.
-All but Start Group ID MAY be omitted to indicate
+End Location Object ID MAY be omitted to indicate no end
+within End Location Group.
+All but Range Start Location Group ID MAY be omitted to indicate
 Special Location Filters ({{special-location-filters}}).
 
 ###### Special Location Filters
@@ -2209,111 +2220,109 @@ Location Filter { Type, Length, StartGroup, StartObject=0 }
 Relative Joining Fetch:
 Location Filter { Type, Length, StartGroupDelta }
 
-##### GROUP FILTER
-
-The GROUP_FILTER parameter (Type 0x23) selects objects with
-specified ranges of Group ID.  It is a length-prefixed sequence of
-Group ID Start/End inclusive range pairs.  The number of ranges
-MUST NOT exceed the MAX_FILTER_RANGES parameter value.  The final
-End MAY be omitted to indicate no end.
-
-~~~
-GROUP_FILTER Parameter {
-  Type (vi64) = 0x23,
-  Length (vi64),
-  [Start Group ID (vi64),
-  [End Group ID (vi64)]]...
-}
-~~~
-
 ##### SUBGROUP FILTER
 
 The SUBGROUP_FILTER parameter (Type 0x25) selects objects with
-specified ranges of Subgroup ID.  It is a length-prefixed sequence of
-Subgroup ID Start/End inclusive range pairs.  The number of ranges
-MUST NOT exceed the MAX_FILTER_RANGES parameter value.  The final
-End MAY be omitted to indicate no end.
+specified Ranges of Subgroup ID.  It is a Length prefixed sequence of
+Subgroup ID (vi64) Start/End inclusive Range pairs (delta encoded).
+The total number of Ranges allowed concurrently in all filter parameters
+which allow multiple Ranges, for a given subscription, MUST NOT exceed
+the MAX_FILTER_RANGES parameter value.
+The final End MAY be omitted to indicate no end.
 
 ~~~
 SUBGROUP_FILTER Parameter {
   Type (vi64) = 0x25,
   Length (vi64),
-  [Start Subgroup ID (vi64),
-  [End Subgroup ID (vi64)]]...
+  Range (..) ...
 }
 ~~~
 
 ##### OBJECT FILTER
 
 The OBJECT_FILTER parameter (Type 0x27) selects objects with
-specified ranges of Object ID.  It is a length-prefixed sequence of
-Object ID Start/End inclusive range pairs.  The number of ranges
-MUST NOT exceed the MAX_FILTER_RANGES parameter value.  The final
-End MAY be omitted to indicate no end.
+specified Ranges of Object ID.  It is a Length prefixed sequence of
+Object ID (vi64) Start/End inclusive Range pairs (delta encoded).
+The total number of Ranges allowed concurrently in all filter parameters
+which allow multiple Ranges, for a given subscription, MUST NOT exceed
+the MAX_FILTER_RANGES parameter value.
+The final End MAY be omitted to indicate no end.
 
 ~~~
 OBJECT_FILTER Parameter {
   Type (vi64) = 0x27,
   Length (vi64),
-  [Start Object ID (vi64),
-  [End Object ID (vi64)]]...
+  Range (..) ...
 }
 ~~~
 
 ##### PRIORITY FILTER
 
 The PRIORITY_FILTER parameter (Type 0x29) selects objects with
-specified ranges of Publisher Priority.  It is a length-prefixed sequence of
-Publisher Priority Start/End inclusive range pairs.  The number of ranges
-MUST NOT exceed the MAX_FILTER_RANGES parameter value.  The final
-End MAY be omitted to indicate no end.
+specified Ranges of Publisher Priority.  It is a Length prefixed sequence of
+Publisher Priority (8 bit) Start/End inclusive Range pairs (delta encoded).
+The total number of Ranges allowed concurrently in all filter parameters
+which allow multiple Ranges, for a given subscription, MUST NOT exceed
+the MAX_FILTER_RANGES parameter value.
+The final End MAY be omitted to indicate no end.
 
 ~~~
 PRIORITY_FILTER Parameter {
   Type (vi64) = 0x29,
   Length (vi64),
-  [Start Publisher Priority (8),
-  [End Publisher Priority (8)]]...
+  Range (..) ...
 }
 ~~~
 
 ##### EXTENSION FILTER
 
-The EXTENSION_FILTER parameter (Type 0x2B) selects objects with
-specified ranges of Extension Value for specified Extension Types which
-MUST be even (single integer Value).
-It is a length-prefixed sequence of tuples of Extension Type followed by
-Extension Value Start/End inclusive range.  The number of tuples/ranges
-MUST NOT exceed the MAX_FILTER_RANGES parameter value.  The final
-End MAY be omitted to indicate no end.  End=0 also indicates no end if
-Start>0, to allow no end for non-final Extension Types.
+The EXTENSION_FILTER parameter (Type 0x2B) selects tracks/objects with
+specified Ranges of Extension Value for a specified track/object
+Extension Type which MUST be even (single integer Value).
+This parameter MAY be repeated within a message with different values for
+Extension Type.
+It is a Length prefixed sequence of Extension Type followed by
+Extension Value (vi64) Start/End inclusive Range pairs (delta encoded).
+The total number of Ranges allowed concurrently in all filter parameters
+which allow multiple Ranges, for a given subscription, MUST NOT exceed
+the MAX_FILTER_RANGES parameter value.
+The final End MAY be omitted to indicate no end.
+Range MAY be omitted to indicate no filter for the specified Extension Type.
+Length MAY be zero to indicate no filter for all Extension Types.
 
 ~~~
 EXTENSION_FILTER Parameter {
   Type (vi64) = 0x2B,
   Length (vi64),
-  [Extension Type (vi64),
-  Start Value (vi64),
-  [End Value (vi64)]]...
+  [Extension Type (vi64),]
+  Range (..) ...
 }
 ~~~
+
+The extension filter evaluates both track extensions and object extensions.
+If a track has a track extension of Extension Type, then its PUBLISH message
+must pass the extension filter, and each of its
+published objects lacking that Extension Type are treated as if they
+contained the track extension.
 
 ##### TRACK FILTER
 
 The TRACK_FILTER parameter (Type 0x2D) selects a specified number
 of tracks within a namespace with the highest values for a specified
-Extension Type which MUST be even (single integer value).
-It is a length-prefixed sequence of Extension Type followed by
+track/object Extension Type which MUST be even (single integer value).
+It is a Length prefixed sequence of Extension Type followed by
 MaxTracksSelected, MaxTracksDeselected, and MaxTimeSelected.
+Length MAY be zero to indicate no filter, otherwise all optional
+fields MUST be present.
 
 ~~~
 TRACK_FILTER Parameter {
   Type (vi64) = 0x2D,
   Length (vi64),
-  [Extension Type (vi64),
-  MaxTracksSelected (vi64),
-  MaxTracksDeselected (vi64),
-  MaxTimeSelected (vi64)]
+  [Extension Type (vi64),]
+  [MaxTracksSelected (vi64),]
+  [MaxTracksDeselected (vi64),]
+  [MaxTimeSelected (vi64)]
 }
 ~~~
 
@@ -2348,6 +2357,23 @@ Endpoints should set MaxTracksDeselected and MAX_TRACKS_DESELECTED
 high enough to avoid excessive control messages but low enough to
 avoid excessive old subscription state.
 
+If the TRACK_FILTER parameter is updated, the publisher evaluates the
+new filter to determine the new list of top N selected and last M deselected
+tracks, and follows the same rules above for newly selected tracks in the
+top N (send PUBLISH) and old deselected tracks that drop from the last M
+(send PUBLISH_DONE).
+
+If a track filter for a namespace overlaps with a direct subscription
+to a track in the same namespace, the publisher MUST deliver the
+direct track subscription unaltered by track filter actions.
+The direct track subscription MAY be in the top N or last M lists,
+but MUST NOT stop object delivery upon track filter deselection nor
+send PUBLISH_DONE upon dropping from the last M list.
+
+The track filter evaluates both track extensions and object extensions.
+If a track has a track extension of Extension Type, then each of its
+published objects lacking that Extension Type are treated as if they
+contained the track extension.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -2465,8 +2491,9 @@ that created the text.
 
 #### MAX FILTER RANGES
 
-The MAX_FILTER_RANGES parameter (Type 0x06) limits the peer's number of
-start/end ranges allowed in each filter parameter which allows multiple ranges.
+The MAX_FILTER_RANGES parameter (Type 0x06) limits the peer's total number of
+start/end ranges allowed concurrently in all filter parameters which allow
+multiple ranges, for a given subscription.
 The default value is 0, so if not specified, the peer MUST NOT send any such
 filter parameters.
 
