@@ -2161,6 +2161,7 @@ EXTENSION_FILTER { Type=0x2B, Len, [ExtType,] [Range...] }
 Filters use a common Range structure of Start and End values.
 The Range End is delta encoded from the Start, and any subsequent
 Range Start in the same parameter is delta encoded from the prior End.
+The final End in a sequence of Ranges MAY be omitted to indicate no end.
 
 ~~~
 Range { Start (..), [End (..)] }
@@ -2356,7 +2357,8 @@ value for Extension Type, where N = MaxTracksSelected.  The publisher
 MUST send a PUBLISH message for each newly selected track.  For tracks
 with the same value, the earliest delivered object wins the tie
 breaker, so a selected track remains selected until another track
-delivers a higher value or MaxTimeSelected elapses before the track
+delivers a higher value that drops it from the top N,
+or MaxTimeSelected elapses before the track
 delivers an object that remains in the top N, either of which
 deselect the track.  The last M deselected tracks are kept in a list,
 where M = MaxTracksDeselected, to avoid more PUBLISH messages in case
