@@ -1792,12 +1792,12 @@ session with `INVALID_REQUEST_ID`.
 
 ## Required Request ID {#required-request-id}
 
-Every request message includes a Required Request ID Delta field, which is a delta
-subtracted from Request ID to determine the Required Request ID. The receiver
-MUST deliver the referenced request to the application before delivering this request.
-Required Request ID MUST have the same parity (least significant bit) as Request ID
-and Required Request ID Delta MUST NOT be larger than Request ID. If an endpoint
-receives an invalid Required Request ID, it MUST close the session with
+Every request message includes a Required Request ID Delta field, which is
+multiplied by two and subtracted from Request ID to determine the
+Required Request ID. The receiver MUST deliver the referenced request to the
+application before delivering this request. Two times the Required Request ID
+Delta MUST NOT be larger than Request ID. If an endpoint receives a delta that
+is too large for the Request ID, it MUST close the session with
 `INVALID_REQUIRED_REQUEST_ID`. A Required Request ID Delta value of 0 indicates
 there is no dependency. If the required request does not arrive, the receiver
 will time out the dependent request.
