@@ -1794,7 +1794,8 @@ session with `INVALID_REQUEST_ID`.
 
 Every request message includes a Required Request ID Delta field, which is a delta
 subtracted from Request ID to determine the Required Request ID. The receiver
-MUST deliver the referenced request to the application before delivering this request.  Required Request ID MUST have the same parity (least significant bit) as Request ID
+MUST deliver the referenced request to the application before delivering this request.
+Required Request ID MUST have the same parity (least significant bit) as Request ID
 and Required Request ID Delta MUST NOT be larger than Request ID. If an endpoint
 receives an invalid Required Request ID, it MUST close the session with
 `INVALID_REQUIRED_REQUEST_ID`. A Required Request ID Delta value of 0 indicates
