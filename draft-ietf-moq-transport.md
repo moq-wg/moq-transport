@@ -2903,7 +2903,7 @@ Joining Fetch {
   (subscriber)` states, it MUST return a REQUEST_ERROR with error code
   `INVALID_JOINING_REQUEST_ID`.
 
-* Joining Start : A relative or absolute value used to determining the Start
+* Joining Start : A relative or absolute value used to determine the Start
   Location, described below.
 
 #### Joining Fetch Range Calculation
