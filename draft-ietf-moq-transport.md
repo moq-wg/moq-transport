@@ -124,7 +124,7 @@ rapidly detect and respond to congestion.
 
 The parallel nature of QUIC streams can provide improvements in the face
 of loss. A goal of MOQT is to design a streaming protocol to leverage
-the transmission benefits afforded by parallel QUIC streams as well
+the transmission benefits afforded by parallel QUIC streams as well as
 exercising options for flexible loss recovery.
 
 ### Convergence
@@ -259,7 +259,7 @@ after the first 0 and subsequent bytes, if any, represent the integer value,
 encoded in network byte order.
 
 Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can encode up to 64
-bit unsinged integers. The following table summarizes the encoding properties.
+bit unsigned integers. The following table summarizes the encoding properties.
 
 |--------------|----------------|-------------|------------------------|
 | Leading Bits | Length (bytes) | Usable Bits | Range                  |
@@ -569,7 +569,7 @@ active.
 In MOQT, every track is identified by a Full Track Name, consisting of a Track
 Namespace and a Track Name.
 
-Track Namespace is an ordered set of between 1 and 32 Track Namespace Fields,
+Track Namespace is an ordered set of between 0 and 32 Track Namespace Fields,
 encoded as follows:
 
 ~~~
@@ -603,7 +603,7 @@ MUST close the session with a `PROTOCOL_VIOLATION`.
 
 The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
-consisting of 0 or greater than 32 Track Namespace Fields, it MUST close the
+consisting of greater than 32 Track Namespace Fields, it MUST close the
 session with a `PROTOCOL_VIOLATION`.
 
 Track Name is a sequence of bytes, possibly empty, that identifies an individual
@@ -640,7 +640,7 @@ include:
 3. An Object is received in an Ascending FETCH response whose Group ID is smaller
    than the previous Object in the response.
 4. An Object is received in a Descending FETCH response whose Group ID is larger
-   than the previous Object in the resopnse.
+   than the previous Object in the response.
 5. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
@@ -988,6 +988,18 @@ applications might need to periodically ensure the congestion controller is not
 app-limited for at least a full round trip to ensure the available bandwidth can be
 measured.
 
+Some applications might have APIs to allow sending duplicate data or forward error
+correction to probe for more bandwidth while also limiting the impact of probing
+in case it causes packet loss. Applications wanting to switch to an alternate
+representation of a Track can request that Track at a lower priority to probe.
+Applications can subscribe to additional tracks at the lowest (255) priority
+to fill the congestion window during probing intervals while minimizing the
+impact on higher priority media.
+Network-assisted bandwidth estimation mechanisms such as SCONE
+{{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
+which subscribers can use to inform track selection decisions and potentially avoid
+unnecessary probing.
+
 ### Consistent Throughput
 
 Congestion control algorithms are commonly optimized for throughput, not consistency.
@@ -1130,13 +1142,13 @@ A REQUEST_ERROR indicates no objects will be delivered, and both endpoints can
 immediately destroy relevant state. Objects MUST NOT be sent for requests that
 end with an error.
 
-### Subscription Filters
+### Subscription Filters {#subscription-filters}
 
 Subscribers can specify a filter on a subscription indicating to the publisher
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.
 
-All filters have a Start Location and an optional End Group.  Only objects
+All filters have a Start Location and an optional End Group Delta.  Only objects
 published or received via a subscription having Locations greater than or
 equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.
@@ -1153,7 +1165,7 @@ A Subscription Filter has the following structure:
 Subscription Filter {
   Filter Type (vi64),
   [Start Location (Location),]
-  [End Group (vi64),]
+  [End Group Delta (vi64),]
 }
 ~~~
 
@@ -1182,10 +1194,9 @@ subscription.
 
 AbsoluteRange (0x4): The filter Start Location and End Group are specified
 explicitly. The specified `Start Location` MAY be less than the `Largest Object`
-observed at the publisher. If the specified `End Group` is the same group
-specified in `Start Location`, the remainder of that Group passes the
-filter. `End Group` MUST specify the same or a larger Group than specified in
-`Start Location`.
+observed at the publisher. If the specified `End Group Delta` is zero, the
+remainder of that Group passes the filter. Otherwise, the last Group ID to be
+delivered will the Group ID in 'Start Location' plus the 'End Group Delta'.
 
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
@@ -1272,11 +1283,19 @@ Namespaces under the SUBSCRIBE_NAMESPACE prefix to the endpoint that sent them.
 If an endpoint accepts its own PUBLISH, this behaves as self-subscription described
 in {{subscriptions}}.
 
+A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the sender is
+interested in all tracks and/or namespaces from the receiver.
+
 The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
 publisher MUST send a single REQUEST_OK or REQUEST_ERROR as the first message on the
 bidirectional stream in response to a SUBSCRIBE_NAMESPACE. The subscriber
 SHOULD close the session with a protocol error if it detects receiving more
 than one.
+
+If a Subscription cannot be created because there is no available Request ID,
+the Publisher sends a PUBLISH_BLOCKED message on the response stream to indicate
+the Full Track Name of the Subscription that could not be established. The Publisher
+MUST NOT send a PUBLISH for a Track after PUBLISH_BLOCKED has been sent.  The subscriber can instead issue a SUBSCRIBE to establish a subscription to that track.
 
 The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
@@ -1594,7 +1613,7 @@ relay is managed and is application specific.
 
 When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
-subcribe to Tracks in a namespace it previously responded REQUEST_OK
+subscribe to Tracks in a namespace it previously responded REQUEST_OK
 to by sending a PUBLISH_NAMESPACE_CANCEL.
 
 A Relay connects publishers and subscribers by managing sessions based on the
@@ -1753,6 +1772,8 @@ The following Message Types are defined:
 | 0xC   | PUBLISH_NAMESPACE_CANCEL ({{message-pub-ns-cancel}})|
 |-------|-----------------------------------------------------|
 | 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
+|-------|-----------------------------------------------------|
+| 0xF   | PUBLISH_BLOCKED  ({{message-publish-blocked}})      |
 |-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
@@ -1920,7 +1941,7 @@ Alias and Token Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a Setup Option defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
 willing to accept. If a registration is attempted which would cause this limit
-to be exceeded, the receiver MUST termiate the Session with a
+to be exceeded, the receiver MUST terminate the Session with a
 `AUTH_TOKEN_CACHE_OVERFLOW` error.
 
 The AUTHORIZATION TOKEN parameter MAY be repeated within a message as long as
@@ -2110,7 +2131,7 @@ When an Original Publisher that supports dynamic Groups receives a
 NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
 it SHOULD end the current Group and begin a new Group as soon as practical.  The
 Original Publisher MAY delay the NEW_GROUP_REQUEST subject to
-implementation specific concerns, for example, acheiving a minimum duration for
+implementation specific concerns, for example, achieving a minimum duration for
 each Group. The Original Publisher chooses the next Group ID; there are no
 requirements that it be equal to the NEW_GROUP_REQUEST parameter value.
 
@@ -2137,7 +2158,7 @@ outstanding until the Largest Group increases.
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
 by the client and the server; they allow the endpoints to agree on the initial
-configuration before any control messsages are exchanged. The messages contain
+configuration before any control messages are exchanged. The messages contain
 a sequence of key-value pairs called Setup Options; the semantics and format
 of which can vary based on whether the client or server is sending.  To ensure
 future extensibility of MOQT, endpoints MUST ignore unknown Setup Options.
@@ -2294,7 +2315,7 @@ GOAWAY Message {
   connect to continue this session.  The client MUST use this URI for the new
   session if provided. If the URI is zero bytes long, the current URI is reused
   instead. The new session URI SHOULD use the same scheme
-  as the current URI to ensure compatibility.  The maxmimum length of the New
+  as the current URI to ensure compatibility.  The maximum length of the New
   Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
   maximum, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
@@ -2891,7 +2912,7 @@ Joining Fetch {
   (subscriber)` states, it MUST return a REQUEST_ERROR with error code
   `INVALID_JOINING_REQUEST_ID`.
 
-* Joining Start : A relative or absolute value used to determing the Start
+* Joining Start : A relative or absolute value used to determine the Start
   Location, described below.
 
 #### Joining Fetch Range Calculation
@@ -3196,7 +3217,7 @@ PUBLISH_NAMESPACE_CANCEL Message {
   PUBLISH_NAMESPACE_CANCEL uses the same error codes as REQUEST_ERROR
   ({{message-request-error}}) that responds to PUBLISH_NAMESPACE.
 
-* Error Reason: Provides the reason for publish cancelation. See
+* Error Reason: Provides the reason for publish cancellation. See
   {{reason-phrase}}.
 
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
@@ -3272,6 +3293,32 @@ set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
 corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
 corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
+
+## PUBLISH_BLOCKED {#message-publish-blocked}
+
+The publisher sends the `PUBLISH_BLOCKED` control message to indicate it cannot
+send a PUBLISH message to initiate a new Subscription for a Track in the
+SUBSCRIBE_NAMESPACE's Track Namespace. All PUBLISH_BLOCKED messages are in
+response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after the
+'Track Namespace Prefix' are included in the 'Track Namespace Suffix'.
+
+~~~
+PUBLISH_BLOCKED Message {
+  Type (i) = 0xF,
+  Length (16),
+  Track Namespace Suffix (..),
+  Track Name Length (vi64),
+  Track Name (..),
+}
+~~~
+{: #moq-transport-publish-blocked-format title="MOQT PUBLISH_BLOCKED Message"}
+
+* Track Namespace Suffix: Specifies the final portion of a track's
+  namespace as defined in {{track-name}}. The namespace begins with the
+  'Track Namespace Prefix' specified in {message-subscribe-ns}.
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
 
 # Data Streams and Datagrams {#data-streams}
 
@@ -3589,7 +3636,7 @@ Object in the Subgroup stream. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
-unless there is an Prior Object ID Gap extesnion header (see
+unless there is an Prior Object ID Gap extension header (see
 {{prior-object-id-gap}}).
 
 ~~~
@@ -3626,7 +3673,7 @@ not limited to:
 * A publisher's decision to end the subscription early
 * A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
   the Start Location to a larger Location
-* Omitting a Subgroup Object due to the subcriber's Forward State
+* Omitting a Subgroup Object due to the subscriber's Forward State
 
 When RESET_STREAM_AT is used, the
 reliable_size SHOULD include the stream header so the receiver can identify the
@@ -4030,7 +4077,7 @@ the following conditions are detected:
  * An endpoint receives an Object with a Group ID within a previously
    communicated gap.
 
-Use of this property is optional, as publishers might not know the prior gap gize,
+Use of this property is optional, as publishers might not know the prior gap size,
 or there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
 {{group-ids}}).
@@ -4061,7 +4108,7 @@ can include Prior Object ID Gap = 2.  A Track is considered malformed (see
  * An endpoint receives an Object with an Object ID within a previously
    communicated gap.
 
-Use of this property is optional, as publishers might not know the prior gap gize,
+Use of this property is optional, as publishers might not know the prior gap size,
 or there might not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
 {{model-object}}).
