@@ -124,7 +124,7 @@ rapidly detect and respond to congestion.
 
 The parallel nature of QUIC streams can provide improvements in the face
 of loss. A goal of MOQT is to design a streaming protocol to leverage
-the transmission benefits afforded by parallel QUIC streams as well
+the transmission benefits afforded by parallel QUIC streams as well as
 exercising options for flexible loss recovery.
 
 ### Convergence
@@ -259,7 +259,7 @@ after the first 0 and subsequent bytes, if any, represent the integer value,
 encoded in network byte order.
 
 Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can encode up to 64
-bit unsinged integers. The following table summarizes the encoding properties.
+bit unsigned integers. The following table summarizes the encoding properties.
 
 |--------------|----------------|-------------|------------------------|
 | Leading Bits | Length (bytes) | Usable Bits | Range                  |
@@ -640,7 +640,7 @@ include:
 3. An Object is received in an Ascending FETCH response whose Group ID is smaller
    than the previous Object in the response.
 4. An Object is received in a Descending FETCH response whose Group ID is larger
-   than the previous Object in the resopnse.
+   than the previous Object in the response.
 5. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
@@ -1613,7 +1613,7 @@ relay is managed and is application specific.
 
 When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
-subcribe to Tracks in a namespace it previously responded REQUEST_OK
+subscribe to Tracks in a namespace it previously responded REQUEST_OK
 to by sending a PUBLISH_NAMESPACE_CANCEL.
 
 A Relay connects publishers and subscribers by managing sessions based on the
@@ -1941,7 +1941,7 @@ Alias and Token Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a Setup Option defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
 willing to accept. If a registration is attempted which would cause this limit
-to be exceeded, the receiver MUST termiate the Session with a
+to be exceeded, the receiver MUST terminate the Session with a
 `AUTH_TOKEN_CACHE_OVERFLOW` error.
 
 The AUTHORIZATION TOKEN parameter MAY be repeated within a message as long as
@@ -2131,7 +2131,7 @@ When an Original Publisher that supports dynamic Groups receives a
 NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
 it SHOULD end the current Group and begin a new Group as soon as practical.  The
 Original Publisher MAY delay the NEW_GROUP_REQUEST subject to
-implementation specific concerns, for example, acheiving a minimum duration for
+implementation specific concerns, for example, achieving a minimum duration for
 each Group. The Original Publisher chooses the next Group ID; there are no
 requirements that it be equal to the NEW_GROUP_REQUEST parameter value.
 
@@ -2158,7 +2158,7 @@ outstanding until the Largest Group increases.
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
 by the client and the server; they allow the endpoints to agree on the initial
-configuration before any control messsages are exchanged. The messages contain
+configuration before any control messages are exchanged. The messages contain
 a sequence of key-value pairs called Setup Options; the semantics and format
 of which can vary based on whether the client or server is sending.  To ensure
 future extensibility of MOQT, endpoints MUST ignore unknown Setup Options.
@@ -2306,7 +2306,7 @@ GOAWAY Message {
   connect to continue this session.  The client MUST use this URI for the new
   session if provided. If the URI is zero bytes long, the current URI is reused
   instead. The new session URI SHOULD use the same scheme
-  as the current URI to ensure compatibility.  The maxmimum length of the New
+  as the current URI to ensure compatibility.  The maximum length of the New
   Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
   maximum, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
@@ -2903,7 +2903,7 @@ Joining Fetch {
   (subscriber)` states, it MUST return a REQUEST_ERROR with error code
   `INVALID_JOINING_REQUEST_ID`.
 
-* Joining Start : A relative or absolute value used to determing the Start
+* Joining Start : A relative or absolute value used to determine the Start
   Location, described below.
 
 #### Joining Fetch Range Calculation
@@ -3208,7 +3208,7 @@ PUBLISH_NAMESPACE_CANCEL Message {
   PUBLISH_NAMESPACE_CANCEL uses the same error codes as REQUEST_ERROR
   ({{message-request-error}}) that responds to PUBLISH_NAMESPACE.
 
-* Error Reason: Provides the reason for publish cancelation. See
+* Error Reason: Provides the reason for publish cancellation. See
   {{reason-phrase}}.
 
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
@@ -3627,7 +3627,7 @@ Object in the Subgroup stream. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
-unless there is an Prior Object ID Gap extesnion header (see
+unless there is an Prior Object ID Gap extension header (see
 {{prior-object-id-gap}}).
 
 ~~~
@@ -3664,7 +3664,7 @@ not limited to:
 * A publisher's decision to end the subscription early
 * A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
   the Start Location to a larger Location
-* Omitting a Subgroup Object due to the subcriber's Forward State
+* Omitting a Subgroup Object due to the subscriber's Forward State
 
 When RESET_STREAM_AT is used, the
 reliable_size SHOULD include the stream header so the receiver can identify the
@@ -4068,7 +4068,7 @@ the following conditions are detected:
  * An endpoint receives an Object with a Group ID within a previously
    communicated gap.
 
-Use of this property is optional, as publishers might not know the prior gap gize,
+Use of this property is optional, as publishers might not know the prior gap size,
 or there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
 {{group-ids}}).
@@ -4099,7 +4099,7 @@ can include Prior Object ID Gap = 2.  A Track is considered malformed (see
  * An endpoint receives an Object with an Object ID within a previously
    communicated gap.
 
-Use of this property is optional, as publishers might not know the prior gap gize,
+Use of this property is optional, as publishers might not know the prior gap size,
 or there might not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
 {{model-object}}).
