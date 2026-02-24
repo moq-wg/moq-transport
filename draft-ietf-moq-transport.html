@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 26 August 2026</td>
+<td class="center">Expires 28 August 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-22" class="published">22 February 2026</time>
+<time datetime="2026-02-24" class="published">24 February 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-26">26 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-08-28">28 August 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 26 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 28 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1748,7 +1748,7 @@ rapidly detect and respond to congestion.<a href="#section-1.1.1-1" class="pilcr
           </h4>
 <p id="section-1.1.2-1">The parallel nature of QUIC streams can provide improvements in the face
 of loss. A goal of MOQT is to design a streaming protocol to leverage
-the transmission benefits afforded by parallel QUIC streams as well
+the transmission benefits afforded by parallel QUIC streams as well as
 exercising options for flexible loss recovery.<a href="#section-1.1.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1933,7 +1933,7 @@ first byte to indicate the length of the encoding in bytes. The remaining bits
 after the first 0 and subsequent bytes, if any, represent the integer value,
 encoded in network byte order.<a href="#section-1.4.1-3" class="pilcrow">¶</a></p>
 <p id="section-1.4.1-4">Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can encode up to 64
-bit unsinged integers. The following table summarizes the encoding properties.<a href="#section-1.4.1-4" class="pilcrow">¶</a></p>
+bit unsigned integers. The following table summarizes the encoding properties.<a href="#section-1.4.1-4" class="pilcrow">¶</a></p>
 <span id="name-summary-of-integer-encoding"></span><table class="center" id="table-1">
             <caption>
 <a href="#table-1" class="selfRef">Table 1</a>:
@@ -2453,7 +2453,7 @@ than the previous Object in the response.<a href="#section-2.4.2-2.3.1" class="p
 </li>
             <li id="section-2.4.2-2.4">
               <p id="section-2.4.2-2.4.1">An Object is received in a Descending FETCH response whose Group ID is larger
-than the previous Object in the resopnse.<a href="#section-2.4.2-2.4.1" class="pilcrow">¶</a></p>
+than the previous Object in the response.<a href="#section-2.4.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-2.4.2-2.5">
               <p id="section-2.4.2-2.5.1">An Object is received whose Object ID is larger than the final Object in the
@@ -3566,7 +3566,7 @@ The authorization and identification of the publisher depends on the way the
 relay is managed and is application specific.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
 <p id="section-8.5-4">When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
-subcribe to Tracks in a namespace it previously responded REQUEST_OK
+subscribe to Tracks in a namespace it previously responded REQUEST_OK
 to by sending a PUBLISH_NAMESPACE_CANCEL.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
 <p id="section-8.5-5">A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
@@ -3987,7 +3987,7 @@ Alias and Token Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a Setup Option defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see <a href="#max-auth-token-cache-size" class="auto internal xref">Section 9.3.1.4</a>) it is
 willing to accept. If a registration is attempted which would cause this limit
-to be exceeded, the receiver <span class="bcp14">MUST</span> termiate the Session with a
+to be exceeded, the receiver <span class="bcp14">MUST</span> terminate the Session with a
 <code>AUTH_TOKEN_CACHE_OVERFLOW</code> error.<a href="#section-9.2.1.1-14" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.1-15">The AUTHORIZATION TOKEN parameter <span class="bcp14">MAY</span> be repeated within a message as long as
 the combination of Token Type and Token Value are unique after resolving any
@@ -4188,7 +4188,7 @@ case.<a href="#section-9.2.1.10-1" class="pilcrow">¶</a></p>
 NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
 it <span class="bcp14">SHOULD</span> end the current Group and begin a new Group as soon as practical.  The
 Original Publisher <span class="bcp14">MAY</span> delay the NEW_GROUP_REQUEST subject to
-implementation specific concerns, for example, acheiving a minimum duration for
+implementation specific concerns, for example, achieving a minimum duration for
 each Group. The Original Publisher chooses the next Group ID; there are no
 requirements that it be equal to the NEW_GROUP_REQUEST parameter value.<a href="#section-9.2.1.10-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.10-3">Relay Handling:<a href="#section-9.2.1.10-3" class="pilcrow">¶</a></p>
@@ -4223,7 +4223,7 @@ outstanding until the Largest Group increases.<a href="#section-9.2.1.10-8" clas
         </h3>
 <p id="section-9.3-1">The <code>CLIENT_SETUP</code> and <code>SERVER_SETUP</code> messages are the first messages exchanged
 by the client and the server; they allow the endpoints to agree on the initial
-configuration before any control messsages are exchanged. The messages contain
+configuration before any control messages are exchanged. The messages contain
 a sequence of key-value pairs called Setup Options; the semantics and format
 of which can vary based on whether the client or server is sending.  To ensure
 future extensibility of MOQT, endpoints <span class="bcp14">MUST</span> ignore unknown Setup Options.
@@ -4404,7 +4404,7 @@ GOAWAY Message {
 connect to continue this session.  The client <span class="bcp14">MUST</span> use this URI for the new
 session if provided. If the URI is zero bytes long, the current URI is reused
 instead. The new session URI <span class="bcp14">SHOULD</span> use the same scheme
-as the current URI to ensure compatibility.  The maxmimum length of the New
+as the current URI to ensure compatibility.  The maximum length of the New
 Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
 maximum, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-7.1.1" class="pilcrow">¶</a></p>
 <p id="section-9.4-7.1.2">
@@ -5230,7 +5230,7 @@ to a subscription in the same session in the <code>Established</code> or <code>P
 <code>INVALID_JOINING_REQUEST_ID</code>.<a href="#section-9.16.2-7.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.16.2-7.2">
-              <p id="section-9.16.2-7.2.1">Joining Start : A relative or absolute value used to determing the Start
+              <p id="section-9.16.2-7.2.1">Joining Start : A relative or absolute value used to determine the Start
 Location, described below.<a href="#section-9.16.2-7.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
@@ -5649,7 +5649,7 @@ PUBLISH_NAMESPACE_CANCEL uses the same error codes as REQUEST_ERROR
 (<a href="#message-request-error" class="auto internal xref">Section 9.8</a>) that responds to PUBLISH_NAMESPACE.<a href="#section-9.24-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.24-3.3">
-            <p id="section-9.24-3.3.1">Error Reason: Provides the reason for publish cancelation. See
+            <p id="section-9.24-3.3.1">Error Reason: Provides the reason for publish cancellation. See
 <a href="#reason-phrase" class="auto internal xref">Section 1.4.4</a>.<a href="#section-9.24-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -6181,7 +6181,7 @@ Object in the Subgroup stream. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
-unless there is an Prior Object ID Gap extesnion header (see
+unless there is an Prior Object ID Gap extension header (see
 <a href="#prior-object-id-gap" class="auto internal xref">Section 11.8</a>).<a href="#section-10.4.2-11" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
 <figure id="figure-30">
@@ -6234,7 +6234,7 @@ not limited to:<a href="#section-10.4.3-3" class="pilcrow">¶</a></p>
 the Start Location to a larger Location<a href="#section-10.4.3-4.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.4.3-4.5">
-              <p id="section-10.4.3-4.5.1">Omitting a Subgroup Object due to the subcriber's Forward State<a href="#section-10.4.3-4.5.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.3-4.5.1">Omitting a Subgroup Object due to the subscriber's Forward State<a href="#section-10.4.3-4.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-10.4.3-5">When RESET_STREAM_AT is used, the
@@ -6771,7 +6771,7 @@ it previously received.<a href="#section-11.7-3.4.1" class="pilcrow">¶</a></p>
 communicated gap.<a href="#section-11.7-3.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.7-4">Use of this property is optional, as publishers might not know the prior gap gize,
+<p id="section-11.7-4">Use of this property is optional, as publishers might not know the prior gap size,
 or there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
 <a href="#group-ids" class="auto internal xref">Section 2.3.1</a>).<a href="#section-11.7-4" class="pilcrow">¶</a></p>
@@ -6811,7 +6811,7 @@ it previously received.<a href="#section-11.8-3.3.1" class="pilcrow">¶</a></p>
 communicated gap.<a href="#section-11.8-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.8-4">Use of this property is optional, as publishers might not know the prior gap gize,
+<p id="section-11.8-4">Use of this property is optional, as publishers might not know the prior gap size,
 or there might not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
 <a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-11.8-4" class="pilcrow">¶</a></p>
