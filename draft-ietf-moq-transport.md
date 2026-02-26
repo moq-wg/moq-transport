@@ -1308,8 +1308,9 @@ data stream as well as the the bidi request stream. It MUST send STOP_SENDING
 for the bidi request stream.
 
 The Publisher can destroy fetch state as soon as it has received a
-STOP_SENDING. It MUST reset any open streams associated with the FETCH. It can
-also destroy state after closing the FETCH data stream.
+STOP_SENDING. It MUST reset the bidi request stream and unidirectional
+data stream associated with the FETCH. It can also destroy state after closing
+the FETCH data stream.
 
 It can destroy all FETCH state after closing the data stream with a FIN.
 
