@@ -733,8 +733,8 @@ use and will never be allocated by IANA or future MOQT specifications:
 
 * 0x38 to 0x3F (1-byte encoding): 8 code points for applications with
   tight space constraints
-* 0x3800 to 0x3FFF (2-byte encoding): 2048 code points for applications
-  with moderate space constraints
+* 0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including grease
+  {{grease})) for applications with moderate space constraints
 
 Applications MAY use code points in these ranges without registration for
 format-specific metadata or other application-defined purposes. Relays that
