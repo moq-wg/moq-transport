@@ -908,7 +908,7 @@ Table of Contents
    See Section 14.
 
    Certain Property type ranges are reserved for application-specific
-   use and will never be allocated by IANA or future MOQT
+   use and will never be allocated by IANA in future MOQT
    specifications:
 
    *  0x38 to 0x3F (1-byte encoding): 8 code points for applications
