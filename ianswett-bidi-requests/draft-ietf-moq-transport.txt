@@ -1111,8 +1111,8 @@ Table of Contents
       Request ID.  See Section 9.1.
 
    INVALID_REQUIRED_REQUEST_ID (0x7):  The endpoint received a Required
-      Request ID that does not have the same parity as the Request ID,
-      or is less than 0.  See Section 9.2.
+      Request ID Delta that results in an invalid Request ID.  See
+      Section 9.2.
 
    DUPLICATE_TRACK_ALIAS (0x5):  The endpoint attempted to use a Track
       Alias that was already in use.
