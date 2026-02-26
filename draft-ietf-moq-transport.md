@@ -729,7 +729,7 @@ Property types are registered in the IANA table 'MOQ Properties'.
 See {{iana}}.
 
 Certain Property type ranges are reserved for application-specific
-use and will never be allocated by IANA or future MOQT specifications:
+use and will never be allocated by IANA in future MOQT specifications:
 
 * 0x38 to 0x3F (1-byte encoding): 8 code points for applications with
   tight space constraints
