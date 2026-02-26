@@ -3356,10 +3356,11 @@ message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
 (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>), although it is not a protocol error for
 the subscriber to send a SUBSCRIBE or FETCH message for a track in a
 namespace after the namespace is withdrawn.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2-5">A subscriber can cancel the request to revoke acceptance of a
-PUBLISH_NAMESPACE. If the reason for cancellation is expiration of
-authorization credentials, the publisher can PUBLISH_NAMESPACE again with
-refreshed authorization, or close the stream and discard associated state.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.2-5">A subscriber can cancel the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>) to revoke
+acceptance of a PUBLISH_NAMESPACE. If the reason for cancellation is expiration
+of authorization credentials, the publisher can send PUBLISH_NAMESPACE again
+on a new bidi stream with refreshed authorization, or close the stream and
+discard associated state.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
 <p id="section-6.2-6">While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
 subscribers, it is not a full-fledged routing protocol and does not protect
 against loops and other phenomena. In particular, PUBLISH_NAMESPACE <span class="bcp14">SHOULD NOT</span>
@@ -3905,7 +3906,7 @@ endpoint increments its Request ID by 2 for each new request.<a href="#section-9
 <p id="section-9.1-3">Each SUBSCRIBE, PUBLISH, FETCH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
 REQUEST_UPDATE, and TRACK_STATUS message consumes a Request ID. Only
 request messages include a Request ID; response messages do not, since
-they are sent on the same bidirectional stream.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
+they are sent on the same bidirectional stream as the request.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
 <p id="section-9.1-4">If an endpoint receives a Request ID where the least significant bit is
 incorrect for the sender, or a duplicate Request ID, it <span class="bcp14">MUST</span> close the
 session with <code>INVALID_REQUEST_ID</code>.<a href="#section-9.1-4" class="pilcrow">¶</a></p>
