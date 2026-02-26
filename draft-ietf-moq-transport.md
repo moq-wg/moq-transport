@@ -895,8 +895,8 @@ Implementations SHOULD cancel requests by abruptly terminating any directions of
 a stream that are still open using RESET_STREAM / RESET_STREAM_AT or
 STOP_SENDING.
 
-When the Publisher rejects a request without performing any application processing,
-The PUBLISHER SHOULD send a REQUEST_ERROR and FIN the stream.
+When an endpoint rejects a request without performing any application processing,
+it SHOULD send a REQUEST_ERROR and FIN the stream.
 
 
 ## Termination  {#session-termination}
