@@ -1065,7 +1065,7 @@ Table of Contents
    buffered until the control stream arrives and setup is complete.  If
    an implementation does not want to buffer or if the message type is
    not supported, it MAY reset such bidirectional streams before the
-   session and control stream are established.
+   session and control streams are established.
 
    The control stream MUST NOT be closed at the underlying transport
    layer during the session's lifetime.  Doing so results in the session

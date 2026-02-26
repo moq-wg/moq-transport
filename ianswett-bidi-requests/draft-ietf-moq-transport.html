@@ -2775,7 +2775,7 @@ with a message other than CLIENT_SETUP could arrive prior to the control stream,
 in which case the stream data <span class="bcp14">SHOULD</span> be buffered until the control stream arrives
 and setup is complete. If an implementation does not want to buffer or if
 the message type is not supported, it <span class="bcp14">MAY</span> reset such bidirectional streams
-before the session and control stream are established.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+before the session and control streams are established.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 <p id="section-3.3-4">The control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
