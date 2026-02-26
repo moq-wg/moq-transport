@@ -6937,8 +6937,8 @@ the relay would have to send matching NAMESPACE/NAMESPACE_DONE messages.<a href=
 <p id="section-13-1">To ensure that implementations correctly handle unknown values and do not
 fail when encountering extensions they do not understand, this document
 reserves a range of values for the purpose of greasing; see <span><a href="https://rfc-editor.org/rfc/rfc9170#section-3.3" class="relref">Section 3.3</a> of [<a href="#RFC9170" class="cite xref">RFC9170</a>]</span>.<a href="#section-13-1" class="pilcrow">¶</a></p>
-<p id="section-13-2">Grease values follow the pattern <code>0x1f * N + 0x21</code> for non-negative
-integer values of N (that is, 0x21, 0x40, ..., 0x3ffffffffffffffe).<a href="#section-13-2" class="pilcrow">¶</a></p>
+<p id="section-13-2">Grease values follow the pattern <code>0x7f * N + 0x9D</code> for non-negative
+integer values of N (that is, 0x9D, 0xBC, ..., 0x3ffffffffffffffe).<a href="#section-13-2" class="pilcrow">¶</a></p>
 <p id="section-13-3">The following registries include GREASE reservations:<a href="#section-13-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-13-4.1">
@@ -7053,10 +7053,6 @@ List which Properties can be repeated in the table.<a href="#section-14-2.5.1" c
         <h3 id="name-moqt-auth-token-type">
 <a href="#section-14.2" class="section-number selfRef">14.2. </a><a href="#name-moqt-auth-token-type" class="section-name selfRef">MOQT Auth Token Type</a>
         </h3>
-<p id="section-14.2-1">Token Type values of the form <code>0x1f * N + 0x21</code> are reserved for greasing
-(<a href="#grease" class="auto internal xref">Section 13</a>). Endpoints receiving a reserved Token Type <span class="bcp14">MUST</span> ignore the token
-and continue processing as if the token were not present, unless the token is
-required for authorization.<a href="#section-14.2-1" class="pilcrow">¶</a></p>
 <table class="center" id="table-10">
           <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
 <thead>
@@ -7075,7 +7071,7 @@ required for authorization.<a href="#section-14.2-1" class="pilcrow">¶</a></p>
 </td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x1f * N + 0x21</td>
+              <td class="text-right" rowspan="1" colspan="1">0x7f * N + 0x9D</td>
               <td class="text-left" rowspan="1" colspan="1">Reserved for greasing</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <a href="#grease" class="auto internal xref">Section 13</a>
@@ -7255,7 +7251,7 @@ required for authorization.<a href="#section-14.2-1" class="pilcrow">¶</a></p>
 </td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x1f * N + 0x21</td>
+              <td class="text-right" rowspan="1" colspan="1">0x7f * N + 0x9D</td>
               <td class="text-left" rowspan="1" colspan="1">Reserved for greasing</td>
               <td class="text-left" rowspan="1" colspan="1">Any</td>
               <td class="text-left" rowspan="1" colspan="1">
@@ -7273,9 +7269,6 @@ the length field.<a href="#section-14.4-2" class="pilcrow">¶</a></p>
         <h3 id="name-error-codes">
 <a href="#section-14.5" class="section-number selfRef">14.5. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
         </h3>
-<p id="section-14.5-1">All error code registries defined in this section reserve values of the form
-<code>0x1f * N + 0x21</code> for greasing (<a href="#grease" class="auto internal xref">Section 13</a>). Endpoints receiving a reserved
-error code <span class="bcp14">MUST</span> treat it as an unknown error code.<a href="#section-14.5-1" class="pilcrow">¶</a></p>
 <div id="iana-session-termination">
 <section id="section-14.5.1">
           <h4 id="name-session-termination-error-c">
@@ -7440,7 +7433,7 @@ error code <span class="bcp14">MUST</span> treat it as an unknown error code.<a 
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Reserved for greasing</td>
-                <td class="text-center" rowspan="1" colspan="1">0x1f * N + 0x21</td>
+                <td class="text-center" rowspan="1" colspan="1">0x7f * N + 0x9D</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#grease" class="auto internal xref">Section 13</a>
 </td>
@@ -7571,7 +7564,7 @@ error code <span class="bcp14">MUST</span> treat it as an unknown error code.<a 
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Reserved for greasing</td>
-                <td class="text-center" rowspan="1" colspan="1">0x1f * N + 0x21</td>
+                <td class="text-center" rowspan="1" colspan="1">0x7f * N + 0x9D</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#grease" class="auto internal xref">Section 13</a>
 </td>
@@ -7667,7 +7660,7 @@ error code <span class="bcp14">MUST</span> treat it as an unknown error code.<a 
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Reserved for greasing</td>
-                <td class="text-center" rowspan="1" colspan="1">0x1f * N + 0x21</td>
+                <td class="text-center" rowspan="1" colspan="1">0x7f * N + 0x9D</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#grease" class="auto internal xref">Section 13</a>
 </td>
@@ -7749,7 +7742,7 @@ error code <span class="bcp14">MUST</span> treat it as an unknown error code.<a 
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Reserved for greasing</td>
-                <td class="text-center" rowspan="1" colspan="1">0x1f * N + 0x21</td>
+                <td class="text-center" rowspan="1" colspan="1">0x7f * N + 0x9D</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#grease" class="auto internal xref">Section 13</a>
 </td>
