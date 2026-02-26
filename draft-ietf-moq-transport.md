@@ -4267,25 +4267,7 @@ TODO: fill out currently missing registries:
 
 * MOQT ALPN values
 * Setup Options
-* Message Parameters - List which params can be repeated in the table.
 * Message types
-* MOQ Properties - we wish to define the following registration policies:
-  - 0x00 to 0x37: Standards Action or IESG Approval (1-byte encoding)
-  - 0x38 to 0x3F: Reserved for application-specific use (1-byte encoding,
-    no registration permitted)
-  - 0x40 to 0x37FF: Specification Required (2-byte encoding)
-  - 0x3800 to 0x3FFF: Reserved for application-specific use (2-byte encoding,
-    no registration permitted)
-  - 0x4000 and above: First Come First Served
-
-  Code points reserved for application-specific use will never be allocated
-  by IANA. Applications using these values do not need to coordinate with
-  IANA.  Note that applications consuming tracks from uncoordinated sources may
-  encounter different semantics for the same code points, creating potential
-  collision risks.
-
-  List which headers can be repeated in the table.
-* MOQT Auth Token Type
 
 TODO: register the URI scheme and the ALPN
 
@@ -4320,6 +4302,8 @@ TODO: register the URI scheme and the ALPN
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 
+* Message Parameters - List which params can be repeated in the table.
+
 ## Properties {#iana-properties}
 
 | Type | Name | Scope | Specification |
@@ -4336,6 +4320,21 @@ TODO: register the URI scheme and the ALPN
 
 Endpoints MUST ignore unknown Property types, skipping them using
 the length field.
+
+* MOQ Properties - we wish to define the following registration policies:
+  - 0x00 to 0x37: Standards Action or IESG Approval (1-byte encoding)
+  - 0x38 to 0x3F: Reserved for application-specific use (1-byte encoding,
+    no registration permitted)
+  - 0x40 to 0x37FF: Specification Required (2-byte encoding)
+  - 0x3800 to 0x3FFF: Reserved for application-specific use (2-byte encoding,
+    no registration permitted)
+  - 0x4000 and above: First Come First Served
+
+  Code points reserved for application-specific use will never be allocated
+  by IANA. Applications using these values do not need to coordinate with
+  IANA.  Note that applications consuming tracks from uncoordinated sources may
+  encounter different semantics for the same code points, creating potential
+  collision risks.
 
 ## Error Codes {#iana-error-codes}
 
