@@ -207,6 +207,7 @@ Table of Contents
      12.3.  Relay security considerations
        12.3.1.  State maintenance
        12.3.2.  SUBSCRIBE_NAMESPACE with short prefixes
+     12.4.  Implementation Identification Fingerprinting
    13. Grease
    14. IANA Considerations
      14.1.  Authorization Token Alias Type
@@ -2593,6 +2594,17 @@ Table of Contents
    information, such as language tags, that would aid comprehension by
    any entity other than the one that created the text.
 
+   An endpoint SHOULD send a MOQT_IMPLEMENTATION option unless
+   specifically configured not to do so.  This option helps identify the
+   scope of interoperability problems and work around implementation-
+   specific limitations.
+
+   Senders SHOULD limit the value to the implementation name and
+   version, avoiding advertising or other nonessential information.
+   Implementations SHOULD NOT use the identifiers of other
+   implementations to declare compatibility, as this undermines the
+   usefulness of implementation identification for debugging.
+
 9.4.  GOAWAY
 
    An endpoint sends a GOAWAY message to inform the peer it intends to
@@ -4636,8 +4648,39 @@ EXT 1 and EXT N can be modified or removed by Relays
    changes occur in the tree of namespaces, the relay would have to send
    matching NAMESPACE/NAMESPACE_DONE messages.
 
-   TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION
-   parameter
+12.4.  Implementation Identification Fingerprinting
+
+   The MOQT_IMPLEMENTATION option (Section 9.3.1.6) can reveal
+   information that contributes to fingerprinting, a set of techniques
+   for identifying a specific endpoint over time through its unique set
+   of characteristics.
+
+   Detailed implementation information, including specific version
+   numbers, build identifiers, or platform details, can create a unique
+   fingerprint that enables tracking endpoints across sessions without
+   their awareness.  When combined with other session characteristics,
+   even minimal implementation identification can contribute to
+   distinguishing one endpoint from another.
+
+   To mitigate fingerprinting risks:
+
+   *  Implementations SHOULD send only the minimum information necessary
+      for interoperability debugging.  A short implementation name and
+      major version number are typically sufficient.
+
+   *  Implementations SHOULD NOT include detailed system information,
+      build numbers, or other attributes that could uniquely identify a
+      specific instance or user.
+
+   *  Privacy-conscious deployments MAY omit the MOQT_IMPLEMENTATION
+      option entirely or send a generic value.
+
+   *  Implementations MAY provide users with the ability to configure or
+      disable the MOQT_IMPLEMENTATION option.
+
+   Operators should be aware that detailed implementation identification
+   facilitates the same privacy concerns as persistent identifiers,
+   since it enables correlation of sessions across time.
 
 13.  Grease
 
