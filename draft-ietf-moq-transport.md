@@ -2500,6 +2500,10 @@ PREFIX_OVERLAP:
 : In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
 SUBSCRIBE_NAMESPACE in the same session.
 
+NAMESPACE_TOO_LARGE:
+: In response to SUBSCRIBE_NAMESPACE, the namespace prefix matches more
+publishers than the relay is willing to enumerate.
+
 INVALID_JOINING_REQUEST_ID:
 : In response to a Joining FETCH, the referenced Request ID is not an
 `Established` Subscription.
@@ -3298,6 +3302,12 @@ set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
 corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
 corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
+
+If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
+timely manner because the SUBSCRIBE_NAMESPACE response stream is blocked by flow
+control, the publisher MAY reset the SUBSCRIBE_NAMESPACE response stream.  When
+a subscriber receives a stream reset on a SUBSCRIBE_NAMESPACE response stream, it
+SHOULD treat this as though each active namespace received a NAMESPACE_DONE.
 
 ## PUBLISH_BLOCKED {#message-publish-blocked}
 
@@ -4351,6 +4361,7 @@ the length field.
 | DUPLICATE_SUBSCRIPTION     | 0x19 | {{message-request-error}} |
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
+| NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
