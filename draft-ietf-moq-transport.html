@@ -1218,6 +1218,11 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.5">
                 <p id="section-toc.1-1.1.2.5.1"><a href="#section-1.5" class="auto internal xref">1.5</a>.  <a href="#name-representing-namespace-and-" class="internal xref">Representing Namespace and Track Names</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.5.2.1">
+                    <p id="section-toc.1-1.1.2.5.2.1.1"><a href="#section-1.5.1" class="auto internal xref">1.5.1</a>.  <a href="#name-parsing-serialized-names" class="internal xref">Parsing Serialized Names</a></p>
+</li>
+                </ul>
 </li>
             </ul>
 </li>
@@ -2235,13 +2240,44 @@ exactly two lower case hex digits.<a href="#section-1.5-3.2.1" class="pilcrow">�
 <p id="section-1.5-4">The goal of this format is to have a format that is both filename and
 URL safe. It allows many common names to be rendered in an easily human
 readable form while still supporting binary values.<a href="#section-1.5-4" class="pilcrow">¶</a></p>
-<p id="section-1.5-5">Example:<a href="#section-1.5-5" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-1.5-6">
+<div id="parsing-serialized-names">
+<section id="section-1.5.1">
+          <h4 id="name-parsing-serialized-names">
+<a href="#section-1.5.1" class="section-number selfRef">1.5.1. </a><a href="#name-parsing-serialized-names" class="section-name selfRef">Parsing Serialized Names</a>
+          </h4>
+<p id="section-1.5.1-1">When parsing a serialized namespace or track name back to its binary form,
+implementations <span class="bcp14">MUST</span> apply the following rules to ensure a canonical encoding:<a href="#section-1.5.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.5.1-2.1">
+              <p id="section-1.5.1-2.1.1">The hex digits following a period (.) <span class="bcp14">MUST</span> be lowercase (a-f). Uppercase
+hex digits (A-F) are invalid and <span class="bcp14">MUST</span> cause parsing to fail.<a href="#section-1.5.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-1.5.1-2.2">
+              <p id="section-1.5.1-2.2.1">Bytes that can be represented literally (a-z, A-Z, 0-9, _) <span class="bcp14">MUST NOT</span> appear
+in their hex-encoded form. For example, <code>.61</code> is invalid because <code>a</code> must
+be represented as the literal character <code>a</code>. A parser <span class="bcp14">MUST</span> reject such
+redundant encodings.<a href="#section-1.5.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-1.5.1-2.3">
+              <p id="section-1.5.1-2.3.1">A period (.) <span class="bcp14">MUST</span> be followed by exactly two hex digits. A trailing period
+or a period followed by fewer than two hex digits is invalid.<a href="#section-1.5.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-1.5.1-3">These rules ensure that the encoding is bijective: every binary value has
+exactly one valid serialized representation, and every valid serialized
+string maps to exactly one binary value. This property simplifies comparison
+of serialized names without requiring full deserialization.<a href="#section-1.5.1-3" class="pilcrow">¶</a></p>
+<p id="section-1.5.1-4">Implementations that receive an invalid serialized name <span class="bcp14">SHOULD</span> treat it as
+an error. The specific error handling behavior is application-defined.<a href="#section-1.5.1-4" class="pilcrow">¶</a></p>
+<p id="section-1.5.1-5">Example:<a href="#section-1.5.1-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-1.5.1-6">
 <pre>
 example.2enet-team2-project_x--report
   Namespace tuples: (example.net, team2, project_x)
   Track name: report
-</pre><a href="#section-1.5-6" class="pilcrow">¶</a>
+</pre><a href="#section-1.5.1-6" class="pilcrow">¶</a>
+</div>
+</section>
 </div>
 </section>
 </div>
