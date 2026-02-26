@@ -1395,10 +1395,11 @@ A PUBLISH_NAMESPACE is withdrawn by cancelling the request
 the subscriber to send a SUBSCRIBE or FETCH message for a track in a
 namespace after the namespace is withdrawn.
 
-A subscriber can cancel the request to revoke acceptance of a
+A subscriber can cancel the request (see {{request-cancellation}}) to revoke acceptance of a
 PUBLISH_NAMESPACE. If the reason for cancellation is expiration of
-authorization credentials, the publisher can PUBLISH_NAMESPACE again with
-refreshed authorization, or close the stream and discard associated state.
+authorization credentials, the publisher can send PUBLISH_NAMESPACE again
+on a new bidi stream with refreshed authorization, or close the stream and 
+discard associated state.
 
 While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
 subscribers, it is not a full-fledged routing protocol and does not protect
@@ -1846,7 +1847,7 @@ endpoint increments its Request ID by 2 for each new request.
 Each SUBSCRIBE, PUBLISH, FETCH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
 REQUEST_UPDATE, and TRACK_STATUS message consumes a Request ID. Only
 request messages include a Request ID; response messages do not, since
-they are sent on the same bidirectional stream.
+they are sent on the same bidirectional stream as the request.
 
 If an endpoint receives a Request ID where the least significant bit is
 incorrect for the sender, or a duplicate Request ID, it MUST close the
