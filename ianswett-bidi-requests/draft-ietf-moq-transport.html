@@ -3272,8 +3272,9 @@ the subscriber wishing to cancel the FETCH <span class="bcp14">MAY</span> send S
 data stream as well as the the bidi request stream. It <span class="bcp14">MUST</span> send STOP_SENDING
 for the bidi request stream.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 <p id="section-5.2-3">The Publisher can destroy fetch state as soon as it has received a
-STOP_SENDING. It <span class="bcp14">MUST</span> reset any open streams associated with the FETCH. It can
-also destroy state after closing the FETCH data stream.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+STOP_SENDING. It <span class="bcp14">MUST</span> reset the bidi request stream and unidirectional
+data stream associated with the FETCH. It can also destroy state after closing
+the FETCH data stream.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <p id="section-5.2-4">It can destroy all FETCH state after closing the data stream with a FIN.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
 <p id="section-5.2-5">A REQUEST_ERROR indicates that both endpoints can immediately destroy state.
 Since a relay can start delivering FETCH Objects from cache before determining
