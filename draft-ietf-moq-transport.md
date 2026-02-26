@@ -928,8 +928,8 @@ INVALID_REQUEST_ID (0x4):
   bit for the sender, or a duplicate Request ID. See {{request-id}}.
 
 INVALID_REQUIRED_REQUEST_ID (0x7):
-: The endpoint received a Required Request ID that does not have the same
-  parity as the Request ID, or is less than 0. See {{required-request-id}}.
+: The endpoint received a Required Request ID Delta that results
+in an invalid Request ID. See {{required-request-id}}.
 
 DUPLICATE_TRACK_ALIAS (0x5):
 : The endpoint attempted to use a Track Alias that was already in use.
