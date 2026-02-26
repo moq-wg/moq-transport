@@ -4567,9 +4567,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 13.  Grease
 
    To ensure that implementations correctly handle unknown values and do
-   not fail when encountering extensions they do not understand, this
-   document reserves a range of values for the purpose of greasing; see
-   Section 3.3 of [RFC9170].
+   not fail when encountering protocol extensions they do not
+   understand, this document reserves a range of values for the purpose
+   of greasing; see Section 3.3 of [RFC9170].
 
    Grease values follow the pattern 0x7f * N + 0x9D for non-negative
    integer values of N (that is, 0x9D, 0xBC, ..., 0x3ffffffffffffffe).
@@ -4705,8 +4705,8 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 12
 
-   Endpoints MUST ignore unknown extension header types, skipping them
-   using the length field.
+   Endpoints MUST ignore unknown Property types, skipping them using the
+   length field.
 
 14.5.  Error Codes
 

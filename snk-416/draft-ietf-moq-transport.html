@@ -6935,7 +6935,7 @@ the relay would have to send matching NAMESPACE/NAMESPACE_DONE messages.<a href=
 <a href="#section-13" class="section-number selfRef">13. </a><a href="#name-grease" class="section-name selfRef">Grease</a>
       </h2>
 <p id="section-13-1">To ensure that implementations correctly handle unknown values and do not
-fail when encountering extensions they do not understand, this document
+fail when encountering protocol extensions they do not understand, this document
 reserves a range of values for the purpose of greasing; see <span><a href="https://rfc-editor.org/rfc/rfc9170#section-3.3" class="relref">Section 3.3</a> of [<a href="#RFC9170" class="cite xref">RFC9170</a>]</span>.<a href="#section-13-1" class="pilcrow">¶</a></p>
 <p id="section-13-2">Grease values follow the pattern <code>0x7f * N + 0x9D</code> for non-negative
 integer values of N (that is, 0x9D, 0xBC, ..., 0x3ffffffffffffffe).<a href="#section-13-2" class="pilcrow">¶</a></p>
@@ -7260,7 +7260,7 @@ List which Properties can be repeated in the table.<a href="#section-14-2.5.1" c
             </tr>
           </tbody>
         </table>
-<p id="section-14.4-2">Endpoints <span class="bcp14">MUST</span> ignore unknown extension header types, skipping them using
+<p id="section-14.4-2">Endpoints <span class="bcp14">MUST</span> ignore unknown Property types, skipping them using
 the length field.<a href="#section-14.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
