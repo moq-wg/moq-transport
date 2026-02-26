@@ -2058,7 +2058,7 @@ Table of Contents
    order by Type.
 
    *  Value: The encoding is specified by each parameter definition.
-      The parameters defined in this draft are:
+      The encodings defined in this draft are:
 
       -  uint8: A single-byte unsigned integer (0-255)
 
