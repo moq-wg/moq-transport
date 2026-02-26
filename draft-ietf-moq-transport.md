@@ -4186,7 +4186,7 @@ TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 # Grease {#grease}
 
 To ensure that implementations correctly handle unknown values and do not
-fail when encountering extensions they do not understand, this document
+fail when encountering protocol extensions they do not understand, this document
 reserves a range of values for the purpose of greasing; see {{Section 3.3 of ?RFC9170}}.
 
 Grease values follow the pattern `0x7f * N + 0x9D` for non-negative
@@ -4271,7 +4271,7 @@ TODO: register the URI scheme and the ALPN
 | 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
 | 0x7f * N + 0x9D | Reserved for greasing | Any | {{grease}} |
 
-Endpoints MUST ignore unknown extension header types, skipping them using
+Endpoints MUST ignore unknown Property types, skipping them using
 the length field.
 
 ## Error Codes {#iana-error-codes}
