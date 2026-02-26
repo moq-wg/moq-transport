@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 August 2026                                    I. Swett, Ed.
+Expires: 30 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        23 February 2026
+                                                        26 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 August 2026.
+   This Internet-Draft will expire on 30 August 2026.
 
 Copyright Notice
 
@@ -89,6 +89,7 @@ Table of Contents
        1.4.3.  Key-Value-Pair Structure
        1.4.4.  Reason Phrase Structure
      1.5.  Representing Namespace and Track Names
+       1.5.1.  Parsing Serialized Names
    2.  Object Data Model
      2.1.  Objects
      2.2.  Subgroups
@@ -142,6 +143,16 @@ Table of Contents
      9.2.  Required Request ID
      9.3.  Message Parameters
        9.3.1.  Parameter Scope
+       9.3.2.  AUTHORIZATION TOKEN Parameter
+       9.3.3.  DELIVERY TIMEOUT Parameter
+       9.3.4.  RENDEZVOUS TIMEOUT Parameter
+       9.3.5.  SUBSCRIBER PRIORITY Parameter
+       9.3.6.  GROUP ORDER Parameter
+       9.3.7.  SUBSCRIPTION FILTER Parameter
+       9.3.8.  EXPIRES Parameter
+       9.3.9.  LARGEST OBJECT Parameter
+       9.3.10. FORWARD Parameter
+       9.3.11. NEW GROUP REQUEST Parameter
      9.4.  CLIENT_SETUP and SERVER_SETUP
        9.4.1.  Setup Options
      9.5.  GOAWAY
@@ -193,15 +204,18 @@ Table of Contents
      12.3.  Relay security considerations
        12.3.1.  State maintenance
        12.3.2.  SUBSCRIBE_NAMESPACE with short prefixes
-   13. IANA Considerations
-     13.1.  Authorization Token Alias Type
-     13.2.  Message Parameters
-     13.3.  Properties
-     13.4.  Error Codes
-       13.4.1.  Session Termination Error Codes
-       13.4.2.  REQUEST_ERROR Codes
-       13.4.3.  PUBLISH_DONE Codes
-       13.4.4.  Data Stream Reset Error Codes
+     12.4.  Implementation Identification Fingerprinting
+   13. Grease
+   14. IANA Considerations
+     14.1.  Authorization Token Alias Type
+     14.2.  MOQT Auth Token Type
+     14.3.  Message Parameters
+     14.4.  Properties
+     14.5.  Error Codes
+       14.5.1.  Session Termination Error Codes
+       14.5.2.  REQUEST_ERROR Codes
+       14.5.3.  PUBLISH_DONE Codes
+       14.5.4.  Data Stream Reset Error Codes
    Contributors
    Use of Generative AI
    References
@@ -275,7 +289,7 @@ Table of Contents
    The parallel nature of QUIC streams can provide improvements in the
    face of loss.  A goal of MOQT is to design a streaming protocol to
    leverage the transmission benefits afforded by parallel QUIC streams
-   as well exercising options for flexible loss recovery.
+   as well as exercising options for flexible loss recovery.
 
 1.1.3.  Convergence
 
@@ -385,7 +399,7 @@ Table of Contents
    any, represent the integer value, encoded in network byte order.
 
    Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can
-   encode up to 64 bit unsinged integers.  The following table
+   encode up to 64 bit unsigned integers.  The following table
    summarizes the encoding properties.
 
     +==============+================+========+========================+
@@ -548,6 +562,35 @@ Table of Contents
    The goal of this format is to have a format that is both filename and
    URL safe.  It allows many common names to be rendered in an easily
    human readable form while still supporting binary values.
+
+1.5.1.  Parsing Serialized Names
+
+   When parsing a serialized namespace or track name back to its binary
+   form, implementations MUST apply the following rules to ensure a
+   canonical encoding:
+
+   *  The hex digits following a period (.) MUST be lowercase (a-f).
+      Uppercase hex digits (A-F) are invalid and MUST cause parsing to
+      fail.
+
+   *  Bytes that can be represented literally (a-z, A-Z, 0-9, _) MUST
+      NOT appear in their hex-encoded form.  For example, .61 is invalid
+      because a must be represented as the literal character a.  A
+      parser MUST reject such redundant encodings.
+
+   *  A period (.) MUST be followed by exactly two hex digits.  A
+      trailing period or a period followed by fewer than two hex digits
+      is invalid.
+
+   These rules ensure that the encoding is bijective: every binary value
+   has exactly one valid serialized representation, and every valid
+   serialized string maps to exactly one binary value.  This property
+   simplifies comparison of serialized names without requiring full
+   deserialization.
+
+   Implementations that receive an invalid serialized name SHOULD treat
+   it as an error.  The specific error handling behavior is application-
+   defined.
 
    Example:
 
@@ -789,7 +832,7 @@ Table of Contents
         ID is smaller than the previous Object in the response.
 
    4.   An Object is received in a Descending FETCH response whose Group
-        ID is larger than the previous Object in the resopnse.
+        ID is larger than the previous Object in the response.
 
    5.   An Object is received whose Object ID is larger than the final
         Object in the Subgroup.  The final Object in a Subgroup is the
@@ -869,7 +912,7 @@ Table of Contents
    alter MoQT Object distribution.
 
    Properties are defined in Section 11 as well as external
-   specifications and are registered in an IANA table Section 13.  These
+   specifications and are registered in an IANA table Section 14.  These
    specifications define the type and value of the property, along with
    any rules concerning processing, modification, caching and
    forwarding.
@@ -889,7 +932,27 @@ Table of Contents
    Properties are serialized as Key-Value-Pairs (see Figure 2).
 
    Property types are registered in the IANA table 'MOQ Properties'.
-   See Section 13.
+   See Section 14.
+
+   Certain Property type ranges are reserved for application-specific
+   use and will never be allocated by IANA in future MOQT
+   specifications:
+
+   *  0x38 to 0x3F (1-byte encoding): 8 code points for applications
+      with tight space constraints
+
+   *  0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including
+      grease Section 13)) for applications with moderate space
+      constraints
+
+   Applications MAY use code points in these ranges without registration
+   for format-specific metadata or other application-defined purposes.
+   Relays that do not understand the application format MUST forward
+   these properties unchanged but MUST NOT attempt to interpret their
+   semantic meaning.  Different applications using the same code point
+   in these ranges may assign different meanings; the interpretation
+   depends on the track or application context known to the publisher
+   and subscriber.
 
 3.  Sessions
 
@@ -1083,19 +1146,19 @@ Table of Contents
       exceeded.
 
    DUPLICATE_AUTH_TOKEN_ALIAS (0x14):  Authorization Token attempted to
-      register an Alias that was in use (see Section 9.3.1.1).
+      register an Alias that was in use (see Section 9.3.2).
 
    VERSION_NEGOTIATION_FAILED (0x15):  The client didn't offer a version
       supported by the server.
 
    MALFORMED_AUTH_TOKEN (0x16):  Invalid Auth Token serialization during
-      registration (see Section 9.3.1.1).
+      registration (see Section 9.3.2).
 
    UNKNOWN_AUTH_TOKEN_ALIAS (0x17):  No registered token found for the
-      provided Alias (see Section 9.3.1.1).
+      provided Alias (see Section 9.3.2).
 
    EXPIRED_AUTH_TOKEN (0x18):  Authorization token has expired
-      (Section 9.3.1.1).
+      (Section 9.3.2).
 
    INVALID_AUTHORITY (0x19):  The specified AUTHORITY does not
       correspond to this server or cannot be used in this context.
@@ -1419,7 +1482,7 @@ Table of Contents
    Object ID is above the threshold and the Track supports dynamic
    groups, the subscriber sends a REQUEST_UPDATE message with the
    NEW_GROUP_REQUEST parameter equal to the Largest Location's Group,
-   plus one (see Section 9.3.1.10).
+   plus one (see Section 9.3.11).
 
    Another possible subscriber pattern is to send a SUBSCRIBE with
    Filter Type Next Group Start and NEW_GROUP_REQUEST equal to 0.  The
@@ -1784,7 +1847,7 @@ Table of Contents
    subscribers.  Each new Object belonging to the Track is forwarded to
    each subscriber, as allowed by the subscription's filter (see
    Section 9.8), and delivered according to the priority (see Section 7)
-   and delivery timeout (see Section 9.3.1.2).
+   and delivery timeout (see Section 9.3.3).
 
    A relay MUST NOT reorder or drop objects received on a multi-object
    stream when forwarding to subscribers, unless it has application
@@ -1847,8 +1910,8 @@ Table of Contents
    When a publisher wants to stop new subscriptions for a published
    namespace, it cancels the request (see Section 3.3.1) to withdraw the
    PUBLISH_NAMESPACE.  A subscriber indicates it will no longer
-   subscribe to Tracks in a namespace by cancelling the
-   PUBLISH_NAMESPACE request.
+   subscribe to Tracks in a namespace it previously responded REQUEST_OK
+   to by cancelling the PUBLISH_NAMESPACE request.
 
    A Relay connects publishers and subscribers by managing sessions
    based on the Track Namespace or Full Track Name.  When a SUBSCRIBE
@@ -2053,23 +2116,58 @@ Table of Contents
 9.3.  Message Parameters
 
    Some control messages include a field that encodes optional Message
-   Parameters.  All Message Parameters MUST be defined in the negotiated
-   version of MOQT or negotiated via Setup Options.  An endpoint that
-   receives an unknown Message Parameter MUST close the session with
-   PROTOCOL_VIOLATION.
+   Parameters.  Message Parameters are serialized as follows:
+
+   Message Parameter {
+     Type Delta (vi64),
+     Value (..)
+   }
+
+                        Figure 4: Message Parameter
+
+   Type Delta: The difference between this Parameter Type and the
+   previous Parameter Type in the message, or the Parameter Type itself
+   for the first parameter.  Parameters MUST be serialized in ascending
+   order by Type.
+
+   *  Value: The encoding is specified by each parameter definition.
+      The encodings defined in this draft are:
+
+      -  uint8: A single-byte unsigned integer (0-255)
+
+      -  varint: A variable-length integer
+
+      -  Location: Two consecutive varints (Group, Object)
+
+      -  Length-prefixed: A varint length followed by that many bytes
+
+   Message Parameters are only intended for the peer only and are not
+   forwarded by Relays, though relays can consider received parameter
+   values when making a request.
+
+   All Message Parameters MUST be defined in the negotiated version of
+   MOQT or negotiated via Setup Options.  An endpoint that receives an
+   unknown Message Parameter MUST close the session with
+   PROTOCOL_VIOLATION.  Because the receiver has to understand every
+   Message Parameter, there is no need for a mechanism to skip unknown
+   parameters.
+
+   The Message Parameter types defined in this version of MOQT are
+   listed below.
 
    Senders MUST NOT repeat the same Parameter Type in a message unless
    the parameter definition explicitly allows multiple instances of that
    type to be sent in a single message.  Receivers SHOULD check that
-   there are no unexpected duplicate parameters and close the session as
-   a PROTOCOL_VIOLATION if found.
+   there are no unexpected duplicate parameters and close the session
+   with PROTOCOL_VIOLATION if found.
 
-   The number of parameters in a message is not specifically limited,
-   but the total length of a control message is limited to 2^16-1 bytes.
+   The number of Message Parameters is not specifically limited, but the
+   total length of a control message is limited to 2^16-1 bytes.
 
-   Message Parameters are serialized as Key-Value-Pairs Figure 2.  The
-   Message Parameter types defined in this version of MOQT are listed in
-   this section.
+   Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause
+   the publisher to alter the payload of the objects it sends, as that
+   would violate the track uniqueness guarantee described in
+   Section 2.4.3.
 
    Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause
    the publisher to alter the payload of the objects it sends, as that
@@ -2091,13 +2189,13 @@ Table of Contents
    namespace, it is impossible for Message Parameters to appear in Setup
    messages.
 
-9.3.1.1.  AUTHORIZATION TOKEN Parameter
+9.3.2.  AUTHORIZATION TOKEN Parameter
 
-   The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in
-   a PUBLISH, SUBSCRIBE, REQUEST_UPDATE, SUBSCRIBE_NAMESPACE,
-   PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message.  This parameter
-   conveys information to authorize the sender to perform the operation
-   carrying the parameter.
+   The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) uses Length-
+   prefixed encoding.  It MAY appear in a PUBLISH, SUBSCRIBE,
+   REQUEST_UPDATE, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS
+   or FETCH message.  This parameter conveys information to authorize
+   the sender to perform the operation carrying the parameter.
 
    The parameter value is a Token structure containing an optional
    Session-specific Alias.  The Alias allows the sender to reference a
@@ -2111,7 +2209,7 @@ Table of Contents
      [Token Value (..)]
    }
 
-                         Figure 4: Token structure
+                         Figure 5: Token structure
 
    *  Alias Type - an integer defining both the serialization and the
       processing behavior of the receiver.  This Alias type has the
@@ -2147,7 +2245,7 @@ Table of Contents
 
    *  Token Type - a numeric identifier for the type of Token payload
       being transmitted.  This type is defined by the IANA table "MOQT
-      Auth Token Type" (see Section 13).  Type 0 is reserved to indicate
+      Auth Token Type" (see Section 14).  Type 0 is reserved to indicate
       that the type is not defined in the table and is negotiated out-
       of-band between client and receiver.
 
@@ -2203,7 +2301,7 @@ Table of Contents
    Setup Option defining the MAX_AUTH_TOKEN_CACHE_SIZE limit (see
    Section 9.4.1.3) it is willing to accept.  If a registration is
    attempted which would cause this limit to be exceeded, the receiver
-   MUST termiate the Session with a AUTH_TOKEN_CACHE_OVERFLOW error.
+   MUST terminate the Session with a AUTH_TOKEN_CACHE_OVERFLOW error.
 
    The AUTHORIZATION TOKEN parameter MAY be repeated within a message as
    long as the combination of Token Type and Token Value are unique
@@ -2223,10 +2321,10 @@ Table of Contents
    Senders MUST NOT send DELETE for an alias while any message using
    USE_ALIAS with that alias has not received a response.
 
-9.3.1.2.  DELIVERY TIMEOUT Parameter
+9.3.3.  DELIVERY TIMEOUT Parameter
 
-   The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-   PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
+   The DELIVERY TIMEOUT parameter (Parameter Type 0x02) is a varint.  It
+   MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
 
    It is the duration in milliseconds the relay SHOULD continue to
    attempt forwarding Objects after they have been received.  The start
@@ -2269,7 +2367,7 @@ Table of Contents
    data for that Object, taking into account priorities, congestion
    control, and any other relevant information.
 
-9.3.1.3.  RENDEZVOUS TIMEOUT Parameter
+9.3.4.  RENDEZVOUS TIMEOUT Parameter
 
    The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) MAY appear in
    a SUBSCRIBE message.
@@ -2297,56 +2395,52 @@ Table of Contents
 
    If RENDEZVOUS_TIMEOUT is absent, the default is 0.
 
-9.3.1.4.  SUBSCRIBER PRIORITY Parameter
+9.3.5.  SUBSCRIBER PRIORITY Parameter
 
-   The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in
-   a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
-   PUBLISH_OK message.  It is an integer expressing the priority of a
-   subscription relative to other subscriptions and fetch responses in
-   the same session.  Lower numbers get higher priority.  See Section 7.
-   The range is restricted to 0-255.  If a publisher receives a value
-   outside this range, it MUST close the session with
-   PROTOCOL_VIOLATION.
+   The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8.
+   It MAY appear in a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a
+   subscription or FETCH), or PUBLISH_OK message.  It is an integer
+   expressing the priority of a subscription relative to other
+   subscriptions and fetch responses in the same session.  Lower numbers
+   get higher priority.  See Section 7.
 
    If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
    the value 128.
 
-9.3.1.5.  GROUP ORDER Parameter
+9.3.6.  GROUP ORDER Parameter
 
-   The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a
-   SUBSCRIBE, PUBLISH_OK, or FETCH.
+   The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8.  It MAY
+   appear in a SUBSCRIBE, PUBLISH_OK, or FETCH.
 
-   It is an enum indicating how to prioritize Objects from different
-   groups within the same subscription (see Section 7), or how to order
-   Groups in a Fetch response (see Section 9.14.3).  The allowed values
-   are Ascending (0x1) or Descending (0x2).  If an endpoint receives a
-   value outside this range, it MUST close the session with
+   Its value indicates how to prioritize Objects from different groups
+   within the same subscription (see Section 7), or how to order Groups
+   in a Fetch response (see Section 9.14.3).  The allowed values are
+   Ascending (0x1) or Descending (0x2).  If an endpoint receives a value
+   outside this range, it MUST close the session with
    PROTOCOL_VIOLATION.
 
    If omitted from SUBSCRIBE, the publisher's preference from the Track
    is used.  If omitted from FETCH, the receiver uses Ascending (0x1).
 
-9.3.1.6.  SUBSCRIPTION FILTER Parameter
+9.3.7.  SUBSCRIPTION FILTER Parameter
 
-   The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) MAY appear in
-   a SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a subscription)
-   message.  It is a length-prefixed Subscription Filter (see
-   Section 5.1.2).  If the length of the Subscription Filter does not
-   match the parameter length, the publisher MUST close the session with
-   PROTOCOL_VIOLATION.
+   The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) uses length-
+   prefixed encoding.  It MAY appear in a SUBSCRIBE, PUBLISH_OK or
+   REQUEST_UPDATE (for a subscription) message.  It is a Subscription
+   Filter (see Section 5.1.2).
 
    If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
    unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
-9.3.1.7.  EXPIRES Parameter
+9.3.8.  EXPIRES Parameter
 
-   The EXPIRES parameter (Parameter Type 0x8) MAY appear in
-   SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK.  It is a variable
-   length integer encoding the time in milliseconds after which the
-   sender of the parameter will terminate the subscription.  The sender
-   will terminate the subscription using PUBLISH_DONE or UNSUBSCRIBE,
-   depending on its role.  This value is advisory and the sender can
-   terminate the subscription prior to or after the expiry time.
+   The EXPIRES parameter (Parameter Type 0x8) is a varint.  It MAY
+   appear in SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK.  It
+   encodes the time in milliseconds after which the sender of the
+   parameter will terminate the subscription.  The sender will terminate
+   the subscription using PUBLISH_DONE or UNSUBSCRIBE, depending on its
+   role.  This value is advisory and the sender can terminate the
+   subscription prior to or after the expiry time.
 
    The receiver of the parameter can attempt to extend the subscription
    by sending a REQUEST_UPDATE with 0 or more updated parameters.  If
@@ -2359,51 +2453,51 @@ Table of Contents
    If the EXPIRES parameter is 0 or is not present in a message, the
    subscription does not expire or expires at an unknown time.
 
-9.3.1.8.  LARGEST OBJECT Parameter
+9.3.9.  LARGEST OBJECT Parameter
 
-   The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in
-   SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE
-   or TRACK_STATUS).  It is a length-prefixed Location structure (see
-   Section 1.4.2) containing the largest Location in the Track observed
-   by the sending endpoint (see Section 5.1.2.  If Objects have been
-   published on this Track the Publisher MUST include this parameter.
+   The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location.  It
+   MAY appear in SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to
+   REQUEST_UPDATE or TRACK_STATUS).  It contains the largest Location
+   (see Section 1.4.2) in the Track observed by the sending endpoint
+   (see Section 5.1.2).  If Objects have been published on this Track
+   the Publisher MUST include this parameter.
 
    If omitted from a message, the sending endpoint has not published or
    received any Objects in the Track.
 
-9.3.1.9.  FORWARD Parameter
+9.3.10.  FORWARD Parameter
 
-   The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
-   REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
-   SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying the
-   Forwarding State on affected subscriptions (see Section 5.1).  The
-   allowed values are 0 (don't forward) or 1 (forward).  If an endpoint
-   receives a value outside this range, it MUST close the session with
+   The FORWARD parameter (Parameter Type 0x10) is a uint8.  It MAY
+   appear in SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH,
+   PUBLISH_OK and SUBSCRIBE_NAMESPACE.  It specifies the Forwarding
+   State on affected subscriptions (see Section 5.1).  The allowed
+   values are 0 (don't forward) or 1 (forward).  If an endpoint receives
+   a value outside this range, it MUST close the session with
    PROTOCOL_VIOLATION.
 
    If the parameter is omitted from REQUEST_UPDATE, the value for the
    subscription remains unchanged.  If the parameter is omitted from any
    other message, the default value is 1.
 
-9.3.1.10.  NEW GROUP REQUEST Parameter
+9.3.11.  NEW GROUP REQUEST Parameter
 
-   The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) MAY appear in
-   PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a subscription.  It is an
-   integer representing the largest Group ID in the Track known by the
-   subscriber, plus 1.  A value of 0 indicates that the subscriber has
-   no Group information for the Track.  A subscriber MUST NOT send this
-   parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
-   include the DYNAMIC_GROUPS Property with value 1.  A subscriber MAY
-   include this parameter in SUBSCRIBE without foreknowledge of support.
-   If the original publisher does not support dynamic Groups, it ignores
-   the parameter in that case.
+   The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint.
+   It MAY appear in PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a
+   subscription.  It represents the largest Group ID in the Track known
+   by the subscriber, plus 1.  A value of 0 indicates that the
+   subscriber has no Group information for the Track.  A subscriber MUST
+   NOT send this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track
+   did not include the DYNAMIC_GROUPS Property with value 1.  A
+   subscriber MAY include this parameter in SUBSCRIBE without
+   foreknowledge of support.  If the original publisher does not support
+   dynamic Groups, it ignores the parameter in that case.
 
    When an Original Publisher that supports dynamic Groups receives a
    NEW_GROUP_REQUEST with a value of 0 or a value larger than the
    current Group, it SHOULD end the current Group and begin a new Group
    as soon as practical.  The Original Publisher MAY delay the
    NEW_GROUP_REQUEST subject to implementation specific concerns, for
-   example, acheiving a minimum duration for each Group.  The Original
+   example, achieving a minimum duration for each Group.  The Original
    Publisher chooses the next Group ID; there are no requirements that
    it be equal to the NEW_GROUP_REQUEST parameter value.
 
@@ -2434,12 +2528,11 @@ Table of Contents
 
    The CLIENT_SETUP and SERVER_SETUP messages are the first messages
    exchanged by the client and the server; they allow the endpoints to
-   agree on the initial configuration before any control messsages are
+   agree on the initial configuration before any control messages are
    exchanged.  The messages contain a sequence of key-value pairs called
    Setup Options; the semantics and format of which can vary based on
    whether the client or server is sending.  To ensure future
    extensibility of MOQT, endpoints MUST ignore unknown Setup Options.
-   TODO: describe GREASE for Setup Options.
 
    The wire format of the Setup messages are as follows:
 
@@ -2457,7 +2550,7 @@ Table of Contents
      Setup Options (..) ...,
    }
 
-                       Figure 5: MOQT Setup Messages
+                       Figure 6: MOQT Setup Messages
 
    Setup Options are serialized as Key-Value-Pairs Figure 2.  Setup
    Options use a namespace that is constant across all MOQT versions,
@@ -2513,7 +2606,7 @@ Table of Contents
    of token Aliases.
 
    The token size is calculated as 16 bytes + the size of the Token
-   Value field (see Figure 4).  The total size as restricted by the
+   Value field (see Figure 5).  The total size as restricted by the
    MAX_AUTH_TOKEN_CACHE_SIZE option is calculated as the sum of the
    token sizes for all registered tokens (Alias Type value of 0x01)
    minus the sum of the token sizes for all deregistered tokens (Alias
@@ -2523,7 +2616,7 @@ Table of Contents
 
    The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is
    functionally equivalent to the AUTHORIZATION TOKEN message parameter,
-   see Section 9.3.1.1.  The endpoint can specify one or more tokens in
+   see Section 9.3.2.  The endpoint can specify one or more tokens in
    CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT
    session establishment.
 
@@ -2543,6 +2636,17 @@ Table of Contents
    UTF-8 encoded string [RFC3629], though the message does not carry
    information, such as language tags, that would aid comprehension by
    any entity other than the one that created the text.
+
+   An endpoint SHOULD send a MOQT_IMPLEMENTATION option unless
+   specifically configured not to do so.  This option helps identify the
+   scope of interoperability problems and work around implementation-
+   specific limitations.
+
+   Senders SHOULD limit the value to the implementation name and
+   version, avoiding advertising or other nonessential information.
+   Implementations SHOULD NOT use the identifiers of other
+   implementations to declare compatibility, as this undermines the
+   usefulness of implementation identification for debugging.
 
 9.5.  GOAWAY
 
@@ -2575,16 +2679,16 @@ Table of Contents
      New Session URI (..),
    }
 
-                       Figure 6: MOQT GOAWAY Message
+                       Figure 7: MOQT GOAWAY Message
 
    *  New Session URI: When received by a client, indicates where the
       client can connect to continue this session.  The client MUST use
       this URI for the new session if provided.  If the URI is zero
       bytes long, the current URI is reused instead.  The new session
       URI SHOULD use the same scheme as the current URI to ensure
-      compatibility.  The maxmimum length of the New Session URI is
-      8,192 bytes.  If an endpoint receives a length exceeding the
-      maximum, it MUST close the session with a PROTOCOL_VIOLATION.
+      compatibility.  The maximum length of the New Session URI is 8,192
+      bytes.  If an endpoint receives a length exceeding the maximum, it
+      MUST close the session with a PROTOCOL_VIOLATION.
 
       If a server receives a GOAWAY with a non-zero New Session URI
       Length it MUST close the session with a PROTOCOL_VIOLATION.
@@ -2601,7 +2705,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                     Figure 7: MOQT REQUEST_OK Message
+                     Figure 8: MOQT REQUEST_OK Message
 
    *  Parameters: The parameters are defined in Section 9.3.
 
@@ -2619,7 +2723,7 @@ Table of Contents
      Error Reason (Reason Phrase),
    }
 
-                    Figure 8: MOQT REQUEST_ERROR Message
+                    Figure 9: MOQT REQUEST_ERROR Message
 
    *  Error Code: Identifies an integer error code for request failure.
 
@@ -2631,7 +2735,7 @@ Table of Contents
       See Section 1.4.4.
 
    The application SHOULD use a relevant error code in REQUEST_ERROR, as
-   defined below and assigned in Section 13.4.2.  Most codepoints have
+   defined below and assigned in Section 14.5.2.  Most codepoints have
    identical meanings for various request types, but some have request-
    specific meanings.
 
@@ -2656,10 +2760,9 @@ Table of Contents
    NOT_SUPPORTED:  The endpoint does not support the type of request.
 
    MALFORMED_AUTH_TOKEN:  Invalid Auth Token serialization during
-      registration (see Section 9.3.1.1).
+      registration (see Section 9.3.2).
 
-   EXPIRED_AUTH_TOKEN:  Authorization token has expired
-      (Section 9.3.1.1).
+   EXPIRED_AUTH_TOKEN:  Authorization token has expired (Section 9.3.2).
 
    GOING_AWAY:  The endpoint has received a GOAWAY and MAY reject new
       requests.
@@ -2697,8 +2800,12 @@ Table of Contents
       prefix overlaps with another SUBSCRIBE_NAMESPACE in the same
       session.
 
-   INVALID_JOINING_REQUEST_ID(0x32):  In response to a Joining FETCH,
-      the referenced Request ID is not an Established Subscription.
+   NAMESPACE_TOO_LARGE:  In response to SUBSCRIBE_NAMESPACE, the
+      namespace prefix matches more publishers than the relay is willing
+      to enumerate.
+
+   INVALID_JOINING_REQUEST_ID:  In response to a Joining FETCH, the
+      referenced Request ID is not an Established Subscription.
 
 9.8.  SUBSCRIBE
 
@@ -2722,7 +2829,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                      Figure 9: MOQT SUBSCRIBE Message
+                     Figure 10: MOQT SUBSCRIBE Message
 
    *  Request ID: See Section 9.1.
 
@@ -2741,11 +2848,11 @@ Table of Contents
    object when not explicitly specified, and start sending objects.
 
    If the publisher cannot satisfy the requested Subscription Filter
-   (see Section 9.3.1.6) or if the entire End Group has already been
+   (see Section 9.3.7) or if the entire End Group has already been
    published it SHOULD send a REQUEST_ERROR with code INVALID_RANGE.  A
    publisher MUST NOT send objects from outside the requested range.
 
-   Subscribing with the FORWARD parameter (Section 9.3.1.9) equal to 0
+   Subscribing with the FORWARD parameter (Section 9.3.10) equal to 0
    allows publisher or relay to prepare to serve the subscription in
    advance, reducing the time to receive objects in the future.
 
@@ -2763,7 +2870,7 @@ Table of Contents
      Track Properties (..),
    }
 
-                    Figure 10: MOQT SUBSCRIBE_OK Message
+                    Figure 11: MOQT SUBSCRIBE_OK Message
 
    *  Track Alias: The identifer used for this track in Subgroups or
       Datagrams (see Section 10.1).  The same Track Alias MUST NOT be
@@ -2805,7 +2912,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                   Figure 11: MOQT REQUEST_UPDATE Message
+                   Figure 12: MOQT REQUEST_UPDATE Message
 
    *  Request ID: See Section 9.1.
 
@@ -2857,7 +2964,7 @@ Table of Contents
      Track Properties (..),
    }
 
-                      Figure 12: MOQT PUBLISH Message
+                      Figure 13: MOQT PUBLISH Message
 
    *  Request ID: See Section 9.1.
 
@@ -2886,7 +2993,7 @@ Table of Contents
    abandon reading any publisher initiated streams associated with that
    subscription using a STOP_SENDING frame.
 
-   A publisher that sends the FORWARD parameter (Section 9.3.1.9) equal
+   A publisher that sends the FORWARD parameter (Section 9.3.10) equal
    to 0 indicates that it will not transmit any objects until the
    subscriber sets the Forward State to 1.  If the FORWARD parameter is
    omitted or equal to 1, the publisher will start transmitting objects
@@ -2905,7 +3012,7 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                     Figure 13: MOQT PUBLISH_OK Message
+                     Figure 14: MOQT PUBLISH_OK Message
 
    *  Parameters: The parameters are defined in Section 9.3.
 
@@ -2964,7 +3071,7 @@ Table of Contents
      Error Reason (Reason Phrase)
    }
 
-                    Figure 14: MOQT PUBLISH_DONE Message
+                    Figure 15: MOQT PUBLISH_DONE Message
 
    *  Status Code: An integer status code indicating why the
       subscription ended.
@@ -3109,7 +3216,7 @@ Table of Contents
       the Established or Pending (subscriber) states, it MUST return a
       REQUEST_ERROR with error code INVALID_JOINING_REQUEST_ID.
 
-   *  Joining Start : A relative or absolute value used to determing the
+   *  Joining Start : A relative or absolute value used to determine the
       Start Location, described below.
 
 9.14.2.1.  Joining Fetch Range Calculation
@@ -3149,7 +3256,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                       Figure 15: MOQT FETCH Message
+                       Figure 16: MOQT FETCH Message
 
    *  Request ID: See Section 9.1.
 
@@ -3173,7 +3280,7 @@ Table of Contents
 
    The publisher responding to a FETCH is responsible for delivering all
    available Objects in the requested range in the requested order (see
-   Section 9.3.1.5).  The Objects in the response are delivered on a
+   Section 9.3.6).  The Objects in the response are delivered on a
    single unidirectional stream.  Any gaps in the Group and Object IDs
    in the response stream indicate objects that do not exist.  For
    Ascending Group Order this includes ranges between the first
@@ -3238,7 +3345,7 @@ Table of Contents
      Track Properties (..),
    }
 
-                      Figure 16: MOQT FETCH_OK Message
+                      Figure 17: MOQT FETCH_OK Message
 
    *  End Of Track: 1 if all Objects have been published on this Track,
       and the End Location is the final Object in the Track, 0 if not.
@@ -3314,7 +3421,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                 Figure 17: MOQT PUBLISH_NAMESPACE Message
+                 Figure 18: MOQT PUBLISH_NAMESPACE Message
 
    *  Request ID: See Section 9.1.
 
@@ -3339,7 +3446,7 @@ Table of Contents
      Track Namespace Suffix (..),
    }
 
-                     Figure 18: MOQT NAMESPACE Message
+                     Figure 19: MOQT NAMESPACE Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1 after removing namespace
@@ -3361,7 +3468,7 @@ Table of Contents
      Track Namespace Suffix (..)
    }
 
-                   Figure 19: MOQT NAMESPACE_DONE Message
+                   Figure 20: MOQT NAMESPACE_DONE Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1.  The namespace begins with
@@ -3385,7 +3492,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                Figure 20: MOQT SUBSCRIBE_NAMESPACE Message
+                Figure 21: MOQT SUBSCRIBE_NAMESPACE Message
 
    *  Request ID: See Section 9.1.
 
@@ -3437,7 +3544,7 @@ Table of Contents
    in applications or relays where subscribers are only interested in or
    authorized to access a subset of available namespaces and tracks.
 
-   If the FORWARD parameter (Section 9.3.1.9) is present in this message
+   If the FORWARD parameter (Section 9.3.10) is present in this message
    and equal to 0, PUBLISH messages resulting from this
    SUBSCRIBE_NAMESPACE will set the FORWARD parameter to 0.  If the
    FORWARD parameter is equal to 1 or omitted from this message, PUBLISH
@@ -3449,6 +3556,13 @@ Table of Contents
    before the corresponding NAMESPACE.  If a subscriber receives a
    NAMESPACE_DONE before the corresponding NAMESPACE, it MUST close the
    session with a 'PROTOCOL_VIOLATION'.
+
+   If the publisher is unable to send NAMESPACE or NAMESPACE_DONE
+   messages in a timely manner because the SUBSCRIBE_NAMESPACE response
+   stream is blocked by flow control, the publisher MAY reset the
+   SUBSCRIBE_NAMESPACE response stream.  When a subscriber receives a
+   stream reset on a SUBSCRIBE_NAMESPACE response stream, it SHOULD
+   treat this as though each active namespace received a NAMESPACE_DONE.
 
 9.21.  PUBLISH_BLOCKED
 
@@ -3467,7 +3581,7 @@ Table of Contents
      Track Name (..),
    }
 
-                  Figure 21: MOQT PUBLISH_BLOCKED Message
+                  Figure 22: MOQT PUBLISH_BLOCKED Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1.  The namespace begins with
@@ -3607,7 +3721,7 @@ Table of Contents
    }
 
    Object Property types are registered in the IANA table 'MOQ
-   Properties'.  See Section 13.
+   Properties'.  See Section 14.
 
 10.3.  Datagrams
 
@@ -3649,7 +3763,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                      Figure 22: MOQT OBJECT_DATAGRAM
+                      Figure 23: MOQT OBJECT_DATAGRAM
 
    The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or
    the set of values from 0x00 to 0x0F, 0x20 to 0x2F).  However, not all
@@ -3752,7 +3866,7 @@ Table of Contents
      [Publisher Priority (8),]
    }
 
-                      Figure 23: MOQT SUBGROUP_HEADER
+                      Figure 24: MOQT SUBGROUP_HEADER
 
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
@@ -3824,7 +3938,7 @@ Table of Contents
    Object ID Delta values.  A consumer cannot infer information about
    the existence of Objects between the current and previous Object ID
    in the Subgroup (e.g. when Object ID Delta is non-zero) unless there
-   is an Prior Object ID Gap extesnion header (see Section 11.8).
+   is an Prior Object ID Gap extension header (see Section 11.8).
 
    {
      Object ID Delta (vi64),
@@ -3834,7 +3948,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                   Figure 24: MOQT Subgroup Object Fields
+                   Figure 25: MOQT Subgroup Object Fields
 
 10.4.3.  Closing Subgroup Streams
 
@@ -3862,7 +3976,7 @@ Table of Contents
    *  A REQUEST_UPDATE moving the subscription's End Group to a smaller
       Group or the Start Location to a larger Location
 
-   *  Omitting a Subgroup Object due to the subcriber's Forward State
+   *  Omitting a Subgroup Object due to the subscriber's Forward State
 
    When RESET_STREAM_AT is used, the reliable_size SHOULD include the
    stream header so the receiver can identify the corresponding
@@ -3956,7 +4070,7 @@ Table of Contents
       For Subscriptions, PUBLISH_DONE (Section 9.13) will have a more
       detailed status code.
 
-   DELIVERY_TIMEOUT (0x2):  The DELIVERY TIMEOUT Section 9.3.1.2 was
+   DELIVERY_TIMEOUT (0x2):  The DELIVERY TIMEOUT Section 9.3.3 was
       exceeded for this stream.
 
    SESSION_CLOSED (0x3):  The publisher session is being closed.
@@ -3967,7 +4081,7 @@ Table of Contents
 
    TOO_FAR_BEHIND (0x5):  The corresponding subscription has exceeded
       the publisher's resource limits and is being terminated (see
-      Section 9.3.1.2).
+      Section 9.3.3).
 
    EXCESSIVE_LOAD (0x9):  The publisher is overloaded and is resetting
       this stream.
@@ -3986,7 +4100,7 @@ Table of Contents
      Request ID (vi64),
    }
 
-                        Figure 25: MOQT FETCH_HEADER
+                        Figure 26: MOQT FETCH_HEADER
 
    Each Object sent on a FETCH stream after the FETCH_HEADER has the
    following format:
@@ -4002,7 +4116,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                    Figure 26: MOQT Fetch Object Fields
+                    Figure 27: MOQT Fetch Object Fields
 
    The Serialization Flags field defines the serialization of the
    Object.  It is a variable-length integer.  When less than 128, the
@@ -4157,11 +4271,15 @@ Table of Contents
    The following Properties are defined in MOQT.  Each Property
    specifies whether it can be used with Tracks, Objects, or both.
 
+   Property types in ranges reserved for application-specific use
+   (0x38-0x3F, 0x3800-0x3FFF) are not defined by MOQT.  See Section 2.5
+   for usage guidance.
+
 11.1.  DELIVERY TIMEOUT
 
    DELIVERY TIMEOUT (Property Type 0x02) is a Track Property.  It
    expresses the publisher's DELIVERY_TIMEOUT for a Track (see
-   Section 9.3.1.2).
+   Section 9.3.3).
 
    A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not
    expire due to delivery timeout.
@@ -4309,7 +4427,7 @@ EXT 1 and EXT N can be modified or removed by Relays
       communicated gap.
 
    Use of this property is optional, as publishers might not know the
-   prior gap gize, or there may not be a gap.  If Prior Group ID Gap is
+   prior gap size, or there may not be a gap.  If Prior Group ID Gap is
    not present, the receiver cannot infer any information about the
    existence of prior groups (see Section 2.3.1).
 
@@ -4344,7 +4462,7 @@ EXT 1 and EXT N can be modified or removed by Relays
       previously communicated gap.
 
    Use of this property is optional, as publishers might not know the
-   prior gap gize, or there might not be a gap.  If Prior Object ID Gap
+   prior gap size, or there might not be a gap.  If Prior Object ID Gap
    is not present, the receiver cannot infer any information about the
    existence of prior objects (see Section 2.1).
 
@@ -4431,10 +4549,74 @@ EXT 1 and EXT N can be modified or removed by Relays
    changes occur in the tree of namespaces, the relay would have to send
    matching NAMESPACE/NAMESPACE_DONE messages.
 
-   TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION
-   parameter
+12.4.  Implementation Identification Fingerprinting
 
-13.  IANA Considerations
+   The MOQT_IMPLEMENTATION option (Section 9.4.1.5) can reveal
+   information that contributes to fingerprinting, a set of techniques
+   for identifying a specific endpoint over time through its unique set
+   of characteristics.
+
+   Detailed implementation information, including specific version
+   numbers, build identifiers, or platform details, can create a unique
+   fingerprint that enables tracking endpoints across sessions without
+   their awareness.  When combined with other session characteristics,
+   even minimal implementation identification can contribute to
+   distinguishing one endpoint from another.
+
+   To mitigate fingerprinting risks:
+
+   *  Implementations SHOULD send only the minimum information necessary
+      for interoperability debugging.  A short implementation name and
+      major version number are typically sufficient.
+
+   *  Implementations SHOULD NOT include detailed system information,
+      build numbers, or other attributes that could uniquely identify a
+      specific instance or user.
+
+   *  Privacy-conscious deployments MAY omit the MOQT_IMPLEMENTATION
+      option entirely or send a generic value.
+
+   *  Implementations MAY provide users with the ability to configure or
+      disable the MOQT_IMPLEMENTATION option.
+
+   Operators should be aware that detailed implementation identification
+   facilitates the same privacy concerns as persistent identifiers,
+   since it enables correlation of sessions across time.
+
+13.  Grease
+
+   To ensure that implementations correctly handle unknown values and do
+   not fail when encountering protocol extensions they do not
+   understand, this document reserves a range of values for the purpose
+   of greasing; see Section 3.3 of [RFC9170].
+
+   Grease values follow the pattern 0x7f * N + 0x9D for non-negative
+   integer values of N (that is, 0x9D, 0xBC, ..., 0x3ffffffffffffffe).
+
+   The following registries include GREASE reservations:
+
+   *  Setup Options (Section 9.4.1)
+
+   *  Properties (Section 14.4)
+
+   *  Session Termination Error Codes (Section 14.5.1)
+
+   *  REQUEST_ERROR Codes (Section 14.5.2)
+
+   *  PUBLISH_DONE Codes (Section 14.5.3)
+
+   *  Data Stream Reset Error Codes (Section 14.5.4)
+
+   *  MOQT Auth Token Type
+
+   Implementations MUST handle unknown values from these registries
+   gracefully according to the rules defined in each section.
+
+   Setup Options with reserved identifiers have no semantics and can
+   carry arbitrary values.  Endpoints MUST ignore unknown Setup Options
+   as specified in Section 9.4.
+
+14.  IANA Considerations
 
    TODO: fill out currently missing registries:
 
@@ -4442,232 +4624,274 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  Setup Options
 
-   *  Message Parameters - List which params can be repeated in the
-      table.
-
    *  Message types
 
-   *  MOQ Properties - we wish to reserve extension types 0-63 for
-      standards utilization where space is a premium, 64 - 16383 for
-      standards utilization where space is less of a concern, and 16384
-      and above for first-come-first-served non-standardization usage.
-      List which Properties can be repeated in the table.
+   TODO: register the URI scheme and the ALPN
 
-   *  MOQT Auth Token Type
+14.1.  Authorization Token Alias Type
 
-   TODO: register the URI scheme and the ALPN and grease the Extension
-   types
-
-13.1.  Authorization Token Alias Type
-
-                  +======+===========+=================+
-                  | Code | Name      | Specification   |
-                  +======+===========+=================+
-                  |  0x0 | DELETE    | Section 9.3.1.1 |
-                  +------+-----------+-----------------+
-                  |  0x1 | REGISTER  | Section 9.3.1.1 |
-                  +------+-----------+-----------------+
-                  |  0x2 | USE_ALIAS | Section 9.3.1.1 |
-                  +------+-----------+-----------------+
-                  |  0x3 | USE_VALUE | Section 9.3.1.1 |
-                  +------+-----------+-----------------+
+                   +======+===========+===============+
+                   | Code | Name      | Specification |
+                   +======+===========+===============+
+                   |  0x0 | DELETE    | Section 9.3.2 |
+                   +------+-----------+---------------+
+                   |  0x1 | REGISTER  | Section 9.3.2 |
+                   +------+-----------+---------------+
+                   |  0x2 | USE_ALIAS | Section 9.3.2 |
+                   +------+-----------+---------------+
+                   |  0x3 | USE_VALUE | Section 9.3.2 |
+                   +------+-----------+---------------+
 
                                  Table 9
 
-13.2.  Message Parameters
+14.2.  MOQT Auth Token Type
 
-        +================+=====================+==================+
-        | Parameter Type | Parameter Name      | Specification    |
-        +================+=====================+==================+
-        | 0x02           | DELIVERY_TIMEOUT    | Section 9.3.1.2  |
-        +----------------+---------------------+------------------+
-        | 0x03           | AUTHORIZATION_TOKEN | Section 9.3.1.1  |
-        +----------------+---------------------+------------------+
-        | 0x04           | RENDEZVOUS_TIMEOUT  | Section 9.3.1.3  |
-        +----------------+---------------------+------------------+
-        | 0x08           | EXPIRES             | Section 9.3.1.7  |
-        +----------------+---------------------+------------------+
-        | 0x09           | LARGEST_OBJECT      | Section 9.3.1.8  |
-        +----------------+---------------------+------------------+
-        | 0x10           | FORWARD             | Section 9.3.1.9  |
-        +----------------+---------------------+------------------+
-        | 0x20           | SUBSCRIBER_PRIORITY | Section 9.3.1.4  |
-        +----------------+---------------------+------------------+
-        | 0x21           | SUBSCRIPTION_FILTER | Section 9.3.1.6  |
-        +----------------+---------------------+------------------+
-        | 0x22           | GROUP_ORDER         | Section 9.3.1.5  |
-        +----------------+---------------------+------------------+
-        | 0x32           | NEW_GROUP_REQUEST   | Section 9.3.1.10 |
-        +----------------+---------------------+------------------+
+        +=================+=======================+===============+
+        |            Code | Name                  | Specification |
+        +=================+=======================+===============+
+        |             0x0 | Reserved              | Section 9.3.2 |
+        +-----------------+-----------------------+---------------+
+        | 0x7f * N + 0x9D | Reserved for greasing | Section 13    |
+        +-----------------+-----------------------+---------------+
 
                                   Table 10
 
-13.3.  Properties
+14.3.  Message Parameters
 
-     +======+===============================+========+===============+
-     | Type | Name                          | Scope  | Specification |
-     +======+===============================+========+===============+
-     | 0x02 | DELIVERY_TIMEOUT              | Track  | Section 11.1  |
-     +------+-------------------------------+--------+---------------+
-     | 0x04 | MAX_CACHE_DURATION            | Track  | Section 11.2  |
-     +------+-------------------------------+--------+---------------+
-     | 0x0B | IMMUTABLE_PROPERTIES          | Track, | Section 11.6  |
-     |      |                               | Object |               |
-     +------+-------------------------------+--------+---------------+
-     | 0x0E | DEFAULT_PUBLISHER_PRIORITY    | Track  | Section 11.3  |
-     +------+-------------------------------+--------+---------------+
-     | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track  | Section 11.4  |
-     +------+-------------------------------+--------+---------------+
-     | 0x30 | DYNAMIC_GROUPS                | Track  | Section 11.5  |
-     +------+-------------------------------+--------+---------------+
-     | 0x3C | PRIOR_GROUP_ID_GAP            | Object | Section 11.7  |
-     +------+-------------------------------+--------+---------------+
-     | 0x3E | PRIOR_OBJECT_ID_GAP           | Object | Section 11.8  |
-     +------+-------------------------------+--------+---------------+
+         +================+=====================+================+
+         | Parameter Type | Parameter Name      | Specification  |
+         +================+=====================+================+
+         | 0x02           | DELIVERY_TIMEOUT    | Section 9.3.3  |
+         +----------------+---------------------+----------------+
+         | 0x03           | AUTHORIZATION_TOKEN | Section 9.3.2  |
+         +----------------+---------------------+----------------+
+         | 0x04           | RENDEZVOUS_TIMEOUT  | Section 9.3.4  |
+         +----------------+---------------------+----------------+
+         | 0x08           | EXPIRES             | Section 9.3.8  |
+         +----------------+---------------------+----------------+
+         | 0x09           | LARGEST_OBJECT      | Section 9.3.9  |
+         +----------------+---------------------+----------------+
+         | 0x10           | FORWARD             | Section 9.3.10 |
+         +----------------+---------------------+----------------+
+         | 0x20           | SUBSCRIBER_PRIORITY | Section 9.3.5  |
+         +----------------+---------------------+----------------+
+         | 0x21           | SUBSCRIPTION_FILTER | Section 9.3.7  |
+         +----------------+---------------------+----------------+
+         | 0x22           | GROUP_ORDER         | Section 9.3.6  |
+         +----------------+---------------------+----------------+
+         | 0x32           | NEW_GROUP_REQUEST   | Section 9.3.11 |
+         +----------------+---------------------+----------------+
 
                                   Table 11
 
-13.4.  Error Codes
+   *  Message Parameters - List which params can be repeated in the
+      table.
 
-13.4.1.  Session Termination Error Codes
+14.4.  Properties
 
-          +=============================+======+===============+
-          | Name                        | Code | Specification |
-          +=============================+======+===============+
-          | NO_ERROR                    | 0x0  | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | INTERNAL_ERROR              | 0x1  | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | UNAUTHORIZED                | 0x2  | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | PROTOCOL_VIOLATION          | 0x3  | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | INVALID_REQUEST_ID          | 0x4  | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | DUPLICATE_TRACK_ALIAS       | 0x5  | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | KEY_VALUE_FORMATTING_ERROR  | 0x6  | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | INVALID_REQUIRED_REQUEST_ID | 0x7  | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | INVALID_PATH                | 0x8  | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | MALFORMED_PATH              | 0x9  | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | GOAWAY_TIMEOUT              | 0x10 | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | CONTROL_MESSAGE_TIMEOUT     | 0x11 | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | DATA_STREAM_TIMEOUT         | 0x12 | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | AUTH_TOKEN_CACHE_OVERFLOW   | 0x13 | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | DUPLICATE_AUTH_TOKEN_ALIAS  | 0x14 | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | VERSION_NEGOTIATION_FAILED  | 0x15 | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | MALFORMED_AUTH_TOKEN        | 0x16 | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | UNKNOWN_AUTH_TOKEN_ALIAS    | 0x17 | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | EXPIRED_AUTH_TOKEN          | 0x18 | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | INVALID_AUTHORITY           | 0x19 | Section 3.4   |
-          +-----------------------------+------+---------------+
-          | MALFORMED_AUTHORITY         | 0x1A | Section 3.4   |
-          +-----------------------------+------+---------------+
+   +==========+===============================+========+===============+
+   |     Type | Name                          | Scope  | Specification |
+   +==========+===============================+========+===============+
+   |     0x02 | DELIVERY_TIMEOUT              | Track  | Section 11.1  |
+   +----------+-------------------------------+--------+---------------+
+   |     0x04 | MAX_CACHE_DURATION            | Track  | Section 11.2  |
+   +----------+-------------------------------+--------+---------------+
+   |     0x0B | IMMUTABLE_PROPERTIES          | Track, | Section 11.6  |
+   |          |                               | Object |               |
+   +----------+-------------------------------+--------+---------------+
+   |     0x0E | DEFAULT_PUBLISHER_PRIORITY    | Track  | Section 11.3  |
+   +----------+-------------------------------+--------+---------------+
+   |     0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track  | Section 11.4  |
+   +----------+-------------------------------+--------+---------------+
+   |     0x30 | DYNAMIC_GROUPS                | Track  | Section 11.5  |
+   +----------+-------------------------------+--------+---------------+
+   |     0x3C | PRIOR_GROUP_ID_GAP            | Object | Section 11.7  |
+   +----------+-------------------------------+--------+---------------+
+   |     0x3E | PRIOR_OBJECT_ID_GAP           | Object | Section 11.8  |
+   +----------+-------------------------------+--------+---------------+
+   |     0x7f | Reserved for greasing         | Any    | Section 13    |
+   |    * N + |                               |        |               |
+   |     0x9D |                               |        |               |
+   +----------+-------------------------------+--------+---------------+
 
-                                 Table 12
+                                  Table 12
 
-13.4.2.  REQUEST_ERROR Codes
+   Endpoints MUST ignore unknown Property types, skipping them using the
+   length field.
 
-           +============================+======+===============+
-           | Name                       | Code | Specification |
-           +============================+======+===============+
-           | INTERNAL_ERROR             | 0x0  | Section 9.7   |
-           +----------------------------+------+---------------+
-           | UNAUTHORIZED               | 0x1  | Section 9.7   |
-           +----------------------------+------+---------------+
-           | TIMEOUT                    | 0x2  | Section 9.7   |
-           +----------------------------+------+---------------+
-           | NOT_SUPPORTED              | 0x3  | Section 9.7   |
-           +----------------------------+------+---------------+
-           | MALFORMED_AUTH_TOKEN       | 0x4  | Section 9.7   |
-           +----------------------------+------+---------------+
-           | EXPIRED_AUTH_TOKEN         | 0x5  | Section 9.7   |
-           +----------------------------+------+---------------+
-           | GOING_AWAY                 | 0x6  | Section 9.7   |
-           +----------------------------+------+---------------+
-           | EXCESSIVE_LOAD             | 0x9  | Section 9.7   |
-           +----------------------------+------+---------------+
-           | DOES_NOT_EXIST             | 0x10 | Section 9.7   |
-           +----------------------------+------+---------------+
-           | INVALID_RANGE              | 0x11 | Section 9.7   |
-           +----------------------------+------+---------------+
-           | MALFORMED_TRACK            | 0x12 | Section 9.7   |
-           +----------------------------+------+---------------+
-           | DUPLICATE_SUBSCRIPTION     | 0x19 | Section 9.7   |
-           +----------------------------+------+---------------+
-           | UNINTERESTED               | 0x20 | Section 9.7   |
-           +----------------------------+------+---------------+
-           | PREFIX_OVERLAP             | 0x30 | Section 9.7   |
-           +----------------------------+------+---------------+
-           | INVALID_JOINING_REQUEST_ID | 0x32 | Section 9.7   |
-           +----------------------------+------+---------------+
+   *  MOQ Properties - we wish to define the following registration
+      policies:
+
+      -  0x00 to 0x37: Standards Action or IESG Approval (1-byte
+         encoding)
+
+      -  0x38 to 0x3F: Reserved for application-specific use (1-byte
+         encoding, no registration permitted)
+
+      -  0x40 to 0x37FF: Specification Required (2-byte encoding)
+
+      -  0x3800 to 0x3FFF: Reserved for application-specific use (2-byte
+         encoding, no registration permitted)
+
+      -  0x4000 and above: First Come First Served
+
+      Code points reserved for application-specific use will never be
+      allocated by IANA.  Applications using these values do not need to
+      coordinate with IANA.  Note that applications consuming tracks
+      from uncoordinated sources may encounter different semantics for
+      the same code points, creating potential collision risks.
+
+14.5.  Error Codes
+
+14.5.1.  Session Termination Error Codes
+
+     +=============================+=================+===============+
+     | Name                        |       Code      | Specification |
+     +=============================+=================+===============+
+     | NO_ERROR                    |       0x0       | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | INTERNAL_ERROR              |       0x1       | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | UNAUTHORIZED                |       0x2       | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | PROTOCOL_VIOLATION          |       0x3       | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_REQUEST_ID          |       0x4       | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | DUPLICATE_TRACK_ALIAS       |       0x5       | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | KEY_VALUE_FORMATTING_ERROR  |       0x6       | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_REQUIRED_REQUEST_ID |       0x7       | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_PATH                |       0x8       | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | MALFORMED_PATH              |       0x9       | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | GOAWAY_TIMEOUT              |       0x10      | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | CONTROL_MESSAGE_TIMEOUT     |       0x11      | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | DATA_STREAM_TIMEOUT         |       0x12      | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | AUTH_TOKEN_CACHE_OVERFLOW   |       0x13      | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | DUPLICATE_AUTH_TOKEN_ALIAS  |       0x14      | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | VERSION_NEGOTIATION_FAILED  |       0x15      | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | MALFORMED_AUTH_TOKEN        |       0x16      | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | UNKNOWN_AUTH_TOKEN_ALIAS    |       0x17      | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | EXPIRED_AUTH_TOKEN          |       0x18      | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_AUTHORITY           |       0x19      | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | MALFORMED_AUTHORITY         |       0x1A      | Section 3.4   |
+     +-----------------------------+-----------------+---------------+
+     | Reserved for greasing       | 0x7f * N + 0x9D | Section 13    |
+     +-----------------------------+-----------------+---------------+
 
                                   Table 13
 
-13.4.3.  PUBLISH_DONE Codes
+14.5.2.  REQUEST_ERROR Codes
 
-               +====================+======+===============+
-               | Name               | Code | Specification |
-               +====================+======+===============+
-               | INTERNAL_ERROR     | 0x0  | Section 9.13  |
-               +--------------------+------+---------------+
-               | UNAUTHORIZED       | 0x1  | Section 9.13  |
-               +--------------------+------+---------------+
-               | TRACK_ENDED        | 0x2  | Section 9.13  |
-               +--------------------+------+---------------+
-               | SUBSCRIPTION_ENDED | 0x3  | Section 9.13  |
-               +--------------------+------+---------------+
-               | GOING_AWAY         | 0x4  | Section 9.13  |
-               +--------------------+------+---------------+
-               | EXPIRED            | 0x5  | Section 9.13  |
-               +--------------------+------+---------------+
-               | TOO_FAR_BEHIND     | 0x6  | Section 9.13  |
-               +--------------------+------+---------------+
-               | UPDATE_FAILED      | 0x8  | Section 9.13  |
-               +--------------------+------+---------------+
-               | EXCESSIVE_LOAD     | 0x9  | Section 9.13  |
-               +--------------------+------+---------------+
-               | MALFORMED_TRACK    | 0x12 | Section 9.13  |
-               +--------------------+------+---------------+
+     +============================+=================+===============+
+     | Name                       |       Code      | Specification |
+     +============================+=================+===============+
+     | INTERNAL_ERROR             |       0x0       | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | UNAUTHORIZED               |       0x1       | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | TIMEOUT                    |       0x2       | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | NOT_SUPPORTED              |       0x3       | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | MALFORMED_AUTH_TOKEN       |       0x4       | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | EXPIRED_AUTH_TOKEN         |       0x5       | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | GOING_AWAY                 |       0x6       | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | EXCESSIVE_LOAD             |       0x9       | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | DOES_NOT_EXIST             |       0x10      | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | INVALID_RANGE              |       0x11      | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | MALFORMED_TRACK            |       0x12      | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | DUPLICATE_SUBSCRIPTION     |       0x19      | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | UNINTERESTED               |       0x20      | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | PREFIX_OVERLAP             |       0x30      | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | NAMESPACE_TOO_LARGE        |       0x31      | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | INVALID_JOINING_REQUEST_ID |       0x32      | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | Reserved for greasing      | 0x7f * N + 0x9D | Section 13    |
+     +----------------------------+-----------------+---------------+
 
-                                  Table 14
+                                 Table 14
 
-13.4.4.  Data Stream Reset Error Codes
+14.5.3.  PUBLISH_DONE Codes
 
-             +=======================+======+================+
-             | Name                  | Code | Specification  |
-             +=======================+======+================+
-             | INTERNAL_ERROR        | 0x0  | Section 10.4.3 |
-             +-----------------------+------+----------------+
-             | CANCELLED             | 0x1  | Section 10.4.3 |
-             +-----------------------+------+----------------+
-             | DELIVERY_TIMEOUT      | 0x2  | Section 10.4.3 |
-             +-----------------------+------+----------------+
-             | SESSION_CLOSED        | 0x3  | Section 10.4.3 |
-             +-----------------------+------+----------------+
-             | UNKNOWN_OBJECT_STATUS | 0x4  | Section 10.4.3 |
-             +-----------------------+------+----------------+
-             | TOO_FAR_BEHIND        | 0x5  | Section 10.4.3 |
-             +-----------------------+------+----------------+
-             | EXCESSIVE_LOAD        | 0x9  | Section 10.4.3 |
-             +-----------------------+------+----------------+
-             | MALFORMED_TRACK       | 0x12 | Section 10.4.3 |
-             +-----------------------+------+----------------+
+        +=======================+=================+===============+
+        | Name                  |       Code      | Specification |
+        +=======================+=================+===============+
+        | INTERNAL_ERROR        |       0x0       | Section 9.13  |
+        +-----------------------+-----------------+---------------+
+        | UNAUTHORIZED          |       0x1       | Section 9.13  |
+        +-----------------------+-----------------+---------------+
+        | TRACK_ENDED           |       0x2       | Section 9.13  |
+        +-----------------------+-----------------+---------------+
+        | SUBSCRIPTION_ENDED    |       0x3       | Section 9.13  |
+        +-----------------------+-----------------+---------------+
+        | GOING_AWAY            |       0x4       | Section 9.13  |
+        +-----------------------+-----------------+---------------+
+        | EXPIRED               |       0x5       | Section 9.13  |
+        +-----------------------+-----------------+---------------+
+        | TOO_FAR_BEHIND        |       0x6       | Section 9.13  |
+        +-----------------------+-----------------+---------------+
+        | UPDATE_FAILED         |       0x8       | Section 9.13  |
+        +-----------------------+-----------------+---------------+
+        | EXCESSIVE_LOAD        |       0x9       | Section 9.13  |
+        +-----------------------+-----------------+---------------+
+        | MALFORMED_TRACK       |       0x12      | Section 9.13  |
+        +-----------------------+-----------------+---------------+
+        | Reserved for greasing | 0x7f * N + 0x9D | Section 13    |
+        +-----------------------+-----------------+---------------+
 
                                   Table 15
+
+14.5.4.  Data Stream Reset Error Codes
+
+       +=======================+=================+================+
+       | Name                  |       Code      | Specification  |
+       +=======================+=================+================+
+       | INTERNAL_ERROR        |       0x0       | Section 10.4.3 |
+       +-----------------------+-----------------+----------------+
+       | CANCELLED             |       0x1       | Section 10.4.3 |
+       +-----------------------+-----------------+----------------+
+       | DELIVERY_TIMEOUT      |       0x2       | Section 10.4.3 |
+       +-----------------------+-----------------+----------------+
+       | SESSION_CLOSED        |       0x3       | Section 10.4.3 |
+       +-----------------------+-----------------+----------------+
+       | UNKNOWN_OBJECT_STATUS |       0x4       | Section 10.4.3 |
+       +-----------------------+-----------------+----------------+
+       | TOO_FAR_BEHIND        |       0x5       | Section 10.4.3 |
+       +-----------------------+-----------------+----------------+
+       | EXCESSIVE_LOAD        |       0x9       | Section 10.4.3 |
+       +-----------------------+-----------------+----------------+
+       | MALFORMED_TRACK       |       0x12      | Section 10.4.3 |
+       +-----------------------+-----------------+----------------+
+       | Reserved for greasing | 0x7f * N + 0x9D | Section 13     |
+       +-----------------------+-----------------+----------------+
+
+                                 Table 16
 
 Contributors
 
@@ -4820,6 +5044,10 @@ Informative References
               Multiplexed and Secure Transport", RFC 9000,
               DOI 10.17487/RFC9000, May 2021,
               <https://www.rfc-editor.org/rfc/rfc9000>.
+
+   [RFC9170]  Thomson, M. and T. Pauly, "Long-Term Viability of Protocol
+              Extension Mechanisms", RFC 9170, DOI 10.17487/RFC9170,
+              December 2021, <https://www.rfc-editor.org/rfc/rfc9170>.
 
    [RFC9438]  Xu, L., Ha, S., Rhee, I., Goel, V., and L. Eggert, Ed.,
               "CUBIC for Fast and Long-Distance Networks", RFC 9438,
