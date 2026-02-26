@@ -728,6 +728,22 @@ Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
 Property types are registered in the IANA table 'MOQ Properties'.
 See {{iana}}.
 
+Certain Property type ranges are reserved for application-specific
+use and will never be allocated by IANA in future MOQT specifications:
+
+* 0x38 to 0x3F (1-byte encoding): 8 code points for applications with
+  tight space constraints
+* 0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including grease
+  {{grease})) for applications with moderate space constraints
+
+Applications MAY use code points in these ranges without registration for
+format-specific metadata or other application-defined purposes. Relays that
+do not understand the application format MUST forward these properties
+unchanged but MUST NOT attempt to interpret their semantic meaning. Different
+applications using the same code point in these ranges may assign different
+meanings; the interpretation depends on the track or application
+context known to the publisher and subscriber.
+
 # Sessions {#session}
 
 ## Session establishment {#session-establishment}
@@ -3963,6 +3979,9 @@ SUBGROUP_HEADER {
 The following Properties are defined in MOQT. Each Property
 specifies whether it can be used with Tracks, Objects, or both.
 
+Property types in ranges reserved for application-specific use
+(0x38-0x3F, 0x3800-0x3FFF) are not defined by MOQT.
+See {{properties}} for usage guidance.
 
 ## DELIVERY TIMEOUT {#delivery-timeout-ext}
 
@@ -4288,14 +4307,7 @@ TODO: fill out currently missing registries:
 
 * MOQT ALPN values
 * Setup Options
-* Message Parameters - List which params can be repeated in the table.
 * Message types
-* MOQ Properties - we wish to reserve extension types 0-63 for
-  standards utilization where space is a premium, 64 - 16383 for
-  standards utilization where space is less of a concern, and 16384 and
-  above for first-come-first-served non-standardization usage.
-  List which Properties can be repeated in the table.
-* MOQT Auth Token Type
 
 TODO: register the URI scheme and the ALPN
 
@@ -4330,6 +4342,8 @@ TODO: register the URI scheme and the ALPN
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 
+* Message Parameters - List which params can be repeated in the table.
+
 ## Properties {#iana-properties}
 
 | Type | Name | Scope | Specification |
@@ -4346,6 +4360,21 @@ TODO: register the URI scheme and the ALPN
 
 Endpoints MUST ignore unknown Property types, skipping them using
 the length field.
+
+* MOQ Properties - we wish to define the following registration policies:
+  - 0x00 to 0x37: Standards Action or IESG Approval (1-byte encoding)
+  - 0x38 to 0x3F: Reserved for application-specific use (1-byte encoding,
+    no registration permitted)
+  - 0x40 to 0x37FF: Specification Required (2-byte encoding)
+  - 0x3800 to 0x3FFF: Reserved for application-specific use (2-byte encoding,
+    no registration permitted)
+  - 0x4000 and above: First Come First Served
+
+  Code points reserved for application-specific use will never be allocated
+  by IANA. Applications using these values do not need to coordinate with
+  IANA.  Note that applications consuming tracks from uncoordinated sources may
+  encounter different semantics for the same code points, creating potential
+  collision risks.
 
 ## Error Codes {#iana-error-codes}
 
