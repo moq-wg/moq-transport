@@ -652,37 +652,40 @@ Namespace Fields or Track Name such that exact comparison works.
 
 There are multiple ways a publisher can transmit a Track that does not conform
 to MOQT constraints. Such a Track is considered malformed.  Some example
-conditions that constitute a malformed track when detected by a receiver
+conditions that constitute a malformed track when detected by a subscriber
 include:
 
-1. An Object is received in a FETCH response with the same Group ID as the
-   previous Object, but whose Object ID is not strictly larger than the previous
-   object.
-2.  In a FETCH response, an Object with a particular Subgroup ID is received, but its
-     Publisher Priority is different from that of the previous Object with the same
-     Subgroup ID.
-3. An Object is received in an Ascending FETCH response whose Group ID is smaller
-   than the previous Object in the response.
-4. An Object is received in a Descending FETCH response whose Group ID is larger
-   than the previous Object in the response.
-5. An Object is received whose Object ID is larger than the final Object in the
+1. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-6. A Subgroup is received over multiple transport streams terminated by FIN with
+2. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-7. An Object is received in a Group whose Object ID is larger than the final
+3. An Object is received whose Object ID is larger than the final
    Object in the Group.  The final Object in a Group is the Object with Status
    END_OF_GROUP, the last Object before a FIN in a Subgroup which has the
    END_OF_GROUP bit set, or the last Object sent in a FETCH that requested the
    entire Group.
-8. An Object is received on a Track whose Group and Object ID are larger than the
+4. An Object is received on a Track whose Group and Object ID are larger than the
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
    End of Track.
-9. The same Object is received more than once with different Payload or
+5. The same Object is received more than once with different Payload or
     other immutable properties.
-10. An Object is received with a different Forwarding Preference than previously
+6. An Object is received with a different Forwarding Preference than previously
     observed.
+
+Additionally, a FETCH response is considered malformed if:
+
+1. An Object is received in a FETCH response with the same Group ID as the
+   previous Object, but whose Object ID is not strictly larger than the previous
+   object.
+2. An Object with a particular Subgroup ID is received, but its
+   Publisher Priority is different from that of the previous Object with the same
+   Subgroup ID.
+3. An Object is received in an Ascending FETCH response whose Group ID is smaller
+   than the previous Object in the response.
+4. An Object is received in a Descending FETCH response whose Group ID is larger
+   than the previous Object in the resopnse.
 
 The above list of conditions is not considered exhaustive.
 
