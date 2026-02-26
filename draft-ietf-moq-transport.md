@@ -1829,7 +1829,7 @@ making a request.
 All Message Parameters MUST be defined in the negotiated version of MOQT or
 negotiated via Setup Options. An endpoint that receives an unknown Message
 Parameter MUST close the session with `PROTOCOL_VIOLATION`. Because the receiver
-must understand every Message Parameter, there is no need for a mechanism to
+has to understand every Message Parameter, there is no need for a mechanism to
 skip unknown parameters.
 
 The Message Parameter types defined in this version of MOQT are listed below.
@@ -1866,7 +1866,7 @@ Message Parameters to appear in Setup messages.
 
 ### AUTHORIZATION TOKEN Parameter {#authorization-token}
 
-The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) uses length-prefixed
+The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) uses Length-prefixed
 encoding. It MAY appear in a PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
 SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
 parameter conveys information to authorize the sender to perform the operation
@@ -2075,7 +2075,7 @@ the value 128.
 The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8. It MAY appear in a
 SUBSCRIBE, PUBLISH_OK, or FETCH.
 
-It is an enum indicating how to prioritize Objects from different groups within
+Its value indicates how to prioritize Objects from different groups within
 the same subscription (see {{priorities}}), or how to order Groups in a Fetch
 response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
 Descending (0x2). If an endpoint receives a value outside this range, it MUST
