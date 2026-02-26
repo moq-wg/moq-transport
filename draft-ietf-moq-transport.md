@@ -1395,10 +1395,10 @@ A PUBLISH_NAMESPACE is withdrawn by cancelling the request
 the subscriber to send a SUBSCRIBE or FETCH message for a track in a
 namespace after the namespace is withdrawn.
 
-A subscriber can cancel the request (see {{request-cancellation}}) to revoke acceptance of a
-PUBLISH_NAMESPACE. If the reason for cancellation is expiration of
-authorization credentials, the publisher can send PUBLISH_NAMESPACE again
-on a new bidi stream with refreshed authorization, or close the stream and 
+A subscriber can cancel the request (see {{request-cancellation}}) to revoke
+acceptance of a PUBLISH_NAMESPACE. If the reason for cancellation is expiration
+of authorization credentials, the publisher can send PUBLISH_NAMESPACE again
+on a new bidi stream with refreshed authorization, or close the stream and
 discard associated state.
 
 While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
