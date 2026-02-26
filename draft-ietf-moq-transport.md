@@ -1802,22 +1802,51 @@ sequence or exceeds the received MAX_REQUEST_ID, it MUST close the session with
 ## Message Parameters {#message-params}
 
 Some control messages include a field that encodes optional Message Parameters.
+Message Parameters are serialized as follows:
+
+~~~
+Message Parameter {
+  Type Delta (vi64),
+  Value (..)
+}
+~~~
+{: #moq-message-param format title="Message Parameter"}
+
+Type Delta: The difference between this Parameter Type and the previous
+   Parameter Type in the message, or the Parameter Type itself for the first
+   parameter. Parameters MUST be serialized in ascending order by Type.
+
+* Value: The encoding is specified by each parameter definition.
+The encodings defined in this draft are:
+  * uint8: A single-byte unsigned integer (0-255)
+  * varint: A variable-length integer
+  * Location: Two consecutive varints (Group, Object)
+  * Length-prefixed: A varint length followed by that many bytes
+
+Message Parameters are only intended for the peer only and are not
+forwarded by Relays, though relays can consider received parameter values when
+making a request.
+
 All Message Parameters MUST be defined in the negotiated version of MOQT or
 negotiated via Setup Options. An endpoint that receives an unknown Message
-Parameter MUST close the session with `PROTOCOL_VIOLATION`.
+Parameter MUST close the session with `PROTOCOL_VIOLATION`. Because the receiver
+has to understand every Message Parameter, there is no need for a mechanism to
+skip unknown parameters.
+
+The Message Parameter types defined in this version of MOQT are listed below.
 
 Senders MUST NOT repeat the same Parameter Type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers SHOULD check that there are no
-unexpected duplicate parameters and close the session as a
-`PROTOCOL_VIOLATION` if found.
+unexpected duplicate parameters and close the session with `PROTOCOL_VIOLATION`
+if found.
 
-The number of parameters in a message is not specifically limited, but the
-total length of a control message is limited to 2^16-1 bytes.
+The number of Message Parameters is not specifically limited, but the total
+length of a control message is limited to 2^16-1 bytes.
 
-Message Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
-The Message Parameter types defined in this version of MOQT are listed in
-this section.
+Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
+publisher to alter the payload of the objects it sends, as that would violate
+the track uniqueness guarantee described in {{track-scope}}.
 
 Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
 to alter the payload of the objects it sends, as that would violate the track
@@ -1836,12 +1865,13 @@ endpoint MUST close the connection with a `PROTOCOL_VIOLATION`.
 Note that since Setup Options use a separate namespace, it is impossible for
 Message Parameters to appear in Setup messages.
 
-#### AUTHORIZATION TOKEN Parameter {#authorization-token}
+### AUTHORIZATION TOKEN Parameter {#authorization-token}
 
-The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
-PUBLISH, SUBSCRIBE, REQUEST_UPDATE, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
-TRACK_STATUS or FETCH message. This parameter conveys information to authorize
-the sender to perform the operation carrying the parameter.
+The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) uses Length-prefixed
+encoding. It MAY appear in a PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
+SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
+parameter conveys information to authorize the sender to perform the operation
+carrying the parameter.
 
 The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
@@ -1960,10 +1990,10 @@ REGISTER without waiting for a response.
 Senders MUST NOT send DELETE for an alias while any message using USE_ALIAS with
 that alias has not received a response.
 
-#### DELIVERY TIMEOUT Parameter {#delivery-timeout}
+### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
-The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
+The DELIVERY TIMEOUT parameter (Parameter Type 0x02) is a varint. It MAY appear
+in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
 
 It is the duration in milliseconds the relay SHOULD continue to attempt
 forwarding Objects after they have been received.  The start time for the timeout
@@ -2004,7 +2034,7 @@ successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
 any other relevant information.
 
-#### RENDEZVOUS TIMEOUT Parameter {#rendezvous-timeout}
+### RENDEZVOUS TIMEOUT Parameter {#rendezvous-timeout}
 
 The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) MAY appear in a
 SUBSCRIBE message.
@@ -2030,28 +2060,24 @@ code DOES_NOT_EXIST if no publisher is available
 
 If RENDEZVOUS_TIMEOUT is absent, the default is 0.
 
-#### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
+### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
-The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) MAY appear in a
-SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
-PUBLISH_OK message. It is an
-integer expressing the priority of a subscription relative to other
-subscriptions and fetch responses in the same session. Lower numbers get higher
-priority.  See {{priorities}}.  The range is restricted to 0-255.  If a
-publisher receives a value outside this range, it MUST close the session with
-`PROTOCOL_VIOLATION`.
+The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It MAY
+appear in a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
+or PUBLISH_OK message. It is an integer expressing the priority of a
+subscription relative to other subscriptions and fetch responses in the same
+session. Lower numbers get higher priority. See {{priorities}}.
 
 If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
 the value 128.
 
-#### GROUP ORDER Parameter {#group-order}
+### GROUP ORDER Parameter {#group-order}
 
-The GROUP_ORDER parameter (Parameter Type 0x22) MAY appear in a SUBSCRIBE,
-PUBLISH_OK, or FETCH.
+The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8. It MAY appear in a
+SUBSCRIBE, PUBLISH_OK, or FETCH.
 
-It
-is an enum indicating how to prioritize Objects from different groups within the
-same subscription (see {{priorities}}), or how to order Groups in a Fetch
+Its value indicates how to prioritize Objects from different groups within
+the same subscription (see {{priorities}}), or how to order Groups in a Fetch
 response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
 Descending (0x2). If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
@@ -2059,22 +2085,20 @@ close the session with `PROTOCOL_VIOLATION`.
 If omitted from SUBSCRIBE, the publisher's preference from
 the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 
-#### SUBSCRIPTION FILTER Parameter {#subscription-filter}
+### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
-The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) MAY appear in a
-SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a subscription) message. It is a
-length-prefixed Subscription Filter (see {{subscription-filters}}).  If the
-length of the Subscription Filter does not match the parameter length, the
-publisher MUST close the session with `PROTOCOL_VIOLATION`.
+The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
+encoding. It MAY appear in a SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a
+subscription) message. It is a Subscription Filter (see {{subscription-filters}}).
 
 If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
-#### EXPIRES Parameter {#expires}
+### EXPIRES Parameter {#expires}
 
-The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK, PUBLISH,
-PUBLISH_OK, or REQUEST_OK. It is a variable length integer encoding
-the time in milliseconds after which the sender of the parameter will terminate
+The EXPIRES parameter (Parameter Type 0x8) is a varint. It MAY appear in
+SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK. It encodes the time
+in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
 can terminate the subscription prior to or after the expiry time.
@@ -2090,35 +2114,34 @@ simultaneously.
 If the EXPIRES parameter is 0 or is not present in a message, the subscription
 does not expire or expires at an unknown time.
 
-#### LARGEST OBJECT Parameter {#largest-param}
+### LARGEST OBJECT Parameter {#largest-param}
 
-The LARGEST_OBJECT parameter (Parameter Type 0x9) MAY appear in SUBSCRIBE_OK,
-PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE or TRACK_STATUS).  It is a
-length-prefixed Location structure (see {{location-structure}}) containing the
-largest Location in the Track observed by the sending endpoint (see
-{{subscription-filters}}.  If Objects have been published on this Track the
-Publisher MUST include this parameter.
+The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
+in SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE or
+TRACK_STATUS). It contains the largest Location (see {{location-structure}}) in the
+Track observed by the sending endpoint (see {{subscription-filters}}). If Objects
+have been published on this Track the Publisher MUST include this parameter.
 
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
 
-#### FORWARD Parameter
+### FORWARD Parameter
 
-The FORWARD parameter (Parameter Type 0x10) MAY appear in SUBSCRIBE,
-REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
-SUBSCRIBE_NAMESPACE.  It is a variable length integer specifying the
-Forwarding State on affected subscriptions (see {{subscriptions}}).  The
-allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives a
-value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
+The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
+SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
+SUBSCRIBE_NAMESPACE. It specifies the Forwarding State on affected subscriptions
+(see {{subscriptions}}). The allowed values are 0 (don't forward) or 1 (forward).
+If an endpoint receives a value outside this range, it MUST close the session
+with `PROTOCOL_VIOLATION`.
 
 If the parameter is omitted from REQUEST_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
 message, the default value is 1.
 
-#### NEW GROUP REQUEST Parameter {#new-group-request}
+### NEW GROUP REQUEST Parameter {#new-group-request}
 
-The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) MAY appear in PUBLISH_OK,
-SUBSCRIBE or REQUEST_UPDATE for a subscription.  It is an integer representing the largest Group
+The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint. It MAY appear
+in PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
 this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
@@ -2162,7 +2185,6 @@ configuration before any control messages are exchanged. The messages contain
 a sequence of key-value pairs called Setup Options; the semantics and format
 of which can vary based on whether the client or server is sending.  To ensure
 future extensibility of MOQT, endpoints MUST ignore unknown Setup Options.
-TODO: describe GREASE for Setup Options.
 
 The wire format of the Setup messages are as follows:
 
@@ -2494,6 +2516,10 @@ Errors below can only be used in response to one message type.
 PREFIX_OVERLAP:
 : In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
 SUBSCRIBE_NAMESPACE in the same session.
+
+NAMESPACE_TOO_LARGE:
+: In response to SUBSCRIBE_NAMESPACE, the namespace prefix matches more
+publishers than the relay is willing to enumerate.
 
 INVALID_JOINING_REQUEST_ID:
 : In response to a Joining FETCH, the referenced Request ID is not an
@@ -3293,6 +3319,12 @@ set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
 corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
 corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
+
+If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
+timely manner because the SUBSCRIBE_NAMESPACE response stream is blocked by flow
+control, the publisher MAY reset the SUBSCRIBE_NAMESPACE response stream.  When
+a subscriber receives a stream reset on a SUBSCRIBE_NAMESPACE response stream, it
+SHOULD treat this as though each active namespace received a NAMESPACE_DONE.
 
 ## PUBLISH_BLOCKED {#message-publish-blocked}
 
@@ -4224,6 +4256,32 @@ Operators should be aware that detailed implementation identification
 facilitates the same privacy concerns as persistent identifiers, since it
 enables correlation of sessions across time.
 
+# Grease {#grease}
+
+To ensure that implementations correctly handle unknown values and do not
+fail when encountering protocol extensions they do not understand, this document
+reserves a range of values for the purpose of greasing; see {{Section 3.3 of ?RFC9170}}.
+
+Grease values follow the pattern `0x7f * N + 0x9D` for non-negative
+integer values of N (that is, 0x9D, 0xBC, ..., 0x3ffffffffffffffe).
+
+The following registries include GREASE reservations:
+
+- Setup Options ({{setup-options}})
+- Properties ({{iana-properties}})
+- Session Termination Error Codes ({{iana-session-termination}})
+- REQUEST_ERROR Codes ({{iana-request-error}})
+- PUBLISH_DONE Codes ({{iana-publish-done}})
+- Data Stream Reset Error Codes ({{iana-reset-stream}})
+- MOQT Auth Token Type
+
+Implementations MUST handle unknown values from these registries gracefully
+according to the rules defined in each section.
+
+Setup Options with reserved identifiers have no semantics and can carry
+arbitrary values. Endpoints MUST ignore unknown Setup Options as specified
+in {{message-setup}}.
+
 # IANA Considerations {#iana}
 
 TODO: fill out currently missing registries:
@@ -4239,7 +4297,7 @@ TODO: fill out currently missing registries:
   List which Properties can be repeated in the table.
 * MOQT Auth Token Type
 
-TODO: register the URI scheme and the ALPN and grease the Extension types
+TODO: register the URI scheme and the ALPN
 
 ## Authorization Token Alias Type
 
@@ -4249,6 +4307,13 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x1  | REGISTER   | {{authorization-token}}
 | 0x2  | USE_ALIAS  | {{authorization-token}}
 | 0x3  | USE_VALUE  | {{authorization-token}}
+
+## MOQT Auth Token Type {#iana-auth-token-type}
+
+| Code | Name       | Specification |
+|-----:|:-----------|:--------------|
+| 0x0  | Reserved   | {{authorization-token}} |
+| 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 ## Message Parameters
 
@@ -4277,6 +4342,10 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
 | 0x3C | PRIOR_GROUP_ID_GAP | Object | {{prior-group-id-gap}} |
 | 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
+| 0x7f * N + 0x9D | Reserved for greasing | Any | {{grease}} |
+
+Endpoints MUST ignore unknown Property types, skipping them using
+the length field.
 
 ## Error Codes {#iana-error-codes}
 
@@ -4305,6 +4374,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
 | INVALID_AUTHORITY          | 0x19 | {{session-termination}} |
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination}} |
+| Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### REQUEST_ERROR Codes {#iana-request-error}
 
@@ -4324,7 +4394,9 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | DUPLICATE_SUBSCRIPTION     | 0x19 | {{message-request-error}} |
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
+| NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
@@ -4340,6 +4412,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
 | EXCESSIVE_LOAD     | 0x9  | {{message-publish-done}} |
 | MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
+| Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
 
@@ -4353,6 +4426,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | TOO_FAR_BEHIND        | 0x5  | {{closing-subgroup-streams}} |
 | EXCESSIVE_LOAD        | 0x9  | {{closing-subgroup-streams}} |
 | MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
+| Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
 # Contributors
 {:numbered="false"}
