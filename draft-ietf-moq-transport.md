@@ -879,7 +879,7 @@ with a message other than CLIENT_SETUP could arrive prior to the control stream,
 in which case the stream data SHOULD be buffered until the control stream arrives
 and setup is complete. If an implementation does not want to buffer or if
 the message type is not supported, it MAY reset such bidirectional streams
-before the session and control stream are established.
+before the session and control streams are established.
 
 The control stream MUST NOT be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
