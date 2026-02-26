@@ -1817,7 +1817,7 @@ Type Delta: The difference between this Parameter Type and the previous
    parameter. Parameters MUST be serialized in ascending order by Type.
 
 * Value: The encoding is specified by each parameter definition.
-The parameters defined in this draft are:
+The encodings defined in this draft are:
   * uint8: A single-byte unsigned integer (0-255)
   * varint: A variable-length integer
   * Location: Two consecutive varints (Group, Object)
