@@ -728,7 +728,7 @@ Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
 Property types are registered in the IANA table 'MOQ Properties'.
 See {{iana}}.
 
-Certain Extension Header type ranges are reserved for application-specific
+Certain Property type ranges are reserved for application-specific
 use and will never be allocated by IANA or future MOQT specifications:
 
 * 0x38 to 0x3F (1-byte encoding): 8 code points for applications with
@@ -738,7 +738,7 @@ use and will never be allocated by IANA or future MOQT specifications:
 
 Applications MAY use code points in these ranges without registration for
 format-specific metadata or other application-defined purposes. Relays that
-do not understand the application format MUST forward these extensions
+do not understand the application format MUST forward these properties
 unchanged but MUST NOT attempt to interpret their semantic meaning. Different
 applications using the same code point in these ranges may assign different
 meanings; the interpretation depends on the track or application
@@ -3936,9 +3936,9 @@ SUBGROUP_HEADER {
 The following Properties are defined in MOQT. Each Property
 specifies whether it can be used with Tracks, Objects, or both.
 
-Extension Header types in ranges reserved for application-specific use
+Property types in ranges reserved for application-specific use
 (0x38-0x3F, 0x3800-0x3FFF) are not defined by MOQT.
-See {{extension-headers}} for usage guidance.
+See {{properties}} for usage guidance.
 
 ## DELIVERY TIMEOUT {#delivery-timeout-ext}
 
