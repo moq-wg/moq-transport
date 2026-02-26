@@ -1303,8 +1303,9 @@ FETCH.
 A subscriber keeps FETCH state until it cancels the request
 ((see {{request-cancellation}})), receives REQUEST_ERROR, or receives a FIN or
 RESET_STREAM for the FETCH data stream. If the data stream is already open,
-the subscriber MAY send STOP_SENDING for the data stream in addition to
-STOP_SENDING on the bidi stream, but MUST send STOP_SENDING for the bidi stream.
+the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
+data stream as well as the the bidi request stream. It MUST send STOP_SENDING
+for the bidi request stream.
 
 The Publisher can destroy fetch state as soon as it has received a
 STOP_SENDING. It MUST reset any open streams associated with the FETCH. It can
