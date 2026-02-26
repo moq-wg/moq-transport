@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 28 August 2026                                    I. Swett, Ed.
+Expires: 30 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        24 February 2026
+                                                        26 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 August 2026.
+   This Internet-Draft will expire on 30 August 2026.
 
 Copyright Notice
 
@@ -2075,7 +2075,7 @@ Table of Contents
    All Message Parameters MUST be defined in the negotiated version of
    MOQT or negotiated via Setup Options.  An endpoint that receives an
    unknown Message Parameter MUST close the session with
-   PROTOCOL_VIOLATION.  Because the receiver must understand every
+   PROTOCOL_VIOLATION.  Because the receiver has to understand every
    Message Parameter, there is no need for a mechanism to skip unknown
    parameters.
 
@@ -2118,7 +2118,7 @@ Table of Contents
 
 9.2.2.  AUTHORIZATION TOKEN Parameter
 
-   The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) uses length-
+   The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) uses Length-
    prefixed encoding.  It MAY appear in a PUBLISH, SUBSCRIBE,
    REQUEST_UPDATE, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS
    or FETCH message.  This parameter conveys information to authorize
@@ -2339,11 +2339,11 @@ Table of Contents
    The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8.  It MAY
    appear in a SUBSCRIBE, PUBLISH_OK, or FETCH.
 
-   It is an enum indicating how to prioritize Objects from different
-   groups within the same subscription (see Section 7), or how to order
-   Groups in a Fetch response (see Section 9.16.3).  The allowed values
-   are Ascending (0x1) or Descending (0x2).  If an endpoint receives a
-   value outside this range, it MUST close the session with
+   Its value indicates how to prioritize Objects from different groups
+   within the same subscription (see Section 7), or how to order Groups
+   in a Fetch response (see Section 9.16.3).  The allowed values are
+   Ascending (0x1) or Descending (0x2).  If an endpoint receives a value
+   outside this range, it MUST close the session with
    PROTOCOL_VIOLATION.
 
    If omitted from SUBSCRIBE, the publisher's preference from the Track
