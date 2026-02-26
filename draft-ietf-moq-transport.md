@@ -4189,8 +4189,8 @@ To ensure that implementations correctly handle unknown values and do not
 fail when encountering extensions they do not understand, this document
 reserves a range of values for the purpose of greasing; see {{Section 3.3 of ?RFC9170}}.
 
-Grease values follow the pattern `0x1f * N + 0x21` for non-negative
-integer values of N (that is, 0x21, 0x40, ..., 0x3ffffffffffffffe).
+Grease values follow the pattern `0x7f * N + 0x9D` for non-negative
+integer values of N (that is, 0x9D, 0xBC, ..., 0x3ffffffffffffffe).
 
 The following registries include GREASE reservations:
 
@@ -4237,15 +4237,10 @@ TODO: register the URI scheme and the ALPN
 
 ## MOQT Auth Token Type {#iana-auth-token-type}
 
-Token Type values of the form `0x1f * N + 0x21` are reserved for greasing
-({{grease}}). Endpoints receiving a reserved Token Type MUST ignore the token
-and continue processing as if the token were not present, unless the token is
-required for authorization.
-
 | Code | Name       | Specification |
 |-----:|:-----------|:--------------|
 | 0x0  | Reserved   | {{authorization-token}} |
-| 0x1f * N + 0x21 | Reserved for greasing | {{grease}} |
+| 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 ## Message Parameters
 
@@ -4274,16 +4269,12 @@ required for authorization.
 | 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
 | 0x3C | PRIOR_GROUP_ID_GAP | Object | {{prior-group-id-gap}} |
 | 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
-| 0x1f * N + 0x21 | Reserved for greasing | Any | {{grease}} |
+| 0x7f * N + 0x9D | Reserved for greasing | Any | {{grease}} |
 
 Endpoints MUST ignore unknown extension header types, skipping them using
 the length field.
 
 ## Error Codes {#iana-error-codes}
-
-All error code registries defined in this section reserve values of the form
-`0x1f * N + 0x21` for greasing ({{grease}}). Endpoints receiving a reserved
-error code MUST treat it as an unknown error code.
 
 ### Session Termination Error Codes {#iana-session-termination}
 
@@ -4310,7 +4301,7 @@ error code MUST treat it as an unknown error code.
 | EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
 | INVALID_AUTHORITY          | 0x19 | {{session-termination}} |
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination}} |
-| Reserved for greasing      | 0x1f * N + 0x21 | {{grease}} |
+| Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### REQUEST_ERROR Codes {#iana-request-error}
 
@@ -4331,7 +4322,7 @@ error code MUST treat it as an unknown error code.
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
-| Reserved for greasing      | 0x1f * N + 0x21 | {{grease}} |
+| Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
@@ -4347,7 +4338,7 @@ error code MUST treat it as an unknown error code.
 | UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
 | EXCESSIVE_LOAD     | 0x9  | {{message-publish-done}} |
 | MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
-| Reserved for greasing | 0x1f * N + 0x21 | {{grease}} |
+| Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
 
@@ -4361,7 +4352,7 @@ error code MUST treat it as an unknown error code.
 | TOO_FAR_BEHIND        | 0x5  | {{closing-subgroup-streams}} |
 | EXCESSIVE_LOAD        | 0x9  | {{closing-subgroup-streams}} |
 | MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
-| Reserved for greasing | 0x1f * N + 0x21 | {{grease}} |
+| Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
 # Contributors
 {:numbered="false"}
