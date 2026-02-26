@@ -1831,13 +1831,13 @@ ongoing requests, and supports the endpoint's ability to limit the concurrency
 and frequency of requests.  Request IDs for one endpoint increment independently
 from those sent by the peer endpoint.  The client's Request ID starts at 0 and
 are even and the server's Request ID starts at 1 and are odd.  The Request ID
-increments by 2 with each FETCH, SUBSCRIBE, REQUEST_UPDATE,
-SUBSCRIBE_NAMESPACE, PUBLISH, PUBLISH_NAMESPACE or TRACK_STATUS request.
+increments by 2 with each FETCH, SUBSCRIBE, REQUEST_UPDATE, PUBLISH,
+PUBLISH_NAMESPACE or TRACK_STATUS request.
 Other messages with a Request ID field reference the Request ID of another
 message for correlation. If an endpoint receives a Request ID that is not valid
-for the peer, or a new request with a Request ID that is not the next in
-sequence or exceeds the received MAX_REQUEST_ID, it MUST close the session with
-`INVALID_REQUEST_ID`.
+for the peer, or a new request on the control stream with a Request ID that is
+not the next in sequence or exceeds the received MAX_REQUEST_ID, it MUST close
+the session with `INVALID_REQUEST_ID`.
 
 ## Message Parameters {#message-params}
 
@@ -3297,7 +3297,7 @@ updates to the set.
 SUBSCRIBE_NAMESPACE Message {
   Type (vi64) = 0x11,
   Length (16),
-  Request ID (vi64),
+  Unused ID (vi64),
   Track Namespace Prefix (..),
   Subscribe Options (vi64),
   Number of Parameters (vi64),
@@ -3306,7 +3306,7 @@ SUBSCRIBE_NAMESPACE Message {
 ~~~
 {: #moq-transport-subscribe-ns-format title="MOQT SUBSCRIBE_NAMESPACE Message"}
 
-* Request ID: See {{request-id}}.
+* Unused ID: Variable length integer unused in this draft.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
   {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
