@@ -2267,7 +2267,6 @@ string {{!RFC3629}}, though the message does not carry information, such as
 language tags, that would aid comprehension by any entity other than the one
 that created the text.
 
-
 ## GOAWAY {#message-goaway}
 
 An endpoint sends a `GOAWAY` message to inform the peer it intends to close
@@ -4184,7 +4183,7 @@ the relay would have to send matching NAMESPACE/NAMESPACE_DONE messages.
 
 TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 
-# GREASE {#grease}
+# Grease {#grease}
 
 To ensure that implementations correctly handle unknown values and do not
 fail when encountering extensions they do not understand, this document
@@ -4195,6 +4194,7 @@ integer values of N (that is, 0x21, 0x40, ..., 0x3ffffffffffffffe).
 
 The following registries include GREASE reservations:
 
+- Setup Options ({{setup-options}})
 - Extension Header Types ({{iana-extension-headers}})
 - Session Termination Error Codes ({{iana-session-termination}})
 - REQUEST_ERROR Codes ({{iana-request-error}})
@@ -4204,6 +4204,10 @@ The following registries include GREASE reservations:
 
 Implementations MUST handle unknown values from these registries gracefully
 according to the rules defined in each section.
+
+Setup Options with reserved identifiers have no semantics and can carry
+arbitrary values. Endpoints MUST ignore unknown Setup Options as specified
+in {{message-setup}}.
 
 # IANA Considerations {#iana}
 
