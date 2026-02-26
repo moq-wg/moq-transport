@@ -735,8 +735,6 @@ use and will never be allocated by IANA or future MOQT specifications:
   tight space constraints
 * 0x3800 to 0x3FFF (2-byte encoding): 2048 code points for applications
   with moderate space constraints
-* 0x40000000 to 0x4FFFFFFF (5-byte encoding): Large range for applications
-  without space constraints
 
 Applications MAY use code points in these ranges without registration for
 format-specific metadata or other application-defined purposes. Relays that
@@ -3939,7 +3937,7 @@ The following Properties are defined in MOQT. Each Property
 specifies whether it can be used with Tracks, Objects, or both.
 
 Extension Header types in ranges reserved for application-specific use
-(0x38-0x3F, 0x3800-0x3FFF, 0x40000000-0x4FFFFFFF) are not defined by MOQT.
+(0x38-0x3F, 0x3800-0x3FFF) are not defined by MOQT.
 See {{extension-headers}} for usage guidance.
 
 ## DELIVERY TIMEOUT {#delivery-timeout-ext}
@@ -4249,8 +4247,10 @@ TODO: fill out currently missing registries:
 
   Code points reserved for application-specific use will never be allocated
   by IANA. Applications using these values do not need to coordinate with
-  IANA, but SHOULD coordinate with other applications using the same track
-  format to avoid collisions within that format.
+  IANA.  Note that applications consuming tracks from uncoordinated sources may
+  encounter different semantics for the same code points, creating potential
+  collision risks.
+
   List which headers can be repeated in the table.
 * MOQT Auth Token Type
 
