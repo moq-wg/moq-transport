@@ -2790,8 +2790,8 @@ Receivers cancel requests if they are unable to or choose not to respond.<a href
 <p id="section-3.3.1-2">Implementations <span class="bcp14">SHOULD</span> cancel requests by abruptly terminating any directions of
 a stream that are still open using RESET_STREAM / RESET_STREAM_AT or
 STOP_SENDING.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-3">When the Publisher rejects a request without performing any application processing,
-The PUBLISHER <span class="bcp14">SHOULD</span> send a REQUEST_ERROR and FIN the stream.<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-3">When an endpoint rejects a request without performing any application processing,
+it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR and FIN the stream.<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
