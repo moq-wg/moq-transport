@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 21 August 2026                                    I. Swett, Ed.
+Expires: 30 August 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        17 February 2026
+                                                        26 February 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 August 2026.
+   This Internet-Draft will expire on 30 August 2026.
 
 Copyright Notice
 
@@ -169,6 +169,7 @@ Table of Contents
      9.23. NAMESPACE_DONE
      9.24. PUBLISH_NAMESPACE_CANCEL
      9.25. SUBSCRIBE_NAMESPACE
+     9.26. PUBLISH_BLOCKED
    10. Data Streams and Datagrams
      10.1.  Track Alias
      10.2.  Objects
@@ -279,7 +280,7 @@ Table of Contents
    The parallel nature of QUIC streams can provide improvements in the
    face of loss.  A goal of MOQT is to design a streaming protocol to
    leverage the transmission benefits afforded by parallel QUIC streams
-   as well exercising options for flexible loss recovery.
+   as well as exercising options for flexible loss recovery.
 
 1.1.3.  Convergence
 
@@ -389,7 +390,7 @@ Table of Contents
    any, represent the integer value, encoded in network byte order.
 
    Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can
-   encode up to 64 bit unsinged integers.  The following table
+   encode up to 64 bit unsigned integers.  The following table
    summarizes the encoding properties.
 
     +==============+================+========+========================+
@@ -746,7 +747,7 @@ Table of Contents
    In MOQT, every track is identified by a Full Track Name, consisting
    of a Track Namespace and a Track Name.
 
-   Track Namespace is an ordered set of between 1 and 32 Track Namespace
+   Track Namespace is an ordered set of between 0 and 32 Track Namespace
    Fields, encoded as follows:
 
    Track Namespace {
@@ -778,7 +779,7 @@ Table of Contents
 
    The structured nature of Track Namespace allows relays and
    applications to manipulate prefixes of a namespace.  If an endpoint
-   receives a Track Namespace consisting of 0 or greater than 32 Track
+   receives a Track Namespace consisting of greater than 32 Track
    Namespace Fields, it MUST close the session with a
    PROTOCOL_VIOLATION.
 
@@ -822,7 +823,7 @@ Table of Contents
         ID is smaller than the previous Object in the response.
 
    4.   An Object is received in a Descending FETCH response whose Group
-        ID is larger than the previous Object in the resopnse.
+        ID is larger than the previous Object in the response.
 
    5.   An Object is received whose Object ID is larger than the final
         Object in the Subgroup.  The final Object in a Subgroup is the
@@ -1182,6 +1183,19 @@ Table of Contents
    controller is not app-limited for at least a full round trip to
    ensure the available bandwidth can be measured.
 
+   Some applications might have APIs to allow sending duplicate data or
+   forward error correction to probe for more bandwidth while also
+   limiting the impact of probing in case it causes packet loss.
+   Applications wanting to switch to an alternate representation of a
+   Track can request that Track at a lower priority to probe.
+   Applications can subscribe to additional tracks at the lowest (255)
+   priority to fill the congestion window during probing intervals while
+   minimizing the impact on higher priority media.  Network-assisted
+   bandwidth estimation mechanisms such as SCONE
+   [I-D.ietf-scone-protocol] can provide receivers with sustainable
+   bandwidth hints, which subscribers can use to inform track selection
+   decisions and potentially avoid unnecessary probing.
+
 3.6.3.  Consistent Throughput
 
    Congestion control algorithms are commonly optimized for throughput,
@@ -1336,10 +1350,10 @@ Table of Contents
    publisher which Objects to send.  Subscriptions without a filter pass
    all Objects published or received via upstream subscriptions.
 
-   All filters have a Start Location and an optional End Group.  Only
-   objects published or received via a subscription having Locations
-   greater than or equal to Start Location and strictly less than or
-   equal to the End Group (when present) pass the filter.
+   All filters have a Start Location and an optional End Group Delta.
+   Only objects published or received via a subscription having
+   Locations greater than or equal to Start Location and strictly less
+   than or equal to the End Group (when present) pass the filter.
 
    Some filters are defined to be relative to the Largest Object.  The
    Largest Object is the Object with the largest Location
@@ -1353,7 +1367,7 @@ Table of Contents
    Subscription Filter {
      Filter Type (vi64),
      [Start Location (Location),]
-     [End Group (vi64),]
+     [End Group Delta (vi64),]
    }
 
    Filter Type can have one of the following values:
@@ -1384,9 +1398,9 @@ Table of Contents
    AbsoluteRange (0x4): The filter Start Location and End Group are
    specified explicitly.  The specified Start Location MAY be less than
    the Largest Object observed at the publisher.  If the specified End
-   Group is the same group specified in Start Location, the remainder of
-   that Group passes the filter.  End Group MUST specify the same or a
-   larger Group than specified in Start Location.
+   Group Delta is zero, the remainder of that Group passes the filter.
+   Otherwise, the last Group ID to be delivered will the Group ID in
+   'Start Location' plus the 'End Group Delta'.
 
    An endpoint that receives a filter type other than the above MUST
    close the session with PROTOCOL_VIOLATION.
@@ -1478,11 +1492,22 @@ Table of Contents
    endpoint accepts its own PUBLISH, this behaves as self-subscription
    described in Section 5.1.
 
+   A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the
+   sender is interested in all tracks and/or namespaces from the
+   receiver.
+
    The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional
    stream and the publisher MUST send a single REQUEST_OK or
    REQUEST_ERROR as the first message on the bidirectional stream in
    response to a SUBSCRIBE_NAMESPACE.  The subscriber SHOULD close the
    session with a protocol error if it detects receiving more than one.
+
+   If a Subscription cannot be created because there is no available
+   Request ID, the Publisher sends a PUBLISH_BLOCKED message on the
+   response stream to indicate the Full Track Name of the Subscription
+   that could not be established.  The Publisher MUST NOT send a PUBLISH
+   for a Track after PUBLISH_BLOCKED has been sent.  The subscriber can
+   instead issue a SUBSCRIBE to establish a subscription to that track.
 
    The receiver of a REQUEST_OK or REQUEST_ERROR ought to forward the
    result to the application, so the application can decide which other
@@ -1835,7 +1860,7 @@ Table of Contents
 
    When a publisher wants to stop new subscriptions for a published
    namespace it sends a PUBLISH_NAMESPACE_DONE.  A subscriber indicates
-   it will no longer subcribe to Tracks in a namespace it previously
+   it will no longer subscribe to Tracks in a namespace it previously
    responded REQUEST_OK to by sending a PUBLISH_NAMESPACE_CANCEL.
 
    A Relay connects publishers and subscribers by managing sessions
@@ -2003,6 +2028,8 @@ Table of Contents
            |  0xC | PUBLISH_NAMESPACE_CANCEL (Section 9.24)    |
            +------+--------------------------------------------+
            | 0x11 | SUBSCRIBE_NAMESPACE (Section 9.25)         |
+           +------+--------------------------------------------+
+           |  0xF | PUBLISH_BLOCKED (Section 9.26)             |
            +------+--------------------------------------------+
 
                                   Table 3
@@ -2186,7 +2213,7 @@ Table of Contents
    Setup Option defining the MAX_AUTH_TOKEN_CACHE_SIZE limit (see
    Section 9.3.1.4) it is willing to accept.  If a registration is
    attempted which would cause this limit to be exceeded, the receiver
-   MUST termiate the Session with a AUTH_TOKEN_CACHE_OVERFLOW error.
+   MUST terminate the Session with a AUTH_TOKEN_CACHE_OVERFLOW error.
 
    The AUTHORIZATION TOKEN parameter MAY be repeated within a message as
    long as the combination of Token Type and Token Value are unique
@@ -2386,7 +2413,7 @@ Table of Contents
    current Group, it SHOULD end the current Group and begin a new Group
    as soon as practical.  The Original Publisher MAY delay the
    NEW_GROUP_REQUEST subject to implementation specific concerns, for
-   example, acheiving a minimum duration for each Group.  The Original
+   example, achieving a minimum duration for each Group.  The Original
    Publisher chooses the next Group ID; there are no requirements that
    it be equal to the NEW_GROUP_REQUEST parameter value.
 
@@ -2417,7 +2444,7 @@ Table of Contents
 
    The CLIENT_SETUP and SERVER_SETUP messages are the first messages
    exchanged by the client and the server; they allow the endpoints to
-   agree on the initial configuration before any control messsages are
+   agree on the initial configuration before any control messages are
    exchanged.  The messages contain a sequence of key-value pairs called
    Setup Options; the semantics and format of which can vary based on
    whether the client or server is sending.  To ensure future
@@ -2572,9 +2599,9 @@ Table of Contents
       this URI for the new session if provided.  If the URI is zero
       bytes long, the current URI is reused instead.  The new session
       URI SHOULD use the same scheme as the current URI to ensure
-      compatibility.  The maxmimum length of the New Session URI is
-      8,192 bytes.  If an endpoint receives a length exceeding the
-      maximum, it MUST close the session with a PROTOCOL_VIOLATION.
+      compatibility.  The maximum length of the New Session URI is 8,192
+      bytes.  If an endpoint receives a length exceeding the maximum, it
+      MUST close the session with a PROTOCOL_VIOLATION.
 
       If a server receives a GOAWAY with a non-zero New Session URI
       Length it MUST close the session with a PROTOCOL_VIOLATION.
@@ -3186,7 +3213,7 @@ Table of Contents
       the Established or Pending (subscriber) states, it MUST return a
       REQUEST_ERROR with error code INVALID_JOINING_REQUEST_ID.
 
-   *  Joining Start : A relative or absolute value used to determing the
+   *  Joining Start : A relative or absolute value used to determine the
       Start Location, described below.
 
 9.16.2.1.  Joining Fetch Range Calculation
@@ -3502,7 +3529,7 @@ Table of Contents
       publish.  PUBLISH_NAMESPACE_CANCEL uses the same error codes as
       REQUEST_ERROR (Section 9.8) that responds to PUBLISH_NAMESPACE.
 
-   *  Error Reason: Provides the reason for publish cancelation.  See
+   *  Error Reason: Provides the reason for publish cancellation.  See
       Section 1.4.4.
 
 9.25.  SUBSCRIBE_NAMESPACE
@@ -3585,6 +3612,32 @@ Table of Contents
    before the corresponding NAMESPACE.  If a subscriber receives a
    NAMESPACE_DONE before the corresponding NAMESPACE, it MUST close the
    session with a 'PROTOCOL_VIOLATION'.
+
+9.26.  PUBLISH_BLOCKED
+
+   The publisher sends the PUBLISH_BLOCKED control message to indicate
+   it cannot send a PUBLISH message to initiate a new Subscription for a
+   Track in the SUBSCRIBE_NAMESPACE's Track Namespace.  All
+   PUBLISH_BLOCKED messages are in response to a SUBSCRIBE_NAMESPACE, so
+   only the namespace tuples after the 'Track Namespace Prefix' are
+   included in the 'Track Namespace Suffix'.
+
+   PUBLISH_BLOCKED Message {
+     Type (i) = 0xF,
+     Length (16),
+     Track Namespace Suffix (..),
+     Track Name Length (vi64),
+     Track Name (..),
+   }
+
+                  Figure 27: MOQT PUBLISH_BLOCKED Message
+
+   *  Track Namespace Suffix: Specifies the final portion of a track's
+      namespace as defined in Section 2.4.1.  The namespace begins with
+      the 'Track Namespace Prefix' specified in {message-subscribe-ns}.
+
+   *  Track Name: Identifies the track name as defined in
+      (Section 2.4.1).
 
 10.  Data Streams and Datagrams
 
@@ -3759,7 +3812,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                      Figure 27: MOQT OBJECT_DATAGRAM
+                      Figure 28: MOQT OBJECT_DATAGRAM
 
    The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or
    the set of values from 0x00 to 0x0F, 0x20 to 0x2F).  However, not all
@@ -3857,7 +3910,7 @@ Table of Contents
      [Publisher Priority (8),]
    }
 
-                      Figure 28: MOQT SUBGROUP_HEADER
+                      Figure 29: MOQT SUBGROUP_HEADER
 
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
@@ -3929,7 +3982,7 @@ Table of Contents
    Object ID Delta values.  A consumer cannot infer information about
    the existence of Objects between the current and previous Object ID
    in the Subgroup (e.g. when Object ID Delta is non-zero) unless there
-   is an Prior Object ID Gap extesnion header (see Section 11.8).
+   is an Prior Object ID Gap extension header (see Section 11.8).
 
    {
      Object ID Delta (vi64),
@@ -3939,7 +3992,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                   Figure 29: MOQT Subgroup Object Fields
+                   Figure 30: MOQT Subgroup Object Fields
 
 10.4.3.  Closing Subgroup Streams
 
@@ -3967,7 +4020,7 @@ Table of Contents
    *  A REQUEST_UPDATE moving the subscription's End Group to a smaller
       Group or the Start Location to a larger Location
 
-   *  Omitting a Subgroup Object due to the subcriber's Forward State
+   *  Omitting a Subgroup Object due to the subscriber's Forward State
 
    When RESET_STREAM_AT is used, the reliable_size SHOULD include the
    stream header so the receiver can identify the corresponding
@@ -4092,7 +4145,7 @@ Table of Contents
      Request ID (vi64),
    }
 
-                        Figure 30: MOQT FETCH_HEADER
+                        Figure 31: MOQT FETCH_HEADER
 
    Each Object sent on a FETCH stream after the FETCH_HEADER has the
    following format:
@@ -4108,7 +4161,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                    Figure 31: MOQT Fetch Object Fields
+                    Figure 32: MOQT Fetch Object Fields
 
    The Serialization Flags field defines the serialization of the
    Object.  It is a variable-length integer.  When less than 128, the
@@ -4415,7 +4468,7 @@ EXT 1 and EXT N can be modified or removed by Relays
       communicated gap.
 
    Use of this property is optional, as publishers might not know the
-   prior gap gize, or there may not be a gap.  If Prior Group ID Gap is
+   prior gap size, or there may not be a gap.  If Prior Group ID Gap is
    not present, the receiver cannot infer any information about the
    existence of prior groups (see Section 2.3.1).
 
@@ -4450,7 +4503,7 @@ EXT 1 and EXT N can be modified or removed by Relays
       previously communicated gap.
 
    Use of this property is optional, as publishers might not know the
-   prior gap gize, or there might not be a gap.  If Prior Object ID Gap
+   prior gap size, or there might not be a gap.  If Prior Object ID Gap
    is not present, the receiver cannot infer any information about the
    existence of prior objects (see Section 2.1).
 
@@ -4901,6 +4954,14 @@ Informative References
               Internet-Draft, draft-lcurley-warp-04, 13 March 2023,
               <https://datatracker.ietf.org/doc/html/draft-lcurley-warp-
               04>.
+
+   [I-D.ietf-scone-protocol]
+              Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
+              Ihlar, "Standard Communication with Network Elements
+              (SCONE) Protocol", Work in Progress, Internet-Draft,
+              draft-ietf-scone-protocol-04, 14 December 2025,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
+              protocol-04>.
 
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol

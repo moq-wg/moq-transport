@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 21 August 2026</td>
+<td class="center">Expires 30 August 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-17" class="published">17 February 2026</time>
+<time datetime="2026-02-26" class="published">26 February 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-21">21 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-08-30">30 August 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 21 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 30 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1497,6 +1497,9 @@ networks and is designed for high scale and low latency distribution.<a href="#s
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.25">
                 <p id="section-toc.1-1.9.2.25.1"><a href="#section-9.25" class="auto internal xref">9.25</a>. <a href="#name-subscribe_namespace" class="internal xref">SUBSCRIBE_NAMESPACE</a></p>
 </li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.26">
+                <p id="section-toc.1-1.9.2.26.1"><a href="#section-9.26" class="auto internal xref">9.26</a>. <a href="#name-publish_blocked" class="internal xref">PUBLISH_BLOCKED</a></p>
+</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
@@ -1750,7 +1753,7 @@ rapidly detect and respond to congestion.<a href="#section-1.1.1-1" class="pilcr
           </h4>
 <p id="section-1.1.2-1">The parallel nature of QUIC streams can provide improvements in the face
 of loss. A goal of MOQT is to design a streaming protocol to leverage
-the transmission benefits afforded by parallel QUIC streams as well
+the transmission benefits afforded by parallel QUIC streams as well as
 exercising options for flexible loss recovery.<a href="#section-1.1.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1935,7 +1938,7 @@ first byte to indicate the length of the encoding in bytes. The remaining bits
 after the first 0 and subsequent bytes, if any, represent the integer value,
 encoded in network byte order.<a href="#section-1.4.1-3" class="pilcrow">¶</a></p>
 <p id="section-1.4.1-4">Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can encode up to 64
-bit unsinged integers. The following table summarizes the encoding properties.<a href="#section-1.4.1-4" class="pilcrow">¶</a></p>
+bit unsigned integers. The following table summarizes the encoding properties.<a href="#section-1.4.1-4" class="pilcrow">¶</a></p>
 <span id="name-summary-of-integer-encoding"></span><table class="center" id="table-1">
             <caption>
 <a href="#table-1" class="selfRef">Table 1</a>:
@@ -2401,7 +2404,7 @@ active.<a href="#section-2.4-1" class="pilcrow">¶</a></p>
           </h4>
 <p id="section-2.4.1-1">In MOQT, every track is identified by a Full Track Name, consisting of a Track
 Namespace and a Track Name.<a href="#section-2.4.1-1" class="pilcrow">¶</a></p>
-<p id="section-2.4.1-2">Track Namespace is an ordered set of between 1 and 32 Track Namespace Fields,
+<p id="section-2.4.1-2">Track Namespace is an ordered set of between 0 and 32 Track Namespace Fields,
 encoded as follows:<a href="#section-2.4.1-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-2.4.1-3">
 <pre>
@@ -2441,7 +2444,7 @@ receives a Track Namespace Field with a Track Namespace Field Length of 0, it
 <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-2.4.1-8" class="pilcrow">¶</a></p>
 <p id="section-2.4.1-9">The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
-consisting of 0 or greater than 32 Track Namespace Fields, it <span class="bcp14">MUST</span> close the
+consisting of greater than 32 Track Namespace Fields, it <span class="bcp14">MUST</span> close the
 session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-2.4.1-9" class="pilcrow">¶</a></p>
 <p id="section-2.4.1-10">Track Name is a sequence of bytes, possibly empty, that identifies an individual
 track within the namespace.<a href="#section-2.4.1-10" class="pilcrow">¶</a></p>
@@ -2486,7 +2489,7 @@ than the previous Object in the response.<a href="#section-2.4.2-2.3.1" class="p
 </li>
             <li id="section-2.4.2-2.4">
               <p id="section-2.4.2-2.4.1">An Object is received in a Descending FETCH response whose Group ID is larger
-than the previous Object in the resopnse.<a href="#section-2.4.2-2.4.1" class="pilcrow">¶</a></p>
+than the previous Object in the response.<a href="#section-2.4.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-2.4.2-2.5">
               <p id="section-2.4.2-2.5.1">An Object is received whose Object ID is larger than the final Object in the
@@ -2927,6 +2930,17 @@ combination can lead to underestimating the available network bandwidth. As a re
 applications might need to periodically ensure the congestion controller is not
 app-limited for at least a full round trip to ensure the available bandwidth can be
 measured.<a href="#section-3.6.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.6.2-2">Some applications might have APIs to allow sending duplicate data or forward error
+correction to probe for more bandwidth while also limiting the impact of probing
+in case it causes packet loss. Applications wanting to switch to an alternate
+representation of a Track can request that Track at a lower priority to probe.
+Applications can subscribe to additional tracks at the lowest (255) priority
+to fill the congestion window during probing intervals while minimizing the
+impact on higher priority media.
+Network-assisted bandwidth estimation mechanisms such as SCONE
+<span>[<a href="#I-D.ietf-scone-protocol" class="cite xref">I-D.ietf-scone-protocol</a>]</span> can provide receivers with sustainable bandwidth hints,
+which subscribers can use to inform track selection decisions and potentially avoid
+unnecessary probing.<a href="#section-3.6.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="consistent-throughput">
@@ -3087,7 +3101,7 @@ end with an error.<a href="#section-5.1.1-4" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-1">Subscribers can specify a filter on a subscription indicating to the publisher
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.<a href="#section-5.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-2">All filters have a Start Location and an optional End Group.  Only objects
+<p id="section-5.1.2-2">All filters have a Start Location and an optional End Group Delta.  Only objects
 published or received via a subscription having Locations greater than or
 equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.<a href="#section-5.1.2-2" class="pilcrow">¶</a></p>
@@ -3102,7 +3116,7 @@ previous value is published or received through a subscription.<a href="#section
 Subscription Filter {
   Filter Type (vi64),
   [Start Location (Location),]
-  [End Group (vi64),]
+  [End Group Delta (vi64),]
 }
 </pre><a href="#section-5.1.2-5" class="pilcrow">¶</a>
 </div>
@@ -3127,10 +3141,9 @@ AbsoluteStart filter with <code>Start</code> = {0, 0} is equivalent to an unfilt
 subscription.<a href="#section-5.1.2-9" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-10">AbsoluteRange (0x4): The filter Start Location and End Group are specified
 explicitly. The specified <code>Start Location</code> <span class="bcp14">MAY</span> be less than the <code>Largest Object</code>
-observed at the publisher. If the specified <code>End Group</code> is the same group
-specified in <code>Start Location</code>, the remainder of that Group passes the
-filter. <code>End Group</code> <span class="bcp14">MUST</span> specify the same or a larger Group than specified in
-<code>Start Location</code>.<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
+observed at the publisher. If the specified <code>End Group Delta</code> is zero, the
+remainder of that Group passes the filter. Otherwise, the last Group ID to be
+delivered will the Group ID in 'Start Location' plus the 'End Group Delta'.<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-11">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> close the
 session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
 </section>
@@ -3226,19 +3239,25 @@ part of that namespace.  This includes echoing back published Tracks and/or Trac
 Namespaces under the SUBSCRIBE_NAMESPACE prefix to the endpoint that sent them.
 If an endpoint accepts its own PUBLISH, this behaves as self-subscription described
 in <a href="#subscriptions" class="auto internal xref">Section 5.1</a>.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
-<p id="section-6.1-2">The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
+<p id="section-6.1-2">A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the sender is
+interested in all tracks and/or namespaces from the receiver.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<p id="section-6.1-3">The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
 publisher <span class="bcp14">MUST</span> send a single REQUEST_OK or REQUEST_ERROR as the first message on the
 bidirectional stream in response to a SUBSCRIBE_NAMESPACE. The subscriber
 <span class="bcp14">SHOULD</span> close the session with a protocol error if it detects receiving more
-than one.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
-<p id="section-6.1-3">The receiver of a REQUEST_OK or REQUEST_ERROR ought to
+than one.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+<p id="section-6.1-4">If a Subscription cannot be created because there is no available Request ID,
+the Publisher sends a PUBLISH_BLOCKED message on the response stream to indicate
+the Full Track Name of the Subscription that could not be established. The Publisher
+<span class="bcp14">MUST NOT</span> send a PUBLISH for a Track after PUBLISH_BLOCKED has been sent.  The subscriber can instead issue a SUBSCRIBE to establish a subscription to that track.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
+<p id="section-6.1-5">The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
-publishers to contact, if any.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
-<p id="section-6.1-4">A SUBSCRIBE_NAMESPACE can be cancelled by closing the stream with
+publishers to contact, if any.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
+<p id="section-6.1-6">A SUBSCRIBE_NAMESPACE can be cancelled by closing the stream with
 either a FIN or RESET_STREAM. Cancelling does not prohibit original publishers
 from sending further PUBLISH_NAMESPACE or PUBLISH messages, but relays <span class="bcp14">MUST NOT</span>
 send any further PUBLISH messages to a client without knowing the client is
-interested in and authorized to receive the content.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
+interested in and authorized to receive the content.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="publishing-namespaces">
@@ -3583,7 +3602,7 @@ The authorization and identification of the publisher depends on the way the
 relay is managed and is application specific.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
 <p id="section-8.5-4">When a publisher wants to stop new subscriptions for a published namespace it
 sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
-subcribe to Tracks in a namespace it previously responded REQUEST_OK
+subscribe to Tracks in a namespace it previously responded REQUEST_OK
 to by sending a PUBLISH_NAMESPACE_CANCEL.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
 <p id="section-8.5-5">A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
@@ -3813,6 +3832,10 @@ MOQT Control Message {
             <td class="text-right" rowspan="1" colspan="1">0x11</td>
             <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_NAMESPACE (<a href="#message-subscribe-ns" class="auto internal xref">Section 9.25</a>)</td>
           </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0xF</td>
+            <td class="text-left" rowspan="1" colspan="1">PUBLISH_BLOCKED  (<a href="#message-publish-blocked" class="auto internal xref">Section 9.26</a>)</td>
+          </tr>
         </tbody>
       </table>
 <p id="section-9-5">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.
@@ -4000,7 +4023,7 @@ Alias and Token Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a Setup Option defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see <a href="#max-auth-token-cache-size" class="auto internal xref">Section 9.3.1.4</a>) it is
 willing to accept. If a registration is attempted which would cause this limit
-to be exceeded, the receiver <span class="bcp14">MUST</span> termiate the Session with a
+to be exceeded, the receiver <span class="bcp14">MUST</span> terminate the Session with a
 <code>AUTH_TOKEN_CACHE_OVERFLOW</code> error.<a href="#section-9.2.1.1-14" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.1-15">The AUTHORIZATION TOKEN parameter <span class="bcp14">MAY</span> be repeated within a message as long as
 the combination of Token Type and Token Value are unique after resolving any
@@ -4201,7 +4224,7 @@ case.<a href="#section-9.2.1.10-1" class="pilcrow">¶</a></p>
 NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
 it <span class="bcp14">SHOULD</span> end the current Group and begin a new Group as soon as practical.  The
 Original Publisher <span class="bcp14">MAY</span> delay the NEW_GROUP_REQUEST subject to
-implementation specific concerns, for example, acheiving a minimum duration for
+implementation specific concerns, for example, achieving a minimum duration for
 each Group. The Original Publisher chooses the next Group ID; there are no
 requirements that it be equal to the NEW_GROUP_REQUEST parameter value.<a href="#section-9.2.1.10-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.10-3">Relay Handling:<a href="#section-9.2.1.10-3" class="pilcrow">¶</a></p>
@@ -4236,7 +4259,7 @@ outstanding until the Largest Group increases.<a href="#section-9.2.1.10-8" clas
         </h3>
 <p id="section-9.3-1">The <code>CLIENT_SETUP</code> and <code>SERVER_SETUP</code> messages are the first messages exchanged
 by the client and the server; they allow the endpoints to agree on the initial
-configuration before any control messsages are exchanged. The messages contain
+configuration before any control messages are exchanged. The messages contain
 a sequence of key-value pairs called Setup Options; the semantics and format
 of which can vary based on whether the client or server is sending.  To ensure
 future extensibility of MOQT, endpoints <span class="bcp14">MUST</span> ignore unknown Setup Options.
@@ -4417,7 +4440,7 @@ GOAWAY Message {
 connect to continue this session.  The client <span class="bcp14">MUST</span> use this URI for the new
 session if provided. If the URI is zero bytes long, the current URI is reused
 instead. The new session URI <span class="bcp14">SHOULD</span> use the same scheme
-as the current URI to ensure compatibility.  The maxmimum length of the New
+as the current URI to ensure compatibility.  The maximum length of the New
 Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
 maximum, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-7.1.1" class="pilcrow">¶</a></p>
 <p id="section-9.4-7.1.2">
@@ -5243,7 +5266,7 @@ to a subscription in the same session in the <code>Established</code> or <code>P
 <code>INVALID_JOINING_REQUEST_ID</code>.<a href="#section-9.16.2-7.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.16.2-7.2">
-              <p id="section-9.16.2-7.2.1">Joining Start : A relative or absolute value used to determing the Start
+              <p id="section-9.16.2-7.2.1">Joining Start : A relative or absolute value used to determine the Start
 Location, described below.<a href="#section-9.16.2-7.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
@@ -5662,7 +5685,7 @@ PUBLISH_NAMESPACE_CANCEL uses the same error codes as REQUEST_ERROR
 (<a href="#message-request-error" class="auto internal xref">Section 9.8</a>) that responds to PUBLISH_NAMESPACE.<a href="#section-9.24-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.24-3.3">
-            <p id="section-9.24-3.3.1">Error Reason: Provides the reason for publish cancelation. See
+            <p id="section-9.24-3.3.1">Error Reason: Provides the reason for publish cancellation. See
 <a href="#reason-phrase" class="auto internal xref">Section 1.4.4</a>.<a href="#section-9.24-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -5750,6 +5773,45 @@ set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 <p id="section-9.25-9">The publisher <span class="bcp14">MUST NOT</span> send NAMESPACE_DONE for a namespace suffix before the
 corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
 corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session with a 'PROTOCOL_VIOLATION'.<a href="#section-9.25-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="message-publish-blocked">
+<section id="section-9.26">
+        <h3 id="name-publish_blocked">
+<a href="#section-9.26" class="section-number selfRef">9.26. </a><a href="#name-publish_blocked" class="section-name selfRef">PUBLISH_BLOCKED</a>
+        </h3>
+<p id="section-9.26-1">The publisher sends the <code>PUBLISH_BLOCKED</code> control message to indicate it cannot
+send a PUBLISH message to initiate a new Subscription for a Track in the
+SUBSCRIBE_NAMESPACE's Track Namespace. All PUBLISH_BLOCKED messages are in
+response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after the
+'Track Namespace Prefix' are included in the 'Track Namespace Suffix'.<a href="#section-9.26-1" class="pilcrow">¶</a></p>
+<span id="name-moqt-publish_blocked-messag"></span><div id="moq-transport-publish-blocked-format">
+<figure id="figure-27">
+          <div class="alignLeft art-text artwork" id="section-9.26-2.1">
+<pre>
+PUBLISH_BLOCKED Message {
+  Type (i) = 0xF,
+  Length (16),
+  Track Namespace Suffix (..),
+  Track Name Length (vi64),
+  Track Name (..),
+}
+</pre>
+</div>
+<figcaption><a href="#figure-27" class="selfRef">Figure 27</a>:
+<a href="#name-moqt-publish_blocked-messag" class="selfRef">MOQT PUBLISH_BLOCKED Message</a>
+          </figcaption></figure>
+</div>
+<ul class="normal">
+<li class="normal" id="section-9.26-3.1">
+            <p id="section-9.26-3.1.1">Track Namespace Suffix: Specifies the final portion of a track's
+namespace as defined in <a href="#track-name" class="auto internal xref">Section 2.4.1</a>. The namespace begins with the
+'Track Namespace Prefix' specified in {message-subscribe-ns}.<a href="#section-9.26-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.26-3.2">
+            <p id="section-9.26-3.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-9.26-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 </section>
@@ -5944,7 +6006,7 @@ will exceed the maximum datagram size of a downstream session and be dropped.<a 
           </h4>
 <p id="section-10.3.1-1">An <code>OBJECT_DATAGRAM</code> carries a single object in a datagram.<a href="#section-10.3.1-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_datagram"></span><div id="object-datagram-format">
-<figure id="figure-27">
+<figure id="figure-28">
             <div class="alignLeft art-text artwork" id="section-10.3.1-2.1">
 <pre>
 OBJECT_DATAGRAM {
@@ -5960,7 +6022,7 @@ OBJECT_DATAGRAM {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-27" class="selfRef">Figure 27</a>:
+<figcaption><a href="#figure-28" class="selfRef">Figure 28</a>:
 <a href="#name-moqt-object_datagram" class="selfRef">MOQT OBJECT_DATAGRAM</a>
             </figcaption></figure>
 </div>
@@ -6066,7 +6128,7 @@ control to the control stream before allocating it any data streams. Otherwise,
 a receiver might wait for a control message containing a Track Alias to release
 flow control, while the sender waits for flow control to send the message.<a href="#section-10.4.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup_header"></span><div id="object-header-format">
-<figure id="figure-28">
+<figure id="figure-29">
             <div class="alignLeft art-text artwork" id="section-10.4.2-3.1">
 <pre>
 SUBGROUP_HEADER {
@@ -6078,7 +6140,7 @@ SUBGROUP_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-28" class="selfRef">Figure 28</a>:
+<figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
 <a href="#name-moqt-subgroup_header" class="selfRef">MOQT SUBGROUP_HEADER</a>
             </figcaption></figure>
 </div>
@@ -6155,10 +6217,10 @@ Object in the Subgroup stream. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
-unless there is an Prior Object ID Gap extesnion header (see
+unless there is an Prior Object ID Gap extension header (see
 <a href="#prior-object-id-gap" class="auto internal xref">Section 11.8</a>).<a href="#section-10.4.2-11" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
-<figure id="figure-29">
+<figure id="figure-30">
             <div class="alignLeft art-text artwork" id="section-10.4.2-12.1">
 <pre>
 {
@@ -6170,7 +6232,7 @@ unless there is an Prior Object ID Gap extesnion header (see
 }
 </pre>
 </div>
-<figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
+<figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
 <a href="#name-moqt-subgroup-object-fields" class="selfRef">MOQT Subgroup Object Fields</a>
             </figcaption></figure>
 </div>
@@ -6208,7 +6270,7 @@ not limited to:<a href="#section-10.4.3-3" class="pilcrow">¶</a></p>
 the Start Location to a larger Location<a href="#section-10.4.3-4.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.4.3-4.5">
-              <p id="section-10.4.3-4.5.1">Omitting a Subgroup Object due to the subcriber's Forward State<a href="#section-10.4.3-4.5.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.3-4.5.1">Omitting a Subgroup Object due to the subscriber's Forward State<a href="#section-10.4.3-4.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-10.4.3-5">When RESET_STREAM_AT is used, the
@@ -6337,7 +6399,7 @@ is being terminated (see <a href="#delivery-timeout" class="auto internal xref">
 <p id="section-10.4.4-1">When a stream begins with <code>FETCH_HEADER</code>, all objects on the stream belong to the
 track requested in the Fetch message identified by <code>Request ID</code>.<a href="#section-10.4.4-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_header"></span><div id="fetch-header-format">
-<figure id="figure-30">
+<figure id="figure-31">
             <div class="alignLeft art-text artwork" id="section-10.4.4-2.1">
 <pre>
 FETCH_HEADER {
@@ -6346,14 +6408,14 @@ FETCH_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
+<figcaption><a href="#figure-31" class="selfRef">Figure 31</a>:
 <a href="#name-moqt-fetch_header" class="selfRef">MOQT FETCH_HEADER</a>
             </figcaption></figure>
 </div>
 <p id="section-10.4.4-3">Each Object sent on a FETCH stream after the FETCH_HEADER has the following
 format:<a href="#section-10.4.4-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-object-fields"></span><div id="object-fetch-format">
-<figure id="figure-31">
+<figure id="figure-32">
             <div class="alignLeft art-text artwork" id="section-10.4.4-4.1">
 <pre>
 {
@@ -6368,7 +6430,7 @@ format:<a href="#section-10.4.4-3" class="pilcrow">¶</a></p>
 }
 </pre>
 </div>
-<figcaption><a href="#figure-31" class="selfRef">Figure 31</a>:
+<figcaption><a href="#figure-32" class="selfRef">Figure 32</a>:
 <a href="#name-moqt-fetch-object-fields" class="selfRef">MOQT Fetch Object Fields</a>
             </figcaption></figure>
 </div>
@@ -6745,7 +6807,7 @@ it previously received.<a href="#section-11.7-3.4.1" class="pilcrow">¶</a></p>
 communicated gap.<a href="#section-11.7-3.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.7-4">Use of this property is optional, as publishers might not know the prior gap gize,
+<p id="section-11.7-4">Use of this property is optional, as publishers might not know the prior gap size,
 or there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
 <a href="#group-ids" class="auto internal xref">Section 2.3.1</a>).<a href="#section-11.7-4" class="pilcrow">¶</a></p>
@@ -6785,7 +6847,7 @@ it previously received.<a href="#section-11.8-3.3.1" class="pilcrow">¶</a></p>
 communicated gap.<a href="#section-11.8-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-11.8-4">Use of this property is optional, as publishers might not know the prior gap gize,
+<p id="section-11.8-4">Use of this property is optional, as publishers might not know the prior gap size,
 or there might not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
 <a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-11.8-4" class="pilcrow">¶</a></p>
@@ -7750,6 +7812,10 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dt id="I-D.draft-lcurley-warp">[I-D.draft-lcurley-warp]</dt>
         <dd>
 <span class="refAuthor">Curley, L.</span>, <span class="refAuthor">Pugin, K.</span>, <span class="refAuthor">Nandakumar, S.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"Warp - Live Media Transport over QUIC"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-lcurley-warp-04</span>, <time datetime="2023-03-13" class="refDate">13 March 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-lcurley-warp-04">https://datatracker.ietf.org/doc/html/draft-lcurley-warp-04</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
+        <dd>
+<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-04</span>, <time datetime="2025-12-14" class="refDate">14 December 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-04">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-04</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
