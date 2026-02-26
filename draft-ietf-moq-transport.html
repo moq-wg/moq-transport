@@ -2601,6 +2601,25 @@ cached, subject to the processing rules specified in the definition.<a href="#se
 <p id="section-2.5-5">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-2.5-5" class="pilcrow">¶</a></p>
 <p id="section-2.5-6">Property types are registered in the IANA table 'MOQ Properties'.
 See <a href="#iana" class="auto internal xref">Section 14</a>.<a href="#section-2.5-6" class="pilcrow">¶</a></p>
+<p id="section-2.5-7">Certain Property type ranges are reserved for application-specific
+use and will never be allocated by IANA in future MOQT specifications:<a href="#section-2.5-7" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-2.5-8.1">
+            <p id="section-2.5-8.1.1">0x38 to 0x3F (1-byte encoding): 8 code points for applications with
+tight space constraints<a href="#section-2.5-8.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.5-8.2">
+            <p id="section-2.5-8.2.1">0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including grease
+<a href="#grease" class="auto internal xref">Section 13</a>)) for applications with moderate space constraints<a href="#section-2.5-8.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-2.5-9">Applications <span class="bcp14">MAY</span> use code points in these ranges without registration for
+format-specific metadata or other application-defined purposes. Relays that
+do not understand the application format <span class="bcp14">MUST</span> forward these properties
+unchanged but <span class="bcp14">MUST NOT</span> attempt to interpret their semantic meaning. Different
+applications using the same code point in these ranges may assign different
+meanings; the interpretation depends on the track or application
+context known to the publisher and subscriber.<a href="#section-2.5-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -6692,6 +6711,9 @@ SUBGROUP_HEADER {
       </h2>
 <p id="section-11-1">The following Properties are defined in MOQT. Each Property
 specifies whether it can be used with Tracks, Objects, or both.<a href="#section-11-1" class="pilcrow">¶</a></p>
+<p id="section-11-2">Property types in ranges reserved for application-specific use
+(0x38-0x3F, 0x3800-0x3FFF) are not defined by MOQT.
+See <a href="#properties" class="auto internal xref">Section 2.5</a> for usage guidance.<a href="#section-11-2" class="pilcrow">¶</a></p>
 <div id="delivery-timeout-ext">
 <section id="section-11.1">
         <h3 id="name-delivery-timeout">
@@ -7111,20 +7133,7 @@ in <a href="#message-setup" class="auto internal xref">Section 9.3</a>.<a href="
           <p id="section-14-2.2.1">Setup Options<a href="#section-14-2.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-14-2.3">
-          <p id="section-14-2.3.1">Message Parameters - List which params can be repeated in the table.<a href="#section-14-2.3.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-14-2.4">
-          <p id="section-14-2.4.1">Message types<a href="#section-14-2.4.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-14-2.5">
-          <p id="section-14-2.5.1">MOQ Properties - we wish to reserve extension types 0-63 for
-standards utilization where space is a premium, 64 - 16383 for
-standards utilization where space is less of a concern, and 16384 and
-above for first-come-first-served non-standardization usage.
-List which Properties can be repeated in the table.<a href="#section-14-2.5.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-14-2.6">
-          <p id="section-14-2.6.1">MOQT Auth Token Type<a href="#section-14-2.6.1" class="pilcrow">¶</a></p>
+          <p id="section-14-2.3.1">Message types<a href="#section-14-2.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-14-3">TODO: register the URI scheme and the ALPN<a href="#section-14-3" class="pilcrow">¶</a></p>
@@ -7295,6 +7304,11 @@ List which Properties can be repeated in the table.<a href="#section-14-2.5.1" c
             </tr>
           </tbody>
         </table>
+<ul class="normal">
+<li class="normal" id="section-14.3-2.1">
+            <p id="section-14.3-2.1.1">Message Parameters - List which params can be repeated in the table.<a href="#section-14.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 <div id="iana-properties">
@@ -7389,6 +7403,36 @@ List which Properties can be repeated in the table.<a href="#section-14-2.5.1" c
         </table>
 <p id="section-14.4-2">Endpoints <span class="bcp14">MUST</span> ignore unknown Property types, skipping them using
 the length field.<a href="#section-14.4-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-14.4-3.1">
+            <p id="section-14.4-3.1.1">MOQ Properties - we wish to define the following registration policies:<a href="#section-14.4-3.1.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-14.4-3.1.2.1">
+                <p id="section-14.4-3.1.2.1.1">0x00 to 0x37: Standards Action or IESG Approval (1-byte encoding)<a href="#section-14.4-3.1.2.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-14.4-3.1.2.2">
+                <p id="section-14.4-3.1.2.2.1">0x38 to 0x3F: Reserved for application-specific use (1-byte encoding,
+no registration permitted)<a href="#section-14.4-3.1.2.2.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-14.4-3.1.2.3">
+                <p id="section-14.4-3.1.2.3.1">0x40 to 0x37FF: Specification Required (2-byte encoding)<a href="#section-14.4-3.1.2.3.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-14.4-3.1.2.4">
+                <p id="section-14.4-3.1.2.4.1">0x3800 to 0x3FFF: Reserved for application-specific use (2-byte encoding,
+no registration permitted)<a href="#section-14.4-3.1.2.4.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-14.4-3.1.2.5">
+                <p id="section-14.4-3.1.2.5.1">0x4000 and above: First Come First Served<a href="#section-14.4-3.1.2.5.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+<p id="section-14.4-3.1.3">
+Code points reserved for application-specific use will never be allocated
+by IANA. Applications using these values do not need to coordinate with
+IANA.  Note that applications consuming tracks from uncoordinated sources may
+encounter different semantics for the same code points, creating potential
+collision risks.<a href="#section-14.4-3.1.3" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 <div id="iana-error-codes">
