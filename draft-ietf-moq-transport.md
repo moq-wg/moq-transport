@@ -4195,7 +4195,7 @@ integer values of N (that is, 0x21, 0x40, ..., 0x3ffffffffffffffe).
 The following registries include GREASE reservations:
 
 - Setup Options ({{setup-options}})
-- Extension Header Types ({{iana-extension-headers}})
+- Properties ({{iana-properties}})
 - Session Termination Error Codes ({{iana-session-termination}})
 - REQUEST_ERROR Codes ({{iana-request-error}})
 - PUBLISH_DONE Codes ({{iana-publish-done}})
