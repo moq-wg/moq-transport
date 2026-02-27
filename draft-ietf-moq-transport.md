@@ -53,8 +53,11 @@ author:
 normative:
   QUIC: RFC9000
   WebTransport: I-D.ietf-webtrans-http3
+  CAT: I-D.ietf-moq-c4m
+  PPA: I-D.ietf-moq-privacy-pass-auth
 
 informative:
+  I-D.jennings-moq-secure-objects:
 
 --- abstract
 
@@ -4198,9 +4201,106 @@ An Object MUST NOT contain more than one instance of this property.
 
 # Security Considerations {#security}
 
+MOQT is a protocol used hop-by-hop in a chain between original
+publishers to relay, (possibly) relay to relay, and relay to end
+subscribers. Thus, the security consideration need to consider first
+what happens between two nodes, but also consider the impacts end to
+end over several hops of MOQT.
+
+This results in a trust model where on each hop the nodes need to be
+securely identified, authorized to use resources of the peer, provide
+confidentiality and integrity to prevent third party attacks and limit
+monitoring and leakage of privacy sensitive information. The relays
+within the chain from original publisher to end subscribers will have
+access to track identifiers as well as the object's content
+unless it is end-to-end encrypted {{sec-media}}.
+
 TODO: Expand this section, including subscriptions.
 
 TODO: Describe Cache Poisoning attacks
+
+## Communication Security
+
+MOQT depends on a secure transport to provide confidentiality,
+integrity and endpoint authentication between subscriber and
+publisher. Implementations use QUIC or WebTransport to fulfill
+the basic communication security requirements and these
+implementations SHOULD follow best practices for TLS 1.3 and QUIC.
+Relay authentication is required to
+prevent impersonation of relays.
+
+Authentication of original publishers and end subscribers does not
+depend on TLS based mechanisms due to challenges with identifiers and
+certificate distribution, although mutual TLS MAY be used when
+appropriate  {{sec-authorization}}.
+
+It must be noted that the basic security protection offered by QUIC or
+TCP/TLS does not prevent traffic pattern analysis as object
+sizes, sizes of request messages etc can make it possible for an third
+party observer of the traffic between subscriber and publisher to
+identify media content, user patterns and media stream origin.
+
+## Authorization {#sec-authorization}
+
+Authentication of original publishers and end subscribers does not
+depend on TLS based mechanisms due to challenges with identifiers and
+certificate distribution. Instead they rely primarily on
+token based schemes.
+
+Relays will be identified using TLS based authentication to prevent
+impersanation attacks. Mutual TLS is expected to be widely used for
+node level identification between relays, especially within one
+organization. However, in some deployments mutual TLS may be possible
+to use also for end subscribers or original publishers. However, as
+only node level authentication is provided, what a particular
+identified node is allowed to do is not provided at TLS level.
+
+MOQT has functionality to carry Authorization tokens as message
+parameters when requests are sent. These tokens can be of type the
+service requires to meet its security goals which can be
+varied. Therefore, already two variants of authorization tokens have
+been defined for MOQT and more may be defined in the future. The
+current tokens are Privacy Pass Authentication for Media over QUIC
+{{PPA}} and Authentication scheme for MOQT using Common Access Tokens
+{{CAT}}.
+
+The tokens is expected to contain information about which actions and
+which resources the end point providing the token is authorized to
+perform and access. Relays when receiving requests will verify the
+token to determine that the request made is authorized.
+
+## Media Security  {#sec-media}
+
+The MOQT hop-by-hop model do provide hop by hop confidentiality and
+integrity protection of the media objects. However, due to the
+hop-by-hop model media objects unless additionally protected are
+subject to access by the relay as well as modification intentional as
+well as accidental.
+
+The media objects transported by MOQT in various tracks from various
+original publishers are subject to several considerations. The first
+is source authenticity, i.e. to know that the received media objects
+are what the original publisher actually published. The information
+needing to be source authenticated is not only the encoded media
+itself, but also some meta data. For example timestamps are cruical to
+understand where on the timeline this media fragment belongs.
+
+The second aspect is content confidentiality, i.e. how to prevent the
+relays from having access to the media content itself and minimize what
+the relay can deduce about the content. Media object
+sizes and traffic patterns do enable some analysis of the
+content. Also the track namespace and track name is possible to
+analyze and also correlate between end subscribers by relays.
+
+The end-to-end media security are handled by mechanisms external to this
+specification. They need to provide source authenticity and
+confidentiality. MOQT's media object model do enable both the media
+data itself as well as media object headers to be confidentiality and
+integrity protected, as well a supporting a class of visible to relay
+headers that are integrity protected but not encrypted.
+
+Current proposals for media security include:
+ - An E2EE scheme based on SFRAME: {{I-D.jennings-moq-secure-objects}}.
 
 ## Resource Exhaustion
 
