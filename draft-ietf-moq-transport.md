@@ -2557,7 +2557,7 @@ SUBSCRIBE Message {
   Type (vi64) = 0x3,
   Length (16),
   Request ID (vi64),
-  Required Request ID (vi64),
+  Required Request ID Delta (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -2569,7 +2569,7 @@ SUBSCRIBE Message {
 
 * Request ID: See {{request-id}}.
 
-* Required Request ID: See {{required-request-id}}.
+* Required Request ID Delta: See {{required-request-id}}.
 
 * Track Namespace: Identifies the namespace of the track as defined in
   ({{track-name}}).
@@ -2640,7 +2640,7 @@ REQUEST_UPDATE Message {
   Type (vi64) = 0x2,
   Length (16),
   Request ID (vi64),
-  Required Request ID (vi64),
+  Required Request ID Delta (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -2649,7 +2649,7 @@ REQUEST_UPDATE Message {
 
 * Request ID: See {{request-id}}.
 
-* Required Request ID: See {{required-request-id}}.
+* Required Request ID Delta: See {{required-request-id}}.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -2685,7 +2685,7 @@ PUBLISH Message {
   Type (vi64) = 0x1D,
   Length (16),
   Request ID (vi64),
-  Required Request ID (vi64),
+  Required Request ID Delta (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -2699,7 +2699,7 @@ PUBLISH Message {
 
 * Request ID: See {{request-id}}.
 
-* Required Request ID: See {{required-request-id}}.
+* Required Request ID Delta: See {{required-request-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in ({{track-name}})
 
@@ -2965,7 +2965,7 @@ FETCH Message {
   Type (vi64) = 0x16,
   Length (16),
   Request ID (vi64),
-  Required Request ID (vi64),
+  Required Request ID Delta (vi64),
   Fetch Type (vi64),
   [Standalone (Standalone Fetch),]
   [Joining (Joining Fetch),]
@@ -2977,7 +2977,7 @@ FETCH Message {
 
 * Request ID: See {{request-id}}.
 
-* Required Request ID: See {{required-request-id}}.
+* Required Request ID Delta: See {{required-request-id}}.
 
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
@@ -3119,7 +3119,7 @@ PUBLISH_NAMESPACE Message {
   Type (vi64) = 0x6,
   Length (16),
   Request ID (vi64),
-  Required Request ID (vi64),
+  Required Request ID Delta (vi64),
   Track Namespace (..),
   Number of Parameters (vi64),
   Parameters (..) ...
@@ -3129,7 +3129,7 @@ PUBLISH_NAMESPACE Message {
 
 * Request ID: See {{request-id}}.
 
-* Required Request ID: See {{required-request-id}}.
+* Required Request ID Delta: See {{required-request-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in
   {{track-name}}.
@@ -3190,7 +3190,7 @@ SUBSCRIBE_NAMESPACE Message {
   Type (vi64) = 0x11,
   Length (16),
   Request ID (vi64),
-  Required Request ID (vi64),
+  Required Request ID Delta (vi64),
   Track Namespace Prefix (..),
   Subscribe Options (vi64),
   Number of Parameters (vi64),
@@ -3201,7 +3201,7 @@ SUBSCRIBE_NAMESPACE Message {
 
 * Request ID: See {{request-id}}.
 
-* Required Request ID: See {{required-request-id}}.
+* Required Request ID Delta: See {{required-request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
   {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
