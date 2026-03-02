@@ -800,7 +800,7 @@ the draft number to "moqt-". For example, draft-ietf-moq-transport-13
 would be identified as "moqt-13".
 
 Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
-negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
+negotiation in the SETUP messages.
 
 ### WebTransport
 
@@ -849,11 +849,12 @@ Extensions can define new Message types, new Parameters, or new framing for
 Data Streams and Datagrams.
 
 The client and server MUST include all Setup Options {{setup-options}}
-required for the negotiated MOQT version in CLIENT_SETUP and SERVER_SETUP.
+required for the negotiated MOQT version in SETUP.
 
-Clients request the use of extensions by specifying Parameters in CLIENT_SETUP.
-The Server responds with Parameters in the SERVER_SETUP to indicate any
-extensions it supports.
+Each endpoint declares the extensions it supports and provides any initial
+values required by those extensions as Setup Options in SETUP. Once an endpoint
+has both sent and received SETUP messages, it determines the set of negotiated
+extensions.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
@@ -861,12 +862,14 @@ can be used.
 
 ## Session initialization {#session-init}
 
-The first stream opened is a client-initiated bidirectional control stream where
-the endpoints exchange Setup messages ({{message-setup}}), followed by other
-messages defined in {{message}}. The control stream begins with a single
-CLIENT_SETUP message.
+MOQT uses a pair of unidirectional streams for creating the session and
+exchanging control messages. Each peer opens one control stream beginning with
+a SETUP message. Using a pair of unidirectional streams rather than a single
+bidirectional stream allows either peer to send data as soon as it is able.
+Depending on whether 0-RTT is available on the QUIC connection, either client or
+server might be able to send stream data first.
 
-In addition to the control stream, this specification uses bidirectional streams
+In addition to the control streams, this specification uses bidirectional streams
 to carry requests.  A request stream begins with one of these six message types:
 TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE, and
 SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT
@@ -874,14 +877,14 @@ begin with any other message type unless negotiated. If they do, the peer MUST
 close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
 streams.
 
-A unidirectional stream containing Objects or bidirectional stream(s) beginning
-with a message other than CLIENT_SETUP could arrive prior to the control stream,
-in which case the stream data SHOULD be buffered until the control stream arrives
-and setup is complete. If an implementation does not want to buffer or if
-the message type is not supported, it MAY reset such bidirectional streams
-before the session and control streams are established.
+Unidirectional streams containing Objects or bidirectional stream(s) beginning
+with a request message could arrive prior to the control streams, in which case
+the data SHOULD be buffered until both control streams arrive and setup is
+complete. If an implementation does not want to buffer or if the message type is
+not supported, it MAY reset such bidirectional streams before the session and
+control streams are established.
 
-The control stream MUST NOT be closed at the underlying transport layer during the
+A control stream MUST NOT be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
 `PROTOCOL_VIOLATION`.
 
@@ -898,6 +901,25 @@ STOP_SENDING.
 When an endpoint rejects a request without performing any application processing,
 it SHOULD send a REQUEST_ERROR and FIN the stream.
 
+## Unidirectional Stream Types {#stream-types}
+
+All unidirectional MOQT streams start with a variable-length integer indicating
+the type of the stream.
+
+|-------------|-------------------------------------------------|
+| ID          | Type                                            |
+|------------:|:------------------------------------------------|
+| 0x05        | FETCH_HEADER  ({{fetch-header}})                |
+|-------------|-------------------------------------------------|
+| 0x10-0x1D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
+|-------------|-------------------------------------------------|
+| 0x2F00      | SETUP ({{message-setup}})                       |
+|-------------|-------------------------------------------------|
+
+An endpoint that receives an unknown stream type MUST close the session.
+
+Control streams (SETUP) are described in {{session-init}}.
+Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
 
 ## Termination  {#session-termination}
 
@@ -1502,7 +1524,7 @@ priority Objects if it expects higher priority Objects will be available to send
 in the near future or it wants to reserve some bandwidth for control messages.
 
 Given the critical nature of control messages and their relatively
-small size, the control stream SHOULD be prioritized highest, followed by the
+small size, the control streams SHOULD be prioritized highest, followed by the
 bidi request streams and then all subscribed Objects. Bidi request streams MAY be
 prioritized within themselves by Subscriber Priority if specified.
 
@@ -1766,7 +1788,7 @@ prioritize sending Objects based on {{priorities}}.
 
 # Control Messages {#message}
 
-MOQT uses bidirectional streams to exchange control messages, as
+MOQT uses a pair of unidirectional streams to exchange control messages, as
 defined in {{session-init}}.  Every message on a control or request stream is
 formatted as follows:
 
@@ -1790,9 +1812,11 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x41  | RESERVED (SERVER_SETUP for versions <= 10)          |
 |-------|-----------------------------------------------------|
-| 0x20  | CLIENT_SETUP ({{message-setup}})                    |
+| 0x20  | RESERVED (CLIENT_SETUP in versions <= 16)           |
 |-------|-----------------------------------------------------|
-| 0x21  | SERVER_SETUP ({{message-setup}})                    |
+| 0x21  | RESERVED (SERVER_SETUP in versions <= 16)           |
+|-------|-----------------------------------------------------|
+| 0x2F00| SETUP ({{message-setup}})                          |
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
@@ -1987,7 +2011,7 @@ USE_VALUE (0x3):
 : There is no Alias and there is a Type and Value. Use the Token Value as
 provided. The Token Value may be discarded after processing.
 
-If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a CLIENT_SETUP
+If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
 message, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 * Token Alias - a Session-specific integer identifier that references a Token
@@ -2255,33 +2279,29 @@ to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
 After sending a NEW_GROUP_REQUEST upstream, the request is considered
 outstanding until the Largest Group increases.
 
-## CLIENT_SETUP and SERVER_SETUP {#message-setup}
+## SETUP {#message-setup}
 
-The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
-by the client and the server; they allow the endpoints to agree on the initial
-configuration before any control messages are exchanged. The messages contain
-a sequence of key-value pairs called Setup Options; the semantics and format
-of which can vary based on whether the client or server is sending.  To ensure
-future extensibility of MOQT, endpoints MUST ignore unknown Setup Options.
+The `SETUP` message is the first message each endpoint sends on its control
+stream (see {{session-init}}); it allows the endpoints to agree on the initial
+configuration before any other control messages are exchanged. An endpoint that
+is not offering extensions which modify control message semantics MAY pipeline
+other control messages after SETUP without waiting for the peer's SETUP.
 
-The wire format of the Setup messages are as follows:
+The messages contain a sequence of key-value pairs called Setup Options; the
+semantics and format of which can vary based on whether the client or server is
+sending.  To ensure future extensibility of MOQT, endpoints MUST ignore unknown
+Setup Options.
+
+The wire format of the Setup message is as follows:
 
 ~~~
-CLIENT_SETUP Message {
-  Type (vi64) = 0x20,
+SETUP Message {
+  Type (vi64) = 0x2F00,
   Length (16),
-  Number of Setup Options (vi64),
-  Setup Options (..) ...,
-}
-
-SERVER_SETUP Message {
-  Type (vi64) = 0x21,
-  Length (16),
-  Number of Setup Options (vi64),
   Setup Options (..) ...,
 }
 ~~~
-{: #moq-transport-setup-format title="MOQT Setup Messages"}
+{: #moq-transport-setup-format title="MOQT SETUP Message"}
 
 Setup Options are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
 Setup Options use a namespace that is constant across all MOQT versions,
@@ -2344,15 +2364,16 @@ initiation.
 
 The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is functionally
 equivalent to the AUTHORIZATION TOKEN message parameter, see {{authorization-token}}.
-The endpoint can specify one or more tokens in CLIENT_SETUP or SERVER_SETUP
+The endpoint can specify one or more tokens in SETUP
 that the peer can use to authorize MOQT session establishment.
 
-If a server receives an AUTHORIZATION TOKEN option in CLIENT_SETUP with Alias
+If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
 the session with `AUTH_TOKEN_CACHE_OVERFLOW`.  Instead, it MUST treat the
-option as Alias Type USE_VALUE.  A client MUST handle registration failures
+option as Alias Type USE_VALUE.  Since each endpoint's SETUP may be sent before
+the peer's SETUP is received, the sender MUST handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
-MAX_AUTH_TOKEN_CACHE_SIZE option in SERVER_SETUP (or the default value of 0).
+peer's MAX_AUTH_TOKEN_CACHE_SIZE option in SETUP (or the default value of 0).
 
 #### MOQT IMPLEMENTATION {#moqt-implementation}
 
@@ -3292,22 +3313,13 @@ PUBLISH_BLOCKED Message {
 A publisher sends Objects matching a subscription on Data Streams or Datagrams
 and sends Objects matching a FETCH request on one Data Stream.
 
-All unidirectional MOQT streams start with a variable-length integer indicating
-the type of the stream in question.
-
-|-------------|-------------------------------------------------|
-| ID          | Type                                            |
-|------------:|:------------------------------------------------|
-| 0x10-0x1D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
-|-------------|-------------------------------------------------|
-| 0x05        | FETCH_HEADER  ({{fetch-header}})                |
-|-------------|-------------------------------------------------|
+Unidirectional stream types are defined in {{stream-types}}. Data streams
+use SUBGROUP_HEADER or FETCH_HEADER types.
 
 All MOQT datagrams start with a variable-length integer indicating the type of
 the datagram.  See {{object-datagram}}.
 
-An endpoint that receives an unknown stream or datagram type MUST close the
-session.
+An endpoint that receives an unknown datagram type MUST close the session.
 
 Every Object has a 'Object Forwarding Preference' and the Original Publisher
 MAY use both Subgroups and Datagrams within a Group or Track.
@@ -3513,7 +3525,7 @@ Header field values.
 
 ### Stream Cancellation
 
-Streams aside from the control stream MAY be canceled due to congestion
+Streams aside from the control streams MAY be canceled due to congestion
 or other reasons by either the publisher or subscriber. Early termination of a
 unidirectional stream does not affect the MoQ application state, and therefore has
 no effect on outstanding subscriptions. Termination of a bidi request stream
@@ -3531,8 +3543,8 @@ If an endpoint receives a subgroup with an unknown Track Alias, it MAY abandon
 the stream, or choose to buffer it for a brief period to handle reordering with
 the control message that establishes the Track Alias.  The endpoint MAY withhold
 stream flow control beyond the SUBGROUP_HEADER until the Track Alias has been
-established.  To prevent deadlocks, the publisher MUST allocate connection flow
-control to the control stream before allocating it any data streams. Otherwise,
+established.  To prevent deadlocks, endpoints MUST allocate connection flow
+control to the control streams before allocating it to any data streams. Otherwise,
 a receiver might wait for a control message containing a Track Alias to release
 flow control, while the sender waits for flow control to send the message.
 
