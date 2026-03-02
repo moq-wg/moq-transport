@@ -571,7 +571,7 @@ by doing a Fetch upstream, if necessary.
 
 Applications that cannot produce Group IDs that increase with time are limited
 to the subset of MOQT that does not compare group IDs. Subscribers to these
-Tracks SHOULD NOT use range filters which span multiple Groups in FETCH or
+Tracks SHOULD NOT use Location filters which span multiple Groups in FETCH or
 SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so they could have
 an unexpected delivery order if Group IDs do not increase with time.
 
@@ -1182,27 +1182,27 @@ A REQUEST_ERROR indicates no objects will be delivered, and both endpoints can
 immediately destroy relevant state. Objects MUST NOT be sent for requests that
 end with an error.
 
-### Subscription Filters {#subscription-filters}
+### Subscription Location Filters {#subscription-filters}
 
-Subscribers can specify a filter on a subscription indicating to the publisher
+Subscribers can specify a Location filter on a subscription indicating to the publisher
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.
 
-All filters have a Start Location and an optional End Group Delta.  Only objects
+All Location filters have a Start Location and an optional End Group Delta.  Only objects
 published or received via a subscription having Locations greater than or
 equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.
 
-Some filters are defined to be relative to the `Largest Object`. The `Largest
+Some Location filters are defined to be relative to the `Largest Object`. The `Largest
 Object` is the Object with the largest Location ({{location-structure}}) in the
 Track from the perspective of the publisher processing the message. Largest
 Object updates when the first byte of an Object with a Location larger than the
 previous value is published or received through a subscription.
 
-A Subscription Filter has the following structure:
+A Subscription Location Filter has the following structure:
 
 ~~~
-Subscription Filter {
+Subscription Location Filter {
   Filter Type (vi64),
   [Start Location (Location),]
   [End Group Delta (vi64),]
@@ -1240,6 +1240,49 @@ delivered will the Group ID in 'Start Location' plus the 'End Group Delta'.
 
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
+
+### Range Filters
+
+Range Filters are parameters in subscriptions or fetches that tell a publisher
+to filter tracks and objects according to subscriber criteria which are
+allowed ranges of integer values in Track and Object Properties and other
+object header fields (Subgroup ID, Object ID, and Publisher Priority).
+
+There are four Range Filter types, with odd values between 0x25-0x2B
+(length prefixed), with similar structures and behavior as summarized below.
+
+~~~
+SUBGROUP_FILTER { Type=0x25, Length, Range... }
+  OBJECT_FILTER { Type=0x26, Length, Range... }
+PRIORITY_FILTER { Type=0x27, Length, Range... }
+PROPERTY_FILTER { Type=0x28, Length, Property Type, Range... }
+          Range { Start (..), [End (..)] }
+~~~
+
+Range Filters use a common Range structure of Start and End values, delta encoded
+from the prior End and Start values, respectively, or from 0 if no prior value.
+The final End in a sequence of Ranges MAY be omitted to indicate no end.
+
+These parameters MAY appear in a FETCH, SUBSCRIBE, SUBSCRIBE_NAMESPACE,
+PUBLISH_OK, or REQUEST_UPDATE (from a subscriber) message.
+
+A filter parameter with zero length indicates no filter, which can
+be used in REQUEST_UPDATE to remove the filter.  If a filter parameter
+is omitted from REQUEST_UPDATE, the value is unchanged.  If omitted
+from other messages, the default is no filter.
+
+Range Filters are only allowed if the setup option MAX_FILTER_RANGES
+is non-zero, which limits the total number of Ranges allowed concurrently
+in all Range Filter parameters for a given subscription or fetch.
+If this limit is exceeded, an endpoint MUST close the session with a
+`PROTOCOL_VIOLATION`.
+
+### Combining Filters
+
+All filter types are combined using logical "and" operations
+to further restrict which tracks and objects pass all filter criteria.
+This includes all Range Filters {{range-filters}}, Subscription Location
+Filters {{subscription-filters}}, and Track Filters {{track-filters}}.
 
 ### Joining an Ongoing Track
 
@@ -1389,6 +1432,82 @@ has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
 namespace for that track, it SHOULD only request it from the senders of those
 PUBLISH_NAMESPACE messages.
 
+# Filtering Namespaces
+
+Range Filters {{range-filters}} and Track Filters {{track-filters}} can be used
+in SUBSCRIBE_NAMESPACE (or REQUEST_UPDATE for SUBSCRIBE_NAMESPACE) to filter
+tracks and objects in a namespace.
+
+### Track Filters
+
+The TRACK_FILTER parameter {{track-filter}} selects a specified number of tracks
+within a namespace with the highest Property Values for a specified Track or
+Object Property Type which MUST be even (single integer value).
+
+It is encoded with a Length prefix which MAY be zero to indicate no filter,
+which can be used to remove the filter in REQUEST_UPDATE.
+
+~~~
+TRACK_FILTER Parameter {
+  Type (vi64) = 0x29,
+  Length (vi64),
+  Property Type (vi64),
+  MaxTracksSelected (vi64),
+  MaxTracksDeselected (vi64),
+  MaxTimeSelected (vi64)
+}
+~~~
+
+MaxTracksSelected limits the number of tracks selected concurrently,
+which MUST NOT exceed the MAX_TRACKS_SELECTED setup option value sent
+by the peer.
+
+MaxTracksDeselected limits the number of tracks to keep in a list
+of deselected tracks, which MUST NOT exceed the MAX_TRACKS_DESELECTED
+setup option value sent by the peer.
+
+MaxTimeSelected limits the number of milliseconds a selected track
+can remain selected without publishing an object with Property Type.
+
+#### Track Selection
+
+A track is selected if it publishes an object with the top N highest
+value for Property Type, where N = MaxTracksSelected.  The publisher
+MUST send a PUBLISH message for each newly selected track.  For tracks
+with the same value, the earliest delivered object wins the tie
+breaker, so a selected track remains selected until another track
+delivers a higher value that drops it from the top N, or
+MaxTimeSelected elapses before the track delivers an object that remains
+in the top N, either of which deselect the track.  The last M deselected
+tracks are kept in a list, where M = MaxTracksDeselected, to avoid more
+PUBLISH messages in case a deselected track is reselected.  When a track
+drops from this list because it is older than the last M, the publisher
+MUST send a PUBLISH_DONE message to avoid excess old subscription state.
+If a track is reselected after this, it is considered newly selected
+so the publisher MUST send a PUBLISH message again.
+Endpoints should set MaxTracksDeselected and MAX_TRACKS_DESELECTED
+high enough to avoid excessive control messages but low enough to
+avoid excessive old subscription state.
+
+If the TRACK_FILTER parameter is updated, the publisher evaluates the
+new filter to determine the new list of top N selected and last M deselected
+tracks, and follows the same rules above for newly selected tracks in the
+top N (send PUBLISH) and old deselected tracks that drop from the last M
+(send PUBLISH_DONE).
+
+If a track filter for a namespace overlaps with a direct subscription
+to a track in the same namespace, the publisher MUST deliver the
+direct track subscription unaltered by track filter actions.
+The direct track subscription MAY be in the top N or last M lists,
+but MUST NOT stop object delivery upon track filter deselection nor
+send PUBLISH_DONE upon dropping from the last M list.
+
+The track filter evaluates both Track and Object Properties.
+If a track has a Track Property of the specified Property Type, then its
+PUBLISH message must pass the filter, and each of its published objects
+lacking that Property Type are evaluated as if they included it.
+If the PUBLISH message failed to pass the filter, no objects from
+that track can be delivered.
 
 # Priorities {#priorities}
 
@@ -2125,14 +2244,58 @@ close the session with `PROTOCOL_VIOLATION`.
 If omitted from SUBSCRIBE, the publisher's preference from
 the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 
-### SUBSCRIPTION FILTER Parameter {#subscription-filter}
+### SUBSCRIPTION LOCATION FILTER Parameter {#subscription-filter}
 
-The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
+The SUBSCRIPTION_LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
 encoding. It MAY appear in a SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a
-subscription) message. It is a Subscription Filter (see {{subscription-filters}}).
+subscription) message. It is a Subscription Location Filter (see {{subscription-filters}}).
 
 If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
+
+### SUBGROUP FILTER
+
+The SUBGROUP_FILTER parameter (Type 0x25) selects objects with specified
+Ranges of Subgroup ID.  It is a Length (vi64) prefixed sequence of
+Subgroup ID (vi64) Start/End inclusive Range pairs.  See {{range-filters}}.
+
+### OBJECT FILTER
+
+The OBJECT_FILTER parameter (Type 0x26) selects objects with specified
+Ranges of Object ID.  It is a Length (vi64) prefixed sequence of
+Object ID (vi64) Start/End inclusive Range pairs.  See {{range-filters}}.
+
+### PRIORITY FILTER
+
+The PRIORITY_FILTER parameter (Type 0x27) selects objects with specified
+Ranges of Publisher Priority.  It is a Length (vi64) prefixed sequence of
+Publisher Priority (8 bit) Start/End inclusive Range pairs.  See {{range-filters}}.
+
+### PROPERTY FILTER
+
+The PROPERTY_FILTER parameter (Type 0x28) selects tracks or objects with
+specified Ranges of Property Value for a specified Track or Object Property
+Type which MUST be even (single integer Value).  It is a Length (vi64)
+prefixed sequence of Property Type (vi64) followed by Property Value (vi64)
+Start/End inclusive Range pairs.  See {{range-filters}}.
+Range MAY be omitted to indicate no filter for the specified Property Type.
+Length MAY be zero to indicate no filter for all Property Types.
+This parameter MAY be repeated within a message with different values for
+Property Type.
+
+If a track has a Track Property of the specified Property Type, then its
+PUBLISH message must pass the filter, and each of its published objects
+lacking that Property Type are evaluated as if they included it.
+If the PUBLISH message failed to pass the filter, no objects from
+that track can be delivered.
+
+### TRACK FILTER
+
+The TRACK_FILTER parameter (Type=0x29) MAY appear in a SUBSCRIBE_NAMESPACE
+or REQUEST_UPDATE (for SUBSCRIBE_NAMESPACE) message. It selects a specified
+number of tracks within a namespace with the highest Property Values for a
+specified Track or Object Property Type which MUST be even (single integer value).
+See {{track-filters}} and {{max-tracks-selected}}.
 
 ### EXPIRES Parameter {#expires}
 
@@ -2339,6 +2502,28 @@ advertising or other nonessential information. Implementations SHOULD NOT use
 the identifiers of other implementations to declare compatibility, as this
 undermines the usefulness of implementation identification for debugging.
 
+#### MAX FILTER RANGES
+
+The MAX_FILTER_RANGES option (Type 0x06) limits the peer's total number of Ranges
+(Start/End pairs) allowed concurrently in all Range filter {{range-filters}}
+parameters for a given subscription or fetch.  The default value is 0, so if not
+specified, the peer MUST NOT send any such filter parameters.  If this limit is
+exceeded, an endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
+
+#### MAX TRACKS SELECTED
+
+The MAX_TRACKS_SELECTED option (Type 0x08) limits the peer's value of
+MaxTracksSelected in the TRACK_FILTER {{track-filter}} parameter.
+The default value is 0, so if not specified, the peer MUST NOT send any
+TRACK_FILTER parameter.  If this limit is exceeded, an endpoint MUST close the
+session with a `PROTOCOL_VIOLATION`.
+
+#### MAX TRACKS DESELECTED
+
+The MAX_TRACKS_DESELECTED option (Type 0x0A) limits the peer's value of
+MaxTracksDeselected in the TRACK_FILTER {{track-filter}} parameter.
+The default value is 0.  If this limit is exceeded, an endpoint MUST close the
+session with a `PROTOCOL_VIOLATION`.
 
 ## GOAWAY {#message-goaway}
 
@@ -2601,7 +2786,7 @@ On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
 specified, and start sending objects.
 
-If the publisher cannot satisfy the requested Subscription Filter (see
+If the publisher cannot satisfy the requested Subscription Location Filter (see
 {{subscription-filter}}) or if the entire End Group has already been published
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
@@ -2683,7 +2868,7 @@ REQUEST_UPDATE Message {
 
 ### Updating Subscriptions
 
-When a subscriber decreases the Start Location of the Subscription Filter
+When a subscriber decreases the Start Location of the Subscription Location Filter
 (see {{subscription-filters}}), the Start Location can be smaller than the Track's
 Largest Location, similar to a new Subscription. FETCH can be used to retrieve
 any necessary Objects smaller than the current Largest Location.
@@ -4364,6 +4549,11 @@ TODO: register the URI scheme and the ALPN
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
+| 0x25 | SUBGROUP_FILTER | {{subgroup-filter}} |
+| 0x26 | OBJECT_FILTER | {{object-filter}} |
+| 0x27 | PRIORITY_FILTER | {{priority-filter}} |
+| 0x28 | PROPERTY_FILTER | {{property-filter}} |
+| 0x29 | TRACK_FILTER | {{track-filter}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 
 * Message Parameters - List which params can be repeated in the table.
