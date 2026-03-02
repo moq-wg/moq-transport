@@ -759,7 +759,7 @@ use and will never be allocated by IANA in future MOQT specifications:
 * 0x38 to 0x3F (1-byte encoding): 8 code points for applications with
   tight space constraints
 * 0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including grease
-  {{grease})) for applications with moderate space constraints
+  {{grease}}) for applications with moderate space constraints
 
 Applications MAY use code points in these ranges without registration for
 format-specific metadata or other application-defined purposes. Relays that
@@ -1279,7 +1279,7 @@ AbsoluteRange (0x4): The filter Start Location and End Group are specified
 explicitly. The specified `Start Location` MAY be less than the `Largest Object`
 observed at the publisher. If the specified `End Group Delta` is zero, the
 remainder of that Group passes the filter. Otherwise, the last Group ID to be
-delivered will the Group ID in 'Start Location' plus the 'End Group Delta'.
+delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
 
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
@@ -1325,7 +1325,7 @@ The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
 FETCH.
 
 A subscriber keeps FETCH state until it cancels the request
-((see {{request-cancellation}})), receives REQUEST_ERROR, or receives a FIN or
+(see {{request-cancellation}}), receives REQUEST_ERROR, or receives a FIN or
 RESET_STREAM for the FETCH data stream. If the data stream is already open,
 the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
 data stream as well as the the bidi request stream. It MUST send STOP_SENDING
@@ -1882,8 +1882,9 @@ session with `INVALID_REQUEST_ID`.
 ## Required Request ID {#required-request-id}
 
 Every request message includes a Required Request ID Delta field
-that specifies a dependency on a prior request. The  Required Request ID
+that specifies a dependency on a prior request. The Required Request ID
 is computed as:
+
 ~~~
     Required Request ID = Request ID - (2 × Required Request ID
   Delta)
@@ -1925,7 +1926,7 @@ The encodings defined in this draft are:
   * Location: Two consecutive varints (Group, Object)
   * Length-prefixed: A varint length followed by that many bytes
 
-Message Parameters are only intended for the peer only and are not
+Message Parameters are intended for the peer only and are not
 forwarded by Relays, though relays can consider received parameter values when
 making a request.
 
@@ -2202,7 +2203,7 @@ The EXPIRES parameter (Parameter Type 0x8) is a varint. It MAY appear in
 SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
-or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
+or by cancelling the request (see {{request-cancellation}}).  This value is advisory and the sender
 can terminate the subscription prior to or after the expiry time.
 
 The receiver of the parameter can attempt to extend the subscription by sending
@@ -3292,7 +3293,7 @@ response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after the
 
 ~~~
 PUBLISH_BLOCKED Message {
-  Type (i) = 0xF,
+  Type (vi64) = 0xF,
   Length (16),
   Track Namespace Suffix (..),
   Track Name Length (vi64),
