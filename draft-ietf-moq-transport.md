@@ -4441,6 +4441,58 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 
 Issue and pull request numbers are listed with a leading octothorp.
 
+## Since draft-ietf-moq-transport-16
+
+**Session and Control Plane**
+
+* Change control stream from bidi to a pair of uni streams (#1510)
+* Collapse CLIENT_SETUP and SERVER_SETUP into a single SETUP message (#1510)
+* Move requests to bidirectional streams; remove cancel messages (#1389)
+* Remove MAX_REQUEST_ID/REQUESTS_BLOCKED (#1471)
+* New variable-length integer encoding (#1016)
+* Encode Message Parameters as Type-Value pairs (#1462)
+* Add GREASE for Setup Options, Properties, and error code registries (#1460)
+* Add RENDEZVOUS_TIMEOUT parameter for SUBSCRIBE (#1447)
+* Add PUBLISH_BLOCKED message for SUBSCRIBE_NAMESPACE flow control (#1452)
+* Add Timeout field to GOAWAY message (#1497)
+* Add GOING_AWAY to REQUEST_ERROR codes (#1434)
+* Add EXCESSIVE_LOAD error code (#1479)
+* Add NAMESPACE_TOO_LARGE error and stream reset for large namespaces (#1496)
+* Add TOO_FAR_BEHIND stream reset code (#1445)
+* Add REQUEST_UPDATE to list of REQUEST_ERROR causes (#1466)
+* Enforce REQUEST_OK/ERROR as first frame on the response stream (#1499)
+* Allow joining FETCH for PUBLISH and REQUEST_UPDATE with forward=1 (#1335)
+* Allow DELIVERY_TIMEOUT value of 0 to mean no timeout (#1450)
+* Allow zero-element namespaces (#1472)
+* Clarify EXPIRES parameter update mechanism (#1448)
+* Remove TRACK_STATUS from REQUEST_UPDATE (#1436)
+* Define how to use auth token cache safely with multiple streams (#1430)
+* Constrain encoding/parsing of track namespace and names (#1512)
+* Reserve Property type ranges for application-specific use (#1473)
+* Make EndGroup in Subscription Filters a delta (#1470)
+* Copy DELIVERY_TIMEOUT min requirement from parameter to property (#1427)
+
+**Data Plane Wire Format and Handling**
+
+* Clarify prior Object semantics after End of Range indicators in FETCH (#1513)
+* Clarify datagram status and properties cases (#1444)
+* Clarify Stream Count includes empty subgroups (#1449)
+* Clarify language for malformed tracks in a subgroup with END_OF_GROUP (#1464)
+* Properties can appear in mutable list or inside Immutable Properties (#1442)
+* Clarify immutable property preservation requirements (#1441)
+* Clarification for Track Alias uniqueness (#1418)
+
+**Notable Editorial Changes**
+
+* Rename Setup Parameters to Setup Options (#1461)
+* Rename Extension Headers to Properties (#1504)
+* Add security/privacy considerations for MOQT_IMPLEMENTATION (#1511)
+* Add editorial text on bandwidth probing techniques (#1477)
+* Explain idle connection handling (#1443)
+* Fix "SUBSCRIBE_NAMESPACE with short prefixes" (#1502)
+* Add generative AI disclosure per IRTF guidelines
+
+
 ## Since draft-ietf-moq-transport-15
 
 **Setup and Control Plane**
