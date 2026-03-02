@@ -1248,8 +1248,8 @@ to filter tracks and objects according to subscriber criteria which are
 allowed ranges of integer values in Track and Object Properties and other
 object header fields (Subgroup ID, Object ID, and Publisher Priority).
 
-There are four Range Filter types, with odd values between 0x25-0x2B
-(length prefixed), with similar structures and behavior as summarized below.
+There are four Range Filter parameter types, 0x25-0x28, each with a Length
+prefix and similar structures and behavior as summarized below.
 
 ~~~
 SUBGROUP_FILTER { Type=0x25, Length, Range... }
