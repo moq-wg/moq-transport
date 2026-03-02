@@ -1432,7 +1432,7 @@ has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
 namespace for that track, it SHOULD only request it from the senders of those
 PUBLISH_NAMESPACE messages.
 
-# Filtering Namespaces
+## Filtering Namespaces
 
 Range Filters {{range-filters}} and Track Filters {{track-filters}} can be used
 in SUBSCRIBE_NAMESPACE (or REQUEST_UPDATE for SUBSCRIBE_NAMESPACE) to filter
