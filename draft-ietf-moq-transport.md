@@ -759,7 +759,7 @@ use and will never be allocated by IANA in future MOQT specifications:
 * 0x38 to 0x3F (1-byte encoding): 8 code points for applications with
   tight space constraints
 * 0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including grease
-  {{grease})) for applications with moderate space constraints
+  {{grease}}) for applications with moderate space constraints
 
 Applications MAY use code points in these ranges without registration for
 format-specific metadata or other application-defined purposes. Relays that
@@ -1279,7 +1279,7 @@ AbsoluteRange (0x4): The filter Start Location and End Group are specified
 explicitly. The specified `Start Location` MAY be less than the `Largest Object`
 observed at the publisher. If the specified `End Group Delta` is zero, the
 remainder of that Group passes the filter. Otherwise, the last Group ID to be
-delivered will the Group ID in 'Start Location' plus the 'End Group Delta'.
+delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
 
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
@@ -1325,7 +1325,7 @@ The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
 FETCH.
 
 A subscriber keeps FETCH state until it cancels the request
-((see {{request-cancellation}})), receives REQUEST_ERROR, or receives a FIN or
+(see {{request-cancellation}}), receives REQUEST_ERROR, or receives a FIN or
 RESET_STREAM for the FETCH data stream. If the data stream is already open,
 the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
 data stream as well as the the bidi request stream. It MUST send STOP_SENDING
@@ -1882,8 +1882,9 @@ session with `INVALID_REQUEST_ID`.
 ## Required Request ID {#required-request-id}
 
 Every request message includes a Required Request ID Delta field
-that specifies a dependency on a prior request. The  Required Request ID
+that specifies a dependency on a prior request. The Required Request ID
 is computed as:
+
 ~~~
     Required Request ID = Request ID - (2 × Required Request ID
   Delta)
@@ -1925,7 +1926,7 @@ The encodings defined in this draft are:
   * Location: Two consecutive varints (Group, Object)
   * Length-prefixed: A varint length followed by that many bytes
 
-Message Parameters are only intended for the peer only and are not
+Message Parameters are intended for the peer only and are not
 forwarded by Relays, though relays can consider received parameter values when
 making a request.
 
@@ -2202,7 +2203,7 @@ The EXPIRES parameter (Parameter Type 0x8) is a varint. It MAY appear in
 SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
-or UNSUBSCRIBE, depending on its role.  This value is advisory and the sender
+or by cancelling the request (see {{request-cancellation}}).  This value is advisory and the sender
 can terminate the subscription prior to or after the expiry time.
 
 The receiver of the parameter can attempt to extend the subscription by sending
@@ -3292,7 +3293,7 @@ response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after the
 
 ~~~
 PUBLISH_BLOCKED Message {
-  Type (i) = 0xF,
+  Type (vi64) = 0xF,
   Length (16),
   Track Namespace Suffix (..),
   Track Name Length (vi64),
@@ -4439,6 +4440,58 @@ document. All AI-generated content was reviewed and approved by the editors.
 RFC Editor's Note: Please remove this section prior to publication of a final version of this document.
 
 Issue and pull request numbers are listed with a leading octothorp.
+
+## Since draft-ietf-moq-transport-16
+
+**Session and Control Plane**
+
+* Change control stream from bidi to a pair of uni streams (#1510)
+* Collapse CLIENT_SETUP and SERVER_SETUP into a single SETUP message (#1510)
+* Move requests to bidirectional streams; remove cancel messages (#1389)
+* Remove MAX_REQUEST_ID/REQUESTS_BLOCKED (#1471)
+* New variable-length integer encoding (#1016)
+* Encode Message Parameters as Type-Value pairs (#1462)
+* Add GREASE for Setup Options, Properties, and error code registries (#1460)
+* Add RENDEZVOUS_TIMEOUT parameter for SUBSCRIBE (#1447)
+* Add PUBLISH_BLOCKED message for SUBSCRIBE_NAMESPACE flow control (#1452)
+* Add Timeout field to GOAWAY message (#1497)
+* Add GOING_AWAY to REQUEST_ERROR codes (#1434)
+* Add EXCESSIVE_LOAD error code (#1479)
+* Add NAMESPACE_TOO_LARGE error and stream reset for large namespaces (#1496)
+* Add TOO_FAR_BEHIND stream reset code (#1445)
+* Add REQUEST_UPDATE to list of REQUEST_ERROR causes (#1466)
+* Enforce REQUEST_OK/ERROR as first frame on the response stream (#1499)
+* Allow joining FETCH for PUBLISH and REQUEST_UPDATE with forward=1 (#1335)
+* Allow DELIVERY_TIMEOUT value of 0 to mean no timeout (#1450)
+* Allow zero-element namespaces (#1472)
+* Clarify EXPIRES parameter update mechanism (#1448)
+* Remove TRACK_STATUS from REQUEST_UPDATE (#1436)
+* Define how to use auth token cache safely with multiple streams (#1430)
+* Constrain encoding/parsing of track namespace and names (#1512)
+* Reserve Property type ranges for application-specific use (#1473)
+* Make EndGroup in Subscription Filters a delta (#1470)
+* Copy DELIVERY_TIMEOUT min requirement from parameter to property (#1427)
+
+**Data Plane Wire Format and Handling**
+
+* Clarify prior Object semantics after End of Range indicators in FETCH (#1513)
+* Clarify datagram status and properties cases (#1444)
+* Clarify Stream Count includes empty subgroups (#1449)
+* Clarify language for malformed tracks in a subgroup with END_OF_GROUP (#1464)
+* Properties can appear in mutable list or inside Immutable Properties (#1442)
+* Clarify immutable property preservation requirements (#1441)
+* Clarification for Track Alias uniqueness (#1418)
+
+**Notable Editorial Changes**
+
+* Rename Setup Parameters to Setup Options (#1461)
+* Rename Extension Headers to Properties (#1504)
+* Add security/privacy considerations for MOQT_IMPLEMENTATION (#1511)
+* Add editorial text on bandwidth probing techniques (#1477)
+* Explain idle connection handling (#1443)
+* Fix "SUBSCRIBE_NAMESPACE with short prefixes" (#1502)
+* Add generative AI disclosure per IRTF guidelines
+
 
 ## Since draft-ietf-moq-transport-15
 
