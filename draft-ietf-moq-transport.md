@@ -1259,9 +1259,13 @@ PROPERTY_FILTER { Type=0x28, Length, Property Type, Range... }
           Range { Start (..), [End (..)] }
 ~~~
 
-Range Filters use a common Range structure of Start and End values, delta encoded
-from the prior End and Start values, respectively, or from 0 if no prior value.
+Each Range Filter is a Length (vi64) prefixed sequence of Start/End inclusive
+Range pairs. Start is delta encoded from the prior Range's End (or from 0
+for the first Range), and End is delta encoded from the current Range's Start.
 The final End in a sequence of Ranges MAY be omitted to indicate no end.
+For example, to express ranges 3-5 and 10-15: the first Start is 3
+(delta from 0), the first End is 2 (5 minus 3), the second Start is 5
+(10 minus 5), and the second End is 5 (15 minus 10).
 
 These parameters MAY appear in a FETCH, SUBSCRIBE, SUBSCRIBE_NAMESPACE,
 PUBLISH_OK, or REQUEST_UPDATE (from a subscriber) message.
@@ -1442,7 +1446,8 @@ tracks and objects in a namespace.
 
 The TRACK_FILTER parameter {{track-filter}} selects a specified number of tracks
 within a namespace with the highest Property Values for a specified Track or
-Object Property Type which MUST be even (single integer value).
+Object Property Type which MUST be even, i.e. a single integer value
+(see {{moq-key-value-pair}}).
 
 It is encoded with a Length prefix which MAY be zero to indicate no filter,
 which can be used to remove the filter in REQUEST_UPDATE.
@@ -1460,7 +1465,7 @@ TRACK_FILTER Parameter {
 
 MaxTracksSelected limits the number of tracks selected concurrently,
 which MUST NOT exceed the MAX_TRACKS_SELECTED setup option value sent
-by the peer.
+by the peer.  A value of 0 is a `PROTOCOL_VIOLATION`.
 
 MaxTracksDeselected limits the number of tracks to keep in a list
 of deselected tracks, which MUST NOT exceed the MAX_TRACKS_DESELECTED
@@ -1485,7 +1490,7 @@ drops from this list because it is older than the last M, the publisher
 MUST send a PUBLISH_DONE message to avoid excess old subscription state.
 If a track is reselected after this, it is considered newly selected
 so the publisher MUST send a PUBLISH message again.
-Endpoints should set MaxTracksDeselected and MAX_TRACKS_DESELECTED
+Endpoints SHOULD set MaxTracksDeselected and MAX_TRACKS_DESELECTED
 high enough to avoid excessive control messages but low enough to
 avoid excessive old subscription state.
 
@@ -1503,11 +1508,10 @@ but MUST NOT stop object delivery upon track filter deselection nor
 send PUBLISH_DONE upon dropping from the last M list.
 
 The track filter evaluates both Track and Object Properties.
-If a track has a Track Property of the specified Property Type, then its
-PUBLISH message must pass the filter, and each of its published objects
-lacking that Property Type are evaluated as if they included it.
-If the PUBLISH message failed to pass the filter, no objects from
-that track can be delivered.
+If a track has a Track Property of the specified Property Type, its value
+is used for filtering both the PUBLISH message and any Objects from that track
+that lack their own value for that Property Type.  If the Track Property value
+does not pass the filter, no Objects from that track are delivered.
 
 # Priorities {#priorities}
 
@@ -2256,45 +2260,46 @@ unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 ### SUBGROUP FILTER
 
 The SUBGROUP_FILTER parameter (Type 0x25) selects objects with specified
-Ranges of Subgroup ID.  It is a Length (vi64) prefixed sequence of
-Subgroup ID (vi64) Start/End inclusive Range pairs.  See {{range-filters}}.
+Ranges of Subgroup ID.  See {{range-filters}}.
 
 ### OBJECT FILTER
 
 The OBJECT_FILTER parameter (Type 0x26) selects objects with specified
-Ranges of Object ID.  It is a Length (vi64) prefixed sequence of
-Object ID (vi64) Start/End inclusive Range pairs.  See {{range-filters}}.
+Ranges of Object ID.  See {{range-filters}}.
 
 ### PRIORITY FILTER
 
 The PRIORITY_FILTER parameter (Type 0x27) selects objects with specified
-Ranges of Publisher Priority.  It is a Length (vi64) prefixed sequence of
-Publisher Priority (8 bit) Start/End inclusive Range pairs.  See {{range-filters}}.
+Ranges of Publisher Priority.  See {{range-filters}}.
+If a decoded value exceeds 255, the endpoint MUST close the session with a
+`PROTOCOL_VIOLATION` since Publisher Priority is an 8-bit field.
 
 ### PROPERTY FILTER
 
 The PROPERTY_FILTER parameter (Type 0x28) selects tracks or objects with
 specified Ranges of Property Value for a specified Track or Object Property
-Type which MUST be even (single integer Value).  It is a Length (vi64)
-prefixed sequence of Property Type (vi64) followed by Property Value (vi64)
-Start/End inclusive Range pairs.  See {{range-filters}}.
+Type which MUST be even, i.e. a single integer value
+(see {{moq-key-value-pair}}).  The Length prefixed sequence contains
+Property Type followed by Property Value Range pairs.
+See {{range-filters}}.
 Range MAY be omitted to indicate no filter for the specified Property Type.
 Length MAY be zero to indicate no filter for all Property Types.
 This parameter MAY be repeated within a message with different values for
-Property Type.
+Property Type.  If the Property Type is odd, the endpoint MUST close the
+session with a `PROTOCOL_VIOLATION`.
 
-If a track has a Track Property of the specified Property Type, then its
-PUBLISH message must pass the filter, and each of its published objects
-lacking that Property Type are evaluated as if they included it.
-If the PUBLISH message failed to pass the filter, no objects from
-that track can be delivered.
+If a track has a Track Property of the specified Property Type, its value
+is used for filtering both the PUBLISH message and any Objects from that track
+that lack their own value for that Property Type.  If the Track Property value
+does not pass the filter, no Objects from that track are delivered.
 
 ### TRACK FILTER
 
 The TRACK_FILTER parameter (Type=0x29) MAY appear in a SUBSCRIBE_NAMESPACE
 or REQUEST_UPDATE (for SUBSCRIBE_NAMESPACE) message. It selects a specified
 number of tracks within a namespace with the highest Property Values for a
-specified Track or Object Property Type which MUST be even (single integer value).
+specified Track or Object Property Type which MUST be even, i.e. a single
+integer value (see {{moq-key-value-pair}}).
 See {{track-filters}} and {{max-tracks-selected}}.
 
 ### EXPIRES Parameter {#expires}
@@ -4547,7 +4552,7 @@ TODO: register the URI scheme and the ALPN
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
-| 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
+| 0x21 | SUBSCRIPTION_LOCATION_FILTER | {{subscription-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x25 | SUBGROUP_FILTER | {{subgroup-filter}} |
 | 0x26 | OBJECT_FILTER | {{object-filter}} |
