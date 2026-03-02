@@ -3519,7 +3519,7 @@ unidirectional stream does not affect the MoQ application state, and therefore h
 no effect on outstanding subscriptions. Termination of a bidi request stream
 terminates the Subscription, Fetch, Track Status, Publish Namespace, or Subscribe Namespace
 request. When possible, Publishers SHOULD send a PUBLISH_DONE when terminating a
-subscription instead of abruptly terminating the stream.
+subscription instead of abruptly terminating the associated control stream.
 
 ### Subgroup Header
 
