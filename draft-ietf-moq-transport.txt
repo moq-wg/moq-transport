@@ -223,12 +223,13 @@ Table of Contents
      Normative References
      Informative References
    Appendix A.  Change Log
-     A.1.  Since draft-ietf-moq-transport-15
-     A.2.  Since draft-ietf-moq-transport-14
-     A.3.  Since draft-ietf-moq-transport-13
-     A.4.  Since draft-ietf-moq-transport-12
-     A.5.  Since draft-ietf-moq-transport-11
-     A.6.  Since draft-ietf-moq-transport-10
+     A.1.  Since draft-ietf-moq-transport-16
+     A.2.  Since draft-ietf-moq-transport-15
+     A.3.  Since draft-ietf-moq-transport-14
+     A.4.  Since draft-ietf-moq-transport-13
+     A.5.  Since draft-ietf-moq-transport-12
+     A.6.  Since draft-ietf-moq-transport-11
+     A.7.  Since draft-ietf-moq-transport-10
    Authors' Addresses
 
 1.  Introduction
@@ -943,7 +944,7 @@ Table of Contents
       with tight space constraints
 
    *  0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including
-      grease Section 13)) for applications with moderate space
+      grease Section 13) for applications with moderate space
       constraints
 
    Applications MAY use code points in these ranges without registration
@@ -1474,8 +1475,8 @@ Table of Contents
    specified explicitly.  The specified Start Location MAY be less than
    the Largest Object observed at the publisher.  If the specified End
    Group Delta is zero, the remainder of that Group passes the filter.
-   Otherwise, the last Group ID to be delivered will the Group ID in
-   'Start Location' plus the 'End Group Delta'.
+   Otherwise, the last Group ID to be delivered will be the Group ID in
+   Start Location plus the End Group Delta.
 
    An endpoint that receives a filter type other than the above MUST
    close the session with PROTOCOL_VIOLATION.
@@ -1523,8 +1524,8 @@ Table of Contents
    The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in
    response to a FETCH.
 
-   A subscriber keeps FETCH state until it cancels the request ((see
-   Section 3.3.1)), receives REQUEST_ERROR, or receives a FIN or
+   A subscriber keeps FETCH state until it cancels the request (see
+   Section 3.3.1), receives REQUEST_ERROR, or receives a FIN or
    RESET_STREAM for the FETCH data stream.  If the data stream is
    already open, the subscriber wishing to cancel the FETCH MAY send
    STOP_SENDING for the data stream as well as the the bidi request
@@ -2134,8 +2135,10 @@ Table of Contents
 
    Every request message includes a Required Request ID Delta field that
    specifies a dependency on a prior request.  The Required Request ID
-   is computed as: ~~~ Required Request ID = Request ID - (2 × Required
-   Request ID Delta) ~~~
+   is computed as:
+
+       Required Request ID = Request ID - (2 × Required Request ID
+     Delta)
 
    A Required Request ID Delta of 0 indicates no dependency.  When a
    dependency exists, the receiver MUST deliver the referenced request
@@ -2177,7 +2180,7 @@ Table of Contents
 
       -  Length-prefixed: A varint length followed by that many bytes
 
-   Message Parameters are only intended for the peer only and are not
+   Message Parameters are intended for the peer only and are not
    forwarded by Relays, though relays can consider received parameter
    values when making a request.
 
@@ -2473,9 +2476,9 @@ Table of Contents
    appear in SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK.  It
    encodes the time in milliseconds after which the sender of the
    parameter will terminate the subscription.  The sender will terminate
-   the subscription using PUBLISH_DONE or UNSUBSCRIBE, depending on its
-   role.  This value is advisory and the sender can terminate the
-   subscription prior to or after the expiry time.
+   the subscription using PUBLISH_DONE or by cancelling the request (see
+   Section 3.3.1).  This value is advisory and the sender can terminate
+   the subscription prior to or after the expiry time.
 
    The receiver of the parameter can attempt to extend the subscription
    by sending a REQUEST_UPDATE with 0 or more updated parameters.  If
@@ -3614,7 +3617,7 @@ Table of Contents
    included in the 'Track Namespace Suffix'.
 
    PUBLISH_BLOCKED Message {
-     Type (i) = 0xF,
+     Type (vi64) = 0xF,
      Length (16),
      Track Namespace Suffix (..),
      Track Name Length (vi64),
@@ -5107,7 +5110,108 @@ Appendix A.  Change Log
 
    Issue and pull request numbers are listed with a leading octothorp.
 
-A.1.  Since draft-ietf-moq-transport-15
+A.1.  Since draft-ietf-moq-transport-16
+
+   *Session and Control Plane*
+
+   *  Change control stream from bidi to a pair of uni streams (#1510)
+
+   *  Collapse CLIENT_SETUP and SERVER_SETUP into a single SETUP message
+      (#1510)
+
+   *  Move requests to bidirectional streams; remove cancel messages
+      (#1389)
+
+   *  Remove MAX_REQUEST_ID/REQUESTS_BLOCKED (#1471)
+
+   *  New variable-length integer encoding (#1016)
+
+   *  Encode Message Parameters as Type-Value pairs (#1462)
+
+   *  Add GREASE for Setup Options, Properties, and error code
+      registries (#1460)
+
+   *  Add RENDEZVOUS_TIMEOUT parameter for SUBSCRIBE (#1447)
+
+   *  Add PUBLISH_BLOCKED message for SUBSCRIBE_NAMESPACE flow control
+      (#1452)
+
+   *  Add Timeout field to GOAWAY message (#1497)
+
+   *  Add GOING_AWAY to REQUEST_ERROR codes (#1434)
+
+   *  Add EXCESSIVE_LOAD error code (#1479)
+
+   *  Add NAMESPACE_TOO_LARGE error and stream reset for large
+      namespaces (#1496)
+
+   *  Add TOO_FAR_BEHIND stream reset code (#1445)
+
+   *  Add REQUEST_UPDATE to list of REQUEST_ERROR causes (#1466)
+
+   *  Enforce REQUEST_OK/ERROR as first frame on the response stream
+      (#1499)
+
+   *  Allow joining FETCH for PUBLISH and REQUEST_UPDATE with forward=1
+      (#1335)
+
+   *  Allow DELIVERY_TIMEOUT value of 0 to mean no timeout (#1450)
+
+   *  Allow zero-element namespaces (#1472)
+
+   *  Clarify EXPIRES parameter update mechanism (#1448)
+
+   *  Remove TRACK_STATUS from REQUEST_UPDATE (#1436)
+
+   *  Define how to use auth token cache safely with multiple streams
+      (#1430)
+
+   *  Constrain encoding/parsing of track namespace and names (#1512)
+
+   *  Reserve Property type ranges for application-specific use (#1473)
+
+   *  Make EndGroup in Subscription Filters a delta (#1470)
+
+   *  Copy DELIVERY_TIMEOUT min requirement from parameter to property
+      (#1427)
+
+   *Data Plane Wire Format and Handling*
+
+   *  Clarify prior Object semantics after End of Range indicators in
+      FETCH (#1513)
+
+   *  Clarify datagram status and properties cases (#1444)
+
+   *  Clarify Stream Count includes empty subgroups (#1449)
+
+   *  Clarify language for malformed tracks in a subgroup with
+      END_OF_GROUP (#1464)
+
+   *  Properties can appear in mutable list or inside Immutable
+      Properties (#1442)
+
+   *  Clarify immutable property preservation requirements (#1441)
+
+   *  Clarification for Track Alias uniqueness (#1418)
+
+   *Notable Editorial Changes*
+
+   *  Rename Setup Parameters to Setup Options (#1461)
+
+   *  Rename Extension Headers to Properties (#1504)
+
+   *  Add security/privacy considerations for MOQT_IMPLEMENTATION
+      (#1511)
+
+   *  Add editorial text on bandwidth probing techniques (#1477)
+
+   *  Explain idle connection handling (#1443)
+
+   *  Fix "SUBSCRIBE_NAMESPACE with short prefixes" (#1502)
+
+   *  Add generative AI disclosure per IRTF guidelines
+
+A.2.  Since draft-ietf-moq-transport-15
 
    *Setup and Control Plane*
 
@@ -5185,7 +5289,7 @@ A.1.  Since draft-ietf-moq-transport-15
 
    *  A Publisher might not use the congestion window (#1408)
 
-A.2.  Since draft-ietf-moq-transport-14
+A.3.  Since draft-ietf-moq-transport-14
 
    *Setup and Control Plane*
 
@@ -5248,7 +5352,7 @@ A.2.  Since draft-ietf-moq-transport-14
 
    *  Clarify joining fetch end location (#1286)
 
-A.3.  Since draft-ietf-moq-transport-13
+A.4.  Since draft-ietf-moq-transport-13
 
    *Setup and Control Plane*
 
@@ -5320,7 +5424,7 @@ A.3.  Since draft-ietf-moq-transport-13
 
    *  Reformat Error Codes (#1091)
 
-A.4.  Since draft-ietf-moq-transport-12
+A.5.  Since draft-ietf-moq-transport-12
 
    *  TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly
       mirror SUBSCRIBE/OK/ERROR (#1015)
@@ -5328,7 +5432,7 @@ A.4.  Since draft-ietf-moq-transport-12
    *  SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE
       (#1049)
 
-A.5.  Since draft-ietf-moq-transport-11
+A.6.  Since draft-ietf-moq-transport-11
 
    *  Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
 
@@ -5354,7 +5458,7 @@ A.5.  Since draft-ietf-moq-transport-11
    *  Add PUBLISH for publisher initiated subscriptions (#995) and fix
       the PUBLISH codepoints (#1048, #1051)
 
-A.6.  Since draft-ietf-moq-transport-10
+A.7.  Since draft-ietf-moq-transport-10
 
    *  Added Common Structure definitions - Location, Key-Value-Pair and
       Reason Phrase
