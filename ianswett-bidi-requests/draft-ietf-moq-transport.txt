@@ -3855,7 +3855,7 @@ Table of Contents
    Subscription, Fetch, Track Status, Publish Namespace, or Subscribe
    Namespace request.  When possible, Publishers SHOULD send a
    PUBLISH_DONE when terminating a subscription instead of abruptly
-   terminating the stream.
+   terminating the associated control stream.
 
 10.4.2.  Subgroup Header
 
