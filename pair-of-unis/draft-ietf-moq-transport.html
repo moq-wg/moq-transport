@@ -1441,7 +1441,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
-                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-client_setup-and-server_set" class="internal xref">CLIENT_SETUP and SERVER_SETUP</a></p>
+                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-setup" class="internal xref">SETUP</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3.2.1">
                     <p id="section-toc.1-1.9.2.3.2.1.1"><a href="#section-9.3.1" class="auto internal xref">9.3.1</a>.  <a href="#name-setup-options" class="internal xref">Setup Options</a></p>
@@ -2695,7 +2695,7 @@ is <code>moqt</code>.  ALPNs used to identify IETF drafts are created by appendi
 the draft number to "moqt-". For example, draft-ietf-moq-transport-13
 would be identified as "moqt-13".<a href="#section-3.1-5" class="pilcrow">¶</a></p>
 <p id="section-3.1-6">Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
-negotiation in the CLIENT_SETUP and SERVER_SETUP messages.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+negotiation in the SETUP messages.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
 <div id="webtransport">
 <section id="section-3.1.1">
           <h4 id="name-webtransport">
@@ -2757,10 +2757,11 @@ specific to the underlying transport protocol usage (see <a href="#session" clas
 Extensions can define new Message types, new Parameters, or new framing for
 Data Streams and Datagrams.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.2-2">The client and server <span class="bcp14">MUST</span> include all Setup Options <a href="#setup-options" class="auto internal xref">Section 9.3.1</a>
-required for the negotiated MOQT version in CLIENT_SETUP and SERVER_SETUP.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
-<p id="section-3.2-3">Clients request the use of extensions by specifying Parameters in CLIENT_SETUP.
-The Server responds with Parameters in the SERVER_SETUP to indicate any
-extensions it supports.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+required for the negotiated MOQT version in SETUP.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.2-3">Each endpoint declares the extensions it supports and provides any initial
+values required by those extensions as Setup Options in SETUP. Once an endpoint
+has both sent and received SETUP messages, it determines the set of negotiated
+extensions.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.2-4">New versions of MOQT <span class="bcp14">MUST</span> specify which existing extensions can be used with
 that version. New extensions <span class="bcp14">MUST</span> specify the existing versions with which they
 can be used.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
@@ -2771,23 +2772,22 @@ can be used.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
         <h3 id="name-session-initialization">
 <a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-session-initialization" class="section-name selfRef">Session initialization</a>
         </h3>
-<p id="section-3.3-1">MOQT uses a pair of unidirectional streams for exchanging control messages. Each
-peer opens one control stream: the client opens a unidirectional stream beginning
-with CLIENT_SETUP and the server opens a unidirectional stream beginning with
-SERVER_SETUP. Using a pair of unidirectional streams rather than a single
+<p id="section-3.3-1">MOQT uses a pair of unidirectional streams for creating the session and
+exchanging control messages. Each peer opens one control stream beginning with
+a SETUP message. Using a pair of unidirectional streams rather than a single
 bidirectional stream allows either peer to send data as soon as it is able.
 Depending on whether 0-RTT is available on the QUIC connection, either client or
 server might be able to send stream data first.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">This specification only specifies one use of bidirectional streams:
 SUBSCRIBE_NAMESPACE. Bidirectional streams <span class="bcp14">MUST NOT</span> begin with any other message
 type unless negotiated. If they do, the peer <span class="bcp14">MUST</span> close the Session with a
-Protocol Violation. Objects are sent on unidirectional streams.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+Protocol Violation.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">Unidirectional streams containing Objects or bidirectional stream(s) containing a
 SUBSCRIBE_NAMESPACE could arrive prior to the control streams, in which case the
 data <span class="bcp14">SHOULD</span> be buffered until both control streams arrive and setup is complete.
 If an implementation does not want to buffer, it <span class="bcp14">MAY</span> reset other streams before
 the session and control streams are established.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
-<p id="section-3.3-4">Neither control stream <span class="bcp14">MUST</span> be closed at the underlying transport layer during the
+<p id="section-3.3-4">A control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
 </section>
@@ -2818,16 +2818,12 @@ the type of the stream.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x2F00</td>
-              <td class="text-left" rowspan="1" colspan="1">CLIENT_SETUP (<a href="#message-setup" class="auto internal xref">Section 9.3</a>)</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x2F01</td>
-              <td class="text-left" rowspan="1" colspan="1">SERVER_SETUP (<a href="#message-setup" class="auto internal xref">Section 9.3</a>)</td>
+              <td class="text-left" rowspan="1" colspan="1">SETUP (<a href="#message-setup" class="auto internal xref">Section 9.3</a>)</td>
             </tr>
           </tbody>
         </table>
 <p id="section-3.4-3">An endpoint that receives an unknown stream type <span class="bcp14">MUST</span> close the session.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
-<p id="section-3.4-4">Control streams (CLIENT_SETUP, SERVER_SETUP) are described in <a href="#session-init" class="auto internal xref">Section 3.3</a>.
+<p id="section-3.4-4">Control streams (SETUP) are described in <a href="#session-init" class="auto internal xref">Section 3.3</a>.
 Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in <a href="#data-streams" class="auto internal xref">Section 10</a>.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3849,11 +3845,7 @@ MOQT Control Message {
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x2F00</td>
-            <td class="text-left" rowspan="1" colspan="1">CLIENT_SETUP (<a href="#message-setup" class="auto internal xref">Section 9.3</a>)</td>
-          </tr>
-          <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x2F01</td>
-            <td class="text-left" rowspan="1" colspan="1">SERVER_SETUP (<a href="#message-setup" class="auto internal xref">Section 9.3</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">SETUP (<a href="#message-setup" class="auto internal xref">Section 9.3</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x10</td>
@@ -4121,7 +4113,7 @@ provided. The Token Value may be discarded after processing.<a href="#section-9.
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-9.2.2-6">If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a CLIENT_SETUP
+<p id="section-9.2.2-6">If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
 message, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.2.2-6" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9.2.2-7.1">
@@ -4403,42 +4395,32 @@ outstanding until the Largest Group increases.<a href="#section-9.2.11-8" class=
 </div>
 <div id="message-setup">
 <section id="section-9.3">
-        <h3 id="name-client_setup-and-server_set">
-<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-client_setup-and-server_set" class="section-name selfRef">CLIENT_SETUP and SERVER_SETUP</a>
+        <h3 id="name-setup">
+<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-setup" class="section-name selfRef">SETUP</a>
         </h3>
-<p id="section-9.3-1">The <code>CLIENT_SETUP</code> and <code>SERVER_SETUP</code> messages are the first messages exchanged
-by the client and the server; they allow the endpoints to agree on the initial
-configuration before any other control messages are exchanged. The client sends
-CLIENT_SETUP on its control stream (a client-initiated unidirectional stream)
-and the server sends SERVER_SETUP on its control stream (a server-initiated
-unidirectional stream). Each endpoint sends exactly one SETUP message on its
-own control stream; other control messages follow on the same stream.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+<p id="section-9.3-1">The <code>SETUP</code> message is the first message each endpoint sends on its control
+stream (see <a href="#session-init" class="auto internal xref">Section 3.3</a>); it allows the endpoints to agree on the initial
+configuration before any other control messages are exchanged. An endpoint that
+is not offering extensions which modify control message semantics <span class="bcp14">MAY</span> pipeline
+other control messages after SETUP without waiting for the peer's SETUP.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
 <p id="section-9.3-2">The messages contain a sequence of key-value pairs called Setup Options; the
 semantics and format of which can vary based on whether the client or server is
 sending.  To ensure future extensibility of MOQT, endpoints <span class="bcp14">MUST</span> ignore unknown
 Setup Options.<a href="#section-9.3-2" class="pilcrow">¶</a></p>
-<p id="section-9.3-3">The wire format of the Setup messages are as follows:<a href="#section-9.3-3" class="pilcrow">¶</a></p>
-<span id="name-moqt-setup-messages"></span><div id="moq-transport-setup-format">
+<p id="section-9.3-3">The wire format of the Setup message is as follows:<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+<span id="name-moqt-setup-message"></span><div id="moq-transport-setup-format">
 <figure id="figure-6">
           <div class="alignLeft art-text artwork" id="section-9.3-4.1">
 <pre>
-CLIENT_SETUP Message {
+SETUP Message {
   Type (vi64) = 0x2F00,
   Length (16),
-  Number of Setup Options (vi64),
-  Setup Options (..) ...,
-}
-
-SERVER_SETUP Message {
-  Type (vi64) = 0x2F01,
-  Length (16),
-  Number of Setup Options (vi64),
   Setup Options (..) ...,
 }
 </pre>
 </div>
 <figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
-<a href="#name-moqt-setup-messages" class="selfRef">MOQT Setup Messages</a>
+<a href="#name-moqt-setup-message" class="selfRef">MOQT SETUP Message</a>
           </figcaption></figure>
 </div>
 <p id="section-9.3-5">Setup Options are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>.
@@ -4524,14 +4506,15 @@ initiation.<a href="#section-9.3.1.4-2" class="pilcrow">¶</a></p>
             </h5>
 <p id="section-9.3.1.5-1">The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is functionally
 equivalent to the AUTHORIZATION TOKEN message parameter, see <a href="#authorization-token" class="auto internal xref">Section 9.2.2</a>.
-The endpoint can specify one or more tokens in CLIENT_SETUP or SERVER_SETUP
+The endpoint can specify one or more tokens in SETUP
 that the peer can use to authorize MOQT session establishment.<a href="#section-9.3.1.5-1" class="pilcrow">¶</a></p>
-<p id="section-9.3.1.5-2">If a server receives an AUTHORIZATION TOKEN option in CLIENT_SETUP with Alias
+<p id="section-9.3.1.5-2">If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it <span class="bcp14">MUST NOT</span> fail
 the session with <code>AUTH_TOKEN_CACHE_OVERFLOW</code>.  Instead, it <span class="bcp14">MUST</span> treat the
-option as Alias Type USE_VALUE.  A client <span class="bcp14">MUST</span> handle registration failures
+option as Alias Type USE_VALUE.  Since each endpoint's SETUP may be sent before
+the peer's SETUP is received, the sender <span class="bcp14">MUST</span> handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
-MAX_AUTH_TOKEN_CACHE_SIZE option in SERVER_SETUP (or the default value of 0).<a href="#section-9.3.1.5-2" class="pilcrow">¶</a></p>
+peer's MAX_AUTH_TOKEN_CACHE_SIZE option in SETUP (or the default value of 0).<a href="#section-9.3.1.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="moqt-implementation">
