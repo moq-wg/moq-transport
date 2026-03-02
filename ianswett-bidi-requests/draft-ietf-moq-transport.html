@@ -4766,7 +4766,7 @@ SUBSCRIBE Message {
   Type (vi64) = 0x3,
   Length (16),
   Request ID (vi64),
-  Required Request ID (vi64),
+  Required Request ID Delta (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -4784,7 +4784,7 @@ SUBSCRIBE Message {
             <p id="section-9.8-5.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.8-5.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.8-5.2">
-            <p id="section-9.8-5.2.1">Required Request ID: See <a href="#required-request-id" class="auto internal xref">Section 9.2</a>.<a href="#section-9.8-5.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.8-5.2.1">Required Request ID Delta: See <a href="#required-request-id" class="auto internal xref">Section 9.2</a>.<a href="#section-9.8-5.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.8-5.3">
             <p id="section-9.8-5.3.1">Track Namespace: Identifies the namespace of the track as defined in
@@ -4873,7 +4873,7 @@ REQUEST_UPDATE Message {
   Type (vi64) = 0x2,
   Length (16),
   Request ID (vi64),
-  Required Request ID (vi64),
+  Required Request ID Delta (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -4888,7 +4888,7 @@ REQUEST_UPDATE Message {
             <p id="section-9.10-7.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.10-7.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.10-7.2">
-            <p id="section-9.10-7.2.1">Required Request ID: See <a href="#required-request-id" class="auto internal xref">Section 9.2</a>.<a href="#section-9.10-7.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.10-7.2.1">Required Request ID Delta: See <a href="#required-request-id" class="auto internal xref">Section 9.2</a>.<a href="#section-9.10-7.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.10-7.3">
             <p id="section-9.10-7.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.3</a>.<a href="#section-9.10-7.3.1" class="pilcrow">¶</a></p>
@@ -4934,7 +4934,7 @@ PUBLISH Message {
   Type (vi64) = 0x1D,
   Length (16),
   Request ID (vi64),
-  Required Request ID (vi64),
+  Required Request ID Delta (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -4954,7 +4954,7 @@ PUBLISH Message {
             <p id="section-9.11-3.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.11-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.11-3.2">
-            <p id="section-9.11-3.2.1">Required Request ID: See <a href="#required-request-id" class="auto internal xref">Section 9.2</a>.<a href="#section-9.11-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.11-3.2.1">Required Request ID Delta: See <a href="#required-request-id" class="auto internal xref">Section 9.2</a>.<a href="#section-9.11-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.11-3.3">
             <p id="section-9.11-3.3.1">Track Namespace: Identifies a track's namespace as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>)<a href="#section-9.11-3.3.1" class="pilcrow">¶</a></p>
@@ -5304,7 +5304,7 @@ FETCH Message {
   Type (vi64) = 0x16,
   Length (16),
   Request ID (vi64),
-  Required Request ID (vi64),
+  Required Request ID Delta (vi64),
   Fetch Type (vi64),
   [Standalone (Standalone Fetch),]
   [Joining (Joining Fetch),]
@@ -5322,7 +5322,7 @@ FETCH Message {
               <p id="section-9.14.3-3.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.14.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.14.3-3.2">
-              <p id="section-9.14.3-3.2.1">Required Request ID: See <a href="#required-request-id" class="auto internal xref">Section 9.2</a>.<a href="#section-9.14.3-3.2.1" class="pilcrow">¶</a></p>
+              <p id="section-9.14.3-3.2.1">Required Request ID Delta: See <a href="#required-request-id" class="auto internal xref">Section 9.2</a>.<a href="#section-9.14.3-3.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.14.3-3.3">
               <p id="section-9.14.3-3.3.1">Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
@@ -5494,7 +5494,7 @@ PUBLISH_NAMESPACE Message {
   Type (vi64) = 0x6,
   Length (16),
   Request ID (vi64),
-  Required Request ID (vi64),
+  Required Request ID Delta (vi64),
   Track Namespace (..),
   Number of Parameters (vi64),
   Parameters (..) ...
@@ -5510,7 +5510,7 @@ PUBLISH_NAMESPACE Message {
             <p id="section-9.17-3.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.17-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.17-3.2">
-            <p id="section-9.17-3.2.1">Required Request ID: See <a href="#required-request-id" class="auto internal xref">Section 9.2</a>.<a href="#section-9.17-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.17-3.2.1">Required Request ID Delta: See <a href="#required-request-id" class="auto internal xref">Section 9.2</a>.<a href="#section-9.17-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.17-3.3">
             <p id="section-9.17-3.3.1">Track Namespace: Identifies a track's namespace as defined in
@@ -5607,7 +5607,7 @@ SUBSCRIBE_NAMESPACE Message {
   Type (vi64) = 0x11,
   Length (16),
   Request ID (vi64),
-  Required Request ID (vi64),
+  Required Request ID Delta (vi64),
   Track Namespace Prefix (..),
   Subscribe Options (vi64),
   Number of Parameters (vi64),
@@ -5624,7 +5624,7 @@ SUBSCRIBE_NAMESPACE Message {
             <p id="section-9.20-3.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 9.1</a>.<a href="#section-9.20-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.20-3.2">
-            <p id="section-9.20-3.2.1">Required Request ID: See <a href="#required-request-id" class="auto internal xref">Section 9.2</a>.<a href="#section-9.20-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.20-3.2.1">Required Request ID Delta: See <a href="#required-request-id" class="auto internal xref">Section 9.2</a>.<a href="#section-9.20-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.20-3.3">
             <p id="section-9.20-3.3.1">Track Namespace Prefix: A Track Namespace structure as described in

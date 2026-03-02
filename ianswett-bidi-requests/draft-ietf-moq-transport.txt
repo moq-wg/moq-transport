@@ -2837,7 +2837,7 @@ Table of Contents
      Type (vi64) = 0x3,
      Length (16),
      Request ID (vi64),
-     Required Request ID (vi64),
+     Required Request ID Delta (vi64),
      Track Namespace (..),
      Track Name Length (vi64),
      Track Name (..),
@@ -2849,7 +2849,7 @@ Table of Contents
 
    *  Request ID: See Section 9.1.
 
-   *  Required Request ID: See Section 9.2.
+   *  Required Request ID Delta: See Section 9.2.
 
    *  Track Namespace: Identifies the namespace of the track as defined
       in (Section 2.4.1).
@@ -2923,7 +2923,7 @@ Table of Contents
      Type (vi64) = 0x2,
      Length (16),
      Request ID (vi64),
-     Required Request ID (vi64),
+     Required Request ID Delta (vi64),
      Number of Parameters (vi64),
      Parameters (..) ...
    }
@@ -2932,7 +2932,7 @@ Table of Contents
 
    *  Request ID: See Section 9.1.
 
-   *  Required Request ID: See Section 9.2.
+   *  Required Request ID Delta: See Section 9.2.
 
    *  Parameters: The parameters are defined in Section 9.3.
 
@@ -2970,7 +2970,7 @@ Table of Contents
      Type (vi64) = 0x1D,
      Length (16),
      Request ID (vi64),
-     Required Request ID (vi64),
+     Required Request ID Delta (vi64),
      Track Namespace (..),
      Track Name Length (vi64),
      Track Name (..),
@@ -2984,7 +2984,7 @@ Table of Contents
 
    *  Request ID: See Section 9.1.
 
-   *  Required Request ID: See Section 9.2.
+   *  Required Request ID Delta: See Section 9.2.
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.4.1)
@@ -3264,7 +3264,7 @@ Table of Contents
      Type (vi64) = 0x16,
      Length (16),
      Request ID (vi64),
-     Required Request ID (vi64),
+     Required Request ID Delta (vi64),
      Fetch Type (vi64),
      [Standalone (Standalone Fetch),]
      [Joining (Joining Fetch),]
@@ -3276,7 +3276,7 @@ Table of Contents
 
    *  Request ID: See Section 9.1.
 
-   *  Required Request ID: See Section 9.2.
+   *  Required Request ID Delta: See Section 9.2.
 
    *  Fetch Type: Identifies the type of Fetch, whether Standalone,
       Relative Joining or Absolute Joining.
@@ -3431,7 +3431,7 @@ Table of Contents
      Type (vi64) = 0x6,
      Length (16),
      Request ID (vi64),
-     Required Request ID (vi64),
+     Required Request ID Delta (vi64),
      Track Namespace (..),
      Number of Parameters (vi64),
      Parameters (..) ...
@@ -3441,7 +3441,7 @@ Table of Contents
 
    *  Request ID: See Section 9.1.
 
-   *  Required Request ID: See Section 9.2.
+   *  Required Request ID Delta: See Section 9.2.
 
    *  Track Namespace: Identifies a track's namespace as defined in
       Section 2.4.1.
@@ -3501,7 +3501,7 @@ Table of Contents
      Type (vi64) = 0x11,
      Length (16),
      Request ID (vi64),
-     Required Request ID (vi64),
+     Required Request ID Delta (vi64),
      Track Namespace Prefix (..),
      Subscribe Options (vi64),
      Number of Parameters (vi64),
@@ -3512,7 +3512,7 @@ Table of Contents
 
    *  Request ID: See Section 9.1.
 
-   *  Required Request ID: See Section 9.2.
+   *  Required Request ID Delta: See Section 9.2.
 
    *  Track Namespace Prefix: A Track Namespace structure as described
       in Section 2.4.1 with between 0 and 32 Track Namespace Fields.
