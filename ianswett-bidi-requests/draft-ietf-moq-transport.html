@@ -3919,15 +3919,23 @@ session with <code>INVALID_REQUEST_ID</code>.<a href="#section-9.1-4" class="pil
         <h3 id="name-required-request-id">
 <a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-required-request-id" class="section-name selfRef">Required Request ID</a>
         </h3>
-<p id="section-9.2-1">Every request message includes a Required Request ID Delta field, which is
-multiplied by two and subtracted from Request ID to determine the
-Required Request ID. The receiver <span class="bcp14">MUST</span> deliver the referenced request to the
-application before delivering this request. Two times the Required Request ID
-Delta <span class="bcp14">MUST NOT</span> be larger than Request ID. If an endpoint receives a delta that
-is too large for the Request ID, it <span class="bcp14">MUST</span> close the session with
-<code>INVALID_REQUIRED_REQUEST_ID</code>. A Required Request ID Delta value of 0 indicates
-there is no dependency. If the required request does not arrive, the receiver
-will time out the dependent request.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.2-1">Every request message includes a Required Request ID Delta field
+that specifies a dependency on a prior request. The  Required Request ID
+is computed as:
+~~~
+    Required Request ID = Request ID - (2 × Required Request ID
+  Delta)
+~~~<a href="#section-9.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.2-2">A Required Request ID Delta of 0 indicates no dependency. When
+a dependency exists, the receiver <span class="bcp14">MUST</span> deliver the referenced
+request to the application before delivering the dependent
+request. If the required request does not arrive, the receiver
+will time out the dependent request.<a href="#section-9.2-2" class="pilcrow">¶</a></p>
+<p id="section-9.2-3">The delta is scaled by two because request IDs from each endpoint
+use alternating parity (odd or even), so valid dependencies always
+differ by a multiple of two. An endpoint <span class="bcp14">MUST</span> close the session with
+INVALID_REQUIRED_REQUEST_ID if it receives a delta where
+2 × Required Request ID Delta exceeds the Request ID.<a href="#section-9.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-params">
