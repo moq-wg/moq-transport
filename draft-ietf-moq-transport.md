@@ -1857,26 +1857,25 @@ session with `INVALID_REQUEST_ID`.
 
 ## Required Request ID {#required-request-id}
 
-Every request message includes a Required Request ID Delta
-field that specifies a dependency on a prior request. The 
-Required Request ID is computed as:
+Every request message includes a Required Request ID Delta field
+that specifies a dependency on a prior request. The  Required Request ID
+is computed as:
 ~~~
     Required Request ID = Request ID - (2 × Required Request ID
   Delta)
 ~~~
-  
-  A Required Request ID Delta of 0 indicates no dependency. When
-   a dependency exists, the receiver MUST deliver the referenced
-   request to the application before delivering the dependent
-  request. If the required request does not arrive, the receiver
-   will time out the dependent request.
 
-  The delta is scaled by two because request IDs from each
-  endpoint use alternating parity (odd or even), so valid
-  dependencies always differ by a multiple of two. An endpoint
-  MUST close the session with INVALID_REQUIRED_REQUEST_ID if it
-  receives a delta where 2 × Required Request ID Delta exceeds
-  the Request ID.
+A Required Request ID Delta of 0 indicates no dependency. When
+a dependency exists, the receiver MUST deliver the referenced
+request to the application before delivering the dependent
+request. If the required request does not arrive, the receiver
+will time out the dependent request.
+
+The delta is scaled by two because request IDs from each endpoint
+use alternating parity (odd or even), so valid dependencies always
+differ by a multiple of two. An endpoint MUST close the session with
+INVALID_REQUIRED_REQUEST_ID if it receives a delta where
+2 × Required Request ID Delta exceeds the Request ID.
 
 ## Message Parameters {#message-params}
 
