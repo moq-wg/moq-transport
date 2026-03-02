@@ -851,9 +851,10 @@ Data Streams and Datagrams.
 The client and server MUST include all Setup Options {{setup-options}}
 required for the negotiated MOQT version in CLIENT_SETUP and SERVER_SETUP.
 
-Clients request the use of extensions by specifying Parameters in CLIENT_SETUP.
-The Server responds with Parameters in the SERVER_SETUP to indicate any
-extensions it supports.
+Each endpoint declares the extensions it supports and provides any initial
+values required by those extensions as Setup Options in CLIENT_SETUP or
+SERVER_SETUP. Once an endpoint has both sent and received SETUP messages, it
+determines the set of negotiated extensions.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
@@ -861,7 +862,7 @@ can be used.
 
 ## Session initialization {#session-init}
 
-MOQT uses a pair of unidirectional streams for exchanging control messages. Each
+MOQT uses a pair of unidirectional streams for creating the session and exchanging control messages. Each
 peer opens one control stream: the client opens a unidirectional stream beginning
 with CLIENT_SETUP and the server opens a unidirectional stream beginning with
 SERVER_SETUP. Using a pair of unidirectional streams rather than a single
@@ -874,7 +875,7 @@ to carry requests.  A request stream begins with one of these six message types:
 TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE, and
 SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT
 begin with any other message type unless negotiated. If they do, the peer MUST
-close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
+close the Session with a Protocol Violation. Objects are sent on unidirectional
 streams.
 
 Unidirectional streams containing Objects or bidirectional stream(s) beginning
@@ -884,7 +885,7 @@ complete. If an implementation does not want to buffer or if the message type is
 not supported, it MAY reset such bidirectional streams before the session and
 control streams are established.
 
-Neither control stream MUST be closed at the underlying transport layer during the
+A control stream MUST NOT be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
 `PROTOCOL_VIOLATION`.
 
@@ -2291,7 +2292,10 @@ configuration before any other control messages are exchanged. The client sends
 CLIENT_SETUP on its control stream (a client-initiated unidirectional stream)
 and the server sends SERVER_SETUP on its control stream (a server-initiated
 unidirectional stream). Each endpoint sends exactly one SETUP message on its
-own control stream; other control messages follow on the same stream.
+own control stream; other control messages follow on the same stream. An
+endpoint that is not offering extensions which modify control message semantics
+MAY pipeline other control messages after sending its SETUP message without
+waiting for the peer's SETUP message.
 
 The messages contain a sequence of key-value pairs called Setup Options; the
 semantics and format of which can vary based on whether the client or server is
