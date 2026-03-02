@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 August 2026                                    I. Swett, Ed.
+Expires: 3 September 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        12 February 2026
+                                                            2 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 August 2026.
+   This Internet-Draft will expire on 3 September 2026.
 
 Copyright Notice
 
@@ -1107,10 +1107,10 @@ Table of Contents
    a new session and migrate any Established subscriptions.  The GOAWAY
    message optionally contains a new URI for the new session, otherwise
    the current URI is reused.  The GOAWAY message contains a Timeout
-   indicating how long the server intends to wait before closing the
-   session.  The server SHOULD close the session with GOAWAY_TIMEOUT
-   after the indicated timeout if there are still open subscriptions or
-   fetches on a connection.
+   indicating how long, in milliseconds, the sender intends to wait
+   before closing the session.  The sender SHOULD close the session with
+   GOAWAY_TIMEOUT after the indicated timeout if there are still open
+   subscriptions or fetches on a connection.
 
    When the server is a subscriber, it SHOULD send a GOAWAY message to
    downstream subscribers prior to any UNSUBSCRIBE messages to upstream
@@ -1122,8 +1122,8 @@ Table of Contents
    the application using MOQT, which involves establishing a new session
    in the background and migrating Established subscriptions and
    published namespaces.  The client can choose to delay closing the
-   session if it expects more OBJECTs to be delivered.  The server
-   closes the session with a GOAWAY_TIMEOUT if the client doesn't close
+   session if it expects more OBJECTs to be delivered.  The sender
+   closes the session with a GOAWAY_TIMEOUT if the peer doesn't close
    the session within the indicated Timeout.
 
 3.6.  Congestion Control
@@ -2481,8 +2481,9 @@ Table of Contents
 9.4.  GOAWAY
 
    An endpoint sends a GOAWAY message to inform the peer it intends to
-   close the session soon.  Servers can use GOAWAY to initiate session
-   migration (Section 3.5) with an optional URI.
+   close the session soon.  When sent by a server, it can initiate
+   session migration (Section 3.5) with an optional URI.  When sent by a
+   client, the New Session URI MUST be zero length.
 
    The GOAWAY message does not impact subscription state.  A subscriber
    SHOULD individually UNSUBSCRIBE for each existing subscription, while
@@ -2529,8 +2530,7 @@ Table of Contents
       GOAWAY_TIMEOUT.  A value of 0 indicates the sender has no specific
       timeout, and the recipient SHOULD still close the session as
       quickly as possible.  This is a hint; the sender of the GOAWAY MAY
-      close the session before the indicated timeout has elapsed for
-      implementation specific reasons.
+      close the session before the indicated timeout has elapsed.
 
 9.5.  MAX_REQUEST_ID
 

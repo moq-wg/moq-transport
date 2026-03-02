@@ -1053,11 +1053,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">February 2026</td>
+<td class="right">March 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 16 August 2026</td>
+<td class="center">Expires 3 September 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-12" class="published">12 February 2026</time>
+<time datetime="2026-03-02" class="published">2 March 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-16">16 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-09-03">3 September 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 16 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 3 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2844,10 +2844,10 @@ MOQT enables proactively draining sessions via the GOAWAY message (<a href="#mes
 <p id="section-3.5-2">The server sends a GOAWAY message, signaling the client to establish a new
 session and migrate any <code>Established</code> subscriptions. The GOAWAY message optionally
 contains a new URI for the new session, otherwise the current URI is
-reused. The GOAWAY message contains a Timeout indicating how long the server
-intends to wait before closing the session. The server <span class="bcp14">SHOULD</span> close the session
-with <code>GOAWAY_TIMEOUT</code> after the indicated timeout if there are still open
-subscriptions or fetches on a connection.<a href="#section-3.5-2" class="pilcrow">¶</a></p>
+reused. The GOAWAY message contains a Timeout indicating how long, in
+milliseconds, the sender intends to wait before closing the session. The sender
+<span class="bcp14">SHOULD</span> close the session with <code>GOAWAY_TIMEOUT</code> after the indicated timeout if
+there are still open subscriptions or fetches on a connection.<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 <p id="section-3.5-3">When the server is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message to downstream
 subscribers prior to any UNSUBSCRIBE messages to upstream publishers.<a href="#section-3.5-3" class="pilcrow">¶</a></p>
 <p id="section-3.5-4">After the client receives a GOAWAY, it's <span class="bcp14">RECOMMENDED</span> that the client waits until
@@ -2855,8 +2855,8 @@ there are no more <code>Established</code> subscriptions before closing the sess
 Ideally this is transparent to the application using MOQT, which involves
 establishing a new session in the background and migrating <code>Established</code> subscriptions
 and published namespaces. The client can choose to delay closing the session if
-it expects more OBJECTs to be delivered. The server closes the session with a
-<code>GOAWAY_TIMEOUT</code> if the client doesn't close the session within the
+it expects more OBJECTs to be delivered. The sender closes the session with a
+<code>GOAWAY_TIMEOUT</code> if the peer doesn't close the session within the
 indicated Timeout.<a href="#section-3.5-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -4321,8 +4321,9 @@ that created the text.<a href="#section-9.3.1.6-1" class="pilcrow">¶</a></p>
 <a href="#section-9.4" class="section-number selfRef">9.4. </a><a href="#name-goaway" class="section-name selfRef">GOAWAY</a>
         </h3>
 <p id="section-9.4-1">An endpoint sends a <code>GOAWAY</code> message to inform the peer it intends to close
-the session soon.  Servers can use GOAWAY to initiate session migration
-(<a href="#session-migration" class="auto internal xref">Section 3.5</a>) with an optional URI.<a href="#section-9.4-1" class="pilcrow">¶</a></p>
+the session soon.  When sent by a server, it can initiate session migration
+(<a href="#session-migration" class="auto internal xref">Section 3.5</a>) with an optional URI.  When sent by a client, the New
+Session URI <span class="bcp14">MUST</span> be zero length.<a href="#section-9.4-1" class="pilcrow">¶</a></p>
 <p id="section-9.4-2">The GOAWAY message does not impact subscription state. A subscriber
 <span class="bcp14">SHOULD</span> individually UNSUBSCRIBE for each existing subscription, while a
 publisher <span class="bcp14">MAY</span> reject new requests after sending a GOAWAY.<a href="#section-9.4-2" class="pilcrow">¶</a></p>
@@ -4371,8 +4372,7 @@ close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-7
 gracefully closed before closing the session with <code>GOAWAY_TIMEOUT</code>. A value of
 0 indicates the sender has no specific timeout, and the recipient <span class="bcp14">SHOULD</span> still
 close the session as quickly as possible. This is a hint; the sender of the
-GOAWAY <span class="bcp14">MAY</span> close the session before the indicated timeout has elapsed for
-implementation specific reasons.<a href="#section-9.4-7.2.1" class="pilcrow">¶</a></p>
+GOAWAY <span class="bcp14">MAY</span> close the session before the indicated timeout has elapsed.<a href="#section-9.4-7.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
