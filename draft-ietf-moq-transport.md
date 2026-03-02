@@ -800,7 +800,7 @@ the draft number to "moqt-". For example, draft-ietf-moq-transport-13
 would be identified as "moqt-13".
 
 Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
-negotiation in the CLIENT_SETUP and SERVER_SETUP messages.
+negotiation in the SETUP messages.
 
 ### WebTransport
 
@@ -849,12 +849,12 @@ Extensions can define new Message types, new Parameters, or new framing for
 Data Streams and Datagrams.
 
 The client and server MUST include all Setup Options {{setup-options}}
-required for the negotiated MOQT version in CLIENT_SETUP and SERVER_SETUP.
+required for the negotiated MOQT version in SETUP.
 
 Each endpoint declares the extensions it supports and provides any initial
-values required by those extensions as Setup Options in CLIENT_SETUP or
-SERVER_SETUP. Once an endpoint has both sent and received SETUP messages, it
-determines the set of negotiated extensions.
+values required by those extensions as Setup Options in SETUP. Once an endpoint
+has both sent and received SETUP messages, it determines the set of negotiated
+extensions.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
@@ -862,10 +862,9 @@ can be used.
 
 ## Session initialization {#session-init}
 
-MOQT uses a pair of unidirectional streams for creating the session and exchanging control messages. Each
-peer opens one control stream: the client opens a unidirectional stream beginning
-with CLIENT_SETUP and the server opens a unidirectional stream beginning with
-SERVER_SETUP. Using a pair of unidirectional streams rather than a single
+MOQT uses a pair of unidirectional streams for creating the session and
+exchanging control messages. Each peer opens one control stream beginning with
+a SETUP message. Using a pair of unidirectional streams rather than a single
 bidirectional stream allows either peer to send data as soon as it is able.
 Depending on whether 0-RTT is available on the QUIC connection, either client or
 server might be able to send stream data first.
@@ -875,7 +874,7 @@ to carry requests.  A request stream begins with one of these six message types:
 TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE, and
 SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT
 begin with any other message type unless negotiated. If they do, the peer MUST
-close the Session with a Protocol Violation. Objects are sent on unidirectional
+close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
 streams.
 
 Unidirectional streams containing Objects or bidirectional stream(s) beginning
@@ -914,14 +913,12 @@ the type of the stream.
 |-------------|-------------------------------------------------|
 | 0x10-0x1D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
 |-------------|-------------------------------------------------|
-| 0x2F00      | CLIENT_SETUP ({{message-setup}})                |
-|-------------|-------------------------------------------------|
-| 0x2F01      | SERVER_SETUP ({{message-setup}})                |
+| 0x2F00      | SETUP ({{message-setup}})                       |
 |-------------|-------------------------------------------------|
 
 An endpoint that receives an unknown stream type MUST close the session.
 
-Control streams (CLIENT_SETUP, SERVER_SETUP) are described in {{session-init}}.
+Control streams (SETUP) are described in {{session-init}}.
 Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
 
 ## Termination  {#session-termination}
@@ -1819,9 +1816,7 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x21  | RESERVED (SERVER_SETUP in versions <= 16)           |
 |-------|-----------------------------------------------------|
-| 0x2F00| CLIENT_SETUP ({{message-setup}})                    |
-|-------|-----------------------------------------------------|
-| 0x2F01| SERVER_SETUP ({{message-setup}})                    |
+| 0x2F00| SETUP ({{message-setup}})                          |
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
@@ -2016,7 +2011,7 @@ USE_VALUE (0x3):
 : There is no Alias and there is a Type and Value. Use the Token Value as
 provided. The Token Value may be discarded after processing.
 
-If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a CLIENT_SETUP
+If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
 message, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 * Token Alias - a Session-specific integer identifier that references a Token
@@ -2284,42 +2279,29 @@ to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
 After sending a NEW_GROUP_REQUEST upstream, the request is considered
 outstanding until the Largest Group increases.
 
-## CLIENT_SETUP and SERVER_SETUP {#message-setup}
+## SETUP {#message-setup}
 
-The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
-by the client and the server; they allow the endpoints to agree on the initial
-configuration before any other control messages are exchanged. The client sends
-CLIENT_SETUP on its control stream (a client-initiated unidirectional stream)
-and the server sends SERVER_SETUP on its control stream (a server-initiated
-unidirectional stream). Each endpoint sends exactly one SETUP message on its
-own control stream; other control messages follow on the same stream. An
-endpoint that is not offering extensions which modify control message semantics
-MAY pipeline other control messages after sending its SETUP message without
-waiting for the peer's SETUP message.
+The `SETUP` message is the first message each endpoint sends on its control
+stream (see {{session-init}}); it allows the endpoints to agree on the initial
+configuration before any other control messages are exchanged. An endpoint that
+is not offering extensions which modify control message semantics MAY pipeline
+other control messages after SETUP without waiting for the peer's SETUP.
 
 The messages contain a sequence of key-value pairs called Setup Options; the
 semantics and format of which can vary based on whether the client or server is
 sending.  To ensure future extensibility of MOQT, endpoints MUST ignore unknown
 Setup Options.
 
-The wire format of the Setup messages are as follows:
+The wire format of the Setup message is as follows:
 
 ~~~
-CLIENT_SETUP Message {
+SETUP Message {
   Type (vi64) = 0x2F00,
   Length (16),
-  Number of Setup Options (vi64),
-  Setup Options (..) ...,
-}
-
-SERVER_SETUP Message {
-  Type (vi64) = 0x2F01,
-  Length (16),
-  Number of Setup Options (vi64),
   Setup Options (..) ...,
 }
 ~~~
-{: #moq-transport-setup-format title="MOQT Setup Messages"}
+{: #moq-transport-setup-format title="MOQT SETUP Message"}
 
 Setup Options are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
 Setup Options use a namespace that is constant across all MOQT versions,
@@ -2382,15 +2364,16 @@ initiation.
 
 The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is functionally
 equivalent to the AUTHORIZATION TOKEN message parameter, see {{authorization-token}}.
-The endpoint can specify one or more tokens in CLIENT_SETUP or SERVER_SETUP
+The endpoint can specify one or more tokens in SETUP
 that the peer can use to authorize MOQT session establishment.
 
-If a server receives an AUTHORIZATION TOKEN option in CLIENT_SETUP with Alias
+If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
 the session with `AUTH_TOKEN_CACHE_OVERFLOW`.  Instead, it MUST treat the
-option as Alias Type USE_VALUE.  A client MUST handle registration failures
+option as Alias Type USE_VALUE.  Since each endpoint's SETUP may be sent before
+the peer's SETUP is received, the sender MUST handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
-MAX_AUTH_TOKEN_CACHE_SIZE option in SERVER_SETUP (or the default value of 0).
+peer's MAX_AUTH_TOKEN_CACHE_SIZE option in SETUP (or the default value of 0).
 
 #### MOQT IMPLEMENTATION {#moqt-implementation}
 
