@@ -3484,8 +3484,8 @@ which fields are present in the datagram:
   the Object ID in this datagram exists.
 
 * The **ZERO_OBJECT_ID** bit (0x04) indicates when the Object ID field is
-  present.  When set to 1, the Object ID field is omitted and the Object ID is
-  0. When set to 0, the Object ID field is present.
+  present.  When set to 1, the Object ID field is omitted and the Object ID
+  is 0. When set to 0, the Object ID field is present.
 
 * The **DEFAULT_PRIORITY** bit (0x08) indicates when the Priority field is
   present. When set to 1, the Priority field is omitted and this Object inherits
