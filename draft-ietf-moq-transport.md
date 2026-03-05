@@ -4306,10 +4306,10 @@ Endpoints MUST ignore unknown Property types, skipping them using
 the length field.
 
 * MOQ Properties - we wish to define the following registration policies:
-  - 0x00 to 0x37: Standards Action or IESG Approval (1-byte encoding)
-  - 0x38 to 0x3F: Reserved for application-specific use (1-byte encoding,
+  - 0x00 to 0x77: Standards Action or IESG Approval (1-byte encoding)
+  - 0x78 to 0x7F: Reserved for application-specific use (1-byte encoding,
     no registration permitted)
-  - 0x40 to 0x37FF: Specification Required (2-byte encoding)
+  - 0x80 to 0x37FF: Specification Required (2-byte encoding)
   - 0x3800 to 0x3FFF: Reserved for application-specific use (2-byte encoding,
     no registration permitted)
   - 0x4000 and above: First Come First Served
