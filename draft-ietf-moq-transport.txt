@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 3 September 2026                                  I. Swett, Ed.
+Expires: 6 September 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            2 March 2026
+                                                            5 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 September 2026.
+   This Internet-Draft will expire on 6 September 2026.
 
 Copyright Notice
 
@@ -438,7 +438,7 @@ Table of Contents
            +----------------------+----------------------------+
            | 0xbbbd               | 15,293                     |
            +----------------------+----------------------------+
-           | 0xdd7f3e7d           | 494,878,333                |
+           | 0xed7f3e7d           | 226,442,877                |
            +----------------------+----------------------------+
            | 0xfaa1a0e403d8       | 2,893,212,287,960          |
            +----------------------+----------------------------+
@@ -4771,13 +4771,13 @@ EXT 1 and EXT N can be modified or removed by Relays
    *  MOQ Properties - we wish to define the following registration
       policies:
 
-      -  0x00 to 0x37: Standards Action or IESG Approval (1-byte
+      -  0x00 to 0x77: Standards Action or IESG Approval (1-byte
          encoding)
 
-      -  0x38 to 0x3F: Reserved for application-specific use (1-byte
+      -  0x78 to 0x7F: Reserved for application-specific use (1-byte
          encoding, no registration permitted)
 
-      -  0x40 to 0x37FF: Specification Required (2-byte encoding)
+      -  0x80 to 0x37FF: Specification Required (2-byte encoding)
 
       -  0x3800 to 0x3FFF: Reserved for application-specific use (2-byte
          encoding, no registration permitted)
@@ -5041,9 +5041,9 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-14, 20 October 2025,
+              ietf-webtrans-http3-15, 2 March 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-14>.
+              webtrans-http3-15>.
 
 Informative References
 
@@ -5080,9 +5080,9 @@ Informative References
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
               Framework", Work in Progress, Internet-Draft, draft-ietf-
-              webtrans-overview-11, 20 October 2025,
+              webtrans-overview-12, 2 March 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-11>.
+              webtrans-overview-12>.
 
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
