@@ -3046,9 +3046,9 @@ Largest available Object in the requested range is indicated in the FETCH_OK,
 and is the last Object a fetch will return if the End Location have not yet been
 published.
 
-If Start Location is greater than the `Largest Object`
-({{message-subscribe-req}}) the publisher MUST return REQUEST_ERROR with error
-code `INVALID_RANGE`.
+If no Objects have been published for the track or Start Location is greater
+than the `Largest Object` ({{message-subscribe-req}}) the publisher MUST return
+REQUEST_ERROR with error code `INVALID_RANGE`.
 
 A publisher MUST send fetched groups in the requested group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
