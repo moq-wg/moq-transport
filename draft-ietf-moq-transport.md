@@ -1864,6 +1864,8 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xB   | PUBLISH_DONE ({{message-publish-done}})             |
 |-------|-----------------------------------------------------|
+| 0x1F  | REDIRECT ({{message-redirect}})                     |
+|-------|-----------------------------------------------------|
 | 0x16  | FETCH ({{message-fetch}})                           |
 |-------|-----------------------------------------------------|
 | 0x18  | FETCH_OK ({{message-fetch-ok}})                     |
@@ -2912,6 +2914,32 @@ UPDATE_FAILED (0x8):
 
 EXCESSIVE_LOAD (0x9):
 : The publisher is overloaded and is terminating the subscription.
+
+## REDIRECT {#message-redirect}
+
+An endpoint sends a REDIRECT message on a bidirectional request stream to
+indicate that the peer should re-establish the request at a different location.
+REDIRECT MAY be sent on streams for SUBSCRIBE, PUBLISH, SUBSCRIBE_NAMESPACE,
+and PUBLISH_NAMESPACE. An endpoint MUST close the session with a
+`PROTOCOL_VIOLATION` if it receives a REDIRECT on any other stream type.
+
+REDIRECT does not terminate the current request. The sender MAY continue to
+serve the request after sending REDIRECT. For subscriptions, a publisher MAY
+send both REDIRECT and PUBLISH_DONE; the subscriber SHOULD use the Redirect
+information to re-establish the subscription before the current one is fully
+torn down, enabling a seamless handoff.
+
+~~~
+REDIRECT Message {
+  Type (vi64) = 0x1F,
+  Length (16),
+  Redirect (Redirect),
+}
+~~~
+{: #moq-transport-redirect-format title="MOQT REDIRECT Message"}
+
+* Redirect: The location to re-establish the request. See
+  {{redirect-structure}}.
 
 ## FETCH {#message-fetch}
 
