@@ -2694,7 +2694,10 @@ new range if the publisher sent them before the update was processed.
 
 When a subscription
 update is unsuccessful, the publisher MUST also terminate the subscription with
-PUBLISH_DONE with error code `UPDATE_FAILED`.
+PUBLISH_DONE with error code `UPDATE_FAILED`. When a REQUEST_UPDATE fails for
+a FETCH, the publisher MUST reset the FETCH data stream. When a REQUEST_UPDATE
+fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder MUST close
+the bidi stream.
 
 ## PUBLISH {#message-publish}
 
