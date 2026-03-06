@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 6 September 2026                                  I. Swett, Ed.
+Expires: 7 September 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            5 March 2026
+                                                            6 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 September 2026.
+   This Internet-Draft will expire on 7 September 2026.
 
 Copyright Notice
 
@@ -3069,7 +3069,7 @@ Table of Contents
    closing the subscription's bidi stream to indicate it is done
    publishing Objects for that subscription.  The Status Code indicates
    why the subscription ended, and whether it was an error.  Because
-   PUBLISH_DONE is sent on the control stream, it is likely to arrive at
+   PUBLISH_DONE is sent on a control stream, it is likely to arrive at
    the receiver before late-arriving objects, and often even late-
    opening streams.  However, the receiver uses it as an indication that
    it should receive any late-opening streams in a relatively short
