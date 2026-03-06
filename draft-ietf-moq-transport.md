@@ -1891,10 +1891,11 @@ is computed as:
 ~~~
 
 A Required Request ID Delta of 0 indicates no dependency. When
-a dependency exists, the receiver MUST deliver the referenced
-request to the application before delivering the dependent
-request. If the required request does not arrive, the receiver
-will time out the dependent request.
+a dependency exists, the receiver MUST NOT process the dependent
+request before the referenced request. This is an ordering
+constraint only; the referenced request does not need to complete
+successfully. If the referenced request does not arrive, the
+receiver will time out the dependent request.
 
 The delta is scaled by two because request IDs from each endpoint
 use alternating parity (odd or even), so valid dependencies always
