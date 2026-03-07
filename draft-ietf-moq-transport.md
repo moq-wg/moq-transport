@@ -3280,8 +3280,10 @@ corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
 If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
 timely manner because the SUBSCRIBE_NAMESPACE response stream is blocked by flow
 control, the publisher MAY reset the SUBSCRIBE_NAMESPACE response stream.  When
-a subscriber receives a stream reset on a SUBSCRIBE_NAMESPACE response stream, it
-SHOULD treat this as though each active namespace received a NAMESPACE_DONE.
+a subscriber receives a stream reset or FIN on a SUBSCRIBE_NAMESPACE response
+stream, it SHOULD treat this as though each active namespace received a
+NAMESPACE_DONE. Subscriptions established via PUBLISH on separate bidi streams
+are not affected by closure of the SUBSCRIBE_NAMESPACE stream.
 
 ## PUBLISH_BLOCKED {#message-publish-blocked}
 
