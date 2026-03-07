@@ -2241,6 +2241,24 @@ If the parameter is omitted from REQUEST_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
 message, the default value is 1.
 
+### SUBSCRIBE NAMESPACE OPTIONS Parameter {#subscribe-options}
+
+The SUBSCRIBE_NAMESPACE_OPTIONS parameter (Parameter Type 0x33) is a varint. It MAY
+appear in SUBSCRIBE_NAMESPACE and REQUEST_UPDATE (for a namespace subscription).
+It specifies which messages the publisher sends in response to the
+SUBSCRIBE_NAMESPACE:
+
+- PUBLISH (0x00): The publisher sends only PUBLISH messages for matching tracks.
+- NAMESPACE (0x01): The publisher sends only NAMESPACE and NAMESPACE_DONE
+  messages.
+- BOTH (0x02): The publisher sends both PUBLISH and NAMESPACE/NAMESPACE_DONE
+  messages.
+
+If an endpoint receives a value outside this range, it MUST close the session
+with `PROTOCOL_VIOLATION`. If omitted from SUBSCRIBE_NAMESPACE, the default
+value is BOTH (0x02). If omitted from REQUEST_UPDATE, the value remains
+unchanged.
+
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
 The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint. It MAY appear
@@ -3214,7 +3232,6 @@ SUBSCRIBE_NAMESPACE Message {
   Request ID (vi64),
   Required Request ID Delta (vi64),
   Track Namespace Prefix (..),
-  Subscribe Options (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -3235,9 +3252,6 @@ SUBSCRIBE_NAMESPACE Message {
   Track Namespace Prefix consisting of greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-* Subscribe Options: Allows subscribers to request PUBLISH (0x00),
-  NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.
-
 * Parameters: The parameters are defined in {{message-params}}.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
@@ -3245,12 +3259,13 @@ of the stream. If the subscriber receives any frame other than a REQUEST_OK or a
 REQUEST_ERROR as the first frame on the response half of the stream, then it MUST
 close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
-stream if they are requested. If it is an error, the stream will be immediately
-closed via FIN. Also, any matching PUBLISH messages without an `Established`
-Subscription will be established on new bidirectional streams. When there are
-changes to the namespaces or subscriptions being published and the subscriber
-is subscribed to them, the publisher sends the corresponding NAMESPACE,
-NAMESPACE_DONE, or PUBLISH messages.
+stream and PUBLISH messages on new bidirectional streams, as determined by the
+SUBSCRIBE_NAMESPACE_OPTIONS parameter ({{subscribe-options}}). If it is an error, the
+stream will be immediately closed via FIN. When there are changes to the
+namespaces or subscriptions being published and the subscriber is subscribed to
+them, the publisher sends the corresponding NAMESPACE, NAMESPACE_DONE, or
+PUBLISH messages. The subscriber can change the SUBSCRIBE_NAMESPACE_OPTIONS via
+REQUEST_UPDATE.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
 session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
@@ -4285,6 +4300,7 @@ TODO: register the URI scheme and the ALPN
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
+| 0x33 | SUBSCRIBE_NAMESPACE_OPTIONS | {{subscribe-options}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
