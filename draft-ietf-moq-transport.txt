@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 September 2026                                  I. Swett, Ed.
+Expires: 9 September 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            6 March 2026
+                                                            8 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 September 2026.
+   This Internet-Draft will expire on 9 September 2026.
 
 Copyright Notice
 
@@ -2141,10 +2141,11 @@ Table of Contents
      Delta)
 
    A Required Request ID Delta of 0 indicates no dependency.  When a
-   dependency exists, the receiver MUST deliver the referenced request
-   to the application before delivering the dependent request.  If the
-   required request does not arrive, the receiver will time out the
-   dependent request.
+   dependency exists, the receiver MUST NOT process the dependent
+   request before the referenced request.  This is an ordering
+   constraint only; the referenced request does not need to complete
+   successfully.  If the referenced request does not arrive, the
+   receiver will time out the dependent request.
 
    The delta is scaled by two because request IDs from each endpoint use
    alternating parity (odd or even), so valid dependencies always differ
