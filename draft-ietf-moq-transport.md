@@ -890,7 +890,7 @@ session's lifetime.  Doing so results in the session being closed as a
 
 ### Minimizing Setup Latency
 
-MoQ uses two unidirectional streams for  SETUP messages to allow either
+MoQ uses two unidirectional streams for SETUP messages to allow either
 endpoint to initiate a MoQ Session.
 
 Bidirectional request streams cannot be processed until the SETUP message
@@ -898,7 +898,7 @@ has been processed, but they can be sent.
 
 If a PUBLISH request is sent prior to receiving the peer's SETUP, Objects
 associated with the PUBLISH can be sent prior to receiving a PUBLISH_OK
-in response.
+in response, as is always true with PUBLISH.
 
 As such, a client or server can initiate a MoQ session, subscribe, and
 start publishing Objects all in parallel.
@@ -914,11 +914,11 @@ unable to process it and the session will be terminated. See {message-params}
 
 QUIC supports 0-RTT ({{Section 2.3 of ?RFC8446}}), but Webtransport over QUIC
 is not expected to use 0-RTT, because initializing a WebTransport session
-uses CONNECT, which is not a safe method. {{?RFC8470}} describes the use
+uses CONNECT, which is not a safe method. {{?RFC8470}} describes the use of
 0-RTT with HTTP in more detail. If 0-RTT is used with an existing or future
 version of WebTransport, the following would apply to it as well as QUIC.
 
-0-RTT is not forward secure, so any MoQ uses need to consider that when
+0-RTT is not forward secure, so MoQ users need to consider that when
 deciding if 0-RTT is appropriate.
 
 MoQ Messages and Objects as defined in this draft are safe to replay in most
