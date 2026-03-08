@@ -2209,11 +2209,6 @@ Table of Contents
    would violate the track uniqueness guarantee described in
    Section 2.4.3.
 
-   Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause
-   the publisher to alter the payload of the objects it sends, as that
-   would violate the track uniqueness guarantee described in
-   Section 2.4.3.
-
 9.3.1.  Parameter Scope
 
    Message Parameters are always intended for the peer endpoint only and
