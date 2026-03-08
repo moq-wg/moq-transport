@@ -912,7 +912,7 @@ unable to process it and the session will be terminated. See {message-params}
 
 ### 0-RTT
 
-QUIC supports 0-RTT ({{Section 2.3 of RFC8446}}), but Webtransport over QUIC
+QUIC supports 0-RTT ({{Section 2.3 of ?RFC8446}}), but Webtransport over QUIC
 is not expected to use 0-RTT, because initializing a WebTransport session
 uses CONNECT, which is not a safe method. {{?RFC8470}} describes the use
 0-RTT with HTTP in more detail. If 0-RTT is used with an existing or future
