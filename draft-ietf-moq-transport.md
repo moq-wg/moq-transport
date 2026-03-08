@@ -1951,9 +1951,6 @@ Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
 publisher to alter the payload of the objects it sends, as that would violate
 the track uniqueness guarantee described in {{track-scope}}.
 
-Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
-to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in {{track-scope}}.
 
 ### Parameter Scope
 
