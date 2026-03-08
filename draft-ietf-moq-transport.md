@@ -888,6 +888,67 @@ A control stream MUST NOT be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
 `PROTOCOL_VIOLATION`.
 
+### Minimizing Setup Latency
+
+MoQ uses two unidirectional streams for  SETUP messages to allow either
+endpoint to initiate a MoQ Session.
+
+Bidirectional request streams cannot be processed until the SETUP message
+has been processed, but they can be sent.
+
+If a PUBLISH request is sent prior to receiving the peer's SETUP, Objects
+associated with the PUBLISH can be sent prior to receiving a PUBLISH_OK
+in response.
+
+As such, a client or server can initiate a MoQ session, subscribe, and
+start publishing Objects all in parallel.
+
+Prior to receiving the peer's SETUP message, it's unknown what extensions
+a peer will support. Message Parameters requiring negotiation SHOULD NOT
+be used prior to receiving the peer's SETUP message unless the application
+requires the extension or the endpoint knows the peer supports the
+extension. If an unsupported Message Parameter is used, the peer will be
+unable to process it and the session will be terminated. See {message-params}
+
+### 0-RTT
+
+QUIC supports 0-RTT ({{Section 2.3 of RFC8446}}), but Webtransport over QUIC
+is not expected to use 0-RTT, because initializing a WebTransport session
+uses CONNECT, which is not a safe method. {{?RFC8470}} describes the use
+0-RTT with HTTP in more detail. If 0-RTT is used with an existing or future
+version of WebTransport, the following would apply to it as well as QUIC.
+
+0-RTT is not forward secure, so any MoQ uses need to consider that when
+deciding if 0-RTT is appropriate.
+
+MoQ Messages and Objects as defined in this draft are safe to replay in most
+circumstances.
+
+* TRACK_STATUS gets the Largest Object and Track Properties, but does not
+  change the state of a Track or any Object in the Track.
+* SUBSCRIBE requests Objects be delivered, but does not change the Objects
+  being requested.
+* PUBLISH initiates a Subscription and Objects can be immediately sent to
+  the Subscriber. Sending the same Objects multiple times does not change
+  the Track contents, because MoQ ignores duplicate Objects.
+* SUBSCRIBE_NAMESPACE requests a list of namespaces and the establishment
+  of new subscriptions, but does not change the available Namespaces,
+  Tracks, or Objects contained within a Track.
+* PUBLISH_NAMESPACE indicates that Subscriptions should be sent to the
+  Publisher. If a Subscription was sent to the replaying endpoint, it
+  would fail because the endpoint cannot complete the handshake.
+
+Some potential side effects of replay are:
+
+* The NEW_GROUP_REQUEST Parameter {{new-group-request}} can cause a new
+  Group to be started on an existing Track. Replaying a SUBSCRIBE
+  containing a NEW_GROUP_REQUEST could cause more, shorter Groups to
+  be published for a Track.
+* Publishing Objects that were previously published could cause those
+  Objects to be distributed to active Subscriptions if the relays do
+  not identify them as already having been published.
+
+
 ### Request Cancellation and Rejection {#request-cancellation}
 
 Once a request stream has been opened, the request MAY be cancelled by either
