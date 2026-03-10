@@ -3864,8 +3864,8 @@ the "prior Object", the prior Object fields are determined as follows:
 
 An endpoint MAY send padding on unidirectional streams or datagrams.  Padding
 does not carry Objects or any other application data.  An endpoint can use
-padding to probe for additional bandwidth without affecting the delivery of
-media data.
+padding to probe for additional bandwidth while minimizing the impact on the
+delivery of application data.
 
 ### Padding Streams {#padding-streams}
 
@@ -3881,16 +3881,15 @@ PADDING STREAM {
 ~~~
 {: #padding-format title="MOQT Padding Stream"}
 
-The receiver MUST read and discard all data received on a padding stream. The
+The receiver MUST discard all data received on a padding stream. The
 receiver MUST NOT close the session upon receiving a padding stream.
 
 To avoid interfering with the delivery of Objects,
-senders SHOULD send padding streams at a lower priority than any data stream
-carrying media.
+senders SHOULD send padding streams at a lower priority than any control stream
+or Object data.
 
 Either the sender or the receiver MAY cancel a padding stream at any time
-without affecting any MOQT application state. The receiver MAY send STOP_SENDING
-on a padding stream to indicate it no longer wishes to receive padding data.
+without affecting any MOQT application state.
 
 ### Padding Datagrams {#padding-datagrams}
 
