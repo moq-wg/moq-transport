@@ -3322,7 +3322,6 @@ All MOQT datagrams start with a variable-length integer indicating the type of
 the datagram.  See {{object-datagram}}.
 
 An endpoint that receives an unknown datagram type MUST close the session.
-A PADDING datagram ({{padding}}) is not an unknown type.
 
 Every Object has a 'Object Forwarding Preference' and the Original Publisher
 MAY use both Subgroups and Datagrams within a Group or Track.
