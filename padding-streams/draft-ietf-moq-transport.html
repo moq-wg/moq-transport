@@ -6532,6 +6532,8 @@ the prior Priority is a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4.4
 does not carry Objects or any other application data.  An endpoint can use
 padding to probe for additional bandwidth while minimizing the impact on the
 delivery of application data.<a href="#section-10.5-1" class="pilcrow">¶</a></p>
+<p id="section-10.5-2">To avoid interfering with the delivery of Objects, senders <span class="bcp14">SHOULD</span> send padding
+streams at a lower priority than any control stream or Object data.<a href="#section-10.5-2" class="pilcrow">¶</a></p>
 <div id="padding-streams">
 <section id="section-10.5.1">
           <h4 id="name-padding-streams">
@@ -6556,11 +6558,8 @@ PADDING STREAM {
 </div>
 <p id="section-10.5.1-3">The receiver <span class="bcp14">MUST</span> discard all data received on a padding stream. The
 receiver <span class="bcp14">MUST NOT</span> close the session upon receiving a padding stream.<a href="#section-10.5.1-3" class="pilcrow">¶</a></p>
-<p id="section-10.5.1-4">To avoid interfering with the delivery of Objects,
-senders <span class="bcp14">SHOULD</span> send padding streams at a lower priority than any control stream
-or Object data.<a href="#section-10.5.1-4" class="pilcrow">¶</a></p>
-<p id="section-10.5.1-5">Either the sender or the receiver <span class="bcp14">MAY</span> cancel a padding stream at any time
-without affecting any MOQT application state.<a href="#section-10.5.1-5" class="pilcrow">¶</a></p>
+<p id="section-10.5.1-4">Either the sender or the receiver <span class="bcp14">MAY</span> cancel a padding stream at any time
+without affecting any MOQT application state.<a href="#section-10.5.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="padding-datagrams">

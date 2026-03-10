@@ -4267,6 +4267,10 @@ Table of Contents
    endpoint can use padding to probe for additional bandwidth while
    minimizing the impact on the delivery of application data.
 
+   To avoid interfering with the delivery of Objects, senders SHOULD
+   send padding streams at a lower priority than any control stream or
+   Object data.
+
 10.5.1.  Padding Streams
 
    An endpoint MAY open a unidirectional stream with a stream type of
@@ -4282,10 +4286,6 @@ Table of Contents
 
    The receiver MUST discard all data received on a padding stream.  The
    receiver MUST NOT close the session upon receiving a padding stream.
-
-   To avoid interfering with the delivery of Objects, senders SHOULD
-   send padding streams at a lower priority than any control stream or
-   Object data.
 
    Either the sender or the receiver MAY cancel a padding stream at any
    time without affecting any MOQT application state.
