@@ -922,7 +922,7 @@ An endpoint that receives an unknown stream type MUST close the session.
 
 Control streams (SETUP) are described in {{session-init}}.
 Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
-Padding streams are described in {{padding-streams}}.
+Padding streams are described in {{padding}}.
 
 ## Termination  {#session-termination}
 
@@ -3322,6 +3322,7 @@ All MOQT datagrams start with a variable-length integer indicating the type of
 the datagram.  See {{object-datagram}}.
 
 An endpoint that receives an unknown datagram type MUST close the session.
+A PADDING datagram ({{padding}}) is not an unknown type.
 
 Every Object has a 'Object Forwarding Preference' and the Original Publisher
 MAY use both Subgroups and Datagrams within a Group or Track.
@@ -3859,14 +3860,21 @@ the "prior Object", the prior Object fields are determined as follows:
   Range indicator. If there was no prior Object, using a flag that references
   the prior Priority is a `PROTOCOL_VIOLATION`.
 
-## Padding Streams {#padding-streams}
+## Padding {#padding}
+
+An endpoint MAY send padding on unidirectional streams or datagrams.  Padding
+does not carry Objects or any other application data.  An endpoint can use
+padding to probe for additional bandwidth without affecting the delivery of
+media data.
+
+### Padding Streams {#padding-streams}
 
 An endpoint MAY open a unidirectional stream with a stream type of 0x132B3E28 to send
 padding data. The stream begins with the stream type, followed by zero or more
 bytes that MUST all be set to zero.
 
 ~~~
-PADDING {
+PADDING STREAM {
   Type (vi64) = 0x132B3E28,
   Padding Data (..) = 0x00..
 }
@@ -3876,15 +3884,30 @@ PADDING {
 The receiver MUST read and discard all data received on a padding stream. The
 receiver MUST NOT close the session upon receiving a padding stream.
 
-Padding streams do not carry Objects or any other application data. An endpoint
-can use padding streams to probe for additional bandwidth without affecting the
-delivery of media data. To avoid interfering with the delivery of Objects,
+To avoid interfering with the delivery of Objects,
 senders SHOULD send padding streams at a lower priority than any data stream
 carrying media.
 
 Either the sender or the receiver MAY cancel a padding stream at any time
 without affecting any MOQT application state. The receiver MAY send STOP_SENDING
 on a padding stream to indicate it no longer wishes to receive padding data.
+
+### Padding Datagrams {#padding-datagrams}
+
+An endpoint MAY send a datagram with a type of 0x132B3E29 to send padding data.
+The datagram contains the type followed by zero or more bytes that MUST all be
+set to zero.
+
+~~~
+PADDING DATAGRAM {
+  Type (vi64) = 0x132B3E29,
+  Padding Data (..) = 0x00..
+}
+~~~
+{: #padding-datagram-format title="MOQT Padding Datagram"}
+
+The receiver MUST discard all data received in a padding datagram. The receiver
+MUST NOT close the session upon receiving a padding datagram.
 
 ## Examples
 
