@@ -6530,8 +6530,8 @@ the prior Priority is a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4.4
         </h3>
 <p id="section-10.5-1">An endpoint <span class="bcp14">MAY</span> send padding on unidirectional streams or datagrams.  Padding
 does not carry Objects or any other application data.  An endpoint can use
-padding to probe for additional bandwidth without affecting the delivery of
-media data.<a href="#section-10.5-1" class="pilcrow">¶</a></p>
+padding to probe for additional bandwidth while minimizing the impact on the
+delivery of application data.<a href="#section-10.5-1" class="pilcrow">¶</a></p>
 <div id="padding-streams">
 <section id="section-10.5.1">
           <h4 id="name-padding-streams">
@@ -6554,14 +6554,13 @@ PADDING STREAM {
 <a href="#name-moqt-padding-stream" class="selfRef">MOQT Padding Stream</a>
             </figcaption></figure>
 </div>
-<p id="section-10.5.1-3">The receiver <span class="bcp14">MUST</span> read and discard all data received on a padding stream. The
+<p id="section-10.5.1-3">The receiver <span class="bcp14">MUST</span> discard all data received on a padding stream. The
 receiver <span class="bcp14">MUST NOT</span> close the session upon receiving a padding stream.<a href="#section-10.5.1-3" class="pilcrow">¶</a></p>
 <p id="section-10.5.1-4">To avoid interfering with the delivery of Objects,
-senders <span class="bcp14">SHOULD</span> send padding streams at a lower priority than any data stream
-carrying media.<a href="#section-10.5.1-4" class="pilcrow">¶</a></p>
+senders <span class="bcp14">SHOULD</span> send padding streams at a lower priority than any control stream
+or Object data.<a href="#section-10.5.1-4" class="pilcrow">¶</a></p>
 <p id="section-10.5.1-5">Either the sender or the receiver <span class="bcp14">MAY</span> cancel a padding stream at any time
-without affecting any MOQT application state. The receiver <span class="bcp14">MAY</span> send STOP_SENDING
-on a padding stream to indicate it no longer wishes to receive padding data.<a href="#section-10.5.1-5" class="pilcrow">¶</a></p>
+without affecting any MOQT application state.<a href="#section-10.5.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="padding-datagrams">
