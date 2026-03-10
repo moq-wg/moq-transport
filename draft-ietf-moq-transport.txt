@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 9 September 2026                                  I. Swett, Ed.
+Expires: 11 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            8 March 2026
+                                                           10 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 September 2026.
+   This Internet-Draft will expire on 11 September 2026.
 
 Copyright Notice
 
@@ -3352,9 +3352,9 @@ Table of Contents
    the FETCH_OK, and is the last Object a fetch will return if the End
    Location have not yet been published.
 
-   If Start Location is greater than the Largest Object (Section 9.8)
-   the publisher MUST return REQUEST_ERROR with error code
-   INVALID_RANGE.
+   If no Objects have been published for the track or Start Location is
+   greater than the Largest Object (Section 9.8) the publisher MUST
+   return REQUEST_ERROR with error code INVALID_RANGE.
 
    A publisher MUST send fetched groups in the requested group order,
    either ascending or descending.  Within each group, objects are sent
