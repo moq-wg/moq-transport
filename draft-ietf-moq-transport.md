@@ -1585,7 +1585,7 @@ Preference, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
 For ranges of objects that do not exist, relays MAY change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
 change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
-of Group status, or a Prior Group ID Gap extension could be removed in FETCH,
+of Group status, or a Prior Group ID Gap property could be removed in FETCH,
 where it's redundant.
 
 Note that due to reordering, an implementation can receive an Object after
@@ -1898,10 +1898,11 @@ is computed as:
 ~~~
 
 A Required Request ID Delta of 0 indicates no dependency. When
-a dependency exists, the receiver MUST deliver the referenced
-request to the application before delivering the dependent
-request. If the required request does not arrive, the receiver
-will time out the dependent request.
+a dependency exists, the receiver MUST NOT process the dependent
+request before the referenced request. This is an ordering
+constraint only; the referenced request does not need to complete
+successfully. If the referenced request does not arrive, the
+receiver will time out the dependent request.
 
 The delta is scaled by two because request IDs from each endpoint
 use alternating parity (odd or even), so valid dependencies always
@@ -1958,9 +1959,6 @@ Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
 publisher to alter the payload of the objects it sends, as that would violate
 the track uniqueness guarantee described in {{track-scope}}.
 
-Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
-to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in {{track-scope}}.
 
 ### Parameter Scope
 
@@ -2117,7 +2115,7 @@ A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
 due to delivery timeout.
 
 If both the subscriber specifies this parameter and the Track has a
-DELIVERY_TIMEOUT extension, the endpoints use the min of
+DELIVERY_TIMEOUT property, the endpoints use the min of
 the two non-zero values for the subscription. If either value is 0, the
 non-zero value is used. If both are 0, there is no delivery timeout.
 
@@ -3626,7 +3624,7 @@ Object in the Subgroup stream. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
-unless there is an Prior Object ID Gap extension header (see
+unless there is a Prior Object ID Gap property (see
 {{prior-object-id-gap}}).
 
 ~~~
@@ -4003,12 +4001,12 @@ If omitted, the value is 0.
 
 ## Immutable Properties
 
-Immutable Properties (Property Type 0xB) contain a sequence of
-Key-Value-Pairs (see {{moq-key-value-pair}}) which are also Track or Object
-Properties.
+Immutable Properties (Property Type 0xB) is a Track or Object Property that
+contains a sequence of Key-Value-Pairs (see {{moq-key-value-pair}}) that are
+themselves Track or Object Properties, respectively.
 
 ~~~
-Immutable Extensions {
+Immutable Properties {
   Type (0xB),
   Length (vi64),
   Key-Value-Pair (..) ...
@@ -4023,12 +4021,12 @@ Object or Track are cached and MUST forward it. Relays MAY decode and view
 the Properties in the Key-Value-Pairs.
 
 Unless specified by a particular Property specification, Properties
-MAY appear either in the mutable extension list or inside Immutable Properties.
+MAY appear either in the mutable property list or inside Immutable Properties.
 When looking for the value of a property, processors MUST search both the
-mutable properties and the contents of Immutable Extensions.
+mutable properties and the contents of Immutable Properties.
 
 If a Property allows multiple values, the same Property Type MAY appear in
-both the mutable list and inside Immutable Extensions, unless prohibited by
+both the mutable list and inside Immutable Properties, unless prohibited by
 the Property specification.
 
 A Track is considered malformed (see {{malformed-tracks}}) if any of the
@@ -4086,7 +4084,7 @@ cannot infer any information about the existence of prior groups (see
 
 This property can be added by the Original Publisher, but MUST NOT be added by
 relays. This property MAY be removed by a relay when the object in question is
-served via FETCH, and the gap that the extension communicates is already
+served via FETCH, and the gap that the property communicates is already
 communicated implicitly in the FETCH response; it MUST NOT be modified or
 removed otherwise.
 
@@ -4117,7 +4115,7 @@ cannot infer any information about the existence of prior objects (see
 
 This property can be added by the Original Publisher, but MUST NOT be added by
 relays. This property MAY be removed by a relay when the object in question is
-served via FETCH, and the gap that the extension communicates is already
+served via FETCH, and the gap that the property communicates is already
 communicated implicitly in the FETCH response; it MUST NOT be modified or
 removed otherwise.
 
