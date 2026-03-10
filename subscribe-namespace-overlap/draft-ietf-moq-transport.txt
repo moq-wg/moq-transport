@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 September 2026                                  I. Swett, Ed.
+Expires: 11 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            6 March 2026
+                                                           10 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 September 2026.
+   This Internet-Draft will expire on 11 September 2026.
 
 Copyright Notice
 
@@ -1814,7 +1814,7 @@ Table of Contents
    representation of a missing range to a semantically equivalent one.
    For instance, a relay may change an End-of-Group="Y" Subgroup Header
    to an equivalent object with an End of Group status, or a Prior Group
-   ID Gap extension could be removed in FETCH, where it's redundant.
+   ID Gap property could be removed in FETCH, where it's redundant.
 
    Note that due to reordering, an implementation can receive an Object
    after receiving an indication that the Object in question does not
@@ -2148,10 +2148,11 @@ Table of Contents
      Delta)
 
    A Required Request ID Delta of 0 indicates no dependency.  When a
-   dependency exists, the receiver MUST deliver the referenced request
-   to the application before delivering the dependent request.  If the
-   required request does not arrive, the receiver will time out the
-   dependent request.
+   dependency exists, the receiver MUST NOT process the dependent
+   request before the referenced request.  This is an ordering
+   constraint only; the referenced request does not need to complete
+   successfully.  If the referenced request does not arrive, the
+   receiver will time out the dependent request.
 
    The delta is scaled by two because request IDs from each endpoint use
    alternating parity (odd or even), so valid dependencies always differ
@@ -2209,11 +2210,6 @@ Table of Contents
 
    The number of Message Parameters is not specifically limited, but the
    total length of a control message is limited to 2^16-1 bytes.
-
-   Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause
-   the publisher to alter the payload of the objects it sends, as that
-   would violate the track uniqueness guarantee described in
-   Section 2.4.3.
 
    Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause
    the publisher to alter the payload of the objects it sends, as that
@@ -2384,7 +2380,7 @@ Table of Contents
    expire due to delivery timeout.
 
    If both the subscriber specifies this parameter and the Track has a
-   DELIVERY_TIMEOUT extension, the endpoints use the min of the two non-
+   DELIVERY_TIMEOUT property, the endpoints use the min of the two non-
    zero values for the subscription.  If either value is 0, the non-zero
    value is used.  If both are 0, there is no delivery timeout.
 
@@ -3976,7 +3972,7 @@ Table of Contents
    Object ID Delta values.  A consumer cannot infer information about
    the existence of Objects between the current and previous Object ID
    in the Subgroup (e.g. when Object ID Delta is non-zero) unless there
-   is an Prior Object ID Gap extension header (see Section 11.8).
+   is a Prior Object ID Gap property (see Section 11.8).
 
    {
      Object ID Delta (vi64),
@@ -4401,10 +4397,11 @@ Table of Contents
 
 11.6.  Immutable Properties
 
-   Immutable Properties (Property Type 0xB) contain a sequence of Key-
-   Value-Pairs (see Figure 2) which are also Track or Object Properties.
+   Immutable Properties (Property Type 0xB) is a Track or Object
+   Property that contains a sequence of Key-Value-Pairs (see Figure 2)
+   that are themselves Track or Object Properties, respectively.
 
-   Immutable Extensions {
+   Immutable Properties {
      Type (0xB),
      Length (vi64),
      Key-Value-Pair (..) ...
@@ -4419,13 +4416,13 @@ Table of Contents
    Value-Pairs.
 
    Unless specified by a particular Property specification, Properties
-   MAY appear either in the mutable extension list or inside Immutable
+   MAY appear either in the mutable property list or inside Immutable
    Properties.  When looking for the value of a property, processors
    MUST search both the mutable properties and the contents of Immutable
-   Extensions.
+   Properties.
 
    If a Property allows multiple values, the same Property Type MAY
-   appear in both the mutable list and inside Immutable Extensions,
+   appear in both the mutable list and inside Immutable Properties,
    unless prohibited by the Property specification.
 
    A Track is considered malformed (see Section 2.4.2) if any of the
@@ -4487,9 +4484,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    This property can be added by the Original Publisher, but MUST NOT be
    added by relays.  This property MAY be removed by a relay when the
-   object in question is served via FETCH, and the gap that the
-   extension communicates is already communicated implicitly in the
-   FETCH response; it MUST NOT be modified or removed otherwise.
+   object in question is served via FETCH, and the gap that the property
+   communicates is already communicated implicitly in the FETCH
+   response; it MUST NOT be modified or removed otherwise.
 
    An Object MUST NOT contain more than one instance of this property.
 
@@ -4522,9 +4519,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    This property can be added by the Original Publisher, but MUST NOT be
    added by relays.  This property MAY be removed by a relay when the
-   object in question is served via FETCH, and the gap that the
-   extension communicates is already communicated implicitly in the
-   FETCH response; it MUST NOT be modified or removed otherwise.
+   object in question is served via FETCH, and the gap that the property
+   communicates is already communicated implicitly in the FETCH
+   response; it MUST NOT be modified or removed otherwise.
 
    An Object MUST NOT contain more than one instance of this property.
 

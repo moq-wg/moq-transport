@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 7 September 2026</td>
+<td class="center">Expires 11 September 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-03-06" class="published">6 March 2026</time>
+<time datetime="2026-03-10" class="published">10 March 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-09-07">7 September 2026</time></dd>
+<dd class="expires"><time datetime="2026-09-11">11 September 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 7 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 11 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3594,7 +3594,7 @@ Preference, Subgroup ID, Priority or Payload <span class="bcp14">MUST</span> tre
 <p id="section-8.1-5">For ranges of objects that do not exist, relays <span class="bcp14">MAY</span> change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
 change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
-of Group status, or a Prior Group ID Gap extension could be removed in FETCH,
+of Group status, or a Prior Group ID Gap property could be removed in FETCH,
 where it's redundant.<a href="#section-8.1-5" class="pilcrow">¶</a></p>
 <p id="section-8.1-6">Note that due to reordering, an implementation can receive an Object after
 receiving an indication that the Object in question does not exist.  The
@@ -3983,10 +3983,11 @@ is computed as:<a href="#section-9.2-1" class="pilcrow">¶</a></p>
 </pre><a href="#section-9.2-2" class="pilcrow">¶</a>
 </div>
 <p id="section-9.2-3">A Required Request ID Delta of 0 indicates no dependency. When
-a dependency exists, the receiver <span class="bcp14">MUST</span> deliver the referenced
-request to the application before delivering the dependent
-request. If the required request does not arrive, the receiver
-will time out the dependent request.<a href="#section-9.2-3" class="pilcrow">¶</a></p>
+a dependency exists, the receiver <span class="bcp14">MUST NOT</span> process the dependent
+request before the referenced request. This is an ordering
+constraint only; the referenced request does not need to complete
+successfully. If the referenced request does not arrive, the
+receiver will time out the dependent request.<a href="#section-9.2-3" class="pilcrow">¶</a></p>
 <p id="section-9.2-4">The delta is scaled by two because request IDs from each endpoint
 use alternating parity (odd or even), so valid dependencies always
 differ by a multiple of two. An endpoint <span class="bcp14">MUST</span> close the session with
@@ -4057,9 +4058,6 @@ length of a control message is limited to 2^16-1 bytes.<a href="#section-9.3-9" 
 <p id="section-9.3-10">Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the
 publisher to alter the payload of the objects it sends, as that would violate
 the track uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.4.3</a>.<a href="#section-9.3-10" class="pilcrow">¶</a></p>
-<p id="section-9.3-11">Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the publisher
-to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.4.3</a>.<a href="#section-9.3-11" class="pilcrow">¶</a></p>
 <div id="parameter-scope">
 <section id="section-9.3.1">
           <h4 id="name-parameter-scope">
@@ -4233,7 +4231,7 @@ Object was not sent because the delivery timeout was exceeded.<a href="#section-
 <p id="section-9.3.3-3">A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
 due to delivery timeout.<a href="#section-9.3.3-3" class="pilcrow">¶</a></p>
 <p id="section-9.3.3-4">If both the subscriber specifies this parameter and the Track has a
-DELIVERY_TIMEOUT extension, the endpoints use the min of
+DELIVERY_TIMEOUT property, the endpoints use the min of
 the two non-zero values for the subscription. If either value is 0, the
 non-zero value is used. If both are 0, there is no delivery timeout.<a href="#section-9.3.3-4" class="pilcrow">¶</a></p>
 <p id="section-9.3.3-5">Publishers can, at their discretion, discontinue forwarding Objects earlier than
@@ -6156,7 +6154,7 @@ Object in the Subgroup stream. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
-unless there is an Prior Object ID Gap extension header (see
+unless there is a Prior Object ID Gap property (see
 <a href="#prior-object-id-gap" class="auto internal xref">Section 11.8</a>).<a href="#section-10.4.2-11" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
 <figure id="figure-25">
@@ -6674,12 +6672,12 @@ the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.5-1" class
         <h3 id="name-immutable-properties">
 <a href="#section-11.6" class="section-number selfRef">11.6. </a><a href="#name-immutable-properties" class="section-name selfRef">Immutable Properties</a>
         </h3>
-<p id="section-11.6-1">Immutable Properties (Property Type 0xB) contain a sequence of
-Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>) which are also Track or Object
-Properties.<a href="#section-11.6-1" class="pilcrow">¶</a></p>
+<p id="section-11.6-1">Immutable Properties (Property Type 0xB) is a Track or Object Property that
+contains a sequence of Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>) that are
+themselves Track or Object Properties, respectively.<a href="#section-11.6-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-11.6-2">
 <pre>
-Immutable Extensions {
+Immutable Properties {
   Type (0xB),
   Length (vi64),
   Key-Value-Pair (..) ...
@@ -6693,11 +6691,11 @@ change). Like other Properties, Relays <span class="bcp14">MUST</span> cache Imm
 Object or Track are cached and <span class="bcp14">MUST</span> forward it. Relays <span class="bcp14">MAY</span> decode and view
 the Properties in the Key-Value-Pairs.<a href="#section-11.6-3" class="pilcrow">¶</a></p>
 <p id="section-11.6-4">Unless specified by a particular Property specification, Properties
-<span class="bcp14">MAY</span> appear either in the mutable extension list or inside Immutable Properties.
+<span class="bcp14">MAY</span> appear either in the mutable property list or inside Immutable Properties.
 When looking for the value of a property, processors <span class="bcp14">MUST</span> search both the
-mutable properties and the contents of Immutable Extensions.<a href="#section-11.6-4" class="pilcrow">¶</a></p>
+mutable properties and the contents of Immutable Properties.<a href="#section-11.6-4" class="pilcrow">¶</a></p>
 <p id="section-11.6-5">If a Property allows multiple values, the same Property Type <span class="bcp14">MAY</span> appear in
-both the mutable list and inside Immutable Extensions, unless prohibited by
+both the mutable list and inside Immutable Properties, unless prohibited by
 the Property specification.<a href="#section-11.6-5" class="pilcrow">¶</a></p>
 <p id="section-11.6-6">A Track is considered malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the
 following conditions are detected:<a href="#section-11.6-6" class="pilcrow">¶</a></p>
@@ -6770,7 +6768,7 @@ cannot infer any information about the existence of prior groups (see
 <a href="#group-ids" class="auto internal xref">Section 2.3.1</a>).<a href="#section-11.7-4" class="pilcrow">¶</a></p>
 <p id="section-11.7-5">This property can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
 relays. This property <span class="bcp14">MAY</span> be removed by a relay when the object in question is
-served via FETCH, and the gap that the extension communicates is already
+served via FETCH, and the gap that the property communicates is already
 communicated implicitly in the FETCH response; it <span class="bcp14">MUST NOT</span> be modified or
 removed otherwise.<a href="#section-11.7-5" class="pilcrow">¶</a></p>
 <p id="section-11.7-6">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this property.<a href="#section-11.7-6" class="pilcrow">¶</a></p>
@@ -6810,7 +6808,7 @@ cannot infer any information about the existence of prior objects (see
 <a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-11.8-4" class="pilcrow">¶</a></p>
 <p id="section-11.8-5">This property can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
 relays. This property <span class="bcp14">MAY</span> be removed by a relay when the object in question is
-served via FETCH, and the gap that the extension communicates is already
+served via FETCH, and the gap that the property communicates is already
 communicated implicitly in the FETCH response; it <span class="bcp14">MUST NOT</span> be modified or
 removed otherwise.<a href="#section-11.8-5" class="pilcrow">¶</a></p>
 <p id="section-11.8-6">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this property.<a href="#section-11.8-6" class="pilcrow">¶</a></p>
