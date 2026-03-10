@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 September 2026                                  I. Swett, Ed.
+Expires: 11 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            6 March 2026
+                                                           10 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 September 2026.
+   This Internet-Draft will expire on 11 September 2026.
 
 Copyright Notice
 
@@ -2859,7 +2859,8 @@ Table of Contents
       The requester SHOULD establish a new session to the provided URI
       (if present) and retry the request using the Full Track Name from
       the Redirect (if present).  This error code can appear in response
-      to SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE.
+      to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH_NAMESPACE and
+      SUBSCRIBE_NAMESPACE.
 
    Below are errors for use by the publisher.  They can appear in
    response to SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE,
