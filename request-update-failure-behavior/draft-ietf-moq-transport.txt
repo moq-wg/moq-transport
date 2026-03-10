@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 September 2026                                  I. Swett, Ed.
+Expires: 11 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            6 March 2026
+                                                           10 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 September 2026.
+   This Internet-Draft will expire on 11 September 2026.
 
 Copyright Notice
 
@@ -2983,8 +2983,8 @@ Table of Contents
    Objects outside the new range if the publisher sent them before the
    update was processed.
 
-   When a subscription update is unsuccessful, the publisher MUST also
-   terminate the subscription with PUBLISH_DONE with error code
+   When a REQUEST_UPDATE is unsuccessful, the publisher MUST also
+   terminate the subscription by sending a PUBLISH_DONE with error code
    UPDATE_FAILED.  When a REQUEST_UPDATE fails for a FETCH, the
    publisher MUST reset the FETCH data stream.  When a REQUEST_UPDATE
    fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder
