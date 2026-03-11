@@ -304,7 +304,7 @@ To reduce unnecessary use of bandwidth, variable length integers SHOULD be
 encoded using the least number of bytes possible to represent the required
 value.
 
-x (vi64):
+x (v64):
 
 : Indicates that x holds an integer value using the variable-length
   encoding as described above.
@@ -316,8 +316,8 @@ Location identifies a particular Object in a Group within a Track.
 
 ~~~
 Location {
-  Group (vi64),
-  Object (vi64)
+  Group (v64),
+  Object (v64)
 }
 ~~~
 {: #moq-location format title="Location structure"}
@@ -350,8 +350,8 @@ is optimized for use in the data plane.
 
 ~~~
 Key-Value-Pair {
-  Delta Type (vi64),
-  [Length (vi64),]
+  Delta Type (v64),
+  [Length (v64),]
   Value (..)
 }
 ~~~
@@ -378,7 +378,7 @@ information about the error condition, where appropriate.
 
 ~~~
 Reason Phrase {
-  Reason Phrase Length (vi64),
+  Reason Phrase Length (v64),
   Reason Phrase Value (..)
 }
 ~~~
@@ -598,7 +598,7 @@ encoded as follows:
 
 ~~~
 Track Namespace {
-  Number of Track Namespace Fields (vi64),
+  Number of Track Namespace Fields (v64),
   Track Namespace Field (..) ...
 }
 ~~~
@@ -610,7 +610,7 @@ Each Track Namespace Field is encoded as follows:
 
 ~~~
 Track Namespace Field {
-  Track Namespace Field Length (vi64),
+  Track Namespace Field Length (v64),
   Track Namespace Field Value (..)
 }
 ~~~
@@ -1246,9 +1246,9 @@ A Subscription Filter has the following structure:
 
 ~~~
 Subscription Filter {
-  Filter Type (vi64),
+  Filter Type (v64),
   [Start Location (Location),]
-  [End Group Delta (vi64),]
+  [End Group Delta (v64),]
 }
 ~~~
 
@@ -1794,7 +1794,7 @@ formatted as follows:
 
 ~~~
 MOQT Control Message {
-  Message Type (vi64),
+  Message Type (v64),
   Message Length (16),
   Message Payload (..),
 }
@@ -1910,7 +1910,7 @@ Message Parameters are serialized as follows:
 
 ~~~
 Message Parameter {
-  Type Delta (vi64),
+  Type Delta (v64),
   Value (..)
 }
 ~~~
@@ -1981,9 +1981,9 @@ follows:
 
 ~~~
 Token {
-  Alias Type (vi64),
-  [Token Alias (vi64),]
-  [Token Type (vi64),]
+  Alias Type (v64),
+  [Token Alias (v64),]
+  [Token Type (v64),]
   [Token Value (..)]
 }
 ~~~
@@ -2295,7 +2295,7 @@ The wire format of the Setup message is as follows:
 
 ~~~
 SETUP Message {
-  Type (vi64) = 0x2F00,
+  Type (v64) = 0x2F00,
   Length (16),
   Setup Options (..) ...,
 }
@@ -2418,11 +2418,11 @@ The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
 
 ~~~
 GOAWAY Message {
-  Type (vi64) = 0x10,
+  Type (v64) = 0x10,
   Length (16),
-  New Session URI Length (vi64),
+  New Session URI Length (v64),
   New Session URI (..),
-  Timeout (vi64),
+  Timeout (v64),
 }
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
@@ -2451,9 +2451,9 @@ SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests.
 
 ~~~
 REQUEST_OK Message {
-  Type (vi64) = 0x7,
+  Type (v64) = 0x7,
   Length (16),
-  Number of Parameters (vi64),
+  Number of Parameters (v64),
   Parameters (..) ...
 }
 ~~~
@@ -2468,10 +2468,10 @@ PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS, REQUEST_UPDATE).
 
 ~~~
 REQUEST_ERROR Message {
-  Type (vi64) = 0x5,
+  Type (v64) = 0x5,
   Length (16),
-  Error Code (vi64),
-  Retry Interval (vi64),
+  Error Code (v64),
+  Retry Interval (v64),
   Error Reason (Reason Phrase),
 }
 ~~~
@@ -2574,14 +2574,14 @@ The format of SUBSCRIBE is as follows:
 
 ~~~
 SUBSCRIBE Message {
-  Type (vi64) = 0x3,
+  Type (v64) = 0x3,
   Length (16),
-  Request ID (vi64),
-  Required Request ID Delta (vi64),
+  Request ID (v64),
+  Required Request ID Delta (v64),
   Track Namespace (..),
-  Track Name Length (vi64),
+  Track Name Length (v64),
   Track Name (..),
-  Number of Parameters (vi64),
+  Number of Parameters (v64),
   Parameters (..) ...
 }
 ~~~
@@ -2618,10 +2618,10 @@ bidi stream for successful subscriptions.
 
 ~~~
 SUBSCRIBE_OK Message {
-  Type (vi64) = 0x4,
+  Type (v64) = 0x4,
   Length (16),
-  Track Alias (vi64),
-  Number of Parameters (vi64),
+  Track Alias (v64),
+  Number of Parameters (v64),
   Parameters (..) ...,
   Track Properties (..),
 }
@@ -2657,11 +2657,11 @@ The format of REQUEST_UPDATE is as follows:
 
 ~~~
 REQUEST_UPDATE Message {
-  Type (vi64) = 0x2,
+  Type (v64) = 0x2,
   Length (16),
-  Request ID (vi64),
-  Required Request ID Delta (vi64),
-  Number of Parameters (vi64),
+  Request ID (v64),
+  Required Request ID Delta (v64),
+  Number of Parameters (v64),
   Parameters (..) ...
 }
 ~~~
@@ -2702,15 +2702,15 @@ authorized to publish this track.
 
 ~~~
 PUBLISH Message {
-  Type (vi64) = 0x1D,
+  Type (v64) = 0x1D,
   Length (16),
-  Request ID (vi64),
-  Required Request ID Delta (vi64),
+  Request ID (v64),
+  Required Request ID Delta (v64),
   Track Namespace (..),
-  Track Name Length (vi64),
+  Track Name Length (v64),
   Track Name (..),
-  Track Alias (vi64),
-  Number of Parameters (vi64),
+  Track Alias (v64),
+  Number of Parameters (v64),
   Parameters (..) ...,
   Track Properties (..),
 }
@@ -2755,9 +2755,9 @@ PUBLISH message, and establish a subscription.
 
 ~~~
 PUBLISH_OK Message {
-  Type (vi64) = 0x1E,
+  Type (v64) = 0x1E,
   Length (16),
-  Number of Parameters (vi64),
+  Number of Parameters (v64),
   Parameters (..) ...,
 }
 ~~~
@@ -2808,10 +2808,10 @@ The format of `PUBLISH_DONE` is as follows:
 
 ~~~
 PUBLISH_DONE Message {
-  Type (vi64) = 0xB,
+  Type (v64) = 0xB,
   Length (16),
-  Status Code (vi64),
-  Stream Count (vi64),
+  Status Code (v64),
+  Stream Count (v64),
   Error Reason (Reason Phrase)
 }
 ~~~
@@ -2896,7 +2896,7 @@ A Standalone Fetch includes this structure:
 ~~~
 Standalone Fetch {
   Track Namespace (..),
-  Track Name Length (vi64),
+  Track Name Length (v64),
   Track Name (..),
   Start Location (Location),
   End Location (Location)
@@ -2942,8 +2942,8 @@ A Joining Fetch includes this structure:
 
 ~~~
 Joining Fetch {
-  Joining Request ID (vi64),
-  Joining Start (vi64)
+  Joining Request ID (v64),
+  Joining Start (v64)
 }
 ~~~
 
@@ -2982,14 +2982,14 @@ The format of FETCH is as follows:
 
 ~~~
 FETCH Message {
-  Type (vi64) = 0x16,
+  Type (v64) = 0x16,
   Length (16),
-  Request ID (vi64),
-  Required Request ID Delta (vi64),
-  Fetch Type (vi64),
+  Request ID (v64),
+  Required Request ID Delta (v64),
+  Fetch Type (v64),
   [Standalone (Standalone Fetch),]
   [Joining (Joining Fetch),]
-  Number of Parameters (vi64),
+  Number of Parameters (v64),
   Parameters (..) ...
 }
 ~~~
@@ -3067,11 +3067,11 @@ End Location is known.
 
 ~~~
 FETCH_OK Message {
-  Type (vi64) = 0x18,
+  Type (v64) = 0x18,
   Length (16),
   End Of Track (8),
   End Location (Location),
-  Number of Parameters (vi64),
+  Number of Parameters (v64),
   Parameters (..) ...
   Track Properties (..),
 }
@@ -3136,12 +3136,12 @@ namespace.
 
 ~~~
 PUBLISH_NAMESPACE Message {
-  Type (vi64) = 0x6,
+  Type (v64) = 0x6,
   Length (16),
-  Request ID (vi64),
-  Required Request ID Delta (vi64),
+  Request ID (v64),
+  Required Request ID Delta (v64),
   Track Namespace (..),
-  Number of Parameters (vi64),
+  Number of Parameters (v64),
   Parameters (..) ...
 }
 ~~~
@@ -3207,13 +3207,13 @@ updates to the set.
 
 ~~~
 SUBSCRIBE_NAMESPACE Message {
-  Type (vi64) = 0x11,
+  Type (v64) = 0x11,
   Length (16),
-  Request ID (vi64),
-  Required Request ID Delta (vi64),
+  Request ID (v64),
+  Required Request ID Delta (v64),
   Track Namespace Prefix (..),
-  Subscribe Options (vi64),
-  Number of Parameters (vi64),
+  Subscribe Options (v64),
+  Number of Parameters (v64),
   Parameters (..) ...
 }
 ~~~
@@ -3293,10 +3293,10 @@ response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after the
 
 ~~~
 PUBLISH_BLOCKED Message {
-  Type (vi64) = 0xF,
+  Type (v64) = 0xF,
   Length (16),
   Track Namespace Suffix (..),
-  Track Name Length (vi64),
+  Track Name Length (v64),
   Track Name (..),
 }
 ~~~
@@ -3417,7 +3417,7 @@ Key-Value-Pairs (see {{moq-key-value-pair}}).
 
 ~~~
 Object Properties {
-  Properties Length (vi64),
+  Properties Length (v64),
   Properties (..),
 }
 ~~~
@@ -3456,12 +3456,12 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 OBJECT_DATAGRAM {
   Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
              0x28..0x29 / 0x2C..0x2D,
-  Track Alias (vi64),
-  Group ID (vi64),
-  [Object ID (vi64),]
+  Track Alias (v64),
+  Group ID (v64),
+  [Object ID (v64),]
   [Publisher Priority (8),]
   [Properties (..),]
-  [Object Status (vi64),]
+  [Object Status (v64),]
   [Object Payload (..),]
 }
 ~~~
@@ -3552,9 +3552,9 @@ flow control, while the sender waits for flow control to send the message.
 ~~~
 SUBGROUP_HEADER {
   Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D,
-  Track Alias (vi64),
-  Group ID (vi64),
-  [Subgroup ID (vi64),]
+  Track Alias (v64),
+  Group ID (v64),
+  [Subgroup ID (v64),]
   [Publisher Priority (8),]
 }
 ~~~
@@ -3624,10 +3624,10 @@ unless there is a Prior Object ID Gap property (see
 
 ~~~
 {
-  Object ID Delta (vi64),
+  Object ID Delta (v64),
   [Properties (..),]
-  Object Payload Length (vi64),
-  [Object Status (vi64),]
+  Object Payload Length (v64),
+  [Object Status (v64),]
   [Object Payload (..),]
 }
 ~~~
@@ -3767,8 +3767,8 @@ track requested in the Fetch message identified by `Request ID`.
 
 ~~~
 FETCH_HEADER {
-  Type (vi64) = 0x5,
-  Request ID (vi64),
+  Type (v64) = 0x5,
+  Request ID (v64),
 }
 ~~~
 {: #fetch-header-format title="MOQT FETCH_HEADER"}
@@ -3779,13 +3779,13 @@ format:
 
 ~~~
 {
-  Serialization Flags (vi64),
-  [Group ID (vi64),]
-  [Subgroup ID (vi64),]
-  [Object ID (vi64),]
+  Serialization Flags (v64),
+  [Group ID (v64),]
+  [Subgroup ID (v64),]
+  [Object ID (v64),]
   [Publisher Priority (8),]
   [Properties (..),]
-  Object Payload Length (vi64),
+  Object Payload Length (v64),
   [Object Payload (..),]
 }
 ~~~
@@ -4003,7 +4003,7 @@ themselves Track or Object Properties, respectively.
 ~~~
 Immutable Properties {
   Type (0xB),
-  Length (vi64),
+  Length (v64),
   Key-Value-Pair (..) ...
 }
 ~~~
