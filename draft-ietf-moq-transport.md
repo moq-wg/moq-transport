@@ -3256,16 +3256,16 @@ SUBSCRIBE_NAMESPACE Message {
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream. If the subscriber receives any frame other than a REQUEST_OK or a
-REQUEST_ERROR as the first frame on the response half of the stream, then it MUST
-close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
+REQUEST_ERROR as the first frame on the response half of the stream, then it
+MUST close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
 stream and PUBLISH messages on new bidirectional streams, as determined by the
-SUBSCRIBE_NAMESPACE_OPTIONS parameter ({{subscribe-options}}). If it is an error, the
-stream will be immediately closed via FIN. When there are changes to the
-namespaces or subscriptions being published and the subscriber is subscribed to
-them, the publisher sends the corresponding NAMESPACE, NAMESPACE_DONE, or
-PUBLISH messages. The subscriber can change the SUBSCRIBE_NAMESPACE_OPTIONS via
-REQUEST_UPDATE.
+SUBSCRIBE_NAMESPACE_OPTIONS parameter ({{subscribe-namespace-options}}). If it
+is an error, the stream will be immediately closed via FIN. When there are
+changes to the namespaces or subscriptions being published and the subscriber is
+subscribed to them, the publisher sends the corresponding NAMESPACE,
+NAMESPACE_DONE, or PUBLISH messages. The subscriber can change the
+SUBSCRIBE_NAMESPACE_OPTIONS via REQUEST_UPDATE.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
 session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
