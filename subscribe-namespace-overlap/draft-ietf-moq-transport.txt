@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 11 September 2026                                 I. Swett, Ed.
+Expires: 12 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           10 March 2026
+                                                           11 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 September 2026.
+   This Internet-Draft will expire on 12 September 2026.
 
 Copyright Notice
 
@@ -1984,13 +1984,10 @@ Table of Contents
    When a relay receives an incoming PUBLISH message, it MUST send a
    PUBLISH request to each subscriber that has subscribed (via
    SUBSCRIBE_NAMESPACE) to the Track's namespace or prefix thereof.
-
-   When a relay receives an incoming PUBLISH message for a Track for
-   which it is holding a downstream SUBSCRIBE awaiting a publisher (see
-   Section 9.3.4), it MUST proceed with the SUBSCRIBE and MUST NOT also
-   forward the PUBLISH to that subscriber.  The relay MUST still forward
-   the PUBLISH to any other matching subscribers (via
-   SUBSCRIBE_NAMESPACE) that do not have a SUBSCRIBE for the Track.
+   However, if the relay is holding a downstream SUBSCRIBE awaiting a
+   publisher for this Track (see Section 9.3.4), it MUST proceed with
+   the SUBSCRIBE and MUST NOT also forward the PUBLISH to that
+   subscriber.
 
    When a relay receives an authorized PUBLISH_NAMESPACE for a namespace
    that matches one or more existing subscriptions to other upstream
