@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 11 September 2026                                 I. Swett, Ed.
+Expires: 12 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           10 March 2026
+                                                           11 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 September 2026.
+   This Internet-Draft will expire on 12 September 2026.
 
 Copyright Notice
 
@@ -3600,8 +3600,11 @@ Table of Contents
    messages in a timely manner because the SUBSCRIBE_NAMESPACE response
    stream is blocked by flow control, the publisher MAY reset the
    SUBSCRIBE_NAMESPACE response stream.  When a subscriber receives a
-   stream reset on a SUBSCRIBE_NAMESPACE response stream, it SHOULD
-   treat this as though each active namespace received a NAMESPACE_DONE.
+   stream reset or FIN on a SUBSCRIBE_NAMESPACE response stream, it
+   SHOULD treat this as though each active namespace received a
+   NAMESPACE_DONE.  Subscriptions established via PUBLISH on separate
+   bidi streams are not affected by closure of the SUBSCRIBE_NAMESPACE
+   stream.
 
 9.21.  PUBLISH_BLOCKED
 
