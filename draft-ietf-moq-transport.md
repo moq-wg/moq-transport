@@ -1738,14 +1738,10 @@ then the Relay MUST use Forward=1 when subscribing upstream.
 
 When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
 request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
-to the Track's namespace or prefix thereof.
-
-When a relay receives an incoming PUBLISH message for a Track for which
-it is holding a downstream SUBSCRIBE awaiting a publisher (see
+to the Track's namespace or prefix thereof. However, if the relay is
+holding a downstream SUBSCRIBE awaiting a publisher for this Track (see
 {{rendezvous-timeout}}), it MUST proceed with the SUBSCRIBE and
-MUST NOT also forward the PUBLISH to that subscriber. The relay MUST
-still forward the PUBLISH to any other matching subscribers (via
-SUBSCRIBE_NAMESPACE) that do not have a SUBSCRIBE for the Track.
+MUST NOT also forward the PUBLISH to that subscriber.
 
 When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it MUST
