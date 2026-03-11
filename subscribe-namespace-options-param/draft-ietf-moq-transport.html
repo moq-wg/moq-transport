@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 8 September 2026</td>
+<td class="center">Expires 12 September 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-03-07" class="published">7 March 2026</time>
+<time datetime="2026-03-11" class="published">11 March 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-09-08">8 September 2026</time></dd>
+<dd class="expires"><time datetime="2026-09-12">12 September 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 8 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 12 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -4373,7 +4373,7 @@ subscription remains unchanged.  If the parameter is omitted from any other
 message, the default value is 1.<a href="#section-9.3.10-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="subscribe-options">
+<div id="subscribe-namespace-options">
 <section id="section-9.3.11">
           <h4 id="name-subscribe-namespace-options">
 <a href="#section-9.3.11" class="section-number selfRef">9.3.11. </a><a href="#name-subscribe-namespace-options" class="section-name selfRef">SUBSCRIBE NAMESPACE OPTIONS Parameter</a>
@@ -5719,16 +5719,16 @@ Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOC
         </ul>
 <p id="section-9.20-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream. If the subscriber receives any frame other than a REQUEST_OK or a
-REQUEST_ERROR as the first frame on the response half of the stream, then it <span class="bcp14">MUST</span>
-close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
+REQUEST_ERROR as the first frame on the response half of the stream, then it
+<span class="bcp14">MUST</span> close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
 stream and PUBLISH messages on new bidirectional streams, as determined by the
-SUBSCRIBE_NAMESPACE_OPTIONS parameter (<a href="#subscribe-options" class="auto internal xref">Section 9.3.11</a>). If it is an error, the
-stream will be immediately closed via FIN. When there are changes to the
-namespaces or subscriptions being published and the subscriber is subscribed to
-them, the publisher sends the corresponding NAMESPACE, NAMESPACE_DONE, or
-PUBLISH messages. The subscriber can change the SUBSCRIBE_NAMESPACE_OPTIONS via
-REQUEST_UPDATE.<a href="#section-9.20-4" class="pilcrow">¶</a></p>
+SUBSCRIBE_NAMESPACE_OPTIONS parameter (<a href="#subscribe-namespace-options" class="auto internal xref">Section 9.3.11</a>). If it
+is an error, the stream will be immediately closed via FIN. When there are
+changes to the namespaces or subscriptions being published and the subscriber is
+subscribed to them, the publisher sends the corresponding NAMESPACE,
+NAMESPACE_DONE, or PUBLISH messages. The subscriber can change the
+SUBSCRIBE_NAMESPACE_OPTIONS via REQUEST_UPDATE.<a href="#section-9.20-4" class="pilcrow">¶</a></p>
 <p id="section-9.20-5">A subscriber cannot make overlapping namespace subscriptions on a single
 session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
 Track Namespace Prefix that shares a common prefix with an established namespace
@@ -7204,7 +7204,7 @@ in <a href="#message-setup" class="auto internal xref">Section 9.4</a>.<a href="
               <td class="text-left" rowspan="1" colspan="1">0x33</td>
               <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_NAMESPACE_OPTIONS</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#subscribe-options" class="auto internal xref">Section 9.3.11</a>
+                <a href="#subscribe-namespace-options" class="auto internal xref">Section 9.3.11</a>
 </td>
             </tr>
           </tbody>
