@@ -2241,7 +2241,7 @@ If the parameter is omitted from REQUEST_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
 message, the default value is 1.
 
-### SUBSCRIBE NAMESPACE OPTIONS Parameter {#subscribe-options}
+### SUBSCRIBE NAMESPACE OPTIONS Parameter {#subscribe-namespace-options}
 
 The SUBSCRIBE_NAMESPACE_OPTIONS parameter (Parameter Type 0x33) is a varint. It MAY
 appear in SUBSCRIBE_NAMESPACE and REQUEST_UPDATE (for a namespace subscription).
@@ -4300,7 +4300,7 @@ TODO: register the URI scheme and the ALPN
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
-| 0x33 | SUBSCRIBE_NAMESPACE_OPTIONS | {{subscribe-options}} |
+| 0x33 | SUBSCRIBE_NAMESPACE_OPTIONS | {{subscribe-namespace-options}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
