@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 11 September 2026                                 I. Swett, Ed.
+Expires: 13 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           10 March 2026
+                                                           12 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 September 2026.
+   This Internet-Draft will expire on 13 September 2026.
 
 Copyright Notice
 
@@ -4285,8 +4285,8 @@ Table of Contents
 
                        Figure 28: MOQT Padding Stream
 
-   The receiver MUST discard all data received on a padding stream.  The
-   receiver MUST NOT close the session upon receiving a padding stream.
+   The receiver MUST discard all data received on a padding stream to
+   prevent exhausting flow control.
 
    Either the sender or the receiver MAY cancel a padding stream at any
    time without affecting any MOQT application state.
@@ -4305,8 +4305,6 @@ Table of Contents
                       Figure 29: MOQT Padding Datagram
 
    The receiver MUST discard all data received in a padding datagram.
-   The receiver MUST NOT close the session upon receiving a padding
-   datagram.
 
 10.6.  Examples
 
