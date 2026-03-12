@@ -288,7 +288,7 @@ The following table contains some example encodings:
 | Byte Sequence        | Decimal Value              |
 |----------------------|----------------------------|
 | 0x25                 | 37                         |
-| 0x8025               | 37                         |
+| 0x81ee               | 494                        |
 | 0xbbbd               | 15,293                     |
 | 0xed7f3e7d           | 226,442,877                |
 | 0xfaa1a0e403d8       | 2,893,212,287,960          |
@@ -300,9 +300,10 @@ The following table contains some example encodings:
 11111100 is an invalid code point.  An endpoint that receives this value MUST
 close the session with a `PROTOCOL_VIOLATION`.
 
-To reduce unnecessary use of bandwidth, variable length integers SHOULD be
-encoded using the least number of bytes possible to represent the required
-value.
+Variable length integers MUST be encoded using the minimum number of bytes
+necessary to represent the value. An endpoint MUST close the session with a
+`PROTOCOL_VIOLATION` if it receives a variable length integer that is not
+minimally encoded.
 
 x (vi64):
 
