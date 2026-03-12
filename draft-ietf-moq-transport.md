@@ -3884,8 +3884,8 @@ PADDING STREAM {
 ~~~
 {: #padding-format title="MOQT Padding Stream"}
 
-The receiver MUST discard all data received on a padding stream. The
-receiver MUST NOT close the session upon receiving a padding stream.
+The receiver MUST discard all data received on a padding stream to prevent
+exhausting flow control.
 
 Either the sender or the receiver MAY cancel a padding stream at any time
 without affecting any MOQT application state.
@@ -3904,8 +3904,7 @@ PADDING DATAGRAM {
 ~~~
 {: #padding-datagram-format title="MOQT Padding Datagram"}
 
-The receiver MUST discard all data received in a padding datagram. The receiver
-MUST NOT close the session upon receiving a padding datagram.
+The receiver MUST discard all data received in a padding datagram.
 
 ## Examples
 
