@@ -2694,6 +2694,13 @@ When a subscription
 update is unsuccessful, the publisher MUST also terminate the subscription with
 PUBLISH_DONE with error code `UPDATE_FAILED`.
 
+A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
+coalesce their processing by applying only the cumulative result.
+Parameter values from later REQUEST_UPDATE messages override values
+from earlier ones. The receiver MUST still send a REQUEST_OK or
+REQUEST_ERROR in response to each REQUEST_UPDATE, but it is not
+required to process intermediate states individually.
+
 ## PUBLISH {#message-publish}
 
 The publisher sends PUBLISH as the first message on a new bidirectional stream
