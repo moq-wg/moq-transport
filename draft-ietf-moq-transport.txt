@@ -1095,17 +1095,18 @@ Table of Contents
    All unidirectional MOQT streams start with a variable-length integer
    indicating the type of the stream.
 
-             +===========+==================================+
-             |        ID | Type                             |
-             +===========+==================================+
-             |      0x05 | FETCH_HEADER (Section 10.4.4)    |
-             +-----------+----------------------------------+
-             | 0x10-0x1D | SUBGROUP_HEADER (Section 10.4.2) |
-             +-----------+----------------------------------+
-             |    0x2F00 | SETUP (Section 9.4)              |
-             +-----------+----------------------------------+
+        +=========================+===============================+
+        |                      ID | Type                          |
+        +=========================+===============================+
+        |                    0x05 | FETCH_HEADER (Section 10.4.4) |
+        +-------------------------+-------------------------------+
+        | 0x10-0x15 / 0x18-0x1D / | SUBGROUP_HEADER               |
+        |   0x30-0x35 / 0x38-0x3D | (Section 10.4.2)              |
+        +-------------------------+-------------------------------+
+        |                  0x2F00 | SETUP (Section 9.4)           |
+        +-------------------------+-------------------------------+
 
-                                 Table 3
+                                  Table 3
 
    An endpoint that receives an unknown stream type MUST close the
    session.
@@ -2983,9 +2984,12 @@ Table of Contents
    Objects outside the new range if the publisher sent them before the
    update was processed.
 
-   When a subscription update is unsuccessful, the publisher MUST also
-   terminate the subscription with PUBLISH_DONE with error code
-   UPDATE_FAILED.
+   When a REQUEST_UPDATE is unsuccessful, the publisher MUST also
+   terminate the subscription by sending a PUBLISH_DONE with error code
+   UPDATE_FAILED.  When a REQUEST_UPDATE fails for a FETCH, the
+   publisher MUST reset the FETCH data stream.  When a REQUEST_UPDATE
+   fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder
+   MUST close the bidi stream.
 
 9.11.  PUBLISH
 
