@@ -3315,7 +3315,7 @@ groups. A publisher that does will begin the next group as soon as practical.<a 
 FETCH.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <p id="section-5.2-2">A subscriber keeps FETCH state until it cancels the request
 (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>), receives REQUEST_ERROR, or the FETCH data stream
-is finished or reset. If the data stream is already open,
+receives a FIN or reset. If the data stream is already open,
 the subscriber wishing to cancel the FETCH <span class="bcp14">MAY</span> send STOP_SENDING for the
 data stream as well as the the bidi request stream. It <span class="bcp14">MUST</span> send STOP_SENDING
 for the bidi request stream.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
