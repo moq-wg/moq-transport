@@ -2919,7 +2919,7 @@ EXCESSIVE_LOAD (0x9):
 ## REDIRECT {#message-redirect}
 
 An endpoint sends a REDIRECT message on a bidirectional request stream to
-indicate that the peer should re-establish the request at a different location.
+indicate that the peer can re-establish the request on a different session.
 REDIRECT MAY be sent on streams for SUBSCRIBE, PUBLISH, SUBSCRIBE_NAMESPACE,
 and PUBLISH_NAMESPACE. An endpoint MUST close the session with a
 `PROTOCOL_VIOLATION` if it receives a REDIRECT on any other stream type.
