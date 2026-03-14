@@ -739,12 +739,12 @@ specifications define the type and value of the property, along with any rules
 concerning processing, modification, caching and forwarding.
 
 If a Relay does not support a Property, it MUST NOT be modified, MUST be
-forwarded, and MUST be cached with the Track or Object, except for Mandatory
-Track Properties as described in {{mandatory-track-properties}}.
-If a Track or Object arrives with a different set of unknown properties than
-previously cached, the most recent set SHOULD replace any cached values,
-removing any unknown values not present in the new set.  Relays MUST NOT attempt
-to merge sets of unknown properties received in different messages.
+forwarded, and MUST be cached with the Track or Object, unless it is a Mandatory
+Track Property as described in {{mandatory-track-properties}}.  If a Track or Object
+arrives with a different set of unknown properties than previously cached,
+the most recent set SHOULD replace any cached values, removing any unknown
+values not present in the new set.  Relays MUST NOT attempt to merge sets
+of unknown properties received in different messages.
 
 If a Relay supports a Property, it MAY be modified, added, removed, and/or
 cached, subject to the processing rules specified in the definition.
@@ -772,33 +772,31 @@ context known to the publisher and subscriber.
 
 ### Mandatory Track Properties {#mandatory-track-properties}
 
-Property types in the range 0x40-0x7F are designated as Mandatory Track
-Properties. These properties have special handling rules that differ from other
-Properties.
+Property types in the range 0x4000-0x40FF are designated as Mandatory Track
+Properties. These properties MUST have Track scope. Mandatory Track Properties
+have special handling rules that prevent tracks with required extensions from
+being forwarded to or processed by endpoints that do not understand them.
 
-When a relay receives Track Properties (in PUBLISH, SUBSCRIBE_OK, or FETCH_OK
-messages) containing a Mandatory Track Property type that it does not
-understand, the relay MUST NOT forward that track. Instead, the relay SHOULD:
+An Object received with a Mandatory Track Property as an Object Property is
+malformed (see {{malformed-tracks}}).
 
-1. For PUBLISH messages: respond with PUBLISH_DONE containing an appropriate
-   error code indicating the property is not supported.
+When an endpoint receives Track Properties (in PUBLISH, SUBSCRIBE_OK, or
+FETCH_OK messages) containing a Mandatory Track Property type that it does not
+understand, it MUST NOT process or forward that track:
 
-2. For SUBSCRIBE_OK messages: not forward the SUBSCRIBE_OK to downstream
-   subscribers. The relay MAY send a REQUEST_ERROR with code NOT_SUPPORTED (0x3)
-   to the original subscriber.
+* For PUBLISH messages: the subscriber MUST respond with REQUEST_ERROR with
+  error code UNSUPPORTED_EXTENSION.
 
-3. For FETCH_OK messages: not forward the fetch response. The relay MAY respond
-   with REQUEST_ERROR with code NOT_SUPPORTED (0x3) to the fetch requester.
+* For SUBSCRIBE_OK messages: the subscriber MUST cancel the subscription
+  (see {{request-cancellation}}).  If the subscriber is a relay with pending
+  downstream subscribers, it MUST send REQUEST_ERROR with error code
+  UNSUPPORTED_EXTENSION to the downstream subscribers.
 
-This behavior ensures that publishers can rely on mandatory properties being
-understood by all relays in the forwarding path. If negotiation of property
-support is not possible end-to-end, this range provides a fail-safe mechanism
-where unknown mandatory properties cause tracks to not be forwarded rather than
-being forwarded incorrectly.
-
-Mandatory Track Properties only apply to Track scope properties. Object scope
-properties do not have a mandatory range. Implementations MUST NOT register
-types in the range 0x40-0x7F for Object Properties.
+* For FETCH_OK messages: the subscriber MUST cancel the fetch
+  (see {{request-cancellation}}).  If the subscriber is a relay and has not yet
+  sent a FETCH_OK or REQUEST_ERROR downstream, it MUST send REQUEST_ERROR with
+  error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
+  relay has already forwarded data on a fetch stream, it MUST reset the stream.
 
 # Sessions {#session}
 
@@ -2556,6 +2554,10 @@ EXCESSIVE_LOAD:
 : The responder is overloaded and cannot process the request at this time. The
 sender SHOULD use the Retry Interval to indicate when the request can be retried.
 
+UNSUPPORTED_EXTENSION:
+: The track contains a Mandatory Track Property
+(see {{mandatory-track-properties}}) that the endpoint does not understand.
+
 DUPLICATE_SUBSCRIPTION (0x19):
 : The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
 with the same role as an existing subscription.
@@ -4281,13 +4283,6 @@ TODO: fill out currently missing registries:
 * MOQT ALPN values
 * Setup Options
 * Message types
-* MOQ Properties - Intent is to reserve property types 0x00-0x3F (0-63)
-  for standards utilization where space is a premium, 0x40-0x7F (64-127) for
-  Mandatory Track Properties (see {{mandatory-track-properties}}), 0x80-0x3FFF
-  (128-16383) for standards utilization where space is less of a concern, and
-  0x4000 (16384) and above for first-come-first-served non-standardization
-  usage. List which Properties can be repeated in the table.
-* MOQT Auth Token Type
 
 TODO: register the URI scheme and the ALPN
 
@@ -4348,18 +4343,17 @@ the length field.
   - 0x80 to 0x37FF: Specification Required (2-byte encoding)
   - 0x3800 to 0x3FFF: Reserved for application-specific use (2-byte encoding,
     no registration permitted)
-  - 0x4000 and above: First Come First Served
+  - 0x4000 to 0x40FF: Reserved for Mandatory Track Properties
+    (see {{mandatory-track-properties}}). Properties registered in this range
+    MUST have Track scope; Object scope properties MUST NOT be registered in
+    this range.
+  - 0x4100 and above: First Come First Served
 
   Code points reserved for application-specific use will never be allocated
   by IANA. Applications using these values do not need to coordinate with
   IANA.  Note that applications consuming tracks from uncoordinated sources may
   encounter different semantics for the same code points, creating potential
   collision risks.
-
-Types in the range 0x40-0x7F are reserved for Mandatory Track Properties
-(see {{mandatory-track-properties}}). Properties registered in this range
-MUST have Track scope; Object scope properties MUST NOT be registered in
-this range.
 
 ## Error Codes {#iana-error-codes}
 
@@ -4410,6 +4404,7 @@ this range.
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
