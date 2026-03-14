@@ -1804,57 +1804,61 @@ MOQT Control Message {
 ~~~
 {: #moq-transport-message-format title="MOQT Control Message"}
 
-The following Message Types are defined:
+The following Message Types are defined. The Stream column indicates
+which stream type each message is sent on: Control indicates the
+control stream ({{session-init}}), and Request indicates a bidirectional
+request stream. Messages marked "First" MUST be the first message on a
+new request stream.
 
-|-------|-----------------------------------------------------|
-| ID    | Messages                                            |
-|------:|:----------------------------------------------------|
-| 0x01  | RESERVED (SETUP for version 00)                     |
-|-------|-----------------------------------------------------|
-| 0x40  | RESERVED (CLIENT_SETUP for versions <= 10)          |
-|-------|-----------------------------------------------------|
-| 0x41  | RESERVED (SERVER_SETUP for versions <= 10)          |
-|-------|-----------------------------------------------------|
-| 0x20  | RESERVED (CLIENT_SETUP in versions <= 16)           |
-|-------|-----------------------------------------------------|
-| 0x21  | RESERVED (SERVER_SETUP in versions <= 16)           |
-|-------|-----------------------------------------------------|
-| 0x2F00| SETUP ({{message-setup}})                          |
-|-------|-----------------------------------------------------|
-| 0x10  | GOAWAY ({{message-goaway}})                         |
-|-------|-----------------------------------------------------|
-| 0x7   | REQUEST_OK ({{message-request-ok}})                 |
-|-------|-----------------------------------------------------|
-| 0x5   | REQUEST_ERROR  ({{message-request-error}})          |
-|-------|-----------------------------------------------------|
-| 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
-|-------|-----------------------------------------------------|
-| 0x4   | SUBSCRIBE_OK ({{message-subscribe-ok}})             |
-|-------|-----------------------------------------------------|
-| 0x2   | REQUEST_UPDATE ({{message-request-update}})         |
-|-------|-----------------------------------------------------|
-| 0x1D  | PUBLISH  ({{message-publish}})                      |
-|-------|-----------------------------------------------------|
-| 0x1E  | PUBLISH_OK ({{message-publish-ok}})                 |
-|-------|-----------------------------------------------------|
-| 0xB   | PUBLISH_DONE ({{message-publish-done}})             |
-|-------|-----------------------------------------------------|
-| 0x16  | FETCH ({{message-fetch}})                           |
-|-------|-----------------------------------------------------|
-| 0x18  | FETCH_OK ({{message-fetch-ok}})                     |
-|-------|-----------------------------------------------------|
-| 0xD   | TRACK_STATUS ({{message-track-status}})             |
-|-------|-----------------------------------------------------|
-| 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
-|-------|-----------------------------------------------------|
-| 0x8   | NAMESPACE  ({{message-namespace}})                  |
-|-------|-----------------------------------------------------|
-| 0xE   | NAMESPACE_DONE  ({{message-namespace-done}})        |
-|-------|-----------------------------------------------------|
-| 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
-|-------|-----------------------------------------------------|
-| 0xF   | PUBLISH_BLOCKED  ({{message-publish-blocked}})      |
-|-------|-----------------------------------------------------|
+|--------|-----------------------------------------------|----------------|
+| ID     | Messages                                      | Stream         |
+|-------:|:----------------------------------------------|:---------------|
+| 0x01   | RESERVED (SETUP for version 00)               |                |
+|--------|-----------------------------------------------|----------------|
+| 0x40   | RESERVED (CLIENT_SETUP for <= 10)             |                |
+|--------|-----------------------------------------------|----------------|
+| 0x41   | RESERVED (SERVER_SETUP for <= 10)             |                |
+|--------|-----------------------------------------------|----------------|
+| 0x20   | RESERVED (CLIENT_SETUP in <= 16)              |                |
+|--------|-----------------------------------------------|----------------|
+| 0x21   | RESERVED (SERVER_SETUP in <= 16)              |                |
+|--------|-----------------------------------------------|----------------|
+| 0x2F00 | SETUP ({{message-setup}})                     | Control        |
+|--------|-----------------------------------------------|----------------|
+| 0x10   | GOAWAY ({{message-goaway}})                   | Control        |
+|--------|-----------------------------------------------|----------------|
+| 0x3    | SUBSCRIBE ({{message-subscribe-req}})         | Request, First |
+|--------|-----------------------------------------------|----------------|
+| 0x4    | SUBSCRIBE_OK ({{message-subscribe-ok}})       | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0x1D   | PUBLISH ({{message-publish}})                 | Request, First |
+|--------|-----------------------------------------------|----------------|
+| 0x1E   | PUBLISH_OK ({{message-publish-ok}})           | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0xB    | PUBLISH_DONE ({{message-publish-done}})       | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0x16   | FETCH ({{message-fetch}})                     | Request, First |
+|--------|-----------------------------------------------|----------------|
+| 0x18   | FETCH_OK ({{message-fetch-ok}})               | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0xD    | TRACK_STATUS ({{message-track-status}})       | Request, First |
+|--------|-----------------------------------------------|----------------|
+| 0x6    | PUBLISH_NAMESPACE ({{message-pub-ns}})        | Request, First |
+|--------|-----------------------------------------------|----------------|
+| 0x11   | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})| Request, First |
+|--------|-----------------------------------------------|----------------|
+| 0x8    | NAMESPACE ({{message-namespace}})             | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0xE    | NAMESPACE_DONE ({{message-namespace-done}})   | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0xF    | PUBLISH_BLOCKED ({{message-publish-blocked}}) | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0x2    | REQUEST_UPDATE ({{message-request-update}})   | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0x7    | REQUEST_OK ({{message-request-ok}})           | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0x5    | REQUEST_ERROR ({{message-request-error}})     | Request        |
+|--------|-----------------------------------------------|----------------|
 
 An endpoint that receives an unknown message type MUST close the session.
 Control messages have a length to make parsing easier, but no control messages
@@ -2397,8 +2401,8 @@ undermines the usefulness of implementation identification for debugging.
 
 ## GOAWAY {#message-goaway}
 
-An endpoint sends a `GOAWAY` message to inform the peer it intends to close
-the session soon.  When sent by a server, it can initiate session migration
+An endpoint sends a `GOAWAY` message on its control stream to inform the peer
+it intends to close the session soon.  When sent by a server, it can initiate session migration
 ({{session-migration}}) with an optional URI.  When sent by a client, the New
 Session URI MUST be zero length.
 
