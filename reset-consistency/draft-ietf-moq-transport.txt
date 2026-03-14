@@ -1532,7 +1532,7 @@ Table of Contents
 
    A subscriber keeps FETCH state until it cancels the request (see
    Section 3.3.1), receives REQUEST_ERROR, or the FETCH data stream
-   receives a FIN or reset.  If the data stream is already open, the
+   receives a FIN or is reset.  If the data stream is already open, the
    subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
    data stream as well as the the bidi request stream.  It MUST send
    STOP_SENDING for the bidi request stream.
