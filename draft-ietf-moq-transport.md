@@ -3041,7 +3041,7 @@ Fetch specifies an inclusive range of Objects starting at Start Location and
 ending at End Location. End Location MUST specify the same or a larger Location
 than Start Location for Standalone and Absolute Joining Fetches.
 
-Objects that are not yet published will not be retrieved by a FETCH.  If the
+Objects larger than the Largest Object will not be retrieved by a FETCH.  If the
 requested End Location exceeds the Largest available Object, the actual end of
 the FETCH response is indicated in the FETCH_OK End Location.
 
@@ -3082,13 +3082,13 @@ FETCH_OK Message {
 * End Of Track: 1 if all Objects have been published on this Track, and
   the End Location is the final Object in the Track, 0 if not.
 
-* End Location: The end of the range covered by the FETCH response.
-  This is the same as the End Location from the FETCH request unless
+* End Location: The end of the range covered by the FETCH response,
+  using the same encoding as the FETCH request End Location (the last
+  Object, plus 1; or 0 to indicate the entire Group).
+  This is the End Location from the FETCH request unless
   the requested range extends beyond published data:
    - If the requested FETCH End Location was beyond the Largest known (possibly
      final) Object, End Location is {Largest.Group, Largest.Object + 1}
-   - If End Location.Object in the FETCH request was 0 and the response covers
-     the last Object in the Group, End Location is {Fetch.End Location.Group, 0}
   Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
   End Location described in {{joining-fetch-range-calculation}}.
 
