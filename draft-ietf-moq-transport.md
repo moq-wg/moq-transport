@@ -393,6 +393,34 @@ Reason Phrase {
   such as language tags, that would aid comprehension by any entity other than
   the one that created the text.
 
+### Redirect Structure {#redirect-structure}
+
+A Redirect provides a way for an endpoint to direct the peer to retry a
+request at a different URI and/or for a different Full Track Name.
+
+~~~
+Redirect {
+  Connect URI Length (vi64),
+  Connect URI (..),
+  Track Namespace (..),
+  Track Name Length (vi64),
+  Track Name (..),
+}
+~~~
+
+* Connect URI: The URI to connect to for this track. If the length is
+  zero, the requester SHOULD use the current session's URI. If a server
+  receives a Redirect with a non-zero Connect URI Length it MUST close the
+  session with a `PROTOCOL_VIOLATION`.
+
+* Track Namespace: The Track Namespace to use for the redirected request.
+
+* Track Name: The Track Name to use for the redirected request. Track Name
+  is not meaningful for namespace-scoped requests (SUBSCRIBE_NAMESPACE,
+  PUBLISH_NAMESPACE) and MUST be empty; an endpoint that receives a non-empty
+  Track Name in a Redirect for a namespace-scoped request MUST close the session
+  with a `PROTOCOL_VIOLATION`.
+
 ## Representing Namespace and Track Names
 
 There is often a need to render namespace tuples and track names for
@@ -1836,6 +1864,8 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xB   | PUBLISH_DONE ({{message-publish-done}})             |
 |-------|-----------------------------------------------------|
+| 0x1F  | REDIRECT ({{message-redirect}})                     |
+|-------|-----------------------------------------------------|
 | 0x16  | FETCH ({{message-fetch}})                           |
 |-------|-----------------------------------------------------|
 | 0x18  | FETCH_OK ({{message-fetch-ok}})                     |
@@ -2473,6 +2503,7 @@ REQUEST_ERROR Message {
   Error Code (vi64),
   Retry Interval (vi64),
   Error Reason (Reason Phrase),
+  [Redirect (Redirect),]
 }
 ~~~
 {: #moq-transport-request-error format title="MOQT REQUEST_ERROR Message"}
@@ -2484,6 +2515,9 @@ REQUEST_ERROR Message {
 
 * Error Reason: Provides a text description of the request error. See
  {{reason-phrase}}.
+
+* Redirect: Present only when Error Code is REDIRECT. See
+  {{redirect-structure}}.
 
 The application SHOULD use a relevant error code in REQUEST_ERROR,
 as defined below and assigned in {{iana-request-error}}. Most codepoints have
@@ -2528,6 +2562,14 @@ sender SHOULD use the Retry Interval to indicate when the request can be retried
 DUPLICATE_SUBSCRIPTION (0x19):
 : The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
 with the same role as an existing subscription.
+
+REDIRECT:
+: The request cannot be fulfilled by this endpoint, but could succeed at the
+location specified in the Redirect structure. The requester SHOULD establish a
+new session to the provided URI (if present) and retry the request using the
+Full Track Name from the Redirect (if present). This error code can appear in
+response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH_NAMESPACE and
+SUBSCRIBE_NAMESPACE.
 
 Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
@@ -2871,6 +2913,32 @@ UPDATE_FAILED (0x8):
 
 EXCESSIVE_LOAD (0x9):
 : The publisher is overloaded and is terminating the subscription.
+
+## REDIRECT {#message-redirect}
+
+An endpoint sends a REDIRECT message on a bidirectional request stream to
+indicate that the peer can re-establish the request on a different session.
+REDIRECT MAY be sent on streams for SUBSCRIBE, PUBLISH, SUBSCRIBE_NAMESPACE,
+and PUBLISH_NAMESPACE. An endpoint MUST close the session with a
+`PROTOCOL_VIOLATION` if it receives a REDIRECT on any other stream type.
+
+REDIRECT does not terminate the current request. The sender MAY continue to
+serve the request after sending REDIRECT. For subscriptions, a publisher MAY
+send both REDIRECT and PUBLISH_DONE; the subscriber SHOULD use the Redirect
+information to re-establish the subscription before the current one is fully
+torn down, enabling a seamless handoff.
+
+~~~
+REDIRECT Message {
+  Type (vi64) = 0x1F,
+  Length (16),
+  Redirect (Redirect),
+}
+~~~
+{: #moq-transport-redirect-format title="MOQT REDIRECT Message"}
+
+* Redirect: The location to re-establish the request. See
+  {{redirect-structure}}.
 
 ## FETCH {#message-fetch}
 
@@ -4369,6 +4437,7 @@ the length field.
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| REDIRECT                   | 0x33 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
