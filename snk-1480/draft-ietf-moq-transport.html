@@ -2867,7 +2867,7 @@ the type of the stream.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 10.4.4</a>)</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x10-0x1D</td>
+              <td class="text-right" rowspan="1" colspan="1">0x10-0x15 / 0x18-0x1D / 0x30-0x35 / 0x38-0x3D</td>
               <td class="text-left" rowspan="1" colspan="1">SUBGROUP_HEADER  (<a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>)</td>
             </tr>
             <tr>
@@ -3792,7 +3792,10 @@ subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
 then the Relay <span class="bcp14">MUST</span> use Forward=1 when subscribing upstream.<a href="#section-8.5-10" class="pilcrow">¶</a></p>
 <p id="section-8.5-11">When a relay receives an incoming PUBLISH message, it <span class="bcp14">MUST</span> send a PUBLISH
 request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
-to the Track's namespace or prefix thereof.<a href="#section-8.5-11" class="pilcrow">¶</a></p>
+to the Track's namespace or prefix thereof. However, if the relay is
+holding a downstream SUBSCRIBE awaiting a publisher for this Track (see
+<a href="#rendezvous-timeout" class="auto internal xref">Section 9.3.4</a>), it <span class="bcp14">MUST</span> proceed with the SUBSCRIBE and
+<span class="bcp14">MUST NOT</span> also forward the PUBLISH to that subscriber.<a href="#section-8.5-11" class="pilcrow">¶</a></p>
 <p id="section-8.5-12">When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it <span class="bcp14">MUST</span>
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
@@ -5002,9 +5005,12 @@ can issue a FETCH to retrieve the omitted Objects, if any.<a href="#section-9.10
 <p id="section-9.10.1-3">When a subscriber narrows their subscription (increase the Start Location and/or
 decrease the End Group), it might still receive Objects outside the
 new range if the publisher sent them before the update was processed.<a href="#section-9.10.1-3" class="pilcrow">¶</a></p>
-<p id="section-9.10.1-4">When a subscription
-update is unsuccessful, the publisher <span class="bcp14">MUST</span> also terminate the subscription with
-PUBLISH_DONE with error code <code>UPDATE_FAILED</code>.<a href="#section-9.10.1-4" class="pilcrow">¶</a></p>
+<p id="section-9.10.1-4">When a REQUEST_UPDATE is unsuccessful, the publisher <span class="bcp14">MUST</span> also terminate
+the subscription by sending a
+PUBLISH_DONE with error code <code>UPDATE_FAILED</code>. When a REQUEST_UPDATE fails for
+a FETCH, the publisher <span class="bcp14">MUST</span> reset the FETCH data stream. When a REQUEST_UPDATE
+fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder <span class="bcp14">MUST</span> close
+the bidi stream.<a href="#section-9.10.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -5455,13 +5461,12 @@ cached objects have been delivered before resetting the stream.<a href="#section
 <p id="section-9.14.3-8">Fetch specifies an inclusive range of Objects starting at Start Location and
 ending at End Location. End Location <span class="bcp14">MUST</span> specify the same or a larger Location
 than Start Location for Standalone and Absolute Joining Fetches.<a href="#section-9.14.3-8" class="pilcrow">¶</a></p>
-<p id="section-9.14.3-9">Objects that are not yet published will not be retrieved by a FETCH.  The
-Largest available Object in the requested range is indicated in the FETCH_OK,
-and is the last Object a fetch will return if the End Location have not yet been
-published.<a href="#section-9.14.3-9" class="pilcrow">¶</a></p>
-<p id="section-9.14.3-10">If Start Location is greater than the <code>Largest Object</code>
-(<a href="#message-subscribe-req" class="auto internal xref">Section 9.8</a>) the publisher <span class="bcp14">MUST</span> return REQUEST_ERROR with error
-code <code>INVALID_RANGE</code>.<a href="#section-9.14.3-10" class="pilcrow">¶</a></p>
+<p id="section-9.14.3-9">Objects larger than the Largest Object will not be retrieved by a FETCH.  If the
+requested End Location exceeds the Largest available Object, the actual end of
+the FETCH response is indicated in the FETCH_OK End Location.<a href="#section-9.14.3-9" class="pilcrow">¶</a></p>
+<p id="section-9.14.3-10">If no Objects have been published for the track or Start Location is greater
+than the <code>Largest Object</code> (<a href="#message-subscribe-req" class="auto internal xref">Section 9.8</a>) the publisher <span class="bcp14">MUST</span> return
+REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-9.14.3-10" class="pilcrow">¶</a></p>
 <p id="section-9.14.3-11">A publisher <span class="bcp14">MUST</span> send fetched groups in the requested group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.<a href="#section-9.14.3-11" class="pilcrow">¶</a></p>
@@ -5508,32 +5513,22 @@ FETCH_OK Message {
 the End Location is the final Object in the Track, 0 if not.<a href="#section-9.15-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.15-3.2">
-            <p id="section-9.15-3.2.1">End Location: The largest object covered by the FETCH response.
-The End Location is determined as follows:<a href="#section-9.15-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.15-3.2.1">End Location: The end of the range covered by the FETCH response,
+using the same encoding as the FETCH request End Location (the last
+Object, plus 1; or 0 to indicate the entire Group).
+This is the End Location from the FETCH request unless
+the requested range extends beyond published data:<a href="#section-9.15-3.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9.15-3.2.2.1">
                 <p id="section-9.15-3.2.2.1.1">If the requested FETCH End Location was beyond the Largest known (possibly
-final) Object, End Location is {Largest.Group, Largest.Object + 1}<a href="#section-9.15-3.2.2.1.1" class="pilcrow">¶</a></p>
-</li>
-              <li class="normal" id="section-9.15-3.2.2.2">
-                <p id="section-9.15-3.2.2.2.1">If End Location.Object in the FETCH request was 0 and the response covers
-the last Object in the Group, End Location is {Fetch.End Location.Group, 0}<a href="#section-9.15-3.2.2.2.1" class="pilcrow">¶</a></p>
-</li>
-              <li class="normal" id="section-9.15-3.2.2.3">
-                <p id="section-9.15-3.2.2.3.1">Otherwise, End Location is Fetch.End Location
+final) Object, End Location is {Largest.Group, Largest.Object + 1}
 Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
-End Location described in <a href="#joining-fetch-range-calculation" class="auto internal xref">Section 9.14.2.1</a>.<a href="#section-9.15-3.2.2.3.1" class="pilcrow">¶</a></p>
+End Location described in <a href="#joining-fetch-range-calculation" class="auto internal xref">Section 9.14.2.1</a>.<a href="#section-9.15-3.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-9.15-3.2.3">
-If the relay is subscribed to the track, it uses its knowledge of the largest
-{Group, Object} to set End Location.  If it is not subscribed and the
-requested End Location exceeds its cached data, the relay makes an upstream
-request to complete the FETCH, and uses the upstream response to set End
-Location.<a href="#section-9.15-3.2.3" class="pilcrow">¶</a></p>
-<p id="section-9.15-3.2.4">
 If End Location is smaller than the Start Location in the corresponding FETCH
-the receiver <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.15-3.2.4" class="pilcrow">¶</a></p>
+the receiver <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.15-3.2.3" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.15-3.3">
             <p id="section-9.15-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.3</a>.<a href="#section-9.15-3.3.1" class="pilcrow">¶</a></p>
@@ -5770,8 +5765,10 @@ corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session wi
 <p id="section-9.20-10">If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
 timely manner because the SUBSCRIBE_NAMESPACE response stream is blocked by flow
 control, the publisher <span class="bcp14">MAY</span> reset the SUBSCRIBE_NAMESPACE response stream.  When
-a subscriber receives a stream reset on a SUBSCRIBE_NAMESPACE response stream, it
-<span class="bcp14">SHOULD</span> treat this as though each active namespace received a NAMESPACE_DONE.<a href="#section-9.20-10" class="pilcrow">¶</a></p>
+a subscriber receives a stream reset or FIN on a SUBSCRIBE_NAMESPACE response
+stream, it <span class="bcp14">SHOULD</span> treat this as though each active namespace received a
+NAMESPACE_DONE. Subscriptions established via PUBLISH on separate bidi streams
+are not affected by closure of the SUBSCRIBE_NAMESPACE stream.<a href="#section-9.20-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-publish-blocked">

@@ -1128,17 +1128,18 @@ Table of Contents
    All unidirectional MOQT streams start with a variable-length integer
    indicating the type of the stream.
 
-             +===========+==================================+
-             |        ID | Type                             |
-             +===========+==================================+
-             |      0x05 | FETCH_HEADER (Section 10.4.4)    |
-             +-----------+----------------------------------+
-             | 0x10-0x1D | SUBGROUP_HEADER (Section 10.4.2) |
-             +-----------+----------------------------------+
-             |    0x2F00 | SETUP (Section 9.4)              |
-             +-----------+----------------------------------+
+        +=========================+===============================+
+        |                      ID | Type                          |
+        +=========================+===============================+
+        |                    0x05 | FETCH_HEADER (Section 10.4.4) |
+        +-------------------------+-------------------------------+
+        | 0x10-0x15 / 0x18-0x1D / | SUBGROUP_HEADER               |
+        |   0x30-0x35 / 0x38-0x3D | (Section 10.4.2)              |
+        +-------------------------+-------------------------------+
+        |                  0x2F00 | SETUP (Section 9.4)           |
+        +-------------------------+-------------------------------+
 
-                                 Table 3
+                                  Table 3
 
    An endpoint that receives an unknown stream type MUST close the
    session.
@@ -2017,6 +2018,10 @@ Table of Contents
    When a relay receives an incoming PUBLISH message, it MUST send a
    PUBLISH request to each subscriber that has subscribed (via
    SUBSCRIBE_NAMESPACE) to the Track's namespace or prefix thereof.
+   However, if the relay is holding a downstream SUBSCRIBE awaiting a
+   publisher for this Track (see Section 9.3.4), it MUST proceed with
+   the SUBSCRIBE and MUST NOT also forward the PUBLISH to that
+   subscriber.
 
    When a relay receives an authorized PUBLISH_NAMESPACE for a namespace
    that matches one or more existing subscriptions to other upstream
@@ -3015,9 +3020,12 @@ Table of Contents
    Objects outside the new range if the publisher sent them before the
    update was processed.
 
-   When a subscription update is unsuccessful, the publisher MUST also
-   terminate the subscription with PUBLISH_DONE with error code
-   UPDATE_FAILED.
+   When a REQUEST_UPDATE is unsuccessful, the publisher MUST also
+   terminate the subscription by sending a PUBLISH_DONE with error code
+   UPDATE_FAILED.  When a REQUEST_UPDATE fails for a FETCH, the
+   publisher MUST reset the FETCH data stream.  When a REQUEST_UPDATE
+   fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder
+   MUST close the bidi stream.
 
 9.11.  PUBLISH
 
@@ -3383,14 +3391,14 @@ Table of Contents
    same or a larger Location than Start Location for Standalone and
    Absolute Joining Fetches.
 
-   Objects that are not yet published will not be retrieved by a FETCH.
-   The Largest available Object in the requested range is indicated in
-   the FETCH_OK, and is the last Object a fetch will return if the End
-   Location have not yet been published.
+   Objects larger than the Largest Object will not be retrieved by a
+   FETCH.  If the requested End Location exceeds the Largest available
+   Object, the actual end of the FETCH response is indicated in the
+   FETCH_OK End Location.
 
-   If Start Location is greater than the Largest Object (Section 9.8)
-   the publisher MUST return REQUEST_ERROR with error code
-   INVALID_RANGE.
+   If no Objects have been published for the track or Start Location is
+   greater than the Largest Object (Section 9.8) the publisher MUST
+   return REQUEST_ERROR with error code INVALID_RANGE.
 
    A publisher MUST send fetched groups in the requested group order,
    either ascending or descending.  Within each group, objects are sent
@@ -3425,26 +3433,17 @@ Table of Contents
    *  End Of Track: 1 if all Objects have been published on this Track,
       and the End Location is the final Object in the Track, 0 if not.
 
-   *  End Location: The largest object covered by the FETCH response.
-      The End Location is determined as follows:
+   *  End Location: The end of the range covered by the FETCH response,
+      using the same encoding as the FETCH request End Location (the
+      last Object, plus 1; or 0 to indicate the entire Group).  This is
+      the End Location from the FETCH request unless the requested range
+      extends beyond published data:
 
       -  If the requested FETCH End Location was beyond the Largest
          known (possibly final) Object, End Location is {Largest.Group,
-         Largest.Object + 1}
-
-      -  If End Location.Object in the FETCH request was 0 and the
-         response covers the last Object in the Group, End Location is
-         {Fetch.End Location.Group, 0}
-
-      -  Otherwise, End Location is Fetch.End Location Where Fetch.End
-         Location is either Fetch.Standalone.End Location or the
-         computed End Location described in Section 9.14.2.1.
-
-      If the relay is subscribed to the track, it uses its knowledge of
-      the largest {Group, Object} to set End Location.  If it is not
-      subscribed and the requested End Location exceeds its cached data,
-      the relay makes an upstream request to complete the FETCH, and
-      uses the upstream response to set End Location.
+         Largest.Object + 1} Where Fetch.End Location is either
+         Fetch.Standalone.End Location or the computed End Location
+         described in Section 9.14.2.1.
 
       If End Location is smaller than the Start Location in the
       corresponding FETCH the receiver MUST close the session with a
@@ -3636,8 +3635,11 @@ Table of Contents
    messages in a timely manner because the SUBSCRIBE_NAMESPACE response
    stream is blocked by flow control, the publisher MAY reset the
    SUBSCRIBE_NAMESPACE response stream.  When a subscriber receives a
-   stream reset on a SUBSCRIBE_NAMESPACE response stream, it SHOULD
-   treat this as though each active namespace received a NAMESPACE_DONE.
+   stream reset or FIN on a SUBSCRIBE_NAMESPACE response stream, it
+   SHOULD treat this as though each active namespace received a
+   NAMESPACE_DONE.  Subscriptions established via PUBLISH on separate
+   bidi streams are not affected by closure of the SUBSCRIBE_NAMESPACE
+   stream.
 
 9.21.  PUBLISH_BLOCKED
 
