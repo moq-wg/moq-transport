@@ -236,7 +236,14 @@ Track:
 ## Stream Management Terms
 
 This document uses stream management terms described in {{?RFC9000, Section
-1.3}} including STOP_SENDING, RESET_STREAM and FIN.
+1.3}} including STOP_SENDING, RESET_STREAM, and FIN. It also uses
+RESET_STREAM_AT from {{!I-D.draft-ietf-quic-reliable-stream-reset}}.
+RESET_STREAM_AT can be used by MOQT, but the protocol is also designed to work
+correctly when the extension is not supported.
+
+When this document says an endpoint "resets" a stream, it means the endpoint
+sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
+{{closing-subgroup-streams}} for considerations on choosing between them).
 
 ## Notational Conventions
 
@@ -778,10 +785,7 @@ semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
 connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
 MUST be supported and negotiated in the QUIC connection used for MOQT,
-which is already a requirement for WebTransport over HTTP/3. The
-RESET_STREAM_AT {{!I-D.draft-ietf-quic-reliable-stream-reset}}
-extension to QUIC can be used by MOQT, but the protocol is also
-designed to work correctly when the extension is not supported.
+which is already a requirement for WebTransport over HTTP/3.
 
 There is no definition of the protocol over other transports,
 such as TCP, and applications using MoQ might need to fallback to
@@ -893,8 +897,7 @@ endpoint. Senders cancel requests if the response is no longer of interest;
 Receivers cancel requests if they are unable to or choose not to respond.
 
 Implementations SHOULD cancel requests by abruptly terminating any directions of
-a stream that are still open using RESET_STREAM / RESET_STREAM_AT or
-STOP_SENDING.
+a stream that are still open by resetting or sending STOP_SENDING.
 
 When an endpoint rejects a request without performing any application processing,
 it SHOULD send a REQUEST_ERROR and FIN the stream.
@@ -1327,8 +1330,8 @@ The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
 FETCH.
 
 A subscriber keeps FETCH state until it cancels the request
-(see {{request-cancellation}}), receives REQUEST_ERROR, or receives a FIN or
-RESET_STREAM for the FETCH data stream. If the data stream is already open,
+(see {{request-cancellation}}), receives REQUEST_ERROR, or the FETCH data stream
+receives a FIN or is reset. If the data stream is already open,
 the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
 data stream as well as the the bidi request stream. It MUST send STOP_SENDING
 for the bidi request stream.
@@ -1390,7 +1393,7 @@ forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
 A SUBSCRIBE_NAMESPACE can be cancelled by closing the stream with
-either a FIN or RESET_STREAM. Cancelling does not prohibit original publishers
+either a FIN or by resetting it. Cancelling does not prohibit original publishers
 from sending further PUBLISH_NAMESPACE or PUBLISH messages, but relays MUST NOT
 send any further PUBLISH messages to a client without knowing the client is
 interested in and authorized to receive the content.
@@ -3593,7 +3596,7 @@ and bit 5 determine which fields are present in the header:
   Object in the Group when the data stream is terminated by a FIN. In this case,
   Objects that have the same Group ID and an Object ID larger than the last
   Object received on the stream do not exist. This does not apply when the data
-  stream is terminated with a RESET_STREAM or RESET_STREAM_AT.
+  stream is reset.
 
 * The **DEFAULT_PRIORITY** bit (0x20) indicates when the Priority field is
   present. When set to 1, the Priority field is omitted and this Subgroup
@@ -3652,8 +3655,7 @@ any Objects with Locations smaller than the subscription's Start Location, it
 MUST close the stream with a FIN.
 
 If a sender closes the stream before delivering all such objects to the QUIC
-stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
-{{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes, but is
+stream, it MUST reset the stream. This includes, but is
 not limited to:
 
 * An Object in an open Subgroup exceeding its Delivery Timeout
@@ -3673,7 +3675,7 @@ cause subscribers to hold on to subscription state until a timeout expires.
 A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
-all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.
+all data on the stream and the FIN, it can ignore any subsequent reset.
 
 If a sender will not deliver any objects from a Subgroup, it MAY send
 a SUBGROUP_HEADER on a new stream, with no objects, and then send RESET_STREAM_AT
@@ -3698,7 +3700,7 @@ Subgroup stream and open a new one to forward it.
 Since SUBSCRIBEs always end on a group boundary, an ending subscription can
 always cleanly close all its subgroups. A sender that terminates a stream
 early for any other reason (e.g., to handoff to a different sender) MUST
-use RESET_STREAM or RESET_STREAM_AT. Senders SHOULD terminate a stream on
+reset the stream. Senders SHOULD terminate a stream on
 Group boundaries to avoid doing so.
 
 An MOQT implementation that processes a stream FIN is assured it has received
@@ -3713,7 +3715,7 @@ Group, so if all Objects in the Group have been received, a FIN can be sent on
 any stream where the entire subgroup has been sent. This might be complex to
 implement.
 
-Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
+Processing a reset means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
 reset the corresponding downstream stream, or it might attempt to recover the
 missing Objects in an effort to send all the Objects in the subgroups and the FIN.
@@ -3723,19 +3725,19 @@ Objects might exist.
 
 A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the Group
 or Subgroup is no longer of interest to it. The publisher SHOULD respond with
-RESET_STREAM or RESET_STREAM_AT. If RESET_STREAM_AT is sent, note that the receiver
+a reset. If RESET_STREAM_AT is sent, note that the receiver
 has indicated no interest in the objects, so setting a reliable_size beyond the
 stream header is of questionable utility.
 
-RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
+Resets and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
 Subgroups in a Group at once.
 
 A publisher that receives a STOP_SENDING on a Subgroup stream SHOULD NOT attempt
 to open a new stream to deliver additional Objects in that Subgroup.
 
-The application SHOULD use a relevant error code in RESET_STREAM or
-RESET_STREAM_AT, as defined below:
+The application SHOULD use a relevant error code when resetting a stream,
+as defined below:
 
 INTERNAL_ERROR (0x0):
 : An implementation specific error.
