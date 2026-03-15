@@ -1104,9 +1104,6 @@ tasks.  For example, a limited media player could operate using only SUBSCRIBE
 related messages.  Limited endpoints SHOULD respond to any unsupported messages
 with the appropriate `NOT_SUPPORTED` error code, rather than ignoring them.
 
-Endpoints MUST NOT close the session when receiving an unknown error code for
-REQUEST_ERROR or SUBSCRIBE_DONE.
-
 Relays MUST implement all MOQT messages defined in this document, as well as
 processing rules described in {{relays-moq}}.
 
@@ -4294,12 +4291,22 @@ The following registries include GREASE reservations:
 - Data Stream Reset Error Codes ({{iana-reset-stream}})
 - MOQT Auth Token Type
 
-Implementations MUST handle unknown values from these registries gracefully
-according to the rules defined in each section.
+Because new values in these registries can be defined without negotiation,
+implementations MUST handle unknown values gracefully. Endpoints MUST NOT
+close the session solely because they received an unknown value. The
+following rules apply:
 
 Setup Options with reserved identifiers have no semantics and can carry
 arbitrary values. Endpoints MUST ignore unknown Setup Options as specified
 in {{message-setup}}.
+
+Unknown Properties MUST be handled as specified in {{properties}}.
+
+Receipt of an unknown error code in any error context (Session Termination,
+REQUEST_ERROR, PUBLISH_DONE, or Data Stream Reset) MUST be treated as
+equivalent to `INTERNAL_ERROR` for that context. An endpoint MUST NOT close
+the session because it received an unknown error code in a REQUEST_ERROR
+or PUBLISH_DONE.
 
 # IANA Considerations {#iana}
 
