@@ -4283,7 +4283,7 @@ integer values of N (that is, 0x9D, 0xBC, ..., 0x3ffffffffffffffe).
 
 The following registries include GREASE reservations:
 
-- Setup Options ({{setup-options}})
+- Setup Options ({{iana-setup-options}})
 - Properties ({{iana-properties}})
 - Session Termination Error Codes ({{iana-session-termination}})
 - REQUEST_ERROR Codes ({{iana-request-error}})
@@ -4303,10 +4303,30 @@ in {{message-setup}}.
 TODO: fill out currently missing registries:
 
 * MOQT ALPN values
-* Setup Options
 * Message types
 
 TODO: register the URI scheme and the ALPN
+
+## Setup Options {#iana-setup-options}
+
+| Type | Name | Specification |
+|-----:|:-----|:--------------|
+| 0x01 | PATH | {{path}} |
+| 0x03 | AUTHORIZATION_TOKEN | {{setup-auth-token}} |
+| 0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | {{max-auth-token-cache-size}} |
+| 0x05 | AUTHORITY | {{authority}} |
+| 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
+| 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
+
+Endpoints MUST ignore unknown Setup Options as specified in
+{{message-setup}}.
+
+New Setup Option types are registered using the Specification Required
+policy ({{!RFC8126, Section 4.6}}).  Provisional registrations are
+permitted to allow experimentation and avoid codepoint collisions
+between independent implementations.  There is no reserved range for
+private or application-specific use; implementations that need custom
+Setup Options SHOULD request a provisional registration.
 
 ## Authorization Token Alias Type
 
