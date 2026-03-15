@@ -3274,7 +3274,9 @@ subscription.<a href="#section-5.1.2-9" class="pilcrow">¶</a></p>
 explicitly. The specified <code>Start Location</code> <span class="bcp14">MAY</span> be less than the <code>Largest Object</code>
 observed at the publisher. If the specified <code>End Group Delta</code> is zero, the
 remainder of that Group passes the filter. Otherwise, the last Group ID to be
-delivered will be the Group ID in <code>Start Location</code> plus the <code>End Group Delta</code>.<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
+delivered will be the Group ID in <code>Start Location</code> plus the <code>End Group Delta</code>.
+If the resulting Group ID would be greater than 2^64 - 1, the endpoint <span class="bcp14">MUST</span>
+close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-11">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> close the
 session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
 </section>
@@ -4060,7 +4062,9 @@ Message Parameter {
 </div>
 <p id="section-9.3-3">Type Delta: The difference between this Parameter Type and the previous
    Parameter Type in the message, or the Parameter Type itself for the first
-   parameter. Parameters <span class="bcp14">MUST</span> be serialized in ascending order by Type.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+   parameter. Parameters <span class="bcp14">MUST</span> be serialized in ascending order by Type.
+   If the resulting Type would be greater than 2^64 - 1, the endpoint
+   <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9.3-4.1">
             <p id="section-9.3-4.1.1">Value: The encoding is specified by each parameter definition.
@@ -6186,7 +6190,9 @@ following fields.<a href="#section-10.4.2-9" class="pilcrow">¶</a></p>
 <p id="section-10.4.2-10">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-10.4.2-10" class="pilcrow">¶</a></p>
 <p id="section-10.4.2-11">The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
 stream if there was one.  The Object ID is the Object ID Delta if it's the first
-Object in the Subgroup stream. For example, a Subgroup of sequential Object IDs
+Object in the Subgroup stream. If the resulting Object ID would be greater
+than 2^64 - 1, the endpoint <span class="bcp14">MUST</span> close the session with a
+<code>PROTOCOL_VIOLATION</code>. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
