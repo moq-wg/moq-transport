@@ -911,15 +911,18 @@ the type of the stream.
 |------------:|:------------------------------------------------|
 | 0x05        | FETCH_HEADER  ({{fetch-header}})                |
 |-------------|-------------------------------------------------|
-| 0x10-0x1D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
+| 0x10-0x15 / 0x18-0x1D / 0x30-0x35 / 0x38-0x3D | SUBGROUP_HEADER  ({{subgroup-header}}) |
 |-------------|-------------------------------------------------|
 | 0x2F00      | SETUP ({{message-setup}})                       |
+|-------------|-------------------------------------------------|
+| 0x132B3E28  | PADDING  ({{padding-streams}})                  |
 |-------------|-------------------------------------------------|
 
 An endpoint that receives an unknown stream type MUST close the session.
 
 Control streams (SETUP) are described in {{session-init}}.
 Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
+Padding streams are described in {{padding}}.
 
 ## Termination  {#session-termination}
 
@@ -1072,11 +1075,12 @@ measured.
 
 Some applications might have APIs to allow sending duplicate data or forward error
 correction to probe for more bandwidth while also limiting the impact of probing
-in case it causes packet loss. Applications wanting to switch to an alternate
-representation of a Track can request that Track at a lower priority to probe.
-Applications can subscribe to additional tracks at the lowest (255) priority
-to fill the congestion window during probing intervals while minimizing the
-impact on higher priority media.
+in case it causes packet loss. Subscribers wanting to switch to an alternate
+representation of a Track can subscribe to it at a lower priority, or subscribe
+to additional Tracks at the lowest (255) priority to fill the congestion window
+during probing intervals while minimizing the impact on higher priority
+media. Publishers can send padding ({{padding}}) to probe for additional
+bandwidth without requiring additional subscriptions.
 Network-assisted bandwidth estimation mechanisms such as SCONE
 {{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
 which subscribers can use to inform track selection decisions and potentially avoid
@@ -1585,7 +1589,7 @@ Preference, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
 For ranges of objects that do not exist, relays MAY change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
 change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
-of Group status, or a Prior Group ID Gap extension could be removed in FETCH,
+of Group status, or a Prior Group ID Gap property could be removed in FETCH,
 where it's redundant.
 
 Note that due to reordering, an implementation can receive an Object after
@@ -1738,7 +1742,10 @@ then the Relay MUST use Forward=1 when subscribing upstream.
 
 When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
 request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
-to the Track's namespace or prefix thereof.
+to the Track's namespace or prefix thereof. However, if the relay is
+holding a downstream SUBSCRIBE awaiting a publisher for this Track (see
+{{rendezvous-timeout}}), it MUST proceed with the SUBSCRIBE and
+MUST NOT also forward the PUBLISH to that subscriber.
 
 When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it MUST
@@ -1891,10 +1898,11 @@ is computed as:
 ~~~
 
 A Required Request ID Delta of 0 indicates no dependency. When
-a dependency exists, the receiver MUST deliver the referenced
-request to the application before delivering the dependent
-request. If the required request does not arrive, the receiver
-will time out the dependent request.
+a dependency exists, the receiver MUST NOT process the dependent
+request before the referenced request. This is an ordering
+constraint only; the referenced request does not need to complete
+successfully. If the referenced request does not arrive, the
+receiver will time out the dependent request.
 
 The delta is scaled by two because request IDs from each endpoint
 use alternating parity (odd or even), so valid dependencies always
@@ -1951,9 +1959,6 @@ Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
 publisher to alter the payload of the objects it sends, as that would violate
 the track uniqueness guarantee described in {{track-scope}}.
 
-Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
-to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in {{track-scope}}.
 
 ### Parameter Scope
 
@@ -2110,7 +2115,7 @@ A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
 due to delivery timeout.
 
 If both the subscriber specifies this parameter and the Track has a
-DELIVERY_TIMEOUT extension, the endpoints use the min of
+DELIVERY_TIMEOUT property, the endpoints use the min of
 the two non-zero values for the subscription. If either value is 0, the
 non-zero value is used. If both are 0, there is no delivery timeout.
 
@@ -2692,9 +2697,12 @@ When a subscriber narrows their subscription (increase the Start Location and/or
 decrease the End Group), it might still receive Objects outside the
 new range if the publisher sent them before the update was processed.
 
-When a subscription
-update is unsuccessful, the publisher MUST also terminate the subscription with
-PUBLISH_DONE with error code `UPDATE_FAILED`.
+When a REQUEST_UPDATE is unsuccessful, the publisher MUST also terminate
+the subscription by sending a
+PUBLISH_DONE with error code `UPDATE_FAILED`. When a REQUEST_UPDATE fails for
+a FETCH, the publisher MUST reset the FETCH data stream. When a REQUEST_UPDATE
+fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder MUST close
+the bidi stream.
 
 A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
 coalesce their processing by applying only the cumulative result.
@@ -3048,14 +3056,13 @@ Fetch specifies an inclusive range of Objects starting at Start Location and
 ending at End Location. End Location MUST specify the same or a larger Location
 than Start Location for Standalone and Absolute Joining Fetches.
 
-Objects that are not yet published will not be retrieved by a FETCH.  The
-Largest available Object in the requested range is indicated in the FETCH_OK,
-and is the last Object a fetch will return if the End Location have not yet been
-published.
+Objects larger than the Largest Object will not be retrieved by a FETCH.  If the
+requested End Location exceeds the Largest available Object, the actual end of
+the FETCH response is indicated in the FETCH_OK End Location.
 
-If Start Location is greater than the `Largest Object`
-({{message-subscribe-req}}) the publisher MUST return REQUEST_ERROR with error
-code `INVALID_RANGE`.
+If no Objects have been published for the track or Start Location is greater
+than the `Largest Object` ({{message-subscribe-req}}) the publisher MUST return
+REQUEST_ERROR with error code `INVALID_RANGE`.
 
 A publisher MUST send fetched groups in the requested group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
@@ -3090,21 +3097,15 @@ FETCH_OK Message {
 * End Of Track: 1 if all Objects have been published on this Track, and
   the End Location is the final Object in the Track, 0 if not.
 
-* End Location: The largest object covered by the FETCH response.
-  The End Location is determined as follows:
+* End Location: The end of the range covered by the FETCH response,
+  using the same encoding as the FETCH request End Location (the last
+  Object, plus 1; or 0 to indicate the entire Group).
+  This is the End Location from the FETCH request unless
+  the requested range extends beyond published data:
    - If the requested FETCH End Location was beyond the Largest known (possibly
      final) Object, End Location is {Largest.Group, Largest.Object + 1}
-   - If End Location.Object in the FETCH request was 0 and the response covers
-     the last Object in the Group, End Location is {Fetch.End Location.Group, 0}
-   - Otherwise, End Location is Fetch.End Location
   Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
   End Location described in {{joining-fetch-range-calculation}}.
-
-  If the relay is subscribed to the track, it uses its knowledge of the largest
-  {Group, Object} to set End Location.  If it is not subscribed and the
-  requested End Location exceeds its cached data, the relay makes an upstream
-  request to complete the FETCH, and uses the upstream response to set End
-  Location.
 
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
@@ -3287,8 +3288,10 @@ corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
 If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
 timely manner because the SUBSCRIBE_NAMESPACE response stream is blocked by flow
 control, the publisher MAY reset the SUBSCRIBE_NAMESPACE response stream.  When
-a subscriber receives a stream reset on a SUBSCRIBE_NAMESPACE response stream, it
-SHOULD treat this as though each active namespace received a NAMESPACE_DONE.
+a subscriber receives a stream reset or FIN on a SUBSCRIBE_NAMESPACE response
+stream, it SHOULD treat this as though each active namespace received a
+NAMESPACE_DONE. Subscriptions established via PUBLISH on separate bidi streams
+are not affected by closure of the SUBSCRIBE_NAMESPACE stream.
 
 ## PUBLISH_BLOCKED {#message-publish-blocked}
 
@@ -3626,7 +3629,7 @@ Object in the Subgroup stream. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
-unless there is an Prior Object ID Gap extension header (see
+unless there is a Prior Object ID Gap property (see
 {{prior-object-id-gap}}).
 
 ~~~
@@ -3865,6 +3868,52 @@ the "prior Object", the prior Object fields are determined as follows:
   Range indicator. If there was no prior Object, using a flag that references
   the prior Priority is a `PROTOCOL_VIOLATION`.
 
+## Padding {#padding}
+
+An endpoint MAY send padding on unidirectional streams or datagrams.  Padding
+does not carry Objects or any other application data.  An endpoint can use
+padding to probe for additional bandwidth while minimizing the impact on the
+delivery of application data.
+
+To avoid interfering with the delivery of Objects, senders SHOULD send padding
+streams at a lower priority than any control stream or Object data.
+
+### Padding Streams {#padding-streams}
+
+An endpoint MAY open a unidirectional stream with a stream type of 0x132B3E28 to send
+padding data. The stream begins with the stream type, followed by zero or more
+bytes that MUST all be set to zero.
+
+~~~
+PADDING STREAM {
+  Type (vi64) = 0x132B3E28,
+  Padding Data (..) = 0x00..
+}
+~~~
+{: #padding-format title="MOQT Padding Stream"}
+
+The receiver MUST discard all data received on a padding stream to prevent
+exhausting flow control.
+
+Either the sender or the receiver MAY cancel a padding stream at any time
+without affecting any MOQT application state.
+
+### Padding Datagrams {#padding-datagrams}
+
+An endpoint MAY send a datagram with a type of 0x132B3E29 to send padding data.
+The datagram contains the type followed by zero or more bytes that MUST all be
+set to zero.
+
+~~~
+PADDING DATAGRAM {
+  Type (vi64) = 0x132B3E29,
+  Padding Data (..) = 0x00..
+}
+~~~
+{: #padding-datagram-format title="MOQT Padding Datagram"}
+
+The receiver MUST discard all data received in a padding datagram.
+
 ## Examples
 
 Sending a subgroup on one stream:
@@ -4003,12 +4052,12 @@ If omitted, the value is 0.
 
 ## Immutable Properties
 
-Immutable Properties (Property Type 0xB) contain a sequence of
-Key-Value-Pairs (see {{moq-key-value-pair}}) which are also Track or Object
-Properties.
+Immutable Properties (Property Type 0xB) is a Track or Object Property that
+contains a sequence of Key-Value-Pairs (see {{moq-key-value-pair}}) that are
+themselves Track or Object Properties, respectively.
 
 ~~~
-Immutable Extensions {
+Immutable Properties {
   Type (0xB),
   Length (vi64),
   Key-Value-Pair (..) ...
@@ -4023,12 +4072,12 @@ Object or Track are cached and MUST forward it. Relays MAY decode and view
 the Properties in the Key-Value-Pairs.
 
 Unless specified by a particular Property specification, Properties
-MAY appear either in the mutable extension list or inside Immutable Properties.
+MAY appear either in the mutable property list or inside Immutable Properties.
 When looking for the value of a property, processors MUST search both the
-mutable properties and the contents of Immutable Extensions.
+mutable properties and the contents of Immutable Properties.
 
 If a Property allows multiple values, the same Property Type MAY appear in
-both the mutable list and inside Immutable Extensions, unless prohibited by
+both the mutable list and inside Immutable Properties, unless prohibited by
 the Property specification.
 
 A Track is considered malformed (see {{malformed-tracks}}) if any of the
@@ -4086,7 +4135,7 @@ cannot infer any information about the existence of prior groups (see
 
 This property can be added by the Original Publisher, but MUST NOT be added by
 relays. This property MAY be removed by a relay when the object in question is
-served via FETCH, and the gap that the extension communicates is already
+served via FETCH, and the gap that the property communicates is already
 communicated implicitly in the FETCH response; it MUST NOT be modified or
 removed otherwise.
 
@@ -4117,7 +4166,7 @@ cannot infer any information about the existence of prior objects (see
 
 This property can be added by the Original Publisher, but MUST NOT be added by
 relays. This property MAY be removed by a relay when the object in question is
-served via FETCH, and the gap that the extension communicates is already
+served via FETCH, and the gap that the property communicates is already
 communicated implicitly in the FETCH response; it MUST NOT be modified or
 removed otherwise.
 
