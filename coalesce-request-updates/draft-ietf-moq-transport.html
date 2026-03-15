@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 8 September 2026</td>
+<td class="center">Expires 16 September 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-03-07" class="published">7 March 2026</time>
+<time datetime="2026-03-15" class="published">15 March 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-09-08">8 September 2026</time></dd>
+<dd class="expires"><time datetime="2026-09-16">16 September 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 8 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 16 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1565,7 +1565,18 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.5">
-                <p id="section-toc.1-1.10.2.5.1"><a href="#section-10.5" class="auto internal xref">10.5</a>.  <a href="#name-examples" class="internal xref">Examples</a></p>
+                <p id="section-toc.1-1.10.2.5.1"><a href="#section-10.5" class="auto internal xref">10.5</a>.  <a href="#name-padding" class="internal xref">Padding</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.5.2.1">
+                    <p id="section-toc.1-1.10.2.5.2.1.1"><a href="#section-10.5.1" class="auto internal xref">10.5.1</a>.  <a href="#name-padding-streams" class="internal xref">Padding Streams</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.5.2.2">
+                    <p id="section-toc.1-1.10.2.5.2.2.1"><a href="#section-10.5.2" class="auto internal xref">10.5.2</a>.  <a href="#name-padding-datagrams" class="internal xref">Padding Datagrams</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.6">
+                <p id="section-toc.1-1.10.2.6.1"><a href="#section-10.6" class="auto internal xref">10.6</a>.  <a href="#name-examples" class="internal xref">Examples</a></p>
 </li>
             </ul>
 </li>
@@ -2826,18 +2837,23 @@ the type of the stream.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 10.4.4</a>)</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x10-0x1D</td>
+              <td class="text-right" rowspan="1" colspan="1">0x10-0x15 / 0x18-0x1D / 0x30-0x35 / 0x38-0x3D</td>
               <td class="text-left" rowspan="1" colspan="1">SUBGROUP_HEADER  (<a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>)</td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x2F00</td>
               <td class="text-left" rowspan="1" colspan="1">SETUP (<a href="#message-setup" class="auto internal xref">Section 9.4</a>)</td>
             </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x132B3E28</td>
+              <td class="text-left" rowspan="1" colspan="1">PADDING  (<a href="#padding-streams" class="auto internal xref">Section 10.5.1</a>)</td>
+            </tr>
           </tbody>
         </table>
 <p id="section-3.4-3">An endpoint that receives an unknown stream type <span class="bcp14">MUST</span> close the session.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
 <p id="section-3.4-4">Control streams (SETUP) are described in <a href="#session-init" class="auto internal xref">Section 3.3</a>.
-Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in <a href="#data-streams" class="auto internal xref">Section 10</a>.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
+Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in <a href="#data-streams" class="auto internal xref">Section 10</a>.
+Padding streams are described in <a href="#padding" class="auto internal xref">Section 10.5</a>.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="session-termination">
@@ -3045,11 +3061,12 @@ app-limited for at least a full round trip to ensure the available bandwidth can
 measured.<a href="#section-3.7.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.7.2-2">Some applications might have APIs to allow sending duplicate data or forward error
 correction to probe for more bandwidth while also limiting the impact of probing
-in case it causes packet loss. Applications wanting to switch to an alternate
-representation of a Track can request that Track at a lower priority to probe.
-Applications can subscribe to additional tracks at the lowest (255) priority
-to fill the congestion window during probing intervals while minimizing the
-impact on higher priority media.
+in case it causes packet loss. Subscribers wanting to switch to an alternate
+representation of a Track can subscribe to it at a lower priority, or subscribe
+to additional Tracks at the lowest (255) priority to fill the congestion window
+during probing intervals while minimizing the impact on higher priority
+media. Publishers can send padding (<a href="#padding" class="auto internal xref">Section 10.5</a>) to probe for additional
+bandwidth without requiring additional subscriptions.
 Network-assisted bandwidth estimation mechanisms such as SCONE
 <span>[<a href="#I-D.ietf-scone-protocol" class="cite xref">I-D.ietf-scone-protocol</a>]</span> can provide receivers with sustainable bandwidth hints,
 which subscribers can use to inform track selection decisions and potentially avoid
@@ -3594,7 +3611,7 @@ Preference, Subgroup ID, Priority or Payload <span class="bcp14">MUST</span> tre
 <p id="section-8.1-5">For ranges of objects that do not exist, relays <span class="bcp14">MAY</span> change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
 change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
-of Group status, or a Prior Group ID Gap extension could be removed in FETCH,
+of Group status, or a Prior Group ID Gap property could be removed in FETCH,
 where it's redundant.<a href="#section-8.1-5" class="pilcrow">¶</a></p>
 <p id="section-8.1-6">Note that due to reordering, an implementation can receive an Object after
 receiving an indication that the Object in question does not exist.  The
@@ -3751,7 +3768,10 @@ subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
 then the Relay <span class="bcp14">MUST</span> use Forward=1 when subscribing upstream.<a href="#section-8.5-10" class="pilcrow">¶</a></p>
 <p id="section-8.5-11">When a relay receives an incoming PUBLISH message, it <span class="bcp14">MUST</span> send a PUBLISH
 request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
-to the Track's namespace or prefix thereof.<a href="#section-8.5-11" class="pilcrow">¶</a></p>
+to the Track's namespace or prefix thereof. However, if the relay is
+holding a downstream SUBSCRIBE awaiting a publisher for this Track (see
+<a href="#rendezvous-timeout" class="auto internal xref">Section 9.3.4</a>), it <span class="bcp14">MUST</span> proceed with the SUBSCRIBE and
+<span class="bcp14">MUST NOT</span> also forward the PUBLISH to that subscriber.<a href="#section-8.5-11" class="pilcrow">¶</a></p>
 <p id="section-8.5-12">When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it <span class="bcp14">MUST</span>
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
@@ -3977,10 +3997,11 @@ is computed as:<a href="#section-9.2-1" class="pilcrow">¶</a></p>
 </pre><a href="#section-9.2-2" class="pilcrow">¶</a>
 </div>
 <p id="section-9.2-3">A Required Request ID Delta of 0 indicates no dependency. When
-a dependency exists, the receiver <span class="bcp14">MUST</span> deliver the referenced
-request to the application before delivering the dependent
-request. If the required request does not arrive, the receiver
-will time out the dependent request.<a href="#section-9.2-3" class="pilcrow">¶</a></p>
+a dependency exists, the receiver <span class="bcp14">MUST NOT</span> process the dependent
+request before the referenced request. This is an ordering
+constraint only; the referenced request does not need to complete
+successfully. If the referenced request does not arrive, the
+receiver will time out the dependent request.<a href="#section-9.2-3" class="pilcrow">¶</a></p>
 <p id="section-9.2-4">The delta is scaled by two because request IDs from each endpoint
 use alternating parity (odd or even), so valid dependencies always
 differ by a multiple of two. An endpoint <span class="bcp14">MUST</span> close the session with
@@ -4051,9 +4072,6 @@ length of a control message is limited to 2^16-1 bytes.<a href="#section-9.3-9" 
 <p id="section-9.3-10">Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the
 publisher to alter the payload of the objects it sends, as that would violate
 the track uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.4.3</a>.<a href="#section-9.3-10" class="pilcrow">¶</a></p>
-<p id="section-9.3-11">Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the publisher
-to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.4.3</a>.<a href="#section-9.3-11" class="pilcrow">¶</a></p>
 <div id="parameter-scope">
 <section id="section-9.3.1">
           <h4 id="name-parameter-scope">
@@ -4227,7 +4245,7 @@ Object was not sent because the delivery timeout was exceeded.<a href="#section-
 <p id="section-9.3.3-3">A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
 due to delivery timeout.<a href="#section-9.3.3-3" class="pilcrow">¶</a></p>
 <p id="section-9.3.3-4">If both the subscriber specifies this parameter and the Track has a
-DELIVERY_TIMEOUT extension, the endpoints use the min of
+DELIVERY_TIMEOUT property, the endpoints use the min of
 the two non-zero values for the subscription. If either value is 0, the
 non-zero value is used. If both are 0, there is no delivery timeout.<a href="#section-9.3.3-4" class="pilcrow">¶</a></p>
 <p id="section-9.3.3-5">Publishers can, at their discretion, discontinue forwarding Objects earlier than
@@ -4957,9 +4975,12 @@ can issue a FETCH to retrieve the omitted Objects, if any.<a href="#section-9.10
 <p id="section-9.10.1-3">When a subscriber narrows their subscription (increase the Start Location and/or
 decrease the End Group), it might still receive Objects outside the
 new range if the publisher sent them before the update was processed.<a href="#section-9.10.1-3" class="pilcrow">¶</a></p>
-<p id="section-9.10.1-4">When a subscription
-update is unsuccessful, the publisher <span class="bcp14">MUST</span> also terminate the subscription with
-PUBLISH_DONE with error code <code>UPDATE_FAILED</code>.<a href="#section-9.10.1-4" class="pilcrow">¶</a></p>
+<p id="section-9.10.1-4">When a REQUEST_UPDATE is unsuccessful, the publisher <span class="bcp14">MUST</span> also terminate
+the subscription by sending a
+PUBLISH_DONE with error code <code>UPDATE_FAILED</code>. When a REQUEST_UPDATE fails for
+a FETCH, the publisher <span class="bcp14">MUST</span> reset the FETCH data stream. When a REQUEST_UPDATE
+fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder <span class="bcp14">MUST</span> close
+the bidi stream.<a href="#section-9.10.1-4" class="pilcrow">¶</a></p>
 <p id="section-9.10.1-5">A receiver of multiple REQUEST_UPDATE messages on the same stream <span class="bcp14">MAY</span>
 coalesce their processing by applying only the cumulative result.
 Parameter values from later REQUEST_UPDATE messages override values
@@ -5416,13 +5437,12 @@ cached objects have been delivered before resetting the stream.<a href="#section
 <p id="section-9.14.3-8">Fetch specifies an inclusive range of Objects starting at Start Location and
 ending at End Location. End Location <span class="bcp14">MUST</span> specify the same or a larger Location
 than Start Location for Standalone and Absolute Joining Fetches.<a href="#section-9.14.3-8" class="pilcrow">¶</a></p>
-<p id="section-9.14.3-9">Objects that are not yet published will not be retrieved by a FETCH.  The
-Largest available Object in the requested range is indicated in the FETCH_OK,
-and is the last Object a fetch will return if the End Location have not yet been
-published.<a href="#section-9.14.3-9" class="pilcrow">¶</a></p>
-<p id="section-9.14.3-10">If Start Location is greater than the <code>Largest Object</code>
-(<a href="#message-subscribe-req" class="auto internal xref">Section 9.8</a>) the publisher <span class="bcp14">MUST</span> return REQUEST_ERROR with error
-code <code>INVALID_RANGE</code>.<a href="#section-9.14.3-10" class="pilcrow">¶</a></p>
+<p id="section-9.14.3-9">Objects larger than the Largest Object will not be retrieved by a FETCH.  If the
+requested End Location exceeds the Largest available Object, the actual end of
+the FETCH response is indicated in the FETCH_OK End Location.<a href="#section-9.14.3-9" class="pilcrow">¶</a></p>
+<p id="section-9.14.3-10">If no Objects have been published for the track or Start Location is greater
+than the <code>Largest Object</code> (<a href="#message-subscribe-req" class="auto internal xref">Section 9.8</a>) the publisher <span class="bcp14">MUST</span> return
+REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-9.14.3-10" class="pilcrow">¶</a></p>
 <p id="section-9.14.3-11">A publisher <span class="bcp14">MUST</span> send fetched groups in the requested group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.<a href="#section-9.14.3-11" class="pilcrow">¶</a></p>
@@ -5469,32 +5489,22 @@ FETCH_OK Message {
 the End Location is the final Object in the Track, 0 if not.<a href="#section-9.15-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.15-3.2">
-            <p id="section-9.15-3.2.1">End Location: The largest object covered by the FETCH response.
-The End Location is determined as follows:<a href="#section-9.15-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.15-3.2.1">End Location: The end of the range covered by the FETCH response,
+using the same encoding as the FETCH request End Location (the last
+Object, plus 1; or 0 to indicate the entire Group).
+This is the End Location from the FETCH request unless
+the requested range extends beyond published data:<a href="#section-9.15-3.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9.15-3.2.2.1">
                 <p id="section-9.15-3.2.2.1.1">If the requested FETCH End Location was beyond the Largest known (possibly
-final) Object, End Location is {Largest.Group, Largest.Object + 1}<a href="#section-9.15-3.2.2.1.1" class="pilcrow">¶</a></p>
-</li>
-              <li class="normal" id="section-9.15-3.2.2.2">
-                <p id="section-9.15-3.2.2.2.1">If End Location.Object in the FETCH request was 0 and the response covers
-the last Object in the Group, End Location is {Fetch.End Location.Group, 0}<a href="#section-9.15-3.2.2.2.1" class="pilcrow">¶</a></p>
-</li>
-              <li class="normal" id="section-9.15-3.2.2.3">
-                <p id="section-9.15-3.2.2.3.1">Otherwise, End Location is Fetch.End Location
+final) Object, End Location is {Largest.Group, Largest.Object + 1}
 Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
-End Location described in <a href="#joining-fetch-range-calculation" class="auto internal xref">Section 9.14.2.1</a>.<a href="#section-9.15-3.2.2.3.1" class="pilcrow">¶</a></p>
+End Location described in <a href="#joining-fetch-range-calculation" class="auto internal xref">Section 9.14.2.1</a>.<a href="#section-9.15-3.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-9.15-3.2.3">
-If the relay is subscribed to the track, it uses its knowledge of the largest
-{Group, Object} to set End Location.  If it is not subscribed and the
-requested End Location exceeds its cached data, the relay makes an upstream
-request to complete the FETCH, and uses the upstream response to set End
-Location.<a href="#section-9.15-3.2.3" class="pilcrow">¶</a></p>
-<p id="section-9.15-3.2.4">
 If End Location is smaller than the Start Location in the corresponding FETCH
-the receiver <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.15-3.2.4" class="pilcrow">¶</a></p>
+the receiver <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.15-3.2.3" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.15-3.3">
             <p id="section-9.15-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.3</a>.<a href="#section-9.15-3.3.1" class="pilcrow">¶</a></p>
@@ -5731,8 +5741,10 @@ corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session wi
 <p id="section-9.20-10">If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
 timely manner because the SUBSCRIBE_NAMESPACE response stream is blocked by flow
 control, the publisher <span class="bcp14">MAY</span> reset the SUBSCRIBE_NAMESPACE response stream.  When
-a subscriber receives a stream reset on a SUBSCRIBE_NAMESPACE response stream, it
-<span class="bcp14">SHOULD</span> treat this as though each active namespace received a NAMESPACE_DONE.<a href="#section-9.20-10" class="pilcrow">¶</a></p>
+a subscriber receives a stream reset or FIN on a SUBSCRIBE_NAMESPACE response
+stream, it <span class="bcp14">SHOULD</span> treat this as though each active namespace received a
+NAMESPACE_DONE. Subscriptions established via PUBLISH on separate bidi streams
+are not affected by closure of the SUBSCRIBE_NAMESPACE stream.<a href="#section-9.20-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-publish-blocked">
@@ -6156,7 +6168,7 @@ Object in the Subgroup stream. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
-unless there is an Prior Object ID Gap extension header (see
+unless there is a Prior Object ID Gap property (see
 <a href="#prior-object-id-gap" class="auto internal xref">Section 11.8</a>).<a href="#section-10.4.2-11" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
 <figure id="figure-25">
@@ -6514,13 +6526,79 @@ the prior Priority is a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4.4
 </div>
 </section>
 </div>
-<div id="examples">
+<div id="padding">
 <section id="section-10.5">
-        <h3 id="name-examples">
-<a href="#section-10.5" class="section-number selfRef">10.5. </a><a href="#name-examples" class="section-name selfRef">Examples</a>
+        <h3 id="name-padding">
+<a href="#section-10.5" class="section-number selfRef">10.5. </a><a href="#name-padding" class="section-name selfRef">Padding</a>
         </h3>
-<p id="section-10.5-1">Sending a subgroup on one stream:<a href="#section-10.5-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-10.5-2">
+<p id="section-10.5-1">An endpoint <span class="bcp14">MAY</span> send padding on unidirectional streams or datagrams.  Padding
+does not carry Objects or any other application data.  An endpoint can use
+padding to probe for additional bandwidth while minimizing the impact on the
+delivery of application data.<a href="#section-10.5-1" class="pilcrow">¶</a></p>
+<p id="section-10.5-2">To avoid interfering with the delivery of Objects, senders <span class="bcp14">SHOULD</span> send padding
+streams at a lower priority than any control stream or Object data.<a href="#section-10.5-2" class="pilcrow">¶</a></p>
+<div id="padding-streams">
+<section id="section-10.5.1">
+          <h4 id="name-padding-streams">
+<a href="#section-10.5.1" class="section-number selfRef">10.5.1. </a><a href="#name-padding-streams" class="section-name selfRef">Padding Streams</a>
+          </h4>
+<p id="section-10.5.1-1">An endpoint <span class="bcp14">MAY</span> open a unidirectional stream with a stream type of 0x132B3E28 to send
+padding data. The stream begins with the stream type, followed by zero or more
+bytes that <span class="bcp14">MUST</span> all be set to zero.<a href="#section-10.5.1-1" class="pilcrow">¶</a></p>
+<span id="name-moqt-padding-stream"></span><div id="padding-format">
+<figure id="figure-28">
+            <div class="alignLeft art-text artwork" id="section-10.5.1-2.1">
+<pre>
+PADDING STREAM {
+  Type (vi64) = 0x132B3E28,
+  Padding Data (..) = 0x00..
+}
+</pre>
+</div>
+<figcaption><a href="#figure-28" class="selfRef">Figure 28</a>:
+<a href="#name-moqt-padding-stream" class="selfRef">MOQT Padding Stream</a>
+            </figcaption></figure>
+</div>
+<p id="section-10.5.1-3">The receiver <span class="bcp14">MUST</span> discard all data received on a padding stream to prevent
+exhausting flow control.<a href="#section-10.5.1-3" class="pilcrow">¶</a></p>
+<p id="section-10.5.1-4">Either the sender or the receiver <span class="bcp14">MAY</span> cancel a padding stream at any time
+without affecting any MOQT application state.<a href="#section-10.5.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="padding-datagrams">
+<section id="section-10.5.2">
+          <h4 id="name-padding-datagrams">
+<a href="#section-10.5.2" class="section-number selfRef">10.5.2. </a><a href="#name-padding-datagrams" class="section-name selfRef">Padding Datagrams</a>
+          </h4>
+<p id="section-10.5.2-1">An endpoint <span class="bcp14">MAY</span> send a datagram with a type of 0x132B3E29 to send padding data.
+The datagram contains the type followed by zero or more bytes that <span class="bcp14">MUST</span> all be
+set to zero.<a href="#section-10.5.2-1" class="pilcrow">¶</a></p>
+<span id="name-moqt-padding-datagram"></span><div id="padding-datagram-format">
+<figure id="figure-29">
+            <div class="alignLeft art-text artwork" id="section-10.5.2-2.1">
+<pre>
+PADDING DATAGRAM {
+  Type (vi64) = 0x132B3E29,
+  Padding Data (..) = 0x00..
+}
+</pre>
+</div>
+<figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
+<a href="#name-moqt-padding-datagram" class="selfRef">MOQT Padding Datagram</a>
+            </figcaption></figure>
+</div>
+<p id="section-10.5.2-3">The receiver <span class="bcp14">MUST</span> discard all data received in a padding datagram.<a href="#section-10.5.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="examples">
+<section id="section-10.6">
+        <h3 id="name-examples">
+<a href="#section-10.6" class="section-number selfRef">10.6. </a><a href="#name-examples" class="section-name selfRef">Examples</a>
+        </h3>
+<p id="section-10.6-1">Sending a subgroup on one stream:<a href="#section-10.6-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-10.6-2">
 <pre>
 Stream = 2
 
@@ -6541,11 +6619,11 @@ SUBGROUP_HEADER {
   Object Payload Length = 4
   Payload = "efgh"
 }
-</pre><a href="#section-10.5-2" class="pilcrow">¶</a>
+</pre><a href="#section-10.6-2" class="pilcrow">¶</a>
 </div>
-<p id="section-10.5-3">Sending a group on one stream, with the first object containing two
-Properties.<a href="#section-10.5-3" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-10.5-4">
+<p id="section-10.6-3">Sending a group on one stream, with the first object containing two
+Properties.<a href="#section-10.6-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-10.6-4">
 <pre>
 Stream = 2
 
@@ -6575,7 +6653,7 @@ SUBGROUP_HEADER {
   Payload = "efgh"
 }
 
-</pre><a href="#section-10.5-4" class="pilcrow">¶</a>
+</pre><a href="#section-10.6-4" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
@@ -6674,12 +6752,12 @@ the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.5-1" class
         <h3 id="name-immutable-properties">
 <a href="#section-11.6" class="section-number selfRef">11.6. </a><a href="#name-immutable-properties" class="section-name selfRef">Immutable Properties</a>
         </h3>
-<p id="section-11.6-1">Immutable Properties (Property Type 0xB) contain a sequence of
-Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>) which are also Track or Object
-Properties.<a href="#section-11.6-1" class="pilcrow">¶</a></p>
+<p id="section-11.6-1">Immutable Properties (Property Type 0xB) is a Track or Object Property that
+contains a sequence of Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>) that are
+themselves Track or Object Properties, respectively.<a href="#section-11.6-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-11.6-2">
 <pre>
-Immutable Extensions {
+Immutable Properties {
   Type (0xB),
   Length (vi64),
   Key-Value-Pair (..) ...
@@ -6693,11 +6771,11 @@ change). Like other Properties, Relays <span class="bcp14">MUST</span> cache Imm
 Object or Track are cached and <span class="bcp14">MUST</span> forward it. Relays <span class="bcp14">MAY</span> decode and view
 the Properties in the Key-Value-Pairs.<a href="#section-11.6-3" class="pilcrow">¶</a></p>
 <p id="section-11.6-4">Unless specified by a particular Property specification, Properties
-<span class="bcp14">MAY</span> appear either in the mutable extension list or inside Immutable Properties.
+<span class="bcp14">MAY</span> appear either in the mutable property list or inside Immutable Properties.
 When looking for the value of a property, processors <span class="bcp14">MUST</span> search both the
-mutable properties and the contents of Immutable Extensions.<a href="#section-11.6-4" class="pilcrow">¶</a></p>
+mutable properties and the contents of Immutable Properties.<a href="#section-11.6-4" class="pilcrow">¶</a></p>
 <p id="section-11.6-5">If a Property allows multiple values, the same Property Type <span class="bcp14">MAY</span> appear in
-both the mutable list and inside Immutable Extensions, unless prohibited by
+both the mutable list and inside Immutable Properties, unless prohibited by
 the Property specification.<a href="#section-11.6-5" class="pilcrow">¶</a></p>
 <p id="section-11.6-6">A Track is considered malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>) if any of the
 following conditions are detected:<a href="#section-11.6-6" class="pilcrow">¶</a></p>
@@ -6770,7 +6848,7 @@ cannot infer any information about the existence of prior groups (see
 <a href="#group-ids" class="auto internal xref">Section 2.3.1</a>).<a href="#section-11.7-4" class="pilcrow">¶</a></p>
 <p id="section-11.7-5">This property can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
 relays. This property <span class="bcp14">MAY</span> be removed by a relay when the object in question is
-served via FETCH, and the gap that the extension communicates is already
+served via FETCH, and the gap that the property communicates is already
 communicated implicitly in the FETCH response; it <span class="bcp14">MUST NOT</span> be modified or
 removed otherwise.<a href="#section-11.7-5" class="pilcrow">¶</a></p>
 <p id="section-11.7-6">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this property.<a href="#section-11.7-6" class="pilcrow">¶</a></p>
@@ -6810,7 +6888,7 @@ cannot infer any information about the existence of prior objects (see
 <a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-11.8-4" class="pilcrow">¶</a></p>
 <p id="section-11.8-5">This property can be added by the Original Publisher, but <span class="bcp14">MUST NOT</span> be added by
 relays. This property <span class="bcp14">MAY</span> be removed by a relay when the object in question is
-served via FETCH, and the gap that the extension communicates is already
+served via FETCH, and the gap that the property communicates is already
 communicated implicitly in the FETCH response; it <span class="bcp14">MUST NOT</span> be modified or
 removed otherwise.<a href="#section-11.8-5" class="pilcrow">¶</a></p>
 <p id="section-11.8-6">An Object <span class="bcp14">MUST NOT</span> contain more than one instance of this property.<a href="#section-11.8-6" class="pilcrow">¶</a></p>
