@@ -847,8 +847,8 @@ specific to the underlying transport protocol usage (see {{session}}).
 ## Extension Negotiation {#extension-negotiation}
 
 Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
-Extensions can define new Message types, new Parameters, or new framing for
-Data Streams and Datagrams.
+Extensions can define new Message types, new Parameters, new Properties,
+or new framing for Streams and Datagrams.
 
 The client and server MUST include all Setup Options {{setup-options}}
 required for the negotiated MOQT version in SETUP.
