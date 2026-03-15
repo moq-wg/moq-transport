@@ -58,31 +58,29 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for Media over QUIC Transport
-(MOQT), a media transport protocol designed to operate over QUIC and
-WebTransport, which have similar functionality. MOQT allows a producer of
-media to publish data and have it consumed via subscription by a
-multiplicity of endpoints. It supports intermediate content distribution
-networks and is designed for high scale and low latency distribution.
+This document defines Media over QUIC Transport (MOQT), a publish/subscribe
+protocol that runs over QUIC and WebTransport. MOQT leverages the features of
+these transports, such as streams, datagrams, priorities, and partial
+reliability. MOQT operates both point-to-point and through intermediate relays,
+enabling scalable low-latency delivery. Despite its name, MOQT is media
+agnostic and can be used for a wide range of use cases.
 
 --- middle
 
 
 # Introduction
 
-Media Over QUIC Transport (MOQT) is a protocol that is optimized
-for the QUIC protocol {{QUIC}}, either directly or via WebTransport
-{{WebTransport}}, for the dissemination of media. MOQT utilizes a
-publish/subscribe workflow in which producers of media publish data in
-response to subscription requests from a multiplicity of endpoints. MOQT
-supports wide range of use-cases with different resiliency and latency
-(live, interactive) needs without compromising the scalability and cost
-effectiveness associated with content delivery networks.
+Media Over QUIC Transport (MOQT) is a publish/subscribe protocol that runs over
+QUIC {{QUIC}} or WebTransport {{WebTransport}}. Publishers produce data that is
+delivered to subscribers either point-to-point or through intermediate relays.
+MOQT leverages transport features such as streams, datagrams, priorities, and
+partial reliability to support a wide range of use cases with different
+resiliency and latency needs, from live to interactive, without compromising
+scalability.
 
-MOQT is a generic protocol designed to work in concert with multiple
-MoQ Streaming Formats. These MoQ Streaming Formats define how content is
-encoded, packaged, and mapped to MOQT objects, along with policies for
-discovery and subscription.
+Despite its name, MOQT is content agnostic. MoQ Streaming Formats define how
+specific content types are encoded, packaged, and mapped to MOQT objects, along
+with policies for discovery and subscription.
 
 * {{model}} describes the data model employed by MOQT.
 
