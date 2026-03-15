@@ -1095,7 +1095,7 @@ in order to obtain an accurate minimum RTT. Similarly, Reno halves it's congesti
 window upon detecting loss.  In both cases, the large reduction in sending rate might
 cause issues with latency sensitive applications.
 
-# Modularity
+# Extensibility
 
 MOQT defines all messages necessary to implement both simple publishing or
 subscribing endpoints as well as highly functional Relays.  Non-Relay endpoints
@@ -1103,6 +1103,9 @@ MAY implement only the subset of functionality required to perform necessary
 tasks.  For example, a limited media player could operate using only SUBSCRIBE
 related messages.  Limited endpoints SHOULD respond to any unsupported messages
 with the appropriate `NOT_SUPPORTED` error code, rather than ignoring them.
+
+Endpoints MUST NOT close the session when receiving an unknown error code for
+REQUEST_ERROR or SUBSCRIBE_DONE.
 
 Relays MUST implement all MOQT messages defined in this document, as well as
 processing rules described in {{relays-moq}}.
