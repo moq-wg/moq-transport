@@ -1302,9 +1302,6 @@ Table of Contents
    messages with the appropriate NOT_SUPPORTED error code, rather than
    ignoring them.
 
-   Endpoints MUST NOT close the session when receiving an unknown error
-   code for REQUEST_ERROR or SUBSCRIBE_DONE.
-
    Relays MUST implement all MOQT messages defined in this document, as
    well as processing rules described in Section 8.
 
@@ -4716,12 +4713,22 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  MOQT Auth Token Type
 
-   Implementations MUST handle unknown values from these registries
-   gracefully according to the rules defined in each section.
+   Because new values in these registries can be defined without
+   negotiation, implementations MUST handle unknown values gracefully.
+   Endpoints MUST NOT close the session solely because they received an
+   unknown value.  The following rules apply:
 
    Setup Options with reserved identifiers have no semantics and can
    carry arbitrary values.  Endpoints MUST ignore unknown Setup Options
    as specified in Section 9.4.
+
+   Unknown Properties MUST be handled as specified in Section 2.5.
+
+   Receipt of an unknown error code in any error context (Session
+   Termination, REQUEST_ERROR, PUBLISH_DONE, or Data Stream Reset) MUST
+   be treated as equivalent to INTERNAL_ERROR for that context.  An
+   endpoint MUST NOT close the session because it received an unknown
+   error code in a REQUEST_ERROR or PUBLISH_DONE.
 
 14.  IANA Considerations
 
