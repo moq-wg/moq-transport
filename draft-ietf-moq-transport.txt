@@ -2061,59 +2061,63 @@ Table of Contents
 
                        Figure 3: MOQT Control Message
 
-   The following Message Types are defined:
+   The following Message Types are defined.  The Stream column indicates
+   which stream type each message is sent on: Control indicates the
+   control stream (Section 3.3), and Request indicates a bidirectional
+   request stream.  Messages marked "First" MUST be the first message on
+   a new request stream.
 
-          +========+============================================+
-          |     ID | Messages                                   |
-          +========+============================================+
-          |   0x01 | RESERVED (SETUP for version 00)            |
-          +--------+--------------------------------------------+
-          |   0x40 | RESERVED (CLIENT_SETUP for versions <= 10) |
-          +--------+--------------------------------------------+
-          |   0x41 | RESERVED (SERVER_SETUP for versions <= 10) |
-          +--------+--------------------------------------------+
-          |   0x20 | RESERVED (CLIENT_SETUP in versions <= 16)  |
-          +--------+--------------------------------------------+
-          |   0x21 | RESERVED (SERVER_SETUP in versions <= 16)  |
-          +--------+--------------------------------------------+
-          | 0x2F00 | SETUP (Section 9.4)                        |
-          +--------+--------------------------------------------+
-          |   0x10 | GOAWAY (Section 9.5)                       |
-          +--------+--------------------------------------------+
-          |    0x7 | REQUEST_OK (Section 9.6)                   |
-          +--------+--------------------------------------------+
-          |    0x5 | REQUEST_ERROR (Section 9.7)                |
-          +--------+--------------------------------------------+
-          |    0x3 | SUBSCRIBE (Section 9.8)                    |
-          +--------+--------------------------------------------+
-          |    0x4 | SUBSCRIBE_OK (Section 9.9)                 |
-          +--------+--------------------------------------------+
-          |    0x2 | REQUEST_UPDATE (Section 9.10)              |
-          +--------+--------------------------------------------+
-          |   0x1D | PUBLISH (Section 9.11)                     |
-          +--------+--------------------------------------------+
-          |   0x1E | PUBLISH_OK (Section 9.12)                  |
-          +--------+--------------------------------------------+
-          |    0xB | PUBLISH_DONE (Section 9.13)                |
-          +--------+--------------------------------------------+
-          |   0x16 | FETCH (Section 9.14)                       |
-          +--------+--------------------------------------------+
-          |   0x18 | FETCH_OK (Section 9.15)                    |
-          +--------+--------------------------------------------+
-          |    0xD | TRACK_STATUS (Section 9.16)                |
-          +--------+--------------------------------------------+
-          |    0x6 | PUBLISH_NAMESPACE (Section 9.17)           |
-          +--------+--------------------------------------------+
-          |    0x8 | NAMESPACE (Section 9.18)                   |
-          +--------+--------------------------------------------+
-          |    0xE | NAMESPACE_DONE (Section 9.19)              |
-          +--------+--------------------------------------------+
-          |   0x11 | SUBSCRIBE_NAMESPACE (Section 9.20)         |
-          +--------+--------------------------------------------+
-          |    0xF | PUBLISH_BLOCKED (Section 9.21)             |
-          +--------+--------------------------------------------+
+     +========+====================================+================+
+     |     ID | Messages                           | Stream         |
+     +========+====================================+================+
+     |   0x01 | RESERVED (SETUP for version 00)    |                |
+     +--------+------------------------------------+----------------+
+     |   0x40 | RESERVED (CLIENT_SETUP for <= 10)  |                |
+     +--------+------------------------------------+----------------+
+     |   0x41 | RESERVED (SERVER_SETUP for <= 10)  |                |
+     +--------+------------------------------------+----------------+
+     |   0x20 | RESERVED (CLIENT_SETUP in <= 16)   |                |
+     +--------+------------------------------------+----------------+
+     |   0x21 | RESERVED (SERVER_SETUP in <= 16)   |                |
+     +--------+------------------------------------+----------------+
+     | 0x2F00 | SETUP (Section 9.4)                | Control        |
+     +--------+------------------------------------+----------------+
+     |   0x10 | GOAWAY (Section 9.5)               | Control        |
+     +--------+------------------------------------+----------------+
+     |    0x3 | SUBSCRIBE (Section 9.8)            | Request, First |
+     +--------+------------------------------------+----------------+
+     |    0x4 | SUBSCRIBE_OK (Section 9.9)         | Request        |
+     +--------+------------------------------------+----------------+
+     |   0x1D | PUBLISH (Section 9.11)             | Request, First |
+     +--------+------------------------------------+----------------+
+     |   0x1E | PUBLISH_OK (Section 9.12)          | Request        |
+     +--------+------------------------------------+----------------+
+     |    0xB | PUBLISH_DONE (Section 9.13)        | Request        |
+     +--------+------------------------------------+----------------+
+     |   0x16 | FETCH (Section 9.14)               | Request, First |
+     +--------+------------------------------------+----------------+
+     |   0x18 | FETCH_OK (Section 9.15)            | Request        |
+     +--------+------------------------------------+----------------+
+     |    0xD | TRACK_STATUS (Section 9.16)        | Request, First |
+     +--------+------------------------------------+----------------+
+     |    0x6 | PUBLISH_NAMESPACE (Section 9.17)   | Request, First |
+     +--------+------------------------------------+----------------+
+     |   0x11 | SUBSCRIBE_NAMESPACE (Section 9.20) | Request, First |
+     +--------+------------------------------------+----------------+
+     |    0x8 | NAMESPACE (Section 9.18)           | Request        |
+     +--------+------------------------------------+----------------+
+     |    0xE | NAMESPACE_DONE (Section 9.19)      | Request        |
+     +--------+------------------------------------+----------------+
+     |    0xF | PUBLISH_BLOCKED (Section 9.21)     | Request        |
+     +--------+------------------------------------+----------------+
+     |    0x2 | REQUEST_UPDATE (Section 9.10)      | Request        |
+     +--------+------------------------------------+----------------+
+     |    0x7 | REQUEST_OK (Section 9.6)           | Request        |
+     +--------+------------------------------------+----------------+
+     |    0x5 | REQUEST_ERROR (Section 9.7)        | Request        |
+     +--------+------------------------------------+----------------+
 
-                                  Table 4
+                                 Table 4
 
    An endpoint that receives an unknown message type MUST close the
    session.  Control messages have a length to make parsing easier, but
@@ -2692,10 +2696,11 @@ Table of Contents
 
 9.5.  GOAWAY
 
-   An endpoint sends a GOAWAY message to inform the peer it intends to
-   close the session soon.  When sent by a server, it can initiate
-   session migration (Section 3.6) with an optional URI.  When sent by a
-   client, the New Session URI MUST be zero length.
+   An endpoint sends a GOAWAY message on its control stream to inform
+   the peer it intends to close the session soon.  When sent by a
+   server, it can initiate session migration (Section 3.6) with an
+   optional URI.  When sent by a client, the New Session URI MUST be
+   zero length.
 
    The GOAWAY message does not impact subscription state.  A subscriber
    SHOULD individually UNSUBSCRIBE for each existing subscription, while

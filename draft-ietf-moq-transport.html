@@ -3852,107 +3852,135 @@ MOQT Control Message {
 <a href="#name-moqt-control-message" class="selfRef">MOQT Control Message</a>
         </figcaption></figure>
 </div>
-<p id="section-9-3">The following Message Types are defined:<a href="#section-9-3" class="pilcrow">¶</a></p>
+<p id="section-9-3">The following Message Types are defined. The Stream column indicates
+which stream type each message is sent on: Control indicates the
+control stream (<a href="#session-init" class="auto internal xref">Section 3.3</a>), and Request indicates a bidirectional
+request stream. Messages marked "First" <span class="bcp14">MUST</span> be the first message on a
+new request stream.<a href="#section-9-3" class="pilcrow">¶</a></p>
 <table class="center" id="table-4">
         <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
 <thead>
           <tr>
             <th class="text-right" rowspan="1" colspan="1">ID</th>
             <th class="text-left" rowspan="1" colspan="1">Messages</th>
+            <th class="text-left" rowspan="1" colspan="1">Stream</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x01</td>
             <td class="text-left" rowspan="1" colspan="1">RESERVED (SETUP for version 00)</td>
+            <td class="text-left" rowspan="1" colspan="1"> </td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x40</td>
-            <td class="text-left" rowspan="1" colspan="1">RESERVED (CLIENT_SETUP for versions &lt;= 10)</td>
+            <td class="text-left" rowspan="1" colspan="1">RESERVED (CLIENT_SETUP for &lt;= 10)</td>
+            <td class="text-left" rowspan="1" colspan="1"> </td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x41</td>
-            <td class="text-left" rowspan="1" colspan="1">RESERVED (SERVER_SETUP for versions &lt;= 10)</td>
+            <td class="text-left" rowspan="1" colspan="1">RESERVED (SERVER_SETUP for &lt;= 10)</td>
+            <td class="text-left" rowspan="1" colspan="1"> </td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x20</td>
-            <td class="text-left" rowspan="1" colspan="1">RESERVED (CLIENT_SETUP in versions &lt;= 16)</td>
+            <td class="text-left" rowspan="1" colspan="1">RESERVED (CLIENT_SETUP in &lt;= 16)</td>
+            <td class="text-left" rowspan="1" colspan="1"> </td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x21</td>
-            <td class="text-left" rowspan="1" colspan="1">RESERVED (SERVER_SETUP in versions &lt;= 16)</td>
+            <td class="text-left" rowspan="1" colspan="1">RESERVED (SERVER_SETUP in &lt;= 16)</td>
+            <td class="text-left" rowspan="1" colspan="1"> </td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x2F00</td>
             <td class="text-left" rowspan="1" colspan="1">SETUP (<a href="#message-setup" class="auto internal xref">Section 9.4</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Control</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x10</td>
             <td class="text-left" rowspan="1" colspan="1">GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 9.5</a>)</td>
-          </tr>
-          <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x7</td>
-            <td class="text-left" rowspan="1" colspan="1">REQUEST_OK (<a href="#message-request-ok" class="auto internal xref">Section 9.6</a>)</td>
-          </tr>
-          <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x5</td>
-            <td class="text-left" rowspan="1" colspan="1">REQUEST_ERROR  (<a href="#message-request-error" class="auto internal xref">Section 9.7</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Control</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x3</td>
             <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE (<a href="#message-subscribe-req" class="auto internal xref">Section 9.8</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request, First</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x4</td>
             <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section 9.9</a>)</td>
-          </tr>
-          <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x2</td>
-            <td class="text-left" rowspan="1" colspan="1">REQUEST_UPDATE (<a href="#message-request-update" class="auto internal xref">Section 9.10</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x1D</td>
-            <td class="text-left" rowspan="1" colspan="1">PUBLISH  (<a href="#message-publish" class="auto internal xref">Section 9.11</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">PUBLISH (<a href="#message-publish" class="auto internal xref">Section 9.11</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request, First</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x1E</td>
             <td class="text-left" rowspan="1" colspan="1">PUBLISH_OK (<a href="#message-publish-ok" class="auto internal xref">Section 9.12</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xB</td>
             <td class="text-left" rowspan="1" colspan="1">PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.13</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x16</td>
             <td class="text-left" rowspan="1" colspan="1">FETCH (<a href="#message-fetch" class="auto internal xref">Section 9.14</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request, First</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x18</td>
             <td class="text-left" rowspan="1" colspan="1">FETCH_OK (<a href="#message-fetch-ok" class="auto internal xref">Section 9.15</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xD</td>
             <td class="text-left" rowspan="1" colspan="1">TRACK_STATUS (<a href="#message-track-status" class="auto internal xref">Section 9.16</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request, First</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x6</td>
-            <td class="text-left" rowspan="1" colspan="1">PUBLISH_NAMESPACE  (<a href="#message-pub-ns" class="auto internal xref">Section 9.17</a>)</td>
-          </tr>
-          <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x8</td>
-            <td class="text-left" rowspan="1" colspan="1">NAMESPACE  (<a href="#message-namespace" class="auto internal xref">Section 9.18</a>)</td>
-          </tr>
-          <tr>
-            <td class="text-right" rowspan="1" colspan="1">0xE</td>
-            <td class="text-left" rowspan="1" colspan="1">NAMESPACE_DONE  (<a href="#message-namespace-done" class="auto internal xref">Section 9.19</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">PUBLISH_NAMESPACE (<a href="#message-pub-ns" class="auto internal xref">Section 9.17</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request, First</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x11</td>
             <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_NAMESPACE (<a href="#message-subscribe-ns" class="auto internal xref">Section 9.20</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request, First</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x8</td>
+            <td class="text-left" rowspan="1" colspan="1">NAMESPACE (<a href="#message-namespace" class="auto internal xref">Section 9.18</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0xE</td>
+            <td class="text-left" rowspan="1" colspan="1">NAMESPACE_DONE (<a href="#message-namespace-done" class="auto internal xref">Section 9.19</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xF</td>
-            <td class="text-left" rowspan="1" colspan="1">PUBLISH_BLOCKED  (<a href="#message-publish-blocked" class="auto internal xref">Section 9.21</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">PUBLISH_BLOCKED (<a href="#message-publish-blocked" class="auto internal xref">Section 9.21</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x2</td>
+            <td class="text-left" rowspan="1" colspan="1">REQUEST_UPDATE (<a href="#message-request-update" class="auto internal xref">Section 9.10</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x7</td>
+            <td class="text-left" rowspan="1" colspan="1">REQUEST_OK (<a href="#message-request-ok" class="auto internal xref">Section 9.6</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x5</td>
+            <td class="text-left" rowspan="1" colspan="1">REQUEST_ERROR (<a href="#message-request-error" class="auto internal xref">Section 9.7</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">Request</td>
           </tr>
         </tbody>
       </table>
@@ -4574,8 +4602,8 @@ undermines the usefulness of implementation identification for debugging.<a href
         <h3 id="name-goaway">
 <a href="#section-9.5" class="section-number selfRef">9.5. </a><a href="#name-goaway" class="section-name selfRef">GOAWAY</a>
         </h3>
-<p id="section-9.5-1">An endpoint sends a <code>GOAWAY</code> message to inform the peer it intends to close
-the session soon.  When sent by a server, it can initiate session migration
+<p id="section-9.5-1">An endpoint sends a <code>GOAWAY</code> message on its control stream to inform the peer
+it intends to close the session soon.  When sent by a server, it can initiate session migration
 (<a href="#session-migration" class="auto internal xref">Section 3.6</a>) with an optional URI.  When sent by a client, the New
 Session URI <span class="bcp14">MUST</span> be zero length.<a href="#section-9.5-1" class="pilcrow">¶</a></p>
 <p id="section-9.5-2">The GOAWAY message does not impact subscription state. A subscriber
