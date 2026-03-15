@@ -62,7 +62,7 @@ This document defines Media over QUIC Transport (MOQT), a publish/subscribe
 protocol that runs over QUIC and WebTransport. MOQT leverages the features of
 these transports, such as streams, datagrams, priorities, and partial
 reliability. MOQT operates both point-to-point and through intermediate relays,
-enabling high-scale and low-latency delivery. Despite its name, MOQT is media
+enabling scalable low-latency delivery. Despite its name, MOQT is media
 agnostic and can be used for a wide range of use cases.
 
 --- middle
@@ -78,7 +78,7 @@ partial reliability to support a wide range of use cases with different
 resiliency and latency needs, from live to interactive, without compromising
 scalability.
 
-Despite its name, MOQT is media agnostic. MoQ Streaming Formats define how
+Despite its name, MOQT is content agnostic. MoQ Streaming Formats define how
 specific content types are encoded, packaged, and mapped to MOQT objects, along
 with policies for discovery and subscription.
 
