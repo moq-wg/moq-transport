@@ -1663,19 +1663,22 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.14.2.4.1"><a href="#section-14.4" class="auto internal xref">14.4</a>.  <a href="#name-properties-2" class="internal xref">Properties</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.5">
-                <p id="section-toc.1-1.14.2.5.1"><a href="#section-14.5" class="auto internal xref">14.5</a>.  <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
+                <p id="section-toc.1-1.14.2.5.1"><a href="#section-14.5" class="auto internal xref">14.5</a>.  <a href="#name-session-level-track-names" class="internal xref">Session-Level Track Names</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.6">
+                <p id="section-toc.1-1.14.2.6.1"><a href="#section-14.6" class="auto internal xref">14.6</a>.  <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.5.2.1">
-                    <p id="section-toc.1-1.14.2.5.2.1.1"><a href="#section-14.5.1" class="auto internal xref">14.5.1</a>.  <a href="#name-session-termination-error-c" class="internal xref">Session Termination Error Codes</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.6.2.1">
+                    <p id="section-toc.1-1.14.2.6.2.1.1"><a href="#section-14.6.1" class="auto internal xref">14.6.1</a>.  <a href="#name-session-termination-error-c" class="internal xref">Session Termination Error Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.5.2.2">
-                    <p id="section-toc.1-1.14.2.5.2.2.1"><a href="#section-14.5.2" class="auto internal xref">14.5.2</a>.  <a href="#name-request_error-codes" class="internal xref">REQUEST_ERROR Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.6.2.2">
+                    <p id="section-toc.1-1.14.2.6.2.2.1"><a href="#section-14.6.2" class="auto internal xref">14.6.2</a>.  <a href="#name-request_error-codes" class="internal xref">REQUEST_ERROR Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.5.2.3">
-                    <p id="section-toc.1-1.14.2.5.2.3.1"><a href="#section-14.5.3" class="auto internal xref">14.5.3</a>.  <a href="#name-publish_done-codes" class="internal xref">PUBLISH_DONE Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.6.2.3">
+                    <p id="section-toc.1-1.14.2.6.2.3.1"><a href="#section-14.6.3" class="auto internal xref">14.6.3</a>.  <a href="#name-publish_done-codes" class="internal xref">PUBLISH_DONE Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.5.2.4">
-                    <p id="section-toc.1-1.14.2.5.2.4.1"><a href="#section-14.5.4" class="auto internal xref">14.5.4</a>.  <a href="#name-data-stream-reset-error-cod" class="internal xref">Data Stream Reset Error Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.6.2.4">
+                    <p id="section-toc.1-1.14.2.6.2.4.1"><a href="#section-14.6.4" class="auto internal xref">14.6.4</a>.  <a href="#name-data-stream-reset-error-cod" class="internal xref">Data Stream Reset Error Codes</a></p>
 </li>
                 </ul>
 </li>
@@ -2795,7 +2798,8 @@ tracks to other sessions.<a href="#section-3.2.1-2" class="pilcrow">¶</a></p>
 session-level track <span class="bcp14">MUST</span> reject the request with REQUEST_ERROR using error
 code NOT_SUPPORTED rather than passing it to the application.<a href="#section-3.2.1-3" class="pilcrow">¶</a></p>
 <p id="section-3.2.1-4">The track names available under the <code>.session</code> namespace are defined by
-extensions to this specification.<a href="#section-3.2.1-4" class="pilcrow">¶</a></p>
+extensions to this specification and registered with IANA (see
+<a href="#iana-session-level-tracks" class="auto internal xref">Section 14.5</a>).<a href="#section-3.2.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4754,7 +4758,7 @@ sent again, plus one. If the value is 0, the request <span class="bcp14">SHOULD 
 </li>
         </ul>
 <p id="section-9.7-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in REQUEST_ERROR,
-as defined below and assigned in <a href="#iana-request-error" class="auto internal xref">Section 14.5.2</a>. Most codepoints have
+as defined below and assigned in <a href="#iana-request-error" class="auto internal xref">Section 14.6.2</a>. Most codepoints have
 identical meanings for various request types, but some have request-specific
 meanings.<a href="#section-9.7-4" class="pilcrow">¶</a></p>
 <p id="section-9.7-5">If a request is retryable with the same parameters at a later time, the sender
@@ -7100,16 +7104,16 @@ integer values of N (that is, 0x9D, 0xBC, ..., 0x3ffffffffffffffe).<a href="#sec
           <p id="section-13-4.2.1">Properties (<a href="#iana-properties" class="auto internal xref">Section 14.4</a>)<a href="#section-13-4.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.3">
-          <p id="section-13-4.3.1">Session Termination Error Codes (<a href="#iana-session-termination" class="auto internal xref">Section 14.5.1</a>)<a href="#section-13-4.3.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.3.1">Session Termination Error Codes (<a href="#iana-session-termination" class="auto internal xref">Section 14.6.1</a>)<a href="#section-13-4.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.4">
-          <p id="section-13-4.4.1">REQUEST_ERROR Codes (<a href="#iana-request-error" class="auto internal xref">Section 14.5.2</a>)<a href="#section-13-4.4.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.4.1">REQUEST_ERROR Codes (<a href="#iana-request-error" class="auto internal xref">Section 14.6.2</a>)<a href="#section-13-4.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.5">
-          <p id="section-13-4.5.1">PUBLISH_DONE Codes (<a href="#iana-publish-done" class="auto internal xref">Section 14.5.3</a>)<a href="#section-13-4.5.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.5.1">PUBLISH_DONE Codes (<a href="#iana-publish-done" class="auto internal xref">Section 14.6.3</a>)<a href="#section-13-4.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.6">
-          <p id="section-13-4.6.1">Data Stream Reset Error Codes (<a href="#iana-reset-stream" class="auto internal xref">Section 14.5.4</a>)<a href="#section-13-4.6.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.6.1">Data Stream Reset Error Codes (<a href="#iana-reset-stream" class="auto internal xref">Section 14.6.4</a>)<a href="#section-13-4.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.7">
           <p id="section-13-4.7.1">MOQT Auth Token Type<a href="#section-13-4.7.1" class="pilcrow">¶</a></p>
@@ -7137,6 +7141,9 @@ in <a href="#message-setup" class="auto internal xref">Section 9.4</a>.<a href="
 </li>
         <li class="normal" id="section-14-2.3">
           <p id="section-14-2.3.1">Message types<a href="#section-14-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-14-2.4">
+          <p id="section-14-2.4.1">Session-Level Track Names<a href="#section-14-2.4.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-14-3">TODO: register the URI scheme and the ALPN<a href="#section-14-3" class="pilcrow">¶</a></p>
@@ -7438,18 +7445,57 @@ collision risks.<a href="#section-14.4-3.1.3" class="pilcrow">¶</a></p>
         </ul>
 </section>
 </div>
-<div id="iana-error-codes">
+<div id="iana-session-level-tracks">
 <section id="section-14.5">
+        <h3 id="name-session-level-track-names">
+<a href="#section-14.5" class="section-number selfRef">14.5. </a><a href="#name-session-level-track-names" class="section-name selfRef">Session-Level Track Names</a>
+        </h3>
+<p id="section-14.5-1">This document establishes a registry for session-level track names
+under the <code>.session</code> namespace (see <a href="#session-level-tracks" class="auto internal xref">Section 3.2.1</a>). The
+registration policy is Specification Required (per <span>[<a href="#RFC8126" class="cite xref">RFC8126</a>], <a href="https://rfc-editor.org/rfc/rfc8126#section-4.6" class="relref">Section 4.6</a></span>).<a href="#section-14.5-1" class="pilcrow">¶</a></p>
+<p id="section-14.5-2">Each registration must include:<a href="#section-14.5-2" class="pilcrow">¶</a></p>
+<table class="center" id="table-13">
+          <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Field</th>
+              <th class="text-left" rowspan="1" colspan="1">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Track Name</td>
+              <td class="text-left" rowspan="1" colspan="1">The track name (bytes) under the <code>.session</code> namespace</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Description</td>
+              <td class="text-left" rowspan="1" colspan="1">Brief description of the track's purpose</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Change Controller</td>
+              <td class="text-left" rowspan="1" colspan="1">Who may update the registration</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Specification</td>
+              <td class="text-left" rowspan="1" colspan="1">Reference to the defining specification</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-14.5-4">This document does not define any initial entries.<a href="#section-14.5-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-error-codes">
+<section id="section-14.6">
         <h3 id="name-error-codes">
-<a href="#section-14.5" class="section-number selfRef">14.5. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
+<a href="#section-14.6" class="section-number selfRef">14.6. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
         </h3>
 <div id="iana-session-termination">
-<section id="section-14.5.1">
+<section id="section-14.6.1">
           <h4 id="name-session-termination-error-c">
-<a href="#section-14.5.1" class="section-number selfRef">14.5.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
+<a href="#section-14.6.1" class="section-number selfRef">14.6.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
           </h4>
-<table class="center" id="table-13">
-            <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
+<table class="center" id="table-14">
+            <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -7617,12 +7663,12 @@ collision risks.<a href="#section-14.4-3.1.3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-request-error">
-<section id="section-14.5.2">
+<section id="section-14.6.2">
           <h4 id="name-request_error-codes">
-<a href="#section-14.5.2" class="section-number selfRef">14.5.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
+<a href="#section-14.6.2" class="section-number selfRef">14.6.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
           </h4>
-<table class="center" id="table-14">
-            <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
+<table class="center" id="table-15">
+            <caption><a href="#table-15" class="selfRef">Table 15</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -7755,12 +7801,12 @@ collision risks.<a href="#section-14.4-3.1.3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-publish-done">
-<section id="section-14.5.3">
+<section id="section-14.6.3">
           <h4 id="name-publish_done-codes">
-<a href="#section-14.5.3" class="section-number selfRef">14.5.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
+<a href="#section-14.6.3" class="section-number selfRef">14.6.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
           </h4>
-<table class="center" id="table-15">
-            <caption><a href="#table-15" class="selfRef">Table 15</a></caption>
+<table class="center" id="table-16">
+            <caption><a href="#table-16" class="selfRef">Table 16</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -7851,12 +7897,12 @@ collision risks.<a href="#section-14.4-3.1.3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-reset-stream">
-<section id="section-14.5.4">
+<section id="section-14.6.4">
           <h4 id="name-data-stream-reset-error-cod">
-<a href="#section-14.5.4" class="section-number selfRef">14.5.4. </a><a href="#name-data-stream-reset-error-cod" class="section-name selfRef">Data Stream Reset Error Codes</a>
+<a href="#section-14.6.4" class="section-number selfRef">14.6.4. </a><a href="#name-data-stream-reset-error-cod" class="section-name selfRef">Data Stream Reset Error Codes</a>
           </h4>
-<table class="center" id="table-16">
-            <caption><a href="#table-16" class="selfRef">Table 16</a></caption>
+<table class="center" id="table-17">
+            <caption><a href="#table-17" class="selfRef">Table 17</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -8033,6 +8079,10 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dt id="RFC7301">[RFC7301]</dt>
         <dd>
 <span class="refAuthor">Friedl, S.</span>, <span class="refAuthor">Popov, A.</span>, <span class="refAuthor">Langley, A.</span>, and <span class="refAuthor">E. Stephan</span>, <span class="refTitle">"Transport Layer Security (TLS) Application-Layer Protocol Negotiation Extension"</span>, <span class="seriesInfo">RFC 7301</span>, <span class="seriesInfo">DOI 10.17487/RFC7301</span>, <time datetime="2014-07" class="refDate">July 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7301">https://www.rfc-editor.org/rfc/rfc7301</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8126">[RFC8126]</dt>
+        <dd>
+<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
         <dd>

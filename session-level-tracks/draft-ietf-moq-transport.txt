@@ -216,11 +216,12 @@ Table of Contents
      14.2.  MOQT Auth Token Type
      14.3.  Message Parameters
      14.4.  Properties
-     14.5.  Error Codes
-       14.5.1.  Session Termination Error Codes
-       14.5.2.  REQUEST_ERROR Codes
-       14.5.3.  PUBLISH_DONE Codes
-       14.5.4.  Data Stream Reset Error Codes
+     14.5.  Session-Level Track Names
+     14.6.  Error Codes
+       14.6.1.  Session Termination Error Codes
+       14.6.2.  REQUEST_ERROR Codes
+       14.6.3.  PUBLISH_DONE Codes
+       14.6.4.  Data Stream Reset Error Codes
    Contributors
    Use of Generative AI
    References
@@ -1072,7 +1073,8 @@ Table of Contents
    error code NOT_SUPPORTED rather than passing it to the application.
 
    The track names available under the .session namespace are defined by
-   extensions to this specification.
+   extensions to this specification and registered with IANA (see
+   Section 14.5).
 
 3.3.  Session initialization
 
@@ -2816,7 +2818,7 @@ Table of Contents
       See Section 1.4.4.
 
    The application SHOULD use a relevant error code in REQUEST_ERROR, as
-   defined below and assigned in Section 14.5.2.  Most codepoints have
+   defined below and assigned in Section 14.6.2.  Most codepoints have
    identical meanings for various request types, but some have request-
    specific meanings.
 
@@ -4725,13 +4727,13 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  Properties (Section 14.4)
 
-   *  Session Termination Error Codes (Section 14.5.1)
+   *  Session Termination Error Codes (Section 14.6.1)
 
-   *  REQUEST_ERROR Codes (Section 14.5.2)
+   *  REQUEST_ERROR Codes (Section 14.6.2)
 
-   *  PUBLISH_DONE Codes (Section 14.5.3)
+   *  PUBLISH_DONE Codes (Section 14.6.3)
 
-   *  Data Stream Reset Error Codes (Section 14.5.4)
+   *  Data Stream Reset Error Codes (Section 14.6.4)
 
    *  MOQT Auth Token Type
 
@@ -4751,6 +4753,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    *  Setup Options
 
    *  Message types
+
+   *  Session-Level Track Names
 
    TODO: register the URI scheme and the ALPN
 
@@ -4867,9 +4871,37 @@ EXT 1 and EXT N can be modified or removed by Relays
       from uncoordinated sources may encounter different semantics for
       the same code points, creating potential collision risks.
 
-14.5.  Error Codes
+14.5.  Session-Level Track Names
 
-14.5.1.  Session Termination Error Codes
+   This document establishes a registry for session-level track names
+   under the .session namespace (see Section 3.2.1).  The registration
+   policy is Specification Required (per [RFC8126], Section 4.6).
+
+   Each registration must include:
+
+             +===============+==============================+
+             | Field         | Description                  |
+             +===============+==============================+
+             | Track Name    | The track name (bytes) under |
+             |               | the .session namespace       |
+             +---------------+------------------------------+
+             | Description   | Brief description of the     |
+             |               | track's purpose              |
+             +---------------+------------------------------+
+             | Change        | Who may update the           |
+             | Controller    | registration                 |
+             +---------------+------------------------------+
+             | Specification | Reference to the defining    |
+             |               | specification                |
+             +---------------+------------------------------+
+
+                                 Table 13
+
+   This document does not define any initial entries.
+
+14.6.  Error Codes
+
+14.6.1.  Session Termination Error Codes
 
      +=============================+=================+===============+
      | Name                        |       Code      | Specification |
@@ -4919,9 +4951,9 @@ EXT 1 and EXT N can be modified or removed by Relays
      | Reserved for greasing       | 0x7f * N + 0x9D | Section 13    |
      +-----------------------------+-----------------+---------------+
 
-                                  Table 13
+                                  Table 14
 
-14.5.2.  REQUEST_ERROR Codes
+14.6.2.  REQUEST_ERROR Codes
 
      +============================+=================+===============+
      | Name                       |       Code      | Specification |
@@ -4961,9 +4993,9 @@ EXT 1 and EXT N can be modified or removed by Relays
      | Reserved for greasing      | 0x7f * N + 0x9D | Section 13    |
      +----------------------------+-----------------+---------------+
 
-                                 Table 14
+                                 Table 15
 
-14.5.3.  PUBLISH_DONE Codes
+14.6.3.  PUBLISH_DONE Codes
 
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
@@ -4991,9 +5023,9 @@ EXT 1 and EXT N can be modified or removed by Relays
         | Reserved for greasing | 0x7f * N + 0x9D | Section 13    |
         +-----------------------+-----------------+---------------+
 
-                                  Table 15
+                                  Table 16
 
-14.5.4.  Data Stream Reset Error Codes
+14.6.4.  Data Stream Reset Error Codes
 
        +=======================+=================+================+
        | Name                  |       Code      | Specification  |
@@ -5017,7 +5049,7 @@ EXT 1 and EXT N can be modified or removed by Relays
        | Reserved for greasing | 0x7f * N + 0x9D | Section 13     |
        +-----------------------+-----------------+----------------+
 
-                                 Table 16
+                                 Table 17
 
 Contributors
 
@@ -5096,6 +5128,11 @@ Normative References
               "Transport Layer Security (TLS) Application-Layer Protocol
               Negotiation Extension", RFC 7301, DOI 10.17487/RFC7301,
               July 2014, <https://www.rfc-editor.org/rfc/rfc7301>.
+
+   [RFC8126]  Cotton, M., Leiba, B., and T. Narten, "Guidelines for
+              Writing an IANA Considerations Section in RFCs", BCP 26,
+              RFC 8126, DOI 10.17487/RFC8126, June 2017,
+              <https://www.rfc-editor.org/rfc/rfc8126>.
 
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
