@@ -4475,9 +4475,9 @@ allows.  This is the default behavior when the parameter is absent.<a href="#sec
 <p id="section-9.3.12-2">The subscriber can update the send rate during an active fetch by
 sending a REQUEST_UPDATE with a new SEND_RATE value.<a href="#section-9.3.12-2" class="pilcrow">¶</a></p>
 <p id="section-9.3.12-3">The publisher <span class="bcp14">SHOULD</span> pace Object delivery to approximately the requested
-rate.  The publisher <span class="bcp14">MAY</span> exceed the requested rate in short bursts, for
-example at the beginning of a Group, to allow the subscriber to build
-an initial buffer.  The publisher <span class="bcp14">MUST NOT</span> use SEND_RATE to pace below
+rate.  The rate limit is a request only and is not guaranteed. The publisher <span class="bcp14">MAY</span>
+exceed the requested rate in short bursts.  The publisher <span class="bcp14">MUST NOT</span> use SEND_RATE
+to pace below
 the congestion controller's minimum rate; the congestion controller's
 behavior takes precedence.<a href="#section-9.3.12-3" class="pilcrow">¶</a></p>
 <p id="section-9.3.12-4">Relay Handling:<a href="#section-9.3.12-4" class="pilcrow">¶</a></p>
