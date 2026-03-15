@@ -918,11 +918,14 @@ the type of the stream.
 |-------------|-------------------------------------------------|
 | 0x2F00      | SETUP ({{message-setup}})                       |
 |-------------|-------------------------------------------------|
+| 0x132B3E28  | PADDING  ({{padding-streams}})                  |
+|-------------|-------------------------------------------------|
 
 An endpoint that receives an unknown stream type MUST close the session.
 
 Control streams (SETUP) are described in {{session-init}}.
 Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
+Padding streams are described in {{padding}}.
 
 ## Termination  {#session-termination}
 
@@ -1075,11 +1078,12 @@ measured.
 
 Some applications might have APIs to allow sending duplicate data or forward error
 correction to probe for more bandwidth while also limiting the impact of probing
-in case it causes packet loss. Applications wanting to switch to an alternate
-representation of a Track can request that Track at a lower priority to probe.
-Applications can subscribe to additional tracks at the lowest (255) priority
-to fill the congestion window during probing intervals while minimizing the
-impact on higher priority media.
+in case it causes packet loss. Subscribers wanting to switch to an alternate
+representation of a Track can subscribe to it at a lower priority, or subscribe
+to additional Tracks at the lowest (255) priority to fill the congestion window
+during probing intervals while minimizing the impact on higher priority
+media. Publishers can send padding ({{padding}}) to probe for additional
+bandwidth without requiring additional subscriptions.
 Network-assisted bandwidth estimation mechanisms such as SCONE
 {{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
 which subscribers can use to inform track selection decisions and potentially avoid
@@ -3858,6 +3862,52 @@ the "prior Object", the prior Object fields are determined as follows:
 * Prior Priority: The Priority from the last actual Object before the End of
   Range indicator. If there was no prior Object, using a flag that references
   the prior Priority is a `PROTOCOL_VIOLATION`.
+
+## Padding {#padding}
+
+An endpoint MAY send padding on unidirectional streams or datagrams.  Padding
+does not carry Objects or any other application data.  An endpoint can use
+padding to probe for additional bandwidth while minimizing the impact on the
+delivery of application data.
+
+To avoid interfering with the delivery of Objects, senders SHOULD send padding
+streams at a lower priority than any control stream or Object data.
+
+### Padding Streams {#padding-streams}
+
+An endpoint MAY open a unidirectional stream with a stream type of 0x132B3E28 to send
+padding data. The stream begins with the stream type, followed by zero or more
+bytes that MUST all be set to zero.
+
+~~~
+PADDING STREAM {
+  Type (vi64) = 0x132B3E28,
+  Padding Data (..) = 0x00..
+}
+~~~
+{: #padding-format title="MOQT Padding Stream"}
+
+The receiver MUST discard all data received on a padding stream to prevent
+exhausting flow control.
+
+Either the sender or the receiver MAY cancel a padding stream at any time
+without affecting any MOQT application state.
+
+### Padding Datagrams {#padding-datagrams}
+
+An endpoint MAY send a datagram with a type of 0x132B3E29 to send padding data.
+The datagram contains the type followed by zero or more bytes that MUST all be
+set to zero.
+
+~~~
+PADDING DATAGRAM {
+  Type (vi64) = 0x132B3E29,
+  Padding Data (..) = 0x00..
+}
+~~~
+{: #padding-datagram-format title="MOQT Padding Datagram"}
+
+The receiver MUST discard all data received in a padding datagram.
 
 ## Examples
 
