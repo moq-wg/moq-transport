@@ -496,13 +496,19 @@ Objects within a Group are in ascending order by Object ID.
 From the perspective of a subscriber or a cache, an Object can be in three
 possible states:
 
-1. The Object is known to not exist. This state is permanent. MOQT has multiple
-   ways to communicate that a certain range of objects does not exist,
-   including the Object Status field, and the use of gaps in FETCH responses.
+1. The Object is known to not exist. This state is permanent for the endpoint
+   that learned it. MOQT has multiple ways to communicate that a certain range
+   of Objects does not exist, including the Object Status field, gaps in FETCH
+   responses, and Prior Gap Properties.  All of these are authoritative.
 2. The Object is known to exist. From this state, it can transition to not
    existing, but not vice versa.
-3. The state of the Object is unknown, either because it has not been yet
+3. The state of the Object is unknown, either because it has not yet been
    received, or it has not been produced yet.
+
+Due to timing, an endpoint can receive an Object after it has already recorded
+that the Object does not exist (e.g., via a FETCH gap from one source and later
+delivery via a subscription).  This is not a protocol error and the Track is not
+malformed.
 
 Whenever the publisher communicates that certain objects do not exist, this
 fact is expressed as a contiguous range of non-existent objects and
@@ -675,15 +681,14 @@ include:
    Subgroup stream before a FIN.
 6. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-7. An Object is received in a Group whose Object ID is larger than the final
-   Object in the Group.  The final Object in a Group is the Object with Status
-   END_OF_GROUP, the last Object before a FIN in a Subgroup which has the
-   END_OF_GROUP bit set, or the last Object sent in a FETCH that requested the
-   entire Group.
-8. An Object is received on a Track whose Group and Object ID are larger than the
-   final Object in the Track.  The final Object in a Track is the Object with
-   Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
-   End of Track.
+7. Within a single subscription, an Object is received in a Group whose Object
+   ID is larger than the final Object in the Group.  The final Object in a Group
+   is the Object with Status END_OF_GROUP, or the last Object before a FIN in a
+   Subgroup which has the END_OF_GROUP bit set.
+8. An Object is received on a Track whose Group and Object ID are larger than
+   the final Object in the Track.  The final Object in a Track is the Object
+   with Status END_OF_TRACK or the last Object sent in a FETCH whose response
+   indicated End of Track.
 9. The same Object is received more than once with different Payload or
     other immutable properties.
 10. An Object is received with a different Forwarding Preference than previously
@@ -1593,9 +1598,9 @@ change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
 of Group status, or a Prior Group ID Gap property could be removed in FETCH,
 where it's redundant.
 
-Note that due to reordering, an implementation can receive an Object after
-receiving an indication that the Object in question does not exist.  The
-endpoint SHOULD NOT cache or forward the object in this case.
+As described in {{model-object}}, an endpoint can receive an Object after it has
+already recorded that the Object does not exist.  A caching relay SHOULD NOT
+cache or forward the Object in this case.
 
 A cache MUST store all fields of an Object defined in {{object-header}},
 with the exception of any Object Properties ({{object-properties}})
