@@ -1285,6 +1285,8 @@ explicitly. The specified `Start Location` MAY be less than the `Largest Object`
 observed at the publisher. If the specified `End Group Delta` is zero, the
 remainder of that Group passes the filter. Otherwise, the last Group ID to be
 delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
+If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
+close the session with a `PROTOCOL_VIOLATION`.
 
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
@@ -1931,6 +1933,8 @@ Message Parameter {
 Type Delta: The difference between this Parameter Type and the previous
    Parameter Type in the message, or the Parameter Type itself for the first
    parameter. Parameters MUST be serialized in ascending order by Type.
+   If the resulting Type would be greater than 2^64 - 1, the endpoint
+   MUST close the session with a `PROTOCOL_VIOLATION`.
 
 * Value: The encoding is specified by each parameter definition.
 The encodings defined in this draft are:
@@ -3623,7 +3627,9 @@ The Object Status field is only sent if the Object Payload Length is zero.
 
 The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
 stream if there was one.  The Object ID is the Object ID Delta if it's the first
-Object in the Subgroup stream. For example, a Subgroup of sequential Object IDs
+Object in the Subgroup stream. If the resulting Object ID would be greater
+than 2^64 - 1, the endpoint MUST close the session with a
+`PROTOCOL_VIOLATION`. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
