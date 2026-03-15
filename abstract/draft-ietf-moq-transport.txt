@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 15 September 2026                                 I. Swett, Ed.
+Expires: 16 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           14 March 2026
+                                                           15 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 September 2026.
+   This Internet-Draft will expire on 16 September 2026.
 
 Copyright Notice
 
@@ -188,7 +188,10 @@ Table of Contents
        10.4.2.  Subgroup Header
        10.4.3.  Closing Subgroup Streams
        10.4.4.  Fetch Header
-     10.5.  Examples
+     10.5.  Padding
+       10.5.1.  Padding Streams
+       10.5.2.  Padding Datagrams
+     10.6.  Examples
    11. MOQT Properties
      11.1.  DELIVERY TIMEOUT
      11.2.  MAX CACHE DURATION
@@ -1103,6 +1106,8 @@ Table of Contents
         +-------------------------+-------------------------------+
         |                  0x2F00 | SETUP (Section 9.4)           |
         +-------------------------+-------------------------------+
+        |              0x132B3E28 | PADDING (Section 10.5.1)      |
+        +-------------------------+-------------------------------+
 
                                   Table 3
 
@@ -1110,7 +1115,8 @@ Table of Contents
    session.
 
    Control streams (SETUP) are described in Section 3.3.  Data streams
-   (FETCH_HEADER, SUBGROUP_HEADER) are described in Section 10.
+   (FETCH_HEADER, SUBGROUP_HEADER) are described in Section 10.  Padding
+   streams are described in Section 10.5.
 
 3.5.  Termination
 
@@ -1260,12 +1266,13 @@ Table of Contents
    Some applications might have APIs to allow sending duplicate data or
    forward error correction to probe for more bandwidth while also
    limiting the impact of probing in case it causes packet loss.
-   Applications wanting to switch to an alternate representation of a
-   Track can request that Track at a lower priority to probe.
-   Applications can subscribe to additional tracks at the lowest (255)
-   priority to fill the congestion window during probing intervals while
-   minimizing the impact on higher priority media.  Network-assisted
-   bandwidth estimation mechanisms such as SCONE
+   Subscribers wanting to switch to an alternate representation of a
+   Track can subscribe to it at a lower priority, or subscribe to
+   additional Tracks at the lowest (255) priority to fill the congestion
+   window during probing intervals while minimizing the impact on higher
+   priority media.  Publishers can send padding (Section 10.5) to probe
+   for additional bandwidth without requiring additional subscriptions.
+   Network-assisted bandwidth estimation mechanisms such as SCONE
    [I-D.ietf-scone-protocol] can provide receivers with sustainable
    bandwidth hints, which subscribers can use to inform track selection
    decisions and potentially avoid unnecessary probing.
@@ -4254,7 +4261,52 @@ Table of Contents
       the End of Range indicator.  If there was no prior Object, using a
       flag that references the prior Priority is a PROTOCOL_VIOLATION.
 
-10.5.  Examples
+10.5.  Padding
+
+   An endpoint MAY send padding on unidirectional streams or datagrams.
+   Padding does not carry Objects or any other application data.  An
+   endpoint can use padding to probe for additional bandwidth while
+   minimizing the impact on the delivery of application data.
+
+   To avoid interfering with the delivery of Objects, senders SHOULD
+   send padding streams at a lower priority than any control stream or
+   Object data.
+
+10.5.1.  Padding Streams
+
+   An endpoint MAY open a unidirectional stream with a stream type of
+   0x132B3E28 to send padding data.  The stream begins with the stream
+   type, followed by zero or more bytes that MUST all be set to zero.
+
+   PADDING STREAM {
+     Type (vi64) = 0x132B3E28,
+     Padding Data (..) = 0x00..
+   }
+
+                       Figure 28: MOQT Padding Stream
+
+   The receiver MUST discard all data received on a padding stream to
+   prevent exhausting flow control.
+
+   Either the sender or the receiver MAY cancel a padding stream at any
+   time without affecting any MOQT application state.
+
+10.5.2.  Padding Datagrams
+
+   An endpoint MAY send a datagram with a type of 0x132B3E29 to send
+   padding data.  The datagram contains the type followed by zero or
+   more bytes that MUST all be set to zero.
+
+   PADDING DATAGRAM {
+     Type (vi64) = 0x132B3E29,
+     Padding Data (..) = 0x00..
+   }
+
+                      Figure 29: MOQT Padding Datagram
+
+   The receiver MUST discard all data received in a padding datagram.
+
+10.6.  Examples
 
    Sending a subgroup on one stream:
 
