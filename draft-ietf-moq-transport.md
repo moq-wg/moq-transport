@@ -2303,9 +2303,9 @@ The subscriber can update the send rate during an active fetch by
 sending a REQUEST_UPDATE with a new SEND_RATE value.
 
 The publisher SHOULD pace Object delivery to approximately the requested
-rate.  The publisher MAY exceed the requested rate in short bursts, for
-example at the beginning of a Group, to allow the subscriber to build
-an initial buffer.  The publisher MUST NOT use SEND_RATE to pace below
+rate.  The rate limit is a request only and is not guaranteed. The publisher MAY
+exceed the requested rate in short bursts.  The publisher MUST NOT use SEND_RATE
+to pace below
 the congestion controller's minimum rate; the congestion controller's
 behavior takes precedence.
 
