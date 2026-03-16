@@ -4285,7 +4285,7 @@ fail when encountering protocol extensions they do not understand, this document
 reserves a range of values for the purpose of greasing; see {{Section 3.3 of ?RFC9170}}.
 
 Grease values follow the pattern `0x7f * N + 0x9D` for non-negative
-integer values of N (that is, 0x9D, 0xBC, ..., 0x3ffffffffffffffe).
+integer values of N (that is, 0x9D, 0x11C, ..., 0x3fffffffffffffde).
 
 The following registries include GREASE reservations:
 
