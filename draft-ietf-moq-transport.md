@@ -774,6 +774,23 @@ applications using the same code point in these ranges may assign different
 meanings; the interpretation depends on the track or application
 context known to the publisher and subscriber.
 
+## Mandatory Track Properties {#mandatory-track-properties}
+
+An extension can define Mandatory Track Properties with special
+handling rules that prevent Tracks from being forwarded to endpoints that
+do not understand the Properties.
+
+When a Publisher receives Track Properties (in PUBLISH, SUBSCRIBE_OK, or
+FETCH_OK messages) containing a Mandatory Track Property type that the
+Subscriber does not understand, it MUST NOT forward that track:
+
+* PUBLISH messages, including those as a result of SUBSCRIBE_NAMESPACE,
+  MUST NOT be sent.
+
+* A Publisher MUST respond to SUBSCRIBE and FETCH requests for the Track
+  with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION if the
+  Subscriber does not indicate support for the Track Property.
+
 # Sessions {#session}
 
 ## Session establishment {#session-establishment}
