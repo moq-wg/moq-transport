@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 September 2026                                 I. Swett, Ed.
+Expires: 17 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           15 March 2026
+                                                           16 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 September 2026.
+   This Internet-Draft will expire on 17 September 2026.
 
 Copyright Notice
 
@@ -211,15 +211,16 @@ Table of Contents
      12.4.  Implementation Identification Fingerprinting
    13. Grease
    14. IANA Considerations
-     14.1.  Authorization Token Alias Type
-     14.2.  MOQT Auth Token Type
-     14.3.  Message Parameters
-     14.4.  Properties
-     14.5.  Error Codes
-       14.5.1.  Session Termination Error Codes
-       14.5.2.  REQUEST_ERROR Codes
-       14.5.3.  PUBLISH_DONE Codes
-       14.5.4.  Data Stream Reset Error Codes
+     14.1.  Setup Options
+     14.2.  Authorization Token Alias Type
+     14.3.  MOQT Auth Token Type
+     14.4.  Message Parameters
+     14.5.  Properties
+     14.6.  Error Codes
+       14.6.1.  Session Termination Error Codes
+       14.6.2.  REQUEST_ERROR Codes
+       14.6.3.  PUBLISH_DONE Codes
+       14.6.4.  Data Stream Reset Error Codes
    Contributors
    Use of Generative AI
    References
@@ -2797,7 +2798,7 @@ Table of Contents
       See Section 1.4.4.
 
    The application SHOULD use a relevant error code in REQUEST_ERROR, as
-   defined below and assigned in Section 14.5.2.  Most codepoints have
+   defined below and assigned in Section 14.6.2.  Most codepoints have
    identical meanings for various request types, but some have request-
    specific meanings.
 
@@ -4704,17 +4705,17 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    The following registries include GREASE reservations:
 
-   *  Setup Options (Section 9.4.1)
+   *  Setup Options (Section 14.1)
 
-   *  Properties (Section 14.4)
+   *  Properties (Section 14.5)
 
-   *  Session Termination Error Codes (Section 14.5.1)
+   *  Session Termination Error Codes (Section 14.6.1)
 
-   *  REQUEST_ERROR Codes (Section 14.5.2)
+   *  REQUEST_ERROR Codes (Section 14.6.2)
 
-   *  PUBLISH_DONE Codes (Section 14.5.3)
+   *  PUBLISH_DONE Codes (Section 14.6.3)
 
-   *  Data Stream Reset Error Codes (Section 14.5.4)
+   *  Data Stream Reset Error Codes (Section 14.6.4)
 
    *  MOQT Auth Token Type
 
@@ -4731,13 +4732,41 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  MOQT ALPN values
 
-   *  Setup Options
-
    *  Message types
 
    TODO: register the URI scheme and the ALPN
 
-14.1.  Authorization Token Alias Type
+14.1.  Setup Options
+
+     +=================+===========================+=================+
+     |            Type | Name                      | Specification   |
+     +=================+===========================+=================+
+     |            0x01 | PATH                      | Section 9.4.1.2 |
+     +-----------------+---------------------------+-----------------+
+     |            0x03 | AUTHORIZATION_TOKEN       | Section 9.4.1.4 |
+     +-----------------+---------------------------+-----------------+
+     |            0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | Section 9.4.1.3 |
+     +-----------------+---------------------------+-----------------+
+     |            0x05 | AUTHORITY                 | Section 9.4.1.1 |
+     +-----------------+---------------------------+-----------------+
+     |            0x07 | MOQT_IMPLEMENTATION       | Section 9.4.1.5 |
+     +-----------------+---------------------------+-----------------+
+     | 0x7f * N + 0x9D | Reserved for greasing     | Section 13      |
+     +-----------------+---------------------------+-----------------+
+
+                                  Table 9
+
+   Endpoints MUST ignore unknown Setup Options as specified in
+   Section 9.4.
+
+   New Setup Option types are registered using the Specification
+   Required policy ([RFC8126], Section 4.6).  Provisional registrations
+   are permitted to allow experimentation and avoid codepoint collisions
+   between independent implementations.  There is no reserved range for
+   private or application-specific use; implementations that need custom
+   Setup Options SHOULD request a provisional registration.
+
+14.2.  Authorization Token Alias Type
 
                    +======+===========+===============+
                    | Code | Name      | Specification |
@@ -4751,9 +4780,9 @@ EXT 1 and EXT N can be modified or removed by Relays
                    |  0x3 | USE_VALUE | Section 9.3.2 |
                    +------+-----------+---------------+
 
-                                 Table 9
+                                 Table 10
 
-14.2.  MOQT Auth Token Type
+14.3.  MOQT Auth Token Type
 
         +=================+=======================+===============+
         |            Code | Name                  | Specification |
@@ -4763,9 +4792,9 @@ EXT 1 and EXT N can be modified or removed by Relays
         | 0x7f * N + 0x9D | Reserved for greasing | Section 13    |
         +-----------------+-----------------------+---------------+
 
-                                  Table 10
+                                  Table 11
 
-14.3.  Message Parameters
+14.4.  Message Parameters
 
          +================+=====================+================+
          | Parameter Type | Parameter Name      | Specification  |
@@ -4791,12 +4820,12 @@ EXT 1 and EXT N can be modified or removed by Relays
          | 0x32           | NEW_GROUP_REQUEST   | Section 9.3.11 |
          +----------------+---------------------+----------------+
 
-                                  Table 11
+                                  Table 12
 
    *  Message Parameters - List which params can be repeated in the
       table.
 
-14.4.  Properties
+14.5.  Properties
 
    +==========+===============================+========+===============+
    |     Type | Name                          | Scope  | Specification |
@@ -4823,7 +4852,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    |     0x9D |                               |        |               |
    +----------+-------------------------------+--------+---------------+
 
-                                  Table 12
+                                  Table 13
 
    Endpoints MUST ignore unknown Property types, skipping them using the
    length field.
@@ -4850,9 +4879,9 @@ EXT 1 and EXT N can be modified or removed by Relays
       from uncoordinated sources may encounter different semantics for
       the same code points, creating potential collision risks.
 
-14.5.  Error Codes
+14.6.  Error Codes
 
-14.5.1.  Session Termination Error Codes
+14.6.1.  Session Termination Error Codes
 
      +=============================+=================+===============+
      | Name                        |       Code      | Specification |
@@ -4902,9 +4931,9 @@ EXT 1 and EXT N can be modified or removed by Relays
      | Reserved for greasing       | 0x7f * N + 0x9D | Section 13    |
      +-----------------------------+-----------------+---------------+
 
-                                  Table 13
+                                  Table 14
 
-14.5.2.  REQUEST_ERROR Codes
+14.6.2.  REQUEST_ERROR Codes
 
      +============================+=================+===============+
      | Name                       |       Code      | Specification |
@@ -4944,9 +4973,9 @@ EXT 1 and EXT N can be modified or removed by Relays
      | Reserved for greasing      | 0x7f * N + 0x9D | Section 13    |
      +----------------------------+-----------------+---------------+
 
-                                 Table 14
+                                 Table 15
 
-14.5.3.  PUBLISH_DONE Codes
+14.6.3.  PUBLISH_DONE Codes
 
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
@@ -4974,9 +5003,9 @@ EXT 1 and EXT N can be modified or removed by Relays
         | Reserved for greasing | 0x7f * N + 0x9D | Section 13    |
         +-----------------------+-----------------+---------------+
 
-                                  Table 15
+                                  Table 16
 
-14.5.4.  Data Stream Reset Error Codes
+14.6.4.  Data Stream Reset Error Codes
 
        +=======================+=================+================+
        | Name                  |       Code      | Specification  |
@@ -5000,7 +5029,7 @@ EXT 1 and EXT N can be modified or removed by Relays
        | Reserved for greasing | 0x7f * N + 0x9D | Section 13     |
        +-----------------------+-----------------+----------------+
 
-                                 Table 16
+                                 Table 17
 
 Contributors
 
@@ -5079,6 +5108,11 @@ Normative References
               "Transport Layer Security (TLS) Application-Layer Protocol
               Negotiation Extension", RFC 7301, DOI 10.17487/RFC7301,
               July 2014, <https://www.rfc-editor.org/rfc/rfc7301>.
+
+   [RFC8126]  Cotton, M., Leiba, B., and T. Narten, "Guidelines for
+              Writing an IANA Considerations Section in RFCs", BCP 26,
+              RFC 8126, DOI 10.17487/RFC8126, June 2017,
+              <https://www.rfc-editor.org/rfc/rfc8126>.
 
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
