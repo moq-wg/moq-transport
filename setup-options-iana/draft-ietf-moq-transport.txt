@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 September 2026                                 I. Swett, Ed.
+Expires: 17 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           15 March 2026
+                                                           16 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 September 2026.
+   This Internet-Draft will expire on 17 September 2026.
 
 Copyright Notice
 
@@ -1488,7 +1488,9 @@ Table of Contents
    the Largest Object observed at the publisher.  If the specified End
    Group Delta is zero, the remainder of that Group passes the filter.
    Otherwise, the last Group ID to be delivered will be the Group ID in
-   Start Location plus the End Group Delta.
+   Start Location plus the End Group Delta.  If the resulting Group ID
+   would be greater than 2^64 - 1, the endpoint MUST close the session
+   with a PROTOCOL_VIOLATION.
 
    An endpoint that receives a filter type other than the above MUST
    close the session with PROTOCOL_VIOLATION.
@@ -2188,7 +2190,8 @@ Table of Contents
    Type Delta: The difference between this Parameter Type and the
    previous Parameter Type in the message, or the Parameter Type itself
    for the first parameter.  Parameters MUST be serialized in ascending
-   order by Type.
+   order by Type.  If the resulting Type would be greater than 2^64 - 1,
+   the endpoint MUST close the session with a PROTOCOL_VIOLATION.
 
    *  Value: The encoding is specified by each parameter definition.
       The encodings defined in this draft are:
@@ -3978,12 +3981,14 @@ Table of Contents
 
    The Object ID Delta + 1 is added to the previous Object ID in the
    Subgroup stream if there was one.  The Object ID is the Object ID
-   Delta if it's the first Object in the Subgroup stream.  For example,
-   a Subgroup of sequential Object IDs starting at 0 will have 0 for all
-   Object ID Delta values.  A consumer cannot infer information about
-   the existence of Objects between the current and previous Object ID
-   in the Subgroup (e.g. when Object ID Delta is non-zero) unless there
-   is a Prior Object ID Gap property (see Section 11.8).
+   Delta if it's the first Object in the Subgroup stream.  If the
+   resulting Object ID would be greater than 2^64 - 1, the endpoint MUST
+   close the session with a PROTOCOL_VIOLATION.  For example, a Subgroup
+   of sequential Object IDs starting at 0 will have 0 for all Object ID
+   Delta values.  A consumer cannot infer information about the
+   existence of Objects between the current and previous Object ID in
+   the Subgroup (e.g. when Object ID Delta is non-zero) unless there is
+   a Prior Object ID Gap property (see Section 11.8).
 
    {
      Object ID Delta (vi64),
