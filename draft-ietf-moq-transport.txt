@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 17 September 2026                                 I. Swett, Ed.
+Expires: 18 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           16 March 2026
+                                                           17 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 September 2026.
+   This Internet-Draft will expire on 18 September 2026.
 
 Copyright Notice
 
@@ -4701,7 +4701,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    of greasing; see Section 3.3 of [RFC9170].
 
    Grease values follow the pattern 0x7f * N + 0x9D for non-negative
-   integer values of N (that is, 0x9D, 0xBC, ..., 0x3ffffffffffffffe).
+   integer values of N (that is, 0x9D, 0x11C, ..., 0x3fffffffffffffde).
 
    The following registries include GREASE reservations:
 
