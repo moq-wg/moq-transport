@@ -1560,7 +1560,7 @@ elapses before the track delivers an object that remains in the top N,
 either of which deselect the track.  The publisher MUST send a 
 REQUEST_UPDATE message with Forward=0 when a track is deselected.
 The publisher MUST send a REQUEST_UPDATE message with Forward=1 when a
-deselected track is reselected.
+deselected track is reselected, which also updates the Joining Location.
 
 Recently deselected tracks SHOULD be kept in a list to avoid more PUBLISH
 messages in case a deselected track is reselected.  A relay SHOULD limit
@@ -2613,13 +2613,6 @@ The MAX_TRACKS_SELECTED option (Type 0x08) limits the peer's value of
 MaxTracksSelected in the TRACK_FILTER {{track-filter}} parameter.
 The default value is 0, so if not specified, the peer MUST NOT send any
 TRACK_FILTER parameter.  If this limit is exceeded, an endpoint MUST close the
-session with a `PROTOCOL_VIOLATION`.
-
-#### MAX TRACKS DESELECTED
-
-The MAX_TRACKS_DESELECTED option (Type 0x0A) limits the peer's value of
-MaxTracksDeselected in the TRACK_FILTER {{track-filter}} parameter.
-The default value is 0.  If this limit is exceeded, an endpoint MUST close the
 session with a `PROTOCOL_VIOLATION`.
 
 ## GOAWAY {#message-goaway}
