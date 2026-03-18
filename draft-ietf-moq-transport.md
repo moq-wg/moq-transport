@@ -844,9 +844,13 @@ identifier, followed by a colon (`:`), followed by a type-specific value:
 moqt://example.com/app#<type>:<value>
 ~~~
 
-The fragment type identifier determines how the remainder of the fragment
-is interpreted. Fragment type identifiers are registered in the "MOQT
-URI Fragment Types" registry ({{iana-fragment-types}}).
+Fragment type identifiers MUST consist of ASCII lowercase letters,
+digits, and hyphens (`a-z`, `0-9`, `-`). The
+semantics of the value after the colon are defined by the specification
+that registers the fragment type.
+
+Fragment type identifiers are registered in the "MOQT URI Fragment
+Types" registry ({{iana-fragment-types}}).
 
 The default operation for dereferencing a `moqt` URI is to establish a
 MOQT session to the identified server.
