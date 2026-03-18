@@ -1299,7 +1299,7 @@ allowed ranges of integer values in Track and Object Properties and other
 object header fields (Subgroup ID, Object ID, and Publisher Priority).
 
 There are four Range Filter parameter types, 0x25-0x28, each with a Length
-prefix and similar structures and behavior as summarized below.
+prefix in bytes and similar structures and behavior as summarized below.
 
 ~~~
 SUBGROUP_FILTER { Type=0x25, Length, Range... }
@@ -1492,8 +1492,8 @@ PUBLISH_NAMESPACE messages.
 ## Filtering Namespaces
 
 Range Filters {{range-filters}} and Track Filters {{track-filters}} can be used
-in SUBSCRIBE_NAMESPACE (or REQUEST_UPDATE for SUBSCRIBE_NAMESPACE) to filter
-tracks and objects in a namespace.
+in SUBSCRIBE_NAMESPACE (or REQUEST_UPDATE for it) to filter tracks and objects
+in a namespace.
 
 ### Track Filters
 
@@ -1502,8 +1502,8 @@ within a namespace with the highest Property Values for a specified Track or
 Object Property Type which MUST be even, i.e. a single integer value
 (see {{moq-key-value-pair}}).
 
-It is encoded with a Length prefix which MAY be zero to indicate no filter,
-which can be used to remove the filter in REQUEST_UPDATE.
+It is encoded with a Length prefix in bytes which MAY be zero to indicate
+no filter, which can be used to remove the filter in REQUEST_UPDATE.
 
 ~~~
 TRACK_FILTER Parameter {
@@ -1511,8 +1511,7 @@ TRACK_FILTER Parameter {
   Length (vi64),
   Property Type (vi64),
   MaxTracksSelected (vi64),
-  MaxTracksDeselected (vi64),
-  MaxTimeSelected (vi64)
+  Timeout (vi64)
 }
 ~~~
 
@@ -1520,45 +1519,70 @@ MaxTracksSelected limits the number of tracks selected concurrently,
 which MUST NOT exceed the MAX_TRACKS_SELECTED setup option value sent
 by the peer.  A value of 0 is a `PROTOCOL_VIOLATION`.
 
-MaxTracksDeselected limits the number of tracks to keep in a list
-of deselected tracks, which MUST NOT exceed the MAX_TRACKS_DESELECTED
-setup option value sent by the peer.
-
-MaxTimeSelected limits the number of milliseconds a selected track
-can remain selected without publishing an object with Property Type.
+Timeout limits the number of milliseconds a selected track can remain
+selected without publishing an object with Property Type.
 
 #### Track Selection
+
+Tracks are promoted to the selected state, demoted to the
+deselected state, or purged back to the unknown state as
+shown in the following diagram. Objects only pass the filter
+for tracks in the selected state.
+
+~~~
+        +--------------+
+        +   UNKNOWN    |
+        +  name/alias  |
+        +--------------+
+             ^    |
+             |    |     Newly Selected    +------------+
+PUBLISH_DONE |    +---> PUBLISH FWD=1 --->|  SELECTED  |
+as needed to |             Promoted       |  in Top N  |
+limit state  |    +---> REQ UPD FWD=1 --->|   Tracks   |
+             |    |       Reselected      +------------+
+             |    |                             |
+        +--------------+                        |
+        |  DESELECTED  |<---- REQ UPD FWD=0 <---+ 
+        | out of Top N |     Demoted/Timeout
+        +--------------+
+
+          Objects FAIL                     Objects PASS
+           the filter                       the filter
+~~~
 
 A track is selected if it publishes an object with the top N highest
 value for Property Type, where N = MaxTracksSelected.  The publisher
 MUST send a PUBLISH message for each newly selected track.  For tracks
 with the same value, the earliest delivered object wins the tie
 breaker, so a selected track remains selected until another track
-delivers a higher value that drops it from the top N, or
-MaxTimeSelected elapses before the track delivers an object that remains
-in the top N, either of which deselect the track.  The last M deselected
-tracks are kept in a list, where M = MaxTracksDeselected, to avoid more
-PUBLISH messages in case a deselected track is reselected.  When a track
-drops from this list because it is older than the last M, the publisher
-MUST send a PUBLISH_DONE message to avoid excess old subscription state.
-If a track is reselected after this, it is considered newly selected
-so the publisher MUST send a PUBLISH message again.
-Endpoints SHOULD set MaxTracksDeselected and MAX_TRACKS_DESELECTED
-high enough to avoid excessive control messages but low enough to
-avoid excessive old subscription state.
+publishes a higher value that demotes it out of the top N, or Timeout
+elapses before the track delivers an object that remains in the top N,
+either of which deselect the track.  The publisher MUST send a 
+REQUEST_UPDATE message with Forward=0 when a track is deselected.
+The publisher MUST send a REQUEST_UPDATE message with Forward=1 when a
+deselected track is reselected.
+
+Recently deselected tracks SHOULD be kept in a list to avoid more PUBLISH
+messages in case a deselected track is reselected.  A relay SHOULD limit
+this list size if it consumes excessive resources by sending PUBLISH_DONE
+messages to purge state for the oldest deselected tracks, putting them
+back in the unknown state.  If a track is reselected after this, it is
+considered newly selected so the publisher MUST send a PUBLISH message
+again.  Relays SHOULD keep a list size large enough to avoid excessive
+control messages but small enough to avoid excessive old subscription state.
 
 If the TRACK_FILTER parameter is updated, the publisher evaluates the
-new filter to determine the new list of top N selected and last M deselected
-tracks, and follows the same rules above for newly selected tracks in the
-top N (send PUBLISH) and old deselected tracks that drop from the last M
-(send PUBLISH_DONE).
+new filter to determine the new list of top N selected tracks and follows
+the same rules above for newly selected tracks in the top N (send PUBLISH),
+reselected tracks in the top N (send REQUEST_UPDATE with Forward=1), and
+newly deselected tracks demoted out of the top N (send REQUEST_UPDATE
+with Forward=0).  It can also purge excessive old deselected tracks as
+needed (send PUBLISH_DONE).
 
 If a track filter for a namespace overlaps with a direct subscription
-to a track in the same namespace, the publisher MUST deliver the
-direct track subscription unaltered by track filter actions.
-The direct track subscription MAY be in the top N or last M lists,
-but MUST NOT stop object delivery upon track filter deselection nor
-send PUBLISH_DONE upon dropping from the last M list.
+to a track name in the same namespace, it is considered to pass the
+track filter whether or not it is counted in the top N list, and MUST NOT
+be subject to track filter state changes or actions.
 
 The track filter evaluates both Track and Object Properties.
 If a track has a Track Property of the specified Property Type, its value
