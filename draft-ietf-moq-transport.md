@@ -1337,6 +1337,8 @@ All filter types are combined using logical "and" operations
 to further restrict which tracks and objects pass all filter criteria.
 This includes all Range Filters {{range-filters}}, Subscription Location
 Filters {{subscription-filters}}, and Track Filters {{track-filters}}.
+Track Filters always evaluate first before all other filters which can be
+evaluated in any order.
 
 ### Joining an Ongoing Track
 
@@ -1589,6 +1591,10 @@ If a track has a Track Property of the specified Property Type, its value
 is used for filtering both the PUBLISH message and any Objects from that track
 that lack their own value for that Property Type.  If the Track Property value
 does not pass the filter, no Objects from that track are delivered.
+
+Objects received with a location lower than the largest received in that track
+are ignored for track filter state updates; however, if the track is already
+selected, they pass the filter.
 
 # Priorities {#priorities}
 
