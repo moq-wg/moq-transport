@@ -838,35 +838,20 @@ TODO: Add internationalization statement per RFC 7595 Section 3.6.
 
 If the port is omitted in the URI, a default port of 443 is used.
 
-The URI scheme determines the transport protocol(s) the client MAY use
-to connect to the server:
-
-moqt:
-: The client MAY use either native QUIC or WebTransport. On a QUIC connection,
-  the client offers any combination of MOQT ALPNs (e.g. `moqt/1`, `moqt/2`)
-  and `h3` that it supports in its TLS ClientHello, in preference order. If the
-  server selects an MOQT ALPN, the session proceeds as described in
-  {{native-quic}}. If the server selects `h3`, the client establishes a
-  WebTransport session as described in {{webtransport}}. On a TCP+TLS
-  connection, the client offers `h2` in its TLS ClientHello and establishes a
-  WebTransport session as described in {{webtransport}}.
-
-moqt+q:
-: The client MUST use native QUIC. The client offers only MOQT ALPNs
-  (e.g. `moqt/1`, `moqt/2`) in its TLS ClientHello. If ALPN negotiation
-  fails, the connection fails; the client MUST NOT fall back to WebTransport.
-
-moqt+wt:
-: The client MUST use WebTransport. On a QUIC connection, the client offers
-  `h3` in its TLS ClientHello. On a TCP+TLS connection, the client offers `h2`.
-  The client then establishes a WebTransport session as described in
-  {{webtransport}}.
+The client MAY use either native QUIC or WebTransport. On a QUIC connection,
+the client offers any combination of MOQT ALPNs (e.g. `moqt/1`, `moqt/2`)
+and `h3` that it supports in its TLS ClientHello, in preference order. If the
+server selects an MOQT ALPN, the session proceeds as described in
+{{native-quic}}. If the server selects `h3`, the client establishes a
+WebTransport session as described in {{webtransport}}. On a TCP+TLS
+connection, the client offers `h2` in its TLS ClientHello and establishes a
+WebTransport session as described in {{webtransport}}.
 
 ### WebTransport {#webtransport}
 
 When the client uses WebTransport, it constructs an `https` URI from the `moqt`
 URI by replacing the scheme with `https`.
-For example, `moqt+wt://example.com/path` becomes
+For example, `moqt://example.com/path` becomes
 `https://example.com/path`. The client sends an extended CONNECT request to this
 URI to establish a WebTransport session, as described in
 ({{WebTransport, Section 3}}). The client includes MOQT protocol identifiers in
@@ -4372,35 +4357,6 @@ Change controller: IETF
 
 References: This document
 
-### "moqt+q" URI Scheme Registration
-
-Scheme name: moqt+q
-
-Status: Permanent
-
-Applications/protocols that use this scheme name: Media over QUIC Transport
-(MOQT) over native QUIC, as defined in this document.
-
-Contact: IETF MoQ Working Group (moq@ietf.org)
-
-Change controller: IETF
-
-References: This document
-
-### "moqt+wt" URI Scheme Registration
-
-Scheme name: moqt+wt
-
-Status: Permanent
-
-Applications/protocols that use this scheme name: Media over QUIC Transport
-(MOQT) over WebTransport, as defined in this document.
-
-Contact: IETF MoQ Working Group (moq@ietf.org)
-
-Change controller: IETF
-
-References: This document
 
 ## Setup Options {#iana-setup-options}
 
