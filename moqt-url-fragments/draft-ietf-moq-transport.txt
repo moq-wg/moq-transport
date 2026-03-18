@@ -1008,7 +1008,7 @@ Table of Contents
    "moqt" URI scheme is defined as follows, using definitions from
    [RFC3986]:
 
-   moqt-URI = "moqt" [ "+q" / "+wt" ] "://" authority
+   moqt-URI = "moqt" "://" authority
                path-abempty [ "?" query ]
 
    The authority portion MUST NOT contain an empty host portion.  The
@@ -1035,9 +1035,13 @@ Table of Contents
 
    moqt://example.com/app#<type>:<value>
 
-   The fragment type identifier determines how the remainder of the
-   fragment is interpreted.  Fragment type identifiers are registered in
-   the "MOQT URI Fragment Types" registry (Section 14.2).
+   Fragment type identifiers MUST consist of ASCII lowercase letters,
+   digits, and hyphens (a-z, 0-9, -).  The semantics of the value after
+   the colon are defined by the specification that registers the
+   fragment type.
+
+   Fragment type identifiers are registered in the "MOQT URI Fragment
+   Types" registry (Section 14.2).
 
    The default operation for dereferencing a moqt URI is to establish a
    MOQT session to the identified server.
