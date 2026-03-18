@@ -876,7 +876,7 @@ the WT-Available-Protocols header ({{WebTransport, Section 3.3}}).
 The client establishes a QUIC connection to the host and port identified by the
 `authority` section of the URI.
 When the client uses native QUIC, the `authority`, `path-abempty` and `query`
-portions of the URI are transmitted in Setup Options (see {{setup-params}}).
+portions of the URI are transmitted in Setup Options (see {{setup-options}}).
 
 ### Connection URL
 
