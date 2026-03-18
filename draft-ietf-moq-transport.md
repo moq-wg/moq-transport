@@ -831,6 +831,23 @@ URI can be converted to an `https` URI by replacing the scheme (see
 {{webtransport}}), so the `path-abempty` and `query` components use the same
 syntax as `https` URIs.
 
+### Fragment Identifiers {#moqt-fragment}
+
+Fragment identifiers MAY be used with `moqt` URIs. The fragment is not
+transmitted to the server; it is processed locally by the client after
+establishing the MOQT session.
+
+A `moqt` URI fragment MUST begin with a registered fragment type
+identifier, followed by a colon (`:`), followed by a type-specific value:
+
+~~~
+moqt://example.com/app#<type>:<value>
+~~~
+
+The fragment type identifier determines how the remainder of the fragment
+is interpreted. Fragment type identifiers are registered in the "MOQT
+URI Fragment Types" registry ({{iana-fragment-types}}).
+
 The default operation for dereferencing a `moqt` URI is to establish a
 MOQT session to the identified server.
 
@@ -4384,6 +4401,21 @@ Change controller: IETF
 
 References: This document
 
+## MOQT URI Fragment Types {#iana-fragment-types}
+
+This document establishes the "MOQT URI Fragment Types" registry. This
+registry governs fragment type identifiers used in `moqt` URI fragments
+as defined in {{moqt-fragment}}.
+
+New fragment type identifiers are registered using the Specification
+Required policy ({{!RFC8126, Section 4.6}}).
+
+Each entry in the registry contains the following fields:
+
+| Fragment Type | Description | Specification |
+|:--------------|:------------|:--------------|
+
+This registry is initially empty.
 
 ## Setup Options {#iana-setup-options}
 
