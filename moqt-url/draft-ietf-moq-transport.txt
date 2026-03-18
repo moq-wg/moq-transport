@@ -1006,7 +1006,7 @@ Table of Contents
    "moqt" URI scheme is defined as follows, using definitions from
    [RFC3986]:
 
-   moqt-URI = "moqt" [ "+q" / "+wt" ] "://" authority
+   moqt-URI = "moqt" "://" authority
                path-abempty [ "?" query ]
 
    The authority portion MUST NOT contain an empty host portion.  The
