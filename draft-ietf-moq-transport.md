@@ -810,7 +810,7 @@ An MOQT server is identified using a URI with the "moqt" scheme.  The "moqt"
 URI scheme is defined as follows, using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
-moqt-URI = "moqt" [ "+q" / "+wt" ] "://" authority
+moqt-URI = "moqt" "://" authority
             path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
