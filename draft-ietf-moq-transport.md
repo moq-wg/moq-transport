@@ -1596,6 +1596,17 @@ Objects received with a location lower than the largest received in that track
 are ignored for track filter state updates; however, if the track is already
 selected, they pass the filter.
 
+### Relay Resource Protection in Large Namespaces
+
+Relays SHOULD aggregate and propagate filters upstream on subscriptions,
+especially namespace subscriptions including track selection filters,
+to conserve and protect their resources from excessive load.  They MAY
+also impose limits on the number of publishers in a namespace, by rejecting
+or closing namespace subscriptions with the error NAMESPACE_TOO_LARGE, or
+CONFLICTING_FILTERS if a track selection filter has non-uniform parameter
+values across a large number of subscribers, or PREFIX_OVERLAP if different
+subscribers force an aggregated upstream subscription to overlap.
+
 # Priorities {#priorities}
 
 MoQ priorities allow a subscriber and original publisher to influence
@@ -2791,6 +2802,11 @@ publishers than the relay is willing to enumerate.
 INVALID_JOINING_REQUEST_ID:
 : In response to a Joining FETCH, the referenced Request ID is not an
 `Established` Subscription.
+
+CONFLICTING_FILTERS:
+: In response to SUBSCRIBE_NAMESPACE, the filter parameters conflict among
+too many subscribers to aggregate the subscription upstream or otherwise
+efficiently service it.
 
 ## SUBSCRIBE {#message-subscribe-req}
 
@@ -4666,6 +4682,7 @@ the length field.
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| CONFLICTING_FILTERS        | 0x33 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
