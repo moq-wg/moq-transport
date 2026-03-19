@@ -810,23 +810,19 @@ An MOQT server is identified using a URI with the "moqt" scheme.  The "moqt"
 URI scheme is defined as follows, using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
-moqt-URI = "moqt" "://" authority
-            path-abempty [ "?" query ]
+moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
 The `authority` portion MUST NOT contain an empty `host` portion.
 The `moqt` URI scheme supports the `/.well-known/` path prefix defined in
 {{!RFC8615}}.
 
-This protocol does not specify any semantics on the `path-abempty` and
-`query` portions of the URI.  The contents of those are left up to the
-application.
-
 The `moqt` URI scheme follows the generic URI syntax of {{!RFC3986}} for
 the `authority`, `path-abempty`, and `query` components, including the
-use of reserved characters and percent-encoding defined therein. Fragment
-identifiers are not used with `moqt` URIs; if a fragment component is
-present, it MUST be ignored.
+use of reserved characters and percent-encoding defined therein.  A `moqt`
+URI can be converted to an `https` URI by replacing the scheme (see
+{{webtransport}}), so the `path-abempty` and `query` components use the same
+syntax as `https` URIs.
 
 The default operation for dereferencing a `moqt` URI is to establish a
 MOQT session to the identified server.
@@ -858,6 +854,7 @@ URI to establish a WebTransport session, as described in
 the WT-Available-Protocols header ({{WebTransport, Section 3.3}}).
 
 ### Native QUIC {#native-quic}
+
 The client establishes a QUIC connection to the host and port identified by the
 `authority` section of the URI.
 When the client uses native QUIC, the `authority`, `path-abempty` and `query`
