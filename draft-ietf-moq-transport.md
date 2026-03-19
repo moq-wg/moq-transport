@@ -1548,7 +1548,7 @@ limit state  |    +---> REQ UPD FWD=1 --->|   Tracks   |
              |    |       Reselected      +------------+
              |    |                             |
         +--------------+                        |
-        |  DESELECTED  |<---- REQ UPD FWD=0 <---+ 
+        |  DESELECTED  |<---- REQ UPD FWD=0 <---+
         | out of Top N |     Demoted/Timeout
         +--------------+
 
@@ -1563,7 +1563,7 @@ with the same value, the earliest delivered object wins the tie
 breaker, so a selected track remains selected until another track
 publishes a higher value that demotes it out of the top N, or Timeout
 elapses before the track delivers an object that remains in the top N,
-either of which deselect the track.  The publisher MUST send a 
+either of which deselect the track.  The publisher MUST send a
 REQUEST_UPDATE message with Forward=0 when a track is deselected.
 The publisher MUST send a REQUEST_UPDATE message with Forward=1 when a
 deselected track is reselected, which also updates the Joining Location.
