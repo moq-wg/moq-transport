@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 September 2026                                 I. Swett, Ed.
+Expires: 20 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           18 March 2026
+                                                           19 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 September 2026.
+   This Internet-Draft will expire on 20 September 2026.
 
 Copyright Notice
 
@@ -1006,22 +1006,18 @@ Table of Contents
    "moqt" URI scheme is defined as follows, using definitions from
    [RFC3986]:
 
-   moqt-URI = "moqt" "://" authority
-               path-abempty [ "?" query ]
+   moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
 
    The authority portion MUST NOT contain an empty host portion.  The
    moqt URI scheme supports the /.well-known/ path prefix defined in
    [RFC8615].
 
-   This protocol does not specify any semantics on the path-abempty and
-   query portions of the URI.  The contents of those are left up to the
-   application.
-
    The moqt URI scheme follows the generic URI syntax of [RFC3986] for
    the authority, path-abempty, and query components, including the use
-   of reserved characters and percent-encoding defined therein.
-   Fragment identifiers are not used with moqt URIs; if a fragment
-   component is present, it MUST be ignored.
+   of reserved characters and percent-encoding defined therein.  A moqt
+   URI can be converted to an https URI by replacing the scheme (see
+   Section 3.1.2), so the path-abempty and query components use the same
+   syntax as https URIs.
 
    The default operation for dereferencing a moqt URI is to establish a
    MOQT session to the identified server.
