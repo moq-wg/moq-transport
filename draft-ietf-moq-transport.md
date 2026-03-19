@@ -1302,20 +1302,24 @@ There are four Range Filter parameter types, 0x25-0x28, each with a Length
 prefix in bytes and similar structures and behavior as summarized below.
 
 ~~~
-SUBGROUP_FILTER { Type=0x25, Length, Range... }
-  OBJECT_FILTER { Type=0x26, Length, Range... }
-PRIORITY_FILTER { Type=0x27, Length, Range... }
-PROPERTY_FILTER { Type=0x28, Length, Property Type, Range... }
+SUBGROUP_FILTER { Type=0x25, Length, AndSet, Range... }
+  OBJECT_FILTER { Type=0x26, Length, AndSet, Range... }
+PRIORITY_FILTER { Type=0x27, Length, AndSet, Range... }
+PROPERTY_FILTER { Type=0x28, Length, AndSet, Property Type, Range... }
           Range { Start (..), [End (..)] }
 ~~~
 
-Each Range Filter is a Length (vi64) prefixed sequence of Start/End inclusive
-Range pairs. Start is delta encoded from the prior Range's End (or from 0
+Each Range Filter is a Length (vi64) prefixed sequence of AndSet (8 bits) followed
+by Start/End inclusive Range pairs.
+Start is delta encoded from the prior Range's End (or from 0
 for the first Range), and End is delta encoded from the current Range's Start.
 The final End in a sequence of Ranges MAY be omitted to indicate no end.
 For example, to express ranges 3-5 and 10-15: the first Start is 3
 (delta from 0), the first End is 2 (5 minus 3), the second Start is 5
 (10 minus 5), and the second End is 5 (15 minus 10).
+All filter parameters with the same AndSet value are combined using logical
+"and" operations, then all the resulting sets are combined using logical "or"
+operations.
 
 These parameters MAY appear in a FETCH, SUBSCRIBE, SUBSCRIBE_NAMESPACE,
 PUBLISH_OK, or REQUEST_UPDATE (from a subscriber) message.
@@ -2397,8 +2401,8 @@ If a decoded value exceeds 255, the endpoint MUST close the session with a
 The PROPERTY_FILTER parameter (Type 0x28) selects tracks or objects with
 specified Ranges of Property Value for a specified Track or Object Property
 Type which MUST be even, i.e. a single integer value
-(see {{moq-key-value-pair}}).  The Length prefixed sequence contains
-Property Type followed by Property Value Range pairs.
+(see {{moq-key-value-pair}}).  The Length prefixed sequence contains AndSet
+then Property Type followed by Property Value Range pairs.
 See {{range-filters}}.
 Range MAY be omitted to indicate no filter for the specified Property Type.
 Length MAY be zero to indicate no filter for all Property Types.
