@@ -3265,7 +3265,8 @@ The publisher responding to a FETCH is
 responsible for delivering all available Objects in the requested range in the
 requested order (see {{group-order}}). The Objects in the response are delivered on a single
 unidirectional stream. Any gaps in the Group and Object IDs in the response
-stream indicate objects that do not exist.  For Ascending Group Order this
+stream indicate objects that do not exist unless filters were requested.
+For Ascending Group Order this
 includes ranges between the first requested object and the first object in the
 stream; between objects in the stream; and between the last object in the
 stream and the Largest Group/Object indicated in FETCH_OK, so long as the fetch
