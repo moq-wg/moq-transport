@@ -3925,9 +3925,11 @@ Object in the Subgroup if at least one of the following is true:
    stream.
  * The Object was received on the same upstream Subgroup stream as the
    previously sent Object on the downstream Subgroup stream, with no other
-   Objects in between.
+   Objects in between, unless the intervening Objects did not pass the
+   subscriber's filters.
  * It determined all Object IDs between the current and previous Object IDs
-   on the Subgroup stream belong to different Subgroups or do not exist.
+   on the Subgroup stream belong to different Subgroups or do not exist,
+   or do not pass the subscriber's filters.
 
 If the relay does not know if an Object is the next Object, it MUST reset the
 Subgroup stream and open a new one to forward it.
