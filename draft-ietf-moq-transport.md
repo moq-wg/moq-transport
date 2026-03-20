@@ -376,6 +376,9 @@ If a receiver understands a Type, and the following Value or Length/Value does
 not match the serialization defined by that Type, the receiver MUST close
 the session with error code `KEY_VALUE_FORMATTING_ERROR`.
 
+Key-Value-Pairs are always parsed with a known byte length, which bounds
+the sequence. The source of this length varies by context.
+
 ### Reason Phrase Structure {#reason-phrase}
 
 Reason Phrase provides a way for the sender to encode additional diagnostic
@@ -754,6 +757,10 @@ If a Relay supports a Property, it MAY be modified, added, removed, and/or
 cached, subject to the processing rules specified in the definition.
 
 Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
+Track Properties always appear as the final field in the messages that
+carry them; their length is the remaining bytes of the message after all
+preceding fields have been consumed. Object Properties ({{object-properties}})
+are preceded by an explicit length field.
 
 Property types are registered in the IANA table 'MOQ Properties'.
 See {{iana}}.
@@ -1951,7 +1958,8 @@ All Message Parameters MUST be defined in the negotiated version of MOQT or
 negotiated via Setup Options. An endpoint that receives an unknown Message
 Parameter MUST close the session with `PROTOCOL_VIOLATION`. Because the receiver
 has to understand every Message Parameter, there is no need for a mechanism to
-skip unknown parameters.
+skip unknown parameters. Because unknown parameters cannot be skipped, the block
+is bounded by a parameter count rather than a length.
 
 The Message Parameter types defined in this version of MOQT are listed below.
 
@@ -2318,7 +2326,8 @@ SETUP Message {
 ~~~
 {: #moq-transport-setup-format title="MOQT SETUP Message"}
 
-Setup Options are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
+Setup Options are serialized as Key-Value-Pairs {{moq-key-value-pair}},
+spanning the entire message payload, bounded by the message Length field.
 Setup Options use a namespace that is constant across all MOQT versions,
 separate from Message Parameters.  Receivers MUST ignore unrecognized Setup
 Options.  Senders MUST NOT repeat the same Option Type in a message unless
