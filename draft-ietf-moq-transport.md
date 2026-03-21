@@ -1300,9 +1300,11 @@ will have different approaches for when to begin a new Group.
 
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
 REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
-{{joining-fetches}}) for the intended start Group, which can be relative.  To
-join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter
-Type `Next Group Start`.
+{{joining-fetches}}) for the intended start Group, which can be relative.  When
+the Joining FETCH follows a REQUEST_UPDATE that transitions Forward State from
+0 to 1, the FETCH MUST set its Required Request ID ({{required-request-id}}) to
+the REQUEST_UPDATE's Request ID or later.  To join a Track at the next Group, the
+subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
 
 #### Dynamically Starting New Groups
 
@@ -2952,7 +2954,12 @@ with a certain number of groups prior to the live edge of a track.
 
 A Joining Fetch is only permitted when the associated subscription has
 Forward State 1; otherwise the publisher MUST close the session with a
-`PROTOCOL_VIOLATION`.
+`PROTOCOL_VIOLATION`. A publisher MUST process any pending Forward
+State transitions for the associated subscription before evaluating this
+requirement. Relays with an upstream subscription in Forward State 0 can
+either send a Joining Fetch upstream or buffer the Joining Fetch until
+the upstream subscription transitions to Forward State 1 and serve from
+cache.
 
 If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
