@@ -2470,12 +2470,19 @@ REQUEST_OK Message {
   Type (vi64) = 0x7,
   Length (16),
   Number of Parameters (vi64),
-  Parameters (..) ...
+  Parameters (..) ...,
+  Track Properties (..),
 }
 ~~~
 {: #moq-transport-request-ok format title="MOQT REQUEST_OK Message"}
 
 * Parameters: The parameters are defined in {{message-params}}.
+
+* Track Properties : A sequence of Properties. See {{properties}}. The
+  length of Track Properties is the remaining length of the message
+  after parsing all previous fields. Track Properties are populated in
+  response to TRACK_STATUS messages; they are empty in response to
+  REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE.
 
 ## REQUEST_ERROR {#message-request-error}
 
@@ -3129,8 +3136,9 @@ delivery (e.g. SUBSCRIBER_PRIORITY) are not included.
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
-REQUEST_OK message with the same parameters it would have set in a SUBSCRIBE_OK.
-Track Alias is not used.  A publisher responds to a failed TRACK_STATUS with an
+REQUEST_OK message with the same parameters and Track Properties it would have
+set in a SUBSCRIBE_OK. Track Alias is not used.  A publisher responds to a
+failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
 REQUEST_OK or REQUEST_ERROR are sent.
 
