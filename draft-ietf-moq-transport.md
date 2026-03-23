@@ -1490,7 +1490,7 @@ datagram (see {{data-streams}}).
 (groups with higher group ID are sent first).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
 publisher's preference is used if the subscriber did not express one (by
-omtting the Group Order parameter).  The group order of an existing
+omitting the Group Order parameter).  The group order of an existing
 subscription cannot be changed.
 
 ## Scheduling Algorithm
