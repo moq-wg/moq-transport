@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 18 September 2026                                 I. Swett, Ed.
+Expires: 24 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           17 March 2026
+                                                           23 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 September 2026.
+   This Internet-Draft will expire on 24 September 2026.
 
 Copyright Notice
 
@@ -532,6 +532,9 @@ Table of Contents
    receiver MUST close the session with error code
    KEY_VALUE_FORMATTING_ERROR.
 
+   Key-Value-Pairs are always parsed with a known byte length, which
+   bounds the sequence.  The source of this length varies by context.
+
 1.4.4.  Reason Phrase Structure
 
    Reason Phrase provides a way for the sender to encode additional
@@ -941,7 +944,11 @@ Table of Contents
    and/or cached, subject to the processing rules specified in the
    definition.
 
-   Properties are serialized as Key-Value-Pairs (see Figure 2).
+   Properties are serialized as Key-Value-Pairs (see Figure 2).  Track
+   Properties always appear as the final field in the messages that
+   carry them; their length is the remaining bytes of the message after
+   all preceding fields have been consumed.  Object Properties
+   (Section 10.2.1.2) are preceded by an explicit length field.
 
    Property types are registered in the IANA table 'MOQ Properties'.
    See Section 14.
@@ -2213,7 +2220,8 @@ Table of Contents
    unknown Message Parameter MUST close the session with
    PROTOCOL_VIOLATION.  Because the receiver has to understand every
    Message Parameter, there is no need for a mechanism to skip unknown
-   parameters.
+   parameters.  Because unknown parameters cannot be skipped, the block
+   is bounded by a parameter count rather than a length.
 
    The Message Parameter types defined in this version of MOQT are
    listed below.
@@ -2605,12 +2613,14 @@ Table of Contents
 
                         Figure 6: MOQT SETUP Message
 
-   Setup Options are serialized as Key-Value-Pairs Figure 2.  Setup
-   Options use a namespace that is constant across all MOQT versions,
-   separate from Message Parameters.  Receivers MUST ignore unrecognized
-   Setup Options.  Senders MUST NOT repeat the same Option Type in a
-   message unless the option definition explicitly allows multiple
-   instances.  Receivers MUST allow duplicates of unknown Setup Options.
+   Setup Options are serialized as Key-Value-Pairs Figure 2, spanning
+   the entire message payload, bounded by the message Length field.
+   Setup Options use a namespace that is constant across all MOQT
+   versions, separate from Message Parameters.  Receivers MUST ignore
+   unrecognized Setup Options.  Senders MUST NOT repeat the same Option
+   Type in a message unless the option definition explicitly allows
+   multiple instances.  Receivers MUST allow duplicates of unknown Setup
+   Options.
 
    The available Setup Options are detailed in the next sections.
 

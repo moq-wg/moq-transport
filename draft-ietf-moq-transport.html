@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 18 September 2026</td>
+<td class="center">Expires 24 September 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-03-17" class="published">17 March 2026</time>
+<time datetime="2026-03-23" class="published">23 March 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-09-18">18 September 2026</time></dd>
+<dd class="expires"><time datetime="2026-09-24">24 September 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 18 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 24 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2194,6 +2194,8 @@ sequence of Length bytes.<a href="#section-1.4.3-5.3.1" class="pilcrow">¶</a></
 <p id="section-1.4.3-6">If a receiver understands a Type, and the following Value or Length/Value does
 not match the serialization defined by that Type, the receiver <span class="bcp14">MUST</span> close
 the session with error code <code>KEY_VALUE_FORMATTING_ERROR</code>.<a href="#section-1.4.3-6" class="pilcrow">¶</a></p>
+<p id="section-1.4.3-7">Key-Value-Pairs are always parsed with a known byte length, which bounds
+the sequence. The source of this length varies by context.<a href="#section-1.4.3-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="reason-phrase">
@@ -2649,7 +2651,11 @@ values not present in the new set.  Relays <span class="bcp14">MUST NOT</span> a
 of unknown properties received in different messages.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
 <p id="section-2.5-4">If a Relay supports a Property, it <span class="bcp14">MAY</span> be modified, added, removed, and/or
 cached, subject to the processing rules specified in the definition.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
-<p id="section-2.5-5">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-2.5-5" class="pilcrow">¶</a></p>
+<p id="section-2.5-5">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).
+Track Properties always appear as the final field in the messages that
+carry them; their length is the remaining bytes of the message after all
+preceding fields have been consumed. Object Properties (<a href="#object-properties" class="auto internal xref">Section 10.2.1.2</a>)
+are preceded by an explicit length field.<a href="#section-2.5-5" class="pilcrow">¶</a></p>
 <p id="section-2.5-6">Property types are registered in the IANA table 'MOQ Properties'.
 See <a href="#iana" class="auto internal xref">Section 14</a>.<a href="#section-2.5-6" class="pilcrow">¶</a></p>
 <p id="section-2.5-7">Certain Property type ranges are reserved for application-specific
@@ -4095,7 +4101,8 @@ making a request.<a href="#section-9.3-5" class="pilcrow">¶</a></p>
 negotiated via Setup Options. An endpoint that receives an unknown Message
 Parameter <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>. Because the receiver
 has to understand every Message Parameter, there is no need for a mechanism to
-skip unknown parameters.<a href="#section-9.3-6" class="pilcrow">¶</a></p>
+skip unknown parameters. Because unknown parameters cannot be skipped, the block
+is bounded by a parameter count rather than a length.<a href="#section-9.3-6" class="pilcrow">¶</a></p>
 <p id="section-9.3-7">The Message Parameter types defined in this version of MOQT are listed below.<a href="#section-9.3-7" class="pilcrow">¶</a></p>
 <p id="section-9.3-8">Senders <span class="bcp14">MUST NOT</span> repeat the same Parameter Type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
@@ -4497,7 +4504,8 @@ SETUP Message {
 <a href="#name-moqt-setup-message" class="selfRef">MOQT SETUP Message</a>
           </figcaption></figure>
 </div>
-<p id="section-9.4-5">Setup Options are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>.
+<p id="section-9.4-5">Setup Options are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>,
+spanning the entire message payload, bounded by the message Length field.
 Setup Options use a namespace that is constant across all MOQT versions,
 separate from Message Parameters.  Receivers <span class="bcp14">MUST</span> ignore unrecognized Setup
 Options.  Senders <span class="bcp14">MUST NOT</span> repeat the same Option Type in a message unless
