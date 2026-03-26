@@ -4644,6 +4644,7 @@ GOAWAY Message {
   New Session URI Length (vi64),
   New Session URI (..),
   Timeout (vi64),
+  Request ID (vi64),
 }
 </pre>
 </div>
@@ -4670,6 +4671,17 @@ gracefully closed before closing the session with <code>GOAWAY_TIMEOUT</code>. A
 0 indicates the sender has no specific timeout, and the recipient <span class="bcp14">SHOULD</span> still
 close the session as quickly as possible. This is a hint; the sender of the
 GOAWAY <span class="bcp14">MAY</span> close the session before the indicated timeout has elapsed.<a href="#section-9.5-7.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.5-7.3">
+            <p id="section-9.5-7.3.1">Request ID: The smallest peer Request ID that was not or might not have been
+processed prior to sending the GOAWAY. If no requests have been processed,
+this is 0 (at a server) or 1 (at a client). If the parity of the Request ID
+does not match the receiver's parity, the endpoint <span class="bcp14">MUST</span> close the session with
+<code>INVALID_REQUEST_ID</code>. Requests with a Request ID equal to or greater than the
+indicated value, as well as any requests that arrive after the GOAWAY, <span class="bcp14">MUST</span> be
+rejected with REQUEST_ERROR using error code GOING_AWAY. Requests with a
+Request ID less than the indicated value were or might have been processed;
+their status can be determined from the response on each request stream.<a href="#section-9.5-7.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
