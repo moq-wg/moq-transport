@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 24 September 2026</td>
+<td class="center">Expires 27 September 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-03-23" class="published">23 March 2026</time>
+<time datetime="2026-03-26" class="published">26 March 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-09-24">24 September 2026</time></dd>
+<dd class="expires"><time datetime="2026-09-27">27 September 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 24 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 27 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1316,7 +1316,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-modularity" class="internal xref">Modularity</a></p>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-extensibility" class="internal xref">Extensibility</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
             <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-publishing-and-retrieving-t" class="internal xref">Publishing and Retrieving Tracks</a></p>
@@ -3098,10 +3098,10 @@ cause issues with latency sensitive applications.<a href="#section-3.7.3-1" clas
 </div>
 </section>
 </div>
-<div id="modularity">
+<div id="extensibility">
 <section id="section-4">
-      <h2 id="name-modularity">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-modularity" class="section-name selfRef">Modularity</a>
+      <h2 id="name-extensibility">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-extensibility" class="section-name selfRef">Extensibility</a>
       </h2>
 <p id="section-4-1">MOQT defines all messages necessary to implement both simple publishing or
 subscribing endpoints as well as highly functional Relays.  Non-Relay endpoints
@@ -7105,11 +7105,19 @@ integer values of N (that is, 0x9D, 0x11C, ..., 0x3fffffffffffffde).<a href="#se
           <p id="section-13-4.7.1">MOQT Auth Token Type<a href="#section-13-4.7.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-13-5">Implementations <span class="bcp14">MUST</span> handle unknown values from these registries gracefully
-according to the rules defined in each section.<a href="#section-13-5" class="pilcrow">¶</a></p>
+<p id="section-13-5">Because new values in these registries can be defined without negotiation,
+implementations <span class="bcp14">MUST</span> handle unknown values gracefully. Endpoints <span class="bcp14">MUST NOT</span>
+close the session solely because they received an unknown value. The
+following rules apply:<a href="#section-13-5" class="pilcrow">¶</a></p>
 <p id="section-13-6">Setup Options with reserved identifiers have no semantics and can carry
 arbitrary values. Endpoints <span class="bcp14">MUST</span> ignore unknown Setup Options as specified
 in <a href="#message-setup" class="auto internal xref">Section 9.4</a>.<a href="#section-13-6" class="pilcrow">¶</a></p>
+<p id="section-13-7">Unknown Properties <span class="bcp14">MUST</span> be handled as specified in <a href="#properties" class="auto internal xref">Section 2.5</a>.<a href="#section-13-7" class="pilcrow">¶</a></p>
+<p id="section-13-8">Receipt of an unknown error code in any error context (Session Termination,
+REQUEST_ERROR, PUBLISH_DONE, or Data Stream Reset) <span class="bcp14">MUST</span> be treated as
+equivalent to <code>INTERNAL_ERROR</code> for that context. An endpoint <span class="bcp14">MUST NOT</span> close
+the session because it received an unknown error code in a REQUEST_ERROR
+or PUBLISH_DONE.<a href="#section-13-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana">

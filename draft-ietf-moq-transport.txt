@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 24 September 2026                                 I. Swett, Ed.
+Expires: 27 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           23 March 2026
+                                                           26 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 September 2026.
+   This Internet-Draft will expire on 27 September 2026.
 
 Copyright Notice
 
@@ -115,7 +115,7 @@ Table of Contents
        3.7.1.  Bufferbloat
        3.7.2.  Application-Limited
        3.7.3.  Consistent Throughput
-   4.  Modularity
+   4.  Extensibility
    5.  Publishing and Retrieving Tracks
      5.1.  Subscriptions
        5.1.1.  Subscription State Management
@@ -1299,7 +1299,7 @@ Table of Contents
    upon detecting loss.  In both cases, the large reduction in sending
    rate might cause issues with latency sensitive applications.
 
-4.  Modularity
+4.  Extensibility
 
    MOQT defines all messages necessary to implement both simple
    publishing or subscribing endpoints as well as highly functional
@@ -4730,12 +4730,22 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  MOQT Auth Token Type
 
-   Implementations MUST handle unknown values from these registries
-   gracefully according to the rules defined in each section.
+   Because new values in these registries can be defined without
+   negotiation, implementations MUST handle unknown values gracefully.
+   Endpoints MUST NOT close the session solely because they received an
+   unknown value.  The following rules apply:
 
    Setup Options with reserved identifiers have no semantics and can
    carry arbitrary values.  Endpoints MUST ignore unknown Setup Options
    as specified in Section 9.4.
+
+   Unknown Properties MUST be handled as specified in Section 2.5.
+
+   Receipt of an unknown error code in any error context (Session
+   Termination, REQUEST_ERROR, PUBLISH_DONE, or Data Stream Reset) MUST
+   be treated as equivalent to INTERNAL_ERROR for that context.  An
+   endpoint MUST NOT close the session because it received an unknown
+   error code in a REQUEST_ERROR or PUBLISH_DONE.
 
 14.  IANA Considerations
 
