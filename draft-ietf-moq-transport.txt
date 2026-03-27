@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 September 2026                                 I. Swett, Ed.
+Expires: 28 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           26 March 2026
+                                                           27 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 September 2026.
+   This Internet-Draft will expire on 28 September 2026.
 
 Copyright Notice
 
@@ -102,9 +102,10 @@ Table of Contents
      2.5.  Properties
    3.  Sessions
      3.1.  Session establishment
-       3.1.1.  WebTransport
-       3.1.2.  QUIC
-       3.1.3.  Connection URL
+       3.1.1.  MOQT URI Scheme
+       3.1.2.  WebTransport
+       3.1.3.  Native QUIC
+       3.1.4.  Connection URL
      3.2.  Extension Negotiation
      3.3.  Session initialization
        3.3.1.  Request Cancellation and Rejection
@@ -211,16 +212,18 @@ Table of Contents
      12.4.  Implementation Identification Fingerprinting
    13. Grease
    14. IANA Considerations
-     14.1.  Setup Options
-     14.2.  Authorization Token Alias Type
-     14.3.  MOQT Auth Token Type
-     14.4.  Message Parameters
-     14.5.  Properties
-     14.6.  Error Codes
-       14.6.1.  Session Termination Error Codes
-       14.6.2.  REQUEST_ERROR Codes
-       14.6.3.  PUBLISH_DONE Codes
-       14.6.4.  Data Stream Reset Error Codes
+     14.1.  URI Scheme Registrations
+       14.1.1.  "moqt" URI Scheme Registration
+     14.2.  Setup Options
+     14.3.  Authorization Token Alias Type
+     14.4.  MOQT Auth Token Type
+     14.5.  Message Parameters
+     14.6.  Properties
+     14.7.  Error Codes
+       14.7.1.  Session Termination Error Codes
+       14.7.2.  REQUEST_ERROR Codes
+       14.7.3.  PUBLISH_DONE Codes
+       14.7.4.  Data Stream Reset Error Codes
    Contributors
    Use of Generative AI
    References
@@ -1004,19 +1007,11 @@ Table of Contents
    Note: Draft versions prior to -15 all used moq-00 ALPN, followed by
    version negotiation in the SETUP messages.
 
-3.1.1.  WebTransport
+3.1.1.  MOQT URI Scheme
 
-   An MOQT server that is accessible via WebTransport can be identified
-   using an HTTPS URI ([RFC9110], Section 4.2.2).  An MOQT session can
-   be established by sending an extended CONNECT request to the host and
-   the path indicated by the URI, as described in ([WebTransport],
-   Section 3).
-
-3.1.2.  QUIC
-
-   An MOQT server that is accessible via native QUIC can be identified
-   by a URI with a "moqt" scheme.  The "moqt" URI scheme is defined as
-   follows, using definitions from [RFC3986]:
+   An MOQT server is identified using a URI with the "moqt" scheme.  The
+   "moqt" URI scheme is defined as follows, using definitions from
+   [RFC3986]:
 
    moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
 
@@ -1024,18 +1019,51 @@ Table of Contents
    moqt URI scheme supports the /.well-known/ path prefix defined in
    [RFC8615].
 
-   This protocol does not specify any semantics on the path-abempty and
-   query portions of the URI.  The contents of those are left up to the
-   application.
+   The moqt URI scheme follows the generic URI syntax of [RFC3986] for
+   the authority, path-abempty, and query components, including the use
+   of reserved characters and percent-encoding defined therein.  A moqt
+   URI can be converted to an https URI by replacing the scheme (see
+   Section 3.1.2), so the path-abempty and query components use the same
+   syntax as https URIs.
 
-   The client can establish a connection to an MOQT server identified by
-   a given URI by setting up a QUIC connection to the host and port
-   identified by the authority section of the URI.  The authority, path-
-   abempty and query portions of the URI are also transmitted in Setup
-   Options (see Section 9.4.1).  If the port is omitted in the URI, a
-   default port of 443 is used for setting up the QUIC connection.
+   The default operation for dereferencing a moqt URI is to establish a
+   MOQT session to the identified server.
 
-3.1.3.  Connection URL
+   TODO: Add URI scheme security considerations per RFC 7595 Section 3.7
+   (e.g., authority in SNI, path/query exposure).
+
+   TODO: Add internationalization statement per RFC 7595 Section 3.6.
+
+   If the port is omitted in the URI, a default port of 443 is used.
+
+   The client MAY use either native QUIC or WebTransport.  On a QUIC
+   connection, the client offers any combination of MOQT ALPNs (e.g.
+   moqt/1, moqt/2) and h3 that it supports in its TLS ClientHello, in
+   preference order.  If the server selects an MOQT ALPN, the session
+   proceeds as described in Section 3.1.3.  If the server selects h3,
+   the client establishes a WebTransport session as described in
+   Section 3.1.2.  On a TCP+TLS connection, the client offers h2 in its
+   TLS ClientHello and establishes a WebTransport session as described
+   in Section 3.1.2.
+
+3.1.2.  WebTransport
+
+   When the client uses WebTransport, it constructs an https URI from
+   the moqt URI by replacing the scheme with https.  For example,
+   moqt://example.com/path becomes https://example.com/path.  The client
+   sends an extended CONNECT request to this URI to establish a
+   WebTransport session, as described in ([WebTransport], Section 3).
+   The client includes MOQT protocol identifiers in the WT-Available-
+   Protocols header ([WebTransport], Section 3.3).
+
+3.1.3.  Native QUIC
+
+   The client establishes a QUIC connection to the host and port
+   identified by the authority section of the URI.  When the client uses
+   native QUIC, the authority, path-abempty and query portions of the
+   URI are transmitted in Setup Options (see Section 9.4.1).
+
+3.1.4.  Connection URL
 
    Each track MAY have one or more associated connection URLs specifying
    network hosts through which a track may be accessed.  The syntax of
@@ -2631,12 +2659,12 @@ Table of Contents
 
    The AUTHORITY option (Option Type 0x05) allows the client to specify
    the authority component of the MoQ URI when using native QUIC
-   ([QUIC]).  It MUST NOT be used by the server, or when WebTransport is
-   used.  When an AUTHORITY option is received from a server, or when an
-   AUTHORITY option is received while WebTransport is used, or when an
-   AUTHORITY option is received by a server but the server does not
-   support the specified authority, the session MUST be closed with
-   INVALID_AUTHORITY.
+   (Section 3.1.3).  It MUST NOT be used by the server, or when
+   WebTransport is used.  When an AUTHORITY option is received from a
+   server, or when an AUTHORITY option is received while WebTransport is
+   used, or when an AUTHORITY option is received by a server but the
+   server does not support the specified authority, the session MUST be
+   closed with INVALID_AUTHORITY.
 
    The AUTHORITY option follows the URI formatting rules [RFC3986].
    When connecting to a server using a URI with the "moqt" scheme, the
@@ -2647,12 +2675,12 @@ Table of Contents
 9.4.1.2.  PATH
 
    The PATH option (Option Type 0x01) allows the client to specify the
-   path of the MoQ URI when using native QUIC ([QUIC]).  It MUST NOT be
-   used by the server, or when WebTransport is used.  When a PATH option
-   is received from a server, or when a PATH option is received while
-   WebTransport is used, or when a PATH option is received by a server
-   but the server does not support the specified path, the session MUST
-   be closed with INVALID_PATH.
+   path of the MoQ URI when using native QUIC (Section 3.1.3).  It MUST
+   NOT be used by the server, or when WebTransport is used.  When a PATH
+   parameter is received from a server, or when a PATH parameter is
+   received while WebTransport is used, or when a PATH parameter is
+   received by a server but the server does not support the specified
+   path, the session MUST be closed with INVALID_PATH.
 
    The PATH option follows the URI formatting rules [RFC3986].  When
    connecting to a server using a URI with the "moqt" scheme, the client
@@ -2822,7 +2850,7 @@ Table of Contents
       See Section 1.4.4.
 
    The application SHOULD use a relevant error code in REQUEST_ERROR, as
-   defined below and assigned in Section 14.6.2.  Most codepoints have
+   defined below and assigned in Section 14.7.2.  Most codepoints have
    identical meanings for various request types, but some have request-
    specific meanings.
 
@@ -4729,17 +4757,17 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    The following registries include GREASE reservations:
 
-   *  Setup Options (Section 14.1)
+   *  Setup Options (Section 14.2)
 
-   *  Properties (Section 14.5)
+   *  Properties (Section 14.6)
 
-   *  Session Termination Error Codes (Section 14.6.1)
+   *  Session Termination Error Codes (Section 14.7.1)
 
-   *  REQUEST_ERROR Codes (Section 14.6.2)
+   *  REQUEST_ERROR Codes (Section 14.7.2)
 
-   *  PUBLISH_DONE Codes (Section 14.6.3)
+   *  PUBLISH_DONE Codes (Section 14.7.3)
 
-   *  Data Stream Reset Error Codes (Section 14.6.4)
+   *  Data Stream Reset Error Codes (Section 14.7.4)
 
    *  MOQT Auth Token Type
 
@@ -4768,9 +4796,29 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  Message types
 
-   TODO: register the URI scheme and the ALPN
+14.1.  URI Scheme Registrations
 
-14.1.  Setup Options
+   This document requests the registration of the following URI schemes
+   in the "Uniform Resource Identifier (URI) Schemes" registry, per
+   [RFC7595]:
+
+14.1.1.  "moqt" URI Scheme Registration
+
+   Scheme name: moqt
+
+   Status: Permanent
+
+   Applications/protocols that use this scheme name: Media over QUIC
+   Transport (MOQT) over native QUIC or WebTransport, as defined in this
+   document.
+
+   Contact: IETF MoQ Working Group (moq@ietf.org)
+
+   Change controller: IETF
+
+   References: This document
+
+14.2.  Setup Options
 
      +=================+===========================+=================+
      |            Type | Name                      | Specification   |
@@ -4800,7 +4848,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    private or application-specific use; implementations that need custom
    Setup Options SHOULD request a provisional registration.
 
-14.2.  Authorization Token Alias Type
+14.3.  Authorization Token Alias Type
 
                    +======+===========+===============+
                    | Code | Name      | Specification |
@@ -4816,7 +4864,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                  Table 10
 
-14.3.  MOQT Auth Token Type
+14.4.  MOQT Auth Token Type
 
         +=================+=======================+===============+
         |            Code | Name                  | Specification |
@@ -4828,7 +4876,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 11
 
-14.4.  Message Parameters
+14.5.  Message Parameters
 
          +================+=====================+================+
          | Parameter Type | Parameter Name      | Specification  |
@@ -4859,7 +4907,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    *  Message Parameters - List which params can be repeated in the
       table.
 
-14.5.  Properties
+14.6.  Properties
 
    +==========+===============================+========+===============+
    |     Type | Name                          | Scope  | Specification |
@@ -4913,9 +4961,9 @@ EXT 1 and EXT N can be modified or removed by Relays
       from uncoordinated sources may encounter different semantics for
       the same code points, creating potential collision risks.
 
-14.6.  Error Codes
+14.7.  Error Codes
 
-14.6.1.  Session Termination Error Codes
+14.7.1.  Session Termination Error Codes
 
      +=============================+=================+===============+
      | Name                        |       Code      | Specification |
@@ -4967,7 +5015,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 14
 
-14.6.2.  REQUEST_ERROR Codes
+14.7.2.  REQUEST_ERROR Codes
 
      +============================+=================+===============+
      | Name                       |       Code      | Specification |
@@ -5009,7 +5057,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                  Table 15
 
-14.6.3.  PUBLISH_DONE Codes
+14.7.3.  PUBLISH_DONE Codes
 
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
@@ -5039,7 +5087,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 16
 
-14.6.4.  Data Stream Reset Error Codes
+14.7.4.  Data Stream Reset Error Codes
 
        +=======================+=================+================+
        | Name                  |       Code      | Specification  |
@@ -5143,6 +5191,11 @@ Normative References
               Negotiation Extension", RFC 7301, DOI 10.17487/RFC7301,
               July 2014, <https://www.rfc-editor.org/rfc/rfc7301>.
 
+   [RFC7595]  Thaler, D., Ed., Hansen, T., and T. Hardie, "Guidelines
+              and Registration Procedures for URI Schemes", BCP 35,
+              RFC 7595, DOI 10.17487/RFC7595, June 2015,
+              <https://www.rfc-editor.org/rfc/rfc7595>.
+
    [RFC8126]  Cotton, M., Leiba, B., and T. Narten, "Guidelines for
               Writing an IANA Considerations Section in RFCs", BCP 26,
               RFC 8126, DOI 10.17487/RFC8126, June 2017,
@@ -5155,11 +5208,6 @@ Normative References
    [RFC8615]  Nottingham, M., "Well-Known Uniform Resource Identifiers
               (URIs)", RFC 8615, DOI 10.17487/RFC8615, May 2019,
               <https://www.rfc-editor.org/rfc/rfc8615>.
-
-   [RFC9110]  Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
-              Ed., "HTTP Semantics", STD 97, RFC 9110,
-              DOI 10.17487/RFC9110, June 2022,
-              <https://www.rfc-editor.org/rfc/rfc9110>.
 
    [RFC9221]  Pauly, T., Kinnear, E., and D. Schinazi, "An Unreliable
               Datagram Extension to QUIC", RFC 9221,
