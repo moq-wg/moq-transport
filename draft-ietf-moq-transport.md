@@ -496,19 +496,17 @@ Objects within a Group are in ascending order by Object ID.
 From the perspective of a subscriber or a cache, an Object can be in three
 possible states:
 
-1. The Object is known to not exist. This state is permanent for the endpoint
-   that learned it. MOQT has multiple ways to communicate that a certain range
-   of Objects does not exist, including the Object Status field, gaps in FETCH
-   responses, and Prior Gap Properties.  All of these are authoritative.
+1. The Object is known to not exist. This state is permanent.  All signals
+   that an Object does not exist are authoritative.
 2. The Object is known to exist. From this state, it can transition to not
    existing, but not vice versa.
 3. The state of the Object is unknown, either because it has not yet been
    received, or it has not been produced yet.
 
-Due to timing, an endpoint can receive an Object after it has already recorded
-that the Object does not exist (e.g., via a FETCH gap from one source and later
-delivery via a subscription).  This is not a protocol error and the Track is not
-malformed.
+Since objects can be delivered out of order, an endpoint can receive an Object
+after it has already recorded that the Object does not exist (e.g., via a FETCH
+gap from one source and later delivery via a subscription).  This is not a
+protocol error and the Track is not malformed.
 
 Whenever the publisher communicates that certain objects do not exist, this
 fact is expressed as a contiguous range of non-existent objects and
