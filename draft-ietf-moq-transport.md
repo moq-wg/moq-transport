@@ -836,6 +836,30 @@ URI can be converted to an `https` URI by replacing the scheme (see
 {{webtransport}}), so the `path-abempty` and `query` components use the same
 syntax as `https` URIs.
 
+### Fragment Identifiers {#moqt-fragment}
+
+The media type for resources identified by `moqt` URIs is
+`application/moqt` (see {{iana-media-type}}).
+
+Fragment identifiers MAY be used with `moqt` URIs. The fragment is not
+transmitted to the server; it is processed locally by the client after
+establishing the MOQT session.
+
+A `moqt` URI fragment MUST begin with a registered fragment type
+identifier, followed by a colon (`:`), followed by a type-specific value:
+
+~~~
+moqt://example.com/app#<type>:<value>
+~~~
+
+Fragment type identifiers MUST consist of ASCII lowercase letters,
+digits, and hyphens (`a-z`, `0-9`, `-`). The
+semantics of the value after the colon are defined by the specification
+that registers the fragment type.
+
+Fragment type identifiers are registered in the "MOQT URI Fragment
+Types" registry ({{iana-fragment-types}}).
+
 The default operation for dereferencing a `moqt` URI is to establish a
 MOQT session to the identified server.
 
@@ -4389,6 +4413,58 @@ Change controller: IETF
 
 References: This document
 
+## Media Type Registration {#iana-media-type}
+
+This document registers the following media type in the "Media Types"
+registry {{!RFC6838}}:
+
+Type name: application
+
+Subtype name: moqt
+
+Required parameters: N/A
+
+Optional parameters: N/A
+
+Encoding considerations: This media type is used to identify resources
+accessed via the `moqt` URI scheme. It is not used to label the
+content of MOQT objects, which are defined by separate media types in
+application-specific specifications.
+
+Security considerations: See the Security Considerations section of
+this document.
+
+Interoperability considerations: N/A
+
+Published specification: This document
+
+Applications that use this media type: Implementations of the Media
+over QUIC Transport (MOQT) protocol.
+
+Fragment identifier considerations: Fragment identifiers for
+`application/moqt` follow the syntax defined in {{moqt-fragment}}.
+
+Additional information: N/A
+
+Contact: IETF MoQ Working Group (moq@ietf.org)
+
+Change controller: IETF
+
+## MOQT URI Fragment Types {#iana-fragment-types}
+
+This document establishes the "MOQT URI Fragment Types" registry. This
+registry governs fragment type identifiers used in `moqt` URI fragments
+as defined in {{moqt-fragment}}.
+
+New fragment type identifiers are registered using the Specification
+Required policy ({{!RFC8126, Section 4.6}}).
+
+Each entry in the registry contains the following fields:
+
+| Fragment Type | Description | Specification |
+|:--------------|:------------|:--------------|
+
+This registry is initially empty.
 
 ## Setup Options {#iana-setup-options}
 
