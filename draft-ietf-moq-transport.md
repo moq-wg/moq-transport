@@ -833,6 +833,9 @@ syntax as `https` URIs.
 
 ### Fragment Identifiers {#moqt-fragment}
 
+The media type for resources identified by `moqt` URIs is
+`application/moqt` (see {{iana-media-type}}).
+
 Fragment identifiers MAY be used with `moqt` URIs. The fragment is not
 transmitted to the server; it is processed locally by the client after
 establishing the MOQT session.
@@ -4404,6 +4407,43 @@ Contact: IETF MoQ Working Group (moq@ietf.org)
 Change controller: IETF
 
 References: This document
+
+## Media Type Registration {#iana-media-type}
+
+This document registers the following media type in the "Media Types"
+registry {{!RFC6838}}:
+
+Type name: application
+
+Subtype name: moqt
+
+Required parameters: N/A
+
+Optional parameters: N/A
+
+Encoding considerations: This media type is used to identify resources
+accessed via the `moqt` URI scheme. It is not used to label the
+content of MOQT objects, which are defined by separate media types in
+application-specific specifications.
+
+Security considerations: See the Security Considerations section of
+this document.
+
+Interoperability considerations: N/A
+
+Published specification: This document
+
+Applications that use this media type: Implementations of the Media
+over QUIC Transport (MOQT) protocol.
+
+Fragment identifier considerations: Fragment identifiers for
+`application/moqt` follow the syntax defined in {{moqt-fragment}}.
+
+Additional information: N/A
+
+Contact: IETF MoQ Working Group (moq@ietf.org)
+
+Change controller: IETF
 
 ## MOQT URI Fragment Types {#iana-fragment-types}
 
