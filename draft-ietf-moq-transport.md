@@ -376,6 +376,9 @@ If a receiver understands a Type, and the following Value or Length/Value does
 not match the serialization defined by that Type, the receiver MUST close
 the session with error code `KEY_VALUE_FORMATTING_ERROR`.
 
+Key-Value-Pairs are always parsed with a known byte length, which bounds
+the sequence. The source of this length varies by context.
+
 ### Reason Phrase Structure {#reason-phrase}
 
 Reason Phrase provides a way for the sender to encode additional diagnostic
@@ -754,6 +757,10 @@ If a Relay supports a Property, it MAY be modified, added, removed, and/or
 cached, subject to the processing rules specified in the definition.
 
 Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
+Track Properties always appear as the final field in the messages that
+carry them; their length is the remaining bytes of the message after all
+preceding fields have been consumed. Object Properties ({{object-properties}})
+are preceded by an explicit length field.
 
 Property types are registered in the IANA table 'MOQ Properties'.
 See {{iana}}.
@@ -1118,7 +1125,7 @@ in order to obtain an accurate minimum RTT. Similarly, Reno halves it's congesti
 window upon detecting loss.  In both cases, the large reduction in sending rate might
 cause issues with latency sensitive applications.
 
-# Modularity
+# Extensibility
 
 MOQT defines all messages necessary to implement both simple publishing or
 subscribing endpoints as well as highly functional Relays.  Non-Relay endpoints
@@ -1513,7 +1520,7 @@ datagram (see {{data-streams}}).
 (groups with higher group ID are sent first).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
 publisher's preference is used if the subscriber did not express one (by
-setting Group Order field to value 0x0).  The group order of an existing
+omitting the Group Order parameter).  The group order of an existing
 subscription cannot be changed.
 
 ## Scheduling Algorithm
@@ -1974,7 +1981,8 @@ All Message Parameters MUST be defined in the negotiated version of MOQT or
 negotiated via Setup Options. An endpoint that receives an unknown Message
 Parameter MUST close the session with `PROTOCOL_VIOLATION`. Because the receiver
 has to understand every Message Parameter, there is no need for a mechanism to
-skip unknown parameters.
+skip unknown parameters. Because unknown parameters cannot be skipped, the block
+is bounded by a parameter count rather than a length.
 
 The Message Parameter types defined in this version of MOQT are listed below.
 
@@ -2341,7 +2349,8 @@ SETUP Message {
 ~~~
 {: #moq-transport-setup-format title="MOQT SETUP Message"}
 
-Setup Options are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
+Setup Options are serialized as Key-Value-Pairs {{moq-key-value-pair}},
+spanning the entire message payload, bounded by the message Length field.
 Setup Options use a namespace that is constant across all MOQT versions,
 separate from Message Parameters.  Receivers MUST ignore unrecognized Setup
 Options.  Senders MUST NOT repeat the same Option Type in a message unless
@@ -2462,6 +2471,7 @@ GOAWAY Message {
   New Session URI Length (vi64),
   New Session URI (..),
   Timeout (vi64),
+  Request ID (vi64),
 }
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
@@ -2482,6 +2492,16 @@ GOAWAY Message {
   0 indicates the sender has no specific timeout, and the recipient SHOULD still
   close the session as quickly as possible. This is a hint; the sender of the
   GOAWAY MAY close the session before the indicated timeout has elapsed.
+
+* Request ID: The smallest peer Request ID that was not or might not have been
+  processed prior to sending the GOAWAY. If no requests have been processed,
+  this is 0 (at a server) or 1 (at a client). If the parity of the Request ID
+  does not match the receiver's parity, the endpoint MUST close the session with
+  `INVALID_REQUEST_ID`. Requests with a Request ID equal to or greater than the
+  indicated value, as well as any requests that arrive after the GOAWAY, MUST be
+  rejected with REQUEST_ERROR using error code GOING_AWAY. Requests with a
+  Request ID less than the indicated value were or might have been processed;
+  their status can be determined from the response on each request stream.
 
 ## REQUEST_OK {#message-request-ok}
 
@@ -4320,12 +4340,22 @@ The following registries include GREASE reservations:
 - Data Stream Reset Error Codes ({{iana-reset-stream}})
 - MOQT Auth Token Type
 
-Implementations MUST handle unknown values from these registries gracefully
-according to the rules defined in each section.
+Because new values in these registries can be defined without negotiation,
+implementations MUST handle unknown values gracefully. Endpoints MUST NOT
+close the session solely because they received an unknown value. The
+following rules apply:
 
 Setup Options with reserved identifiers have no semantics and can carry
 arbitrary values. Endpoints MUST ignore unknown Setup Options as specified
 in {{message-setup}}.
+
+Unknown Properties MUST be handled as specified in {{properties}}.
+
+Receipt of an unknown error code in any error context (Session Termination,
+REQUEST_ERROR, PUBLISH_DONE, or Data Stream Reset) MUST be treated as
+equivalent to `INTERNAL_ERROR` for that context. An endpoint MUST NOT close
+the session because it received an unknown error code in a REQUEST_ERROR
+or PUBLISH_DONE.
 
 # IANA Considerations {#iana}
 
