@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 20 September 2026                                 I. Swett, Ed.
+Expires: 28 September 2026                                 I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           19 March 2026
+                                                           27 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 September 2026.
+   This Internet-Draft will expire on 28 September 2026.
 
 Copyright Notice
 
@@ -117,7 +117,7 @@ Table of Contents
        3.7.1.  Bufferbloat
        3.7.2.  Application-Limited
        3.7.3.  Consistent Throughput
-   4.  Modularity
+   4.  Extensibility
    5.  Publishing and Retrieving Tracks
      5.1.  Subscriptions
        5.1.1.  Subscription State Management
@@ -215,17 +215,18 @@ Table of Contents
    14. IANA Considerations
      14.1.  URI Scheme Registrations
        14.1.1.  "moqt" URI Scheme Registration
-     14.2.  MOQT URI Fragment Types
-     14.3.  Setup Options
-     14.4.  Authorization Token Alias Type
-     14.5.  MOQT Auth Token Type
-     14.6.  Message Parameters
-     14.7.  Properties
-     14.8.  Error Codes
-       14.8.1.  Session Termination Error Codes
-       14.8.2.  REQUEST_ERROR Codes
-       14.8.3.  PUBLISH_DONE Codes
-       14.8.4.  Data Stream Reset Error Codes
+     14.2.  Media Type Registration
+     14.3.  MOQT URI Fragment Types
+     14.4.  Setup Options
+     14.5.  Authorization Token Alias Type
+     14.6.  MOQT Auth Token Type
+     14.7.  Message Parameters
+     14.8.  Properties
+     14.9.  Error Codes
+       14.9.1.  Session Termination Error Codes
+       14.9.2.  REQUEST_ERROR Codes
+       14.9.3.  PUBLISH_DONE Codes
+       14.9.4.  Data Stream Reset Error Codes
    Contributors
    Use of Generative AI
    References
@@ -536,6 +537,9 @@ Table of Contents
    Value does not match the serialization defined by that Type, the
    receiver MUST close the session with error code
    KEY_VALUE_FORMATTING_ERROR.
+
+   Key-Value-Pairs are always parsed with a known byte length, which
+   bounds the sequence.  The source of this length varies by context.
 
 1.4.4.  Reason Phrase Structure
 
@@ -946,7 +950,11 @@ Table of Contents
    and/or cached, subject to the processing rules specified in the
    definition.
 
-   Properties are serialized as Key-Value-Pairs (see Figure 2).
+   Properties are serialized as Key-Value-Pairs (see Figure 2).  Track
+   Properties always appear as the final field in the messages that
+   carry them; their length is the remaining bytes of the message after
+   all preceding fields have been consumed.  Object Properties
+   (Section 10.2.1.2) are preceded by an explicit length field.
 
    Property types are registered in the IANA table 'MOQ Properties'.
    See Section 14.
@@ -1023,6 +1031,9 @@ Table of Contents
 
 3.1.2.  Fragment Identifiers
 
+   The media type for resources identified by moqt URIs is application/
+   moqt (see Section 14.2).
+
    Fragment identifiers MAY be used with moqt URIs.  The fragment is not
    transmitted to the server; it is processed locally by the client
    after establishing the MOQT session.
@@ -1039,7 +1050,7 @@ Table of Contents
    fragment type.
 
    Fragment type identifiers are registered in the "MOQT URI Fragment
-   Types" registry (Section 14.2).
+   Types" registry (Section 14.3).
 
    The default operation for dereferencing a moqt URI is to establish a
    MOQT session to the identified server.
@@ -1342,7 +1353,7 @@ Table of Contents
    upon detecting loss.  In both cases, the large reduction in sending
    rate might cause issues with latency sensitive applications.
 
-4.  Modularity
+4.  Extensibility
 
    MOQT defines all messages necessary to implement both simple
    publishing or subscribing endpoints as well as highly functional
@@ -1759,8 +1770,9 @@ Table of Contents
    'Descending' (groups with higher group ID are sent first).  The
    subscriber optionally communicates its group order preference in the
    SUBSCRIBE message; the publisher's preference is used if the
-   subscriber did not express one (by setting Group Order field to value
-   0x0).  The group order of an existing subscription cannot be changed.
+   subscriber did not express one (by omitting the Group Order
+   parameter).  The group order of an existing subscription cannot be
+   changed.
 
 7.2.  Scheduling Algorithm
 
@@ -2263,7 +2275,8 @@ Table of Contents
    unknown Message Parameter MUST close the session with
    PROTOCOL_VIOLATION.  Because the receiver has to understand every
    Message Parameter, there is no need for a mechanism to skip unknown
-   parameters.
+   parameters.  Because unknown parameters cannot be skipped, the block
+   is bounded by a parameter count rather than a length.
 
    The Message Parameter types defined in this version of MOQT are
    listed below.
@@ -2655,12 +2668,14 @@ Table of Contents
 
                         Figure 6: MOQT SETUP Message
 
-   Setup Options are serialized as Key-Value-Pairs Figure 2.  Setup
-   Options use a namespace that is constant across all MOQT versions,
-   separate from Message Parameters.  Receivers MUST ignore unrecognized
-   Setup Options.  Senders MUST NOT repeat the same Option Type in a
-   message unless the option definition explicitly allows multiple
-   instances.  Receivers MUST allow duplicates of unknown Setup Options.
+   Setup Options are serialized as Key-Value-Pairs Figure 2, spanning
+   the entire message payload, bounded by the message Length field.
+   Setup Options use a namespace that is constant across all MOQT
+   versions, separate from Message Parameters.  Receivers MUST ignore
+   unrecognized Setup Options.  Senders MUST NOT repeat the same Option
+   Type in a message unless the option definition explicitly allows
+   multiple instances.  Receivers MUST allow duplicates of unknown Setup
+   Options.
 
    The available Setup Options are detailed in the next sections.
 
@@ -2783,6 +2798,7 @@ Table of Contents
      New Session URI Length (vi64),
      New Session URI (..),
      Timeout (vi64),
+     Request ID (vi64),
    }
 
                        Figure 7: MOQT GOAWAY Message
@@ -2805,6 +2821,18 @@ Table of Contents
       timeout, and the recipient SHOULD still close the session as
       quickly as possible.  This is a hint; the sender of the GOAWAY MAY
       close the session before the indicated timeout has elapsed.
+
+   *  Request ID: The smallest peer Request ID that was not or might not
+      have been processed prior to sending the GOAWAY.  If no requests
+      have been processed, this is 0 (at a server) or 1 (at a client).
+      If the parity of the Request ID does not match the receiver's
+      parity, the endpoint MUST close the session with
+      INVALID_REQUEST_ID.  Requests with a Request ID equal to or
+      greater than the indicated value, as well as any requests that
+      arrive after the GOAWAY, MUST be rejected with REQUEST_ERROR using
+      error code GOING_AWAY.  Requests with a Request ID less than the
+      indicated value were or might have been processed; their status
+      can be determined from the response on each request stream.
 
 9.6.  REQUEST_OK
 
@@ -2848,7 +2876,7 @@ Table of Contents
       See Section 1.4.4.
 
    The application SHOULD use a relevant error code in REQUEST_ERROR, as
-   defined below and assigned in Section 14.8.2.  Most codepoints have
+   defined below and assigned in Section 14.9.2.  Most codepoints have
    identical meanings for various request types, but some have request-
    specific meanings.
 
@@ -4755,26 +4783,36 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    The following registries include GREASE reservations:
 
-   *  Setup Options (Section 14.3)
+   *  Setup Options (Section 14.4)
 
-   *  Properties (Section 14.7)
+   *  Properties (Section 14.8)
 
-   *  Session Termination Error Codes (Section 14.8.1)
+   *  Session Termination Error Codes (Section 14.9.1)
 
-   *  REQUEST_ERROR Codes (Section 14.8.2)
+   *  REQUEST_ERROR Codes (Section 14.9.2)
 
-   *  PUBLISH_DONE Codes (Section 14.8.3)
+   *  PUBLISH_DONE Codes (Section 14.9.3)
 
-   *  Data Stream Reset Error Codes (Section 14.8.4)
+   *  Data Stream Reset Error Codes (Section 14.9.4)
 
    *  MOQT Auth Token Type
 
-   Implementations MUST handle unknown values from these registries
-   gracefully according to the rules defined in each section.
+   Because new values in these registries can be defined without
+   negotiation, implementations MUST handle unknown values gracefully.
+   Endpoints MUST NOT close the session solely because they received an
+   unknown value.  The following rules apply:
 
    Setup Options with reserved identifiers have no semantics and can
    carry arbitrary values.  Endpoints MUST ignore unknown Setup Options
    as specified in Section 9.4.
+
+   Unknown Properties MUST be handled as specified in Section 2.5.
+
+   Receipt of an unknown error code in any error context (Session
+   Termination, REQUEST_ERROR, PUBLISH_DONE, or Data Stream Reset) MUST
+   be treated as equivalent to INTERNAL_ERROR for that context.  An
+   endpoint MUST NOT close the session because it received an unknown
+   error code in a REQUEST_ERROR or PUBLISH_DONE.
 
 14.  IANA Considerations
 
@@ -4806,7 +4844,44 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    References: This document
 
-14.2.  MOQT URI Fragment Types
+14.2.  Media Type Registration
+
+   This document registers the following media type in the "Media Types"
+   registry [RFC6838]:
+
+   Type name: application
+
+   Subtype name: moqt
+
+   Required parameters: N/A
+
+   Optional parameters: N/A
+
+   Encoding considerations: This media type is used to identify
+   resources accessed via the moqt URI scheme.  It is not used to label
+   the content of MOQT objects, which are defined by separate media
+   types in application-specific specifications.
+
+   Security considerations: See the Security Considerations section of
+   this document.
+
+   Interoperability considerations: N/A
+
+   Published specification: This document
+
+   Applications that use this media type: Implementations of the Media
+   over QUIC Transport (MOQT) protocol.
+
+   Fragment identifier considerations: Fragment identifiers for
+   application/moqt follow the syntax defined in Section 3.1.2.
+
+   Additional information: N/A
+
+   Contact: IETF MoQ Working Group (moq@ietf.org)
+
+   Change controller: IETF
+
+14.3.  MOQT URI Fragment Types
 
    This document establishes the "MOQT URI Fragment Types" registry.
    This registry governs fragment type identifiers used in moqt URI
@@ -4822,7 +4897,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    This registry is initially empty.
 
-14.3.  Setup Options
+14.4.  Setup Options
 
      +=================+===========================+=================+
      |            Type | Name                      | Specification   |
@@ -4852,7 +4927,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    private or application-specific use; implementations that need custom
    Setup Options SHOULD request a provisional registration.
 
-14.4.  Authorization Token Alias Type
+14.5.  Authorization Token Alias Type
 
                    +======+===========+===============+
                    | Code | Name      | Specification |
@@ -4868,7 +4943,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                  Table 10
 
-14.5.  MOQT Auth Token Type
+14.6.  MOQT Auth Token Type
 
         +=================+=======================+===============+
         |            Code | Name                  | Specification |
@@ -4880,7 +4955,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 11
 
-14.6.  Message Parameters
+14.7.  Message Parameters
 
          +================+=====================+================+
          | Parameter Type | Parameter Name      | Specification  |
@@ -4911,7 +4986,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    *  Message Parameters - List which params can be repeated in the
       table.
 
-14.7.  Properties
+14.8.  Properties
 
    +==========+===============================+========+===============+
    |     Type | Name                          | Scope  | Specification |
@@ -4965,9 +5040,9 @@ EXT 1 and EXT N can be modified or removed by Relays
       from uncoordinated sources may encounter different semantics for
       the same code points, creating potential collision risks.
 
-14.8.  Error Codes
+14.9.  Error Codes
 
-14.8.1.  Session Termination Error Codes
+14.9.1.  Session Termination Error Codes
 
      +=============================+=================+===============+
      | Name                        |       Code      | Specification |
@@ -5019,7 +5094,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 14
 
-14.8.2.  REQUEST_ERROR Codes
+14.9.2.  REQUEST_ERROR Codes
 
      +============================+=================+===============+
      | Name                       |       Code      | Specification |
@@ -5061,7 +5136,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                  Table 15
 
-14.8.3.  PUBLISH_DONE Codes
+14.9.3.  PUBLISH_DONE Codes
 
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
@@ -5091,7 +5166,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 16
 
-14.8.4.  Data Stream Reset Error Codes
+14.9.4.  Data Stream Reset Error Codes
 
        +=======================+=================+================+
        | Name                  |       Code      | Specification  |
@@ -5189,6 +5264,11 @@ Normative References
               Resource Identifier (URI): Generic Syntax", STD 66,
               RFC 3986, DOI 10.17487/RFC3986, January 2005,
               <https://www.rfc-editor.org/rfc/rfc3986>.
+
+   [RFC6838]  Freed, N., Klensin, J., and T. Hansen, "Media Type
+              Specifications and Registration Procedures", BCP 13,
+              RFC 6838, DOI 10.17487/RFC6838, January 2013,
+              <https://www.rfc-editor.org/rfc/rfc6838>.
 
    [RFC7301]  Friedl, S., Popov, A., Langley, A., and E. Stephan,
               "Transport Layer Security (TLS) Application-Layer Protocol
