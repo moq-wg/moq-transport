@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 20 September 2026</td>
+<td class="center">Expires 28 September 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-03-19" class="published">19 March 2026</time>
+<time datetime="2026-03-27" class="published">27 March 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-09-20">20 September 2026</time></dd>
+<dd class="expires"><time datetime="2026-09-28">28 September 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 20 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 28 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1319,7 +1319,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-modularity" class="internal xref">Modularity</a></p>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-extensibility" class="internal xref">Extensibility</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
             <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-publishing-and-retrieving-t" class="internal xref">Publishing and Retrieving Tracks</a></p>
@@ -2205,6 +2205,8 @@ sequence of Length bytes.<a href="#section-1.4.3-5.3.1" class="pilcrow">¶</a></
 <p id="section-1.4.3-6">If a receiver understands a Type, and the following Value or Length/Value does
 not match the serialization defined by that Type, the receiver <span class="bcp14">MUST</span> close
 the session with error code <code>KEY_VALUE_FORMATTING_ERROR</code>.<a href="#section-1.4.3-6" class="pilcrow">¶</a></p>
+<p id="section-1.4.3-7">Key-Value-Pairs are always parsed with a known byte length, which bounds
+the sequence. The source of this length varies by context.<a href="#section-1.4.3-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="reason-phrase">
@@ -2660,7 +2662,11 @@ values not present in the new set.  Relays <span class="bcp14">MUST NOT</span> a
 of unknown properties received in different messages.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
 <p id="section-2.5-4">If a Relay supports a Property, it <span class="bcp14">MAY</span> be modified, added, removed, and/or
 cached, subject to the processing rules specified in the definition.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
-<p id="section-2.5-5">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-2.5-5" class="pilcrow">¶</a></p>
+<p id="section-2.5-5">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).
+Track Properties always appear as the final field in the messages that
+carry them; their length is the remaining bytes of the message after all
+preceding fields have been consumed. Object Properties (<a href="#object-properties" class="auto internal xref">Section 10.2.1.2</a>)
+are preceded by an explicit length field.<a href="#section-2.5-5" class="pilcrow">¶</a></p>
 <p id="section-2.5-6">Property types are registered in the IANA table 'MOQ Properties'.
 See <a href="#iana" class="auto internal xref">Section 14</a>.<a href="#section-2.5-6" class="pilcrow">¶</a></p>
 <p id="section-2.5-7">Certain Property type ranges are reserved for application-specific
@@ -3126,10 +3132,10 @@ cause issues with latency sensitive applications.<a href="#section-3.7.3-1" clas
 </div>
 </section>
 </div>
-<div id="modularity">
+<div id="extensibility">
 <section id="section-4">
-      <h2 id="name-modularity">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-modularity" class="section-name selfRef">Modularity</a>
+      <h2 id="name-extensibility">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-extensibility" class="section-name selfRef">Extensibility</a>
       </h2>
 <p id="section-4-1">MOQT defines all messages necessary to implement both simple publishing or
 subscribing endpoints as well as highly functional Relays.  Non-Relay endpoints
@@ -3528,7 +3534,7 @@ datagram (see <a href="#data-streams" class="auto internal xref">Section 10</a>)
 (groups with higher group ID are sent first).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
 publisher's preference is used if the subscriber did not express one (by
-setting Group Order field to value 0x0).  The group order of an existing
+omitting the Group Order parameter).  The group order of an existing
 subscription cannot be changed.<a href="#section-7.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -4129,7 +4135,8 @@ making a request.<a href="#section-9.3-5" class="pilcrow">¶</a></p>
 negotiated via Setup Options. An endpoint that receives an unknown Message
 Parameter <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>. Because the receiver
 has to understand every Message Parameter, there is no need for a mechanism to
-skip unknown parameters.<a href="#section-9.3-6" class="pilcrow">¶</a></p>
+skip unknown parameters. Because unknown parameters cannot be skipped, the block
+is bounded by a parameter count rather than a length.<a href="#section-9.3-6" class="pilcrow">¶</a></p>
 <p id="section-9.3-7">The Message Parameter types defined in this version of MOQT are listed below.<a href="#section-9.3-7" class="pilcrow">¶</a></p>
 <p id="section-9.3-8">Senders <span class="bcp14">MUST NOT</span> repeat the same Parameter Type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
@@ -4531,7 +4538,8 @@ SETUP Message {
 <a href="#name-moqt-setup-message" class="selfRef">MOQT SETUP Message</a>
           </figcaption></figure>
 </div>
-<p id="section-9.4-5">Setup Options are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>.
+<p id="section-9.4-5">Setup Options are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>,
+spanning the entire message payload, bounded by the message Length field.
 Setup Options use a namespace that is constant across all MOQT versions,
 separate from Message Parameters.  Receivers <span class="bcp14">MUST</span> ignore unrecognized Setup
 Options.  Senders <span class="bcp14">MUST NOT</span> repeat the same Option Type in a message unless
@@ -4670,6 +4678,7 @@ GOAWAY Message {
   New Session URI Length (vi64),
   New Session URI (..),
   Timeout (vi64),
+  Request ID (vi64),
 }
 </pre>
 </div>
@@ -4696,6 +4705,17 @@ gracefully closed before closing the session with <code>GOAWAY_TIMEOUT</code>. A
 0 indicates the sender has no specific timeout, and the recipient <span class="bcp14">SHOULD</span> still
 close the session as quickly as possible. This is a hint; the sender of the
 GOAWAY <span class="bcp14">MAY</span> close the session before the indicated timeout has elapsed.<a href="#section-9.5-7.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.5-7.3">
+            <p id="section-9.5-7.3.1">Request ID: The smallest peer Request ID that was not or might not have been
+processed prior to sending the GOAWAY. If no requests have been processed,
+this is 0 (at a server) or 1 (at a client). If the parity of the Request ID
+does not match the receiver's parity, the endpoint <span class="bcp14">MUST</span> close the session with
+<code>INVALID_REQUEST_ID</code>. Requests with a Request ID equal to or greater than the
+indicated value, as well as any requests that arrive after the GOAWAY, <span class="bcp14">MUST</span> be
+rejected with REQUEST_ERROR using error code GOING_AWAY. Requests with a
+Request ID less than the indicated value were or might have been processed;
+their status can be determined from the response on each request stream.<a href="#section-9.5-7.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -7131,11 +7151,19 @@ integer values of N (that is, 0x9D, 0x11C, ..., 0x3fffffffffffffde).<a href="#se
           <p id="section-13-4.7.1">MOQT Auth Token Type<a href="#section-13-4.7.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-13-5">Implementations <span class="bcp14">MUST</span> handle unknown values from these registries gracefully
-according to the rules defined in each section.<a href="#section-13-5" class="pilcrow">¶</a></p>
+<p id="section-13-5">Because new values in these registries can be defined without negotiation,
+implementations <span class="bcp14">MUST</span> handle unknown values gracefully. Endpoints <span class="bcp14">MUST NOT</span>
+close the session solely because they received an unknown value. The
+following rules apply:<a href="#section-13-5" class="pilcrow">¶</a></p>
 <p id="section-13-6">Setup Options with reserved identifiers have no semantics and can carry
 arbitrary values. Endpoints <span class="bcp14">MUST</span> ignore unknown Setup Options as specified
 in <a href="#message-setup" class="auto internal xref">Section 9.4</a>.<a href="#section-13-6" class="pilcrow">¶</a></p>
+<p id="section-13-7">Unknown Properties <span class="bcp14">MUST</span> be handled as specified in <a href="#properties" class="auto internal xref">Section 2.5</a>.<a href="#section-13-7" class="pilcrow">¶</a></p>
+<p id="section-13-8">Receipt of an unknown error code in any error context (Session Termination,
+REQUEST_ERROR, PUBLISH_DONE, or Data Stream Reset) <span class="bcp14">MUST</span> be treated as
+equivalent to <code>INTERNAL_ERROR</code> for that context. An endpoint <span class="bcp14">MUST NOT</span> close
+the session because it received an unknown error code in a REQUEST_ERROR
+or PUBLISH_DONE.<a href="#section-13-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana">
