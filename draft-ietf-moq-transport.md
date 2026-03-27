@@ -2302,6 +2302,31 @@ to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
 After sending a NEW_GROUP_REQUEST upstream, the request is considered
 outstanding until the Largest Group increases.
 
+### SEND RATE Parameter {#send-rate}
+
+The SEND_RATE parameter (Parameter Type 0x34) is a varint.  It MAY
+appear in a FETCH or REQUEST_UPDATE for a fetch.  The value is the rate
+in kilobits per second at which the publisher SHOULD pace the delivery
+of Objects in the response.  A value of 0 indicates no pacing
+constraint; the publisher delivers as fast as the congestion controller
+allows.  This is the default behavior when the parameter is absent.
+
+The subscriber can update the send rate during an active fetch by
+sending a REQUEST_UPDATE with a new SEND_RATE value.
+
+The publisher SHOULD pace Object delivery to approximately the requested
+rate.  The rate limit is a request only and is not guaranteed. The publisher MAY
+exceed the requested rate in short bursts.  The publisher MUST NOT use SEND_RATE
+to pace below
+the congestion controller's minimum rate; the congestion controller's
+behavior takes precedence.
+
+Relay Handling:
+
+A Relay that receives a FETCH with SEND_RATE and needs to make an
+upstream FETCH to satisfy the request MAY use the SEND_RATE value when
+constructing the upstream request.
+
 ## SETUP {#message-setup}
 
 The `SETUP` message is the first message each endpoint sends on its control
@@ -4394,6 +4419,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
+| 0x34 | SEND_RATE | {{send-rate}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
