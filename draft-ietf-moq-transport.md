@@ -921,6 +921,28 @@ New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
 
+### Session-Level Tracks {#session-level-tracks}
+
+MOQT reserves the namespace tuple field value `.session` (the bytes 0x2e,
+0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e) in the first position of the
+Track Namespace for session-level tracks. Session-level tracks are published
+by the MOQT session itself, not by the application. They provide a mechanism
+for extending MOQT transport functionality using existing subscription and
+object delivery machinery, without defining new control messages or stream
+types.
+
+Applications MUST NOT publish tracks with a Track Namespace whose first
+field is `.session`. Relays MUST NOT forward subscriptions for session-level
+tracks to other sessions.
+
+An endpoint that receives a SUBSCRIBE or FETCH for an unrecognized
+session-level track MUST reject the request with REQUEST_ERROR using error
+code NOT_SUPPORTED rather than passing it to the application.
+
+The track names available under the `.session` namespace are defined by
+extensions to this specification and registered with IANA (see
+{{iana-session-level-tracks}}).
+
 ## Session initialization {#session-init}
 
 MOQT uses a pair of unidirectional streams for creating the session and
@@ -4392,6 +4414,7 @@ TODO: fill out currently missing registries:
 
 * MOQT ALPN values
 * Message types
+* Session-Level Track Names
 
 ## URI Scheme Registrations
 
@@ -4551,6 +4574,24 @@ the length field.
   IANA.  Note that applications consuming tracks from uncoordinated sources may
   encounter different semantics for the same code points, creating potential
   collision risks.
+
+## Session-Level Track Names {#iana-session-level-tracks}
+
+This document establishes a registry for session-level track names
+under the `.session` namespace (see {{session-level-tracks}}). The
+registration policy is Specification Required (per {{!RFC8126,
+Section 4.6}}).
+
+Each registration must include:
+
+| Field | Description |
+|:------|:------------|
+| Track Name | The track name (bytes) under the `.session` namespace |
+| Description | Brief description of the track's purpose |
+| Change Controller | Who may update the registration |
+| Specification | Reference to the defining specification |
+
+This document does not define any initial entries.
 
 ## Error Codes {#iana-error-codes}
 
