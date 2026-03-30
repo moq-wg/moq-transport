@@ -2923,6 +2923,8 @@ indicate that the peer can re-establish the request on a different session.
 REDIRECT MAY be sent on streams for SUBSCRIBE, PUBLISH, SUBSCRIBE_NAMESPACE,
 and PUBLISH_NAMESPACE. An endpoint MUST close the session with a
 `PROTOCOL_VIOLATION` if it receives a REDIRECT on any other stream type.
+If an endpoint wants to drain an entire Session, it SHOULD use GOAWAY rather
+than sending REDIRECT on each Request.
 
 REDIRECT does not terminate the current request. The sender MAY continue to
 serve the request after sending REDIRECT. For subscriptions, a publisher MAY
