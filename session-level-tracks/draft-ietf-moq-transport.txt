@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 September 2026                                 I. Swett, Ed.
+Expires: 1 October 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           15 March 2026
+                                                           30 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 September 2026.
+   This Internet-Draft will expire on 1 October 2026.
 
 Copyright Notice
 
@@ -4879,21 +4879,24 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    Each registration must include:
 
-             +===============+==============================+
-             | Field         | Description                  |
-             +===============+==============================+
-             | Track Name    | The track name (bytes) under |
-             |               | the .session namespace       |
-             +---------------+------------------------------+
-             | Description   | Brief description of the     |
-             |               | track's purpose              |
-             +---------------+------------------------------+
-             | Change        | Who may update the           |
-             | Controller    | registration                 |
-             +---------------+------------------------------+
-             | Specification | Reference to the defining    |
-             |               | specification                |
-             +---------------+------------------------------+
+          +=================+==================================+
+          | Field           | Description                      |
+          +=================+==================================+
+          | Track Namespace | The track namespace under the    |
+          |                 | .session namespace, can be empty |
+          +-----------------+----------------------------------+
+          | Track Name      | The track name (bytes) within    |
+          |                 | the full namespace               |
+          +-----------------+----------------------------------+
+          | Description     | Brief description of the track's |
+          |                 | purpose                          |
+          +-----------------+----------------------------------+
+          | Change          | Who may update the registration  |
+          | Controller      |                                  |
+          +-----------------+----------------------------------+
+          | Specification   | Reference to the defining        |
+          |                 | specification                    |
+          +-----------------+----------------------------------+
 
                                  Table 13
 
