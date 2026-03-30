@@ -4407,7 +4407,8 @@ Each registration must include:
 
 | Field | Description |
 |:------|:------------|
-| Track Name | The track name (bytes) under the `.session` namespace |
+| Track Namespace | The track namespace under the `.session` namespace, can be empty |
+| Track Name | The track name (bytes) within the full namespace |
 | Description | Brief description of the track's purpose |
 | Change Controller | Who may update the registration |
 | Specification | Reference to the defining specification |
