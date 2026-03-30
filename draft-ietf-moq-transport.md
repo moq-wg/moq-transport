@@ -772,7 +772,7 @@ context known to the publisher and subscriber.
 
 ### Mandatory Track Properties {#mandatory-track-properties}
 
-Property types in the range 0x4000-0x40FF are designated as Mandatory Track
+Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
 Properties. These properties MUST have Track scope. Mandatory Track Properties
 have special handling rules that prevent tracks with required extensions from
 being forwarded to or processed by endpoints that do not understand them.
@@ -797,6 +797,9 @@ understand, it MUST NOT process or forward that track:
   sent a FETCH_OK or REQUEST_ERROR downstream, it MUST send REQUEST_ERROR with
   error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
   relay has already forwarded data on a fetch stream, it MUST reset the stream.
+
+A publisher SHOULD NOT send a Mandatory Track Property to a subscriber that is
+known not to support it.
 
 # Sessions {#session}
 
@@ -4344,11 +4347,11 @@ the length field.
   - 0x80 to 0x37FF: Specification Required (2-byte encoding)
   - 0x3800 to 0x3FFF: Reserved for application-specific use (2-byte encoding,
     no registration permitted)
-  - 0x4000 to 0x40FF: Reserved for Mandatory Track Properties
+  - 0x4000 to 0x7FFF: Reserved for Mandatory Track Properties
     (see {{mandatory-track-properties}}). Properties registered in this range
     MUST have Track scope; Object scope properties MUST NOT be registered in
     this range.
-  - 0x4100 and above: First Come First Served
+  - 0x8000 and above: First Come First Served
 
   Code points reserved for application-specific use will never be allocated
   by IANA. Applications using these values do not need to coordinate with
