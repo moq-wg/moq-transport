@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 11 September 2026                                 I. Swett, Ed.
+Expires: 1 October 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           10 March 2026
+                                                           30 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 September 2026.
+   This Internet-Draft will expire on 1 October 2026.
 
 Copyright Notice
 
@@ -3218,11 +3218,13 @@ Table of Contents
 9.14.  REDIRECT
 
    An endpoint sends a REDIRECT message on a bidirectional request
-   stream to indicate that the peer should re-establish the request at a
-   different location.  REDIRECT MAY be sent on streams for SUBSCRIBE,
+   stream to indicate that the peer can re-establish the request on a
+   different session.  REDIRECT MAY be sent on streams for SUBSCRIBE,
    PUBLISH, SUBSCRIBE_NAMESPACE, and PUBLISH_NAMESPACE.  An endpoint
    MUST close the session with a PROTOCOL_VIOLATION if it receives a
-   REDIRECT on any other stream type.
+   REDIRECT on any other stream type.  If an endpoint wants to drain an
+   entire Session, it SHOULD use GOAWAY rather than sending REDIRECT on
+   each Request.
 
    REDIRECT does not terminate the current request.  The sender MAY
    continue to serve the request after sending REDIRECT.  For
