@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 28 September 2026                                 I. Swett, Ed.
+Expires: 2 October 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           27 March 2026
+                                                           31 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 September 2026.
+   This Internet-Draft will expire on 2 October 2026.
 
 Copyright Notice
 
@@ -100,6 +100,7 @@ Table of Contents
        2.4.2.  Malformed Tracks
        2.4.3.  Scope
      2.5.  Properties
+       2.5.1.  Mandatory Track Properties
    3.  Sessions
      3.1.  Session establishment
        3.1.1.  MOQT URI Scheme
@@ -944,7 +945,8 @@ Table of Contents
    forwarding.
 
    If a Relay does not support a Property, it MUST NOT be modified, MUST
-   be forwarded, and MUST be cached with the Track or Object.  If a
+   be forwarded, and MUST be cached with the Track or Object, unless it
+   is a Mandatory Track Property as described in Section 2.5.1.  If a
    Track or Object arrives with a different set of unknown properties
    than previously cached, the most recent set SHOULD replace any cached
    values, removing any unknown values not present in the new set.
@@ -983,6 +985,48 @@ Table of Contents
    in these ranges may assign different meanings; the interpretation
    depends on the track or application context known to the publisher
    and subscriber.
+
+2.5.1.  Mandatory Track Properties
+
+   Property types in the range 0x4000-0x7FFF are designated as Mandatory
+   Track Properties.  These properties MUST have Track scope.  Mandatory
+   Track Properties have special handling rules that prevent tracks with
+   required extensions from being forwarded to or processed by endpoints
+   that do not understand them.
+
+   An Object received with a Mandatory Track Property as an Object
+   Property is malformed (see Section 2.4.2).
+
+   When an endpoint receives Track Properties (in PUBLISH, SUBSCRIBE_OK,
+   or FETCH_OK messages) containing a Mandatory Track Property type that
+   it does not understand, it MUST NOT process or forward that track:
+
+   *  For PUBLISH messages: the subscriber MUST respond with
+      REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+
+   *  For SUBSCRIBE_OK messages: the subscriber MUST cancel the
+      subscription (see Section 3.3.1).  If the subscriber is a relay
+      with pending downstream subscribers, it MUST send REQUEST_ERROR
+      with error code UNSUPPORTED_EXTENSION to the downstream
+      subscribers.
+
+   *  For FETCH_OK messages: the subscriber MUST cancel the fetch (see
+      Section 3.3.1).  If the subscriber is a relay and has not yet sent
+      a FETCH_OK or REQUEST_ERROR downstream, it MUST send REQUEST_ERROR
+      with error code UNSUPPORTED_EXTENSION to the downstream fetch
+      requester.  If the relay has already forwarded data on a fetch
+      stream, it MUST reset the stream.
+
+   A publisher that knows a subscriber does not support a Mandatory
+   Track Property SHOULD take the following action:
+
+   *  For SUBSCRIBE: respond with REQUEST_ERROR with error code
+      UNSUPPORTED_EXTENSION.
+
+   *  For FETCH: respond with REQUEST_ERROR with error code
+      UNSUPPORTED_EXTENSION.
+
+   *  For PUBLISH: do not publish the track to that subscriber.
 
 3.  Sessions
 
@@ -2915,6 +2959,9 @@ Table of Contents
    EXCESSIVE_LOAD:  The responder is overloaded and cannot process the
       request at this time.  The sender SHOULD use the Retry Interval to
       indicate when the request can be retried.
+
+   UNSUPPORTED_EXTENSION:  The track contains a Mandatory Track Property
+      (see Section 2.5.1) that the endpoint does not understand.
 
    DUPLICATE_SUBSCRIPTION (0x19):  The PUBLISH or SUBSCRIBE request
       attempted to create a subscription to a Track with the same role
@@ -5036,7 +5083,12 @@ EXT 1 and EXT N can be modified or removed by Relays
       -  0x3800 to 0x3FFF: Reserved for application-specific use (2-byte
          encoding, no registration permitted)
 
-      -  0x4000 and above: First Come First Served
+      -  0x4000 to 0x7FFF: Reserved for Mandatory Track Properties (see
+         Section 2.5.1).  Properties registered in this range MUST have
+         Track scope; Object scope properties MUST NOT be registered in
+         this range.
+
+      -  0x8000 and above: First Come First Served
 
       Code points reserved for application-specific use will never be
       allocated by IANA.  Applications using these values do not need to
@@ -5134,6 +5186,8 @@ EXT 1 and EXT N can be modified or removed by Relays
      | NAMESPACE_TOO_LARGE        |       0x31      | Section 9.7   |
      +----------------------------+-----------------+---------------+
      | INVALID_JOINING_REQUEST_ID |       0x32      | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | UNSUPPORTED_EXTENSION      |       0x33      | Section 9.7   |
      +----------------------------+-----------------+---------------+
      | Reserved for greasing      | 0x7f * N + 0x9D | Section 13    |
      +----------------------------+-----------------+---------------+
