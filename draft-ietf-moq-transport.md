@@ -798,8 +798,14 @@ understand, it MUST NOT process or forward that track:
   error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
   relay has already forwarded data on a fetch stream, it MUST reset the stream.
 
-A publisher SHOULD NOT send a Mandatory Track Property to a subscriber that is
-known not to support it.
+A publisher that knows a subscriber does not support a Mandatory Track Property
+SHOULD take the following action:
+
+* For SUBSCRIBE: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+
+* For FETCH: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+
+* For PUBLISH: do not publish the track to that subscriber.
 
 # Sessions {#session}
 
