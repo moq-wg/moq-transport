@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 1 October 2026                                    I. Swett, Ed.
+Expires: 2 October 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           30 March 2026
+                                                           31 March 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 October 2026.
+   This Internet-Draft will expire on 2 October 2026.
 
 Copyright Notice
 
@@ -989,8 +989,16 @@ Table of Contents
       requester.  If the relay has already forwarded data on a fetch
       stream, it MUST reset the stream.
 
-   A publisher SHOULD NOT send a Mandatory Track Property to a
-   subscriber that is known not to support it.
+   A publisher that knows a subscriber does not support a Mandatory
+   Track Property SHOULD take the following action:
+
+   *  For SUBSCRIBE: respond with REQUEST_ERROR with error code
+      UNSUPPORTED_EXTENSION.
+
+   *  For FETCH: respond with REQUEST_ERROR with error code
+      UNSUPPORTED_EXTENSION.
+
+   *  For PUBLISH: do not publish the track to that subscriber.
 
 3.  Sessions
 
