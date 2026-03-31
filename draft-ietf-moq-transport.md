@@ -752,7 +752,8 @@ specifications define the type and value of the property, along with any rules
 concerning processing, modification, caching and forwarding.
 
 If a Relay does not support a Property, it MUST NOT be modified, MUST be
-forwarded, and MUST be cached with the Track or Object.  If a Track or Object
+forwarded, and MUST be cached with the Track or Object, unless it is a Mandatory
+Track Property as described in {{mandatory-track-properties}}.  If a Track or Object
 arrives with a different set of unknown properties than previously cached,
 the most recent set SHOULD replace any cached values, removing any unknown
 values not present in the new set.  Relays MUST NOT attempt to merge sets
@@ -785,6 +786,43 @@ unchanged but MUST NOT attempt to interpret their semantic meaning. Different
 applications using the same code point in these ranges may assign different
 meanings; the interpretation depends on the track or application
 context known to the publisher and subscriber.
+
+### Mandatory Track Properties {#mandatory-track-properties}
+
+Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
+Properties. These properties MUST have Track scope. Mandatory Track Properties
+have special handling rules that prevent tracks with required extensions from
+being forwarded to or processed by endpoints that do not understand them.
+
+An Object received with a Mandatory Track Property as an Object Property is
+malformed (see {{malformed-tracks}}).
+
+When an endpoint receives Track Properties (in PUBLISH, SUBSCRIBE_OK, or
+FETCH_OK messages) containing a Mandatory Track Property type that it does not
+understand, it MUST NOT process or forward that track:
+
+* For PUBLISH messages: the subscriber MUST respond with REQUEST_ERROR with
+  error code UNSUPPORTED_EXTENSION.
+
+* For SUBSCRIBE_OK messages: the subscriber MUST cancel the subscription
+  (see {{request-cancellation}}).  If the subscriber is a relay with pending
+  downstream subscribers, it MUST send REQUEST_ERROR with error code
+  UNSUPPORTED_EXTENSION to the downstream subscribers.
+
+* For FETCH_OK messages: the subscriber MUST cancel the fetch
+  (see {{request-cancellation}}).  If the subscriber is a relay and has not yet
+  sent a FETCH_OK or REQUEST_ERROR downstream, it MUST send REQUEST_ERROR with
+  error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
+  relay has already forwarded data on a fetch stream, it MUST reset the stream.
+
+A publisher that knows a subscriber does not support a Mandatory Track Property
+SHOULD take the following action:
+
+* For SUBSCRIBE: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+
+* For FETCH: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+
+* For PUBLISH: do not publish the track to that subscriber.
 
 # Sessions {#session}
 
@@ -2612,6 +2650,10 @@ GOING_AWAY:
 EXCESSIVE_LOAD:
 : The responder is overloaded and cannot process the request at this time. The
 sender SHOULD use the Retry Interval to indicate when the request can be retried.
+
+UNSUPPORTED_EXTENSION:
+: The track contains a Mandatory Track Property
+(see {{mandatory-track-properties}}) that the endpoint does not understand.
 
 DUPLICATE_SUBSCRIPTION (0x19):
 : The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
@@ -4544,7 +4586,11 @@ the length field.
   - 0x80 to 0x37FF: Specification Required (2-byte encoding)
   - 0x3800 to 0x3FFF: Reserved for application-specific use (2-byte encoding,
     no registration permitted)
-  - 0x4000 and above: First Come First Served
+  - 0x4000 to 0x7FFF: Reserved for Mandatory Track Properties
+    (see {{mandatory-track-properties}}). Properties registered in this range
+    MUST have Track scope; Object scope properties MUST NOT be registered in
+    this range.
+  - 0x8000 and above: First Come First Served
 
   Code points reserved for application-specific use will never be allocated
   by IANA. Applications using these values do not need to coordinate with
@@ -4601,6 +4647,7 @@ the length field.
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
