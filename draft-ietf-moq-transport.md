@@ -3907,9 +3907,9 @@ format:
 ~~~
 {
   Serialization Flags (vi64),
-  [Group ID (vi64),]
+  [Group ID Delta (vi64),]
   [Subgroup ID (vi64),]
-  [Object ID (vi64),]
+  [Object ID Delta (vi64),]
   [Publisher Priority (8),]
   [Properties (..),]
   Object Payload Length (vi64),
@@ -3946,15 +3946,25 @@ the corresponding condition is true.
 
 Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
-0x04 | Object ID field is present | Object ID is the prior Object's ID plus one
-0x08 | Group ID field is present | Group ID is the prior Object's Group ID
+0x04 | Object ID Delta is present | Object ID is the prior Object's ID plus one
+0x08 | Group ID Delta is present | Group ID is the prior Object's Group ID
 0x10 | Priority field is present | Priority is the prior Object's Priority
 0x20 | Properties field is present | Properties field is not present
 0x40 | Datagram: ignore the two least significant bits | Decode the Subgroup ID as indicated by the two least significant bits
 
 If the first Object in the FETCH response uses a flag that references fields in
 the prior Object, the Subscriber MUST close the session with a
-`PROTOCOL_VIOLATION`.
+`PROTOCOL_VIOLATION`. The first Object therefore MUST include a Group ID Delta
+and Object ID Delta, and these values are the absolute Group ID and Object ID.
+
+If the Group ID Delta field is present on an Object other than the first, the
+Group ID is computed from the Group ID Delta and the prior Object's Group ID.
+If the Group Order is Ascending, the Group ID is the prior Object's Group ID
+plus the Group ID Delta.  If the Group Order is Descending, the Group ID is the
+prior Object's Group ID minus the Group ID Delta.
+
+If the Object ID Delta field is present on an Object other than the first, the
+Object ID is the prior Object's ID plus the Object ID Delta.
 
 The Object Properties structure is defined in {{object-properties}}.
 
