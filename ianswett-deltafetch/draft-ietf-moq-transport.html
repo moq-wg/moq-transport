@@ -6657,10 +6657,12 @@ and Object ID Delta, and these values are the absolute Group ID and Object ID.<a
 <p id="section-10.4.4.1-6">If the Group ID Delta field is present on an Object other than the first, the
 Group ID is computed from the Group ID Delta and the prior Object's Group ID.
 If the Group Order is Ascending, the Group ID is the prior Object's Group ID
-plus the Group ID Delta.  If the Group Order is Descending, the Group ID is the
-prior Object's Group ID minus the Group ID Delta.<a href="#section-10.4.4.1-6" class="pilcrow">¶</a></p>
-<p id="section-10.4.4.1-7">If the Object ID Delta field is present on an Object other than the first, the
-Object ID is the prior Object's ID plus the Object ID Delta.<a href="#section-10.4.4.1-7" class="pilcrow">¶</a></p>
+plus the Group ID Delta + 1.  If the Group Order is Descending, the Group ID is
+the prior Object's Group ID minus the (Group ID Delta + 1). When the Group ID Delta
+field is present and therefore the Group ID changes, the Object ID is the
+absolute value of Object ID Delta if present, and 0 otherwise.<a href="#section-10.4.4.1-6" class="pilcrow">¶</a></p>
+<p id="section-10.4.4.1-7">If the Object ID Delta field is present on an Object other than the first in the
+Group, the Object ID is the prior Object's ID plus the Object ID Delta.<a href="#section-10.4.4.1-7" class="pilcrow">¶</a></p>
 <p id="section-10.4.4.1-8">The Object Properties structure is defined in <a href="#object-properties" class="auto internal xref">Section 10.2.1.2</a>.<a href="#section-10.4.4.1-8" class="pilcrow">¶</a></p>
 <p id="section-10.4.4.1-9">When encoding an Object with a Forwarding Preference of "Datagram" (see
 <a href="#object-properties" class="auto internal xref">Section 10.2.1.2</a>), the object has no Subgroup ID. The publisher <span class="bcp14">MUST</span> SET bit 0x40 to '1'.
