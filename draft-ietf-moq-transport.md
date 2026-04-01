@@ -1256,10 +1256,11 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
                            +-------------+
 ~~~
 
-A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
-a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
-response to a PUBLISH. The peer SHOULD close the session with a protocol error
-if it receives more than one.
+A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR as the first
+message on the response stream in response to a SUBSCRIBE. A subscriber MUST
+send exactly one PUBLISH_OK or REQUEST_ERROR as the first message on the
+response stream in response to a PUBLISH. The peer SHOULD close the session with
+a protocol error if it receives more than one.
 
 All `Established` subscriptions have a Forward State which is either 0 or 1.
 The publisher does not send Objects if the Forward State is 0, and does send them
@@ -1425,8 +1426,8 @@ groups. A publisher that does will begin the next group as soon as practical.
 
 ## Fetch State Management
 
-The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
-FETCH.
+The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR as the first
+message on the response stream in response to a FETCH.
 
 A subscriber keeps FETCH state until it cancels the request
 (see {{request-cancellation}}), receives REQUEST_ERROR, or the FETCH data stream
@@ -1478,9 +1479,8 @@ interested in all tracks and/or namespaces from the receiver.
 
 The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
 publisher MUST send a single REQUEST_OK or REQUEST_ERROR as the first message on the
-bidirectional stream in response to a SUBSCRIBE_NAMESPACE. The subscriber
-SHOULD close the session with a protocol error if it detects receiving more
-than one.
+response stream. The subscriber SHOULD close the session with a protocol error if it
+detects receiving more than one.
 
 If a Subscription cannot be created because there is no available Request ID,
 the Publisher sends a PUBLISH_BLOCKED message on the response stream to indicate
@@ -1491,8 +1491,8 @@ The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
-A SUBSCRIBE_NAMESPACE can be cancelled by closing the stream with
-either a FIN or by resetting it. Cancelling does not prohibit original publishers
+A SUBSCRIBE_NAMESPACE can be cancelled by cancelling the request (see
+{{request-cancellation}}). Cancelling does not prohibit original publishers
 from sending further PUBLISH_NAMESPACE or PUBLISH messages, but relays MUST NOT
 send any further PUBLISH messages to a client without knowing the client is
 interested in and authorized to receive the content.
@@ -1515,7 +1515,7 @@ REQUEST_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
 namespace. This might be especially useful in upload or chat applications. A
 subscriber MUST send exactly one REQUEST_OK or REQUEST_ERROR as the first
-message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
+message on the response stream. The publisher
 SHOULD close the session with a protocol error if it receives more than one.
 
 A PUBLISH_NAMESPACE is withdrawn by cancelling the request
@@ -1805,7 +1805,8 @@ relay is managed and is application specific.
 When a publisher wants to stop new subscriptions for a published namespace, it
 cancels the request (see {{request-cancellation}}) to withdraw the PUBLISH_NAMESPACE.
 A subscriber indicates it will no longer subscribe to Tracks in a namespace it
-previously responded REQUEST_OK to by cancelling the PUBLISH_NAMESPACE request.
+previously responded REQUEST_OK to by cancelling the PUBLISH_NAMESPACE request
+(see {{request-cancellation}}).
 
 A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
@@ -2743,8 +2744,8 @@ time to receive objects in the future.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
-A publisher sends a SUBSCRIBE_OK as the first response message on the
-bidi stream for successful subscriptions.
+A publisher sends a SUBSCRIBE_OK as the first message on the
+response stream for successful subscriptions.
 
 ~~~
 SUBSCRIBE_OK Message {
@@ -2882,8 +2883,8 @@ PUBLISH_OK.
 
 ## PUBLISH_OK {#message-publish-ok}
 
-The subscriber sends a PUBLISH_OK as the first response message on the
-bidi stream to acknowledge the successful authorization and acceptance of a
+The subscriber sends a PUBLISH_OK as the first message on the
+response stream to acknowledge the successful authorization and acceptance of a
 PUBLISH message, and establish a subscription.
 
 ~~~
@@ -3192,7 +3193,7 @@ Objects and continue serving other known Objects.
 
 ## FETCH_OK {#message-fetch-ok}
 
-A publisher sends a FETCH_OK as the first message on the bidi stream in response
+A publisher sends a FETCH_OK as the first message on the response stream in response
 to a successful fetch. A publisher MAY send Objects in response to a FETCH before
 the FETCH_OK message is sent, but the FETCH_OK MUST NOT be sent until the
 End Location is known.
@@ -3245,7 +3246,7 @@ received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
 REQUEST_OK message with the same parameters it would have set in a SUBSCRIBE_OK.
 Track Alias is not used.  A publisher responds to a failed TRACK_STATUS with an
-appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
+appropriate REQUEST_ERROR message.  The bidirectional stream is closed after
 REQUEST_OK or REQUEST_ERROR are sent.
 
 Relays without an `Established` subscription MAY forward TRACK_STATUS to one or more
@@ -3256,7 +3257,7 @@ REQUEST_UPDATE.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 The publisher sends the PUBLISH_NAMESPACE message as the first message on a
-new bidi stream to advertise that it has tracks available within a Track Namespace.
+new bidirectional stream to advertise that it has tracks available within a Track Namespace.
 The receiver verifies the publisher is authorized to publish tracks under this
 namespace.
 
@@ -3364,9 +3365,9 @@ SUBSCRIBE_NAMESPACE Message {
 
 * Parameters: The parameters are defined in {{message-params}}.
 
-The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
-of the stream. If the subscriber receives any frame other than a REQUEST_OK or a
-REQUEST_ERROR as the first frame on the response half of the stream, then it MUST
+The publisher will respond with a single REQUEST_OK or REQUEST_ERROR as the first message on
+the response stream. If the subscriber receives any message other than a REQUEST_OK or a
+REQUEST_ERROR as the first message on the response stream, then it MUST
 close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
 stream if they are requested. If it is an error, the stream will be immediately
