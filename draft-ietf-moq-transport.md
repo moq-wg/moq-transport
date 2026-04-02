@@ -1399,6 +1399,11 @@ close the session with a `PROTOCOL_VIOLATION`.
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
 
+If the publisher cannot satisfy the requested Subscription Filter (see
+{{subscription-filter}}) or if the entire End Group has already been published
+it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
+NOT send objects from outside the requested range.
+
 ### Joining an Ongoing Track
 
 The MOQT Object model is designed with the concept that the beginning of a Group
@@ -2351,7 +2356,7 @@ have been published on this Track the Publisher MUST include this parameter.
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
 
-### FORWARD Parameter
+### FORWARD Parameter {#forward-parameter}
 
 The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
@@ -2591,12 +2596,21 @@ REQUEST_OK Message {
   Type (vi64) = 0x7,
   Length (16),
   Number of Parameters (vi64),
-  Parameters (..) ...
+  Parameters (..) ...,
+  Track Properties (..),
 }
 ~~~
 {: #moq-transport-request-ok format title="MOQT REQUEST_OK Message"}
 
 * Parameters: The parameters are defined in {{message-params}}.
+
+* Track Properties : A sequence of Properties. See {{properties}}. The
+  length of Track Properties is the remaining length of the message
+  after parsing all previous fields. Track Properties are populated in
+  response to TRACK_STATUS messages; they are empty in response to
+  REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE.  If an
+  endpoint receives Track Properties in response to one of these messages
+  it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 ## REQUEST_ERROR {#message-request-error}
 
@@ -2742,15 +2756,6 @@ SUBSCRIBE Message {
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
 specified, and start sending objects.
-
-If the publisher cannot satisfy the requested Subscription Filter (see
-{{subscription-filter}}) or if the entire End Group has already been published
-it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
-NOT send objects from outside the requested range.
-
-Subscribing with the FORWARD parameter ({{forward-parameter}}) equal to 0 allows
-publisher or relay to prepare to serve the subscription in advance, reducing the
-time to receive objects in the future.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
@@ -2909,8 +2914,6 @@ PUBLISH_OK Message {
 
 * Parameters: The parameters are defined in {{message-params}}.
 
-TODO: A similar section to SUBSCRIBE about how the publisher handles a
-filter that is entirely behind Largest Object or is otherwise invalid.
 
 ## PUBLISH_DONE {#message-publish-done}
 
@@ -3254,8 +3257,9 @@ delivery (e.g. SUBSCRIBER_PRIORITY) are not included.
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
-REQUEST_OK message with the same parameters it would have set in a SUBSCRIBE_OK.
-Track Alias is not used.  A publisher responds to a failed TRACK_STATUS with an
+REQUEST_OK message with the same parameters and Track Properties it would have
+set in a SUBSCRIBE_OK. Track Alias is not used.  A publisher responds to a
+failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
 REQUEST_OK or REQUEST_ERROR are sent.
 
@@ -3376,8 +3380,8 @@ SUBSCRIBE_NAMESPACE Message {
 * Parameters: The parameters are defined in {{message-params}}.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
-of the stream. If the subscriber receives any frame other than a REQUEST_OK or a
-REQUEST_ERROR as the first frame on the response half of the stream, then it MUST
+of the stream. If the subscriber receives any message other than a REQUEST_OK or a
+REQUEST_ERROR as the first message on the response half of the stream, then it MUST
 close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
 stream if they are requested. If it is an error, the stream will be immediately
@@ -4750,7 +4754,7 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Add NAMESPACE_TOO_LARGE error and stream reset for large namespaces (#1496)
 * Add TOO_FAR_BEHIND stream reset code (#1445)
 * Add REQUEST_UPDATE to list of REQUEST_ERROR causes (#1466)
-* Enforce REQUEST_OK/ERROR as first frame on the response stream (#1499)
+* Enforce REQUEST_OK/ERROR as first message on the response stream (#1499)
 * Allow joining FETCH for PUBLISH and REQUEST_UPDATE with forward=1 (#1335)
 * Allow DELIVERY_TIMEOUT value of 0 to mean no timeout (#1450)
 * Allow zero-element namespaces (#1472)
