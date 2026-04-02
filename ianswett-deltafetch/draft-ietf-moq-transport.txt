@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 3 October 2026                                    I. Swett, Ed.
+Expires: 4 October 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            1 April 2026
+                                                            2 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 October 2026.
+   This Internet-Draft will expire on 4 October 2026.
 
 Copyright Notice
 
@@ -4365,13 +4365,13 @@ Table of Contents
    Object's Group ID.  If the Group Order is Ascending, the Group ID is
    the prior Object's Group ID plus the Group ID Delta + 1.  If the
    Group Order is Descending, the Group ID is the prior Object's Group
-   ID minus the (Group ID Delta + 1).  When the Group ID Delta field is
-   present and therefore the Group ID changes, the Object ID is the
-   absolute value of Object ID Delta if present, and 0 otherwise.
+   ID minus the (Group ID Delta + 1).
 
    If the Object ID Delta field is present on an Object other than the
    first in the Group, the Object ID is the prior Object's ID plus the
-   Object ID Delta.
+   Object ID Delta.  When the Group ID Delta field is present and
+   therefore the Group ID changes, the Object ID is the absolute value
+   of Object ID Delta if present, and 0 otherwise.
 
    The Object Properties structure is defined in Section 10.2.1.2.
 
