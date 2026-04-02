@@ -2672,7 +2672,7 @@ Table of Contents
 
    If this parameter is omitted from SUBSCRIBE or PUBLISH_OK, the number
    of streams is not limited by this mechanism and REQUEST_UPDATEs of
-   that Subscription MUST NOT specify the MAX SUB STREAMS Parameter.
+   that Subscription MUST NOT specify the MAX_SUB_STREAMS Parameter.
 
 9.3.12.  MAX SUB BYTES Parameter
 
@@ -2694,7 +2694,7 @@ Table of Contents
 
    If this parameter is omitted from SUBSCRIBE or PUBLISH_OK, the number
    of bytes is not limited by this mechanism and REQUEST_UPDATEs of that
-   Subscription MUST NOT specify the MAX SUB BYTES Parameter.
+   Subscription MUST NOT specify the MAX_SUB_BYTES Parameter.
 
 9.3.13.  NEW GROUP REQUEST Parameter
 
@@ -3127,18 +3127,17 @@ Table of Contents
 
 9.10.  SUBGROUP_RESET
 
-   A publisher sends a SUBGROUP_RESET message to inform the subscriber
-   of the total number of bytes sent on a subgroup stream before it was
-   reset.  This allows the subscriber to accurately account for byte
-   limits without relying on QUIC's RESET_STREAM_AT, which may not be
-   exposed by some transport mechanisms like WebTransport.
+   A publisher sends a SUBGROUP_RESET message on the Subscription's
+   control stream to inform the subscriber of the total number of bytes
+   sent on a subgroup stream before it was reset.  This allows
+   Subscribers using MAX_SUB_BYTES to accurately account for bytes sent,
+   even if they weren't delivered, similar to QUIC's RESET_STREAM.
 
    The format of SUBGROUP_RESET is as follows:
 
    SUBGROUP_RESET Message {
      Type (i) = 0x1F,
      Length (i),
-     Request ID (i),
      Group ID (i),
      Subgroup ID (i),
      Final Size (i),
@@ -3154,6 +3153,14 @@ Table of Contents
 
    *  Final Size: The total number of bytes sent on the subgroup stream
       before it was reset.
+
+   If a Subscriber receives a Final Size for a Subgroup that is less
+   than the largest offset received, it SHOULD close the Session with
+   FLOW_CONTROL_EXCEEDED.
+
+   SUBGROUP_RESET MUST NOT be sent for Subscriptions that do not specify
+   either MAX_SUB_STREAMS or MAX_SUB_BYTES and Subscribers SHOULD close
+   the Session with a PROTOCOL_VIOLATION if detected.
 
 9.11.  REQUEST_UPDATE
 
@@ -5235,6 +5242,8 @@ EXT 1 and EXT N can be modified or removed by Relays
      | INVALID_AUTHORITY           |       0x19      | Section 3.5   |
      +-----------------------------+-----------------+---------------+
      | MALFORMED_AUTHORITY         |       0x1A      | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | FLOW_CONTROL_EXCEEDED       |       0x1B      | Section 3.5   |
      +-----------------------------+-----------------+---------------+
      | Reserved for greasing       | 0x7f * N + 0x9D | Section 13    |
      +-----------------------------+-----------------+---------------+
