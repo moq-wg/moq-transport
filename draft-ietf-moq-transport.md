@@ -1388,6 +1388,11 @@ close the session with a `PROTOCOL_VIOLATION`.
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
 
+If the publisher cannot satisfy the requested Subscription Filter (see
+{{subscription-filter}}) or if the entire End Group has already been published
+it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
+NOT send objects from outside the requested range.
+
 ### Joining an Ongoing Track
 
 The MOQT Object model is designed with the concept that the beginning of a Group
@@ -2732,15 +2737,6 @@ On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
 specified, and start sending objects.
 
-If the publisher cannot satisfy the requested Subscription Filter (see
-{{subscription-filter}}) or if the entire End Group has already been published
-it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
-NOT send objects from outside the requested range.
-
-Subscribing with the FORWARD parameter ({{forward-parameter}}) equal to 0 allows
-publisher or relay to prepare to serve the subscription in advance, reducing the
-time to receive objects in the future.
-
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
 A publisher sends a SUBSCRIBE_OK as the first response message on the
@@ -2898,8 +2894,6 @@ PUBLISH_OK Message {
 
 * Parameters: The parameters are defined in {{message-params}}.
 
-TODO: A similar section to SUBSCRIBE about how the publisher handles a
-filter that is entirely behind Largest Object or is otherwise invalid.
 
 ## PUBLISH_DONE {#message-publish-done}
 
