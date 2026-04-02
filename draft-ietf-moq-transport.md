@@ -1957,6 +1957,8 @@ new request stream.
 |--------|-----------------------------------------------|----------------|
 | 0xF    | PUBLISH_BLOCKED ({{message-publish-blocked}}) | Request        |
 |--------|-----------------------------------------------|----------------|
+| 0x1F   | SUBGROUP_RESET ({{message-subgroup-reset}})   | Control        |
+|--------|-----------------------------------------------|----------------|
 | 0x2    | REQUEST_UPDATE ({{message-request-update}})   | Request        |
 |--------|-----------------------------------------------|----------------|
 | 0x7    | REQUEST_OK ({{message-request-ok}})           | Request        |
@@ -2352,6 +2354,34 @@ with `PROTOCOL_VIOLATION`.
 If the parameter is omitted from REQUEST_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
 message, the default value is 1.
+
+### MAX SUB STREAMS Parameter {#max-sub-streams}
+
+The MAX_SUB_STREAMS parameter (Parameter Type 0x33) is a varint. It MAY appear
+in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE for a subscription. It sets an
+initial limit on the number of simultaneous active subgroup streams for the
+subscription. It is sent by the subscriber to flow control the publisher.
+
+If a publisher wants to send more streams than the limit allows, it MUST wait
+until streams are closed or the limit is increased. The subscriber CAN increase
+this limit by sending a larger value in a REQUEST_UPDATE.
+
+If this parameter is omitted from a subscription, the number of streams is not
+limited by this mechanism.
+
+### MAX SUB BYTES Parameter {#max-sub-bytes}
+
+The MAX_SUB_BYTES parameter (Parameter Type 0x34) is a varint. It MAY appear
+in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE for a subscription. It sets a
+limit on the total number of bytes sent on subgroup streams for the
+subscription. It is sent by the subscriber to flow control the publisher.
+
+If a publisher wants to send more bytes than the limit allows, it MUST wait
+until the limit is increased. The subscriber CAN increase this limit by sending
+a larger value in a REQUEST_UPDATE.
+
+If this parameter is omitted from a subscription, the number of bytes is not
+limited by this mechanism.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
@@ -2767,6 +2797,35 @@ SUBSCRIBE_OK Message {
 * Parameters: The parameters are defined in {{message-params}}.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
+
+## SUBGROUP_RESET
+{: #message-subgroup-reset}
+
+A publisher sends a `SUBGROUP_RESET` message to inform the subscriber of the
+total number of bytes sent on a subgroup stream before it was reset. This allows
+the subscriber to accurately account for byte limits without relying on QUIC's
+`RESET_STREAM_AT`, which may not be exposed by some transport mechanisms like
+WebTransport.
+
+The format of `SUBGROUP_RESET` is as follows:
+
+~~~
+SUBGROUP_RESET Message {
+  Type (i) = 0x1F,
+  Length (i),
+  Request ID (i),
+  Group ID (i),
+  Subgroup ID (i),
+  Final Size (i),
+}
+~~~
+{: #moq-transport-subgroup-reset-format title="MOQT SUBGROUP_RESET Message"}
+
+* Request ID: See {{request-id}}.
+* Group ID: The identifier of the Group.
+* Subgroup ID: The identifier of the Subgroup.
+* Final Size: The total number of bytes sent on the subgroup stream before it
+  was reset.
 
 ## REQUEST_UPDATE {#message-request-update}
 
@@ -3792,6 +3851,13 @@ handling PUBLISH_DONE (see {{message-publish-done}}).  Publishers that reset
 data streams without using RESET_STREAM_AT with an appropriate reliable_size can
 cause subscribers to hold on to subscription state until a timeout expires.
 
+Alternatively, a publisher can send a `SUBGROUP_RESET` control message (see
+{{message-subgroup-reset}}) to communicate the total number of bytes sent on a
+subgroup stream before it was reset. This explicitly avoids relying on
+`RESET_STREAM_AT` and ensures that the subscriber can accurately account for
+byte limits (such as those configured by `MAX_SUB_BYTES`) when the underlying
+transport (e.g., WebTransport) obscures the final stream offset.
+
 A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
@@ -4559,6 +4625,8 @@ Setup Options SHOULD request a provisional registration.
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
+| 0x33 | MAX_SUB_STREAMS | {{max-sub-streams}} |
+| 0x34 | MAX_SUB_BYTES | {{max-sub-bytes}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
