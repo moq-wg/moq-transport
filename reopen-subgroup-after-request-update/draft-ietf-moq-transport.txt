@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 2 October 2026                                    I. Swett, Ed.
+Expires: 4 October 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           31 March 2026
+                                                            2 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 October 2026.
+   This Internet-Draft will expire on 4 October 2026.
 
 Copyright Notice
 
@@ -1605,6 +1605,11 @@ Table of Contents
    An endpoint that receives a filter type other than the above MUST
    close the session with PROTOCOL_VIOLATION.
 
+   If the publisher cannot satisfy the requested Subscription Filter
+   (see Section 9.3.7) or if the entire End Group has already been
+   published it SHOULD send a REQUEST_ERROR with code INVALID_RANGE.  A
+   publisher MUST NOT send objects from outside the requested range.
+
 5.1.3.  Joining an Ongoing Track
 
    The MOQT Object model is designed with the concept that the beginning
@@ -2891,12 +2896,22 @@ Table of Contents
      Type (vi64) = 0x7,
      Length (16),
      Number of Parameters (vi64),
-     Parameters (..) ...
+     Parameters (..) ...,
+     Track Properties (..),
    }
 
                      Figure 8: MOQT REQUEST_OK Message
 
    *  Parameters: The parameters are defined in Section 9.3.
+
+   *  Track Properties : A sequence of Properties.  See Section 2.5.
+      The length of Track Properties is the remaining length of the
+      message after parsing all previous fields.  Track Properties are
+      populated in response to TRACK_STATUS messages; they are empty in
+      response to REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and
+      PUBLISH_NAMESPACE.  If an endpoint receives Track Properties in
+      response to one of these messages it MUST close the session with a
+      PROTOCOL_VIOLATION.
 
 9.7.  REQUEST_ERROR
 
@@ -3038,15 +3053,6 @@ Table of Contents
    On successful subscription, the publisher MUST reply with a
    SUBSCRIBE_OK, allowing the subscriber to determine the start group/
    object when not explicitly specified, and start sending objects.
-
-   If the publisher cannot satisfy the requested Subscription Filter
-   (see Section 9.3.7) or if the entire End Group has already been
-   published it SHOULD send a REQUEST_ERROR with code INVALID_RANGE.  A
-   publisher MUST NOT send objects from outside the requested range.
-
-   Subscribing with the FORWARD parameter (Section 9.3.10) equal to 0
-   allows publisher or relay to prepare to serve the subscription in
-   advance, reducing the time to receive objects in the future.
 
 9.9.  SUBSCRIBE_OK
 
@@ -3210,10 +3216,6 @@ Table of Contents
                      Figure 14: MOQT PUBLISH_OK Message
 
    *  Parameters: The parameters are defined in Section 9.3.
-
-   TODO: A similar section to SUBSCRIBE about how the publisher handles
-   a filter that is entirely behind Largest Object or is otherwise
-   invalid.
 
 9.13.  PUBLISH_DONE
 
@@ -3579,10 +3581,11 @@ Table of Contents
    had received a SUBSCRIBE message, except it does not create
    downstream subscription state or send any Objects.  If successful,
    the publisher responds with a REQUEST_OK message with the same
-   parameters it would have set in a SUBSCRIBE_OK.  Track Alias is not
-   used.  A publisher responds to a failed TRACK_STATUS with an
-   appropriate REQUEST_ERROR message.  The bidi stream is closed with a
-   FIN after REQUEST_OK or REQUEST_ERROR are sent.
+   parameters and Track Properties it would have set in a SUBSCRIBE_OK.
+   Track Alias is not used.  A publisher responds to a failed
+   TRACK_STATUS with an appropriate REQUEST_ERROR message.  The bidi
+   stream is closed with a FIN after REQUEST_OK or REQUEST_ERROR are
+   sent.
 
    Relays without an Established subscription MAY forward TRACK_STATUS
    to one or more publishers, or MAY initiate a subscription (subject to
@@ -3703,10 +3706,10 @@ Table of Contents
    *  Parameters: The parameters are defined in Section 9.3.
 
    The publisher will respond with REQUEST_OK or REQUEST_ERROR on the
-   response half of the stream.  If the subscriber receives any frame
-   other than a REQUEST_OK or a REQUEST_ERROR as the first frame on the
-   response half of the stream, then it MUST close the session with a
-   PROTOCOL_VIOLATION.  If the SUBSCRIBE_NAMESPACE is successful, the
+   response half of the stream.  If the subscriber receives any message
+   other than a REQUEST_OK or a REQUEST_ERROR as the first message on
+   the response half of the stream, then it MUST close the session with
+   a PROTOCOL_VIOLATION.  If the SUBSCRIBE_NAMESPACE is successful, the
    publisher will send matching NAMESPACE messages on the response
    stream if they are requested.  If it is an error, the stream will be
    immediately closed via FIN.  Also, any matching PUBLISH messages
@@ -5470,7 +5473,7 @@ A.1.  Since draft-ietf-moq-transport-16
 
    *  Add REQUEST_UPDATE to list of REQUEST_ERROR causes (#1466)
 
-   *  Enforce REQUEST_OK/ERROR as first frame on the response stream
+   *  Enforce REQUEST_OK/ERROR as first message on the response stream
       (#1499)
 
    *  Allow joining FETCH for PUBLISH and REQUEST_UPDATE with forward=1

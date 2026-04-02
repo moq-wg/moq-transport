@@ -1053,11 +1053,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">March 2026</td>
+<td class="right">April 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 2 October 2026</td>
+<td class="center">Expires 4 October 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-03-31" class="published">31 March 2026</time>
+<time datetime="2026-04-02" class="published">2 April 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-10-02">2 October 2026</time></dd>
+<dd class="expires"><time datetime="2026-10-04">4 October 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 2 October 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 4 October 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3414,6 +3414,9 @@ If the resulting Group ID would be greater than 2^64 - 1, the endpoint <span cla
 close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-11">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> close the
 session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-12">If the publisher cannot satisfy the requested Subscription Filter (see
+<a href="#subscription-filter" class="auto internal xref">Section 9.3.7</a>) or if the entire End Group has already been published
+it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR with code <code>INVALID_RANGE</code>.  A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range.<a href="#section-5.1.2-12" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="joining-an-ongoing-track">
@@ -4827,7 +4830,8 @@ REQUEST_OK Message {
   Type (vi64) = 0x7,
   Length (16),
   Number of Parameters (vi64),
-  Parameters (..) ...
+  Parameters (..) ...,
+  Track Properties (..),
 }
 </pre>
 </div>
@@ -4838,6 +4842,15 @@ REQUEST_OK Message {
 <ul class="normal">
 <li class="normal" id="section-9.6-3.1">
             <p id="section-9.6-3.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.3</a>.<a href="#section-9.6-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.6-3.2">
+            <p id="section-9.6-3.2.1">Track Properties : A sequence of Properties. See <a href="#properties" class="auto internal xref">Section 2.5</a>. The
+length of Track Properties is the remaining length of the message
+after parsing all previous fields. Track Properties are populated in
+response to TRACK_STATUS messages; they are empty in response to
+REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE.  If an
+endpoint receives Track Properties in response to one of these messages
+it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.6-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5051,12 +5064,6 @@ SUBSCRIBE Message {
 <p id="section-9.8-6">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
 specified, and start sending objects.<a href="#section-9.8-6" class="pilcrow">¶</a></p>
-<p id="section-9.8-7">If the publisher cannot satisfy the requested Subscription Filter (see
-<a href="#subscription-filter" class="auto internal xref">Section 9.3.7</a>) or if the entire End Group has already been published
-it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR with code <code>INVALID_RANGE</code>.  A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range.<a href="#section-9.8-7" class="pilcrow">¶</a></p>
-<p id="section-9.8-8">Subscribing with the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.3.10</a>) equal to 0 allows
-publisher or relay to prepare to serve the subscription in advance, reducing the
-time to receive objects in the future.<a href="#section-9.8-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-subscribe-ok">
@@ -5270,8 +5277,6 @@ PUBLISH_OK Message {
             <p id="section-9.12-3.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.3</a>.<a href="#section-9.12-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-9.12-4">TODO: A similar section to SUBSCRIBE about how the publisher handles a
-filter that is entirely behind Largest Object or is otherwise invalid.<a href="#section-9.12-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-publish-done">
@@ -5709,8 +5714,9 @@ delivery (e.g. SUBSCRIBER_PRIORITY) are not included.<a href="#section-9.16-2" c
 <p id="section-9.16-3">The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
-REQUEST_OK message with the same parameters it would have set in a SUBSCRIBE_OK.
-Track Alias is not used.  A publisher responds to a failed TRACK_STATUS with an
+REQUEST_OK message with the same parameters and Track Properties it would have
+set in a SUBSCRIBE_OK. Track Alias is not used.  A publisher responds to a
+failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
 REQUEST_OK or REQUEST_ERROR are sent.<a href="#section-9.16-3" class="pilcrow">¶</a></p>
 <p id="section-9.16-4">Relays without an <code>Established</code> subscription <span class="bcp14">MAY</span> forward TRACK_STATUS to one or more
@@ -5889,8 +5895,8 @@ NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.<a href
 </li>
         </ul>
 <p id="section-9.20-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
-of the stream. If the subscriber receives any frame other than a REQUEST_OK or a
-REQUEST_ERROR as the first frame on the response half of the stream, then it <span class="bcp14">MUST</span>
+of the stream. If the subscriber receives any message other than a REQUEST_OK or a
+REQUEST_ERROR as the first message on the response half of the stream, then it <span class="bcp14">MUST</span>
 close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
 stream if they are requested. If it is an error, the stream will be immediately
@@ -8462,7 +8468,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
             <p id="appendix-A.1-2.15.1">Add REQUEST_UPDATE to list of REQUEST_ERROR causes (#1466)<a href="#appendix-A.1-2.15.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.16">
-            <p id="appendix-A.1-2.16.1">Enforce REQUEST_OK/ERROR as first frame on the response stream (#1499)<a href="#appendix-A.1-2.16.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.16.1">Enforce REQUEST_OK/ERROR as first message on the response stream (#1499)<a href="#appendix-A.1-2.16.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.17">
             <p id="appendix-A.1-2.17.1">Allow joining FETCH for PUBLISH and REQUEST_UPDATE with forward=1 (#1335)<a href="#appendix-A.1-2.17.1" class="pilcrow">¶</a></p>
