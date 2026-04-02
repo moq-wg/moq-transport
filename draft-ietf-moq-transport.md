@@ -2482,7 +2482,9 @@ REQUEST_OK Message {
   length of Track Properties is the remaining length of the message
   after parsing all previous fields. Track Properties are populated in
   response to TRACK_STATUS messages; they are empty in response to
-  REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE.
+  REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE.  If an
+  endpoint receives Track Properties in response to one of these messages
+  it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 ## REQUEST_ERROR {#message-request-error}
 
