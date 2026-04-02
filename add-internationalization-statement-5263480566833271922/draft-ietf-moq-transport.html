@@ -2841,15 +2841,15 @@ MOQT session to the identified server.<a href="#section-3.1.2-7" class="pilcrow"
 (e.g., authority in SNI, path/query exposure).<a href="#section-3.1.2-8" class="pilcrow">¶</a></p>
 <p id="section-3.1.2-9">Characters in the <code>authority</code> component that are excluded by the syntax
 defined above <span class="bcp14">MUST</span> be converted from Unicode to ASCII as specified
-in <span>[<a href="#RFC3987" class="cite xref">RFC3987</a>]</span>.  For the purposes of scheme-based
-normalization, Internationalized Domain Name (IDN) forms of the
-<code>authority</code> component and their conversions to punycode are considered
-equivalent (see Section 5.3.3 of <span>[<a href="#RFC3987" class="cite xref">RFC3987</a>]</span>).<a href="#section-3.1.2-9" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-10">Characters in other components that are excluded by the syntax
-defined above <span class="bcp14">MUST</span> be converted from Unicode to ASCII by first
-encoding the characters as UTF-8 and then replacing the
-corresponding bytes using their percent-encoded form as defined in
-the URI <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span> and IRI <span>[<a href="#RFC3987" class="cite xref">RFC3987</a>]</span> specifications.<a href="#section-3.1.2-10" class="pilcrow">¶</a></p>
+in <span>[<a href="#RFC3987" class="cite xref">RFC3987</a>]</span>.  For the purposes of scheme-based normalization,
+Internationalized Domain Name (IDN) forms of the <code>authority</code> component
+and their conversions to punycode are considered equivalent
+(see Section 5.3.3 of <span>[<a href="#RFC3987" class="cite xref">RFC3987</a>]</span>).<a href="#section-3.1.2-9" class="pilcrow">¶</a></p>
+<p id="section-3.1.2-10">Characters in other components that are excluded by the syntax defined
+above <span class="bcp14">MUST</span> be converted from Unicode to ASCII by first encoding the
+characters as UTF-8 and then replacing the corresponding bytes using
+their percent-encoded form as defined in the URI <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span> and
+IRI <span>[<a href="#RFC3987" class="cite xref">RFC3987</a>]</span> specifications.<a href="#section-3.1.2-10" class="pilcrow">¶</a></p>
 <p id="section-3.1.2-11">If the port is omitted in the URI, a default port of 443 is used.<a href="#section-3.1.2-11" class="pilcrow">¶</a></p>
 <p id="section-3.1.2-12">The client <span class="bcp14">MAY</span> use either native QUIC or WebTransport. On a QUIC connection,
 the client offers any combination of MOQT ALPNs (e.g. <code>moqt/1</code>, <code>moqt/2</code>)
