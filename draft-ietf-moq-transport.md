@@ -2898,8 +2898,10 @@ PUBLISH_OK Message {
 
 * Parameters: The parameters are defined in {{message-params}}.
 
-TODO: A similar section to SUBSCRIBE about how the publisher handles a
-filter that is entirely behind Largest Object or is otherwise invalid.
+If the publisher cannot satisfy the requested Subscription Filter (see
+{{subscription-filter}}) or if the entire End Group has already been published
+it SHOULD send a `PUBLISH_DONE` with code `SUBSCRIPTION_ENDED`. A publisher MUST
+NOT send objects from outside the requested range.
 
 ## PUBLISH_DONE {#message-publish-done}
 
