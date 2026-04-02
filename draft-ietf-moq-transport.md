@@ -2372,7 +2372,7 @@ value of 5, a total of 15 subgroups streams can be opened for the Subscription.
 
 If this parameter is omitted from SUBSCRIBE or PUBLISH_OK, the number of streams
 is not limited by this mechanism and REQUEST_UPDATEs of that Subscription MUST NOT
-specify the MAX SUB STREAMS Parameter.
+specify the MAX_SUB_STREAMS Parameter.
 
 ### MAX SUB BYTES Parameter {#max-sub-bytes}
 
@@ -2391,7 +2391,7 @@ can be sent on subgroup streams for the Subscription.
 
 If this parameter is omitted from SUBSCRIBE or PUBLISH_OK, the number of bytes
 is not limited by this mechanism and REQUEST_UPDATEs of that Subscription MUST NOT
-specify the MAX SUB BYTES Parameter.
+specify the MAX_SUB_BYTES Parameter.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
@@ -2808,14 +2808,13 @@ SUBSCRIBE_OK Message {
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
-## SUBGROUP_RESET
-{: #message-subgroup-reset}
+## SUBGROUP_RESET {#message-subgroup-reset}
 
-A publisher sends a `SUBGROUP_RESET` message to inform the subscriber of the
-total number of bytes sent on a subgroup stream before it was reset. This allows
-the subscriber to accurately account for byte limits without relying on QUIC's
-`RESET_STREAM_AT`, which may not be exposed by some transport mechanisms like
-WebTransport.
+A publisher sends a `SUBGROUP_RESET` message on the Subscription's control
+stream to inform the subscriber of the total number of bytes sent on a subgroup
+stream before it was reset. This allows Subscribers using MAX_SUB_BYTES to
+accurately account for bytes sent, even if they weren't delivered,
+similar to QUIC's RESET_STREAM.
 
 The format of `SUBGROUP_RESET` is as follows:
 
@@ -2823,7 +2822,6 @@ The format of `SUBGROUP_RESET` is as follows:
 SUBGROUP_RESET Message {
   Type (i) = 0x1F,
   Length (i),
-  Request ID (i),
   Group ID (i),
   Subgroup ID (i),
   Final Size (i),
@@ -2836,6 +2834,13 @@ SUBGROUP_RESET Message {
 * Subgroup ID: The identifier of the Subgroup.
 * Final Size: The total number of bytes sent on the subgroup stream before it
   was reset.
+
+If a Subscriber receives a Final Size for a Subgroup that is less than the largest
+offset received, it SHOULD close the Session with FLOW_CONTROL_EXCEEDED.
+
+SUBGROUP_RESET MUST NOT be sent for Subscriptions that do not specify either
+MAX_SUB_STREAMS or MAX_SUB_BYTES and Subscribers SHOULD close the Session with
+a PROTOCOL_VIOLATION if detected.
 
 ## REQUEST_UPDATE {#message-request-update}
 
@@ -4703,6 +4708,7 @@ the length field.
 | EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
 | INVALID_AUTHORITY          | 0x19 | {{session-termination}} |
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination}} |
+| FLOW_CONTROL_EXCEEDED      | 0x1B | {{session-termination}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### REQUEST_ERROR Codes {#iana-request-error}
