@@ -1554,7 +1554,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.10.2.3.1"><a href="#section-10.3" class="auto internal xref">10.3</a>.  <a href="#name-datagrams" class="internal xref">Datagrams</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3.2.1">
-                    <p id="section-toc.1-1.10.2.3.2.1.1"><a href="#section-10.3.1" class="auto internal xref">10.3.1</a>.  <a href="#name-object-datagram" class="internal xref">Object Datagram</a></p>
+                    <p id="section-toc.1-1.10.2.3.2.1.1"><a href="#section-10.3.1" class="auto internal xref">10.3.1</a>.  <a href="#name-single-object-delivery" class="internal xref">Single Object Delivery</a></p>
 </li>
                 </ul>
 </li>
@@ -2968,7 +2968,11 @@ the type of the stream.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
           </thead>
           <tbody>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x05</td>
+              <td class="text-right" rowspan="1" colspan="1">0x00-0x0F / 0x20-0x2D</td>
+              <td class="text-left" rowspan="1" colspan="1">OBJECT_STREAM  (<a href="#object-datagram" class="auto internal xref">Section 10.3.1</a>)</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x50</td>
               <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 10.4.4</a>)</td>
             </tr>
             <tr>
@@ -2987,7 +2991,7 @@ the type of the stream.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
         </table>
 <p id="section-3.4-3">An endpoint that receives an unknown stream type <span class="bcp14">MUST</span> close the session.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
 <p id="section-3.4-4">Control streams (SETUP) are described in <a href="#session-init" class="auto internal xref">Section 3.3</a>.
-Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in <a href="#data-streams" class="auto internal xref">Section 10</a>.
+Data streams (FETCH_HEADER, SUBGROUP_HEADER, OBJECT_STREAM) are described in <a href="#data-streams" class="auto internal xref">Section 10</a>.
 Padding streams are described in <a href="#padding" class="auto internal xref">Section 10.5</a>.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -5977,7 +5981,7 @@ namespace as defined in <a href="#track-name" class="auto internal xref">Section
 <p id="section-10-1">A publisher sends Objects matching a subscription on Data Streams or Datagrams
 and sends Objects matching a FETCH request on one Data Stream.<a href="#section-10-1" class="pilcrow">¶</a></p>
 <p id="section-10-2">Unidirectional stream types are defined in <a href="#stream-types" class="auto internal xref">Section 3.4</a>. Data streams
-use SUBGROUP_HEADER or FETCH_HEADER types.<a href="#section-10-2" class="pilcrow">¶</a></p>
+use SUBGROUP_HEADER, FETCH_HEADER, or OBJECT_STREAM types.<a href="#section-10-2" class="pilcrow">¶</a></p>
 <p id="section-10-3">All MOQT datagrams start with a variable-length integer indicating the type of
 the datagram.  See <a href="#object-datagram" class="auto internal xref">Section 10.3.1</a>.<a href="#section-10-3" class="pilcrow">¶</a></p>
 <p id="section-10-4">An endpoint that receives an unknown datagram type <span class="bcp14">MUST</span> close the session.<a href="#section-10-4" class="pilcrow">¶</a></p>
@@ -6122,7 +6126,8 @@ receives a datagram with an unknown Track Alias, it <span class="bcp14">MAY</spa
 choose to buffer it for a brief period to handle reordering with the control
 message that establishes the Track Alias.<a href="#section-10.3-1" class="pilcrow">¶</a></p>
 <p id="section-10.3-2">An Object received in an <code>OBJECT_DATAGRAM</code> message has an <code>Object Forwarding
-Preference</code> = <code>Datagram</code>.<a href="#section-10.3-2" class="pilcrow">¶</a></p>
+Preference</code> = <code>Datagram</code>. An Object received in an <code>OBJECT_STREAM</code> message has
+an <code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-10.3-2" class="pilcrow">¶</a></p>
 <p id="section-10.3-3">To send an Object with <code>Object Forwarding Preference</code> = <code>Datagram</code>, determine
 the length of the header and payload and send the Object as datagram.  When the
 total size is larger than the maximum datagram size for the session, the Object
@@ -6134,15 +6139,15 @@ through the MOQT network, increasing the size of the Object and the chances it
 will exceed the maximum datagram size of a downstream session and be dropped.<a href="#section-10.3-4" class="pilcrow">¶</a></p>
 <div id="object-datagram">
 <section id="section-10.3.1">
-          <h4 id="name-object-datagram">
-<a href="#section-10.3.1" class="section-number selfRef">10.3.1. </a><a href="#name-object-datagram" class="section-name selfRef">Object Datagram</a>
+          <h4 id="name-single-object-delivery">
+<a href="#section-10.3.1" class="section-number selfRef">10.3.1. </a><a href="#name-single-object-delivery" class="section-name selfRef">Single Object Delivery</a>
           </h4>
-<p id="section-10.3.1-1">An <code>OBJECT_DATAGRAM</code> carries a single object in a datagram.<a href="#section-10.3.1-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-object_datagram"></span><div id="object-datagram-format">
+<p id="section-10.3.1-1">An Object can be sent in a Datagram or a Stream. When sent in a datagram, it is an <code>OBJECT_DATAGRAM</code>. When sent in a stream, it is an <code>OBJECT_STREAM</code>. They share the same format.<a href="#section-10.3.1-1" class="pilcrow">¶</a></p>
+<span id="name-moqt-object_datagram-object"></span><div id="object-datagram-format">
 <figure id="figure-23">
             <div class="alignLeft art-text artwork" id="section-10.3.1-2.1">
 <pre>
-OBJECT_DATAGRAM {
+OBJECT_DATAGRAM / OBJECT_STREAM {
   Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
              0x28..0x29 / 0x2C..0x2D,
   Track Alias (vi64),
@@ -6156,26 +6161,26 @@ OBJECT_DATAGRAM {
 </pre>
 </div>
 <figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
-<a href="#name-moqt-object_datagram" class="selfRef">MOQT OBJECT_DATAGRAM</a>
+<a href="#name-moqt-object_datagram-object" class="selfRef">MOQT OBJECT_DATAGRAM / OBJECT_STREAM</a>
             </figcaption></figure>
 </div>
-<p id="section-10.3.1-3">The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or the set of
+<p id="section-10.3.1-3">The Type field in the OBJECT_DATAGRAM or OBJECT_STREAM takes the form 0b00X0XXXX (or the set of
 values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
 range are valid. The four low-order bits and bit 5 of the Type field determine
-which fields are present in the datagram:<a href="#section-10.3.1-3" class="pilcrow">¶</a></p>
+which fields are present:<a href="#section-10.3.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.3.1-4.1">
               <p id="section-10.3.1-4.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is
 present. When set to 1, the Object Properties structure defined in
 <a href="#object-properties" class="auto internal xref">Section 10.2.1.2</a> is present. When set to 0, the field is absent.
-If an endpoint receives a datagram with the PROPERTIES bit set and an
+If an endpoint receives a datagram or stream with the PROPERTIES bit set and an
 Properties Length of 0, it <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.3.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.3.1-4.2">
               <p id="section-10.3.1-4.2.1">The <strong>END_OF_GROUP</strong> bit (0x02) indicates End of Group. When set to 1, this
 indicates that no Object with the same Group ID and an Object ID greater than
-the Object ID in this datagram exists.<a href="#section-10.3.1-4.2.1" class="pilcrow">¶</a></p>
+the Object ID in this message exists.<a href="#section-10.3.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.3.1-4.3">
               <p id="section-10.3.1-4.3.1">The <strong>ZERO_OBJECT_ID</strong> bit (0x04) indicates when the Object ID field is
@@ -6189,15 +6194,15 @@ the Publisher Priority specified in the control message that established the
 subscription. When set to 0, the Priority field is present.<a href="#section-10.3.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.3.1-4.5">
-              <p id="section-10.3.1-4.5.1">The <strong>STATUS</strong> bit (0x20) indicates whether the datagram contains an Object
+              <p id="section-10.3.1-4.5.1">The <strong>STATUS</strong> bit (0x20) indicates whether the message contains an Object
 Status or Object Payload. When set to 1, the Object Status field is present
 and there is no Object Payload. When set to 0, the Object Payload is present
 and the Object Status field is omitted. There is no explicit length field for
-the Object Payload; the entirety of the transport datagram following the
+the Object Payload; the entirety of the transport datagram or stream following the
 Object header contains the payload.<a href="#section-10.3.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-10.3.1-5">The following Type values are invalid. If an endpoint receives a datagram with
+<p id="section-10.3.1-5">The following Type values are invalid. If an endpoint receives an OBJECT_DATAGRAM or OBJECT_STREAM with
 any of these Type values, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>:<a href="#section-10.3.1-5" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.3.1-6.1">
@@ -6210,7 +6215,7 @@ end of group.<a href="#section-10.3.1-6.1.1" class="pilcrow">¶</a></p>
 ranges 0x00..0x0F and 0x20..0x2F).<a href="#section-10.3.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-10.3.1-7">If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
+<p id="section-10.3.1-7">If an OBJECT_DATAGRAM or OBJECT_STREAM includes both the STATUS bit and PROPERTIES bit, and the
 Object Status is not Normal (0x0), the endpoint <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>, because only Normal Objects can have Properties.<a href="#section-10.3.1-7" class="pilcrow">¶</a></p>
 </section>
@@ -6534,7 +6539,7 @@ track requested in the Fetch message identified by <code>Request ID</code>.<a hr
             <div class="alignLeft art-text artwork" id="section-10.4.4-2.1">
 <pre>
 FETCH_HEADER {
-  Type (vi64) = 0x5,
+  Type (vi64) = 0x50,
   Request ID (vi64),
 }
 </pre>

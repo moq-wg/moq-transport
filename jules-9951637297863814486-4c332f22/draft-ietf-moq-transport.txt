@@ -185,7 +185,7 @@ Table of Contents
      10.2.  Objects
        10.2.1.  Object Header
      10.3.  Datagrams
-       10.3.1.  Object Datagram
+       10.3.1.  Single Object Delivery
      10.4.  Streams
        10.4.1.  Stream Cancellation
        10.4.2.  Subgroup Header
@@ -1212,27 +1212,29 @@ Table of Contents
    All unidirectional MOQT streams start with a variable-length integer
    indicating the type of the stream.
 
-        +=========================+===============================+
-        |                      ID | Type                          |
-        +=========================+===============================+
-        |                    0x05 | FETCH_HEADER (Section 10.4.4) |
-        +-------------------------+-------------------------------+
-        | 0x10-0x15 / 0x18-0x1D / | SUBGROUP_HEADER               |
-        |   0x30-0x35 / 0x38-0x3D | (Section 10.4.2)              |
-        +-------------------------+-------------------------------+
-        |                  0x2F00 | SETUP (Section 9.4)           |
-        +-------------------------+-------------------------------+
-        |              0x132B3E28 | PADDING (Section 10.5.1)      |
-        +-------------------------+-------------------------------+
+       +=========================+================================+
+       |                      ID | Type                           |
+       +=========================+================================+
+       |   0x00-0x0F / 0x20-0x2D | OBJECT_STREAM (Section 10.3.1) |
+       +-------------------------+--------------------------------+
+       |                    0x50 | FETCH_HEADER (Section 10.4.4)  |
+       +-------------------------+--------------------------------+
+       | 0x10-0x15 / 0x18-0x1D / | SUBGROUP_HEADER                |
+       |   0x30-0x35 / 0x38-0x3D | (Section 10.4.2)               |
+       +-------------------------+--------------------------------+
+       |                  0x2F00 | SETUP (Section 9.4)            |
+       +-------------------------+--------------------------------+
+       |              0x132B3E28 | PADDING (Section 10.5.1)       |
+       +-------------------------+--------------------------------+
 
-                                  Table 3
+                                 Table 3
 
    An endpoint that receives an unknown stream type MUST close the
    session.
 
    Control streams (SETUP) are described in Section 3.3.  Data streams
-   (FETCH_HEADER, SUBGROUP_HEADER) are described in Section 10.  Padding
-   streams are described in Section 10.5.
+   (FETCH_HEADER, SUBGROUP_HEADER, OBJECT_STREAM) are described in
+   Section 10.  Padding streams are described in Section 10.5.
 
 3.5.  Termination
 
@@ -3786,7 +3788,7 @@ Table of Contents
    Stream.
 
    Unidirectional stream types are defined in Section 3.4.  Data streams
-   use SUBGROUP_HEADER or FETCH_HEADER types.
+   use SUBGROUP_HEADER, FETCH_HEADER, or OBJECT_STREAM types.
 
    All MOQT datagrams start with a variable-length integer indicating
    the type of the datagram.  See Section 10.3.1.
@@ -3911,7 +3913,8 @@ Table of Contents
    reordering with the control message that establishes the Track Alias.
 
    An Object received in an OBJECT_DATAGRAM message has an Object
-   Forwarding Preference = Datagram.
+   Forwarding Preference = Datagram.  An Object received in an
+   OBJECT_STREAM message has an Object Forwarding Preference = Subgroup.
 
    To send an Object with Object Forwarding Preference = Datagram,
    determine the length of the header and payload and send the Object as
@@ -3926,11 +3929,13 @@ Table of Contents
    the Object and the chances it will exceed the maximum datagram size
    of a downstream session and be dropped.
 
-10.3.1.  Object Datagram
+10.3.1.  Single Object Delivery
 
-   An OBJECT_DATAGRAM carries a single object in a datagram.
+   An Object can be sent in a Datagram or a Stream.  When sent in a
+   datagram, it is an OBJECT_DATAGRAM.  When sent in a stream, it is an
+   OBJECT_STREAM.  They share the same format.
 
-   OBJECT_DATAGRAM {
+   OBJECT_DATAGRAM / OBJECT_STREAM {
      Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
                 0x28..0x29 / 0x2C..0x2D,
      Track Alias (vi64),
@@ -3942,24 +3947,24 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                      Figure 23: MOQT OBJECT_DATAGRAM
+              Figure 23: MOQT OBJECT_DATAGRAM / OBJECT_STREAM
 
-   The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or
-   the set of values from 0x00 to 0x0F, 0x20 to 0x2F).  However, not all
-   Type values in this range are valid.  The four low-order bits and bit
-   5 of the Type field determine which fields are present in the
-   datagram:
+   The Type field in the OBJECT_DATAGRAM or OBJECT_STREAM takes the form
+   0b00X0XXXX (or the set of values from 0x00 to 0x0F, 0x20 to 0x2F).
+   However, not all Type values in this range are valid.  The four low-
+   order bits and bit 5 of the Type field determine which fields are
+   present:
 
    *  The *PROPERTIES* bit (0x01) indicates when the Properties field is
       present.  When set to 1, the Object Properties structure defined
       in Section 10.2.1.2 is present.  When set to 0, the field is
-      absent.  If an endpoint receives a datagram with the PROPERTIES
-      bit set and an Properties Length of 0, it MUST close the session
-      with a PROTOCOL_VIOLATION.
+      absent.  If an endpoint receives a datagram or stream with the
+      PROPERTIES bit set and an Properties Length of 0, it MUST close
+      the session with a PROTOCOL_VIOLATION.
 
    *  The *END_OF_GROUP* bit (0x02) indicates End of Group.  When set to
       1, this indicates that no Object with the same Group ID and an
-      Object ID greater than the Object ID in this datagram exists.
+      Object ID greater than the Object ID in this message exists.
 
    *  The *ZERO_OBJECT_ID* bit (0x04) indicates when the Object ID field
       is present.  When set to 1, the Object ID field is omitted and the
@@ -3971,17 +3976,17 @@ Table of Contents
       control message that established the subscription.  When set to 0,
       the Priority field is present.
 
-   *  The *STATUS* bit (0x20) indicates whether the datagram contains an
+   *  The *STATUS* bit (0x20) indicates whether the message contains an
       Object Status or Object Payload.  When set to 1, the Object Status
       field is present and there is no Object Payload.  When set to 0,
       the Object Payload is present and the Object Status field is
       omitted.  There is no explicit length field for the Object
-      Payload; the entirety of the transport datagram following the
-      Object header contains the payload.
+      Payload; the entirety of the transport datagram or stream
+      following the Object header contains the payload.
 
-   The following Type values are invalid.  If an endpoint receives a
-   datagram with any of these Type values, it MUST close the session
-   with a PROTOCOL_VIOLATION:
+   The following Type values are invalid.  If an endpoint receives an
+   OBJECT_DATAGRAM or OBJECT_STREAM with any of these Type values, it
+   MUST close the session with a PROTOCOL_VIOLATION:
 
    *  Type values with both the STATUS bit (0x20) and END_OF_GROUP bit
       (0x02) set: 0x22, 0x23, 0x26, 0x27, 0x2A, 0x2B, 0x2E, 0x2F.  An
@@ -3990,10 +3995,10 @@ Table of Contents
    *  Type values that do not match the form 0b00X0XXXX (i.e., Type
       values outside the ranges 0x00..0x0F and 0x20..0x2F).
 
-   If an Object Datagram includes both the STATUS bit and PROPERTIES
-   bit, and the Object Status is not Normal (0x0), the endpoint MUST
-   close the session with a PROTOCOL_VIOLATION, because only Normal
-   Objects can have Properties.
+   If an OBJECT_DATAGRAM or OBJECT_STREAM includes both the STATUS bit
+   and PROPERTIES bit, and the Object Status is not Normal (0x0), the
+   endpoint MUST close the session with a PROTOCOL_VIOLATION, because
+   only Normal Objects can have Properties.
 
 10.4.  Streams
 
@@ -4273,7 +4278,7 @@ Table of Contents
    Request ID.
 
    FETCH_HEADER {
-     Type (vi64) = 0x5,
+     Type (vi64) = 0x50,
      Request ID (vi64),
    }
 
