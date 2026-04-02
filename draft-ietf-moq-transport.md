@@ -2358,30 +2358,40 @@ message, the default value is 1.
 ### MAX SUB STREAMS Parameter {#max-sub-streams}
 
 The MAX_SUB_STREAMS parameter (Parameter Type 0x33) is a varint. It MAY appear
-in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE for a subscription. It sets an
-initial limit on the number of simultaneous active subgroup streams for the
-subscription. It is sent by the subscriber to flow control the publisher.
+in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE for a Subscription. It sets or updates
+a limit on the total number of subgroup streams for the Subscription in order
+to provide flow control.
 
-If a publisher wants to send more streams than the limit allows, it MUST wait
-until streams are closed or the limit is increased. The subscriber CAN increase
-this limit by sending a larger value in a REQUEST_UPDATE.
+A Publisher MUST NOT open more subgroup streams for that Subscription than the
+limit allows, and the Subscriber SHOULD close the Session with PROTOCOL_VIOLATION
+if detected. The Subscriber SHOULD increase this limit before the Publisher runs
+out of streams by sending a REQUEST_UPDATE with the Parameter. In REQUEST_UPDATE,
+this Parameter specifies the number of additional streams that can be opened.
+For example, if SUBSCRIBE specified a value of 10, and a REQUEST_UPDATE had a
+value of 5, a total of 15 subgroups streams can be opened for the Subscription.
 
-If this parameter is omitted from a subscription, the number of streams is not
-limited by this mechanism.
+If this parameter is omitted from SUBSCRIBE or PUBLISH_OK, the number of streams
+is not limited by this mechanism and REQUEST_UPDATEs of that Subscription MUST NOT
+specify the MAX SUB STREAMS Parameter.
 
 ### MAX SUB BYTES Parameter {#max-sub-bytes}
 
 The MAX_SUB_BYTES parameter (Parameter Type 0x34) is a varint. It MAY appear
-in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE for a subscription. It sets a
-limit on the total number of bytes sent on subgroup streams for the
-subscription. It is sent by the subscriber to flow control the publisher.
+in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE for a Subscription. It sets a
+limit on the total number of bytes sent across all subgroup streams for the
+Subscription in order to provide flow control.
 
-If a publisher wants to send more bytes than the limit allows, it MUST wait
-until the limit is increased. The subscriber CAN increase this limit by sending
-a larger value in a REQUEST_UPDATE.
+A Publisher MUST NOT send more bytes on subgroup streams than the limit allows,
+and the Subscriber SHOULD close the Session with PROTOCOL_VIOLATION if detected.
+The Subscriber SHOULD increase this limit before the Publisher is blocked by
+sending a REQUEST_UPDATE with the Parameter. In REQUEST_UPDATE, this Parameter
+specifies the number of additional bytes that can be sent. For example, if SUBSCRIBE
+specified a value of 65,536, and a REQUEST_UPDATE had a value of 32,768, 98,304 bytes
+can be sent on subgroup streams for the Subscription.
 
-If this parameter is omitted from a subscription, the number of bytes is not
-limited by this mechanism.
+If this parameter is omitted from SUBSCRIBE or PUBLISH_OK, the number of bytes
+is not limited by this mechanism and REQUEST_UPDATEs of that Subscription MUST NOT
+specify the MAX SUB BYTES Parameter.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
