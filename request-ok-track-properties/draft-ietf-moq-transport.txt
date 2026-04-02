@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 22 September 2026                                 I. Swett, Ed.
+Expires: 4 October 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           21 March 2026
+                                                            2 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 September 2026.
+   This Internet-Draft will expire on 4 October 2026.
 
 Copyright Notice
 
@@ -2778,7 +2778,9 @@ Table of Contents
       message after parsing all previous fields.  Track Properties are
       populated in response to TRACK_STATUS messages; they are empty in
       response to REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and
-      PUBLISH_NAMESPACE.
+      PUBLISH_NAMESPACE.  If an endpoint receives Track Properties in
+      response to one of these messages it MUST close the session with a
+      PROTOCOL_VIOLATION.
 
 9.7.  REQUEST_ERROR
 
