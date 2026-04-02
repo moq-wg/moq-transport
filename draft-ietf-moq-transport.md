@@ -3954,12 +3954,12 @@ If the Group ID Delta field is present on an Object other than the first, the
 Group ID is computed from the Group ID Delta and the prior Object's Group ID.
 If the Group Order is Ascending, the Group ID is the prior Object's Group ID
 plus the Group ID Delta + 1.  If the Group Order is Descending, the Group ID is
-the prior Object's Group ID minus the (Group ID Delta + 1). When the Group ID Delta
-field is present and therefore the Group ID changes, the Object ID is the
-absolute value of Object ID Delta if present, and 0 otherwise.
+the prior Object's Group ID minus the (Group ID Delta + 1).
 
 If the Object ID Delta field is present on an Object other than the first in the
-Group, the Object ID is the prior Object's ID plus the Object ID Delta.
+Group, the Object ID is the prior Object's ID plus the Object ID Delta.  When the
+Group ID Delta field is present and therefore the Group ID changes, the Object ID
+is the absolute value of Object ID Delta if present, and 0 otherwise.
 
 The Object Properties structure is defined in {{object-properties}}.
 
