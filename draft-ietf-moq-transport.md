@@ -1007,9 +1007,9 @@ the type of the stream.
 |-------------|-------------------------------------------------|
 | ID          | Type                                            |
 |------------:|:------------------------------------------------|
-| 0x00-0x0F / 0x20-0x2D | OBJECT_STREAM  ({{object-datagram}})    |
-|-------------|-------------------------------------------------|
 | 0x50        | FETCH_HEADER  ({{fetch-header}})                |
+|-------------|-------------------------------------------------|
+| 0x00-0x0F / 0x20-0x2D | OBJECT_STREAM  ({{object-datagram}})    |
 |-------------|-------------------------------------------------|
 | 0x10-0x15 / 0x18-0x1D / 0x30-0x35 / 0x38-0x3D | SUBGROUP_HEADER  ({{subgroup-header}}) |
 |-------------|-------------------------------------------------|
@@ -1021,8 +1021,8 @@ the type of the stream.
 An endpoint that receives an unknown stream type MUST close the session.
 
 Control streams (SETUP) are described in {{session-init}}.
-Data streams (FETCH_HEADER, SUBGROUP_HEADER, OBJECT_STREAM) are described in {{data-streams}}.
-Padding streams are described in {{padding}}.
+Data streams (FETCH_HEADER, SUBGROUP_HEADER, OBJECT_STREAM) are described
+in {{data-streams}}. Padding streams are described in {{padding}}.
 
 ## Termination  {#session-termination}
 
@@ -3579,7 +3579,9 @@ will exceed the maximum datagram size of a downstream session and be dropped.
 
 ### Single Object Delivery {#object-datagram}
 
-An Object can be sent in a Datagram or a Stream. When sent in a datagram, it is an `OBJECT_DATAGRAM`. When sent in a stream, it is an `OBJECT_STREAM`. They share the same format.
+An Object can be sent in a Datagram or a Stream. When sent in a datagram, it
+is an `OBJECT_DATAGRAM`. When sent in a stream, it is an `OBJECT_STREAM`.
+They share the same format.
 
 ~~~
 OBJECT_DATAGRAM / OBJECT_STREAM {
@@ -3596,10 +3598,10 @@ OBJECT_DATAGRAM / OBJECT_STREAM {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM / OBJECT_STREAM"}
 
-The Type field in the OBJECT_DATAGRAM or OBJECT_STREAM takes the form 0b00X0XXXX (or the set of
-values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
-range are valid. The four low-order bits and bit 5 of the Type field determine
-which fields are present:
+The Type field in the OBJECT_DATAGRAM or OBJECT_STREAM takes the
+form 0b00X0XXXX (or the set of values from 0x00 to 0x0F, 0x20 to 0x2F).
+However, not all Type values in this range are valid. The four low-order bits
+and bit 5 of the Type field determine which fields are present:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is
   present. When set to 1, the Object Properties structure defined in
