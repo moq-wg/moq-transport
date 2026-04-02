@@ -4576,14 +4576,19 @@ message, the default value is 1.<a href="#section-9.3.10-2" class="pilcrow">¶</
 <a href="#section-9.3.11" class="section-number selfRef">9.3.11. </a><a href="#name-max-sub-streams-parameter" class="section-name selfRef">MAX SUB STREAMS Parameter</a>
           </h4>
 <p id="section-9.3.11-1">The MAX_SUB_STREAMS parameter (Parameter Type 0x33) is a varint. It <span class="bcp14">MAY</span> appear
-in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE for a subscription. It sets an
-initial limit on the number of simultaneous active subgroup streams for the
-subscription. It is sent by the subscriber to flow control the publisher.<a href="#section-9.3.11-1" class="pilcrow">¶</a></p>
-<p id="section-9.3.11-2">If a publisher wants to send more streams than the limit allows, it <span class="bcp14">MUST</span> wait
-until streams are closed or the limit is increased. The subscriber CAN increase
-this limit by sending a larger value in a REQUEST_UPDATE.<a href="#section-9.3.11-2" class="pilcrow">¶</a></p>
-<p id="section-9.3.11-3">If this parameter is omitted from a subscription, the number of streams is not
-limited by this mechanism.<a href="#section-9.3.11-3" class="pilcrow">¶</a></p>
+in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE for a Subscription. It sets or updates
+a limit on the total number of subgroup streams for the Subscription in order
+to provide flow control.<a href="#section-9.3.11-1" class="pilcrow">¶</a></p>
+<p id="section-9.3.11-2">A Publisher <span class="bcp14">MUST NOT</span> open more subgroup streams for that Subscription than the
+limit allows, and the Subscriber <span class="bcp14">SHOULD</span> close the Session with PROTOCOL_VIOLATION
+if detected. The Subscriber <span class="bcp14">SHOULD</span> increase this limit before the Publisher runs
+out of streams by sending a REQUEST_UPDATE with the Parameter. In REQUEST_UPDATE,
+this Parameter specifies the number of additional streams that can be opened.
+For example, if SUBSCRIBE specified a value of 10, and a REQUEST_UPDATE had a
+value of 5, a total of 15 subgroups streams can be opened for the Subscription.<a href="#section-9.3.11-2" class="pilcrow">¶</a></p>
+<p id="section-9.3.11-3">If this parameter is omitted from SUBSCRIBE or PUBLISH_OK, the number of streams
+is not limited by this mechanism and REQUEST_UPDATEs of that Subscription <span class="bcp14">MUST NOT</span>
+specify the MAX SUB STREAMS Parameter.<a href="#section-9.3.11-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-sub-bytes">
@@ -4592,14 +4597,19 @@ limited by this mechanism.<a href="#section-9.3.11-3" class="pilcrow">¶</a></p>
 <a href="#section-9.3.12" class="section-number selfRef">9.3.12. </a><a href="#name-max-sub-bytes-parameter" class="section-name selfRef">MAX SUB BYTES Parameter</a>
           </h4>
 <p id="section-9.3.12-1">The MAX_SUB_BYTES parameter (Parameter Type 0x34) is a varint. It <span class="bcp14">MAY</span> appear
-in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE for a subscription. It sets a
-limit on the total number of bytes sent on subgroup streams for the
-subscription. It is sent by the subscriber to flow control the publisher.<a href="#section-9.3.12-1" class="pilcrow">¶</a></p>
-<p id="section-9.3.12-2">If a publisher wants to send more bytes than the limit allows, it <span class="bcp14">MUST</span> wait
-until the limit is increased. The subscriber CAN increase this limit by sending
-a larger value in a REQUEST_UPDATE.<a href="#section-9.3.12-2" class="pilcrow">¶</a></p>
-<p id="section-9.3.12-3">If this parameter is omitted from a subscription, the number of bytes is not
-limited by this mechanism.<a href="#section-9.3.12-3" class="pilcrow">¶</a></p>
+in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE for a Subscription. It sets a
+limit on the total number of bytes sent across all subgroup streams for the
+Subscription in order to provide flow control.<a href="#section-9.3.12-1" class="pilcrow">¶</a></p>
+<p id="section-9.3.12-2">A Publisher <span class="bcp14">MUST NOT</span> send more bytes on subgroup streams than the limit allows,
+and the Subscriber <span class="bcp14">SHOULD</span> close the Session with PROTOCOL_VIOLATION if detected.
+The Subscriber <span class="bcp14">SHOULD</span> increase this limit before the Publisher is blocked by
+sending a REQUEST_UPDATE with the Parameter. In REQUEST_UPDATE, this Parameter
+specifies the number of additional bytes that can be sent. For example, if SUBSCRIBE
+specified a value of 65,536, and a REQUEST_UPDATE had a value of 32,768, 98,304 bytes
+can be sent on subgroup streams for the Subscription.<a href="#section-9.3.12-2" class="pilcrow">¶</a></p>
+<p id="section-9.3.12-3">If this parameter is omitted from SUBSCRIBE or PUBLISH_OK, the number of bytes
+is not limited by this mechanism and REQUEST_UPDATEs of that Subscription <span class="bcp14">MUST NOT</span>
+specify the MAX SUB BYTES Parameter.<a href="#section-9.3.12-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="new-group-request">
