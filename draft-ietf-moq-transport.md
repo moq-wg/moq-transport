@@ -2955,11 +2955,10 @@ with a certain number of groups prior to the live edge of a track.
 A Joining Fetch is only permitted when the associated subscription has
 Forward State 1; otherwise the publisher MUST close the session with a
 `PROTOCOL_VIOLATION`. A publisher MUST process any pending REQUEST_UPDATE
-messages for the associated subscription before evaluating
-the current request. Relays with an upstream subscription in Forward State 0 can
-either send a Joining Fetch upstream or buffer the Joining Fetch until
-the upstream subscription transitions to Forward State 1 and serve from
-cache.
+messages for the associated subscription before evaluating the current
+request. Relays with an upstream subscription in transition from Forward State 0
+to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
+the upstream subscription returns REQUEST_OK with the new Largest Object.
 
 If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
