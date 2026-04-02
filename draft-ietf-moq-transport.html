@@ -3414,6 +3414,9 @@ If the resulting Group ID would be greater than 2^64 - 1, the endpoint <span cla
 close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-11">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> close the
 session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-12">If the publisher cannot satisfy the requested Subscription Filter (see
+<a href="#subscription-filter" class="auto internal xref">Section 9.3.7</a>) or if the entire End Group has already been published
+it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR with code <code>INVALID_RANGE</code>.  A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range.<a href="#section-5.1.2-12" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="joining-an-ongoing-track">
@@ -5061,12 +5064,6 @@ SUBSCRIBE Message {
 <p id="section-9.8-6">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
 specified, and start sending objects.<a href="#section-9.8-6" class="pilcrow">¶</a></p>
-<p id="section-9.8-7">If the publisher cannot satisfy the requested Subscription Filter (see
-<a href="#subscription-filter" class="auto internal xref">Section 9.3.7</a>) or if the entire End Group has already been published
-it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR with code <code>INVALID_RANGE</code>.  A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range.<a href="#section-9.8-7" class="pilcrow">¶</a></p>
-<p id="section-9.8-8">Subscribing with the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.3.10</a>) equal to 0 allows
-publisher or relay to prepare to serve the subscription in advance, reducing the
-time to receive objects in the future.<a href="#section-9.8-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-subscribe-ok">
@@ -5280,8 +5277,6 @@ PUBLISH_OK Message {
             <p id="section-9.12-3.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.3</a>.<a href="#section-9.12-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-9.12-4">TODO: A similar section to SUBSCRIBE about how the publisher handles a
-filter that is entirely behind Largest Object or is otherwise invalid.<a href="#section-9.12-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-publish-done">
