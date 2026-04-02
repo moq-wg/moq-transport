@@ -61,31 +61,29 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for Media over QUIC Transport
-(MOQT), a media transport protocol designed to operate over QUIC and
-WebTransport, which have similar functionality. MOQT allows a producer of
-media to publish data and have it consumed via subscription by a
-multiplicity of endpoints. It supports intermediate content distribution
-networks and is designed for high scale and low latency distribution.
+This document defines Media over QUIC Transport (MOQT), a publish/subscribe
+protocol that runs over QUIC and WebTransport. MOQT leverages the features of
+these transports, such as streams, datagrams, priorities, and partial
+reliability. MOQT operates both point-to-point and through intermediate relays,
+enabling scalable low-latency delivery. Despite its name, MOQT is media
+agnostic and can be used for a wide range of use cases.
 
 --- middle
 
 
 # Introduction
 
-Media Over QUIC Transport (MOQT) is a protocol that is optimized
-for the QUIC protocol {{QUIC}}, either directly or via WebTransport
-{{WebTransport}}, for the dissemination of media. MOQT utilizes a
-publish/subscribe workflow in which producers of media publish data in
-response to subscription requests from a multiplicity of endpoints. MOQT
-supports wide range of use-cases with different resiliency and latency
-(live, interactive) needs without compromising the scalability and cost
-effectiveness associated with content delivery networks.
+Media Over QUIC Transport (MOQT) is a publish/subscribe protocol that runs over
+QUIC {{QUIC}} or WebTransport {{WebTransport}}. Publishers produce data that is
+delivered to subscribers either point-to-point or through intermediate relays.
+MOQT leverages transport features such as streams, datagrams, priorities, and
+partial reliability to support a wide range of use cases with different
+resiliency and latency needs, from live to interactive, without compromising
+scalability.
 
-MOQT is a generic protocol designed to work in concert with multiple
-MoQ Streaming Formats. These MoQ Streaming Formats define how content is
-encoded, packaged, and mapped to MOQT objects, along with policies for
-discovery and subscription.
+Despite its name, MOQT is content agnostic. MoQ Streaming Formats define how
+specific content types are encoded, packaged, and mapped to MOQT objects, along
+with policies for discovery and subscription.
 
 * {{model}} describes the data model employed by MOQT.
 
@@ -127,7 +125,7 @@ rapidly detect and respond to congestion.
 
 The parallel nature of QUIC streams can provide improvements in the face
 of loss. A goal of MOQT is to design a streaming protocol to leverage
-the transmission benefits afforded by parallel QUIC streams as well
+the transmission benefits afforded by parallel QUIC streams as well as
 exercising options for flexible loss recovery.
 
 ### Convergence
@@ -241,42 +239,84 @@ Track:
 ## Stream Management Terms
 
 This document uses stream management terms described in {{?RFC9000, Section
-1.3}} including STOP_SENDING, RESET_STREAM and FIN.
+1.3}} including STOP_SENDING, RESET_STREAM, and FIN. It also uses
+RESET_STREAM_AT from {{!I-D.draft-ietf-quic-reliable-stream-reset}}.
+RESET_STREAM_AT can be used by MOQT, but the protocol is also designed to work
+correctly when the extension is not supported.
+
+When this document says an endpoint "resets" a stream, it means the endpoint
+sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
+{{closing-subgroup-streams}} for considerations on choosing between them).
 
 ## Notational Conventions
 
 This document uses the conventions detailed in ({{?RFC9000, Section 1.3}})
 when describing the binary encoding.
 
-As a quick reference, the following list provides a non normative summary
-of the parts of RFC9000 field syntax that are used in this specification.
+### Variable-Length Integers
 
-x (L):
+MoQT requires a variable-length integer encoding with the following properties:
 
-: Indicates that x is L bits long.
+1. The encoded length can be determined from the first encoded byte.
+2. The range of 1 byte values is as large as possible.
+3. All 64 bit numbers can be encoded.
 
-x (i):
+The variable-length integer encoding uses the number of leading 1 bits of the
+first byte to indicate the length of the encoding in bytes. The remaining bits
+after the first 0 and subsequent bytes, if any, represent the integer value,
+encoded in network byte order.
+
+Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can encode up to 64
+bit unsigned integers. The following table summarizes the encoding properties.
+
+|--------------|----------------|-------------|------------------------|
+| Leading Bits | Length (bytes) | Usable Bits | Range                  |
+|--------------|----------------|-------------|------------------------|
+| 0            | 1              | 7           | 0-127                  |
+|--------------|----------------|-------------|------------------------|
+| 10           | 2              | 14          | 0-16383                |
+|--------------|----------------|-------------|------------------------|
+| 110          | 3              | 21          | 0-2097151              |
+|--------------|----------------|-------------|------------------------|
+| 1110         | 4              | 28          | 0-268435455            |
+|--------------|----------------|-------------|------------------------|
+| 11110        | 5              | 35          | 0-34359738367          |
+|--------------|----------------|-------------|------------------------|
+| 111110       | 6              | 42          | 0-4398046511103        |
+|--------------|----------------|-------------|------------------------|
+| 11111110     | 8              | 56          | 0-72057594037927935    |
+|--------------|----------------|-------------|------------------------|
+| 11111111     | 9              | 64          | 0-18446744073709551615 |
+|--------------|----------------|-------------|------------------------|
+{: format title="Summary of Integer Encodings"}
+
+The following table contains some example encodings:
+
+|----------------------|----------------------------|
+| Byte Sequence        | Decimal Value              |
+|----------------------|----------------------------|
+| 0x25                 | 37                         |
+| 0x8025               | 37                         |
+| 0xbbbd               | 15,293                     |
+| 0xed7f3e7d           | 226,442,877                |
+| 0xfaa1a0e403d8       | 2,893,212,287,960          |
+| 0xfefa318fa8e3ca11   | 70,423,237,261,249,041     |
+| 0xffffffffffffffffff | 18,446,744,073,709,551,615 |
+|----------------------|----------------------------|
+{: format title="Example Integer Encodings"}
+
+11111100 is an invalid code point.  An endpoint that receives this value MUST
+close the session with a `PROTOCOL_VIOLATION`.
+
+To reduce unnecessary use of bandwidth, variable length integers SHOULD be
+encoded using the least number of bytes possible to represent the required
+value.
+
+x (vi64):
 
 : Indicates that x holds an integer value using the variable-length
-  encoding as described in ({{?RFC9000, Section 16}}).
+  encoding as described above.
 
-x (..):
-
-: Indicates that x can be any length including zero bits long.  Values
- in this format always end on a byte boundary.
-
-[x (L)]:
-
-: Indicates that x is optional and has a length of L.
-
-x (L) ...:
-
-: Indicates that x is repeated zero or more times and that each instance
-  has a length of L.
-
-To reduce unnecessary use of bandwidth, variable length integers SHOULD
-be encoded using the least number of bytes possible to represent the
-required value.
 
 ### Location Structure
 
@@ -284,14 +324,16 @@ Location identifies a particular Object in a Group within a Track.
 
 ~~~
 Location {
-  Group (i),
-  Object (i)
+  Group (vi64),
+  Object (vi64)
 }
 ~~~
 {: #moq-location format title="Location structure"}
 
-In this document, the constituent parts of any Location A can be referred to
-using A.Group or A.Object.
+In this document, a Location can be expressed in the form of {GroupID,
+ObjectID}, where GroupID and ObjectID indicate the Group ID and Object ID of the
+Location, respectively.  The constituent parts of any Location A can be referred
+to using A.Group or A.Object.
 
 Location A < Location B if:
 
@@ -304,30 +346,41 @@ pairs in which the key is a variable length integer and the value
 is either a variable length integer or a byte field of arbitrary
 length.
 
+Key-Value-Pairs encode a Type value as a delta from the previous Type value,
+or from 0 if there is no previous Type value. This is efficient on the wire
+and makes it easy to ensure there is only one instance of a type when needed.
+The previous Type value plus the Delta Type MUST NOT be greater than 2^64 - 1.
+If a Delta Type is received that would be too large, the Session MUST be closed
+with a `PROTOCOL_VIOLATION`.
+
 Key-Value-Pair is used in both the data plane and control plane, but
 is optimized for use in the data plane.
 
 ~~~
 Key-Value-Pair {
-  Type (i),
-  [Length (i),]
+  Delta Type (vi64),
+  [Length (vi64),]
   Value (..)
 }
 ~~~
 {: #moq-key-value-pair format title="MOQT Key-Value-Pair"}
 
-* Type: an unsigned integer, encoded as a varint, identifying the
-  type of the value and also the subsequent serialization.
+* Delta Type: an unsigned integer, encoded as a varint, identifying the Type
+  as a delta encoded value from the previous Type, if any. The Type identifies
+  the type of value and also the subsequent serialization.
 * Length: Only present when Type is odd. Specifies the length of the Value field
   in bytes. The maximum length of a value is 2^16-1 bytes.  If an endpoint
   receives a length larger than the maximum, it MUST close the session with a
-  Protocol Violation.
+  `PROTOCOL_VIOLATION`.
 * Value: A single varint encoded value when Type is even, otherwise a
   sequence of Length bytes.
 
 If a receiver understands a Type, and the following Value or Length/Value does
-not match the serialization defined by that Type, the receiver MUST terminate
+not match the serialization defined by that Type, the receiver MUST close
 the session with error code `KEY_VALUE_FORMATTING_ERROR`.
+
+Key-Value-Pairs are always parsed with a known byte length, which bounds
+the sequence. The source of this length varies by context.
 
 ### Reason Phrase Structure {#reason-phrase}
 
@@ -336,7 +389,7 @@ information about the error condition, where appropriate.
 
 ~~~
 Reason Phrase {
-  Reason Phrase Length (i),
+  Reason Phrase Length (vi64),
   Reason Phrase Value (..)
 }
 ~~~
@@ -350,6 +403,59 @@ Reason Phrase {
   The reason phrase value is encoded as UTF-8 string and does not carry information,
   such as language tags, that would aid comprehension by any entity other than
   the one that created the text.
+
+## Representing Namespace and Track Names
+
+There is often a need to render namespace tuples and track names for
+purposes such as logging, representing track filenames, or use in
+certain authorization verification schemes. The namespace and track name
+are binary, so they need to be converted to a safe form.
+
+The following format is RECOMMENDED:
+
+* Each of the namespace tuples are rendered in order with a hyphen (-)
+  between them followed by the track name with a double hyphen (--)
+  between the last namespace and track name.
+
+* Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output as is,
+  while all other bytes are encoded as a period (.) symbol followed by
+  exactly two lower case hex digits.
+
+The goal of this format is to have a format that is both filename and
+URL safe. It allows many common names to be rendered in an easily human
+readable form while still supporting binary values.
+
+### Parsing Serialized Names
+
+When parsing a serialized namespace or track name back to its binary form,
+implementations MUST apply the following rules to ensure a canonical encoding:
+
+* The hex digits following a period (.) MUST be lowercase (a-f). Uppercase
+  hex digits (A-F) are invalid and MUST cause parsing to fail.
+
+* Bytes that can be represented literally (a-z, A-Z, 0-9, _) MUST NOT appear
+  in their hex-encoded form. For example, `.61` is invalid because `a` must
+  be represented as the literal character `a`. A parser MUST reject such
+  redundant encodings.
+
+* A period (.) MUST be followed by exactly two hex digits. A trailing period
+  or a period followed by fewer than two hex digits is invalid.
+
+These rules ensure that the encoding is bijective: every binary value has
+exactly one valid serialized representation, and every valid serialized
+string maps to exactly one binary value. This property simplifies comparison
+of serialized names without requiring full deserialization.
+
+Implementations that receive an invalid serialized name SHOULD treat it as
+an error. The specific error handling behavior is application-defined.
+
+Example:
+
+~~~
+example.2enet-team2-project_x--report
+  Namespace tuples: (example.net, team2, project_x)
+  Track name: report
+~~~
 
 # Object Data Model {#model}
 
@@ -391,7 +497,28 @@ underlying encoding, compression, any end-to-end encryption, or
 authentication. A relay MUST NOT combine, split, or otherwise modify object
 payloads.
 
-Objects within a Group are ordered numerically by their Object ID.
+Objects within a Group are in ascending order by Object ID.
+
+From the perspective of a subscriber or a cache, an Object can be in three
+possible states:
+
+1. The Object is known to not exist. This state is permanent.  All signals
+   that an Object does not exist are authoritative.
+2. The Object is known to exist. From this state, it can transition to not
+   existing, but not vice versa.
+3. The state of the Object is unknown, either because it has not yet been
+   received, or it has not been produced yet.
+
+Since Objects can be delivered out of order, an endpoint can receive an Object
+after it has already recorded that the Object does not exist (e.g., via a FETCH
+gap from one source and later delivery via a subscription).  This is not a
+protocol error and the Track is not malformed.
+
+Whenever the publisher communicates that certain objects do not exist, this
+fact is expressed as a contiguous range of non-existent objects and
+by including Properties indicating the group/object gaps; MOQT
+implementers should take that into account when selecting appropriate data
+structures.
 
 ## Subgroups {#model-subgroup}
 
@@ -402,19 +529,19 @@ stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.
 
-When a Track's forwarding preference (see {{object-properties}}) is
-"Datagram", Objects are not sent in Subgroups and the
-description in the remainder of this section does not apply.
+When an Object's forwarding preference (see {{object-properties}}) is
+"Datagram", it is not sent in Subgroups, does not belong to a Subgroup in any
+way, and the description in the remainder of this section does not apply.
 
-Streams offer in-order reliable delivery and the ability to cancel sending
-and retransmission of data. Furthermore, many implementations offer the ability
-to control the relative priority of streams, which allows control over the
-scheduling of sending data on active streams.
+Streams offer in-order reliable delivery and the ability to cancel sending and
+retransmission of data. Furthermore, many QUIC and WebTransport implementations
+offer the ability to control the relative scheduling priority of pending stream
+data.
 
-Every object within a Group belongs to exactly one Subgroup.
+Every Object within a Group belongs to exactly one Subgroup or Datagram.
 
 When Objects are sent in a subscription (see {{subscriptions}}),  Objects
-from two subgroups cannot be sent on the same stream, and Objects from the
+from two subgroups MUST NOT be sent on the same stream, and Objects from the
 same Subgroup MUST NOT be sent on different streams, unless one of the streams
 was reset prematurely, or upstream conditions have forced objects from a Subgroup
 to be sent out of Object ID order.
@@ -463,7 +590,10 @@ Tracks SHOULD NOT use range filters which span multiple Groups in FETCH or
 SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so they could have
 an unexpected delivery order if Group IDs do not increase with time.
 
-Note that the increase in time between two groups is not defined by the protocol.
+The amount of time elapsed between publishing an Object in Group ID N and in a
+Group ID > N, or even which will be published first, is not defined by this
+specification and is defined by the applications using MOQT.
+
 
 ## Track {#model-track}
 
@@ -478,12 +608,12 @@ active.
 In MOQT, every track is identified by a Full Track Name, consisting of a Track
 Namespace and a Track Name.
 
-Track Namespace is an ordered set of between 1 and 32 Track Namespace Fields,
+Track Namespace is an ordered set of between 0 and 32 Track Namespace Fields,
 encoded as follows:
 
 ~~~
 Track Namespace {
-  Number of Track Namespace Fields (i),
+  Number of Track Namespace Fields (vi64),
   Track Namespace Field (..) ...
 }
 ~~~
@@ -495,7 +625,7 @@ Each Track Namespace Field is encoded as follows:
 
 ~~~
 Track Namespace Field {
-  Track Namespace Field Length (i),
+  Track Namespace Field Length (vi64),
   Track Namespace Field Value (..)
 }
 ~~~
@@ -506,18 +636,24 @@ Track Namespace Field {
 * Track Namespace Field Value: A sequence of bytes that forms a Track Namespace
   Field.
 
+Each Track Namespace Field Value MUST contain at least one byte. If an endpoint
+receives a Track Namespace Field with a Track Namespace Field Length of 0, it
+MUST close the session with a `PROTOCOL_VIOLATION`.
+
 The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
-consisting of 0 or greater than 32 Track Namespace Fields, it MUST close the
+consisting of greater than 32 Track Namespace Fields, it MUST close the
 session with a `PROTOCOL_VIOLATION`.
 
-Track Name is a sequence of bytes that identifies an individual track within the
-namespace.
+Track Name is a sequence of bytes, possibly empty, that identifies an individual
+track within the namespace.
 
-The maximum total length of a Full Track Name is 4,096 bytes. The length of a Full
-Track Name is computed as the sum of the Track Namespace Field Length fields
-and the Track Name Length field.  If an endpoint receives a Full Track Name
-exceeding this length, it MUST close the session with a `PROTOCOL_VIOLATION`.
+The maximum total length of a Full Track Name is 4,096 bytes. The length of a
+Full Track Name is computed as the sum of the Track Namespace Field Length
+fields and the Track Name Length field. The length of a Track Namespace is the
+sum of the Track Namespace Field Length fields. If an endpoint receives a Track
+Namespace or a Full Track Name exceeding 4,096 bytes, it MUST close the session
+with a `PROTOCOL_VIOLATION`.
 
 In this specification, both the Track Namespace Fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -534,39 +670,45 @@ to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
-1. An Object is received in a FETCH response with the same Group as the
+1. An Object is received in a FETCH response with the same Group ID as the
    previous Object, but whose Object ID is not strictly larger than the previous
    object.
-2. An Object is received in an Ascending FETCH response whose Group ID is smaller
+2.  In a FETCH response, an Object with a particular Subgroup ID is received, but its
+     Publisher Priority is different from that of the previous Object with the same
+     Subgroup ID.
+3. An Object is received in an Ascending FETCH response whose Group ID is smaller
    than the previous Object in the response.
-3. An Object is received in a Descending FETCH response whose Group ID is larger
-   than the previous Object in the resopnse.
-4. An Object is received whose Object ID is larger than the final Object in the
+4. An Object is received in a Descending FETCH response whose Group ID is larger
+   than the previous Object in the response.
+5. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-5. A Subgroup is received over multiple transport streams terminated by FIN with
+6. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-6. An Object is received in a Group whose Object ID is larger than the final
-   Object in the Group.  The final Object in a Group is the Object with Status
-   END_OF_GROUP or the last Object sent in a FETCH that requested the entire
-   Group.
-7. An Object is received on a Track whose Group and Object ID are larger than the
-   final Object in the Track.  The final Object in a Track is the Object with
-   Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
-   End of Track.
-8. The same Object is received more than once with different Payload or
+7. An Object is received in a Group whose Object
+   ID is larger than the final Object in the Group.  The final Object in a Group
+   is the Object with Status END_OF_GROUP, or the last Object before a FIN in a
+   Subgroup which has the END_OF_GROUP bit set.  If the end of a Group is
+   implicitly determined via a gap in a FETCH response, the final Object in the
+   Group remains unknown.
+8. An Object is received whose Group and Object ID are larger than
+   the final Object in the Track.  The final Object in a Track is the Object
+   with Status END_OF_TRACK or the last Object sent in a FETCH whose response
+   indicated End of Track.
+9. The same Object is received more than once with different Payload or
     other immutable properties.
-9. An Object is received with a different Forwarding Preference than previously
-    observed from the same Track.
+10. An Object is received with a different Forwarding Preference than previously
+    observed.
 
 The above list of conditions is not considered exhaustive.
 
-When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE any
-subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
-SHOULD deliver an error to the application.  If a relay detects a Malformed
-Track, it MUST immediately terminate downstream subscriptions with PUBLISH_DONE
-and reset any fetch streams with Status Code `MALFORMED_TRACK`.
-
+When a subscriber detects a Malformed Track, it MUST cancel any corresponding
+subscription or fetches for that Track from that publisher
+(see {{request-cancellation}}), and SHOULD deliver an error to the application.
+If a relay detects a Malformed Track, it MUST immediately terminate downstream
+subscriptions with PUBLISH_DONE and reset any fetch streams with
+Status Code `MALFORMED_TRACK`. Object(s) triggering Malformed Track status
+MUST NOT be cached.
 
 ### Scope {#track-scope}
 
@@ -601,6 +743,90 @@ ways, for example:
 3. Use TRACK_STATUS or similar mechanism to query the previous state to
    determine the largest published Group ID.
 
+## Properties {#properties}
+
+Tracks and Objects can have additional relay-visible fields, known as
+Properties, which do not require negotiation, and can be used to alter
+MoQT Object distribution.
+
+Properties are defined in {{moqt-properties}} as well as external
+specifications and are registered in an IANA table {{iana}}. These
+specifications define the type and value of the property, along with any rules
+concerning processing, modification, caching and forwarding.
+
+If a Relay does not support a Property, it MUST NOT be modified, MUST be
+forwarded, and MUST be cached with the Track or Object, unless it is a Mandatory
+Track Property as described in {{mandatory-track-properties}}.  If a Track or Object
+arrives with a different set of unknown properties than previously cached,
+the most recent set SHOULD replace any cached values, removing any unknown
+values not present in the new set.  Relays MUST NOT attempt to merge sets
+of unknown properties received in different messages.
+
+If a Relay supports a Property, it MAY be modified, added, removed, and/or
+cached, subject to the processing rules specified in the definition.
+
+Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
+Track Properties always appear as the final field in the messages that
+carry them; their length is the remaining bytes of the message after all
+preceding fields have been consumed. Object Properties ({{object-properties}})
+are preceded by an explicit length field.
+
+Property types are registered in the IANA table 'MOQ Properties'.
+See {{iana}}.
+
+Certain Property type ranges are reserved for application-specific
+use and will never be allocated by IANA in future MOQT specifications:
+
+* 0x38 to 0x3F (1-byte encoding): 8 code points for applications with
+  tight space constraints
+* 0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including grease
+  {{grease}}) for applications with moderate space constraints
+
+Applications MAY use code points in these ranges without registration for
+format-specific metadata or other application-defined purposes. Relays that
+do not understand the application format MUST forward these properties
+unchanged but MUST NOT attempt to interpret their semantic meaning. Different
+applications using the same code point in these ranges may assign different
+meanings; the interpretation depends on the track or application
+context known to the publisher and subscriber.
+
+### Mandatory Track Properties {#mandatory-track-properties}
+
+Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
+Properties. These properties MUST have Track scope. Mandatory Track Properties
+have special handling rules that prevent tracks with required extensions from
+being forwarded to or processed by endpoints that do not understand them.
+
+An Object received with a Mandatory Track Property as an Object Property is
+malformed (see {{malformed-tracks}}).
+
+When an endpoint receives Track Properties (in PUBLISH, SUBSCRIBE_OK, or
+FETCH_OK messages) containing a Mandatory Track Property type that it does not
+understand, it MUST NOT process or forward that track:
+
+* For PUBLISH messages: the subscriber MUST respond with REQUEST_ERROR with
+  error code UNSUPPORTED_EXTENSION.
+
+* For SUBSCRIBE_OK messages: the subscriber MUST cancel the subscription
+  (see {{request-cancellation}}).  If the subscriber is a relay with pending
+  downstream subscribers, it MUST send REQUEST_ERROR with error code
+  UNSUPPORTED_EXTENSION to the downstream subscribers.
+
+* For FETCH_OK messages: the subscriber MUST cancel the fetch
+  (see {{request-cancellation}}).  If the subscriber is a relay and has not yet
+  sent a FETCH_OK or REQUEST_ERROR downstream, it MUST send REQUEST_ERROR with
+  error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
+  relay has already forwarded data on a fetch stream, it MUST reset the stream.
+
+A publisher that knows a subscriber does not support a Mandatory Track Property
+SHOULD take the following action:
+
+* For SUBSCRIBE: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+
+* For FETCH: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+
+* For PUBLISH: do not publish the track to that subscriber.
+
 # Sessions {#session}
 
 ## Session establishment {#session-establishment}
@@ -610,30 +836,31 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established. The [QUIC-DATAGRAM] extension
+connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
 MUST be supported and negotiated in the QUIC connection used for MOQT,
-which is already a requirement for WebTransport over HTTP/3. The
-RESET_STREAM_AT {{!I-D.draft-ietf-quic-reliable-stream-reset}}
-extension to QUIC can be used by MOQT, but the protocol is also
-designed to work correctly when the extension is not supported.
+which is already a requirement for WebTransport over HTTP/3.
 
 There is no definition of the protocol over other transports,
 such as TCP, and applications using MoQ might need to fallback to
 another protocol when QUIC or WebTransport aren't available.
 
-### WebTransport
+MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
+({{WebTransport, Section 3.3}}) to perform version negotiation.
 
-An MOQT server that is accessible via WebTransport can be identified
-using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).  An MOQT session can be
-established by sending an extended CONNECT request to the host and the
-path indicated by the URI, as described in
-({{WebTransport, Section 3}}).
+\[\[RFC editor: please remove the remainder of this section before publication.]]
 
-### QUIC
+The ALPN value {{!RFC7301}} for the final version of this specification
+is `moqt`.  ALPNs used to identify IETF drafts are created by appending
+the draft number to "moqt-". For example, draft-ietf-moq-transport-13
+would be identified as "moqt-13".
 
-An MOQT server that is accessible via native QUIC can be identified by a
-URI with a "moqt" scheme.  The "moqt" URI scheme is defined as follows,
-using definitions from {{!RFC3986}}:
+Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
+negotiation in the SETUP messages.
+
+### MOQT URI Scheme
+
+An MOQT server is identified using a URI with the "moqt" scheme.  The "moqt"
+URI scheme is defined as follows, using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
 moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
@@ -643,17 +870,72 @@ The `authority` portion MUST NOT contain an empty `host` portion.
 The `moqt` URI scheme supports the `/.well-known/` path prefix defined in
 {{!RFC8615}}.
 
-This protocol does not specify any semantics on the `path-abempty` and
-`query` portions of the URI.  The contents of those are left up to the
-application.
+The `moqt` URI scheme follows the generic URI syntax of {{!RFC3986}} for
+the `authority`, `path-abempty`, and `query` components, including the
+use of reserved characters and percent-encoding defined therein.  A `moqt`
+URI can be converted to an `https` URI by replacing the scheme (see
+{{webtransport}}), so the `path-abempty` and `query` components use the same
+syntax as `https` URIs.
 
-The client can establish a connection to an MOQT server identified by a given
-URI by setting up a QUIC connection to the host and port identified by the
-`authority` section of the URI. The `authority`, `path-abempty` and `query`
-portions of the URI are also transmitted in SETUP parameters (see
-{{setup-params}}).
+### Fragment Identifiers {#moqt-fragment}
 
-The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
+The media type for resources identified by `moqt` URIs is
+`application/moqt` (see {{iana-media-type}}).
+
+Fragment identifiers MAY be used with `moqt` URIs. The fragment is not
+transmitted to the server; it is processed locally by the client after
+establishing the MOQT session.
+
+A `moqt` URI fragment MUST begin with a registered fragment type
+identifier, followed by a colon (`:`), followed by a type-specific value:
+
+~~~
+moqt://example.com/app#<type>:<value>
+~~~
+
+Fragment type identifiers MUST consist of ASCII lowercase letters,
+digits, and hyphens (`a-z`, `0-9`, `-`). The
+semantics of the value after the colon are defined by the specification
+that registers the fragment type.
+
+Fragment type identifiers are registered in the "MOQT URI Fragment
+Types" registry ({{iana-fragment-types}}).
+
+The default operation for dereferencing a `moqt` URI is to establish a
+MOQT session to the identified server.
+
+TODO: Add URI scheme security considerations per RFC 7595 Section 3.7
+(e.g., authority in SNI, path/query exposure).
+
+TODO: Add internationalization statement per RFC 7595 Section 3.6.
+
+If the port is omitted in the URI, a default port of 443 is used.
+
+The client MAY use either native QUIC or WebTransport. On a QUIC connection,
+the client offers any combination of MOQT ALPNs (e.g. `moqt/1`, `moqt/2`)
+and `h3` that it supports in its TLS ClientHello, in preference order. If the
+server selects an MOQT ALPN, the session proceeds as described in
+{{native-quic}}. If the server selects `h3`, the client establishes a
+WebTransport session as described in {{webtransport}}. On a TCP+TLS
+connection, the client offers `h2` in its TLS ClientHello and establishes a
+WebTransport session as described in {{webtransport}}.
+
+### WebTransport {#webtransport}
+
+When the client uses WebTransport, it constructs an `https` URI from the `moqt`
+URI by replacing the scheme with `https`.
+For example, `moqt://example.com/path` becomes
+`https://example.com/path`. The client sends an extended CONNECT request to this
+URI to establish a WebTransport session, as described in
+({{WebTransport, Section 3}}). The client includes MOQT protocol identifiers in
+the WT-Available-Protocols header ({{WebTransport, Section 3.3}}).
+
+### Native QUIC {#native-quic}
+
+The client establishes a QUIC connection to the host and port identified by the
+`authority` section of the URI.
+When the client uses native QUIC, the `authority`, `path-abempty` and `query`
+portions of the URI are transmitted in Setup Options (see {{setup-options}}).
 
 ### Connection URL
 
@@ -662,45 +944,86 @@ network hosts through which a track may be accessed. The syntax of the
 Connection URL and the associated connection setup procedures are
 specific to the underlying transport protocol usage (see {{session}}).
 
-## Version and Extension Negotiation {#version-negotiation}
+## Extension Negotiation {#extension-negotiation}
 
-Endpoints use the exchange of Setup messages to negotiate the MOQT version and
-any extensions to use.
+Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
+Extensions can define new Message types, new Parameters, new Properties,
+or new framing for Streams and Datagrams.
 
-The client indicates the MOQT versions it supports in the CLIENT_SETUP message
-(see {{message-setup}}). It also includes the union of all Setup Parameters
-(see {{setup-params}}) required for a handshake by any of those versions.
+The client and server MUST include all Setup Options {{setup-options}}
+required for the negotiated MOQT version in SETUP.
 
-Within any MOQT version, clients request the use of extensions by adding Setup
-parameters corresponding to that extension. No extensions are defined in this
-document.
-
-The server replies with a SERVER_SETUP message that indicates the chosen
-version, includes all parameters required for a handshake in that version, and
-parameters for every extension requested by the client that it supports.
+Each endpoint declares the extensions it supports and provides any initial
+values required by those extensions as Setup Options in SETUP. Once an endpoint
+has both sent and received SETUP messages, it determines the set of negotiated
+extensions.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
 
-If a given parameter carries the same information in multiple versions,
-but might have different optimal values in those versions, there SHOULD be
-separate Setup parameters for that information in each version.
-
 ## Session initialization {#session-init}
 
-The first stream opened is a client-initiated bidirectional control stream where
-the endpoints exchange Setup messages ({{message-setup}}), followed by other
-messages defined in {{message}}.
+MOQT uses a pair of unidirectional streams for creating the session and
+exchanging control messages. Each peer opens one control stream beginning with
+a SETUP message. Using a pair of unidirectional streams rather than a single
+bidirectional stream allows either peer to send data as soon as it is able.
+Depending on whether 0-RTT is available on the QUIC connection, either client or
+server might be able to send stream data first.
 
-This specification only specifies a single use of bidirectional streams. Objects
-are sent on unidirectional streams.  Because there are no other uses of
-bidirectional streams, a peer MAY close the session as a `PROTOCOL_VIOLATION` if
-it receives a second bidirectional stream.
+In addition to the control streams, this specification uses bidirectional streams
+to carry requests.  A request stream begins with one of these six message types:
+TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE, and
+SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT
+begin with any other message type unless negotiated. If they do, the peer MUST
+close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
+streams.
 
-The control stream MUST NOT be closed at the underlying transport layer while the
-session is active.  Doing so results in the session being closed as a
+Unidirectional streams containing Objects or bidirectional stream(s) beginning
+with a request message could arrive prior to the control streams, in which case
+the data SHOULD be buffered until both control streams arrive and setup is
+complete. If an implementation does not want to buffer or if the message type is
+not supported, it MAY reset such bidirectional streams before the session and
+control streams are established.
+
+A control stream MUST NOT be closed at the underlying transport layer during the
+session's lifetime.  Doing so results in the session being closed as a
 `PROTOCOL_VIOLATION`.
+
+### Request Cancellation and Rejection {#request-cancellation}
+
+Once a request stream has been opened, the request MAY be cancelled by either
+endpoint. Senders cancel requests if the response is no longer of interest;
+Receivers cancel requests if they are unable to or choose not to respond.
+
+Implementations SHOULD cancel requests by abruptly terminating any directions of
+a stream that are still open by resetting or sending STOP_SENDING.
+
+When an endpoint rejects a request without performing any application processing,
+it SHOULD send a REQUEST_ERROR and FIN the stream.
+
+## Unidirectional Stream Types {#stream-types}
+
+All unidirectional MOQT streams start with a variable-length integer indicating
+the type of the stream.
+
+|-------------|-------------------------------------------------|
+| ID          | Type                                            |
+|------------:|:------------------------------------------------|
+| 0x05        | FETCH_HEADER  ({{fetch-header}})                |
+|-------------|-------------------------------------------------|
+| 0x10-0x15 / 0x18-0x1D / 0x30-0x35 / 0x38-0x3D | SUBGROUP_HEADER  ({{subgroup-header}}) |
+|-------------|-------------------------------------------------|
+| 0x2F00      | SETUP ({{message-setup}})                       |
+|-------------|-------------------------------------------------|
+| 0x132B3E28  | PADDING  ({{padding-streams}})                  |
+|-------------|-------------------------------------------------|
+
+An endpoint that receives an unknown stream type MUST close the session.
+
+Control streams (SETUP) are described in {{session-init}}.
+Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
+Padding streams are described in {{padding}}.
 
 ## Termination  {#session-termination}
 
@@ -708,7 +1031,7 @@ The Transport Session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION\_CLOSE frame
 ({{QUIC, Section 19.19}}).  When WebTransport is used, the session is
 closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
-Section 5}}).
+Section 6}}).
 
 When terminating the Session, the application MAY use any error message
 and SHOULD use a relevant code, as defined below:
@@ -727,19 +1050,18 @@ PROTOCOL_VIOLATION (0x3):
   specification.
 
 INVALID_REQUEST_ID (0x4):
-: The session was closed because the endpoint used a Request ID that was
-  smaller than or equal to a previously received request ID, or the least-
-  significant bit of the request ID was incorrect for the endpoint.
+: The endpoint received a Request ID with an incorrect least significant
+  bit for the sender, or a duplicate Request ID. See {{request-id}}.
+
+INVALID_REQUIRED_REQUEST_ID (0x7):
+: The endpoint received a Required Request ID Delta that results
+in an invalid Request ID. See {{required-request-id}}.
 
 DUPLICATE_TRACK_ALIAS (0x5):
 : The endpoint attempted to use a Track Alias that was already in use.
 
 KEY_VALUE_FORMATTING_ERROR (0x6):
 : The key-value pair has a formatting error.
-
-TOO_MANY_REQUESTS (0x7):
-: The session was closed because the endpoint used a Request ID equal to or
-  larger than the current Maximum Request ID.
 
 INVALID_PATH (0x8):
 : The PATH parameter was used by a server, on a WebTransport session, or the
@@ -807,22 +1129,24 @@ sessions to drain naturally, as that can take days for long-form media.
 MOQT enables proactively draining sessions via the GOAWAY message ({{message-goaway}}).
 
 The server sends a GOAWAY message, signaling the client to establish a new
-session and migrate any active subscriptions. The GOAWAY message optionally
+session and migrate any `Established` subscriptions. The GOAWAY message optionally
 contains a new URI for the new session, otherwise the current URI is
-reused. The server SHOULD terminate the session with `GOAWAY_TIMEOUT` after a
-sufficient timeout if there are still open subscriptions or fetches on a
-connection.
+reused. The GOAWAY message contains a Timeout indicating how long, in
+milliseconds, the sender intends to wait before closing the session. The sender
+SHOULD close the session with `GOAWAY_TIMEOUT` after the indicated timeout if
+there are still open subscriptions or fetches on a connection.
 
 When the server is a subscriber, it SHOULD send a GOAWAY message to downstream
-subscribers prior to any UNSUBSCRIBE messages to upstream publishers.
+subscribers prior to unsubscribing from upstream publishers.
 
 After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
-there are no more active subscriptions before closing the session with NO_ERROR.
+there are no more `Established` subscriptions before closing the session with NO_ERROR.
 Ideally this is transparent to the application using MOQT, which involves
-establishing a new session in the background and migrating active subscriptions
+establishing a new session in the background and migrating `Established` subscriptions
 and published namespaces. The client can choose to delay closing the session if
-it expects more OBJECTs to be delivered. The server closes the session with a
-`GOAWAY_TIMEOUT` if the client doesn't close the session quickly enough.
+it expects more OBJECTs to be delivered. The sender closes the session with a
+`GOAWAY_TIMEOUT` if the peer doesn't close the session within the
+indicated Timeout.
 
 ## Congestion Control
 
@@ -850,6 +1174,19 @@ applications might need to periodically ensure the congestion controller is not
 app-limited for at least a full round trip to ensure the available bandwidth can be
 measured.
 
+Some applications might have APIs to allow sending duplicate data or forward error
+correction to probe for more bandwidth while also limiting the impact of probing
+in case it causes packet loss. Subscribers wanting to switch to an alternate
+representation of a Track can subscribe to it at a lower priority, or subscribe
+to additional Tracks at the lowest (255) priority to fill the congestion window
+during probing intervals while minimizing the impact on higher priority
+media. Publishers can send padding ({{padding}}) to probe for additional
+bandwidth without requiring additional subscriptions.
+Network-assisted bandwidth estimation mechanisms such as SCONE
+{{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
+which subscribers can use to inform track selection decisions and potentially avoid
+unnecessary probing.
+
 ### Consistent Throughput
 
 Congestion control algorithms are commonly optimized for throughput, not consistency.
@@ -858,7 +1195,7 @@ in order to obtain an accurate minimum RTT. Similarly, Reno halves it's congesti
 window upon detecting loss.  In both cases, the large reduction in sending rate might
 cause issues with latency sensitive applications.
 
-# Modularity
+# Extensibility
 
 MOQT defines all messages necessary to implement both simple publishing or
 subscribing endpoints as well as highly functional Relays.  Non-Relay endpoints
@@ -872,26 +1209,73 @@ processing rules described in {{relays-moq}}.
 
 # Publishing and Retrieving Tracks
 
-## Subscriptions
+## Subscriptions {#subscriptions}
 
-A subscription can be initiated by either a publisher or a subscriber.  A
-publisher initiates a subscription to a track by sending the PUBLISH message.
-The subscriber either accepts or rejects the subscription using PUBLISH_OK or
-PUBLISH_ERROR.  A subscriber initiates a subscription to a track by sending the
-SUBSCRIBE message.  The publisher either accepts or rejects the subscription
-using SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once either of these sequences is
-successful, the subscription can be updated by the subscriber using
-SUBSCRIBE_UPDATE, terminated by the subscriber using UNSUBSCRIBE, or terminated
-by the publisher using PUBLISH_DONE.
+All subscriptions begin in the `Idle` state. A subscription can be
+initiated and moved to the `Pending` state by either a publisher or a
+subscriber.  A publisher initiates a subscription to a track by
+sending the PUBLISH message.  The subscriber either accepts or rejects
+the subscription using PUBLISH_OK or REQUEST_ERROR.  A subscriber
+initiates a subscription to a track by sending the SUBSCRIBE message.
+The publisher either accepts or rejects the subscription using
+SUBSCRIBE_OK or REQUEST_ERROR.  Once either of these sequences is
+successful, the subscription moves to the `Established` state and can
+be updated by the subscriber using REQUEST_UPDATE.  Either endpoint
+can terminate an `Established` subscription, moving it to the
+`Terminated` state.  The subscriber terminates a subscription in the
+`Pending (Subscriber)` or `Established` states by sending STOP_SENDING.
+The publisher terminates a subscription in the
+`Pending (Publisher)` or `Established` states by sending PUBLISH_DONE
+and closing the stream.
 
-All subscriptions have a Forward State which is either 0 or 1.  If the Forward
-State is 0, the publisher does not send objects for the subscription.  If the
-Forward State is 1, the publisher sends objects.  The initiator of the
-subscription sets the initial Forward State in either PUBLISH or SUBSCRIBE.  The
-sender of PUBLISH_OK can update the Forward State based on its preference.  Once
-the subscription is established, the subscriber can update the Forward State by
-sending SUBSCRIBE_UPDATE.  Control messages, such as PUBLISH_DONE
-({{message-publish-done}}) are still sent on subscriptions in Forward State 0.
+This diagram shows the subscription state machine:
+
+~~~
+                              +--------+
+                              |  Idle  |
+                              +--------+
+                                |    |
+                      SUBSCRIBE |    | PUBLISH
+                    (subscriber)|    | (publisher)
+                                V    V
+                   +--------------+ +--------------+
+                   | Pending      | | Pending      |
+              +----| (Subscriber) | | (Publisher)  |----+
+              |    +--------------+ +--------------+    |
+              |                 |    |                  |
+REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
+(publisher)   |      (publisher)|    | (subscriber)     | (subscriber)
+              |                 V    V                  |
+              |            +-------------+              |
+              |            | Established | ------+
+              |            |             |       | REQUEST_UPDATE
+              |            +-------------+ <-----+
+              |                 |    |                  |
+              +--- STOP_SENDING |    | PUBLISH_DONE ----+
+              |     (subscriber)|    | (publisher)      |
+              |                 V    V                  |
+              |            +-------------+              |
+              +----------->| Terminated  | <------------+
+                           +-------------+
+~~~
+
+A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
+a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
+response to a PUBLISH. The peer SHOULD close the session with a protocol error
+if it receives more than one.
+
+All `Established` subscriptions have a Forward State which is either 0 or 1.
+The publisher does not send Objects if the Forward State is 0, and does send them
+if the Forward State is 1.  The initiator of the subscription sets the initial
+Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_OK
+or REQUEST_UPDATE to update the Forward State. Control messages, such as
+PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
+
+A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
+or REQUEST_OK (in response to a REQUEST_UPDATE) that changes the Forward State
+from 0 to 1.  This value is called the Joining Location and can be used in a
+Joining FETCH (see {{joining-fetches}}) while the subscription is in the
+`Established` state.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -906,10 +1290,18 @@ subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
 rules.
 
-A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
-a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or PUBLISH_ERROR in
-response to a PUBLISH. The peer SHOULD close the session with a protocol error
-if it receives more than one.
+For a given Track, an endpoint can have at most one subscription to a Track
+acting as the publisher and at most one acting as a subscriber.  If an endpoint
+receives a message attempting to establish a second subscription to a Track
+with the same role, it MUST fail that request with a `DUPLICATE_SUBSCRIPTION`
+error.
+
+If a publisher receives a SUBSCRIBE request for a Track with an existing
+subscription in `Pending (publisher)` state, it MUST fail that request with
+a `DUPLICATE_SUBSCRIPTION` error. If a subscriber receives a PUBLISH for a Track
+with a subscription in the `Pending (Subscriber)` state, it MUST ensure the
+subscription it initiated transitions to the `Terminated` state before sending
+PUBLISH_OK.
 
 A publisher SHOULD begin sending incomplete objects when available to avoid
 incurring additional latency.
@@ -917,44 +1309,55 @@ incurring additional latency.
 Publishers MAY start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
+with REQUEST_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 {{datagrams}} and {{subgroup-header}}).
 
 ### Subscription State Management
 
-A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
-receipt of a PUBLISH_DONE or SUBSCRIBE_ERROR. Note that PUBLISH_DONE does not
-usually indicate that state can immediately be destroyed, see
-{{message-publish-done}}.
+A subscriber keeps subscription state until it cancels the request
+(see {{request-cancellation}}), or after receipt of a PUBLISH_DONE or
+REQUEST_ERROR. Note that PUBLISH_DONE does not usually indicate that state
+can immediately be destroyed, see {{message-publish-done}}.
 
 The Publisher can destroy subscription state as soon as it has received
-UNSUBSCRIBE. It MUST reset any open streams associated with the SUBSCRIBE.
+STOP_SENDING. It MUST reset any open streams associated with the SUBSCRIBE.
 
-The publisher can immediately delete subscription state after sending
+The Publisher can also immediately delete subscription state after sending
 PUBLISH_DONE, but MUST NOT send it until it has closed all related streams.
 
-A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
+A REQUEST_ERROR indicates no objects will be delivered, and both endpoints can
 immediately destroy relevant state. Objects MUST NOT be sent for requests that
 end with an error.
 
-### Subscription Filters
+### Subscription Filters {#subscription-filters}
 
-The subscriber specifies a filter on the subscription to allow
-the publisher to identify which objects need to be delivered.
+Subscribers can specify a filter on a subscription indicating to the publisher
+which Objects to send.  Subscriptions without a filter pass all Objects
+published or received via upstream subscriptions.
 
-All filters have a Start Location and an optional End Group.  Only objects
+All filters have a Start Location and an optional End Group Delta.  Only objects
 published or received via a subscription having Locations greater than or
-equal to Start and strictly less than or equal to the End Group (when
+equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.
 
-The `Largest Object` is defined to be the object with the largest Location
-({{location-structure}}) in the track from the perspective of the endpoint
-processing the SUBSCRIBE message. Largest Object updates when the first byte of
-an Object with a larger Location than the previous value is published or
-received through a subscription.
+Some filters are defined to be relative to the `Largest Object`. The `Largest
+Object` is the Object with the largest Location ({{location-structure}}) in the
+Track from the perspective of the publisher processing the message. Largest
+Object updates when the first byte of an Object with a Location larger than the
+previous value is published or received through a subscription.
 
-There are 4 types of filters:
+A Subscription Filter has the following structure:
+
+~~~
+Subscription Filter {
+  Filter Type (vi64),
+  [Start Location (Location),]
+  [End Group Delta (vi64),]
+}
+~~~
+
+Filter Type can have one of the following values:
 
 Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
 Largest Object.Object + 1}` and `Largest Object` is communicated in
@@ -971,40 +1374,83 @@ the subscription is open ended. For scenarios where the subscriber intends to
 start from more than one group in the future, it can use an AbsoluteStart filter
 instead.
 
-AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
-SUBSCRIBE message. The `Start` specified in the SUBSCRIBE message MAY be less
-than the `Largest Object` observed at the publisher. There is no End Group - the
-subscription is open ended.  To receive all Objects that are published or are
-received after this subscription is processed, a subscriber can use an
-AbsoluteStart filter with `Start` = {0, 0}.
+AbsoluteStart (0x3): The filter Start Location is specified explicitly. The
+specified `Start Location` MAY be less than the `Largest Object` observed at the
+publisher. There is no End Group - the subscription is open ended.  An
+AbsoluteStart filter with `Start` = {0, 0} is equivalent to an unfiltered
+subscription.
 
-AbsoluteRange (0x4):  The filer Start Location and End Group are specified
-explicitly in the SUBSCRIBE message. The `Start` specified in the SUBSCRIBE
-message MAY be less than the `Largest Object` observed at the publisher. If the
-specified `End Group` is the same group specified in `Start`, the remainder of
-that Group passes the filter. `End Group` MUST specify the same or a larger Group
-than specified in `Start`.
+AbsoluteRange (0x4): The filter Start Location and End Group are specified
+explicitly. The specified `Start Location` MAY be less than the `Largest Object`
+observed at the publisher. If the specified `End Group Delta` is zero, the
+remainder of that Group passes the filter. Otherwise, the last Group ID to be
+delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
+If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
+close the session with a `PROTOCOL_VIOLATION`.
 
 An endpoint that receives a filter type other than the above MUST close the
-session with a `PROTOCOL_VIOLATION`.
+session with `PROTOCOL_VIOLATION`.
+
+If the publisher cannot satisfy the requested Subscription Filter (see
+{{subscription-filter}}) or if the entire End Group has already been published
+it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
+NOT send objects from outside the requested range.
+
+### Joining an Ongoing Track
+
+The MOQT Object model is designed with the concept that the beginning of a Group
+is a join point, so in order for a subscriber to join a Track, it needs to
+request an existing Group or wait for a future Group.  Different applications
+will have different approaches for when to begin a new Group.
+
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
+REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
+{{joining-fetches}}) for the intended start Group, which can be relative.  To
+join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter
+Type `Next Group Start`.
+
+#### Dynamically Starting New Groups
+
+While some publishers will deterministically create new Groups, other
+applications might want to only begin a new Group when needed.  A subscriber
+joining a Track might detect that it is more efficient to request the Original
+Publisher create a new group than issue a Joining FETCH.  Publishers indicate a
+Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
+({{dynamic-groups}}).
+
+One possible subscriber pattern is to SUBSCRIBE to a Track using Filter Type
+`Largest Object` and observe the `Largest Location` in the response.  If the
+Object ID is below the application's threshold, the subscriber sends a FETCH for
+the beginning of the Group.  If the Object ID is above the threshold and the
+Track supports dynamic groups, the subscriber sends a REQUEST_UPDATE message with the
+NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
+{{new-group-request}}).
+
+Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
+`Next Group Start` and NEW_GROUP_REQUEST equal to 0.  The value of
+DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
+groups. A publisher that does will begin the next group as soon as practical.
 
 ## Fetch State Management
 
-The publisher MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
+The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
 FETCH.
 
-A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
-FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
-data stream is already open, it MAY send STOP_SENDING for the data stream along
-with FETCH_CANCEL, but MUST send FETCH_CANCEL.
+A subscriber keeps FETCH state until it cancels the request
+(see {{request-cancellation}}), receives REQUEST_ERROR, or the FETCH data stream
+receives a FIN or is reset. If the data stream is already open,
+the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
+data stream as well as the the bidi request stream. It MUST send STOP_SENDING
+for the bidi request stream.
 
 The Publisher can destroy fetch state as soon as it has received a
-FETCH_CANCEL. It MUST reset any open streams associated with the FETCH. It can
-also destroy state after closing the FETCH data stream.
+STOP_SENDING. It MUST reset the bidi request stream and unidirectional
+data stream associated with the FETCH. It can also destroy state after closing
+the FETCH data stream.
 
-It can destroy all FETCH state after closing the data stream.
+It can destroy all FETCH state after closing the data stream with a FIN.
 
-A FETCH_ERROR indicates that both endpoints can immediately destroy state.
+A REQUEST_ERROR indicates that both endpoints can immediately destroy state.
 Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
 results in error.
@@ -1028,26 +1474,36 @@ The syntax of these messages is described in {{message}}.
 
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
-recipient of this message will send any relevant PUBLISH_NAMESPACE,
-PUBLISH_NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
-part of that namespace.  This includes echoing back PUBLISH or PUBLISH_NAMESPACE
-messages to the endpoint that sent them.  If an endpoint accepts its own
-PUBLISH, this behaves as self-subscription described in {{subscriptions}}.
+recipient of this message will send any relevant NAMESPACE,
+NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
+part of that namespace.  This includes echoing back published Tracks and/or Track
+Namespaces under the SUBSCRIBE_NAMESPACE prefix to the endpoint that sent them.
+If an endpoint accepts its own PUBLISH, this behaves as self-subscription described
+in {{subscriptions}}.
 
-A publisher MUST send exactly one SUBSCRIBE_NAMESPACE_OK or
-SUBSCRIBE_NAMESPACE_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
-SHOULD close the session with a protocol error if it detects receiving more than
-one.
+A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the sender is
+interested in all tracks and/or namespaces from the receiver.
 
-The receiver of a SUBSCRIBE_NAMESPACE_OK or SUBSCRIBE_NAMESPACE_ERROR ought to
+The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
+publisher MUST send a single REQUEST_OK or REQUEST_ERROR as the first message on the
+bidirectional stream in response to a SUBSCRIBE_NAMESPACE. The subscriber
+SHOULD close the session with a protocol error if it detects receiving more
+than one.
+
+If a Subscription cannot be created because there is no available Request ID,
+the Publisher sends a PUBLISH_BLOCKED message on the response stream to indicate
+the Full Track Name of the Subscription that could not be established. The Publisher
+MUST NOT send a PUBLISH for a Track after PUBLISH_BLOCKED has been sent.  The subscriber can instead issue a SUBSCRIBE to establish a subscription to that track.
+
+The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
-An UNSUBSCRIBE_NAMESPACE withdraws a previous SUBSCRIBE_NAMESPACE. It does not
-prohibit original publishers from sending further PUBLISH_NAMESPACE or PUBLISH
-messages, but relays MUST NOT send any further PUBLISH messages to a client
-without knowing the client is interested in and authorized to receive the
-content.
+A SUBSCRIBE_NAMESPACE can be cancelled by closing the stream with
+either a FIN or by resetting it. Cancelling does not prohibit original publishers
+from sending further PUBLISH_NAMESPACE or PUBLISH messages, but relays MUST NOT
+send any further PUBLISH messages to a client without knowing the client is
+interested in and authorized to receive the content.
 
 ## Publishing Namespaces
 
@@ -1062,24 +1518,24 @@ publisher, it MUST send a PUBLISH_NAMESPACE to any subscriber that has
 subscribed via SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
 
-An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
-PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
+An endpoint SHOULD report the reception of a REQUEST_OK or
+REQUEST_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
 namespace. This might be especially useful in upload or chat applications. A
-subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR
-in response to a PUBLISH_NAMESPACE. The publisher SHOULD close the session with
-a protocol error if it receives more than one.
+subscriber MUST send exactly one REQUEST_OK or REQUEST_ERROR as the first
+message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
+SHOULD close the session with a protocol error if it receives more than one.
 
-A PUBLISH_NAMESPACE_DONE message withdraws a previous PUBLISH_NAMESPACE,
-although it is not a protocol error for the subscriber to send a SUBSCRIBE or
-FETCH message for a track in a namespace after receiving an
-PUBLISH_NAMESPACE_DONE.
+A PUBLISH_NAMESPACE is withdrawn by cancelling the request
+(see {{request-cancellation}}), although it is not a protocol error for
+the subscriber to send a SUBSCRIBE or FETCH message for a track in a
+namespace after the namespace is withdrawn.
 
-A subscriber can send PUBLISH_NAMESPACE_CANCEL to revoke acceptance of an
-PUBLISH_NAMESPACE, for example due to expiration of authorization
-credentials. The message enables the publisher to PUBLISH_NAMESPACE again with
-refreshed authorization, or discard associated state. After receiving an
-PUBLISH_NAMESPACE_CANCEL, the publisher does not send PUBLISH_NAMESPACE_DONE.
+A subscriber can cancel the request (see {{request-cancellation}}) to revoke
+acceptance of a PUBLISH_NAMESPACE. If the reason for cancellation is expiration
+of authorization credentials, the publisher can send PUBLISH_NAMESPACE again
+on a new bidi stream with refreshed authorization, or close the stream and
+discard associated state.
 
 While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
 subscribers, it is not a full-fledged routing protocol and does not protect
@@ -1100,12 +1556,11 @@ congestion.
 
 ## Definitions
 
-MOQT maintains priorities between different _schedulable objects_.
+MOQT maintains priorities between different schedulable objects.
 A schedulable object in MOQT is either:
 
 1. The first or next Object in a Subgroup that is in response to a subscription.
-2. An Object in response to a subscription that belongs to a Track with
-   delivery preference Datagram.
+2. An Object with forwarding preference Datagram.
 3. An Object in response to a FETCH where that Object is the next
    Object in the response.
 
@@ -1118,29 +1573,29 @@ scheduling subgroups or datagrams instead of individual objects on them.
 FETCH responses however can contain objects with different publisher
 priorities.
 
-A _priority number_ is an unsigned integer with a value between 0 and 255.
+A `priority number`is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.
 
-_Subscriber Priority_ is a priority number associated with an individual
+`Subscriber Priority` is a priority number associated with an individual
 request.  It is specified in the SUBSCRIBE or FETCH message, and can be
-updated via SUBSCRIBE_UPDATE message.  The subscriber priority of an individual
+updated via REQUEST_UPDATE message.  The subscriber priority of an individual
 schedulable object is the subscriber priority of the request that caused that
 object to be sent. When subscriber priority is changed, a best effort SHOULD be
 made to apply the change to all objects that have not been scheduled, but it is
 implementation dependent what happens to objects that have already been
 scheduled.
 
-_Publisher Priority_ is a priority number associated with an individual
+`Publisher Priority` is a priority number associated with an individual
 schedulable object.  A default can be specified in the parameters of PUBLISH, or
 SUBSCRIBE_OK. Publisher priority can also be specified in a subgroup header or
 datagram (see {{data-streams}}).
 
-_Group Order_ is a property of an individual subscription.  It can be either
+`Group Order` is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
 publisher's preference is used if the subscriber did not express one (by
-setting Group Order field to value 0x0).  The group order of an existing
+omitting the Group Order parameter).  The group order of an existing
 subscription cannot be changed.
 
 ## Scheduling Algorithm
@@ -1159,9 +1614,10 @@ the objects SHOULD be selected as follows:
    decide the one that is scheduled to be sent first.
 3. If two objects in response to the same request have the same subscriber
    and publisher priority and belong to the same group of the same track, the
-   one with **the lowest Subgroup ID** (for tracks with delivery preference
-   Subgroup), or **the lowest Object ID** (for tracks with delivery preference
-   Datagram) is scheduled to be sent first.
+   one with **the lowest Subgroup ID** (for objects with forwarding preference
+   Subgroup), or **the lowest Object ID** (for objects with forwarding preference
+   Datagram) is scheduled to be sent first.  If the two objects have
+   different Forwarding Preferences the order is implementation dependent.
 
 The definition of "scheduled to be sent first" in the algorithm is implementation
 dependent and is constrained by the prioritization interface of the underlying
@@ -1174,9 +1630,15 @@ to different subscriptions or FETCH responses, but have the same subscriber and
 publisher priority.  The ordering in those cases is implementation-defined,
 though the expectation is that all subscriptions will be able to send some data.
 
+A publisher might not utilize the entire available congestion window,
+session flow control, or all available streams for lower
+priority Objects if it expects higher priority Objects will be available to send
+in the near future or it wants to reserve some bandwidth for control messages.
+
 Given the critical nature of control messages and their relatively
-small size, the control stream SHOULD be prioritized higher than all
-subscribed Objects.
+small size, the control streams SHOULD be prioritized highest, followed by the
+bidi request streams and then all subscribed Objects. Bidi request streams MAY be
+prioritized within themselves by Subscriber Priority if specified.
 
 ## Considerations for Setting Priorities
 
@@ -1224,24 +1686,27 @@ Objects or MAY use them to update certain cached fields. Implementations that
 update the cache need to protect against cache poisoning.  The only Object
 fields that can be updated are the following:
 
-1. Object Status can transition from any status to Object Does Not Exist in
-   cases where the object is no longer available.  Transitions between Normal,
-   End of Group and End of Track are invalid.
-3. Object Header Extensions can be added, removed or updated, subject
-   to the constraints of the specific header extension.
+1. Object can transition from existing to not existing in cases where the
+   object is no longer available.
+2. Object Properties can be added, removed or updated, subject
+   to the constraints of the specific property.
 
-An endpoint that receives a duplicate Object with an invalid Object Status
-change, or with a different Forwarding Preference, Subgroup ID, Priority or
-Payload MUST treat the track as Malformed.
+An endpoint that receives a duplicate Object with a different Forwarding
+Preference, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
 
-Note that due to reordering, an implementation can receive a duplicate Object
-with a status of Normal, End of Group or End of Track after receiving a previous
-status of Object Does Not Exist.  The endpoint SHOULD NOT cache or forward the
-duplicate object in this case.
+For ranges of objects that do not exist, relays MAY change the representation
+of a missing range to a semantically equivalent one.  For instance, a relay may
+change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
+of Group status, or a Prior Group ID Gap property could be removed in FETCH,
+where it's redundant.
 
-A cache MUST store all properties of an Object defined in
-{{object-properties}}, with the exception of any extensions
-({{object-extensions}}) that specify otherwise.
+As described in {{model-object}}, an endpoint can receive an Object after it has
+already recorded that the Object does not exist.  A caching relay SHOULD NOT
+cache or forward the Object in this case.
+
+A cache MUST store all fields of an Object defined in {{object-header}},
+with the exception of any Object Properties ({{object-properties}})
+that specify otherwise.
 
 ## Forward Handling
 
@@ -1259,14 +1724,14 @@ explain how Relays maintain subscriptions to all available publishers for a
 given Track.
 
 There is no specified limit to the number of publishers of a Track Namespace or
-Track.  An implementation can use mechanisms such as PUBLISH_ERROR,
-PUBLISH_NAMESPACE_ERROR, UNSUBSCRIBE or PUBLISH_NAMESPACE_CANCEL if it cannot
-accept an additional publisher due to implementation constraints.
-Implementations can consider the establishment or idle time of the session or
-subscription to determine which publisher to reject or disconnect.
+Track.  An implementation can use mechanisms such as REQUEST_ERROR or
+unsubscribing (see {{request-cancellation}}) if it cannot accept an additional
+publisher due to implementation constraints. Implementations can consider the
+establishment or idle time of the session or subscription to determine which
+publisher to reject or disconnect.
 
 Relays MUST handle Objects for the same Track from multiple publishers and
-forward them to active matching subscriptions. The Relay SHOULD attempt to
+forward them to matching `Established` subscriptions. The Relay SHOULD attempt to
 deduplicate Objects before forwarding, subject to implementation constraints.
 
 ## Subscriber Interactions
@@ -1278,15 +1743,15 @@ the content associated with the Track. The authorization information can be part
 of request itself or part of the encompassing session. The specifics of how a
 relay authorizes a user are outside the scope of this specification.
 
-The relay MUST have an established upstream subscription before sending
+The relay MUST have an `Established` upstream subscription before sending
 SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
 MUST withhold sending FETCH_OK until it does.
 
-For successful subscriptions, the publisher maintains a list of subscribers for
+Publishers maintain a list of `Established` downstream subscriptions for
 each Track. Relays use the Track Alias ({{track-alias}}) of an incoming Object
-to identify its Track and find the active subscribers.  Each new Object
-belonging to the Track is forwarded to each active subscriber, as allowed by the
+to identify its Track and find the current subscribers.  Each new Object
+belonging to the Track is forwarded to each subscriber, as allowed by the
 subscription's filter (see {{message-subscribe-req}}), and delivered according
 to the priority (see {{priorities}}) and delivery timeout (see
 {{delivery-timeout}}).
@@ -1299,7 +1764,7 @@ multiple subscribers request the same Track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 Track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
-Because SUBSCRIBE_UPDATE only allows narrowing a subscription, relays that
+Because MOQT restricts widening a subscription, relays that
 aggregate upstream subscriptions can subscribe using the Largest Object
 filter to avoid churn as downstream subscribers with disparate filters
 subscribe and unsubscribe from a Track.
@@ -1311,16 +1776,17 @@ all possible Objects matching the filter have been delivered to the subscriber.
 Since tracking this can be prohibitively expensive, Relays are not required or
 expected to do so.
 
-### Graceful Subscriber Relay Switchover
+### Graceful Subscriber Relay Switchover {#graceful-subscriber-switchover}
 
-This section describes behavior a subscriber MAY implement
-to allow for a better user experience when a relay sends a GOAWAY.
+This section describes a behavior that a Subscriber MAY implement to improve
+user experience when a relay sends a GOAWAY or the Subscriber switches between
+networks, such as WiFi to Cellular, and QUIC Connection Migration is not possible.
 
 When a subscriber receives the GOAWAY message, it starts the process
 of connecting to a new relay and sending the SUBSCRIBE requests for
-all active subscriptions to the new relay. The new relay will send a
+all `Established` subscriptions to the new relay. The new relay will send a
 response to the subscribes and if they are successful, the subscriptions
-to the old relay can be stopped with an UNSUBSCRIBE.
+to the old relay can be cancelled (see {{request-cancellation}}).
 
 
 ## Publisher Interactions
@@ -1337,13 +1803,17 @@ in this Namespace in response to requests received from subscribers.
 
 Relays MUST verify that publishers are authorized to publish the set of Tracks
 whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
-Track Name in PUBLISH. The authorization and identification of the publisher
-depends on the way the relay is managed and is application specific.
+Track Name in PUBLISH. Relays MUST NOT assume that an authorized publisher of a single
+Track is implicitly authorized to publish any other Tracks or Track Namespaces.
+If a Publisher would like Subscriptions in a Namespace routed to it, it MUST send
+an explicit PUBLISH_NAMESPACE.
+The authorization and identification of the publisher depends on the way the
+relay is managed and is application specific.
 
-When a publisher wants to stop new subscriptions for a published namespace it
-sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
-subcribe to Tracks in a namespace it previously responded PUBLISH_NAMESPACE_OK
-to by sending a PUBLISH_NAMESPACE_CANCEL.
+When a publisher wants to stop new subscriptions for a published namespace, it
+cancels the request (see {{request-cancellation}}) to withdraw the PUBLISH_NAMESPACE.
+A subscriber indicates it will no longer subscribe to Tracks in a namespace it
+previously responded REQUEST_OK to by cancelling the PUBLISH_NAMESPACE request.
 
 A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
@@ -1360,7 +1830,9 @@ A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
 that sent PUBLISH_NAMESPACE messages with namespace=(foo) or namespace=(foo,
 bar).  It will not match a session with namespace=(foobar).
 
-Relays MUST forward SUBSCRIBE messages to all matching publishers and
+Relays MUST send SUBSCRIBE messages to all matching publishers. This includes
+matching both Established subscriptions on the Full Track Name and Namespace
+Prefix Matching against published Namespaces.  Relays MUST forward
 PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
 
 When a Relay needs to make an upstream FETCH request, it determines the
@@ -1368,67 +1840,62 @@ available publishers using the same matching rules as SUBSCRIBE. When more than
 one publisher is available, the Relay MAY send the FETCH to any of them.
 
 When a Relay receives an authorized SUBSCRIBE for a Track with one or more
-active upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
+`Established` upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
 SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
-State=0, the Relay MUST send SUBSCRIBE_UPDATE with Forward=1 to all publishers.
-If there are no active upstream subscriptions for the requested Track, the Relay
+State=0, the Relay MUST send REQUEST_UPDATE with Forward=1 to all publishers.
+If there are no `Established` upstream subscriptions for the requested Track, the Relay
 MUST send a SUBSCRIBE request to each publisher that has published the
-subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward
-=1, then the Relay MUST use Forward=1 when subscribing upstream.
+subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
+then the Relay MUST use Forward=1 when subscribing upstream.
 
 When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
 request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
-to the Track's namespace or prefix thereof.
+to the Track's namespace or prefix thereof. However, if the relay is
+holding a downstream SUBSCRIBE awaiting a publisher for this Track (see
+{{rendezvous-timeout}}), it MUST proceed with the SUBSCRIBE and
+MUST NOT also forward the PUBLISH to that subscriber.
 
 When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it MUST
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
 matching subscription.  When it receives an authorized PUBLISH message for a
-Track that has active subscribers, it MUST respond with PUBLISH_OK.  If at least
-one downstream subscriber for the Track has Forward State=1, the Relay MUST use
-Forward State=1 in the reply.
+Track that has `Established` downstream subscriptions, it MUST respond with
+PUBLISH_OK.  If at least one downstream subscriber for the Track has
+Forward State=1, the Relay MUST use Forward State=1 in the reply.
 
 If a Session is closed due to an unknown or invalid control message or Object,
 the Relay MUST NOT propagate that message or Object to another Session, because
 it would enable a single Session error to force an unrelated Session, which
 might be handling other subscriptions, to be closed.
 
-### Graceful Publisher Network Switchover
+### Graceful Publisher Relay Switchover {#graceful-publisher-switchover}
 
-This section describes a behavior that a publisher MAY
-choose to implement to allow for a better user experience when
-switching between networks, such as WiFi to Cellular or vice versa.
+This section describes a behavior that a publisher MAY implement to improve
+user experience when a relay sends a GOAWAY or the publisher switches between
+networks, such as WiFi to Cellular, and QUIC Connection Migration is not possible.
 
-If the original publisher detects it is likely to need to switch networks, for
-example because the WiFi signal is getting weaker, and it does not have QUIC
-connection migration available, it establishes a new session over the new
-interface and sends PUBLISH_NAMESPACE and/or PUBLISH messages. The relay will
-establish subscriptions and the publisher publishes Objects on both sessions.
-Once the subscriptions have migrated over to the session on the new network, the
-publisher can stop publishing Objects on the old network. The relay will attempt
+A new Session is established, to a new URI if specified in a GOAWAY. The
+publisher sends PUBLISH_NAMESPACE and/or PUBLISH messages to begin publishing
+on the new Session, but it does not immediately stop publishing Objects on the
+old Session.
+
+Once the subscriptions have migrated over to the new session, the publisher
+can stop publishing Objects on the old session. The relay will attempt
 to deduplicate Objects received on both subscriptions. Ideally, the
 subscriptions downstream from the relay do not observe this change, and keep
 receiving the Objects on the same subscription.
 
-### Graceful Publisher Relay Switchover
+## Relay Track Handling
 
-This section describes a behavior that a publisher MAY choose to implement
-to allow for a better user experience when a relay sends them a GOAWAY.
-
-When a publisher receives a GOAWAY, it starts the process of connecting to a new
-relay and sends PUBLISH_NAMESPACE and/or PUBLISH messages, but it does not
-immediately stop publishing Objects to the old Relay. The new Relay will
-establish subscriptions and the publisher can start sending new Objects to the
-new relay instead of the old Relay. Once Objects are going to the new Relay, the
-published namespaces and subscriptions to the old relay can be withdrawn or
-terminated.
+A relay MUST include all Properties associated with a Track when sending any PUBLISH,
+SUBSCRIBE_OK, REQUEST_OK when in response to a TRACK_STATUS, or FETCH_OK, unless
+allowed by the property's specification (see {{properties}}).
 
 ## Relay Object Handling
 
-MOQT encodes the delivery information via Object headers
-({{message-object}}).  A relay MUST NOT modify Object properties when
-forwarding, except for Object Extension Headers as specified in
-{{object-extensions}}.
+MOQT encodes the delivery information in the Object header ({{object-header}}).
+A relay MUST NOT modify Object fields when forwarding, except for
+Object Properties as specified in {{properties}}.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
@@ -1436,90 +1903,74 @@ prioritize sending Objects based on {{priorities}}.
 
 # Control Messages {#message}
 
-MOQT uses a single bidirectional stream to exchange control messages, as
-defined in {{session-init}}.  Every single message on the control stream is
+MOQT uses a pair of unidirectional streams to exchange control messages, as
+defined in {{session-init}}.  Every message on a control or request stream is
 formatted as follows:
 
 ~~~
 MOQT Control Message {
-  Message Type (i),
+  Message Type (vi64),
   Message Length (16),
   Message Payload (..),
 }
 ~~~
 {: #moq-transport-message-format title="MOQT Control Message"}
 
-The following Message Types are defined:
+The following Message Types are defined. The Stream column indicates
+which stream type each message is sent on: Control indicates the
+control stream ({{session-init}}), and Request indicates a bidirectional
+request stream. Messages marked "First" MUST be the first message on a
+new request stream.
 
-|-------|-----------------------------------------------------|
-| ID    | Messages                                            |
-|------:|:----------------------------------------------------|
-| 0x01  | RESERVED (SETUP for version 00)                     |
-|-------|-----------------------------------------------------|
-| 0x40  | RESERVED (CLIENT_SETUP for versions <= 10)          |
-|-------|-----------------------------------------------------|
-| 0x41  | RESERVED (SERVER_SETUP for versions <= 10)          |
-|-------|-----------------------------------------------------|
-| 0x20  | CLIENT_SETUP ({{message-setup}})                    |
-|-------|-----------------------------------------------------|
-| 0x21  | SERVER_SETUP ({{message-setup}})                    |
-|-------|-----------------------------------------------------|
-| 0x10  | GOAWAY ({{message-goaway}})                         |
-|-------|-----------------------------------------------------|
-| 0x15  | MAX_REQUEST_ID ({{message-max-request-id}})         |
-|-------|-----------------------------------------------------|
-| 0x1A  | REQUESTS_BLOCKED ({{message-requests-blocked}})     |
-|-------|-----------------------------------------------------|
-| 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
-|-------|-----------------------------------------------------|
-| 0x4   | SUBSCRIBE_OK ({{message-subscribe-ok}})             |
-|-------|-----------------------------------------------------|
-| 0x5   | SUBSCRIBE_ERROR ({{message-subscribe-error}})       |
-|-------|-----------------------------------------------------|
-| 0x2   | SUBSCRIBE_UPDATE ({{message-subscribe-update}})     |
-|-------|-----------------------------------------------------|
-| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
-|-------|-----------------------------------------------------|
-| 0x1D  | PUBLISH  ({{message-publish}})                      |
-|-------|-----------------------------------------------------|
-| 0x1E  | PUBLISH_OK ({{message-publish-ok}})                 |
-|-------|-----------------------------------------------------|
-| 0x1F  | PUBLISH_ERROR ({{message-publish-error}})           |
-|-------|-----------------------------------------------------|
-| 0xB   | PUBLISH_DONE ({{message-publish-done}})             |
-|-------|-----------------------------------------------------|
-| 0x16  | FETCH ({{message-fetch}})                           |
-|-------|-----------------------------------------------------|
-| 0x18  | FETCH_OK ({{message-fetch-ok}})                     |
-|-------|-----------------------------------------------------|
-| 0x19  | FETCH_ERROR ({{message-fetch-error}})               |
-|-------|-----------------------------------------------------|
-| 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})             |
-|-------|-----------------------------------------------------|
-| 0xD   | TRACK_STATUS ({{message-track-status}})             |
-|-------|-----------------------------------------------------|
-| 0xE   | TRACK_STATUS_OK ({{message-track-status-ok}}        |
-|-------|-----------------------------------------------------|
-| 0xF   | TRACK_STATUS_ERROR ({{message-track-status-error}}) |
-|-------|-----------------------------------------------------|
-| 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
-|-------|-----------------------------------------------------|
-| 0x7   | PUBLISH_NAMESPACE_OK ({{message-pub-ns-ok}})        |
-|-------|-----------------------------------------------------|
-| 0x8   | PUBLISH_NAMESPACE_ERROR ({{message-pub-ns-error}})  |
-|-------|-----------------------------------------------------|
-| 0x9   | PUBLISH_NAMESPACE_DONE  ({{message-pub-ns-done}})   |
-|-------|-----------------------------------------------------|
-| 0xC   | PUBLISH_NAMESPACE_CANCEL ({{message-pub-ns-cancel}})|
-|-------|-----------------------------------------------------|
-| 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
-|-------|-----------------------------------------------------|
-| 0x12  | SUBSCRIBE_NAMESPACE_OK ({{message-sub-ns-ok}})      |
-|-------|-----------------------------------------------------|
-| 0x13  | SUBSCRIBE_NAMESPACE_ERROR ({{message-sub-ns-error}} |
-|-------|-----------------------------------------------------|
-| 0x14  | UNSUBSCRIBE_NAMESPACE ({{message-unsub-ns}})        |
-|-------|-----------------------------------------------------|
+|--------|-----------------------------------------------|----------------|
+| ID     | Messages                                      | Stream         |
+|-------:|:----------------------------------------------|:---------------|
+| 0x01   | RESERVED (SETUP for version 00)               |                |
+|--------|-----------------------------------------------|----------------|
+| 0x40   | RESERVED (CLIENT_SETUP for <= 10)             |                |
+|--------|-----------------------------------------------|----------------|
+| 0x41   | RESERVED (SERVER_SETUP for <= 10)             |                |
+|--------|-----------------------------------------------|----------------|
+| 0x20   | RESERVED (CLIENT_SETUP in <= 16)              |                |
+|--------|-----------------------------------------------|----------------|
+| 0x21   | RESERVED (SERVER_SETUP in <= 16)              |                |
+|--------|-----------------------------------------------|----------------|
+| 0x2F00 | SETUP ({{message-setup}})                     | Control        |
+|--------|-----------------------------------------------|----------------|
+| 0x10   | GOAWAY ({{message-goaway}})                   | Control        |
+|--------|-----------------------------------------------|----------------|
+| 0x3    | SUBSCRIBE ({{message-subscribe-req}})         | Request, First |
+|--------|-----------------------------------------------|----------------|
+| 0x4    | SUBSCRIBE_OK ({{message-subscribe-ok}})       | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0x1D   | PUBLISH ({{message-publish}})                 | Request, First |
+|--------|-----------------------------------------------|----------------|
+| 0x1E   | PUBLISH_OK ({{message-publish-ok}})           | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0xB    | PUBLISH_DONE ({{message-publish-done}})       | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0x16   | FETCH ({{message-fetch}})                     | Request, First |
+|--------|-----------------------------------------------|----------------|
+| 0x18   | FETCH_OK ({{message-fetch-ok}})               | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0xD    | TRACK_STATUS ({{message-track-status}})       | Request, First |
+|--------|-----------------------------------------------|----------------|
+| 0x6    | PUBLISH_NAMESPACE ({{message-pub-ns}})        | Request, First |
+|--------|-----------------------------------------------|----------------|
+| 0x11   | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})| Request, First |
+|--------|-----------------------------------------------|----------------|
+| 0x8    | NAMESPACE ({{message-namespace}})             | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0xE    | NAMESPACE_DONE ({{message-namespace-done}})   | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0xF    | PUBLISH_BLOCKED ({{message-publish-blocked}}) | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0x2    | REQUEST_UPDATE ({{message-request-update}})   | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0x7    | REQUEST_OK ({{message-request-ok}})           | Request        |
+|--------|-----------------------------------------------|----------------|
+| 0x5    | REQUEST_ERROR ({{message-request-error}})     | Request        |
+|--------|-----------------------------------------------|----------------|
 
 An endpoint that receives an unknown message type MUST close the session.
 Control messages have a length to make parsing easier, but no control messages
@@ -1528,68 +1979,122 @@ Payload, which is defined by each message type.  If the length does not match
 the length of the Message Payload, the receiver MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
-## Request ID
+## Request ID {#request-id}
 
-Most MOQT control messages contain a session specific Request ID.  The Request
-ID correlates requests and responses, allows endpoints to update or terminate
-ongoing requests, and supports the endpoint's ability to limit the concurrency
-and frequency of requests.  Request IDs for one endpoint increment independently
-from those sent by the peer endpoint.  The client's Request ID starts at 0 and
-are even and the server's Request ID starts at 1 and are odd.  The Request ID
-increments by 2 with each FETCH, SUBSCRIBE, SUBSCRIBE_UPDATE,
-SUBSCRIBE_NAMESPACE, PUBLISH, PUBLISH_NAMESPACE or TRACK_STATUS request.
-Other messages with a Request ID field reference the Request ID of another
-message for correlation. If an endpoint receives a Request ID that is not valid
-for the peer, or a new request with a Request ID that is not the next in
-sequence or exceeds the received MAX_REQUEST_ID, it MUST close the session with
-`INVALID_REQUEST_ID`.
+Request ID is included in request messages and is used to identify
+requests across messages. For example, Joining Fetch references
+the Request ID of a SUBSCRIBE.
 
-## Parameters {#params}
+The client generates even numbered Request IDs, starting at 0, and the
+server generates odd numbered Request IDs, starting at 1.  Each
+endpoint increments its Request ID by 2 for each new request.
 
-Some messages include a Parameters field that encodes optional message
-elements.
+Each SUBSCRIBE, PUBLISH, FETCH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
+REQUEST_UPDATE, and TRACK_STATUS message consumes a Request ID. Only
+request messages include a Request ID; response messages do not, since
+they are sent on the same bidirectional stream as the request.
 
-Senders MUST NOT repeat the same parameter type in a message unless the
+If an endpoint receives a Request ID where the least significant bit is
+incorrect for the sender, or a duplicate Request ID, it MUST close the
+session with `INVALID_REQUEST_ID`.
+
+## Required Request ID {#required-request-id}
+
+Every request message includes a Required Request ID Delta field
+that specifies a dependency on a prior request. The Required Request ID
+is computed as:
+
+~~~
+    Required Request ID = Request ID - (2 × Required Request ID
+  Delta)
+~~~
+
+A Required Request ID Delta of 0 indicates no dependency. When
+a dependency exists, the receiver MUST NOT process the dependent
+request before the referenced request. This is an ordering
+constraint only; the referenced request does not need to complete
+successfully. If the referenced request does not arrive, the
+receiver will time out the dependent request.
+
+The delta is scaled by two because request IDs from each endpoint
+use alternating parity (odd or even), so valid dependencies always
+differ by a multiple of two. An endpoint MUST close the session with
+INVALID_REQUIRED_REQUEST_ID if it receives a delta where
+2 × Required Request ID Delta exceeds the Request ID.
+
+## Message Parameters {#message-params}
+
+Some control messages include a field that encodes optional Message Parameters.
+Message Parameters are serialized as follows:
+
+~~~
+Message Parameter {
+  Type Delta (vi64),
+  Value (..)
+}
+~~~
+{: #moq-message-param format title="Message Parameter"}
+
+Type Delta: The difference between this Parameter Type and the previous
+   Parameter Type in the message, or the Parameter Type itself for the first
+   parameter. Parameters MUST be serialized in ascending order by Type.
+   If the resulting Type would be greater than 2^64 - 1, the endpoint
+   MUST close the session with a `PROTOCOL_VIOLATION`.
+
+* Value: The encoding is specified by each parameter definition.
+The encodings defined in this draft are:
+  * uint8: A single-byte unsigned integer (0-255)
+  * varint: A variable-length integer
+  * Location: Two consecutive varints (Group, Object)
+  * Length-prefixed: A varint length followed by that many bytes
+
+Message Parameters are intended for the peer only and are not
+forwarded by Relays, though relays can consider received parameter values when
+making a request.
+
+All Message Parameters MUST be defined in the negotiated version of MOQT or
+negotiated via Setup Options. An endpoint that receives an unknown Message
+Parameter MUST close the session with `PROTOCOL_VIOLATION`. Because the receiver
+has to understand every Message Parameter, there is no need for a mechanism to
+skip unknown parameters. Because unknown parameters cannot be skipped, the block
+is bounded by a parameter count rather than a length.
+
+The Message Parameter types defined in this version of MOQT are listed below.
+
+Senders MUST NOT repeat the same Parameter Type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers SHOULD check that there are no
-unauthorized duplicate parameters and close the session as a
-`PROTOCOL_VIOLATION` if found.  Receivers MUST allow duplicates of unknown
-parameters.
+unexpected duplicate parameters and close the session with `PROTOCOL_VIOLATION`
+if found.
 
-The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
-to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in {{track-scope}}.
+The number of Message Parameters is not specifically limited, but the total
+length of a control message is limited to 2^16-1 bytes.
 
-Receivers ignore unrecognized parameters.
+Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
+publisher to alter the payload of the objects it sends, as that would violate
+the track uniqueness guarantee described in {{track-scope}}.
 
-The number of parameters in a message is not specifically limited, but the
-total length of a control message is limited to 2^16-1 bytes.
 
-Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
+### Parameter Scope
 
-Setup message parameters use a namespace that is constant across all MOQT
-versions. All other messages use a version-specific namespace.
-For example, the integer '1' can refer to different parameters for Setup
-messages and for all other message types. SETUP message parameter types
-are defined in {{setup-params}}. Version-specific parameter types are defined
-in {{version-specific-params}}.
+Message Parameters are always intended for the peer endpoint only and are not
+forwarded by Relays, though relays can consider received parameter values when
+making a request. Track information not specific to the Message or Session
+is encoded in Track Properties. See {{properties}}.
 
-### Version Specific Parameters {#version-specific-params}
+Each Message Parameter definition indicates the message types in which
+it can appear. If it appears in some other type of message, the receiving
+endpoint MUST close the connection with a `PROTOCOL_VIOLATION`.
+Note that since Setup Options use a separate namespace, it is impossible for
+Message Parameters to appear in Setup messages.
 
-Each version-specific parameter definition indicates the message types in which
-it can appear. If it appears in some other type of message, it MUST be ignored.
-Note that since Setup parameters use a separate namespace, it is impossible for
-these parameters to appear in Setup messages.
+### AUTHORIZATION TOKEN Parameter {#authorization-token}
 
-#### AUTHORIZATION TOKEN {#authorization-token}
-
-The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
-CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
+The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) uses Length-prefixed
+encoding. It MAY appear in a PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
 SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
 parameter conveys information to authorize the sender to perform the operation
 carrying the parameter.
-
-The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
 
 The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
@@ -1598,9 +2103,9 @@ follows:
 
 ~~~
 Token {
-  Alias Type (i),
-  [Token Alias (i),]
-  [Token Type (i),]
+  Alias Type (vi64),
+  [Token Alias (vi64),]
+  [Token Type (vi64),]
   [Token Value (..)]
 }
 ~~~
@@ -1626,6 +2131,9 @@ previously registered with this Alias.
 USE_VALUE (0x3):
 : There is no Alias and there is a Type and Value. Use the Token Value as
 provided. The Token Value may be discarded after processing.
+
+If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
+message, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 * Token Alias - a Session-specific integer identifier that references a Token
   Value. There are separate Alias spaces for the client and server (e.g.: they
@@ -1659,9 +2167,11 @@ in the token cache, even if the message fails for other reasons, including
 previously registered tokens without potentially terminating the entire Session.
 A receiver MAY store an error code (eg: `UNAUTHORIZED` or
 `MALFORMED_AUTH_TOKEN`) in place of the Token Type and Token Alias if any future
-message referencing the Token Alias will result in that error. The size of a
-registered cache entry includes the length of the Token Value, regardless of
-whether it is stored.
+message referencing the Token Alias will result in that error. However, it is
+important to not store an error code for a token that might be valid in the
+future or due to some other property becoming fulfilled which currently
+isn't. The size of a registered cache entry includes the length of the Token
+Value, regardless of whether it is stored.
 
 If a receiver detects that an authorization token has expired, it MUST retain
 the registered Alias until it is deleted by the sender, though it MAY discard
@@ -1681,27 +2191,48 @@ has passed.
 
 By registering a Token, the sender is requiring the receiver to store the Token
 Alias and Token Value until they are deleted, or the Session ends. The receiver
-can protect its resources by sending a SETUP parameter defining the
+can protect its resources by sending a Setup Option defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
 willing to accept. If a registration is attempted which would cause this limit
-to be exceeded, the receiver MUST termiate the Session with a
+to be exceeded, the receiver MUST terminate the Session with a
 `AUTH_TOKEN_CACHE_OVERFLOW` error.
 
+The AUTHORIZATION TOKEN parameter MAY be repeated within a message as long as
+the combination of Token Type and Token Value are unique after resolving any
+aliases.
 
-#### DELIVERY TIMEOUT Parameter {#delivery-timeout}
+Messages carrying the AUTHORIZATION TOKEN parameter can appear on different
+control streams. Because stream processing order can be different than send order, the
+receiver and sender can have inconsistent views of the token cache state.
 
-The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or
-SUBSCRIBE_UDPATE message.  It is the duration in milliseconds the relay SHOULD
-continue to attempt forwarding Objects after they have been received.  The start
-time for the timeout is based on when the Object Headers are received, and does
-not depend upon the forwarding preference. There is no explicit signal that an
+Senders MUST NOT send USE_ALIAS on one control stream for an alias registered on a
+different stream until the sender has received a response to the message
+containing the REGISTER. Senders MAY use USE_ALIAS on the same control stream as the
+REGISTER without waiting for a response.
+
+Senders MUST NOT send DELETE for an alias while any message using USE_ALIAS with
+that alias has not received a response.
+
+### DELIVERY TIMEOUT Parameter {#delivery-timeout}
+
+The DELIVERY TIMEOUT parameter (Parameter Type 0x02) is a varint. It MAY appear
+in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
+
+It is the duration in milliseconds the relay SHOULD continue to attempt
+forwarding Objects after they have been received.  The start time for the timeout
+is based on when the Object header is received, and does not depend upon
+the forwarding preference. Objects with forwarding preference 'Datagram' are
+not retransmitted when lost, so the Delivery Timeout only limits the amount of
+time they can be queued before being sent. There is no explicit signal that an
 Object was not sent because the delivery timeout was exceeded.
 
-If both the subscriber and publisher specify the parameter, they use the min of
-the two values for the subscription.  The publisher SHOULD always specify the
-value received from an upstream subscription when there is one, and nothing
-otherwise.
+A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
+due to delivery timeout.
+
+If both the subscriber specifies this parameter and the Track has a
+DELIVERY_TIMEOUT property, the endpoints use the min of
+the two non-zero values for the subscription. If either value is 0, the
+non-zero value is used. If both are 0, there is no delivery timeout.
 
 Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
@@ -1710,12 +2241,14 @@ subscriber nor publisher specifies DELIVERY TIMEOUT, all Objects in the track
 matching the subscription filter are delivered as indicated by their Group Order
 and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher MAY terminate
-the subscription with error `TOO_FAR_BEHIND`.
+the subscription using PUBLISH_DONE with error `TOO_FAR_BEHIND`.
 
 If an object in a subgroup exceeds the delivery timeout, the publisher MUST
-reset the underlying transport stream (see {{closing-subgroup-streams}}).
+reset the underlying transport stream (see {{closing-subgroup-streams}}) and
+SHOULD NOT attempt to open a new stream to deliver additional Objects in that
+Subgroup.
 
-When sent by a subscriber, this parameter is intended to be specific to a
+This parameter is intended to be specific to a
 subscription, so it SHOULD NOT be forwarded upstream by a relay that intends
 to serve multiple subscriptions for the same track.
 
@@ -1724,166 +2257,270 @@ successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
 any other relevant information.
 
-#### MAX CACHE DURATION Parameter {#max-cache-duration}
+### RENDEZVOUS TIMEOUT Parameter {#rendezvous-timeout}
 
-The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a PUBLISH,
-SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS_OK message.  It is an integer expressing
-the number of milliseconds an object can be served from a cache. If present, the
-relay MUST NOT start forwarding any individual Object received through this
-subscription or fetch after the specified number of milliseconds has elapsed
-since the beginning of the Object was received.  This means Objects earlier in a
-multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes unknown, and a relay that
-handles a downstream request that includes those Objects re-requests them.
+The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) MAY appear in a
+SUBSCRIBE message.
 
-#### PUBLISHER PRIORITY Parameter {#subscriber-priority}
+It is the duration in milliseconds the subscriber is willing to wait for a
+publisher to become available. This applies when a relay receives a SUBSCRIBE
+for a Track that has no current publisher.
 
-The PUBLISHER PRIORITY parameter (Parameter Type 0x0E) specifies the priority of
-a subscription relative to other subscriptions in the same session.  The value
-is from 0 to 255 and lower numbers get higher priority.  See
-{{priorities}}. Priorities above 255 are invalid. The PUBLISHER PRIORITY
-parameter is valid in SUBSCRIBE_OK and PUBLISH. Subgroups and Datagrams for this
-subscription inherit this priority, unless they specifically override it.
+If the RENDEZVOUS_TIMEOUT is present, the relay SHOULD hold the subscription
+and wait for a publisher to appear, up to the specified duration. The relay
+does not send SUBSCRIBE_OK until a publisher becomes available. If a publisher
+becomes available within this time, the relay proceeds with the subscription
+normally. If the timeout expires without a publisher, the relay SHOULD respond
+with REQUEST_ERROR with error code TIMEOUT.
 
-The subscription has Publisher Priorty 128 if this parameter is omitted.
+The relay MAY use a shorter timeout than requested by the subscriber. For
+example, a relay might limit the maximum rendezvous timeout to protect its
+resources.
 
-## CLIENT_SETUP and SERVER_SETUP {#message-setup}
+A value of 0 indicates the subscriber does not want to wait and expects an
+immediate response.  The relay MUST immediately return REQUEST_ERROR with error
+code DOES_NOT_EXIST if no publisher is available
 
-The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
-by the client and the server; they allow the endpoints to establish the mutually
-supported version and agree on the initial configuration before any objects are
-exchanged. It is a sequence of key-value pairs called Setup parameters; the
+If RENDEZVOUS_TIMEOUT is absent, the default is 0.
+
+### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
+
+The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It MAY
+appear in a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
+or PUBLISH_OK message. It is an integer expressing the priority of a
+subscription relative to other subscriptions and fetch responses in the same
+session. Lower numbers get higher priority. See {{priorities}}.
+
+If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
+the value 128.
+
+### GROUP ORDER Parameter {#group-order}
+
+The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8. It MAY appear in a
+SUBSCRIBE, PUBLISH_OK, or FETCH.
+
+Its value indicates how to prioritize Objects from different groups within
+the same subscription (see {{priorities}}), or how to order Groups in a Fetch
+response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
+Descending (0x2). If an endpoint receives a value outside this range, it MUST
+close the session with `PROTOCOL_VIOLATION`.
+
+If omitted from SUBSCRIBE, the publisher's preference from
+the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
+
+### SUBSCRIPTION FILTER Parameter {#subscription-filter}
+
+The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
+encoding. It MAY appear in a SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a
+subscription) message. It is a Subscription Filter (see {{subscription-filters}}).
+
+If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
+unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
+
+### EXPIRES Parameter {#expires}
+
+The EXPIRES parameter (Parameter Type 0x8) is a varint. It MAY appear in
+SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK. It encodes the time
+in milliseconds after which the sender of the parameter will terminate
+the subscription. The sender will terminate the subscription using PUBLISH_DONE
+or by cancelling the request (see {{request-cancellation}}).  This value is advisory and the sender
+can terminate the subscription prior to or after the expiry time.
+
+The receiver of the parameter can attempt to extend the subscription by sending
+a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
+more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
+REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
+value in REQUEST_OK. Relays that send this parameter and applications that
+receive it MAY introduce jitter to prevent many endpoints from updating
+simultaneously.
+
+If the EXPIRES parameter is 0 or is not present in a message, the subscription
+does not expire or expires at an unknown time.
+
+### LARGEST OBJECT Parameter {#largest-param}
+
+The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
+in SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE or
+TRACK_STATUS). It contains the largest Location (see {{location-structure}}) in the
+Track observed by the sending endpoint (see {{subscription-filters}}). If Objects
+have been published on this Track the Publisher MUST include this parameter.
+
+If omitted from a message, the sending endpoint has not published or received
+any Objects in the Track.
+
+### FORWARD Parameter {#forward-parameter}
+
+The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
+SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
+SUBSCRIBE_NAMESPACE. It specifies the Forwarding State on affected subscriptions
+(see {{subscriptions}}). The allowed values are 0 (don't forward) or 1 (forward).
+If an endpoint receives a value outside this range, it MUST close the session
+with `PROTOCOL_VIOLATION`.
+
+If the parameter is omitted from REQUEST_UPDATE, the value for the
+subscription remains unchanged.  If the parameter is omitted from any other
+message, the default value is 1.
+
+### NEW GROUP REQUEST Parameter {#new-group-request}
+
+The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint. It MAY appear
+in PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
+ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
+subscriber has no Group information for the Track.  A subscriber MUST NOT send
+this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
+include the DYNAMIC_GROUPS Property with value 1.  A subscriber MAY
+include this parameter in SUBSCRIBE without foreknowledge of support.  If the
+original publisher does not support dynamic Groups, it ignores the parameter in that
+case.
+
+When an Original Publisher that supports dynamic Groups receives a
+NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
+it SHOULD end the current Group and begin a new Group as soon as practical.  The
+Original Publisher MAY delay the NEW_GROUP_REQUEST subject to
+implementation specific concerns, for example, achieving a minimum duration for
+each Group. The Original Publisher chooses the next Group ID; there are no
+requirements that it be equal to the NEW_GROUP_REQUEST parameter value.
+
+Relay Handling:
+
+A relay that receives a NEW_GROUP_REQUEST for a Track without an `Established`
+subscription MUST include the NEW_GROUP_REQUEST when subscribing upstream.
+
+A relay that receives a NEW_GROUP_REQUEST for an `Established` subscription with a
+value of 0 or a value larger than the Largest Group MUST send a REQUEST_UPDATE
+including the NEW_GROUP_REQUEST to the publisher unless:
+
+1. The Track does not support dynamic Groups
+2. There is already an outstanding NEW_GROUP_REQUEST from this Relay with a
+   greater or equal value
+
+If a relay receives a NEW_GROUP_REQUEST with a non-zero value less than or equal
+to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
+
+After sending a NEW_GROUP_REQUEST upstream, the request is considered
+outstanding until the Largest Group increases.
+
+## SETUP {#message-setup}
+
+The `SETUP` message is the first message each endpoint sends on its control
+stream (see {{session-init}}); it allows the endpoints to agree on the initial
+configuration before any other control messages are exchanged. An endpoint that
+is not offering extensions which modify control message semantics MAY pipeline
+other control messages after SETUP without waiting for the peer's SETUP.
+
+The messages contain a sequence of key-value pairs called Setup Options; the
 semantics and format of which can vary based on whether the client or server is
 sending.  To ensure future extensibility of MOQT, endpoints MUST ignore unknown
-setup parameters. TODO: describe GREASE for those.
+Setup Options.
 
-The wire format of the Setup messages are as follows:
+The wire format of the Setup message is as follows:
 
 ~~~
-CLIENT_SETUP Message {
-  Type (i) = 0x20,
+SETUP Message {
+  Type (vi64) = 0x2F00,
   Length (16),
-  Number of Supported Versions (i),
-  Supported Versions (i) ...,
-  Number of Parameters (i),
-  Setup Parameters (..) ...,
-}
-
-SERVER_SETUP Message {
-  Type (i) = 0x21,
-  Length (16),
-  Selected Version (i),
-  Number of Parameters (i),
-  Setup Parameters (..) ...,
+  Setup Options (..) ...,
 }
 ~~~
-{: #moq-transport-setup-format title="MOQT Setup Messages"}
+{: #moq-transport-setup-format title="MOQT SETUP Message"}
 
-The available versions and Setup parameters are detailed in the next sections.
+Setup Options are serialized as Key-Value-Pairs {{moq-key-value-pair}},
+spanning the entire message payload, bounded by the message Length field.
+Setup Options use a namespace that is constant across all MOQT versions,
+separate from Message Parameters.  Receivers MUST ignore unrecognized Setup
+Options.  Senders MUST NOT repeat the same Option Type in a message unless
+the option definition explicitly allows multiple instances. Receivers MUST
+allow duplicates of unknown Setup Options.
 
-### Versions {#setup-versions}
+The available Setup Options are detailed in the next sections.
 
-MOQT versions are a 32-bit unsigned integer, encoded as a varint.
-This version of the specification is identified by the number 0x00000001.
-Versions with the most significant 16 bits of the version number cleared are
-reserved for use in future IETF consensus documents.
-
-The client offers the list of the protocol versions it supports; the
-server MUST reply with one of the versions offered by the client. If the
-server does not support any of the versions offered by the client, or
-the client receives a server version that it did not offer, the
-corresponding peer MUST close the session with `VERSION_NEGOTIATION_FAILED`.
-
-\[\[RFC editor: please remove the remainder of this section before
-publication.]]
-
-The version number for the final version of this specification (0x00000001), is
-reserved for the version of the protocol that is published as an RFC.
-Version numbers used to identify IETF drafts are created by adding the draft
-number to 0xff000000. For example, draft-ietf-moq-transport-13 would be
-identified as 0xff00000D.
-
-### Setup Parameters {#setup-params}
+### Setup Options {#setup-options}
 
 #### AUTHORITY {#authority}
 
-The AUTHORITY parameter (Parameter Type 0x05) allows the client to specify the
-authority component of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST
+The AUTHORITY option (Option Type 0x05) allows the client to specify the
+authority component of the MoQ URI when using native QUIC ({{native-quic}}).  It MUST
 NOT be used by the server, or when WebTransport is used.  When an AUTHORITY
-parameter is received from a server, or when an AUTHORITY parameter is received
-while WebTransport is used, or when an AUTHORITY parameter is received by a
+option is received from a server, or when an AUTHORITY option is received
+while WebTransport is used, or when an AUTHORITY option is received by a
 server but the server does not support the specified authority, the session MUST
 be closed with `INVALID_AUTHORITY`.
 
-The AUTHORITY parameter follows the URI formatting rules {{!RFC3986}}.
+The AUTHORITY option follows the URI formatting rules {{!RFC3986}}.
 When connecting to a server using a URI with the "moqt" scheme, the
-client MUST set the AUTHORITY parameter to the `authority` portion of the
-URI. If an AUTHORITY parameter does not conform to
+client MUST set the AUTHORITY option to the `authority` portion of the
+URI. If an AUTHORITY option does not conform to
 these rules, the session MUST be closed with `MALFORMED_AUTHORITY`.
 
 #### PATH {#path}
 
-The PATH parameter (Parameter Type 0x01) allows the client to specify the path
-of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
+The PATH option (Option Type 0x01) allows the client to specify the path
+of the MoQ URI when using native QUIC ({{native-quic}}).  It MUST NOT be used by
 the server, or when WebTransport is used.  When a PATH parameter is received
 from a server, or when a PATH parameter is received while WebTransport is used,
 or when a PATH parameter is received by a server but the server does not
 support the specified path, the session MUST be closed with `INVALID_PATH`.
 
-The PATH parameter follows the URI formatting rules {{!RFC3986}}.
+The PATH option follows the URI formatting rules {{!RFC3986}}.
 When connecting to a server using a URI with the "moqt" scheme, the
-client MUST set the PATH parameter to the `path-abempty` portion of the
+client MUST set the PATH option to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
-the `query` portion of the URI to the parameter. If a PATH does not conform to
+the `query` portion of the URI to the option. If a PATH does not conform to
 these rules, the session MUST be closed with `MALFORMED_PATH`.
-
-#### MAX_REQUEST_ID {#max-request-id}
-
-The MAX_REQUEST_ID parameter (Parameter Type 0x02) communicates an initial
-value for the Maximum Request ID to the receiving endpoint. The default
-value is 0, so if not specified, the peer MUST NOT send requests.
 
 #### MAX_AUTH_TOKEN_CACHE_SIZE {#max-auth-token-cache-size}
 
-The MAX_AUTH_TOKEN_CACHE_SIZE parameter (Parameter Type 0x04) communicates the
+The MAX_AUTH_TOKEN_CACHE_SIZE option (Option Type 0x04) communicates the
 maximum size in bytes of all actively registered Authorization tokens that the
-endpoint is willing to store per Session. This parameter is optional. The default
+endpoint is willing to store per Session. This option is optional. The default
 value is 0 which prohibits the use of token Aliases.
 
 The token size is calculated as 16 bytes + the size of the Token Value field
 (see {{moq-token}}). The total size as restricted by the
-MAX_AUTH_TOKEN_CACHE_SIZE parameter is calculated as the sum of the token sizes
+MAX_AUTH_TOKEN_CACHE_SIZE option is calculated as the sum of the token sizes
 for all registered tokens (Alias Type value of 0x01) minus the sum of the token
 sizes for all deregistered tokens (Alias Type value of 0x00), since Session
 initiation.
 
 #### AUTHORIZATION TOKEN {#setup-auth-token}
 
-See {{authorization-token}}.  The endpoint can specify one or more tokens in
-CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT session
-establishment.
+The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is functionally
+equivalent to the AUTHORIZATION TOKEN message parameter, see {{authorization-token}}.
+The endpoint can specify one or more tokens in SETUP
+that the peer can use to authorize MOQT session establishment.
 
-If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP with Alias
+If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
 the session with `AUTH_TOKEN_CACHE_OVERFLOW`.  Instead, it MUST treat the
-parameter as Alias Type USE_VALUE.  A client MUST handle registration failures
+option as Alias Type USE_VALUE.  Since each endpoint's SETUP may be sent before
+the peer's SETUP is received, the sender MUST handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
-MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
+peer's MAX_AUTH_TOKEN_CACHE_SIZE option in SETUP (or the default value of 0).
 
-#### MOQT IMPLEMENTATION
+#### MOQT IMPLEMENTATION {#moqt-implementation}
 
-The MOQT_IMPLEMENTATION parameter (Parameter Type 0x07) identifies the name and
+The MOQT_IMPLEMENTATION option (Option Type 0x07) identifies the name and
 version of the sender's MOQT implementation.  This SHOULD be a UTF-8 encoded
-string [RFC3629], though the message does not carry information, such as
+string {{!RFC3629}}, though the message does not carry information, such as
 language tags, that would aid comprehension by any entity other than the one
 that created the text.
+
+An endpoint SHOULD send a MOQT_IMPLEMENTATION option unless specifically
+configured not to do so. This option helps identify the scope of interoperability
+problems and work around implementation-specific limitations.
+
+Senders SHOULD limit the value to the implementation name and version, avoiding
+advertising or other nonessential information. Implementations SHOULD NOT use
+the identifiers of other implementations to declare compatibility, as this
+undermines the usefulness of implementation identification for debugging.
 
 
 ## GOAWAY {#message-goaway}
 
-An endpoint sends a `GOAWAY` message to inform the peer it intends to close
-the session soon.  Servers can use GOAWAY to initiate session migration
-({{session-migration}}) with an optional URI.
+An endpoint sends a `GOAWAY` message on its control stream to inform the peer
+it intends to close the session soon.  When sent by a server, it can initiate session migration
+({{session-migration}}) with an optional URI.  When sent by a client, the New
+Session URI MUST be zero length.
 
 The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually UNSUBSCRIBE for each existing subscription, while a
@@ -1891,17 +2528,25 @@ publisher MAY reject new requests after sending a GOAWAY.
 
 Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-SUBSCRIBE_NAMESPACE and TRACK_SATUS.
+SUBSCRIBE_NAMESPACE and TRACK_STATUS.
 
-The endpoint MUST terminate the session with a `PROTOCOL_VIOLATION`
+Sending a GOAWAY does not prevent the sender from initiating new requests,
+though the sender SHOULD avoid initiating requests unless required by migration
+(see ({{graceful-subscriber-switchover}} and {{graceful-publisher-switchover}}).
+An endpoint that receives a GOAWAY MAY reject new requests with an appropriate
+error code (e.g., REQUEST_ERROR with error code GOING_AWAY).
+
+The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
 ({{session-termination}}) if it receives multiple GOAWAY messages.
 
 ~~~
 GOAWAY Message {
-  Type (i) = 0x10,
+  Type (vi64) = 0x10,
   Length (16),
-  New Session URI Length (i),
+  New Session URI Length (vi64),
   New Session URI (..),
+  Timeout (vi64),
+  Request ID (vi64),
 }
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
@@ -1910,92 +2555,180 @@ GOAWAY Message {
   connect to continue this session.  The client MUST use this URI for the new
   session if provided. If the URI is zero bytes long, the current URI is reused
   instead. The new session URI SHOULD use the same scheme
-  as the current URI to ensure compatibility.  The maxmimum length of the New
+  as the current URI to ensure compatibility.  The maximum length of the New
   Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
   maximum, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
   If a server receives a GOAWAY with a non-zero New Session URI Length it MUST
-  terminate the session with a `PROTOCOL_VIOLATION`.
+  close the session with a `PROTOCOL_VIOLATION`.
 
-## MAX_REQUEST_ID {#message-max-request-id}
+* Timeout: The time in milliseconds the sender will wait for the session to be
+  gracefully closed before closing the session with `GOAWAY_TIMEOUT`. A value of
+  0 indicates the sender has no specific timeout, and the recipient SHOULD still
+  close the session as quickly as possible. This is a hint; the sender of the
+  GOAWAY MAY close the session before the indicated timeout has elapsed.
 
-An endpoint sends a MAX_REQUEST_ID message to increase the number of requests
-the peer can send within a session.
+* Request ID: The smallest peer Request ID that was not or might not have been
+  processed prior to sending the GOAWAY. If no requests have been processed,
+  this is 0 (at a server) or 1 (at a client). If the parity of the Request ID
+  does not match the receiver's parity, the endpoint MUST close the session with
+  `INVALID_REQUEST_ID`. Requests with a Request ID equal to or greater than the
+  indicated value, as well as any requests that arrive after the GOAWAY, MUST be
+  rejected with REQUEST_ERROR using error code GOING_AWAY. Requests with a
+  Request ID less than the indicated value were or might have been processed;
+  their status can be determined from the response on each request stream.
 
-The Maximum Request ID MUST only increase within a session, and
-receipt of a MAX_REQUEST_ID message with an equal or smaller Request ID
-value is a `PROTOCOL_VIOLATION`.
+## REQUEST_OK {#message-request-ok}
+
+The REQUEST_OK message is sent to a response to REQUEST_UPDATE, TRACK_STATUS,
+SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests.
 
 ~~~
-MAX_REQUEST_ID Message {
-  Type (i) = 0x15,
+REQUEST_OK Message {
+  Type (vi64) = 0x7,
   Length (16),
-  Max Request ID (i),
+  Number of Parameters (vi64),
+  Parameters (..) ...,
+  Track Properties (..),
 }
 ~~~
-{: #moq-transport-max-request-id format title="MOQT MAX_REQUEST_ID Message"}
+{: #moq-transport-request-ok format title="MOQT REQUEST_OK Message"}
 
-* Max Request ID: The new Maximum Request ID for the session plus 1. If a
-  Request ID equal to or larger than this is received by the endpoint that sent
-  the MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE, FETCH,
-  SUBSCRIBE, SUBSCRIBE_NAMESPACE, SUBSCRIBE_UDPATE or TRACK_STATUS), the
-  endpoint MUST close the session with an error of `TOO_MANY_REQUESTS`.
+* Parameters: The parameters are defined in {{message-params}}.
 
-MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
-similar considerations apply when deciding how often to send MAX_REQUEST_ID.
-For example, implementations might choose to increase MAX_REQUEST_ID as
-subscriptions are closed to keep the number of available subscriptions roughly
-consistent.
+* Track Properties : A sequence of Properties. See {{properties}}. The
+  length of Track Properties is the remaining length of the message
+  after parsing all previous fields. Track Properties are populated in
+  response to TRACK_STATUS messages; they are empty in response to
+  REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE.  If an
+  endpoint receives Track Properties in response to one of these messages
+  it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-## REQUESTS_BLOCKED {#message-requests-blocked}
+## REQUEST_ERROR {#message-request-error}
 
-The REQUESTS_BLOCKED message is sent when an endpoint would like to send a new
-request, but cannot because the Request ID would exceed the Maximum Request ID
-value sent by the peer.  The endpoint SHOULD send only one REQUESTS_BLOCKED for
-a given Maximum Request ID.
-
-An endpoint MAY send a MAX_REQUEST_ID upon receipt of REQUESTS_BLOCKED, but it
-MUST NOT rely on REQUESTS_BLOCKED to trigger sending a MAX_REQUEST_ID, because
-sending REQUESTS_BLOCKED is not required.
+The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
+PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS, REQUEST_UPDATE).
 
 ~~~
-REQUESTS_BLOCKED Message {
-  Type (i) = 0x1A,
+REQUEST_ERROR Message {
+  Type (vi64) = 0x5,
   Length (16),
-  Maximum Request ID (i),
+  Error Code (vi64),
+  Retry Interval (vi64),
+  Error Reason (Reason Phrase),
 }
 ~~~
-{: #moq-transport-requests-blocked format title="MOQT REQUESTS_BLOCKED Message"}
+{: #moq-transport-request-error format title="MOQT REQUEST_ERROR Message"}
 
-* Maximum Request ID: The Maximum Request ID for the session on which the
-  endpoint is blocked. More on Request ID in {{request-id}}.
+* Error Code: Identifies an integer error code for request failure.
+
+* Retry Interval: The minimum time (in milliseconds) before the request SHOULD be
+  sent again, plus one. If the value is 0, the request SHOULD NOT be retried.
+
+* Error Reason: Provides a text description of the request error. See
+ {{reason-phrase}}.
+
+The application SHOULD use a relevant error code in REQUEST_ERROR,
+as defined below and assigned in {{iana-request-error}}. Most codepoints have
+identical meanings for various request types, but some have request-specific
+meanings.
+
+If a request is retryable with the same parameters at a later time, the sender
+of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
+the risk of synchronized retry storms, the sender can apply randomization to
+each retry interval so that retries are spread out over time.  A Retry Interval
+value of 1 indicates the request can be retried immediately.
+
+INTERNAL_ERROR:
+: An implementation specific or generic error occurred.
+
+UNAUTHORIZED:
+: The subscriber is not authorized to perform the requested action on the given
+track.  This might be retryable if the authorization token is not yet valid.
+
+TIMEOUT:
+: The subscription could not be completed before an implementation specific
+  timeout. For example, a relay could not establish an upstream subscription
+  within the timeout.
+
+NOT_SUPPORTED:
+: The endpoint does not support the type of request.
+
+MALFORMED_AUTH_TOKEN:
+: Invalid Auth Token serialization during registration (see
+  {{authorization-token}}).
+
+EXPIRED_AUTH_TOKEN:
+: Authorization token has expired ({{authorization-token}}).
+
+GOING_AWAY:
+: The endpoint has received a GOAWAY and MAY reject new requests.
+
+EXCESSIVE_LOAD:
+: The responder is overloaded and cannot process the request at this time. The
+sender SHOULD use the Retry Interval to indicate when the request can be retried.
+
+UNSUPPORTED_EXTENSION:
+: The track contains a Mandatory Track Property
+(see {{mandatory-track-properties}}) that the endpoint does not understand.
+
+DUPLICATE_SUBSCRIPTION (0x19):
+: The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
+with the same role as an existing subscription.
+
+Below are errors for use by the publisher. They can appear in response to
+SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
+
+DOES_NOT_EXIST:
+: The track or namespace is not available at the publisher.
+
+INVALID_RANGE:
+: In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
+cannot be satisfied.
+
+MALFORMED_TRACK:
+: In response to a FETCH, a relay publisher detected the track was
+malformed (see {{malformed-tracks}}).
+
+The following are errors for use by the subscriber. They can appear in response
+to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
+
+UNINTERESTED:
+: The subscriber is not interested in the track or namespace.
+
+Errors below can only be used in response to one message type.
+
+PREFIX_OVERLAP:
+: In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
+SUBSCRIBE_NAMESPACE in the same session.
+
+NAMESPACE_TOO_LARGE:
+: In response to SUBSCRIBE_NAMESPACE, the namespace prefix matches more
+publishers than the relay is willing to enumerate.
+
+INVALID_JOINING_REQUEST_ID:
+: In response to a Joining FETCH, the referenced Request ID is not an
+`Established` Subscription.
 
 ## SUBSCRIBE {#message-subscribe-req}
 
 A subscription causes the publisher to send newly published objects for a track.
-A subscriber MUST NOT make multiple active subscriptions for a track within a
-single session and publishers SHOULD treat this as a protocol violation.
 
-Subscribe only delivers newly published or received Objects.  Objects from the
+Subscribe only requests newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
 
 The format of SUBSCRIBE is as follows:
 
 ~~~
 SUBSCRIBE Message {
-  Type (i) = 0x3,
+  Type (vi64) = 0x3,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
+  Required Request ID Delta (vi64),
   Track Namespace (..),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
-  Subscriber Priority (8),
-  Group Order (8),
-  Forward (8),
-  Filter Type (i),
-  [Start Location (Location),]
-  [End Group (i),]
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2003,384 +2736,183 @@ SUBSCRIBE Message {
 
 * Request ID: See {{request-id}}.
 
+* Required Request ID Delta: See {{required-request-id}}.
+
 * Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
+  ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Subscriber Priority: Specifies the priority of a subscription relative to
-other subscriptions in the same session. Lower numbers get higher priority.
-See {{priorities}}.
-
-* Group Order: Allows the subscriber to request Objects be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-A value of 0x0 indicates the original publisher's Group Order SHOULD be
-used. Values larger than 0x2 are a protocol error.
-
-* Forward: If 1, Objects matching the subscription are forwarded
-to the subscriber. If 0, Objects are not forwarded to the subscriber.
-Any other value is a protocol error and the subscriber MUST terminate the
-session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-
-Subscribing with Forward=0 allows publisher or relay to prepare to serve the
-subscription in advance, reducing the time to receive objects in the future.
-
-* Filter Type: Identifies the type of filter, which also indicates whether
-the Start and End Group fields will be present.
-
-* Start Location: The starting location for this subscriptions. Only present for
-  "AbsoluteStart" and "AbsoluteRange" filter types.
-
-* End Group: The end Group ID. Only present for the "AbsoluteRange"
-filter type.
-
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
-specified and the publisher SHOULD start delivering objects.
-
-If a publisher cannot satisfy the requested start or end or if the end has
-already been published it SHOULD send a SUBSCRIBE_ERROR with code
-`INVALID_RANGE`.  A publisher MUST NOT send objects from outside the requested
-start and end.
+specified, and start sending objects.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
-A publisher sends a SUBSCRIBE_OK control message for successful
-subscriptions.
+A publisher sends a SUBSCRIBE_OK as the first response message on the
+bidi stream for successful subscriptions.
 
 ~~~
 SUBSCRIBE_OK Message {
-  Type (i) = 0x4,
+  Type (vi64) = 0x4,
   Length (16),
-  Request ID (i),
-  Track Alias (i),
-  Expires (i),
-  Group Order (8),
-  Content Exists (8),
-  [Largest Location (Location),]
-  Number of Parameters (i),
-  Parameters (..) ...
+  Track Alias (vi64),
+  Number of Parameters (vi64),
+  Parameters (..) ...,
+  Track Properties (..),
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
-* Request ID: The Request ID of the SUBSCRIBE this message is replying to
-  {{message-subscribe-req}}.
-
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}). The same Track Alias MUST NOT be used to refer to two
-  different Tracks simultaneously. If a subscriber receives a SUBSCRIBE_OK that
-  uses the same Track Alias as a different track with an active subscription, it
-  MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
+  {{track-alias}}). The same Track Alias MUST NOT be used by a publisher to refer to
+  two different Tracks simultaneously in the same session. If a subscriber receives a
+  SUBSCRIBE_OK that uses the same Track Alias as a different track with an
+  `Established` subscription, it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
-* Expires: Time in milliseconds after which the subscription is no
-longer valid. A value of 0 indicates that the subscription does not expire
-or expires at an unknown time.  Expires is advisory and a subscription can
-end prior to the expiry time or last longer.
+* Parameters: The parameters are defined in {{message-params}}.
 
-* Group Order: Indicates the subscription will be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-Values of 0x0 and those larger than 0x2 are a protocol error.
+* Track Properties : A sequence of Properties. See {{properties}}.
 
-* Content Exists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present. Any other value is a protocol error and MUST terminate the
-session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
+## REQUEST_UPDATE {#message-request-update}
 
-* Largest Location: The location of the largest object available for this track. This
-  field is only present if Content Exists has a value of 1.
+The sender of a request (SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
+SUBSCRIBE_NAMESPACE) can later send a REQUEST_UPDATE on the
+same bidi stream as the request to modify it.  A subscriber can also send
+REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+The receiver of a REQUEST_UPDATE MUST respond with exactly one REQUEST_OK
+or REQUEST_ERROR message indicating if the update was successful.
 
-## SUBSCRIBE_ERROR {#message-subscribe-error}
+If a parameter previously set on the request is not present in
+`REQUEST_UPDATE`, its value remains unchanged.
 
-A publisher sends a SUBSCRIBE_ERROR control message in response to a
-failed SUBSCRIBE.
+There is no mechanism to remove a parameter from a request.
+
+The format of REQUEST_UPDATE is as follows:
 
 ~~~
-SUBSCRIBE_ERROR Message {
-  Type (i) = 0x5,
+REQUEST_UPDATE Message {
+  Type (vi64) = 0x2,
   Length (16),
-  Request ID (i),
-  Error Code (i),
-  Error Reason (Reason Phrase),
-}
-~~~
-{: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
-
-* Request ID: The Request ID of the SUBSCRIBE this message is replying to
-  {{message-subscribe-req}}.
-
-* Error Code: Identifies an integer error code for subscription failure.
-
-* Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
-
-The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
-as defined below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The subscriber is not authorized to subscribe to the given track.
-
-TIMEOUT (0x2):
-: The subscription could not be completed before an implementation specific
-  timeout. For example, a relay could not establish an upstream subscription
-  within the timeout.
-
-NOT_SUPPORTED (0x3):
-: The endpoint does not support the SUBSCRIBE method.
-
-TRACK_DOES_NOT_EXIST (0x4):
-: The requested track is not available at the publisher.
-
-INVALID_RANGE (0x5):
-: The end of the SUBSCRIBE range is earlier than the beginning, or the end of
-  the range has already been published.
-
-MALFORMED_AUTH_TOKEN (0x10):
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN (0x12):
-: Authorization token has expired ({{authorization-token}}).
-
-
-## SUBSCRIBE_UPDATE {#message-subscribe-update}
-
-A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
-subscription. Subscriptions can only be narrowed, not widened, as an attempt to
-widen could fail. If Objects with Locations smaller than the current
-subscription's Start Location are required, FETCH can be used to retrieve
-them. The Start Location MUST NOT decrease and the End Group MUST NOT increase.
-A publisher MUST terminate the session with a `PROTOCOL_VIOLATION` if the
-SUBSCRIBE_UPDATE violates these rules or if the subscriber specifies a request
-ID that has not existed within the Session.
-
-When a subscriber narrows their subscription, it might still receive objects
-outside the new range if the publisher sent them before the update was
-processed.
-
-There is no control message in response to a SUBSCRIBE_UPDATE, because it is
-expected that it will always succeed and the worst outcome is that it is not
-processed promptly and some extra objects from the existing subscription are
-delivered.
-
-Like SUBSCRIBE, End Group MUST be greater than or equal to the Group specified
-in `Start`.
-
-If a parameter included in `SUBSCRIBE` is not present in
-`SUBSCRIBE_UPDATE`, its value remains unchanged.  There is no mechanism to
-remove a parameter from a subscription.
-
-The format of SUBSCRIBE_UPDATE is as follows:
-
-~~~
-SUBSCRIBE_UPDATE Message {
-  Type (i) = 0x2,
-  Length (16),
-  Request ID (i),
-  Subscription Request ID (i),
-  Start Location (Location),
-  End Group (i),
-  Subscriber Priority (8),
-  Forward (8),
-  Number of Parameters (i),
+  Request ID (vi64),
+  Required Request ID Delta (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
-{: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
+{: #moq-transport-request-update-format title="MOQT REQUEST_UPDATE Message"}
 
 * Request ID: See {{request-id}}.
 
-* Subscription Request ID: The Request ID of the SUBSCRIBE
-  ({{message-subscribe-req}}) this message is updating.  This MUST match an
-  existing Request ID.
+* Required Request ID Delta: See {{required-request-id}}.
 
-* Start Location : The starting location.
+* Parameters: The parameters are defined in {{message-params}}.
 
-* End Group: The end Group ID, plus 1. A value of 0 means the subscription is
-open-ended.
+### Updating Subscriptions
 
-* Subscriber Priority: Specifies the priority of a subscription relative to
-other subscriptions in the same session. Lower numbers get higher priority.
-See {{priorities}}.
+When a subscriber decreases the Start Location of the Subscription Filter
+(see {{subscription-filters}}), the Start Location can be smaller than the Track's
+Largest Location, similar to a new Subscription. FETCH can be used to retrieve
+any necessary Objects smaller than the current Largest Location.
 
-* Forward: If 1, Objects matching the subscription are forwarded
-to the subscriber. If 0, Objects are not forwarded to the subscriber.
-Any other value is a protocol error and MUST terminate the
-session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
+When a subscriber increases the End Location, the Largest Object at
+the publisher might already be larger than the previous End Location. This will
+create a gap in the subscription. The REQUEST_OK in response to the
+REQUEST_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
+can issue a FETCH to retrieve the omitted Objects, if any.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+When a subscriber narrows their subscription (increase the Start Location and/or
+decrease the End Group), it might still receive Objects outside the
+new range if the publisher sent them before the update was processed.
 
-## UNSUBSCRIBE {#message-unsubscribe}
-
-A Subscriber issues an `UNSUBSCRIBE` message to a Publisher indicating it is no
-longer interested in receiving the specified Track, indicating that the
-Publisher stop sending Objects as soon as possible.
-
-The format of `UNSUBSCRIBE` is as follows:
-
-~~~
-UNSUBSCRIBE Message {
-  Type (i) = 0xA,
-  Length (16),
-  Request ID (i)
-}
-~~~
-{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
-
-* Request ID: The Request ID of the subscription that is being terminated. See
-  {{message-subscribe-req}}.
+When a REQUEST_UPDATE is unsuccessful, the publisher MUST also terminate
+the subscription by sending a
+PUBLISH_DONE with error code `UPDATE_FAILED`. When a REQUEST_UPDATE fails for
+a FETCH, the publisher MUST reset the FETCH data stream. When a REQUEST_UPDATE
+fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder MUST close
+the bidi stream.
 
 ## PUBLISH {#message-publish}
 
-The publisher sends the PUBLISH control message to initiate a subscription to a
-track. The receiver verifies the publisher is authorized to publish this track.
+The publisher sends PUBLISH as the first message on a new bidirectional stream
+to initiate a subscription for a Track. The receiver verifies the publisher is
+authorized to publish this track.
 
 ~~~
 PUBLISH Message {
-  Type (i) = 0x1D,
+  Type (vi64) = 0x1D,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
+  Required Request ID Delta (vi64),
   Track Namespace (..),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
-  Track Alias (i),
-  Group Order (8),
-  Content Exists (8),
-  [Largest Location (Location),]
-  Forward (8),
-  Number of Parameters (i),
-  Parameters (..) ...
+  Track Alias (vi64),
+  Number of Parameters (vi64),
+  Parameters (..) ...,
+  Track Properties (..),
 }
 ~~~
 {: #moq-transport-publish-format title="MOQT PUBLISH Message"}
 
 * Request ID: See {{request-id}}.
 
+* Required Request ID Delta: See {{required-request-id}}.
+
 * Track Namespace: Identifies a track's namespace as defined in ({{track-name}})
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}). The same Track Alias MUST NOT be used to refer to two
-  different Tracks simultaneously. If a subscriber receives a PUBLISH that
-  uses the same Track Alias as a different track with an active subscription, it
-  MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
+  {{track-alias}}). The same Track Alias MUST NOT be used by a publisher to refer to
+  two different Tracks simultaneously in the same session. If a subscriber receives a
+  PUBLISH that uses the same Track Alias as a different track with an `Established`
+  subscription, it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
-* Group Order: Indicates the subscription will be delivered in
-  Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-  Values of 0x0 and those larger than 0x2 are a protocol error.
+* Parameters: The parameters are defined in {{message-params}}.
 
-* Content Exists: 1 if an object has been published on this track, 0 if not.
-  If 0, then the Largest Group ID and Largest Object ID fields will not be
-  present. Any other value is a protocol error and MUST terminate the
-  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-
-* Largest Location: The location of the largest object available for this track.
-
-* Forward: The forward mode for this subscription.  Any value other than 0 or 1
-  is a `PROTOCOL_VIOLATION`.  0 indicates the publisher will not transmit any
-  objects until the subscriber sets the Forward State to 1. 1 indicates the
-  publisher will start transmitting objects immediately, even before PUBLISH_OK.
-
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Track Properties : A sequence of Properties. See {{properties}}.
 
 A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
-send PUBLISH_ERROR with error code `UNINTERESTED`, and abandon reading any
+send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.
 
+A publisher that sends the FORWARD parameter ({{forward-parameter}}) equal to 0
+indicates that it will not transmit any objects until the subscriber sets the
+Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
+publisher will start transmitting objects immediately, possibly before
+PUBLISH_OK.
+
+
 ## PUBLISH_OK {#message-publish-ok}
 
-The subscriber sends a PUBLISH_OK control message to acknowledge the successful
-authorization and acceptance of a PUBLISH message, and establish a subscription.
+The subscriber sends a PUBLISH_OK as the first response message on the
+bidi stream to acknowledge the successful authorization and acceptance of a
+PUBLISH message, and establish a subscription.
 
 ~~~
 PUBLISH_OK Message {
-  Type (i) = 0x1E,
+  Type (vi64) = 0x1E,
   Length (16),
-  Request ID (i),
-  Forward (8),
-  Subscriber Priority (8),
-  Group Order (8),
-  Filter Type (i),
-  [Start Location (Location),]
-  [End Group (i),]
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...,
 }
 ~~~
 {: #moq-transport-publish-ok format title="MOQT PUBLISH_OK Message"}
 
-* Request ID: The Request ID of the PUBLISH this message is replying to
-  {{message-publish}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
-* Forward: The Forward State for this subscription, either 0 (don't
-  forward) or 1 (forward).
-
-* Subscriber Priority: The Subscriber Priority for this subscription.
-
-* Group Order: Indicates the subscription will be delivered in
-  Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-  Values of 0x0 and those larger than 0x2 are a protocol error. This
-  overwrites the GroupOrder specified in the corresponding PUBLISH message.
-
-* Filter Type, Start Location, End Group: See {{message-subscribe-req}}.
-
-* Parameters: Parameters associated with this message.
-
-## PUBLISH_ERROR {#message-publish-error}
-
-The subscriber sends a PUBLISH_ERROR control message to reject
-a subscription initiated by PUBLISH.
-
-~~~
-PUBLISH_ERROR Message {
-  Type (i) = 0x1F,
-  Length (i),
-  Request ID (i),
-  Error Code (i),
-  Error Reason (Reason Phrase),
-}
-~~~
-{: #moq-transport-publish-error format title="MOQT PUBLISH_ERROR Message"}
-
-* Request ID: The Request ID of the PUBLISH this message is replying to
-  {{message-publish}}.
-
-* Error Code: Identifies an integer error code for failure.
-
-* Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
-
-The application SHOULD use a relevant error code in PUBLISH_ERROR, as defined
-below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The publisher is not authorized to publish the given namespace or track.
-
-TIMEOUT (0x2):
-: The subscription could not be established before an implementation specific
-  timeout.
-
-NOT_SUPPORTED (0x3):
-: The endpoint does not support the PUBLISH method.
-
-UNINTERESTED (0x4):
-: The namespace or track is not of interest to the endpoint.
 
 ## PUBLISH_DONE {#message-publish-done}
 
-A publisher sends a `PUBLISH_DONE` message to indicate it is done publishing
-Objects for that subscription.  The Status Code indicates why the subscription
-ended, and whether it was an error. Because PUBLISH_DONE is sent on the control
+A publisher sends a `PUBLISH_DONE` message as the final message before
+closing the subscription's bidi stream to indicate it is done publishing Objects
+for that subscription.  The Status Code indicates why the subscription
+ended, and whether it was an error. Because PUBLISH_DONE is sent on a control
 stream, it is likely to arrive at the receiver before late-arriving objects, and
 often even late-opening streams. However, the receiver uses it as an indication
 that it should receive any late-opening streams in a relatively short time.
@@ -2403,7 +2935,7 @@ reason.
 
 A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least its
 delivery timeout in case some objects are still inbound due to prioritization or
-packet loss. The subscriber MAY dispense with a timer if it sent UNSUBSCRIBE or
+packet loss. The subscriber MAY dispense with a timer if it unsubscribed or
 is otherwise no longer interested in objects from the track. Once the timer has
 expired, the receiver destroys subscription state once all open streams for the
 subscription have closed. A subscriber MAY discard subscription state earlier,
@@ -2415,27 +2947,24 @@ The format of `PUBLISH_DONE` is as follows:
 
 ~~~
 PUBLISH_DONE Message {
-  Type (i) = 0xB,
+  Type (vi64) = 0xB,
   Length (16),
-  Request ID (i),
-  Status Code (i),
-  Stream Count (i),
+  Status Code (vi64),
+  Stream Count (vi64),
   Error Reason (Reason Phrase)
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT PUBLISH_DONE Message"}
 
-* Request ID: The Request ID of the subscription that is being terminated. See
-  {{message-subscribe-req}}.
-
 * Status Code: An integer status code indicating why the subscription ended.
 
 * Stream Count: An integer indicating the number of data streams the publisher
-opened for this subscription.  This helps the subscriber know if it has received
+opened for this subscription, including streams that contained no Objects (e.g.,
+an empty Subgroup).  This helps the subscriber know if it has received
 all of the data published in this subscription by comparing the number of
 streams received.  The subscriber can immediately remove all subscription state
-once the same number of streams have been processed.  If the track had
-Forwarding Preference = Datagram, the publisher MUST set Stream Count to 0.  If
+once the same number of streams have been processed.  If the publisher did not open any streams
+for this subscription, the publisher MUST set Stream Count to 0.  If
 the publisher is unable to set Stream Count to the exact number of streams
 opened for the subscription, it MUST set Stream Count to 2^62 - 1. Subscribers
 SHOULD use a timeout or other mechanism to remove subscription state in case
@@ -2459,7 +2988,7 @@ TRACK_ENDED (0x2):
 : The track is no longer being published.
 
 SUBSCRIPTION_ENDED (0x3):
-: The publisher reached the end of an associated Subscribe filter.
+: The publisher reached the end of an associated subscription filter.
 
 GOING_AWAY (0x4):
 : The subscriber or publisher issued a GOAWAY message.
@@ -2471,14 +3000,21 @@ TOO_FAR_BEHIND (0x6):
 : The publisher's queue of objects to be sent to the given subscriber exceeds
   its implementation defined limit.
 
-MALFORMED_TRACK (0x7):
-: A relay publisher detected the track was malformed (see
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
+
+UPDATE_FAILED (0x8):
+: REQUEST_UPDATE failed on this subscription (see
+  {{message-request-update}}).
+
+EXCESSIVE_LOAD (0x9):
+: The publisher is overloaded and is terminating the subscription.
 
 ## FETCH {#message-fetch}
 
-A subscriber issues a FETCH to a publisher to request a range of already
-published objects within a track.
+A subscriber sends FETCH as the first message on a new bidi stream to a
+publisher to request a range of already published objects within a track.
 
 There are three types of Fetch messages.
 
@@ -2499,7 +3035,7 @@ A Standalone Fetch includes this structure:
 ~~~
 Standalone Fetch {
   Track Namespace (..),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
   Start Location (Location),
   End Location (Location)
@@ -2519,56 +3055,61 @@ Standalone Fetch {
 ### Joining Fetches
 
 A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of an active subscription.
+specifying the Request ID of a subscription in the `Established` or
+`Pending (subscriber)` state. Because Joining Fetch references an existing
+subscription, if that subscription has not yet been established, the Publisher
+receiving the Joining Fetch buffers the pending Joining Fetch until either
+the Subscription is established or the request times out.
+
 A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track Name
+subscription to determine the Track Namespace, Track Name
 and End Location such that it is contiguous with the associated
-Subscribe.  The subscriber can set the Start Location to an absolute Location or
-a Location relative to the current group.
+subscription.  The subscriber can set the Start Location to an absolute
+Location or a Location relative to the Largest group.
 
-A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
-certain number of groups prior to the live edge of a track.
+A Subscriber can use a Joining Fetch to, for example, fill a playback buffer
+with a certain number of groups prior to the live edge of a track.
 
-A Joining Fetch is only permitted when the associated Subscribe has the Filter
-Type Largest Object; any other value results in closing the session with a
+A Joining Fetch is only permitted when the associated subscription has
+Forward State 1; otherwise the publisher MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
-If no Objects have been published for the track, and the SUBSCRIBE_OK has a
-Content Exists value of 0, the publisher MUST respond with a FETCH_ERROR with
-error code `INVALID_RANGE`.
+If no Objects have been published for the track the publisher MUST
+respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
 
 A Joining Fetch includes this structure:
 
 ~~~
 Joining Fetch {
-  Joining Request ID (i),
-  Joining Start (i)
+  Joining Request ID (vi64),
+  Joining Start (vi64)
 }
 ~~~
 
-* Joining Request ID: The Request ID of the existing subscription to be
-  joined. If a publisher receives a Joining Fetch with a Request ID that does
-  not correspond to an existing Subscribe in the same session, it MUST return
-  a FETCH_ERROR with error code `INVALID_JOINING_REQUEST_ID`
+* Joining Request ID: The Request ID of the subscription to be joined. If a
+  publisher receives a Joining Fetch with a Request ID that does not correspond
+  to a subscription in the same session in the `Established` or `Pending
+  (subscriber)` states, it MUST return a REQUEST_ERROR with error code
+  `INVALID_JOINING_REQUEST_ID`.
 
-* Joining Start : A relative or absolute value used to determing the Start
+* Joining Start : A relative or absolute value used to determine the Start
   Location, described below.
 
 #### Joining Fetch Range Calculation
 
-The Largest Location value from the corresponding
-subscription is used to calculate the end of a Joining Fetch so the
+The Joining Location value from the corresponding
+subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
-The publisher receiving a Joining Fetch sets the End Location to {Subscribe
-Largest Location.Object + 1}.
+The publisher receiving a Joining Fetch sets the End Location to
+{Joining Location.Group, Joining Location.Object + 1} (see {{subscriptions}}.
 
-Note: the last Object included in the Joining FETCH response is Subscribe
-Largest Location.  The `+ 1` above indicates the equivalent Standalone Fetch
-encoding.
+Note: the last Object included in the Joining FETCH response is the Object
+at the Joining Location.  The `+ 1` above indicates the equivalent Standalone
+Fetch encoding.
 
 For a Relative Joining Fetch, the publisher sets the Start Location to
-{Subscribe Largest Location.Group - Joining Start, 0}.
+{Joining Location.Group - Joining Start, 0}.
 
 For an Absolute Joining Fetch, the publisher sets the Start Location to
 {Joining Start, 0}.
@@ -2580,15 +3121,14 @@ The format of FETCH is as follows:
 
 ~~~
 FETCH Message {
-  Type (i) = 0x16,
+  Type (vi64) = 0x16,
   Length (16),
-  Request ID (i),
-  Subscriber Priority (8),
-  Group Order (8),
-  Fetch Type (i),
+  Request ID (vi64),
+  Required Request ID Delta (vi64),
+  Fetch Type (vi64),
   [Standalone (Standalone Fetch),]
   [Joining (Joining Fetch),]
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2596,14 +3136,7 @@ FETCH Message {
 
 * Request ID: See {{request-id}}.
 
-* Subscriber Priority: Specifies the priority of a fetch request relative to
-  other subscriptions or fetches in the same session. Lower numbers get higher
-  priority. See {{priorities}}.
-
-* Group Order: Allows the subscriber to request Objects be delivered in
-  Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.  A
-  value of 0x0 indicates the original publisher's Group Order SHOULD be
-  used. Values larger than 0x2 are a protocol error.
+* Required Request ID Delta: See {{required-request-id}}.
 
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
@@ -2612,30 +3145,30 @@ FETCH Message {
 
 * Joining: Joining Fetch structure included when Fetch Type is 0x2 or 0x3.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
-A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
+A publisher responds to a FETCH request with either a FETCH_OK or a REQUEST_ERROR
 message.  The publisher creates a new unidirectional stream that is used to send the
-Objects.  The FETCH_OK or FETCH_ERROR can come at any time relative to object
+Objects.  The FETCH_OK or REQUEST_ERROR can come at any time relative to object
 delivery.
 
 The publisher responding to a FETCH is
 responsible for delivering all available Objects in the requested range in the
-requested order. The Objects in the response are delivered on a single
+requested order (see {{group-order}}). The Objects in the response are delivered on a single
 unidirectional stream. Any gaps in the Group and Object IDs in the response
-stream indicate objects that do not exist (eg: they implicitly have status
-`Object Does Not Exist`).  For Ascending Group Order this includes ranges
-between the first requested object and the first object in the stream; between
-objects in the stream; and between the last object in the stream and the Largest
-Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
-a FIN.  If no Objects exist in the requested range, the publisher returns
-FETCH_ERROR with code `NO_OBJECTS`.
+stream indicate objects that do not exist.  For Ascending Group Order this
+includes ranges between the first requested object and the first object in the
+stream; between objects in the stream; and between the last object in the
+stream and the Largest Group/Object indicated in FETCH_OK, so long as the fetch
+stream is terminated by a FIN.  If no Objects exist in the requested range, the
+publisher opens the unidirectional stream, sends the FETCH_HEADER (see
+{{fetch-header}}) and closes the stream with a FIN.
 
 A relay that has cached objects from the beginning of the range MAY start
 sending objects immediately in response to a FETCH.  If it encounters an object
 in the requested range that is not cached and has unknown status, the relay MUST
 pause subsequent delivery until it has confirmed the object's status upstream.
-If the upstream FETCH fails, the relay sends a FETCH_ERROR and can reset the
+If the upstream FETCH fails, the relay sends a REQUEST_ERROR and can reset the
 unidirectional stream.  It can choose to do so immediately or wait until the
 cached objects have been delivered before resetting the stream.
 
@@ -2645,217 +3178,103 @@ Fetch specifies an inclusive range of Objects starting at Start Location and
 ending at End Location. End Location MUST specify the same or a larger Location
 than Start Location for Standalone and Absolute Joining Fetches.
 
-Objects that are not yet published will not be retrieved by a FETCH.  The
-Largest available Object in the requested range is indicated in the FETCH_OK,
-and is the last Object a fetch will return if the End Location have not yet been
-published.
+Objects larger than the Largest Object will not be retrieved by a FETCH.  If the
+requested End Location exceeds the Largest available Object, the actual end of
+the FETCH response is indicated in the FETCH_OK End Location.
 
-If Start Location is greater than the `Largest Object`
-({{message-subscribe-req}}) the publisher MUST return FETCH_ERROR with error
-code `INVALID_RANGE`.
+If no Objects have been published for the track or Start Location is greater
+than the `Largest Object` ({{message-subscribe-req}}) the publisher MUST return
+REQUEST_ERROR with error code `INVALID_RANGE`.
 
-A publisher MUST send fetched groups in the determined group order, either
-ascending or descending. Within each group, objects are sent in ascending Object
-ID order; subgroup ID is not used for ordering.
+A publisher MUST send fetched groups in the requested group order, either
+ascending or descending. Within each group, objects are sent in Object ID order;
+subgroup ID is not used for ordering.
 
-If an Original Publisher receives a FETCH with a range that includes an object with
-unknown status, it MUST return FETCH_ERROR with code UNKNOWN_STATUS_IN_RANGE.
-
+If a Publisher receives a FETCH with a range that includes one or more Objects with
+unknown status (e.g. a Relay has temporarily lost contact with the Original
+Publisher and does not have the Object in cache), it can choose to reset the
+FETCH data stream with UNKNOWN_OBJECT_STATUS, or indicate the range of unknown
+Objects and continue serving other known Objects.
 
 ## FETCH_OK {#message-fetch-ok}
 
-A publisher sends a FETCH_OK control message in response to successful fetches.
-A publisher MAY send Objects in response to a FETCH before the FETCH_OK message is sent,
-but the FETCH_OK MUST NOT be sent until the End Location is known.
+A publisher sends a FETCH_OK as the first message on the bidi stream in response
+to a successful fetch. A publisher MAY send Objects in response to a FETCH before
+the FETCH_OK message is sent, but the FETCH_OK MUST NOT be sent until the
+End Location is known.
 
 ~~~
 FETCH_OK Message {
-  Type (i) = 0x18,
+  Type (vi64) = 0x18,
   Length (16),
-  Request ID (i),
-  Group Order (8),
   End Of Track (8),
   End Location (Location),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
+  Track Properties (..),
 }
 ~~~
 {: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
 
-* Request ID: The Request ID of the FETCH this message is replying to
-  {{message-subscribe-req}}.
-
-* Group Order: Indicates the fetch will be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-Values of 0x0 and those larger than 0x2 are a protocol error.
-
 * End Of Track: 1 if all Objects have been published on this Track, and
   the End Location is the final Object in the Track, 0 if not.
 
-* End Location: The largest object covered by the FETCH response.
-  The End Location is determined as follows:
+* End Location: The end of the range covered by the FETCH response,
+  using the same encoding as the FETCH request End Location (the last
+  Object, plus 1; or 0 to indicate the entire Group).
+  This is the End Location from the FETCH request unless
+  the requested range extends beyond published data:
    - If the requested FETCH End Location was beyond the Largest known (possibly
      final) Object, End Location is {Largest.Group, Largest.Object + 1}
-   - If End Location.Object in the FETCH request was 0 and the response covers
-     the last Object in the Group, End Location is {Fetch.End Location.Group, 0}
-   - Otherwise, End Location is Fetch.End Location
   Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
   End Location described in {{joining-fetch-range-calculation}}.
-
-  If the relay is subscribed to the track, it uses its knowledge of the largest
-  {Group, Object} to set End Location.  If it is not subscribed and the
-  requested End Location exceeds its cached data, the relay makes an upstream
-  request to complete the FETCH, and uses the upstream response to set End
-  Location.
 
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
-## FETCH_ERROR {#message-fetch-error}
+* Track Properties : A sequence of Properties. See {{properties}}.
 
-A publisher sends a FETCH_ERROR control message in response to a
-failed FETCH.
-
-~~~
-FETCH_ERROR Message {
-  Type (i) = 0x19,
-  Length (16),
-  Request ID (i),
-  Error Code (i),
-  Error Reason (Reason Phrase)
-}
-~~~
-{: #moq-transport-fetch-error format title="MOQT FETCH_ERROR Message"}
-
-* Request ID: The Request ID of the FETCH this message is replying to
-  {{message-subscribe-req}}.
-
-* Error Code: Identifies an integer error code for fetch failure.
-
-* Error Reason: Provides the reason for fetch error. See {{reason-phrase}}.
-
-The application SHOULD use a relevant error code in FETCH_ERROR,
-as defined below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The subscriber is not authorized to fetch from the given track.
-
-TIMEOUT (0x2):
-: The fetch could not be completed before an implementation specific timeout.
-  For example, a relay could not FETCH missing objects within the timeout.
-
-NOT_SUPPORTED (0x3):
-: The endpoint does not support the FETCH method.
-
-TRACK_DOES_NOT_EXIST (0x4):
-: The requested track is not available at the publisher.
-
-INVALID_RANGE (0x5):
-: The end of the requested range is earlier than the beginning, the start of
-  the requested range is beyond the Largest Location, or the track has not
-  published any Objects yet.
-
-NO_OBJECTS (0x6):
-: No Objects exist between the requested Start and End Locations.
-
-INVALID_JOINING_REQUEST_ID (0x7):
-: The joining Fetch referenced a Request ID that did not belong to an active
-  Subscription.
-
-UNKNOWN_STATUS_IN_RANGE (0x8):
-: The requested range contains objects with unknown status.
-
-MALFORMED_TRACK (0x9):
-: A relay publisher detected the track was malformed (see
-  {{malformed-tracks}}).
-
-MALFORMED_AUTH_TOKEN (0x10):
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN (0x12):
-: Authorization token has expired ({{authorization-token}}).
-
-
-## FETCH_CANCEL {#message-fetch-cancel}
-
-A subscriber sends a FETCH_CANCEL message to a publisher to indicate it is no
-longer interested in receiving objects for the fetch identified by the 'Request
-ID'. The publisher SHOULD promptly close the unidirectional stream, even if it
-is in the middle of delivering an object.
-
-The format of `FETCH_CANCEL` is as follows:
-
-~~~
-FETCH_CANCEL Message {
-  Type (i) = 0x17,
-  Length (16),
-  Request ID (i)
-}
-~~~
-{: #moq-transport-fetch-cancel title="MOQT FETCH_CANCEL Message"}
-
-* Request ID: The Request ID of the FETCH ({{message-fetch}}) this message is
-  cancelling.
 
 ## TRACK_STATUS {#message-track-status}
 
-A potential subscriber sends a `TRACK_STATUS` message on the control
-stream to obtain information about the current status of a given track.
+A potential subscriber sends `TRACK_STATUS` as the first and only message on a
+new bidi stream to obtain information about the current status of a given track.
 
 The TRACK_STATUS message format is identical to the SUBSCRIBE message
-({{message-subscribe-req}}).
+({{message-subscribe-req}}), but subscriber parameters related to Track
+delivery (e.g. SUBSCRIBER_PRIORITY) are not included.
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
-state or send any Objects.  Relays without an active subscription MAY forward
-TRACK_STATUS to one or more publishers, or MAY initiate a subscription (subject
-to authorization) as described in {{publisher-interactions}} to determine the
-response. The publisher does not send PUBLISH_DONE for this request, and the
-subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
+state or send any Objects.  If successful, the publisher responds with a
+REQUEST_OK message with the same parameters and Track Properties it would have
+set in a SUBSCRIBE_OK. Track Alias is not used.  A publisher responds to a
+failed TRACK_STATUS with an
+appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
+REQUEST_OK or REQUEST_ERROR are sent.
 
-## TRACK_STATUS_OK {#message-track-status-ok}
-
-The publisher sends a TRACK_STATUS_OK control message in response
-to a successful TRACK_STATUS message.
-
-The TRACK_STATUS_OK message format is identical to the SUBSCRIBE_OK message
-({{message-subscribe-ok}}).
-
-The publisher populates the fields of TRACK_STATUS_OK exactly as it would have
-populated a SUBSCRIBE_OK, setting Track Alias to 0. It is not considered an error
-if Track Alias 0 is already in use by an active subscription.
-
-
-## TRACK_STATUS_ERROR {#message-track-status-error}
-
-The publisher sends a TRACK_STATUS_ERROR control message in response
-to a failed TRACK_STATUS message.
-
-The TRACK_STATUS_ERROR message format is identical to the SUBSCRIBE_ERROR
-message ({{message-subscribe-error}}).
-
-The publisher populates the fields of TRACK_STATUS_ERROR exactly as it would
-have populated a SUBSCRIBE_ERROR.
+Relays without an `Established` subscription MAY forward TRACK_STATUS to one or more
+publishers, or MAY initiate a subscription (subject to authorization) as
+described in {{publisher-interactions}} to determine the response. The publisher
+does not send PUBLISH_DONE for this request, and the subscriber cannot send
+REQUEST_UPDATE.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
-
-The publisher sends the PUBLISH_NAMESPACE control message to advertise that it
-has tracks available within a Track Namespace. The receiver verifies the
-publisher is authorized to publish tracks under this namespace.
+The publisher sends the PUBLISH_NAMESPACE message as the first message on a
+new bidi stream to advertise that it has tracks available within a Track Namespace.
+The receiver verifies the publisher is authorized to publish tracks under this
+namespace.
 
 ~~~
 PUBLISH_NAMESPACE Message {
-  Type (i) = 0x6,
+  Type (vi64) = 0x6,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
+  Required Request ID Delta (vi64),
   Track Namespace (..),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2863,137 +3282,71 @@ PUBLISH_NAMESPACE Message {
 
 * Request ID: See {{request-id}}.
 
+* Required Request ID Delta: See {{required-request-id}}.
+
 * Track Namespace: Identifies a track's namespace as defined in
   {{track-name}}.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{message-params}}.
 
-## PUBLISH_NAMESPACE_OK {#message-pub-ns-ok}
+## NAMESPACE {#message-namespace}
 
-The subscriber sends a PUBLISH_NAMESPACE_OK control message to acknowledge the
-successful authorization and acceptance of a PUBLISH_NAMESPACE message.
-
-~~~
-PUBLISH_NAMESPACE_OK Message {
-  Type (i) = 0x7,
-  Length (16),
-  Request ID (i)
-}
-~~~
-{: #moq-transport-pub-ns-ok format title="MOQT PUBLISH_NAMESPACE_OK Message"}
-
-* Request ID: The Request ID of the PUBLISH_NAMESPACE ({{message-pub-ns}}) this
-  message is replying to.
-
-## PUBLISH_NAMESPACE_ERROR {#message-pub-ns-error}
-
-The subscriber sends a PUBLISH_NAMESPACE_ERROR control message for tracks that
-failed authorization.
+The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
+it is sent on the response stream of a SUBSCRIBE_NAMESPACE request.
+All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
+the namespace tuples after the 'Track Namespace Prefix' are included
+in the 'Track Namespace Suffix'.
 
 ~~~
-PUBLISH_NAMESPACE_ERROR Message {
+NAMESPACE Message {
   Type (i) = 0x8,
   Length (16),
-  Request ID (i),
-  Error Code (i),
-  Error Reason (Reason Phrase)
+  Track Namespace Suffix (..),
 }
 ~~~
-{: #moq-transport-pub-ns-error format title="MOQT PUBLISH_NAMESPACE_ERROR Message"}
+{: #moq-transport-ns-format title="MOQT NAMESPACE Message"}
 
-* Request ID: The Request ID of the PUBLISH_NAMESPACE ({{message-pub-ns}}) this
-  message is replying to.
+* Track Namespace Suffix: Specifies the final portion of a track's
+  namespace as defined in {{track-name}} after removing namespace tuples included in
+  'Track Namespace Prefix' {message-subscribe-ns}.
 
-* Error Code: Identifies an integer error code for publish namespace failure.
+## NAMESPACE_DONE {#message-namespace-done}
 
-* Error Reason: Provides the reason for publish namespace error. See
-  {{reason-phrase}}.
-
-The application SHOULD use a relevant error code in PUBLISH_NAMESPACE_ERROR, as
-defined below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The subscriber is not authorized to announce the given namespace.
-
-TIMEOUT (0x2):
-: The announce could not be completed before an implementation specific
-  timeout.
-
-NOT_SUPPORTED (0x3):
-: The endpoint does not support the PUBLISH_NAMESPACE method.
-
-UNINTERESTED (0x4):
-: The namespace is not of interest to the endpoint.
-
-MALFORMED_AUTH_TOKEN (0x10):
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN (0x12):
-: Authorization token has expired ({{authorization-token}}).
-
-
-## PUBLISH_NAMESPACE_DONE {#message-pub-ns-done}
-
-The publisher sends the `PUBLISH_NAMESPACE_DONE` control message to indicate its
+The publisher sends the `NAMESPACE_DONE` control message to indicate its
 intent to stop serving new subscriptions for tracks within the provided Track
-Namespace.
+Namespace. All NAMESPACE_DONE messages are in response to a SUBSCRIBE_NAMESPACE,
+so only the namespace tuples after the 'Track Namespace Prefix' are included
+in the 'Track Namespace Suffix'.
 
 ~~~
-PUBLISH_NAMESPACE_DONE Message {
-  Type (i) = 0x9,
+NAMESPACE_DONE Message {
+  Type (i) = 0xE,
   Length (16),
-  Track Namespace (..)
+  Track Namespace Suffix (..)
 }
 ~~~
-{: #moq-transport-pub-ns-done-format title="MOQT PUBLISH_NAMESPACE_DONE Message"}
+{: #moq-transport-ns-done-format title="MOQT NAMESPACE_DONE Message"}
 
-* Track Namespace: Identifies a track's namespace as defined in
-  {{track-name}}.
-
-## PUBLISH_NAMESPACE_CANCEL {#message-pub-ns-cancel}
-
-The subscriber sends an `PUBLISH_NAMESPACE_CANCEL` control message to
-indicate it will stop sending new subscriptions for tracks
-within the provided Track Namespace.
-
-~~~
-PUBLISH_NAMESPACE_CANCEL Message {
-  Type (i) = 0xC,
-  Length (16),
-  Track Namespace (..),
-  Error Code (i),
-  Error Reason (Reason Phrase)
-}
-~~~
-{: #moq-transport-pub-ns-cancel-format title="MOQT PUBLISH_NAMESPACE_CANCEL Message"}
-
-* Track Namespace: Identifies a track's namespace as defined in
-  {{track-name}}.
-
-* Error Code: Identifies an integer error code for canceling the publish.
-  PUBLISH_NAMESPACE_CANCEL uses the same error codes as PUBLISH_NAMESPACE_ERROR
-  ({{message-pub-ns-error}}).
-
-* Error Reason: Provides the reason for publish cancelation. See
-  {{reason-phrase}}.
+* Track Namespace Suffix: Specifies the final portion of a track's
+  namespace as defined in {{track-name}}. The namespace begins with the
+  'Track Namespace Prefix' specified in {message-subscribe-ns}.
 
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
-The subscriber sends the SUBSCRIBE_NAMESPACE control message to a publisher to
-request the current set of matching published namespaces and established
-subscriptions, as well as future updates to the set.
+The subscriber sends a SUBSCRIBE_NAMESPACE control message on a new
+bidirectional stream to a publisher to request the current set of matching
+published namespaces and/or `Established` subscriptions, as well as future
+updates to the set.
 
 ~~~
 SUBSCRIBE_NAMESPACE Message {
-  Type (i) = 0x11,
+  Type (vi64) = 0x11,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
+  Required Request ID Delta (vi64),
   Track Namespace Prefix (..),
-  Number of Parameters (i),
+  Subscribe Options (vi64),
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -3001,133 +3354,92 @@ SUBSCRIBE_NAMESPACE Message {
 
 * Request ID: See {{request-id}}.
 
+* Required Request ID Delta: See {{required-request-id}}.
+
 * Track Namespace Prefix: A Track Namespace structure as described in
-  {{track-name}} with between 1 and 32 Track Namespace Fields.  This prefix is
+  {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
   matched against track namespaces known to the publisher.  For example, if the
   publisher is a relay that has received PUBLISH_NAMESPACE messages for
   namespaces ("example.com", "meeting=123", "participant=100") and
   ("example.com", "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for
   ("example.com", "meeting=123") would match both.  If an endpoint receives a
-  Track Namespace Prefix consisting of 0 or greater than than 32 Track Namespace
+  Track Namespace Prefix consisting of greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+* Subscribe Options: Allows subscribers to request PUBLISH (0x00),
+  NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.
 
-The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
-SUBSCRIBE_NAMESPACE_ERROR.  If the SUBSCRIBE_NAMESPACE is successful, the
-publisher will immediately forward existing PUBLISH_NAMESPACE and PUBLISH
-messages that match the Track Namespace Prefix that have not already been sent
-to this subscriber.  If the set of matching PUBLISH_NAMESPACE messages changes,
-the publisher sends the corresponding PUBLISH_NAMESPACE or
-PUBLISH_NAMESPACE_DONE message.
+* Parameters: The parameters are defined in {{message-params}}.
+
+The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
+of the stream. If the subscriber receives any message other than a REQUEST_OK or a
+REQUEST_ERROR as the first message on the response half of the stream, then it MUST
+close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
+successful, the publisher will send matching NAMESPACE messages on the response
+stream if they are requested. If it is an error, the stream will be immediately
+closed via FIN. Also, any matching PUBLISH messages without an `Established`
+Subscription will be established on new bidirectional streams. When there are
+changes to the namespaces or subscriptions being published and the subscriber
+is subscribed to them, the publisher sends the corresponding NAMESPACE,
+NAMESPACE_DONE, or PUBLISH messages.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
-session.  Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
-Track Namespace Prefix that is a prefix of, suffix of, or equal to an active
-SUBSCRIBE_NAMESPACE, it MUST respond with SUBSCRIBE_NAMESPACE_ERROR, with error
-code `NAMESPACE_PREFIX_OVERLAP`.
+session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
+Track Namespace Prefix that shares a common prefix with an established namespace
+subscription, it MUST respond with REQUEST_ERROR with error code
+`PREFIX_OVERLAP`.
 
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
 
-SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE,
-PUBLISH_NAMESPACE_DONE or PUBLISH messages to a subscriber.  It is useful in
-applications or relays where subscribers are only interested in or authorized to
-access a subset of available namespaces and tracks.
+SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE
+or PUBLISH messages to a subscriber.  It is useful in applications or relays
+where subscribers are only interested in or authorized to access a subset of
+available namespaces and tracks.
 
-## SUBSCRIBE_NAMESPACE_OK {#message-sub-ns-ok}
+If the FORWARD parameter ({{forward-parameter}}) is present in this message and
+equal to 0, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set
+the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
+from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
+set the FORWARD parameter to 1, or indicate that value by omitting the parameter
+(see {{subscriptions}}).
 
-A publisher sends a SUBSCRIBE_NAMESPACE_OK control message for successful
-namespace subscriptions.
+The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
+corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
+corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
+
+If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
+timely manner because the SUBSCRIBE_NAMESPACE response stream is blocked by flow
+control, the publisher MAY reset the SUBSCRIBE_NAMESPACE response stream.  When
+a subscriber receives a stream reset or FIN on a SUBSCRIBE_NAMESPACE response
+stream, it SHOULD treat this as though each active namespace received a
+NAMESPACE_DONE. Subscriptions established via PUBLISH on separate bidi streams
+are not affected by closure of the SUBSCRIBE_NAMESPACE stream.
+
+## PUBLISH_BLOCKED {#message-publish-blocked}
+
+The publisher sends the `PUBLISH_BLOCKED` control message to indicate it cannot
+send a PUBLISH message to initiate a new Subscription for a Track in the
+SUBSCRIBE_NAMESPACE's Track Namespace. All PUBLISH_BLOCKED messages are in
+response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after the
+'Track Namespace Prefix' are included in the 'Track Namespace Suffix'.
 
 ~~~
-SUBSCRIBE_NAMESPACE_OK Message {
-  Type (i) = 0x12,
+PUBLISH_BLOCKED Message {
+  Type (vi64) = 0xF,
   Length (16),
-  Request ID (i),
+  Track Namespace Suffix (..),
+  Track Name Length (vi64),
+  Track Name (..),
 }
 ~~~
-{: #moq-transport-sub-ann-ok format title="MOQT SUBSCRIBE_NAMESPACE_OK
-Message"}
+{: #moq-transport-publish-blocked-format title="MOQT PUBLISH_BLOCKED Message"}
 
-* Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
-  ({{message-subscribe-ns}}) this message is replying to.
+* Track Namespace Suffix: Specifies the final portion of a track's
+  namespace as defined in {{track-name}}. The namespace begins with the
+  'Track Namespace Prefix' specified in {message-subscribe-ns}.
 
-## SUBSCRIBE_NAMESPACE_ERROR {#message-sub-ns-error}
-
-A publisher sends a SUBSCRIBE_NAMESPACE_ERROR control message in response to
-a failed SUBSCRIBE_NAMESPACE.
-
-~~~
-SUBSCRIBE_NAMESPACE_ERROR Message {
-  Type (i) = 0x13,
-  Length (16),
-  Request ID (i),
-  Error Code (i),
-  Error Reason (Reason Phrase)
-}
-~~~
-{: #moq-transport-sub-ann-error format
-title="MOQT SUBSCRIBE_NAMESPACE_ERROR Message"}
-
-* Request ID: The Request ID of the SUBSCRIBE_NAMESPACE
-  ({{message-subscribe-ns}}) this message is replying to.
-
-* Error Code: Identifies an integer error code for the namespace subscription
-failure.
-
-* Error Reason: Provides the reason for the namespace subscription error.
-  See {{reason-phrase}}.
-
-The application SHOULD use a relevant error code in SUBSCRIBE_NAMESPACE_ERROR,
-as defined below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The subscriber is not authorized to subscribe to the given namespace prefix.
-
-TIMEOUT (0x2):
-: The operation could not be completed before an implementation specific
-  timeout.
-
-NOT_SUPPORTED (0x3):
-: The endpoint does not support the SUBSCRIBE_NAMESPACE method.
-
-NAMESPACE_PREFIX_UNKNOWN (0x4):
-: The namespace prefix is not available for subscription.
-
-NAMESPACE_PREFIX_OVERLAP (0x5):
-: The namespace prefix overlaps with another SUBSCRIBE_NAMESPACE in the same
-  session.
-
-MALFORMED_AUTH_TOKEN (0x10):
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN (0x12):
-: Authorization token has expired ({{authorization-token}}).
-
-
-## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
-
-A subscriber issues a `UNSUBSCRIBE_NAMESPACE` message to a publisher indicating
-it is no longer interested in PUBLISH_NAMESPACE, PUBLISH_NAMESPACE_DONE and
-PUBLISH messages for the specified track namespace prefix.
-
-The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
-
-~~~
-UNSUBSCRIBE_NAMESPACE Message {
-  Type (i) = 0x14,
-  Length (16),
-  Track Namespace Prefix (..)
-}
-~~~
-{: #moq-transport-unsub-ann-format title="MOQT UNSUBSCRIBE_NAMESPACE Message"}
-
-* Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 
 # Data Streams and Datagrams {#data-streams}
@@ -3135,32 +3447,16 @@ UNSUBSCRIBE_NAMESPACE Message {
 A publisher sends Objects matching a subscription on Data Streams or Datagrams
 and sends Objects matching a FETCH request on one Data Stream.
 
-All unidirectional MOQT streams start with a variable-length integer indicating
-the type of the stream in question.
-
-|-------------|-------------------------------------------------|
-| ID          | Type                                            |
-|------------:|:------------------------------------------------|
-| 0x10-0x1D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
-|-------------|-------------------------------------------------|
-| 0x05        | FETCH_HEADER  ({{fetch-header}})                |
-|-------------|-------------------------------------------------|
+Unidirectional stream types are defined in {{stream-types}}. Data streams
+use SUBGROUP_HEADER or FETCH_HEADER types.
 
 All MOQT datagrams start with a variable-length integer indicating the type of
-the datagram.
+the datagram.  See {{object-datagram}}.
 
-|---------------------------|-------------------------------------------|
-| ID                        | Type                                      |
-|--------------------------:|:------------------------------------------|
-| 0x00-0x07,0x20-21,0x24-25 | OBJECT_DATAGRAM ({{object-datagram}})     |
-|---------------------------|-------------------------------------------|
+An endpoint that receives an unknown datagram type MUST close the session.
 
-An endpoint that receives an unknown stream or datagram type MUST close the
-session.
-
-Every Track has a single 'Object Forwarding Preference' and the Original
-Publisher MUST NOT mix different forwarding preferences within a single track
-(see {{malformed-tracks}}).
+Every Object has a 'Object Forwarding Preference' and the Original Publisher
+MAY use both Subgroups and Datagrams within a Group or Track.
 
 ## Track Alias
 
@@ -3180,9 +3476,9 @@ An Object contains a range of contiguous bytes from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it.  Objects are sent by publishers.
 
-### Canonical Object Properties {#object-properties}
+### Object Header {#object-header}
 
-A canonical MoQ Object has the following information:
+A canonical MoQ Object has the following fields:
 
 * Track Namespace and Track Name: The track this object belongs to.
 
@@ -3195,101 +3491,72 @@ A canonical MoQ Object has the following information:
 the Object ({{priorities}}).
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Subgroup and Datagram.  Note that the Original
-Publisher determines the Forwarding Preference for the entire Track, and is a
-Track property that is implicitly signaled by the delivery of any Object using
-either Subgroups or Datagrams. Once the property is established for one Object
-of a Track, the same value MUST be used for all Objects of the Track.
-In a subscription, an Object MUST be sent according to its `Object Forwarding
-Preference`.
+an object. The preferences are Subgroup and Datagram.  `Object Forwarding
+Preference` is a property of an individual Object and can vary among
+Objects in the same Track.  In a subscription, an Object MUST be sent
+according to its `Object Forwarding Preference`.
 
 * Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}})
   within the Group. This field is omitted if the `Object Forwarding Preference`
   is Datagram.
 
-* Object Status: An enumeration used to indicate missing
-objects or mark the end of a group or track. See {{object-status}} below.
+* Object Status: An enumeration used to indicate whether the Object is a normal Object
+  or mark the end of a group or track. See {{object-status}} below.
 
-* Object Extension Length: The total length of the Object Extension Headers
-  block, in bytes.
-
-* Object Extensions : A sequence of Object Extension Headers. See
-  {{object-extensions}} below.
+* Object Properties : A sequence of Properties associated with the object.
+  See {{object-properties}}.
 
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
 NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
 
 #### Object Status {#object-status}
 
-The Object Status informs subscribers what objects will not be received
-because they were never produced, are no longer available, or because they
-are beyond the end of a group or track.
+The Object Status is a field that is only present in objects that are delivered
+via a SUBSCRIPTION, and is absent in Objects delivered via a FETCH.  It allows
+the publisher to explicitly communicate that a specific range of objects does
+not exist.
 
 `Status` can have following values:
 
 * 0x0 := Normal object. This status is implicit for any non-zero length object.
          Zero-length objects explicitly encode the Normal status.
 
-* 0x1 := Indicates Object Does Not Exist. Indicates that this Object does not
-         exist at any publisher and it will not be published in the future. This
-         SHOULD be cached.
+* 0x3 := Indicates End of Group. Indicates that no objects with the specified
+         Group ID and the Object ID that is greater than or equal to the one
+         specified exist in the group identified by the Group ID.
 
-* 0x3 := Indicates End of Group. Object ID is one greater than the largest
-         Object produced in the Group identified by the Group ID. If the Object
-         ID is 0, it indicates there are no Objects in this Group. This SHOULD
-         be cached. A publisher MAY use an end of Group object to signal the end
-         of all open Subgroups in a Group. A non-zero-length Object can be the
-         End of Group, as signaled in the DATAGRAM or SUBGROUP_HEADER Type field
-         (see {{object-datagram}} and {{subgroup-header}}).
+* 0x4 := Indicates End of Track. Indicates that no objects with the location
+         that is equal to or greater than the one specified exist.
 
-* 0x4 := Indicates End of Track. Group ID is either the largest Group produced
-         in this Track with Object ID one greater than the largest Object
-         produced in that Group, or Group ID is one greater than the largest
-         Group produced in this Track with Object ID zero. This status also
-         indicates the specified Group has ended. Publishers MUST NOT publish an
-         Object with a Location larger than this Location (see
-         {{malformed-tracks}}). This SHOULD be cached.
+All of those SHOULD be cached.
 
 Any other value SHOULD be treated as a protocol error and the session SHOULD
-be terminated with a `PROTOCOL_VIOLATION` ({{session-termination}}).
+be closed with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
-#### Object Extension Header {#object-extensions}
-Any Object may have extension headers except those with Object Status 'Object
-Does Not Exist'.  If an endpoint receives a non-existent Object containing
-extension headers it MUST close the session with a `PROTOCOL_VIOLATION`.
+#### Object Properties {#object-properties}
 
-Object Extension Headers are visible to relays and allow the transmission of
-future metadata relevant to MOQT Object distribution. Any Object metadata never
-intended to be accessed by the transport or Relays SHOULD be serialized as part
-of the Object payload and not as an extension header.
+Any Object with status Normal can have properties ({{properties}}).
+If an endpoint receives properties on an Object with status that is
+not Normal, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-Extension Headers are defined in external specifications and registered in an
-IANA table {{iana}}. These specifications define the type and value of the
-header, along with any rules concerning processing, modification, caching and
-forwarding. A relay which is coded to implement these rules is said to
-"support" the extension.
+Object Properties are visible to relays and are intended to be relevant
+to MOQT Object distribution. Any Object metadata never intended to be accessed
+by the transport or Relays SHOULD be serialized as part of the Object payload
+and not as an Object Property.
 
-If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
-cached as part of the Object and MUST be forwarded by relays.
-
-If supported by the relay and subject to the processing rules specified in the
-definition of the extension, Extension Headers MAY be modified, added, removed,
-and/or cached by relays.
-
-Object Extension Headers are serialized as Key-Value-Pairs (see
-{{moq-key-value-pair}}), prefixed by the length of the serialized
-Key-Value-Pairs, in bytes.
+Object Properties are serialized as a length in bytes followed by
+Key-Value-Pairs (see {{moq-key-value-pair}}).
 
 ~~~
-Extensions {
-  Extension Headers Length (i),
-  Extension headers (..),
+Object Properties {
+  Properties Length (vi64),
+  Properties (..),
 }
 ~~~
 
-Header types are registered in the IANA table 'MOQ Extension Headers'.
-See {{iana}}.
+Object Property types are registered in the IANA table
+'MOQ Properties'. See {{iana}}.
 
 ## Datagrams
 
@@ -3308,10 +3575,10 @@ total size is larger than the maximum datagram size for the session, the Object
 will be dropped without any explicit notification.
 
 Each session along the path between the Original Publisher and End Subscriber
-might have different maximum datagram sizes. Additionally, Object Extension
-Headers ({{object-extensions}}) can be added to Objects as they pass through
-the MOQT network, increasing the size of the Object and the chances it will
-exceed the maximum datagram size of a downstream session and be dropped.
+might have different maximum datagram sizes. Additionally, Object Properties
+({{object-properties}}) can be added to Objects as they pass
+through the MOQT network, increasing the size of the Object and the chances it
+will exceed the maximum datagram size of a downstream session and be dropped.
 
 
 ### Object Datagram {#object-datagram}
@@ -3320,83 +3587,71 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x0-0x7,0x20-21,0x24-25
-  Track Alias (i),
-  Group ID (i),
-  [Object ID (i),]
+  Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
+             0x28..0x29 / 0x2C..0x2D,
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Object ID (vi64),]
   [Publisher Priority (8),]
-  [Extensions (..),]
-  [Object Status (i),]
+  [Properties (..),]
+  [Object Status (vi64),]
   [Object Payload (..),]
 }
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
-The Type value determines which fields are present in the OBJECT_DATAGRAM.
-There are 10 defined Type values for OBJECT_DATAGRAM.
+The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or the set of
+values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
+range are valid. The four low-order bits and bit 5 of the Type field determine
+which fields are present in the datagram:
 
-| Type | End Of Group | Extensions | Object ID | Priority Present | Status / Payload |
-| 0x00 | No | No | Yes | Yes | Payload |
-| 0x01 | No | Yes | Yes | Yes | Payload |
-| 0x02 | Yes | No | Yes | Yes | Payload |
-| 0x03 | Yes | Yes | Yes | Yes | Payload |
-| 0x04 | No | No | No | Yes | Payload |
-| 0x05 | No | Yes | No | Yes | Payload |
-| 0x06 | Yes | No | No | Yes | Payload |
-| 0x07 | Yes | Yes | No | Yes | Payload |
-| 0x20 | No | No | Yes | Yes | Status |
-| 0x21 | No | Yes | Yes | Yes | Status |
-| 0x24 | No | No | No | Yes | Status |
-| 0x25 | No | Yes | No | Yes | Status |
-| 0x08 | No | No | Yes | No | Payload |
-| 0x09 | No | Yes | Yes | No | Payload |
-| 0x0A | Yes | No | Yes | No | Payload |
-| 0x0B | Yes | Yes | Yes | No | Payload |
-| 0x0C | No | No | No | No | Payload |
-| 0x0D | No | Yes | No | No | Payload |
-| 0x0E | Yes | No | No | No | Payload |
-| 0x0F | Yes | Yes | No | No | Payload |
-| 0x28 | No | No | Yes | No | Status |
-| 0x29 | No | Yes | Yes | No | Status |
-| 0x2C | No | No | Yes | No | Status |
-| 0x2D | No | Yes | Yes | No | Status |
+* The **PROPERTIES** bit (0x01) indicates when the Properties field is
+  present. When set to 1, the Object Properties structure defined in
+  {{object-properties}} is present. When set to 0, the field is absent.
+  If an endpoint receives a datagram with the PROPERTIES bit set and an
+  Properties Length of 0, it MUST close the session with a
+  `PROTOCOL_VIOLATION`.
 
-* End of Group: For Type values where End of Group is "Yes" the Object is the
-  last Object in the Group.
+* The **END_OF_GROUP** bit (0x02) indicates End of Group. When set to 1, this
+  indicates that no Object with the same Group ID and an Object ID greater than
+  the Object ID in this datagram exists.
 
-* Extensions Present: If Extensions Present is "Yes" the Extensions structure
-  defined in {{object-extensions}} is included. If an endpoint receives a
-  datagram with Extensions Present as "Yes" and a Extension Headers Length of 0,
-  it MUST close the session with a `PROTOCOL_VIOLATION`.
+* The **ZERO_OBJECT_ID** bit (0x04) indicates when the Object ID field is
+  present.  When set to 1, the Object ID field is omitted and the Object ID
+  is 0. When set to 0, the Object ID field is present.
 
-* Object ID Present: If Object ID Present is No, the Object ID field is omitted
-  and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
-  present and encodes the Object ID.
+* The **DEFAULT_PRIORITY** bit (0x08) indicates when the Priority field is
+  present. When set to 1, the Priority field is omitted and this Object inherits
+  the Publisher Priority specified in the control message that established the
+  subscription. When set to 0, the Priority field is present.
 
-* Priority Present: If Priority Present is No, Priority is not present and this
-  Object inherits the Publisher Priority specified in the control message that
-  established the subscription.  When Priority Present is Yes, the Priority field
-  is present.
+* The **STATUS** bit (0x20) indicates whether the datagram contains an Object
+  Status or Object Payload. When set to 1, the Object Status field is present
+  and there is no Object Payload. When set to 0, the Object Payload is present
+  and the Object Status field is omitted. There is no explicit length field for
+  the Object Payload; the entirety of the transport datagram following the
+  Object header contains the payload.
 
-* Payload and Status: The Object Status field and Object Payload are mutually
-  exclusive.
+The following Type values are invalid. If an endpoint receives a datagram with
+any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 
-  * For Type values 0x00 through 0x07, the Object Payload is present
-    and the Object Status field is omitted.
+* Type values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set: 0x22,
+  0x23, 0x26, 0x27, 0x2A, 0x2B, 0x2E, 0x2F. An object status message cannot signal
+  end of group.
 
-    There is no explicit length field for the Object Payload. The entirety of the
-    transport datagram following the Object header fields contains the payload.
+* Type values that do not match the form 0b00X0XXXX (i.e., Type values outside the
+  ranges 0x00..0x0F and 0x20..0x2F).
 
-  * For Type values 0x20, 0x21, 0x24 and 0x25 the Object Status field is present
-    and there is no Object Payload.
-
+If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
+Object Status is not Normal (0x0), the endpoint MUST close the session with a
+`PROTOCOL_VIOLATION`, because only Normal Objects can have Properties.
 
 ## Streams
 
 When Objects are sent on streams, the stream begins with a Subgroup or Fetch
 Header and is followed by one or more sets of serialized Object fields.
 If a stream ends gracefully (i.e., the stream terminates with a FIN) in the
-middle of a serialized Object, the session SHOULD be terminated with a
+middle of a serialized Object, the session SHOULD be closed with a
 `PROTOCOL_VIOLATION`.
 
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
@@ -3404,10 +3659,13 @@ Header field values.
 
 ### Stream Cancellation
 
-Streams aside from the control stream MAY be canceled due to congestion
+Streams aside from the control streams MAY be canceled due to congestion
 or other reasons by either the publisher or subscriber. Early termination of a
-stream does not affect the MoQ application state, and therefore has no
-effect on outstanding subscriptions.
+unidirectional stream does not affect the MoQ application state, and therefore has
+no effect on outstanding subscriptions. Termination of a bidi request stream
+terminates the Subscription, Fetch, Track Status, Publish Namespace, or Subscribe Namespace
+request. When possible, Publishers SHOULD send a PUBLISH_DONE when terminating a
+subscription instead of abruptly terminating the associated control stream.
 
 ### Subgroup Header
 
@@ -3419,17 +3677,17 @@ If an endpoint receives a subgroup with an unknown Track Alias, it MAY abandon
 the stream, or choose to buffer it for a brief period to handle reordering with
 the control message that establishes the Track Alias.  The endpoint MAY withhold
 stream flow control beyond the SUBGROUP_HEADER until the Track Alias has been
-established.  To prevent deadlocks, the publisher MUST allocate connection flow
-control to the control stream before allocating it any data streams. Otherwise,
+established.  To prevent deadlocks, endpoints MUST allocate connection flow
+control to the control streams before allocating it to any data streams. Otherwise,
 a receiver might wait for a control message containing a Track Alias to release
 flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i) = 0x10..0x1D,
-  Track Alias (i),
-  Group ID (i),
-  [Subgroup ID (i),]
+  Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D,
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Subgroup ID (vi64),]
   [Publisher Priority (8),]
 }
 ~~~
@@ -3438,80 +3696,48 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-There are 24 defined Type values for SUBGROUP_HEADER:
+The Type field in the SUBGROUP_HEADER takes the form 0b00X1XXXX (or the set of
+values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to
+1. However, not all Type values in this range are valid. The four low-order bits
+and bit 5 determine which fields are present in the header:
 
-|------|---------------|-----------------|------------|--------------|---------------|
-| Type | Subgroup ID   | Subgroup ID     | Extensions | Contains End | Priority      |
-|      | Field Present | Value           | Present    | of Group     | Present       |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x10 | No            | 0               | No         | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x11 | No            | 0               | Yes        | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x12 | No            | First Object ID | No         | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x13 | No            | First Object ID | Yes        | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x14 | Yes           | N/A             | No         | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x15 | Yes           | N/A             | Yes        | No           | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x18 | No            | 0               | No         | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x19 | No            | 0               | Yes        | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x1A | No            | First Object ID | No         | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x1B | No            | First Object ID | Yes        | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x1C | Yes           | N/A             | No         | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x1D | Yes           | N/A             | Yes        | Yes          | Yes           |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x30 | No            | 0               | No         | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x31 | No            | 0               | Yes        | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x32 | No            | First Object ID | No         | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x33 | No            | First Object ID | Yes        | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x34 | Yes           | N/A             | No         | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x35 | Yes           | N/A             | Yes        | No           | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x38 | No            | 0               | No         | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x39 | No            | 0               | Yes        | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x3A | No            | First Object ID | No         | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x3B | No            | First Object ID | Yes        | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x3C | Yes           | N/A             | No         | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
-| 0x3D | Yes           | N/A             | Yes        | Yes          | No            |
-|------|---------------|-----------------|------------|--------------|---------------|
+* The **PROPERTIES** bit (0x01) indicates when the Properties field is present
+  in all Objects in this Subgroup. When set to 1, the Object Properties structure
+  defined in {{object-properties}} is present in all Objects. When set to 0, the
+  field is never present. Objects with no properties set Properties Length to 0.
 
-For Type values where Contains End of Group is Yes, the last Object in this
-Subgroup stream before a FIN is the last Object in the Group.  If the Subgroup
-stream is terminated with a RESET_STREAM or RESET_STREAM_AT, the receiver cannot
-determine the End of Group Object ID.
+* The **SUBGROUP_ID_MODE** field (bits 1-2, mask 0x06) is a two-bit field that
+  determines the encoding of the Subgroup ID. To extract this value, perform a
+  bitwise AND with mask 0x06 and right-shift by 1 bit:
 
-For Type values where Subgroup ID Field Present is No, there is no explicit
-Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
-0x10-11 and 0x18-19) or the Object ID of the first object transmitted in this
-subgroup (for Types 0x12-13 and 0x1A-1B).
+  * 0b00: The Subgroup ID field is absent and the Subgroup ID is 0.
+  * 0b01: The Subgroup ID field is absent and the Subgroup ID is the Object ID
+    of the first Object transmitted in this Subgroup.
+  * 0b10: The Subgroup ID field is present in the header.
+  * 0b11: Reserved for future use.
 
-For Type values where Extensions Present is No, the Extensions field is never
-present and all Objects have no extensions.  When Extensions Present is Yes, the
-Extensions structure defined in {{object-extensions}} is present in all Objects
-in this subgroup.  Objects with no extensions set Extension Headers Length to 0.
+* The **END_OF_GROUP** bit (0x08) indicates that this subgroup contains the
+  largest Object in the Group. When set to 1, the subscriber can infer the final
+  Object in the Group when the data stream is terminated by a FIN. In this case,
+  Objects that have the same Group ID and an Object ID larger than the last
+  Object received on the stream do not exist. This does not apply when the data
+  stream is reset.
 
-For Type values where Priority Present is No, Priority is not present and this
-Subgroup inherits the Publisher Priority specified in the control message that
-established the subscription.  When Priority Present is Yes, the Priority field
-is present in the Subgroup header.
+* The **DEFAULT_PRIORITY** bit (0x20) indicates when the Priority field is
+  present. When set to 1, the Priority field is omitted and this Subgroup
+  inherits the Publisher Priority specified in the control message that
+  established the subscription. When set to 0, the Priority field is present in
+  the Subgroup header.
+
+The following Type values are invalid. If an endpoint receives a stream header
+with any of these Type values, it MUST close the session with a
+`PROTOCOL_VIOLATION`:
+
+* Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36, 0x37,
+  0x3E, 0x3F. This mode is reserved for future use.
+
+* Type values that do not match the form 0b00X1XXXX (i.e., Type values outside the
+  ranges 0x10..0x1F and 0x30..0x3F, or values where bit 4 is not set).
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
@@ -3522,19 +3748,21 @@ The Object Status field is only sent if the Object Payload Length is zero.
 
 The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
 stream if there was one.  The Object ID is the Object ID Delta if it's the first
-Object in the Subgroup stream. For example, a Subgroup of sequential Object IDs
+Object in the Subgroup stream. If the resulting Object ID would be greater
+than 2^64 - 1, the endpoint MUST close the session with a
+`PROTOCOL_VIOLATION`. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
-unless there is an Prior Object ID Gap extesnion header (see
+unless there is a Prior Object ID Gap property (see
 {{prior-object-id-gap}}).
 
 ~~~
 {
-  Object ID Delta (i),
-  [Extensions (..),]
-  Object Payload Length (i),
-  [Object Status (i),]
+  Object ID Delta (vi64),
+  [Properties (..),]
+  Object Payload Length (vi64),
+  [Object Status (vi64),]
   [Object Payload (..),]
 }
 ~~~
@@ -3554,12 +3782,17 @@ any Objects with Locations smaller than the subscription's Start Location, it
 MUST close the stream with a FIN.
 
 If a sender closes the stream before delivering all such objects to the QUIC
-stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
-{{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes an open
-Subgroup exceeding its Delivery Timeout, early termination of subscription due
-to an UNSUBSCRIBE message, a publisher's decision to end the subscription early,
-or a SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
-the Start Location to a larger Location.  When RESET_STREAM_AT is used, the
+stream, it MUST reset the stream. This includes, but is
+not limited to:
+
+* An Object in an open Subgroup exceeding its Delivery Timeout
+* Early termination of subscription due to request cancellation
+* A publisher's decision to end the subscription early
+* A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
+  the Start Location to a larger Location
+* Omitting a Subgroup Object due to the subscriber's Forward State
+
+When RESET_STREAM_AT is used, the
 reliable_size SHOULD include the stream header so the receiver can identify the
 corresponding subscription and accurately account for reset data streams when
 handling PUBLISH_DONE (see {{message-publish-done}}).  Publishers that reset
@@ -3569,7 +3802,7 @@ cause subscribers to hold on to subscription state until a timeout expires.
 A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
-all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.
+all data on the stream and the FIN, it can ignore any subsequent reset.
 
 If a sender will not deliver any objects from a Subgroup, it MAY send
 a SUBGROUP_HEADER on a new stream, with no objects, and then send RESET_STREAM_AT
@@ -3594,7 +3827,7 @@ Subgroup stream and open a new one to forward it.
 Since SUBSCRIBEs always end on a group boundary, an ending subscription can
 always cleanly close all its subgroups. A sender that terminates a stream
 early for any other reason (e.g., to handoff to a different sender) MUST
-use RESET_STREAM or RESET_STREAM_AT. Senders SHOULD terminate a stream on
+reset the stream. Senders SHOULD terminate a stream on
 Group boundaries to avoid doing so.
 
 An MOQT implementation that processes a stream FIN is assured it has received
@@ -3609,7 +3842,7 @@ Group, so if all Objects in the Group have been received, a FIN can be sent on
 any stream where the entire subgroup has been sent. This might be complex to
 implement.
 
-Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
+Processing a reset means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
 reset the corresponding downstream stream, or it might attempt to recover the
 missing Objects in an effort to send all the Objects in the subgroups and the FIN.
@@ -3619,31 +3852,47 @@ Objects might exist.
 
 A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the Group
 or Subgroup is no longer of interest to it. The publisher SHOULD respond with
-RESET_STREAM or RESET_STREAM_AT. If RESET_STREAM_AT is sent, note that the receiver
+a reset. If RESET_STREAM_AT is sent, note that the receiver
 has indicated no interest in the objects, so setting a reliable_size beyond the
 stream header is of questionable utility.
 
-RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
+Resets and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
 Subgroups in a Group at once.
 
-The application SHOULD use a relevant error code in RESET_STREAM or
-RESET_STREAM_AT, as defined below:
+A publisher that receives a STOP_SENDING on a Subgroup stream SHOULD NOT attempt
+to open a new stream to deliver additional Objects in that Subgroup.
+
+The application SHOULD use a relevant error code when resetting a stream,
+as defined below:
 
 INTERNAL_ERROR (0x0):
 : An implementation specific error.
 
 CANCELLED (0x1):
-: The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
-  STOP_SENDING, or the publisher ended the subscription, in which case
-  PUBLISH_DONE ({{message-publish-done}}) will have a more detailed status
-  code.
+: The subscriber or publisher cancelled the Request. For Subscriptions,
+  PUBLISH_DONE ({{message-publish-done}}) will have a more detailed status code.
 
 DELIVERY_TIMEOUT (0x2):
 : The DELIVERY TIMEOUT {{delivery-timeout}} was exceeded for this stream.
 
 SESSION_CLOSED (0x3):
 : The publisher session is being closed.
+
+UNKNOWN_OBJECT_STATUS (0x4):
+: In response to a FETCH, the publisher is unable to determine the Status
+of the next Object in the requested range.
+
+TOO_FAR_BEHIND (0x5):
+: The corresponding subscription has exceeded the publisher's resource limits and
+is being terminated (see {{delivery-timeout}}).
+
+EXCESSIVE_LOAD (0x9):
+: The publisher is overloaded and is resetting this stream.
+
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
+  {{malformed-tracks}}).
 
 ### Fetch Header {#fetch-header}
 
@@ -3652,35 +3901,142 @@ track requested in the Fetch message identified by `Request ID`.
 
 ~~~
 FETCH_HEADER {
-  Type (i) = 0x5,
-  Request ID (i),
+  Type (vi64) = 0x5,
+  Request ID (vi64),
 }
 ~~~
 {: #fetch-header-format title="MOQT FETCH_HEADER"}
 
 
-Each object sent on a fetch stream after the FETCH_HEADER has the following format:
+Each Object sent on a FETCH stream after the FETCH_HEADER has the following
+format:
 
 ~~~
 {
-  Group ID (i),
-  Subgroup ID (i),
-  Object ID (i),
-  Publisher Priority (8),
-  Extensions (..),
-  Object Payload Length (i),
-  [Object Status (i),]
+  Serialization Flags (vi64),
+  [Group ID (vi64),]
+  [Subgroup ID (vi64),]
+  [Object ID (vi64),]
+  [Publisher Priority (8),]
+  [Properties (..),]
+  Object Payload Length (vi64),
   [Object Payload (..),]
 }
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
 
-The Extensions structure is defined in {{object-extensions}}.
+The Serialization Flags field defines the serialization of the Object.  It is
+a variable-length integer.  When less than 128, the bits represent flags described
+below.  The following additional values are defined:
 
-The Object Status field is only sent if the Object Payload Length is zero.
+Value | Meaning
+0x8C | End of Non-Existent Range
+0x10C | End of Unknown Range
 
-The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
-(see {{object-properties}}) is set to the Object ID.
+Any other value is a `PROTOCOL_VIOLATION`.
+
+#### Flags
+
+The two least significant bits (LSBs) of the Serialization Flags form a two-bit
+field that defines the encoding of the Subgroup.  To extract this value, the
+Subscriber performs a bitwise AND operation with the mask 0x03.
+
+Bitmask Result (Serialization Flags & 0x03) | Meaning
+0x00 | Subgroup ID is zero
+0x01 | Subgroup ID is the prior Object's Subgroup ID
+0x02 | Subgroup ID is the prior Object's Subgroup ID plus one
+0x03 | The Subgroup ID field is present
+
+The following table defines additional flags within the Serialization Flags
+field. Each flag is an independent boolean value, where a set bit (1) indicates
+the corresponding condition is true.
+
+Bitmask | Condition if set | Condition if not set (0)
+--------|------------------|---------------------
+0x04 | Object ID field is present | Object ID is the prior Object's ID plus one
+0x08 | Group ID field is present | Group ID is the prior Object's Group ID
+0x10 | Priority field is present | Priority is the prior Object's Priority
+0x20 | Properties field is present | Properties field is not present
+0x40 | Datagram: ignore the two least significant bits | Decode the Subgroup ID as indicated by the two least significant bits
+
+If the first Object in the FETCH response uses a flag that references fields in
+the prior Object, the Subscriber MUST close the session with a
+`PROTOCOL_VIOLATION`.
+
+The Object Properties structure is defined in {{object-properties}}.
+
+When encoding an Object with a Forwarding Preference of "Datagram" (see
+{{object-properties}}), the object has no Subgroup ID. The publisher MUST SET bit 0x40 to '1'.
+When 0x40 is set, it SHOULD set the two least significant bits to zero and the subscriber
+MUST ignore the bits.
+
+#### End of Range {#end-of-range}
+
+When Serialization Flags indicates an End of Range (e.g. values 0x8C or 0x10C),
+the Group ID and Object ID fields are present.  Subgroup ID, Priority and
+Properties are not present. All Objects with Locations between the last
+serialized Object, if any, and this Location, inclusive, either do not exist
+(when Serialization Flags is 0x8C) or are unknown (0x10C).  A publisher SHOULD
+NOT use `End of Non-Existent Range` in a FETCH response except to split a range
+of Objects that will not be serialized into those that are known not to exist
+and those with unknown status.
+
+When an Object follows an End of Range indicator and uses flags that reference
+the "prior Object", the prior Object fields are determined as follows:
+
+* Prior Group ID and prior Object ID: The values from the End of Range indicator.
+* Prior Subgroup ID: The Subgroup ID from the last actual Object before the
+  End of Range indicator. If there was no prior Object, using a flag that
+  references the prior Subgroup ID is a `PROTOCOL_VIOLATION`.
+* Prior Priority: The Priority from the last actual Object before the End of
+  Range indicator. If there was no prior Object, using a flag that references
+  the prior Priority is a `PROTOCOL_VIOLATION`.
+
+## Padding {#padding}
+
+An endpoint MAY send padding on unidirectional streams or datagrams.  Padding
+does not carry Objects or any other application data.  An endpoint can use
+padding to probe for additional bandwidth while minimizing the impact on the
+delivery of application data.
+
+To avoid interfering with the delivery of Objects, senders SHOULD send padding
+streams at a lower priority than any control stream or Object data.
+
+### Padding Streams {#padding-streams}
+
+An endpoint MAY open a unidirectional stream with a stream type of 0x132B3E28 to send
+padding data. The stream begins with the stream type, followed by zero or more
+bytes that MUST all be set to zero.
+
+~~~
+PADDING STREAM {
+  Type (vi64) = 0x132B3E28,
+  Padding Data (..) = 0x00..
+}
+~~~
+{: #padding-format title="MOQT Padding Stream"}
+
+The receiver MUST discard all data received on a padding stream to prevent
+exhausting flow control.
+
+Either the sender or the receiver MAY cancel a padding stream at any time
+without affecting any MOQT application state.
+
+### Padding Datagrams {#padding-datagrams}
+
+An endpoint MAY send a datagram with a type of 0x132B3E29 to send padding data.
+The datagram contains the type followed by zero or more bytes that MUST all be
+set to zero.
+
+~~~
+PADDING DATAGRAM {
+  Type (vi64) = 0x132B3E29,
+  Padding Data (..) = 0x00..
+}
+~~~
+{: #padding-datagram-format title="MOQT Padding Datagram"}
+
+The receiver MUST discard all data received in a padding datagram.
 
 ## Examples
 
@@ -3709,7 +4065,7 @@ SUBGROUP_HEADER {
 ~~~
 
 Sending a group on one stream, with the first object containing two
-Extension Headers.
+Properties.
 
 ~~~
 Stream = 2
@@ -3722,7 +4078,7 @@ SUBGROUP_HEADER {
 }
 {
   Object ID Delta = 0 (Object ID is 0)
-  Extension Headers Length = 33
+  Properties Length = 33
     { Type = 4
       Value = 2186796243
     },
@@ -3735,27 +4091,157 @@ SUBGROUP_HEADER {
 }
 {
   Object ID Delta = 0 (Object ID is 1)
-  Extension Headers Length = 0
+  Properties Length = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
 
 ~~~
 
-# Extension Headers
+# MOQT Properties {#moqt-properties}
 
-The following Object Extension Headers are defined in MOQT.
+The following Properties are defined in MOQT. Each Property
+specifies whether it can be used with Tracks, Objects, or both.
+
+Property types in ranges reserved for application-specific use
+(0x38-0x3F, 0x3800-0x3FFF) are not defined by MOQT.
+See {{properties}} for usage guidance.
+
+## DELIVERY TIMEOUT {#delivery-timeout-ext}
+
+DELIVERY TIMEOUT (Property Type 0x02) is a Track Property.
+It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
+{{delivery-timeout}}).
+
+A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
+due to delivery timeout.
+
+If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the Track has
+a DELIVERY_TIMEOUT property, the endpoints use the min of the two non-zero
+values for the subscription. If either value is 0, the non-zero value is used.
+If both are 0, there is no delivery timeout.
+
+If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
+specified a timeout, Objects do not time out.
+
+## MAX CACHE DURATION {#max-cache-duration}
+
+MAX_CACHE_DURATION (Property Type 0x04) is a Track Property.
+
+It is an integer expressing
+the number of milliseconds an Object can be served from a cache. If present, the
+relay MUST NOT start forwarding any individual Object received through this
+subscription or fetch after the specified number of milliseconds has elapsed
+since the beginning of the Object was received.  This means Objects earlier in a
+multi-object stream will expire earlier than Objects later in the stream. Once
+Objects have expired from cache, their state becomes unknown, and a relay that
+handles a downstream request that includes those Objects re-requests them.
+
+If MAX_CACHE_DURATION is not sent by the publisher, the Objects
+can be cached until implementation constraints cause them to be evicted.
+
+## DEFAULT PUBLISHER PRIORITY {#publisher-priority}
+
+DEFAULT PUBLISHER PRIORITY (Property Type 0x0E) is a Track Property
+that specifies the priority of a subscription relative to other subscriptions
+in the same session.  The value is from 0 to 255 and lower numbers get higher
+priority.  See {{priorities}}. Priorities above 255 are invalid. Subgroups and
+Datagrams for this subscription inherit this priority, unless they specifically
+override it.
+
+If omitted, the Default Publisher Priority is 128.
+
+## DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
+
+DEFAULT_PUBLISHER_GROUP_ORDER (Property Type 0x22) is a Track Property.
+
+It is an enum indicating the publisher's preference for prioritizing Objects
+from different groups within the
+same subscription (see {{priorities}}). The allowed values are Ascending (0x1) or
+Descending (0x2). If an endpoint receives a value outside this range, it MUST
+close the session with `PROTOCOL_VIOLATION`.
+
+If omitted, the publisher's preference is Ascending (0x1).
+
+## DYNAMIC GROUPS {#dynamic-groups}
+
+DYNAMIC_GROUPS (Property Type 0x30) is a Track Property.
+The allowed values are 0 or 1. When the value is 1, it indicates
+that the subscriber can request the Original Publisher to start a new Group
+by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
+for this Track. If an endpoint receives a value larger than 1, it MUST close
+the session with `PROTOCOL_VIOLATION`.
+
+If omitted, the value is 0.
+
+## Immutable Properties
+
+Immutable Properties (Property Type 0xB) is a Track or Object Property that
+contains a sequence of Key-Value-Pairs (see {{moq-key-value-pair}}) that are
+themselves Track or Object Properties, respectively.
+
+~~~
+Immutable Properties {
+  Type (0xB),
+  Length (vi64),
+  Key-Value-Pair (..) ...
+}
+~~~
+
+This Property can be added by the Original Publisher, but MUST NOT be added by
+Relays. This Property MUST NOT be modified or removed and the serialization
+(e.g. variable-length integer encodings) of the Key-Value-Pairs MUST NOT
+change). Like other Properties, Relays MUST cache Immutable Properties if the
+Object or Track are cached and MUST forward it. Relays MAY decode and view
+the Properties in the Key-Value-Pairs.
+
+Unless specified by a particular Property specification, Properties
+MAY appear either in the mutable property list or inside Immutable Properties.
+When looking for the value of a property, processors MUST search both the
+mutable properties and the contents of Immutable Properties.
+
+If a Property allows multiple values, the same Property Type MAY appear in
+both the mutable list and inside Immutable Properties, unless prohibited by
+the Property specification.
+
+A Track is considered malformed (see {{malformed-tracks}}) if any of the
+following conditions are detected:
+
+ * An Object contains an Immutable Properties property that contains another
+   Immutable Properties key.
+ * A Key-Value-Pair cannot be parsed.
+
+The following figure shows an example Object structure with a combination of
+mutable and immutable properties and end to end encrypted metadata in the Object
+payload.
+
+~~~
+                   Object Header                      Object Payload
+<------------------------------------------------> <------------------->
++--------+-------+------------+-------+-----------+--------------------+
+| Object | Ext 1 | Immutable  | Ext N | [Payload] | Private Properties |
+| Fields |       | Properties |       | [Length]  | App Payload        |
++--------+-------+------------+-------+-----------+--------------------+
+                  xxxxxxxxxxxx                     xxxxxxxxxxxxxxxxxxxx
+                                                   yyyyyyyyyyyyyyyyyyyy
+x = e2e Authenticated Data
+y = e2e Encrypted Data
+EXT 1 and EXT N can be modified or removed by Relays
+~~~
+
+An Object MUST NOT contain more than one instance of this property.
 
 ## Prior Group ID Gap
 
-Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
+Prior Group ID Gap only applies to Objects, not Tracks.
+
+Prior Group ID Gap (Property Type 0x3C) is a variable length integer
 containing the number of Groups prior to the current Group that do not and will
-never exist. This is equivalent to receiving an `End of Group` status with
-Object ID 0 for each skipped Group. For example, if the Original Publisher is
-publishing an Object in Group 7 and knows it will never publish any Objects in
-Group 8 or Group 9, it can include Prior Group ID Gap = 2 in any number of
-Objects in Group 10, as it sees fit.  A Track is considered malformed (see
-{{malformed-tracks}}) if any of the following conditions are detected:
+never exist. For example, if the Original Publisher is publishing an Object in
+Group 7 and knows it will never publish any Objects in Group 8 or Group 9, it
+can include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it
+sees fit.  A Track is considered malformed (see {{malformed-tracks}}) if any of
+the following conditions are detected:
 
  * An Object contains more than one instance of Prior Group ID Gap.
  * A Group contains more than one Object with different values for Prior Group
@@ -3766,68 +4252,29 @@ Objects in Group 10, as it sees fit.  A Track is considered malformed (see
  * An endpoint receives an Object with a Group ID within a previously
    communicated gap.
 
-This extension is optional, as publishers might not know the prior gap gize, or
-there may not be a gap. If Prior Group ID Gap is not present, the receiver
+Use of this property is optional, as publishers might not know the prior gap size,
+or there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
 {{group-ids}}).
 
-This extension can be added by the Original Publisher, but MUST NOT be added by
-relays. This extension MUST NOT be modified or removed.
+This property can be added by the Original Publisher, but MUST NOT be added by
+relays. This property MAY be removed by a relay when the object in question is
+served via FETCH, and the gap that the property communicates is already
+communicated implicitly in the FETCH response; it MUST NOT be modified or
+removed otherwise.
 
-## Immutable Extensions
-
-The Immutable Extensions (Extension Header Type 0xB) contains a sequence of
-Key-Value-Pairs (see {{moq-key-value-pair}}) which are also Object Extension
-Headers of the Object.
-
-~~~
-Immutable Extensions {
-  Type (0xB),
-  Length (i),
-  Key-Value-Pair (..) ...
-}
-~~~
-
-This extension can be added by the Original Publisher, but MUST NOT be added by
-Relays. This extension MUST NOT be modified or removed. Relays MUST cache this
-extension if the Object is cached and MUST forward this extension if the
-enclosing Object is forwarded. Relays MAY decode and view these extensions.
-
-A Track is considered malformed (see {{malformed-tracks}}) if any of the
-following conditions are detected:
-
- * An Object contains an Immutable Extensions header that contains another
-   Immutable Extensions key.
- * A Key-Value-Pair cannot be parsed.
-
-The following figure shows an example Object structure with a combination of
-mutable and immutable extensions and end to end encrypted metadata in the Object
-payload.
-
-~~~
-                   Object Header                      Object Payload
-<------------------------------------------------> <------------------->
-+--------+-------+------------+-------+-----------+--------------------+
-| Object | Ext 1 | Immutable  | Ext N | [Payload] | Private Extensions |
-| Fields |       | Extensions |       | [Length]  | App Payload        |
-+--------+-------+------------+-------+-----------+--------------------+
-                  xxxxxxxxxxxx                     xxxxxxxxxxxxxxxxxxxx
-                                                   yyyyyyyyyyyyyyyyyyyy
-x = e2e Authenticated Data
-y = e2e Encrypted Data
-EXT 1 and EXT N can be modified or removed by Relays
-~~~
+An Object MUST NOT contain more than one instance of this property.
 
 ## Prior Object ID Gap
 
-Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
+Prior Object ID Gap only applies to Objects, not Tracks.
+
+Prior Object ID Gap (Property Type 0x3E) is a variable length integer
 containing the number of Objects prior to the current Object that do not and
-will never exist. This is equivalent to receiving an `Object Does Not Exist`
-status for each skipped Object ID. For example, if the Original Publisher is
-publishing Object 10 in Group 3 and knows it will never publish Objects 8 or 9
-in this Group, it can include Prior Object ID Gap = 2.  A Track is considered
-malformed (see {{malformed-tracks}}) if any of the following conditions are
-detected:
+will never exist. For example, if the Original Publisher is publishing Object
+10 in Group 3 and knows it will never publish Objects 8 or 9 in this Group, it
+can include Prior Object ID Gap = 2.  A Track is considered malformed (see
+{{malformed-tracks}}) if any of the following conditions are detected:
 
  * An Object contains more than one instance of Prior Object ID Gap.
  * An Object has a Prior Object ID Gap larger than the Object ID.
@@ -3836,13 +4283,18 @@ detected:
  * An endpoint receives an Object with an Object ID within a previously
    communicated gap.
 
-This extension is optional, as publishers might not know the prior gap gize, or
-there may not be a gap. If Prior Object ID Gap is not present, the receiver
+Use of this property is optional, as publishers might not know the prior gap size,
+or there might not be a gap. If Prior Object ID Gap is not present, the receiver
 cannot infer any information about the existence of prior objects (see
 {{model-object}}).
 
-This extension can be added by the Original Publisher, but MUST NOT be added by
-relays. This extension MUST NOT be modified or removed.
+This property can be added by the Original Publisher, but MUST NOT be added by
+relays. This property MAY be removed by a relay when the object in question is
+served via FETCH, and the gap that the property communicates is already
+communicated implicitly in the FETCH response; it MUST NOT be modified or
+removed otherwise.
+
+An Object MUST NOT contain more than one instance of this property.
 
 # Security Considerations {#security}
 
@@ -3972,13 +4424,34 @@ Implementations are advised to use timeouts to prevent resource
 exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own timeouts.
 
+### Idle Connection Handling
+
+The transport connection (e.g., QUIC) underlying a MOQT session can close due to
+idle timeout if no data is exchanged, either because there are no established
+subscriptions or the established subscriptions are not publishing Objects
+frequently.  This includes publisher sessions that have issued a
+PUBLISH_NAMESPACE and are waiting for subscribers.
+
+Implementations that want to keep idle sessions open have several options:
+
+* Use transport-layer keep-alive mechanisms, such as QUIC PING frames, to
+  prevent idle timeout closure.
+
+* Send periodic control messages, for example REQUEST_UPDATE with no
+  modified Message Parameters.
+
+* Accept that idle connections can close and implement reconnection logic when
+  needed.
+
+The choice of mechanism is implementation-specific.
+
 ## Relay security considerations
 
 ### State maintenance
 
 A Relay SHOULD have mechanisms to prevent malicious endpoints from flooding it
 with PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that could bloat data
-structures. It could use the advertised MAX_REQUEST_ID to limit the number of
+structures. It could use QUIC stream limits to limit the number of
 such requests, or could have application-specific policies that can reject
 incoming PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that cause the state
 maintenance for the session to be excessive.
@@ -3988,29 +4461,177 @@ maintenance for the session to be excessive.
 A Relay can use authorization rules in order to prevent subscriptions closer
 to the root of a large prefix tree. Otherwise, if an entity sends a relay a
 SUBSCRIBE_NAMESPACE message with a short prefix, it can cause the relay to send
-a large volume of PUBLISH_NAMESPACE messages. As churn continues in the tree of
-prefixes, the relay would have to continue to send
-PUBLISH_NAMESPACE/PUBLISH_NAMESPACE_DONE messages to the entity that had sent
-the SUBSCRIBE_NAMESPACE.
+a large volume of NAMESPACE messages. As changes occur in the tree of namespaces,
+the relay would have to send matching NAMESPACE/NAMESPACE_DONE messages.
 
-TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
+## Implementation Identification Fingerprinting {#impl-fingerprinting}
+
+The MOQT_IMPLEMENTATION option ({{moqt-implementation}}) can reveal information
+that contributes to fingerprinting, a set of techniques for identifying a
+specific endpoint over time through its unique set of characteristics.
+
+Detailed implementation information, including specific version numbers,
+build identifiers, or platform details, can create a unique fingerprint that
+enables tracking endpoints across sessions without their awareness. When
+combined with other session characteristics, even minimal implementation
+identification can contribute to distinguishing one endpoint from another.
+
+To mitigate fingerprinting risks:
+
+* Implementations SHOULD send only the minimum information necessary for
+  interoperability debugging. A short implementation name and major version
+  number are typically sufficient.
+
+* Implementations SHOULD NOT include detailed system information, build
+  numbers, or other attributes that could uniquely identify a specific
+  instance or user.
+
+* Privacy-conscious deployments MAY omit the MOQT_IMPLEMENTATION option
+  entirely or send a generic value.
+
+* Implementations MAY provide users with the ability to configure or disable
+  the MOQT_IMPLEMENTATION option.
+
+Operators should be aware that detailed implementation identification
+facilitates the same privacy concerns as persistent identifiers, since it
+enables correlation of sessions across time.
+
+# Grease {#grease}
+
+To ensure that implementations correctly handle unknown values and do not
+fail when encountering protocol extensions they do not understand, this document
+reserves a range of values for the purpose of greasing; see {{Section 3.3 of ?RFC9170}}.
+
+Grease values follow the pattern `0x7f * N + 0x9D` for non-negative
+integer values of N (that is, 0x9D, 0x11C, ..., 0x3fffffffffffffde).
+
+The following registries include GREASE reservations:
+
+- Setup Options ({{iana-setup-options}})
+- Properties ({{iana-properties}})
+- Session Termination Error Codes ({{iana-session-termination}})
+- REQUEST_ERROR Codes ({{iana-request-error}})
+- PUBLISH_DONE Codes ({{iana-publish-done}})
+- Data Stream Reset Error Codes ({{iana-reset-stream}})
+- MOQT Auth Token Type
+
+Because new values in these registries can be defined without negotiation,
+implementations MUST handle unknown values gracefully. Endpoints MUST NOT
+close the session solely because they received an unknown value. The
+following rules apply:
+
+Setup Options with reserved identifiers have no semantics and can carry
+arbitrary values. Endpoints MUST ignore unknown Setup Options as specified
+in {{message-setup}}.
+
+Unknown Properties MUST be handled as specified in {{properties}}.
+
+Receipt of an unknown error code in any error context (Session Termination,
+REQUEST_ERROR, PUBLISH_DONE, or Data Stream Reset) MUST be treated as
+equivalent to `INTERNAL_ERROR` for that context. An endpoint MUST NOT close
+the session because it received an unknown error code in a REQUEST_ERROR
+or PUBLISH_DONE.
 
 # IANA Considerations {#iana}
 
 TODO: fill out currently missing registries:
 
-* MOQT version numbers
-* Setup parameters
-* Non-setup Parameters - List which params can be repeated in the table.
+* MOQT ALPN values
 * Message types
-* MOQ Extension headers - we wish to reserve extension types 0-63 for
-  standards utilization where space is a premium, 64 - 16383 for
-  standards utilization where space is less of a concern, and 16384 and
-  above for first-come-first-served non-standardization usage.
-  List which headers can be repeated in the table.
-* MOQT Auth Token Type
 
-TODO: register the URI scheme and the ALPN and grease the Extension types
+## URI Scheme Registrations
+
+This document requests the registration of the following URI schemes in the
+"Uniform Resource Identifier (URI) Schemes" registry, per {{!RFC7595}}:
+
+### "moqt" URI Scheme Registration
+
+Scheme name: moqt
+
+Status: Permanent
+
+Applications/protocols that use this scheme name: Media over QUIC Transport
+(MOQT) over native QUIC or WebTransport, as defined in this document.
+
+Contact: IETF MoQ Working Group (moq@ietf.org)
+
+Change controller: IETF
+
+References: This document
+
+## Media Type Registration {#iana-media-type}
+
+This document registers the following media type in the "Media Types"
+registry {{!RFC6838}}:
+
+Type name: application
+
+Subtype name: moqt
+
+Required parameters: N/A
+
+Optional parameters: N/A
+
+Encoding considerations: This media type is used to identify resources
+accessed via the `moqt` URI scheme. It is not used to label the
+content of MOQT objects, which are defined by separate media types in
+application-specific specifications.
+
+Security considerations: See the Security Considerations section of
+this document.
+
+Interoperability considerations: N/A
+
+Published specification: This document
+
+Applications that use this media type: Implementations of the Media
+over QUIC Transport (MOQT) protocol.
+
+Fragment identifier considerations: Fragment identifiers for
+`application/moqt` follow the syntax defined in {{moqt-fragment}}.
+
+Additional information: N/A
+
+Contact: IETF MoQ Working Group (moq@ietf.org)
+
+Change controller: IETF
+
+## MOQT URI Fragment Types {#iana-fragment-types}
+
+This document establishes the "MOQT URI Fragment Types" registry. This
+registry governs fragment type identifiers used in `moqt` URI fragments
+as defined in {{moqt-fragment}}.
+
+New fragment type identifiers are registered using the Specification
+Required policy ({{!RFC8126, Section 4.6}}).
+
+Each entry in the registry contains the following fields:
+
+| Fragment Type | Description | Specification |
+|:--------------|:------------|:--------------|
+
+This registry is initially empty.
+
+## Setup Options {#iana-setup-options}
+
+| Type | Name | Specification |
+|-----:|:-----|:--------------|
+| 0x01 | PATH | {{path}} |
+| 0x03 | AUTHORIZATION_TOKEN | {{setup-auth-token}} |
+| 0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | {{max-auth-token-cache-size}} |
+| 0x05 | AUTHORITY | {{authority}} |
+| 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
+| 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
+
+Endpoints MUST ignore unknown Setup Options as specified in
+{{message-setup}}.
+
+New Setup Option types are registered using the Specification Required
+policy ({{!RFC8126, Section 4.6}}).  Provisional registrations are
+permitted to allow experimentation and avoid codepoint collisions
+between independent implementations.  There is no reserved range for
+private or application-specific use; implementations that need custom
+Setup Options SHOULD request a provisional registration.
 
 ## Authorization Token Alias Type
 
@@ -4021,6 +4642,65 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | 0x2  | USE_ALIAS  | {{authorization-token}}
 | 0x3  | USE_VALUE  | {{authorization-token}}
 
+## MOQT Auth Token Type {#iana-auth-token-type}
+
+| Code | Name       | Specification |
+|-----:|:-----------|:--------------|
+| 0x0  | Reserved   | {{authorization-token}} |
+| 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
+
+## Message Parameters
+
+| Parameter Type | Parameter Name | Specification |
+|----------------|----------------|---------------|
+| 0x02 | DELIVERY_TIMEOUT | {{delivery-timeout}} |
+| 0x03 | AUTHORIZATION_TOKEN | {{authorization-token}} |
+| 0x04 | RENDEZVOUS_TIMEOUT | {{rendezvous-timeout}} |
+| 0x08 | EXPIRES | {{expires}} |
+| 0x09 | LARGEST_OBJECT | {{largest-param}} |
+| 0x10 | FORWARD | {{forward-parameter}} |
+| 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
+| 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
+| 0x22 | GROUP_ORDER | {{group-order}} |
+| 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
+
+* Message Parameters - List which params can be repeated in the table.
+
+## Properties {#iana-properties}
+
+| Type | Name | Scope | Specification |
+|-----:|:-----|:------|:--------------|
+| 0x02 | DELIVERY_TIMEOUT | Track | {{delivery-timeout-ext}} |
+| 0x04 | MAX_CACHE_DURATION | Track | {{max-cache-duration}} |
+| 0x0B | IMMUTABLE_PROPERTIES | Track, Object | {{immutable-properties}} |
+| 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | {{publisher-priority}} |
+| 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track | {{group-order-pref}} |
+| 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
+| 0x3C | PRIOR_GROUP_ID_GAP | Object | {{prior-group-id-gap}} |
+| 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
+| 0x7f * N + 0x9D | Reserved for greasing | Any | {{grease}} |
+
+Endpoints MUST ignore unknown Property types, skipping them using
+the length field.
+
+* MOQ Properties - we wish to define the following registration policies:
+  - 0x00 to 0x77: Standards Action or IESG Approval (1-byte encoding)
+  - 0x78 to 0x7F: Reserved for application-specific use (1-byte encoding,
+    no registration permitted)
+  - 0x80 to 0x37FF: Specification Required (2-byte encoding)
+  - 0x3800 to 0x3FFF: Reserved for application-specific use (2-byte encoding,
+    no registration permitted)
+  - 0x4000 to 0x7FFF: Reserved for Mandatory Track Properties
+    (see {{mandatory-track-properties}}). Properties registered in this range
+    MUST have Track scope; Object scope properties MUST NOT be registered in
+    this range.
+  - 0x8000 and above: First Come First Served
+
+  Code points reserved for application-specific use will never be allocated
+  by IANA. Applications using these values do not need to coordinate with
+  IANA.  Note that applications consuming tracks from uncoordinated sources may
+  encounter different semantics for the same code points, creating potential
+  collision risks.
 
 ## Error Codes {#iana-error-codes}
 
@@ -4035,7 +4715,7 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | INVALID_REQUEST_ID         | 0x4  | {{session-termination}} |
 | DUPLICATE_TRACK_ALIAS      | 0x5  | {{session-termination}} |
 | KEY_VALUE_FORMATTING_ERROR | 0x6  | {{session-termination}} |
-| TOO_MANY_REQUESTS          | 0x7  | {{session-termination}} |
+| INVALID_REQUIRED_REQUEST_ID | 0x7 | {{session-termination}} |
 | INVALID_PATH               | 0x8  | {{session-termination}} |
 | MALFORMED_PATH             | 0x9  | {{session-termination}} |
 | GOAWAY_TIMEOUT             | 0x10 | {{session-termination}} |
@@ -4049,19 +4729,30 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
 | INVALID_AUTHORITY          | 0x19 | {{session-termination}} |
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination}} |
+| Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
-### SUBSCRIBE_ERROR Codes {#iana-subscribe-error}
+### REQUEST_ERROR Codes {#iana-request-error}
 
-| Name                  | Code | Specification               |
-|:----------------------|:----:|:----------------------------|
-| INTERNAL_ERROR        | 0x0  | {{message-subscribe-error}} |
-| UNAUTHORIZED          | 0x1  | {{message-subscribe-error}} |
-| TIMEOUT               | 0x2  | {{message-subscribe-error}} |
-| NOT_SUPPORTED         | 0x3  | {{message-subscribe-error}} |
-| TRACK_DOES_NOT_EXIST  | 0x4  | {{message-subscribe-error}} |
-| INVALID_RANGE         | 0x5  | {{message-subscribe-error}} |
-| MALFORMED_AUTH_TOKEN  | 0x10 | {{message-subscribe-error}} |
-| EXPIRED_AUTH_TOKEN    | 0x12 | {{message-subscribe-error}} |
+| Name                       | Code | Specification              |
+|:---------------------------|:----:|:--------------------------|
+| INTERNAL_ERROR             | 0x0  | {{message-request-error}} |
+| UNAUTHORIZED               | 0x1  | {{message-request-error}} |
+| TIMEOUT                    | 0x2  | {{message-request-error}} |
+| NOT_SUPPORTED              | 0x3  | {{message-request-error}} |
+| MALFORMED_AUTH_TOKEN       | 0x4  | {{message-request-error}} |
+| EXPIRED_AUTH_TOKEN         | 0x5  | {{message-request-error}} |
+| GOING_AWAY                 | 0x6  | {{message-request-error}} |
+| EXCESSIVE_LOAD             | 0x9  | {{message-request-error}} |
+| DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
+| INVALID_RANGE              | 0x11 | {{message-request-error}} |
+| MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
+| DUPLICATE_SUBSCRIPTION     | 0x19 | {{message-request-error}} |
+| UNINTERESTED               | 0x20 | {{message-request-error}} |
+| PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
+| NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
+| INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
+| Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
@@ -4074,68 +4765,24 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | GOING_AWAY         | 0x4  | {{message-publish-done}} |
 | EXPIRED            | 0x5  | {{message-publish-done}} |
 | TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
-| MALFORMED_TRACK    | 0x7  | {{message-publish-done}} |
-
-### PUBLISH_ERROR Codes {#iana-publish-error}
-
-| Name           | Code | Specification             |
-|:---------------|:----:|:--------------------------|
-| INTERNAL_ERROR | 0x0  | {{message-publish-error}} |
-| UNAUTHORIZED   | 0x1  | {{message-publish-error}} |
-| TIMEOUT        | 0x2  | {{message-publish-error}} |
-| NOT_SUPPORTED  | 0x3  | {{message-publish-error}} |
-| UNINTERESTED   | 0x4  | {{message-publish-error}} |
-
-### FETCH_ERROR Codes {#iana-fetch-error}
-
-| Name                       | Code | Specification           |
-|:---------------------------|:----:|:------------------------|
-| INTERNAL_ERROR             | 0x0  | {{message-fetch-error}} |
-| UNAUTHORIZED               | 0x1  | {{message-fetch-error}} |
-| TIMEOUT                    | 0x2  | {{message-fetch-error}} |
-| NOT_SUPPORTED              | 0x3  | {{message-fetch-error}} |
-| TRACK_DOES_NOT_EXIST       | 0x4  | {{message-fetch-error}} |
-| INVALID_RANGE              | 0x5  | {{message-fetch-error}} |
-| NO_OBJECTS                 | 0x6  | {{message-fetch-error}} |
-| INVALID_JOINING_REQUEST_ID | 0x7  | {{message-fetch-error}} |
-| UNKNOWN_STATUS_IN_RANGE    | 0x8  | {{message-fetch-error}} |
-| MALFORMED_TRACK            | 0x9  | {{message-fetch-error}} |
-| MALFORMED_AUTH_TOKEN       | 0x10 | {{message-fetch-error}} |
-| EXPIRED_AUTH_TOKEN         | 0x12 | {{message-fetch-error}} |
-
-### ANNOUNCE_ERROR Codes {#iana-announce-error}
-
-| Name                  | Code | Specification            |
-|:----------------------|:----:|:-------------------------|
-| INTERNAL_ERROR        | 0x0  | {{message-pub-ns-error}} |
-| UNAUTHORIZED          | 0x1  | {{message-pub-ns-error}} |
-| TIMEOUT               | 0x2  | {{message-pub-ns-error}} |
-| NOT_SUPPORTED         | 0x3  | {{message-pub-ns-error}} |
-| UNINTERESTED          | 0x4  | {{message-pub-ns-error}} |
-| MALFORMED_AUTH_TOKEN  | 0x10 | {{message-pub-ns-error}} |
-| EXPIRED_AUTH_TOKEN    | 0x12 | {{message-pub-ns-error}} |
-
-### SUBSCRIBE_NAMESPACE_ERROR Codes {#iana-subscribe-namespace-error}
-
-| Name                     | Code | Specification            |
-|:-------------------------|:----:|:-------------------------|
-| INTERNAL_ERROR           | 0x0  | {{message-sub-ns-error}} |
-| UNAUTHORIZED             | 0x1  | {{message-sub-ns-error}} |
-| TIMEOUT                  | 0x2  | {{message-sub-ns-error}} |
-| NOT_SUPPORTED            | 0x3  | {{message-sub-ns-error}} |
-| NAMESPACE_PREFIX_UNKNOWN | 0x4  | {{message-sub-ns-error}} |
-| NAMESPACE_PREFIX_OVERLAP | 0x5  | {{message-sub-ns-error}} |
-| MALFORMED_AUTH_TOKEN     | 0x10 | {{message-sub-ns-error}} |
-| EXPIRED_AUTH_TOKEN       | 0x12 | {{message-sub-ns-error}} |
+| UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
+| EXCESSIVE_LOAD     | 0x9  | {{message-publish-done}} |
+| MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
+| Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
 
-| Name             | Code | Specification                |
-|:-----------------|:----:|:-----------------------------|
-| INTERNAL_ERROR   | 0x0  | {{closing-subgroup-streams}} |
-| CANCELLED        | 0x1  | {{closing-subgroup-streams}} |
-| DELIVERY_TIMEOUT | 0x2  | {{closing-subgroup-streams}} |
-| SESSION_CLOSED   | 0x3  | {{closing-subgroup-streams}} |
+| Name                  | Code | Specification                |
+|:----------------------|:----:|:-----------------------------|
+| INTERNAL_ERROR        | 0x0  | {{closing-subgroup-streams}} |
+| CANCELLED             | 0x1  | {{closing-subgroup-streams}} |
+| DELIVERY_TIMEOUT      | 0x2  | {{closing-subgroup-streams}} |
+| SESSION_CLOSED        | 0x3  | {{closing-subgroup-streams}} |
+| UNKNOWN_OBJECT_STATUS | 0x4  | {{closing-subgroup-streams}} |
+| TOO_FAR_BEHIND        | 0x5  | {{closing-subgroup-streams}} |
+| EXCESSIVE_LOAD        | 0x9  | {{closing-subgroup-streams}} |
+| MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
+| Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
 # Contributors
 {:numbered="false"}
@@ -4163,6 +4810,12 @@ document:
 - Mo Zanaty
 - Will Law
 
+# Use of Generative AI
+{:numbered="false"}
+
+Anthropic's Claude was used to assist with drafting and editing text for this
+document. All AI-generated content was reviewed and approved by the editors.
+
 --- back
 
 # Change Log
@@ -4170,6 +4823,139 @@ document:
 RFC Editor's Note: Please remove this section prior to publication of a final version of this document.
 
 Issue and pull request numbers are listed with a leading octothorp.
+
+## Since draft-ietf-moq-transport-16
+
+**Session and Control Plane**
+
+* Change control stream from bidi to a pair of uni streams (#1510)
+* Collapse CLIENT_SETUP and SERVER_SETUP into a single SETUP message (#1510)
+* Move requests to bidirectional streams; remove cancel messages (#1389)
+* Remove MAX_REQUEST_ID/REQUESTS_BLOCKED (#1471)
+* New variable-length integer encoding (#1016)
+* Encode Message Parameters as Type-Value pairs (#1462)
+* Add GREASE for Setup Options, Properties, and error code registries (#1460)
+* Add RENDEZVOUS_TIMEOUT parameter for SUBSCRIBE (#1447)
+* Add PUBLISH_BLOCKED message for SUBSCRIBE_NAMESPACE flow control (#1452)
+* Add Timeout field to GOAWAY message (#1497)
+* Add GOING_AWAY to REQUEST_ERROR codes (#1434)
+* Add EXCESSIVE_LOAD error code (#1479)
+* Add NAMESPACE_TOO_LARGE error and stream reset for large namespaces (#1496)
+* Add TOO_FAR_BEHIND stream reset code (#1445)
+* Add REQUEST_UPDATE to list of REQUEST_ERROR causes (#1466)
+* Enforce REQUEST_OK/ERROR as first message on the response stream (#1499)
+* Allow joining FETCH for PUBLISH and REQUEST_UPDATE with forward=1 (#1335)
+* Allow DELIVERY_TIMEOUT value of 0 to mean no timeout (#1450)
+* Allow zero-element namespaces (#1472)
+* Clarify EXPIRES parameter update mechanism (#1448)
+* Remove TRACK_STATUS from REQUEST_UPDATE (#1436)
+* Define how to use auth token cache safely with multiple streams (#1430)
+* Constrain encoding/parsing of track namespace and names (#1512)
+* Reserve Property type ranges for application-specific use (#1473)
+* Make EndGroup in Subscription Filters a delta (#1470)
+* Copy DELIVERY_TIMEOUT min requirement from parameter to property (#1427)
+
+**Data Plane Wire Format and Handling**
+
+* Clarify prior Object semantics after End of Range indicators in FETCH (#1513)
+* Clarify datagram status and properties cases (#1444)
+* Clarify Stream Count includes empty subgroups (#1449)
+* Clarify language for malformed tracks in a subgroup with END_OF_GROUP (#1464)
+* Properties can appear in mutable list or inside Immutable Properties (#1442)
+* Clarify immutable property preservation requirements (#1441)
+* Clarification for Track Alias uniqueness (#1418)
+
+**Notable Editorial Changes**
+
+* Rename Setup Parameters to Setup Options (#1461)
+* Rename Extension Headers to Properties (#1504)
+* Add security/privacy considerations for MOQT_IMPLEMENTATION (#1511)
+* Add editorial text on bandwidth probing techniques (#1477)
+* Explain idle connection handling (#1443)
+* Fix "SUBSCRIBE_NAMESPACE with short prefixes" (#1502)
+* Add generative AI disclosure per IRTF guidelines
+
+
+## Since draft-ietf-moq-transport-15
+
+**Setup and Control Plane**
+
+* Delta encode Key-Value-Pairs for Parameters and Headers (#1315)
+* Use Request ID in PUBLISH_NAMESPACE_{DONE/CANCEL} (#1329)
+* Remove delivery related params from TRACK_STATUS for Subscribers (#1325)
+* PUBLISH does not imply PUBLISH_NAMESPACE (#1364)
+* Allow Start Location to decrease in SUBSCRIBE_UPDATE (#1323)
+* Change SUBSCRIBE_UPDATE to REQUEST_UPDATE and expand ability to update (#1332)
+* Put SUBSCRIBE_NAMESPACE on a stream, make Namespaces and PUBLISH independent
+  (#1344)
+* Require NAMESPACE before NAMESPACE_DONE (#1392)
+* Allow the '*' or the empty namespace in SUBSCRIBE_NAMESPACE (#1393)
+* Relays match SUBSCRIBE to both Tracks and Namespaces (#1397)
+* Clarify sending requests after sending GOAWAY (#1398)
+* Add Retry Interval to REQUEST_ERROR (#1339)
+* Add Extension Headers to PUBLISH, SUBSCRIBE_OK, and FETCH_OK (#1374)
+* Move track properties to extensions, scope parameters (#1390)
+* Add LARGEST_OBJECT parameter to TRACK_STATUS (#1367)
+* Duplicate subscription processing (#1341)
+* Address Track Name/Namespace edge cases (#1399)
+
+**Data Plane Wire Format and Handling**
+
+* Enable mixing datagrams with streams in one track (#1350)
+* Clarify datagrams and subgroups (#1382)
+* Redo the way we deal with missing Objects and Object Status (#1342)
+* Allow unknown ranges in a FETCH response (#1331)
+* Do not reopen subgroups after delivery timeout or STOP_SENDING (#1396)
+* Clarify handling of unknown extensions (#1395)
+* Clarify Delivery Timeout for datagrams (#1406)
+* Disallow DELIVERY_TIMEOUT=0 (#1330)
+* Malformed track due to multiple priorities for one subgroup (#1317)
+
+**Notable Editorial Changes**
+
+* Subscribers can migrate networks too (#1410)
+* Rename Version Specific Parameters to Message Parameters (#1411)
+* Clarify valid joining fetch subscription states (#1363)
+* Formatting names for logs (#1355)
+* A Publisher might not use the congestion window (#1408)
+
+
+## Since draft-ietf-moq-transport-14
+
+**Setup and Control Plane**
+
+* Always use ALPN for version negotiation (#499)
+* Consolidate all the Error Message types (#1159)
+* Change MOQT IMPLEMENTATION code point to 0x7 (#1191)
+* Add Forward to SUBSCRIBE_NAMESPACE (#1220)
+* Parameters for Group Order, Subscribe Priority and Subscription Filter (redo) (#1273)
+* REQUEST_OK message (#1274)
+* Subscribe Update Acknowledgements (#1275)
+* Disallow DELETE and USE_ALIAS in CLIENT_SETUP (#1277)
+* Remove Expires field from SUBSCRIBE_OK (#1282)
+* Make Forward a Parameter (#1283)
+* Allow SUBSCRIBE_UPDATE to increase the end location (#1288)
+* Add default port for raw QUIC (#1289)
+* Unsubscribe Namespace should be linked to Subscribe Namespace (#1292)
+
+**Data Plane Wire Format and Handling**
+
+* Fetch Object serialization optimization (#949)
+* Make default PUBLISHER PRIORITY a parameter, optional in Subgroup/Datagram (#1056)
+* Allow datagram status with object ID=0 (#1197)
+* Disallow object extension headers in all non-Normal status objects (#1266)
+* Objects for malformed track must not be cached (#1290)
+* Remove NO_OBJECTS fetch error code (#1303)
+* Clarify what happens when max_cache_duration parameter is omitted (#1287)
+
+**Notable Editorial Changes**
+
+* Rename Request ID field in MAX_REQUEST_ID (#1250)
+* Define and draw subscription state machine (#1296)
+* Omitting a subgroup object necessitates reset (#1295)
+* Define duplication rules for header extensions (#1293)
+* Clarify joining fetch end location (#1286)
+
 
 ## Since draft-ietf-moq-transport-13
 
