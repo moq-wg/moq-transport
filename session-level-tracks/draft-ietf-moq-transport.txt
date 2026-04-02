@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 1 October 2026                                    I. Swett, Ed.
+Expires: 4 October 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           30 March 2026
+                                                            2 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 October 2026.
+   This Internet-Draft will expire on 4 October 2026.
 
 Copyright Notice
 
@@ -106,7 +106,8 @@ Table of Contents
        3.1.2.  QUIC
        3.1.3.  Connection URL
      3.2.  Extension Negotiation
-       3.2.1.  Session-Level Tracks
+       3.2.1.  Reserved Namespaces
+       3.2.2.  Session-Level Tracks
      3.3.  Session initialization
        3.3.1.  Request Cancellation and Rejection
      3.4.  Unidirectional Stream Types
@@ -1054,15 +1055,20 @@ Table of Contents
    used with that version.  New extensions MUST specify the existing
    versions with which they can be used.
 
-3.2.1.  Session-Level Tracks
+3.2.1.  Reserved Namespaces
 
-   MOQT reserves the namespace tuple field value .session (the bytes
-   0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e) in the first position
-   of the Track Namespace for session-level tracks.  Session-level
-   tracks are published by the MOQT session itself, not by the
-   application.  They provide a mechanism for extending MOQT transport
-   functionality using existing subscription and object delivery
-   machinery, without defining new control messages or stream types.
+   MOQT reserves all Track Namespace values whose first tuple field
+   begins with a period (0x2e, .) for use by MOQT and its extensions.
+
+3.2.2.  Session-Level Tracks
+
+   MOQT defines the .session namespace (the bytes 0x2e, 0x73, 0x65,
+   0x73, 0x73, 0x69, 0x6f, 0x6e) in the first position of the Track
+   Namespace for session-level tracks.  Session-level tracks are
+   published by the MOQT session itself, not by the application.  They
+   provide a mechanism for extending MOQT transport functionality using
+   existing subscription and object delivery machinery, without defining
+   new control messages or stream types.
 
    Applications MUST NOT publish tracks with a Track Namespace whose
    first field is .session.  Relays MUST NOT forward subscriptions for
@@ -4874,7 +4880,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 14.5.  Session-Level Track Names
 
    This document establishes a registry for session-level track names
-   under the .session namespace (see Section 3.2.1).  The registration
+   under the .session namespace (see Section 3.2.2).  The registration
    policy is Specification Required (per [RFC8126], Section 4.6).
 
    Each registration must include:
