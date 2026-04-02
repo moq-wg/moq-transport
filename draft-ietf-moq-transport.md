@@ -3365,8 +3365,8 @@ SUBSCRIBE_NAMESPACE Message {
 * Parameters: The parameters are defined in {{message-params}}.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
-of the stream. If the subscriber receives any frame other than a REQUEST_OK or a
-REQUEST_ERROR as the first frame on the response half of the stream, then it MUST
+of the stream. If the subscriber receives any message other than a REQUEST_OK or a
+REQUEST_ERROR as the first message on the response half of the stream, then it MUST
 close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
 stream if they are requested. If it is an error, the stream will be immediately
@@ -4739,7 +4739,7 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Add NAMESPACE_TOO_LARGE error and stream reset for large namespaces (#1496)
 * Add TOO_FAR_BEHIND stream reset code (#1445)
 * Add REQUEST_UPDATE to list of REQUEST_ERROR causes (#1466)
-* Enforce REQUEST_OK/ERROR as first frame on the response stream (#1499)
+* Enforce REQUEST_OK/ERROR as first message on the response stream (#1499)
 * Allow joining FETCH for PUBLISH and REQUEST_UPDATE with forward=1 (#1335)
 * Allow DELIVERY_TIMEOUT value of 0 to mean no timeout (#1450)
 * Allow zero-element namespaces (#1472)
