@@ -5895,8 +5895,8 @@ NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.<a href
 </li>
         </ul>
 <p id="section-9.20-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
-of the stream. If the subscriber receives any frame other than a REQUEST_OK or a
-REQUEST_ERROR as the first frame on the response half of the stream, then it <span class="bcp14">MUST</span>
+of the stream. If the subscriber receives any message other than a REQUEST_OK or a
+REQUEST_ERROR as the first message on the response half of the stream, then it <span class="bcp14">MUST</span>
 close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
 stream if they are requested. If it is an error, the stream will be immediately
@@ -8465,7 +8465,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
             <p id="appendix-A.1-2.15.1">Add REQUEST_UPDATE to list of REQUEST_ERROR causes (#1466)<a href="#appendix-A.1-2.15.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.16">
-            <p id="appendix-A.1-2.16.1">Enforce REQUEST_OK/ERROR as first frame on the response stream (#1499)<a href="#appendix-A.1-2.16.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.16.1">Enforce REQUEST_OK/ERROR as first message on the response stream (#1499)<a href="#appendix-A.1-2.16.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.17">
             <p id="appendix-A.1-2.17.1">Allow joining FETCH for PUBLISH and REQUEST_UPDATE with forward=1 (#1335)<a href="#appendix-A.1-2.17.1" class="pilcrow">¶</a></p>

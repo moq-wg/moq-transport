@@ -3706,10 +3706,10 @@ Table of Contents
    *  Parameters: The parameters are defined in Section 9.3.
 
    The publisher will respond with REQUEST_OK or REQUEST_ERROR on the
-   response half of the stream.  If the subscriber receives any frame
-   other than a REQUEST_OK or a REQUEST_ERROR as the first frame on the
-   response half of the stream, then it MUST close the session with a
-   PROTOCOL_VIOLATION.  If the SUBSCRIBE_NAMESPACE is successful, the
+   response half of the stream.  If the subscriber receives any message
+   other than a REQUEST_OK or a REQUEST_ERROR as the first message on
+   the response half of the stream, then it MUST close the session with
+   a PROTOCOL_VIOLATION.  If the SUBSCRIBE_NAMESPACE is successful, the
    publisher will send matching NAMESPACE messages on the response
    stream if they are requested.  If it is an error, the stream will be
    immediately closed via FIN.  Also, any matching PUBLISH messages
@@ -5470,7 +5470,7 @@ A.1.  Since draft-ietf-moq-transport-16
 
    *  Add REQUEST_UPDATE to list of REQUEST_ERROR causes (#1466)
 
-   *  Enforce REQUEST_OK/ERROR as first frame on the response stream
+   *  Enforce REQUEST_OK/ERROR as first message on the response stream
       (#1499)
 
    *  Allow joining FETCH for PUBLISH and REQUEST_UPDATE with forward=1
