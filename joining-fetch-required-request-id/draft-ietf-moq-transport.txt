@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 22 September 2026                                 I. Swett, Ed.
+Expires: 4 October 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           21 March 2026
+                                                            2 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 September 2026.
+   This Internet-Draft will expire on 4 October 2026.
 
 Copyright Notice
 
@@ -3269,9 +3269,9 @@ Table of Contents
    A Joining Fetch is only permitted when the associated subscription
    has Forward State 1; otherwise the publisher MUST close the session
    with a PROTOCOL_VIOLATION.  A publisher MUST process any pending
-   Forward State transitions for the associated subscription before
-   evaluating this requirement.  Relays with an upstream subscription in
-   Forward State 0 can either send a Joining Fetch upstream or buffer
+   REQUEST_UPDATE messages for the associated subscription before
+   evaluating the current request.  Relays with an upstream subscription
+   in Forward State 0 can either send a Joining Fetch upstream or buffer
    the Joining Fetch until the upstream subscription transitions to
    Forward State 1 and serve from cache.
 
