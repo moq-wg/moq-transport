@@ -862,15 +862,19 @@ New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
 
+### Reserved Namespaces {#reserved-namespaces}
+
+MOQT reserves all Track Namespace values whose first tuple field begins with
+a period (0x2e, `.`) for use by MOQT and its extensions.
+
 ### Session-Level Tracks {#session-level-tracks}
 
-MOQT reserves the namespace tuple field value `.session` (the bytes 0x2e,
-0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e) in the first position of the
-Track Namespace for session-level tracks. Session-level tracks are published
-by the MOQT session itself, not by the application. They provide a mechanism
-for extending MOQT transport functionality using existing subscription and
-object delivery machinery, without defining new control messages or stream
-types.
+MOQT defines the `.session` namespace (the bytes 0x2e, 0x73, 0x65, 0x73,
+0x73, 0x69, 0x6f, 0x6e) in the first position of the Track Namespace for
+session-level tracks. Session-level tracks are published by the MOQT session
+itself, not by the application. They provide a mechanism for extending MOQT
+transport functionality using existing subscription and object delivery
+machinery, without defining new control messages or stream types.
 
 Applications MUST NOT publish tracks with a Track Namespace whose first
 field is `.session`. Relays MUST NOT forward subscriptions for session-level
