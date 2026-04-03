@@ -17,22 +17,22 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.31.0" name="generator">
+<meta content="xml2rfc 3.32.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.31.0
+  xml2rfc 3.32.0
     Python 3.12.12
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.0.2
-    platformdirs 4.5.1
+    platformdirs 4.9.4
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.32.5
-    wcwidth 0.3.0
+    wcwidth 0.6.0
 -->
 <link href="draft-ietf-moq-transport.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -173,7 +173,7 @@ networks and is designed for high scale and low latency distribution.
   font-weight: 400;
   font-display: swap;
   src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
   font-family: 'Oxygen Mono';
@@ -181,7 +181,8 @@ networks and is designed for high scale and low latency distribution.
   font-weight: 400;
   font-display: swap;
   src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 }
 
 @font-face {
@@ -1052,11 +1053,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">February 2026</td>
+<td class="right">April 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 15 August 2026</td>
+<td class="center">Expires 5 October 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-11" class="published">11 February 2026</time>
+<time datetime="2026-04-03" class="published">3 April 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-15">15 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-10-05">5 October 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1144,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 15 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 5 October 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2571,7 +2572,7 @@ See <a href="#iana" class="auto internal xref">Section 13</a>.<a href="#section-
 <p id="section-3.1-1">This document defines a protocol that can be used interchangeably both
 over a QUIC connection directly <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>, and over WebTransport
 <span>[<a href="#WebTransport" class="cite xref">WebTransport</a>]</span>.  Both provide streams and datagrams with similar
-semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-11#section-4" class="relref">Section 4</a></span>); thus, the
+semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12#section-4" class="relref">Section 4</a></span>); thus, the
 main difference lies in how the servers are identified and how the
 connection is established. The QUIC DATAGRAM extension (<span>[<a href="#RFC9221" class="cite xref">RFC9221</a>]</span>)
 <span class="bcp14">MUST</span> be supported and negotiated in the QUIC connection used for MOQT,
@@ -2583,7 +2584,7 @@ designed to work correctly when the extension is not supported.<a href="#section
 such as TCP, and applications using MoQ might need to fallback to
 another protocol when QUIC or WebTransport aren't available.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.1-3">MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-14#section-3.3" class="relref">Section 3.3</a></span>) to perform version negotiation.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-3.3" class="relref">Section 3.3</a></span>) to perform version negotiation.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
 <p id="section-3.1-4">[[RFC editor: please remove the remainder of this section before publication.]]<a href="#section-3.1-4" class="pilcrow">¶</a></p>
 <p id="section-3.1-5">The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> for the final version of this specification
 is <code>moqt</code>.  ALPNs used to identify IETF drafts are created by appending
@@ -2600,7 +2601,7 @@ negotiation in the CLIENT_SETUP and SERVER_SETUP messages.<a href="#section-3.1-
 using an HTTPS URI (<span>[<a href="#RFC9110" class="cite xref">RFC9110</a>], <a href="https://rfc-editor.org/rfc/rfc9110#section-4.2.2" class="relref">Section 4.2.2</a></span>).  An MOQT session can be
 established by sending an extended CONNECT request to the host and the
 path indicated by the URI, as described in
-(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-14#section-3" class="relref">Section 3</a></span>).<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
+(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-3" class="relref">Section 3</a></span>).<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="quic">
@@ -2692,7 +2693,7 @@ session's lifetime.  Doing so results in the session being closed as a
 <p id="section-3.4-1">The Transport Session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION_CLOSE frame
 (<span>[<a href="#QUIC" class="cite xref">QUIC</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-19.19" class="relref">Section 19.19</a></span>).  When WebTransport is used, the session is
-closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-14#section-6" class="relref">Section 6</a></span>).<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-6" class="relref">Section 6</a></span>).<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 <p id="section-3.4-2">When terminating the Session, the application <span class="bcp14">MAY</span> use any error message
 and <span class="bcp14">SHOULD</span> use a relevant code, as defined below:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-3.4-3">
@@ -4035,20 +4036,20 @@ any other relevant information.<a href="#section-9.2.2.2-8" class="pilcrow">¶</
 <a href="#section-9.2.2.3" class="section-number selfRef">9.2.2.3. </a><a href="#name-fill-timeout-parameter" class="section-name selfRef">FILL TIMEOUT Parameter</a>
             </h5>
 <p id="section-9.2.2.3-1">The FILL_TIMEOUT parameter (Parameter Type 0x0A) <span class="bcp14">MAY</span> appear in a FETCH message.<a href="#section-9.2.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.2.3-2">It is the duration in milliseconds a relay <span class="bcp14">SHOULD</span> wait for an upstream source to
-provide Objects that are not immediately available before reporting them as
-Unknown gaps in the FETCH response. When a relay encounters a range of Objects
-within the requested range that are not immediately available and have unknown
-status, it issues an upstream FETCH to retrieve them. The Fill Timeout applies
-independently to each such upstream FETCH, not an overall timeout for the
-entire request. If an upstream FETCH does not complete within the Fill Timeout,
-the relay reports the corresponding Objects as gaps and continues processing
-subsequent Objects in the range.<a href="#section-9.2.2.3-2" class="pilcrow">¶</a></p>
+<p id="section-9.2.2.3-2">It is the maximum total duration in milliseconds a relay <span class="bcp14">SHOULD</span> spend waiting
+for upstream sources to provide Objects that are not immediately available
+before reporting them as Unknown gaps in the FETCH response. When a relay
+encounters Objects within the requested range that are not immediately available
+and have unknown status, it issues upstream FETCHes to retrieve them. The Fill
+Timeout represents a total budget for all such upstream FETCHes generated by
+this request. If the budget is exhausted, the relay reports any remaining
+unavailable Objects as Unknown gaps and continues delivering available Objects
+in the range.<a href="#section-9.2.2.3-2" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.3-3">A value of 0 indicates the subscriber only wants Objects that are immediately
 available; the relay <span class="bcp14">MUST NOT</span> wait for upstream delivery and <span class="bcp14">MUST</span> report any
-unavailable Objects as gaps.<a href="#section-9.2.2.3-3" class="pilcrow">¶</a></p>
+unavailable Objects as Unknown gaps.<a href="#section-9.2.2.3-3" class="pilcrow">¶</a></p>
 <p id="section-9.2.2.3-4">If the Fill Timeout parameter is absent, the relay waits for an implementation
-specific duration before reporting gaps. If the subscriber specifies a Fill
+specific duration before reporting Unknown gaps. If the subscriber specifies a Fill
 Timeout larger than the relay is willing to wait, the relay <span class="bcp14">MAY</span> use a shorter
 timeout without informing the subscriber.<a href="#section-9.2.2.3-4" class="pilcrow">¶</a></p>
 </section>
@@ -7624,7 +7625,7 @@ document:<a href="#section-14-1" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="WebTransport">[WebTransport]</dt>
       <dd>
-<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"WebTransport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http3-14</span>, <time datetime="2025-10-20" class="refDate">20 October 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-14">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-14</a>&gt;</span>. </dd>
+<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"WebTransport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http3-15</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -7649,7 +7650,7 @@ document:<a href="#section-14-1" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
-<span class="refAuthor">Kinnear, E.</span> and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-11</span>, <time datetime="2025-10-20" class="refDate">20 October 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-11">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-11</a>&gt;</span>. </dd>
+<span class="refAuthor">Kinnear, E.</span> and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-12</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC6582">[RFC6582]</dt>
         <dd>
