@@ -53,10 +53,10 @@ author:
 normative:
   QUIC: RFC9000
   WebTransport: I-D.ietf-webtrans-http3
-  CAT: I-D.ietf-moq-c4m
-  PPA: I-D.ietf-moq-privacy-pass-auth
 
 informative:
+  CAT: I-D.ietf-moq-c4m
+  PPA: I-D.ietf-moq-privacy-pass-auth
   I-D.jennings-moq-secure-objects:
 
 --- abstract
