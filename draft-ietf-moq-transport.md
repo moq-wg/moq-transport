@@ -2256,8 +2256,7 @@ successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
 any other relevant information.
 
-<<<<<<< fill-timeout
-#### FILL TIMEOUT Parameter {#fill-timeout}
+### FILL TIMEOUT Parameter {#fill-timeout}
 
 The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a FETCH message.
 
@@ -2280,10 +2279,7 @@ specific duration before reporting Unknown gaps. If the subscriber specifies a F
 Timeout larger than the relay is willing to wait, the relay MAY use a shorter
 timeout without informing the subscriber.
 
-#### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
-=======
 ### RENDEZVOUS TIMEOUT Parameter {#rendezvous-timeout}
->>>>>>> main
 
 The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) MAY appear in a
 SUBSCRIBE message.
