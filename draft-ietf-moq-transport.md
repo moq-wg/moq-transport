@@ -3955,10 +3955,10 @@ Bitmask | Condition if set | Condition if not set (0)
 0x20 | Properties field is present | Properties field is not present
 0x40 | Datagram: ignore the two least significant bits | Decode the Subgroup ID as indicated by the two least significant bits
 
-If the first Object in the FETCH response uses a flag that references fields in
-the prior Object, the Subscriber MUST close the session with a
-`PROTOCOL_VIOLATION`. The first Object therefore MUST include a Group ID Delta
-and Object ID Delta, and these values are the absolute Group ID and Object ID.
+The first Object MUST include a Group ID Delta and Object ID Delta, and
+these values are the absolute Group ID and Object ID. If the first Object in
+the FETCH response uses a flag that references fields in the prior Object,
+the Subscriber MUST close the session with a `PROTOCOL_VIOLATION`.
 
 If the Group ID Delta field is present on an Object other than the first, the
 Group ID is computed from the Group ID Delta and the prior Object's Group ID.
