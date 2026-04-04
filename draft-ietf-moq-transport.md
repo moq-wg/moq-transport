@@ -667,7 +667,7 @@ to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
-1.  In a FETCH response, an Object with a particular Subgroup ID is received, but its
+1.  An Object with a particular Subgroup ID is received, but its
      Publisher Priority is different from that of the previous Object with the same
      Subgroup ID.
 2. An Object is received whose Object ID is larger than the final Object in the
