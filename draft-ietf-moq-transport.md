@@ -3964,7 +3964,9 @@ If the Group ID Delta field is present on an Object other than the first, the
 Group ID is computed from the Group ID Delta and the prior Object's Group ID.
 If the Group Order is Ascending, the Group ID is the prior Object's Group ID
 plus the Group ID Delta + 1.  If the Group Order is Descending, the Group ID is
-the prior Object's Group ID minus the (Group ID Delta + 1).
+the prior Object's Group ID minus the (Group ID Delta + 1). If the computed
+Group ID would be less than 0 or greater than 2^64-1, the Subscriber MUST
+close the Session with a 'PROTOCOL_VIOLATION'.
 
 If the Object ID Delta field is present on an Object other than the first in the
 Group, the Object ID is the prior Object's ID plus the Object ID Delta.  When the
