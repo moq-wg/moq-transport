@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 4 October 2026</td>
+<td class="center">Expires 6 October 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-04-02" class="published">2 April 2026</time>
+<time datetime="2026-04-04" class="published">4 April 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-10-04">4 October 2026</time></dd>
+<dd class="expires"><time datetime="2026-10-06">6 October 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 4 October 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 6 October 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1999,7 +1999,7 @@ when describing the binary encoding.<a href="#section-1.4-1" class="pilcrow">¶<
           <h4 id="name-variable-length-integers">
 <a href="#section-1.4.1" class="section-number selfRef">1.4.1. </a><a href="#name-variable-length-integers" class="section-name selfRef">Variable-Length Integers</a>
           </h4>
-<p id="section-1.4.1-1">MoQT requires a variable-length integer encoding with the following properties:<a href="#section-1.4.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.4.1-1">MOQT requires a variable-length integer encoding with the following properties:<a href="#section-1.4.1-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-1.4.1-2">
 <li id="section-1.4.1-2.1">
               <p id="section-1.4.1-2.1.1">The encoded length can be determined from the first encoded byte.<a href="#section-1.4.1-2.1.1" class="pilcrow">¶</a></p>
@@ -2654,7 +2654,7 @@ determine the largest published Group ID.<a href="#section-2.4.3-4.3.1" class="p
         </h3>
 <p id="section-2.5-1">Tracks and Objects can have additional relay-visible fields, known as
 Properties, which do not require negotiation, and can be used to alter
-MoQT Object distribution.<a href="#section-2.5-1" class="pilcrow">¶</a></p>
+MOQT Object distribution.<a href="#section-2.5-1" class="pilcrow">¶</a></p>
 <p id="section-2.5-2">Properties are defined in <a href="#moqt-properties" class="auto internal xref">Section 11</a> as well as external
 specifications and are registered in an IANA table <a href="#iana" class="auto internal xref">Section 14</a>. These
 specifications define the type and value of the property, along with any rules
@@ -2765,7 +2765,7 @@ connection is established. The QUIC DATAGRAM extension (<span>[<a href="#RFC9221
 <span class="bcp14">MUST</span> be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
 <p id="section-3.1-2">There is no definition of the protocol over other transports,
-such as TCP, and applications using MoQ might need to fallback to
+such as TCP, and applications using MOQT might need to fallback to
 another protocol when QUIC or WebTransport aren't available.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.1-3">MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-3.3" class="relref">Section 3.3</a></span>) to perform version negotiation.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
@@ -3401,6 +3401,9 @@ If the resulting Group ID would be greater than 2^64 - 1, the endpoint <span cla
 close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-11">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> close the
 session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-12">If the publisher cannot satisfy the requested Subscription Filter (see
+<a href="#subscription-filter" class="auto internal xref">Section 9.3.7</a>) or if the entire End Group has already been published
+it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR with code <code>INVALID_RANGE</code>.  A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range.<a href="#section-5.1.2-12" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="joining-an-ongoing-track">
@@ -3414,9 +3417,11 @@ request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.<a href="#section-5.1.3-1" class="pilcrow">¶</a></p>
 <p id="section-5.1.3-2">To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
 REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
-<a href="#joining-fetches" class="auto internal xref">Section 9.14.2</a>) for the intended start Group, which can be relative.  To
-join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter
-Type <code>Next Group Start</code>.<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
+<a href="#joining-fetches" class="auto internal xref">Section 9.14.2</a>) for the intended start Group, which can be relative.  When
+the Joining FETCH follows a REQUEST_UPDATE that transitions Forward State from
+0 to 1, the FETCH <span class="bcp14">MUST</span> set its Required Request ID (<a href="#required-request-id" class="auto internal xref">Section 9.2</a>) to
+the REQUEST_UPDATE's Request ID or later.  To join a Track at the next Group, the
+subscriber sends a SUBSCRIBE with Filter Type <code>Next Group Start</code>.<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
 <div id="dynamically-starting-new-groups">
 <section id="section-5.1.3.1">
             <h5 id="name-dynamically-starting-new-gr">
@@ -3565,7 +3570,7 @@ PUBLISH_NAMESPACE messages.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
       <h2 id="name-priorities">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-priorities" class="section-name selfRef">Priorities</a>
       </h2>
-<p id="section-7-1">MoQ priorities allow a subscriber and original publisher to influence
+<p id="section-7-1">MOQT priorities allow a subscriber and original publisher to influence
 the transmission order of Objects within a session in the presence of
 congestion.<a href="#section-7-1" class="pilcrow">¶</a></p>
 <div id="definitions">
@@ -3680,14 +3685,14 @@ use Subscriber Priority or Group Order from incoming subscriptions for upstream
 subscriptions. Relays' use of these fields for upstream subscriptions can be
 based on factors specific to it, such as the popularity of the content or
 policy, or relays can specify the same value for all upstream subscriptions.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
-<p id="section-7.3-2">MoQ Sessions can span multiple namespaces, and priorities might not
+<p id="section-7.3-2">MOQT Sessions can span multiple namespaces, and priorities might not
 be coordinated across namespaces.  The subscriber's priority is
 considered first, so there is a mechanism for a subscriber to fix
 incompatibilities between different namespaces prioritization schemes.
 Additionally, it is anticipated that when multiple namespaces
 are present within a session, the namespaces could be coordinating,
 possibly part of the same application.  In cases when pooling among
-namespaces is expected to cause issues, multiple MoQ sessions, either
+namespaces is expected to cause issues, multiple MOQT sessions, either
 within a single connection or on multiple connections can be used.<a href="#section-7.3-2" class="pilcrow">¶</a></p>
 <p id="section-7.3-3">Implementations that have a default priority <span class="bcp14">SHOULD</span> set it to a value in
 the middle of the range (eg: 128) to allow non-default priorities to be
@@ -3701,13 +3706,13 @@ set either higher or lower.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
       <h2 id="name-relays-2">
 <a href="#section-8" class="section-number selfRef">8. </a><a href="#name-relays-2" class="section-name selfRef">Relays</a>
       </h2>
-<p id="section-8-1">Relays are leveraged to enable distribution scale in the MoQ
+<p id="section-8-1">Relays are leveraged to enable distribution scale in the MOQT
 architecture. Relays can be used to form an overlay delivery network,
 similar in functionality to Content Delivery Networks
 (CDNs). Additionally, relays serve as policy enforcement points by
 validating subscribe and publish requests at the edge of a network.<a href="#section-8-1" class="pilcrow">¶</a></p>
 <p id="section-8-2">Relays are endpoints, which means they terminate Transport Sessions in order to
-have visibility of MoQ Object metadata.<a href="#section-8-2" class="pilcrow">¶</a></p>
+have visibility of MOQT Object metadata.<a href="#section-8-2" class="pilcrow">¶</a></p>
 <div id="caching-relays">
 <section id="section-8.1">
         <h3 id="name-caching-relays">
@@ -4814,7 +4819,8 @@ REQUEST_OK Message {
   Type (vi64) = 0x7,
   Length (16),
   Number of Parameters (vi64),
-  Parameters (..) ...
+  Parameters (..) ...,
+  Track Properties (..),
 }
 </pre>
 </div>
@@ -4825,6 +4831,15 @@ REQUEST_OK Message {
 <ul class="normal">
 <li class="normal" id="section-9.6-3.1">
             <p id="section-9.6-3.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.3</a>.<a href="#section-9.6-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.6-3.2">
+            <p id="section-9.6-3.2.1">Track Properties : A sequence of Properties. See <a href="#properties" class="auto internal xref">Section 2.5</a>. The
+length of Track Properties is the remaining length of the message
+after parsing all previous fields. Track Properties are populated in
+response to TRACK_STATUS messages; they are empty in response to
+REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE.  If an
+endpoint receives Track Properties in response to one of these messages
+it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.6-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5038,12 +5053,6 @@ SUBSCRIBE Message {
 <p id="section-9.8-6">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
 specified, and start sending objects.<a href="#section-9.8-6" class="pilcrow">¶</a></p>
-<p id="section-9.8-7">If the publisher cannot satisfy the requested Subscription Filter (see
-<a href="#subscription-filter" class="auto internal xref">Section 9.3.7</a>) or if the entire End Group has already been published
-it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR with code <code>INVALID_RANGE</code>.  A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range.<a href="#section-9.8-7" class="pilcrow">¶</a></p>
-<p id="section-9.8-8">Subscribing with the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.3.10</a>) equal to 0 allows
-publisher or relay to prepare to serve the subscription in advance, reducing the
-time to receive objects in the future.<a href="#section-9.8-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-subscribe-ok">
@@ -5257,8 +5266,6 @@ PUBLISH_OK Message {
             <p id="section-9.12-3.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.3</a>.<a href="#section-9.12-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-9.12-4">TODO: A similar section to SUBSCRIBE about how the publisher handles a
-filter that is entirely behind Largest Object or is otherwise invalid.<a href="#section-9.12-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-publish-done">
@@ -5485,7 +5492,11 @@ Location or a Location relative to the Largest group.<a href="#section-9.14.2-2"
 with a certain number of groups prior to the live edge of a track.<a href="#section-9.14.2-3" class="pilcrow">¶</a></p>
 <p id="section-9.14.2-4">A Joining Fetch is only permitted when the associated subscription has
 Forward State 1; otherwise the publisher <span class="bcp14">MUST</span> close the session with a
-<code>PROTOCOL_VIOLATION</code>.<a href="#section-9.14.2-4" class="pilcrow">¶</a></p>
+<code>PROTOCOL_VIOLATION</code>. A publisher <span class="bcp14">MUST</span> process any pending REQUEST_UPDATE
+messages for the associated subscription before evaluating the current
+request. Relays with an upstream subscription in transition from Forward State 0
+to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
+the upstream subscription returns REQUEST_OK with the new Largest Object.<a href="#section-9.14.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.14.2-5">If no Objects have been published for the track the publisher <span class="bcp14">MUST</span>
 respond with a REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-9.14.2-5" class="pilcrow">¶</a></p>
 <p id="section-9.14.2-6">A Joining Fetch includes this structure:<a href="#section-9.14.2-6" class="pilcrow">¶</a></p>
@@ -5696,8 +5707,9 @@ delivery (e.g. SUBSCRIBER_PRIORITY) are not included.<a href="#section-9.16-2" c
 <p id="section-9.16-3">The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
-REQUEST_OK message with the same parameters it would have set in a SUBSCRIBE_OK.
-Track Alias is not used.  A publisher responds to a failed TRACK_STATUS with an
+REQUEST_OK message with the same parameters and Track Properties it would have
+set in a SUBSCRIBE_OK. Track Alias is not used.  A publisher responds to a
+failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
 REQUEST_OK or REQUEST_ERROR are sent.<a href="#section-9.16-3" class="pilcrow">¶</a></p>
 <p id="section-9.16-4">Relays without an <code>Established</code> subscription <span class="bcp14">MAY</span> forward TRACK_STATUS to one or more
@@ -5876,8 +5888,8 @@ NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.<a href
 </li>
         </ul>
 <p id="section-9.20-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
-of the stream. If the subscriber receives any frame other than a REQUEST_OK or a
-REQUEST_ERROR as the first frame on the response half of the stream, then it <span class="bcp14">MUST</span>
+of the stream. If the subscriber receives any message other than a REQUEST_OK or a
+REQUEST_ERROR as the first message on the response half of the stream, then it <span class="bcp14">MUST</span>
 close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
 stream if they are requested. If it is an error, the stream will be immediately
@@ -5997,7 +6009,7 @@ cache, and forward it.  Objects are sent by publishers.<a href="#section-10.2-1"
           <h4 id="name-object-header">
 <a href="#section-10.2.1" class="section-number selfRef">10.2.1. </a><a href="#name-object-header" class="section-name selfRef">Object Header</a>
           </h4>
-<p id="section-10.2.1-1">A canonical MoQ Object has the following fields:<a href="#section-10.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-10.2.1-1">A canonical MOQT Object has the following fields:<a href="#section-10.2.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.2.1-2.1">
               <p id="section-10.2.1-2.1.1">Track Namespace and Track Name: The track this object belongs to.<a href="#section-10.2.1-2.1.1" class="pilcrow">¶</a></p>
@@ -6223,7 +6235,7 @@ Header field values.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
           </h4>
 <p id="section-10.4.1-1">Streams aside from the control streams <span class="bcp14">MAY</span> be canceled due to congestion
 or other reasons by either the publisher or subscriber. Early termination of a
-unidirectional stream does not affect the MoQ application state, and therefore has
+unidirectional stream does not affect the MOQT application state, and therefore has
 no effect on outstanding subscriptions. Termination of a bidi request stream
 terminates the Subscription, Fetch, Track Status, Publish Namespace, or Subscribe Namespace
 request. When possible, Publishers <span class="bcp14">SHOULD</span> send a PUBLISH_DONE when terminating a
@@ -8456,7 +8468,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
             <p id="appendix-A.1-2.15.1">Add REQUEST_UPDATE to list of REQUEST_ERROR causes (#1466)<a href="#appendix-A.1-2.15.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.16">
-            <p id="appendix-A.1-2.16.1">Enforce REQUEST_OK/ERROR as first frame on the response stream (#1499)<a href="#appendix-A.1-2.16.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.16.1">Enforce REQUEST_OK/ERROR as first message on the response stream (#1499)<a href="#appendix-A.1-2.16.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.17">
             <p id="appendix-A.1-2.17.1">Allow joining FETCH for PUBLISH and REQUEST_UPDATE with forward=1 (#1335)<a href="#appendix-A.1-2.17.1" class="pilcrow">¶</a></p>
