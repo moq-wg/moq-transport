@@ -2557,7 +2557,7 @@ conditions that constitute a malformed track when detected by a receiver
 include:<a href="#section-2.4.2-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-2.4.2-2">
 <li id="section-2.4.2-2.1">
-              <p id="section-2.4.2-2.1.1">In a FETCH response, an Object with a particular Subgroup ID is received, but its
+              <p id="section-2.4.2-2.1.1">An Object with a particular Subgroup ID is received, but its
  Publisher Priority is different from that of the previous Object with the same
  Subgroup ID.<a href="#section-2.4.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
@@ -6672,7 +6672,7 @@ If the Group Order is Ascending, the Group ID is the prior Object's Group ID
 plus the Group ID Delta + 1.  If the Group Order is Descending, the Group ID is
 the prior Object's Group ID minus the (Group ID Delta + 1). If the computed
 Group ID would be less than 0 or greater than 2^64-1, the Subscriber <span class="bcp14">MUST</span>
-close the Session with a 'PROTOCOL_VIOLATION'.<a href="#section-10.4.4.1-6" class="pilcrow">¶</a></p>
+close the Session with error 'PROTOCOL_VIOLATION'.<a href="#section-10.4.4.1-6" class="pilcrow">¶</a></p>
 <p id="section-10.4.4.1-7">If the Object ID Delta field is present on an Object other than the first in the
 Group, the Object ID is the prior Object's ID plus the Object ID Delta.  When the
 Group ID Delta field is present and therefore the Group ID changes, the Object ID
