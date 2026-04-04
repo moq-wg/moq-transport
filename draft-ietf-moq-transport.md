@@ -3971,7 +3971,9 @@ close the Session with a 'PROTOCOL_VIOLATION'.
 If the Object ID Delta field is present on an Object other than the first in the
 Group, the Object ID is the prior Object's ID plus the Object ID Delta.  When the
 Group ID Delta field is present and therefore the Group ID changes, the Object ID
-is the absolute value of Object ID Delta if present, and 0 otherwise.
+is the absolute value of Object ID Delta if present, and 0 otherwise. If the computed
+Object ID would be greater than 2^64-1, the Subscriber MUST close the Session
+with error 'PROTOCOL_VIOLATION'.
 
 The Object Properties structure is defined in {{object-properties}}.
 
