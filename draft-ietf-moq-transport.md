@@ -2766,10 +2766,7 @@ SUBSCRIBE_OK Message {
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}). The same Track Alias MUST NOT be used by a publisher to refer to
-  two different Tracks simultaneously in the same session. If a subscriber receives a
-  SUBSCRIBE_OK that uses the same Track Alias as a different track with an
-  `Established` subscription, it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
+  {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -2866,10 +2863,7 @@ PUBLISH Message {
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}). The same Track Alias MUST NOT be used by a publisher to refer to
-  two different Tracks simultaneously in the same session. If a subscriber receives a
-  PUBLISH that uses the same Track Alias as a different track with an `Established`
-  subscription, it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
+  {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -3461,12 +3455,18 @@ An endpoint that receives an unknown datagram type MUST close the session.
 Every Object has a 'Object Forwarding Preference' and the Original Publisher
 MAY use both Subgroups and Datagrams within a Group or Track.
 
-## Track Alias
+## Track Alias {#track-alias}
 
 To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
 the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}) or PUBLISH
 ({{message-publish}}).
+
+The same Track Alias MUST NOT be used by a publisher to refer to two different
+Tracks simultaneously in the same session. If a subscriber receives a
+PUBLISH or SUBSCRIBE_OK that uses the same Track Alias as a different Track
+with an `Established` subscription, it MUST close the session with error
+`DUPLICATE_TRACK_ALIAS`.
 
 Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
 retain sufficient state to quickly discard these unwanted Objects, rather than
