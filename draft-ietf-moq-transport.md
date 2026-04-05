@@ -1297,32 +1297,37 @@ Range Filters are parameters in subscriptions or fetches that tell a publisher
 to filter tracks and objects according to subscriber criteria which are
 allowed ranges of integer values in Track and Object Properties and other
 object header fields (Subgroup ID, Object ID, and Publisher Priority).
-
-There are four Range Filter parameter types, 0x25-0x28, each with a Length
-prefix in bytes and similar structures and behavior as summarized below.
+There are four Range Filter parameter types, 0x25-0x28, as shown below.
 
 ~~~
-SUBGROUP_FILTER { Type=0x25, Length, AndSet, Range... }
-  OBJECT_FILTER { Type=0x26, Length, AndSet, Range... }
-PRIORITY_FILTER { Type=0x27, Length, AndSet, Range... }
-PROPERTY_FILTER { Type=0x28, Length, AndSet, Property Type, Range... }
-          Range { Start (..), [End (..)] }
+SUBGROUP_FILTER { Type=0x25, Length, Set, Range... }
+OBJECTID_FILTER { Type=0x26, Length, Set, Range... }
+PRIORITY_FILTER { Type=0x27, Length, Set, Range... }
+PROPERTY_FILTER { Type=0x28, Length, Set, Property Type, Range... }
+          Range { Start, End }
 ~~~
 
-Each Range Filter is a Length (vi64) prefixed sequence of AndSet (8 bits) followed
-by Start/End inclusive Range pairs.
-Start is delta encoded from the prior Range's End (or from 0
-for the first Range), and End is delta encoded from the current Range's Start.
-The final End in a sequence of Ranges MAY be omitted to indicate no end.
+Each Range Filter is a sequence of Start/End (vi64) inclusive Range pairs
+prefixed with a Length (vi64) in bytes and a Set (8 bits).
+The Property Filter includes an additional prefix for Property Type (vi64).
+The final End in a sequence of Ranges can be omitted to indicate no end.
+
+Start is delta encoded from the prior Range's End or from 0
+for the first Range, and End is delta encoded from the current Range's Start.
 For example, to express ranges 3-5 and 10-15: the first Start is 3
 (delta from 0), the first End is 2 (5 minus 3), the second Start is 5
 (10 minus 5), and the second End is 5 (15 minus 10).
-All filter parameters with the same AndSet value are combined using logical
-"and" operations, then all the resulting sets are combined using logical "or"
-operations.
 
-These parameters MAY appear in a FETCH, SUBSCRIBE, SUBSCRIBE_NAMESPACE,
-PUBLISH_OK, or REQUEST_UPDATE (from a subscriber) message.
+All filter parameters with the same Set value are combined using logical
+"AND" operations, then all the resulting Sets are combined using logical
+"OR" operations.  The final result is Set=0 OR Set=1 OR ... Set=255,
+where each Set=i is the AND of filters with Set=i.
+
+These parameters MAY appear multiple times in a FETCH, SUBSCRIBE,
+SUBSCRIBE_NAMESPACE, PUBLISH_OK, or REQUEST_UPDATE (from a subscriber)
+message.  If the same combination of Parameter Type, Property Type
+(only in the Property Filter), and Set repeat in any message,
+an endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
 A filter parameter with zero length indicates no filter, which can
 be used in REQUEST_UPDATE to remove the filter.  If a filter parameter
@@ -1337,12 +1342,16 @@ If this limit is exceeded, an endpoint MUST close the session with a
 
 ### Combining Filters
 
-All filter types are combined using logical "and" operations
+All filter types are combined using logical "AND" operations
 to further restrict which tracks and objects pass all filter criteria.
 This includes all Range Filters {{range-filters}}, Subscription Location
 Filters {{subscription-filters}}, and Track Filters {{track-filters}}.
 Track Filters always evaluate first before all other filters which can be
-evaluated in any order.
+evaluated in any order. The Forward parameter is also a type of filter.
+
+~~~
+Pass = Forward AND Location Filter AND Track Filter AND Range Filters
+~~~
 
 ### Joining an Ongoing Track
 
@@ -1566,7 +1575,8 @@ elapses before the track delivers an object that remains in the top N,
 either of which deselect the track.  The publisher MUST send a
 REQUEST_UPDATE message with Forward=0 when a track is deselected.
 The publisher MUST send a REQUEST_UPDATE message with Forward=1 when a
-deselected track is reselected, which also updates the Joining Location.
+deselected track is reselected, which also updates the Joining Location
+as described in {{joining-fetch-range-calculation}}.
 
 Recently deselected tracks SHOULD be kept in a list to avoid more PUBLISH
 messages in case a deselected track is reselected.  A relay SHOULD limit
@@ -2384,9 +2394,9 @@ unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 The SUBGROUP_FILTER parameter (Type 0x25) selects objects with specified
 Ranges of Subgroup ID.  See {{range-filters}}.
 
-### OBJECT FILTER
+### OBJECTID FILTER
 
-The OBJECT_FILTER parameter (Type 0x26) selects objects with specified
+The OBJECTID_FILTER parameter (Type 0x26) selects objects with specified
 Ranges of Object ID.  See {{range-filters}}.
 
 ### PRIORITY FILTER
@@ -2401,7 +2411,7 @@ If a decoded value exceeds 255, the endpoint MUST close the session with a
 The PROPERTY_FILTER parameter (Type 0x28) selects tracks or objects with
 specified Ranges of Property Value for a specified Track or Object Property
 Type which MUST be even, i.e. a single integer value
-(see {{moq-key-value-pair}}).  The Length prefixed sequence contains AndSet
+(see {{moq-key-value-pair}}).  The Length prefixed sequence contains Set
 then Property Type followed by Property Value Range pairs.
 See {{range-filters}}.
 Range MAY be omitted to indicate no filter for the specified Property Type.
@@ -4600,7 +4610,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x21 | SUBSCRIPTION_LOCATION_FILTER | {{subscription-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x25 | SUBGROUP_FILTER | {{subgroup-filter}} |
-| 0x26 | OBJECT_FILTER | {{object-filter}} |
+| 0x26 | OBJECTID_FILTER | {{objectid-filter}} |
 | 0x27 | PRIORITY_FILTER | {{priority-filter}} |
 | 0x28 | PROPERTY_FILTER | {{property-filter}} |
 | 0x29 | TRACK_FILTER | {{track-filter}} |
