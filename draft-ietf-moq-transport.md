@@ -1576,8 +1576,8 @@ limit state  |    +---> REQ UPD FWD=1 --->|   Tracks   |
 A track is selected if it publishes an object with the top N highest
 value for Property Type, where N = MaxTracksSelected.  The publisher
 MUST send a PUBLISH message for each newly selected track.  For tracks
-with the same value, the earliest delivered object wins the tie
-breaker, so a selected track remains selected until another track
+with the same value, the track with the earliest delivered object wins
+the tie breaker, so a selected track remains selected until another track
 publishes a higher value that demotes it out of the top N, or Timeout
 elapses before the track delivers an object that remains in the top N,
 either of which deselect the track.  The publisher MUST send a
