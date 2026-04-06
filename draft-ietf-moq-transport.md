@@ -1330,8 +1330,8 @@ message.  If the same combination of Parameter Type, Property Type
 (only in the Property Filter), and Set repeat in any message,
 an endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
-A filter parameter with zero length indicates no filter, which can
-be used in REQUEST_UPDATE to remove the filter.  If a filter parameter
+Length can be 0 or 1 in REQUEST_UPDATE to remove a filter parameter
+for all Sets or a specified Set, respectively.  If a filter parameter
 is omitted from REQUEST_UPDATE, the value is unchanged.  If omitted
 from other messages, the default is no filter.
 
@@ -2412,14 +2412,8 @@ If a decoded value exceeds 255, the endpoint MUST close the session with a
 The PROPERTY_FILTER parameter (Type 0x28) selects tracks or objects with
 specified Ranges of Property Value for a specified Track or Object Property
 Type which MUST be even, i.e. a single integer value
-(see {{moq-key-value-pair}}).  The Length prefixed sequence contains Set
-then Property Type followed by Property Value Range pairs.
-See {{range-filters}}.
-Range MAY be omitted to indicate no filter for the specified Property Type.
-Length MAY be zero to indicate no filter for all Property Types.
-This parameter MAY be repeated within a message with different values for
-Property Type.  If the Property Type is odd, the endpoint MUST close the
-session with a `PROTOCOL_VIOLATION`.
+(see {{moq-key-value-pair}}), otherwise the endpoint MUST close the
+session with a `PROTOCOL_VIOLATION`. See {{range-filters}}.
 
 If a track has a Track Property of the specified Property Type, its value
 is used for filtering both the PUBLISH message and any Objects from that track
@@ -2432,7 +2426,8 @@ The TRACK_FILTER parameter (Type=0x29) MAY appear in a SUBSCRIBE_NAMESPACE
 or REQUEST_UPDATE (for SUBSCRIBE_NAMESPACE) message. It selects a specified
 number of tracks within a namespace with the highest Property Values for a
 specified Track or Object Property Type which MUST be even, i.e. a single
-integer value (see {{moq-key-value-pair}}).
+integer value (see {{moq-key-value-pair}}), otherwise the endpoint MUST
+close the session with a `PROTOCOL_VIOLATION`.
 See {{track-filters}} and {{max-tracks-selected}}.
 
 ### EXPIRES Parameter {#expires}
