@@ -1341,6 +1341,13 @@ in all Range Filter parameters for a given subscription or fetch.
 If this limit is exceeded, an endpoint MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
+The Property Filter {{property-filter}} and Track Filter {{track-filters}}
+evaluate both Track and Object Properties.
+If a track has a Track Property of the specified Property Type, its value
+is used for filtering both the PUBLISH message and any Objects from that track
+that lack their own value for that Property Type.  If the Track Property value
+does not pass the filter, no Objects from that track are delivered.
+
 ### Combining Filters
 
 All filter types are combined using logical "AND" operations
@@ -1581,7 +1588,7 @@ as described in {{joining-fetch-range-calculation}}.
 
 Recently deselected tracks SHOULD be kept in a list to avoid more PUBLISH
 messages in case a deselected track is reselected.  A relay SHOULD limit
-this list size if it consumes excessive resources by sending PUBLISH_DONE
+this list size to protect its resources by sending PUBLISH_DONE
 messages to purge state for the oldest deselected tracks, putting them
 back in the unknown state.  If a track is reselected after this, it is
 considered newly selected so the publisher MUST send a PUBLISH message
@@ -1600,12 +1607,6 @@ If a track filter for a namespace overlaps with a direct subscription
 to a track name in the same namespace, it is considered to pass the
 track filter whether or not it is counted in the top N list, and MUST NOT
 be subject to track filter state changes or actions.
-
-The track filter evaluates both Track and Object Properties.
-If a track has a Track Property of the specified Property Type, its value
-is used for filtering both the PUBLISH message and any Objects from that track
-that lack their own value for that Property Type.  If the Track Property value
-does not pass the filter, no Objects from that track are delivered.
 
 Objects received with a location lower than the largest received in that track
 are ignored for track filter state updates; however, if the track is already
@@ -2414,11 +2415,6 @@ specified Ranges of Property Value for a specified Track or Object Property
 Type which MUST be even, i.e. a single integer value
 (see {{moq-key-value-pair}}), otherwise the endpoint MUST close the
 session with a `PROTOCOL_VIOLATION`. See {{range-filters}}.
-
-If a track has a Track Property of the specified Property Type, its value
-is used for filtering both the PUBLISH message and any Objects from that track
-that lack their own value for that Property Type.  If the Track Property value
-does not pass the filter, no Objects from that track are delivered.
 
 ### TRACK FILTER
 
