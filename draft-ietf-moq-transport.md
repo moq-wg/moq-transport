@@ -1314,6 +1314,7 @@ The final End in a sequence of Ranges can be omitted to indicate no end.
 
 Start is delta encoded from the prior Range's End or from 0
 for the first Range, and End is delta encoded from the current Range's Start.
+Any delta encoding that exceeds 2^64-1 is a `PROTOCOL_VIOLATION`.
 For example, to express ranges 3-5 and 10-15: the first Start is 3
 (delta from 0), the first End is 2 (5 minus 3), the second Start is 5
 (10 minus 5), and the second End is 5 (15 minus 10).
