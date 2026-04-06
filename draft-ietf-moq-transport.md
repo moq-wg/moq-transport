@@ -255,7 +255,7 @@ when describing the binary encoding.
 
 ### Variable-Length Integers
 
-MoQT requires a variable-length integer encoding with the following properties:
+MOQT requires a variable-length integer encoding with the following properties:
 
 1. The encoded length can be determined from the first encoded byte.
 2. The range of 1 byte values is as large as possible.
@@ -747,7 +747,7 @@ ways, for example:
 
 Tracks and Objects can have additional relay-visible fields, known as
 Properties, which do not require negotiation, and can be used to alter
-MoQT Object distribution.
+MOQT Object distribution.
 
 Properties are defined in {{moqt-properties}} as well as external
 specifications and are registered in an IANA table {{iana}}. These
@@ -841,7 +841,7 @@ MUST be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3.
 
 There is no definition of the protocol over other transports,
-such as TCP, and applications using MoQ might need to fallback to
+such as TCP, and applications using MOQT might need to fallback to
 another protocol when QUIC or WebTransport aren't available.
 
 MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
@@ -1552,7 +1552,7 @@ PUBLISH_NAMESPACE messages.
 
 # Priorities {#priorities}
 
-MoQ priorities allow a subscriber and original publisher to influence
+MOQT priorities allow a subscriber and original publisher to influence
 the transmission order of Objects within a session in the presence of
 congestion.
 
@@ -1652,14 +1652,14 @@ subscriptions. Relays' use of these fields for upstream subscriptions can be
 based on factors specific to it, such as the popularity of the content or
 policy, or relays can specify the same value for all upstream subscriptions.
 
-MoQ Sessions can span multiple namespaces, and priorities might not
+MOQT Sessions can span multiple namespaces, and priorities might not
 be coordinated across namespaces.  The subscriber's priority is
 considered first, so there is a mechanism for a subscriber to fix
 incompatibilities between different namespaces prioritization schemes.
 Additionally, it is anticipated that when multiple namespaces
 are present within a session, the namespaces could be coordinating,
 possibly part of the same application.  In cases when pooling among
-namespaces is expected to cause issues, multiple MoQ sessions, either
+namespaces is expected to cause issues, multiple MOQT sessions, either
 within a single connection or on multiple connections can be used.
 
 Implementations that have a default priority SHOULD set it to a value in
@@ -1668,14 +1668,14 @@ set either higher or lower.
 
 # Relays {#relays-moq}
 
-Relays are leveraged to enable distribution scale in the MoQ
+Relays are leveraged to enable distribution scale in the MOQT
 architecture. Relays can be used to form an overlay delivery network,
 similar in functionality to Content Delivery Networks
 (CDNs). Additionally, relays serve as policy enforcement points by
 validating subscribe and publish requests at the edge of a network.
 
 Relays are endpoints, which means they terminate Transport Sessions in order to
-have visibility of MoQ Object metadata.
+have visibility of MOQT Object metadata.
 
 ## Caching Relays
 
@@ -2769,10 +2769,7 @@ SUBSCRIBE_OK Message {
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}). The same Track Alias MUST NOT be used by a publisher to refer to
-  two different Tracks simultaneously in the same session. If a subscriber receives a
-  SUBSCRIBE_OK that uses the same Track Alias as a different track with an
-  `Established` subscription, it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
+  {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -2869,10 +2866,7 @@ PUBLISH Message {
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}). The same Track Alias MUST NOT be used by a publisher to refer to
-  two different Tracks simultaneously in the same session. If a subscriber receives a
-  PUBLISH that uses the same Track Alias as a different track with an `Established`
-  subscription, it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
+  {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -3464,12 +3458,18 @@ An endpoint that receives an unknown datagram type MUST close the session.
 Every Object has a 'Object Forwarding Preference' and the Original Publisher
 MAY use both Subgroups and Datagrams within a Group or Track.
 
-## Track Alias
+## Track Alias {#track-alias}
 
 To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
 the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}) or PUBLISH
 ({{message-publish}}).
+
+The same Track Alias MUST NOT be used by a publisher to refer to two different
+Tracks simultaneously in the same session. If a subscriber receives a
+PUBLISH or SUBSCRIBE_OK that uses the same Track Alias as a different Track
+with an `Established` subscription, it MUST close the session with error
+`DUPLICATE_TRACK_ALIAS`.
 
 Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
 retain sufficient state to quickly discard these unwanted Objects, rather than
@@ -3484,7 +3484,7 @@ cache, and forward it.  Objects are sent by publishers.
 
 ### Object Header {#object-header}
 
-A canonical MoQ Object has the following fields:
+A canonical MOQT Object has the following fields:
 
 * Track Namespace and Track Name: The track this object belongs to.
 
@@ -3667,7 +3667,7 @@ Header field values.
 
 Streams aside from the control streams MAY be canceled due to congestion
 or other reasons by either the publisher or subscriber. Early termination of a
-unidirectional stream does not affect the MoQ application state, and therefore has
+unidirectional stream does not affect the MOQT application state, and therefore has
 no effect on outstanding subscriptions. Termination of a bidi request stream
 terminates the Subscription, Fetch, Track Status, Publish Namespace, or Subscribe Namespace
 request. When possible, Publishers SHOULD send a PUBLISH_DONE when terminating a
