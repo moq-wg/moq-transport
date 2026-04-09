@@ -3863,7 +3863,10 @@ Subgroups in the Group or the subscription, although applications might cancel a
 Subgroups in a Group at once.
 
 A publisher that receives a STOP_SENDING on a Subgroup stream SHOULD NOT attempt
-to open a new stream to deliver additional Objects in that Subgroup.
+to open a new stream to deliver additional Objects in that Subgroup.  However,
+if the publisher subsequently receives a REQUEST_UPDATE that changes the Forward
+State from 0 to 1, it MAY open a new stream to deliver Objects in that Subgroup,
+as the update indicates the subscriber has renewed interest in forwarded Objects.
 
 The application SHOULD use a relevant error code when resetting a stream,
 as defined below:
