@@ -882,7 +882,7 @@ tracks to other sessions.
 
 An endpoint that receives a SUBSCRIBE or FETCH for an unrecognized
 session-level track MUST reject the request with REQUEST_ERROR using error
-code NOT_SUPPORTED rather than passing it to the application.
+code DOES_NOT_EXIST rather than passing it to the application.
 
 The track names available under the `.session` namespace are defined by
 extensions to this specification and registered with IANA (see
