@@ -2830,6 +2830,16 @@ a FETCH, the publisher MUST reset the FETCH data stream. When a REQUEST_UPDATE
 fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder MUST close
 the bidi stream.
 
+A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
+coalesce their processing by applying only the cumulative result.
+Parameter values from later REQUEST_UPDATE messages override values
+from earlier ones. The receiver MUST still send a REQUEST_OK for
+each successful update, but it is not required to process
+intermediate states individually. If the coalesced REQUEST_UPDATE
+results in REQUEST_ERROR, only a single REQUEST_ERROR will be
+sent and the sender of the REQUEST_UPDATEs will not always be
+able to determine which caused an error.
+
 ## PUBLISH {#message-publish}
 
 The publisher sends PUBLISH as the first message on a new bidirectional stream
