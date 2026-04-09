@@ -263,7 +263,7 @@ first byte to indicate the length of the encoding in bytes. The remaining bits
 after the first 0 and subsequent bytes, if any, represent the integer value,
 encoded in network byte order.
 
-Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can encode up to 64
+Integers are encoded in 1 to 9 bytes and can encode up to 64
 bit unsigned integers. The following table summarizes the encoding properties.
 
 |--------------|----------------|-------------|------------------------|
@@ -281,6 +281,8 @@ bit unsigned integers. The following table summarizes the encoding properties.
 |--------------|----------------|-------------|------------------------|
 | 111110       | 6              | 42          | 0-4398046511103        |
 |--------------|----------------|-------------|------------------------|
+| 1111110      | 7              | 49          | 0-562949953421311      |
+|--------------|----------------|-------------|------------------------|
 | 11111110     | 8              | 56          | 0-72057594037927935    |
 |--------------|----------------|-------------|------------------------|
 | 11111111     | 9              | 64          | 0-18446744073709551615 |
@@ -297,17 +299,14 @@ The following table contains some example encodings:
 | 0xbbbd               | 15,293                     |
 | 0xed7f3e7d           | 226,442,877                |
 | 0xfaa1a0e403d8       | 2,893,212,287,960          |
+| 0xfc8998abc66bc0     | 151,288,809,941,952        |
 | 0xfefa318fa8e3ca11   | 70,423,237,261,249,041     |
 | 0xffffffffffffffffff | 18,446,744,073,709,551,615 |
 |----------------------|----------------------------|
 {: format title="Example Integer Encodings"}
 
-11111100 is an invalid code point.  An endpoint that receives this value MUST
-close the session with a `PROTOCOL_VIOLATION`.
-
-To reduce unnecessary use of bandwidth, variable length integers SHOULD be
-encoded using the least number of bytes possible to represent the required
-value.
+Variable length integers do not need to be encoded using the minimum number of
+bytes; any encoding length that can represent the value is valid.
 
 x (vi64):
 
