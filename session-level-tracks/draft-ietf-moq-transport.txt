@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 4 October 2026                                    I. Swett, Ed.
+Expires: 11 October 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            2 April 2026
+                                                            9 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 October 2026.
+   This Internet-Draft will expire on 11 October 2026.
 
 Copyright Notice
 
@@ -1076,7 +1076,7 @@ Table of Contents
 
    An endpoint that receives a SUBSCRIBE or FETCH for an unrecognized
    session-level track MUST reject the request with REQUEST_ERROR using
-   error code NOT_SUPPORTED rather than passing it to the application.
+   error code DOES_NOT_EXIST rather than passing it to the application.
 
    The track names available under the .session namespace are defined by
    extensions to this specification and registered with IANA (see
