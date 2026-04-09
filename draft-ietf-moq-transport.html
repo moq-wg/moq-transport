@@ -5181,6 +5181,15 @@ PUBLISH_DONE with error code <code>UPDATE_FAILED</code>. When a REQUEST_UPDATE f
 a FETCH, the publisher <span class="bcp14">MUST</span> reset the FETCH data stream. When a REQUEST_UPDATE
 fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder <span class="bcp14">MUST</span> close
 the bidi stream.<a href="#section-9.10.1-4" class="pilcrow">¶</a></p>
+<p id="section-9.10.1-5">A receiver of multiple REQUEST_UPDATE messages on the same stream <span class="bcp14">MAY</span>
+coalesce their processing by applying only the cumulative result.
+Parameter values from later REQUEST_UPDATE messages override values
+from earlier ones. The receiver <span class="bcp14">MUST</span> still send a REQUEST_OK for
+each successful update, but it is not required to process
+intermediate states individually. If the coalesced REQUEST_UPDATE
+results in REQUEST_ERROR, only a single REQUEST_ERROR will be
+sent and the sender of the REQUEST_UPDATEs will not always be
+able to determine which caused an error.<a href="#section-9.10.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
