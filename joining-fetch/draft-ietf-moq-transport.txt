@@ -3388,9 +3388,9 @@ Table of Contents
    only applies to the subscription.  If it can only be included in a
    FETCH, it only applies to the FETCH.  If it can apply to both, it
    applies to both.  Therefore, a joining FETCH inherits the parameters
-   from the associated subsccription.  Similarly, any parameters
-   included in a Joining FETCH therefore function as a REQUEST_UPDATE to
-   the subscription if the parameters apply.  Finally, any subsequent
+   from the associated subscription.  Similarly, any parameters included
+   in a Joining FETCH therefore function as a REQUEST_UPDATE to the
+   subscription if the parameters apply.  Finally, any subsequent
    REQUEST_UPDATE applies to both.
 
    If a publisher responds to joining FETCH with REQUEST_ERROR, it does
