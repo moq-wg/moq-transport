@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 11 October 2026                                   I. Swett, Ed.
+Expires: 12 October 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            9 April 2026
+                                                           10 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 October 2026.
+   This Internet-Draft will expire on 12 October 2026.
 
 Copyright Notice
 
@@ -107,7 +107,7 @@ Table of Contents
        3.1.3.  Connection URL
      3.2.  Extension Negotiation
        3.2.1.  Reserved Namespaces
-       3.2.2.  Session-Level Tracks
+       3.2.2.  Session-Level Tracks and Namespaces
      3.3.  Session initialization
        3.3.1.  Request Cancellation and Rejection
      3.4.  Unidirectional Stream Types
@@ -1058,29 +1058,44 @@ Table of Contents
 3.2.1.  Reserved Namespaces
 
    MOQT reserves all Track Namespace values whose first tuple field
-   begins with a period (0x2e, .) for use by MOQT and its extensions.
+   begins with a period (0x2e, .).  These namespaces MUST NOT be used
+   unless their meaning is defined through IANA registration.  Unless
+   otherwise specified, an endpoint that receives a request for an
+   unrecognized reserved namespace MUST pass it to the Application, so
+   that future extensions can define new reserved namespaces without
+   breaking older implementations.
 
-3.2.2.  Session-Level Tracks
+   A Track Namespace whose first field is exactly . (a single period,
+   0x2e) is reserved and MUST NOT be used for any purpose; endpoints
+   MUST NOT publish tracks or namespaces under it and MUST reject
+   requests referencing it with DOES_NOT_EXIST.
+
+3.2.2.  Session-Level Tracks and Namespaces
 
    MOQT defines the .session namespace (the bytes 0x2e, 0x73, 0x65,
    0x73, 0x73, 0x69, 0x6f, 0x6e) in the first position of the Track
-   Namespace for session-level tracks.  Session-level tracks are
-   published by the MOQT session itself, not by the application.  They
-   provide a mechanism for extending MOQT transport functionality using
-   existing subscription and object delivery machinery, without defining
-   new control messages or stream types.
+   Namespace for session-level tracks and namespaces.  Session-level
+   tracks and namespaces are managed by the MOQT implementation, not the
+   Application.  They provide a mechanism for extending MOQT transport
+   functionality using existing subscription and object delivery
+   machinery, without defining new control messages or stream types.
 
-   Applications MUST NOT publish tracks with a Track Namespace whose
-   first field is .session.  Relays MUST NOT forward subscriptions for
-   session-level tracks to other sessions.
+   The Application MUST NOT publish tracks or namespaces whose first
+   field is .session.  Relays MUST NOT forward requests for session-
+   level tracks and namespaces to other sessions.
 
-   An endpoint that receives a SUBSCRIBE or FETCH for an unrecognized
-   session-level track MUST reject the request with REQUEST_ERROR using
-   error code DOES_NOT_EXIST rather than passing it to the application.
+   The empty track name in the .session namespace is defined to not
+   exist.  A request with a Track Namespace whose first field is
+   .session and an empty Track Name MUST be rejected with
+   DOES_NOT_EXIST.
 
-   The track names available under the .session namespace are defined by
-   extensions to this specification and registered with IANA (see
-   Section 14.5).
+   An endpoint that receives a request for an unrecognized session-level
+   track or namespace MUST reject it with REQUEST_ERROR using error code
+   DOES_NOT_EXIST rather than passing it to the Application.
+
+   The track names and namespaces available under the .session namespace
+   are defined by extensions to this specification and registered with
+   IANA (see Section 14.5).
 
 3.3.  Session initialization
 
