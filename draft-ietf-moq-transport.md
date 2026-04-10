@@ -3067,7 +3067,7 @@ A Joining FETCH shares parameters with the associated subscription. If a
 parameter can only be included in SUBSCRIBE or PUBLISH_OK, it only applies to
 the subscription. If it can only be included in a FETCH, it only applies to
 the FETCH. If it can apply to both, it applies to both. Therefore, a joining
-FETCH inherits the parameters from the associated subsccription. Similarly,
+FETCH inherits the parameters from the associated subscription. Similarly,
 any parameters included in a Joining FETCH therefore function as a
 REQUEST_UPDATE to the subscription if the parameters apply. Finally, any
 subsequent REQUEST_UPDATE applies to both.
