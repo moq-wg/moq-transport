@@ -865,27 +865,41 @@ can be used.
 ### Reserved Namespaces {#reserved-namespaces}
 
 MOQT reserves all Track Namespace values whose first tuple field begins with
-a period (0x2e, `.`) for use by MOQT and its extensions.
+a period (0x2e, `.`). These namespaces MUST NOT be used unless their meaning
+is defined through IANA registration. Unless otherwise specified, an
+endpoint that receives a request for an unrecognized reserved namespace MUST
+pass it to the Application, so that future extensions can define new reserved
+namespaces without breaking older implementations.
 
-### Session-Level Tracks {#session-level-tracks}
+A Track Namespace whose first field is exactly `.` (a single period, 0x2e)
+is reserved and MUST NOT be used for any purpose; endpoints MUST NOT publish
+tracks or namespaces under it and MUST reject requests referencing it with
+DOES_NOT_EXIST.
+
+### Session-Level Tracks and Namespaces {#session-level-tracks}
 
 MOQT defines the `.session` namespace (the bytes 0x2e, 0x73, 0x65, 0x73,
 0x73, 0x69, 0x6f, 0x6e) in the first position of the Track Namespace for
-session-level tracks. Session-level tracks are published by the MOQT session
-itself, not by the application. They provide a mechanism for extending MOQT
-transport functionality using existing subscription and object delivery
-machinery, without defining new control messages or stream types.
+session-level tracks and namespaces. Session-level tracks and namespaces are
+managed by the MOQT implementation, not the Application. They provide a
+mechanism for extending MOQT transport functionality using existing
+subscription and object delivery machinery, without defining new control
+messages or stream types.
 
-Applications MUST NOT publish tracks with a Track Namespace whose first
-field is `.session`. Relays MUST NOT forward subscriptions for session-level
-tracks to other sessions.
+The Application MUST NOT publish tracks or namespaces whose first
+field is `.session`. Relays MUST NOT forward requests for session-level
+tracks and namespaces to other sessions.
 
-An endpoint that receives a SUBSCRIBE or FETCH for an unrecognized
-session-level track MUST reject the request with REQUEST_ERROR using error
-code DOES_NOT_EXIST rather than passing it to the application.
+The empty track name in the `.session` namespace is defined to not exist.
+A request with a Track Namespace whose first field is `.session` and an
+empty Track Name MUST be rejected with DOES_NOT_EXIST.
 
-The track names available under the `.session` namespace are defined by
-extensions to this specification and registered with IANA (see
+An endpoint that receives a request for an unrecognized session-level track
+or namespace MUST reject it with REQUEST_ERROR using error code
+DOES_NOT_EXIST rather than passing it to the Application.
+
+The track names and namespaces available under the `.session` namespace are
+defined by extensions to this specification and registered with IANA (see
 {{iana-session-level-tracks}}).
 
 ## Session initialization {#session-init}
