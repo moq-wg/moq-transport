@@ -958,6 +958,46 @@ New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
 
+### Reserved Namespaces {#reserved-namespaces}
+
+MOQT reserves all Track Namespace values whose first tuple field begins with
+a period (0x2e, `.`). These namespaces MUST NOT be used unless their meaning
+is defined through IANA registration. Unless otherwise specified, an
+endpoint that receives a request for an unrecognized reserved namespace MUST
+pass it to the Application, so that future extensions can define new reserved
+namespaces without breaking older implementations.
+
+A Track Namespace whose first field is exactly `.` (a single period, 0x2e)
+is reserved and MUST NOT be used for any purpose; endpoints MUST NOT publish
+tracks or namespaces under it and MUST reject requests referencing it with
+DOES_NOT_EXIST.
+
+### Session-Level Tracks and Namespaces {#session-level-tracks}
+
+MOQT defines the `.session` namespace (the bytes 0x2e, 0x73, 0x65, 0x73,
+0x73, 0x69, 0x6f, 0x6e) in the first position of the Track Namespace for
+session-level tracks and namespaces. Session-level tracks and namespaces are
+managed by the MOQT implementation, not the Application. They provide a
+mechanism for extending MOQT transport functionality using existing
+subscription and object delivery machinery, without defining new control
+messages or stream types.
+
+The Application MUST NOT publish tracks or namespaces whose first
+field is `.session`. Relays MUST NOT forward requests for session-level
+tracks and namespaces to other sessions.
+
+The empty track name in the `.session` namespace is defined to not exist.
+A request with a Track Namespace whose first field is `.session` and an
+empty Track Name MUST be rejected with DOES_NOT_EXIST.
+
+An endpoint that receives a request for an unrecognized session-level track
+or namespace MUST reject it with REQUEST_ERROR using error code
+DOES_NOT_EXIST rather than passing it to the Application.
+
+The track names and namespaces available under the `.session` namespace are
+defined by extensions to this specification and registered with IANA (see
+{{iana-session-level-tracks}}).
+
 ## Session initialization {#session-init}
 
 MOQT uses a pair of unidirectional streams for creating the session and
@@ -4456,6 +4496,7 @@ TODO: fill out currently missing registries:
 
 * MOQT ALPN values
 * Message types
+* Session-Level Track Names
 
 ## URI Scheme Registrations
 
@@ -4619,6 +4660,25 @@ the length field.
   IANA.  Note that applications consuming tracks from uncoordinated sources may
   encounter different semantics for the same code points, creating potential
   collision risks.
+
+## Session-Level Track Names {#iana-session-level-tracks}
+
+This document establishes a registry for session-level track names
+under the `.session` namespace (see {{session-level-tracks}}). The
+registration policy is Specification Required (per {{!RFC8126,
+Section 4.6}}).
+
+Each registration must include:
+
+| Field | Description |
+|:------|:------------|
+| Track Namespace | The track namespace under the `.session` namespace, can be empty |
+| Track Name | The track name (bytes) within the full namespace |
+| Description | Brief description of the track's purpose |
+| Change Controller | Who may update the registration |
+| Specification | Reference to the defining specification |
+
+This document does not define any initial entries.
 
 ## Error Codes {#iana-error-codes}
 
