@@ -266,7 +266,7 @@ first byte to indicate the length of the encoding in bytes. The remaining bits
 after the first 0 and subsequent bytes, if any, represent the integer value,
 encoded in network byte order.
 
-Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can encode up to 64
+Integers are encoded in 1 to 9 bytes and can encode up to 64
 bit unsigned integers. The following table summarizes the encoding properties.
 
 |--------------|----------------|-------------|------------------------|
@@ -284,6 +284,8 @@ bit unsigned integers. The following table summarizes the encoding properties.
 |--------------|----------------|-------------|------------------------|
 | 111110       | 6              | 42          | 0-4398046511103        |
 |--------------|----------------|-------------|------------------------|
+| 1111110      | 7              | 49          | 0-562949953421311      |
+|--------------|----------------|-------------|------------------------|
 | 11111110     | 8              | 56          | 0-72057594037927935    |
 |--------------|----------------|-------------|------------------------|
 | 11111111     | 9              | 64          | 0-18446744073709551615 |
@@ -300,17 +302,14 @@ The following table contains some example encodings:
 | 0xbbbd               | 15,293                     |
 | 0xed7f3e7d           | 226,442,877                |
 | 0xfaa1a0e403d8       | 2,893,212,287,960          |
+| 0xfc8998abc66bc0     | 151,288,809,941,952        |
 | 0xfefa318fa8e3ca11   | 70,423,237,261,249,041     |
 | 0xffffffffffffffffff | 18,446,744,073,709,551,615 |
 |----------------------|----------------------------|
 {: format title="Example Integer Encodings"}
 
-11111100 is an invalid code point.  An endpoint that receives this value MUST
-close the session with a `PROTOCOL_VIOLATION`.
-
-To reduce unnecessary use of bandwidth, variable length integers SHOULD be
-encoded using the least number of bytes possible to represent the required
-value.
+Variable length integers do not need to be encoded using the minimum number of
+bytes; any encoding length that can represent the value is valid.
 
 x (vi64):
 
@@ -2834,6 +2833,16 @@ a FETCH, the publisher MUST reset the FETCH data stream. When a REQUEST_UPDATE
 fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder MUST close
 the bidi stream.
 
+A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
+coalesce their processing by applying only the cumulative result.
+Parameter values from later REQUEST_UPDATE messages override values
+from earlier ones. The receiver MUST still send a REQUEST_OK for
+each successful update, but it is not required to process
+intermediate states individually. If the coalesced REQUEST_UPDATE
+results in REQUEST_ERROR, only a single REQUEST_ERROR will be
+sent and the sender of the REQUEST_UPDATEs will not always be
+able to determine which caused an error.
+
 ## PUBLISH {#message-publish}
 
 The publisher sends PUBLISH as the first message on a new bidirectional stream
@@ -3867,7 +3876,10 @@ Subgroups in the Group or the subscription, although applications might cancel a
 Subgroups in a Group at once.
 
 A publisher that receives a STOP_SENDING on a Subgroup stream SHOULD NOT attempt
-to open a new stream to deliver additional Objects in that Subgroup.
+to open a new stream to deliver additional Objects in that Subgroup.  However,
+if the publisher subsequently receives a REQUEST_UPDATE that changes the Forward
+State from 0 to 1, it MAY open a new stream to deliver Objects in that Subgroup,
+as the update indicates the subscriber has renewed interest in forwarded Objects.
 
 The application SHOULD use a relevant error code when resetting a stream,
 as defined below:
