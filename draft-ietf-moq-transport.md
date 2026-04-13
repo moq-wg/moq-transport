@@ -1006,7 +1006,7 @@ a peer will support. Message Parameters requiring negotiation SHOULD NOT
 be used prior to receiving the peer's SETUP message unless the application
 requires the extension or the endpoint knows the peer supports the
 extension. If an unsupported Message Parameter is used, the peer will be
-unable to process it and the session will be terminated. See {message-params}
+unable to process it and the session will be terminated. See {message-params}.
 
 ### 0-RTT
 
