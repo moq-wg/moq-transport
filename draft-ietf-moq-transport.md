@@ -1662,6 +1662,70 @@ Implementations that have a default priority SHOULD set it to a value in
 the middle of the range (eg: 128) to allow non-default priorities to be
 set either higher or lower.
 
+# Delivery Timeouts and Data Reliability {#timeouts}
+
+Each MOQT subscription has two timeout values associated with it: a
+SUBGROUP_DELIVERY_TIMEOUT and an OBJECT_DELIVERY_TIMEOUT.  Both of those values
+are expressed in milliseconds; both are optional; a value of 0 means that
+there is no timeout set.
+
+The publisher communicates both timeout values as a Track Property; the
+subscriber communicates them as a Message Parameter.  For each type of timeout,
+if both the publisher and the subscriber have a non-zero value, the smaller of
+the two is used.
+
+If the OBJECT_DELIVERY_TIMEOUT is not zero, the MOQT implementation MUST retain
+the time at which the first byte of every object has been either received from
+the upstream subscription, or provided by the original publisher application.
+The actual mechanism by which the timeout works depends on the Object
+Forwarding Preference:
+
+- For subgroups, the implementation MUST check the time elapsed since the first
+  byte of the object before attempting to send it; if the time elapsed exceeds
+  OBJECT_DELIVERY_TIMEOUT, it MUST reset the underlying transport stream with
+  the reset stream code DELIVERY_TIMEOUT (see {{closing-subgroup-streams}}) and
+  SHOULD NOT attempt to open a new stream to deliver additional Objects in that
+  Subgroup.  In order for this timeout mechanism to be efficient, the
+  implementations SHOULD limit the amount of data buffered at the underlying
+  transport layer.
+- For datagrams, the implementation MUST drop the datagrams if the time elapsed
+  since the first byte exceeds OBJECT_DELIVERY_TIMEOUT.  Similar to subgroups,
+  implementations SHOULD either minimize datagram queueing, or use datagram
+  queueing mechanisms that support time bounds (such as the `outgoingMaxAge`
+  parameter in the W3C WebTransport API).
+
+If the Object Forwarding Preference is Subgroup and the value of
+SUBGROUP_DELIVERY_TIMEOUT is not zero, once the MOQT implementation becomes
+aware that all of the objects on the subgroup have been published (either by
+receiving a FIN from the upstream subscription, or, in case of the original
+publisher, through being notified of this fact by the application), it MUST
+start a timer that will reset the underlying subgroup stream after
+SUBGROUP_DELIVERY_TIMEOUT elapses.  The subgroup timeout timer MUST remain
+active until the underlying transport stream reaches "all data committed" state
+({{!I-D.ietf-webtrans-overview, Section 4.3}}); this ensures that MOQT can time
+out subgroups where all of the data has been sent, but the stream has not been
+fully closed due to the packet loss.
+
+For objects with Object Forwarding Preference set to Datagram, the
+SUBGROUP_DELIVERY_TIMEOUT acts the same way as OBJECT_DELIVERY_TIMEOUT; if both
+are non-zero, the smaller of the two is used.
+
+|          | `SUBGROUP_DELIVERY_TIMEOUT` | `OBJECT_DELIVERY_TIMEOUT` |
+|:---------|:----------------------------|:--------------------------|
+| Timeout starts | When the FIN for the subgroup is received | When the first byte of the object is received |
+| Timeout checked at | Via a timer until all data is acknowledged | When the object is sent to the underlying transport |
+| Action upon timeout | Reset for subgroups, drop for datagrams | Reset for subgroups, drop for datagrams |
+{: #timeout-comparison title="Comparison of the delivery timeout mechanisms" }
+
+Publishers can, at their discretion, discontinue forwarding Objects before
+either of the timeouts occurs, subject to stream closure and ordering
+constraints described in {{closing-subgroup-streams}}.  However, if none of the
+timeouts are set to a non-zero value, all Objects in the track matching the
+subscription filter are delivered as indicated by their Group Order and
+Priority.  If a subscriber fails to consume Objects at a sufficient rate,
+causing the publisher to exceed its resource limits, the publisher MAY
+terminate the subscription using PUBLISH_DONE with error `TOO_FAR_BEHIND`.
+
 # Relays {#relays-moq}
 
 Relays are leveraged to enable distribution scale in the MOQT
@@ -1752,7 +1816,7 @@ to identify its Track and find the current subscribers.  Each new Object
 belonging to the Track is forwarded to each subscriber, as allowed by the
 subscription's filter (see {{message-subscribe-req}}), and delivered according
 to the priority (see {{priorities}}) and delivery timeout (see
-{{delivery-timeout}}).
+{{timeouts}}).
 
 A relay MUST NOT reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
@@ -2211,49 +2275,25 @@ REGISTER without waiting for a response.
 Senders MUST NOT send DELETE for an alias while any message using USE_ALIAS with
 that alias has not received a response.
 
-### DELIVERY TIMEOUT Parameter {#delivery-timeout}
+### SUBGROUP_DELIVERY_TIMEOUT Parameter {#subgroup-delivery-timeout}
 
-The DELIVERY TIMEOUT parameter (Parameter Type 0x02) is a varint. It MAY appear
-in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.
+The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a varint. It
+MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.  Its
+semantics are defined in {{timeouts}}.
 
-It is the duration in milliseconds the relay SHOULD continue to attempt
-forwarding Objects after they have been received.  The start time for the timeout
-is based on when the Object header is received, and does not depend upon
-the forwarding preference. Objects with forwarding preference 'Datagram' are
-not retransmitted when lost, so the Delivery Timeout only limits the amount of
-time they can be queued before being sent. There is no explicit signal that an
-Object was not sent because the delivery timeout was exceeded.
+This parameter is intended to be specific to a subscription, so it SHOULD NOT
+be forwarded upstream by a relay that intends to serve multiple subscriptions
+for the same track.
 
-A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
-due to delivery timeout.
+### OBJECT_DELIVERY_TIMEOUT Parameter {#object-delivery-timeout}
 
-If both the subscriber specifies this parameter and the Track has a
-DELIVERY_TIMEOUT property, the endpoints use the min of
-the two non-zero values for the subscription. If either value is 0, the
-non-zero value is used. If both are 0, there is no delivery timeout.
+The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a varint. It
+MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.  Its
+semantics are defined in {{timeouts}}.
 
-Publishers can, at their discretion, discontinue forwarding Objects earlier than
-the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
-constraints described in {{closing-subgroup-streams}}.  However, if neither the
-subscriber nor publisher specifies DELIVERY TIMEOUT, all Objects in the track
-matching the subscription filter are delivered as indicated by their Group Order
-and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
-causing the publisher to exceed its resource limits, the publisher MAY terminate
-the subscription using PUBLISH_DONE with error `TOO_FAR_BEHIND`.
-
-If an object in a subgroup exceeds the delivery timeout, the publisher MUST
-reset the underlying transport stream (see {{closing-subgroup-streams}}) and
-SHOULD NOT attempt to open a new stream to deliver additional Objects in that
-Subgroup.
-
-This parameter is intended to be specific to a
-subscription, so it SHOULD NOT be forwarded upstream by a relay that intends
-to serve multiple subscriptions for the same track.
-
-Publishers SHOULD consider whether the entire Object can likely be
-successfully delivered within the timeout period before sending any data
-for that Object, taking into account priorities, congestion control, and
-any other relevant information.
+This parameter is intended to be specific to a subscription, so it SHOULD NOT
+be forwarded upstream by a relay that intends to serve multiple subscriptions
+for the same track.
 
 ### RENDEZVOUS TIMEOUT Parameter {#rendezvous-timeout}
 
@@ -2921,29 +2961,28 @@ that it should receive any late-opening streams in a relatively short time.
 
 Note that some objects in the subscribed track might never be delivered,
 because a stream was reset, or never opened in the first place, due to the
-delivery timeout.
+delivery timeouts (see {{timeouts}}).
 
 A sender MUST NOT send PUBLISH_DONE until it has closed all streams it will ever
 open, and has no further datagrams to send, for a subscription. After sending
 PUBLISH_DONE, the sender can immediately destroy subscription state, although
 stream state can persist until delivery completes. The sender might persist
-subscription state to enforce the delivery timeout by resetting streams on which
-it has already sent FIN, only deleting it when all such streams have received
-ACK of the FIN.
+subscription state to enforce the subgroup delivery timeout.
 
 A sender MUST NOT destroy subscription state until it sends PUBLISH_DONE, though
 it can choose to stop sending objects (and thus send PUBLISH_DONE) for any
 reason.
 
-A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least its
-delivery timeout in case some objects are still inbound due to prioritization or
-packet loss. The subscriber MAY dispense with a timer if it unsubscribed or
-is otherwise no longer interested in objects from the track. Once the timer has
-expired, the receiver destroys subscription state once all open streams for the
-subscription have closed. A subscriber MAY discard subscription state earlier,
-at the cost of potentially not delivering some late objects to the
-application. The subscriber SHOULD send STOP_SENDING on all streams related to
-the subscription when it deletes subscription state.
+A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least the
+larger of SUBGROUP_DELIVERY_TIMEOUT or OBJECT_DELIVERY_TIMEOUT in case some
+objects are still inbound due to prioritization or packet loss. The subscriber
+MAY dispense with a timer if it unsubscribed or is otherwise no longer
+interested in objects from the track. Once the timer has expired, the receiver
+destroys subscription state once all open streams for the subscription have
+closed. A subscriber MAY discard subscription state earlier, at the cost of
+potentially not delivering some late objects to the application.  The
+subscriber SHOULD send STOP_SENDING on all streams related to the subscription
+when it deletes subscription state.
 
 The format of `PUBLISH_DONE` is as follows:
 
@@ -3797,7 +3836,7 @@ If a sender closes the stream before delivering all such objects to the QUIC
 stream, it MUST reset the stream. This includes, but is
 not limited to:
 
-* An Object in an open Subgroup exceeding its Delivery Timeout
+* Either of the delivery timeouts defined in {{timeouts}}
 * Early termination of subscription due to request cancellation
 * A publisher's decision to end the subscription early
 * A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
@@ -3889,7 +3928,7 @@ CANCELLED (0x1):
   PUBLISH_DONE ({{message-publish-done}}) will have a more detailed status code.
 
 DELIVERY_TIMEOUT (0x2):
-: The DELIVERY TIMEOUT {{delivery-timeout}} was exceeded for this stream.
+: A delivery timeout {{timeouts}} was exceeded for this stream.
 
 SESSION_CLOSED (0x3):
 : The publisher session is being closed.
@@ -3900,7 +3939,7 @@ of the next Object in the requested range.
 
 TOO_FAR_BEHIND (0x5):
 : The corresponding subscription has exceeded the publisher's resource limits and
-is being terminated (see {{delivery-timeout}}).
+is being terminated (see {{timeouts}}).
 
 EXCESSIVE_LOAD (0x9):
 : The publisher is overloaded and is resetting this stream.
@@ -4122,22 +4161,15 @@ Property types in ranges reserved for application-specific use
 (0x38-0x3F, 0x3800-0x3FFF) are not defined by MOQT.
 See {{properties}} for usage guidance.
 
-## DELIVERY TIMEOUT {#delivery-timeout-ext}
+## SUBGROUP_DELIVERY_TIMEOUT {#subgroup-delivery-timeout-ext}
 
-DELIVERY TIMEOUT (Property Type 0x02) is a Track Property.
-It expresses the publisher's DELIVERY_TIMEOUT for a Track (see
-{{delivery-timeout}}).
+SUBGROUP_DELIVERY_TIMEOUT (Property Type 0x06) is a Track Property.  It is a
+varint.  Its semantics are defined in {{timeouts}}.
 
-A DELIVERY_TIMEOUT value of 0 indicates no timeout; Objects do not expire
-due to delivery timeout.
+## OBJECT_DELIVERY_TIMEOUT {#object-delivery-timeout-ext}
 
-If both the subscriber specifies a DELIVERY_TIMEOUT parameter and the Track has
-a DELIVERY_TIMEOUT property, the endpoints use the min of the two non-zero
-values for the subscription. If either value is 0, the non-zero value is used.
-If both are 0, there is no delivery timeout.
-
-If unspecified, the subscriber's DELIVERY_TIMEOUT is used. If neither endpoint
-specified a timeout, Objects do not time out.
+OBJECT_DELIVERY_TIMEOUT (Property Type 0x02) is a Track Property.  It is a
+varint.  Its semantics are defined in {{timeouts}}.
 
 ## MAX CACHE DURATION {#max-cache-duration}
 
@@ -4336,7 +4368,7 @@ subscriber MUST cancel a stream, preferably the one with the lowest
 priority, after reaching a resource limit.
 
 
-## Timeouts
+## Timeouts  {#security-timeouts}
 
 Implementations are advised to use timeouts to prevent resource
 exhaustion attacks by a peer that does not send expected data within
@@ -4571,9 +4603,10 @@ Setup Options SHOULD request a provisional registration.
 
 | Parameter Type | Parameter Name | Specification |
 |----------------|----------------|---------------|
-| 0x02 | DELIVERY_TIMEOUT | {{delivery-timeout}} |
+| 0x02 | OBJECT_DELIVERY_TIMEOUT | {{object-delivery-timeout}} |
 | 0x03 | AUTHORIZATION_TOKEN | {{authorization-token}} |
 | 0x04 | RENDEZVOUS_TIMEOUT | {{rendezvous-timeout}} |
+| 0x06 | SUBGROUP_DELIVERY_TIMEOUT | {{subgroup-delivery-timeout}} |
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
@@ -4588,8 +4621,9 @@ Setup Options SHOULD request a provisional registration.
 
 | Type | Name | Scope | Specification |
 |-----:|:-----|:------|:--------------|
-| 0x02 | DELIVERY_TIMEOUT | Track | {{delivery-timeout-ext}} |
+| 0x02 | OBJECT_DELIVERY_TIMEOUT | Track | {{object-delivery-timeout-ext}} |
 | 0x04 | MAX_CACHE_DURATION | Track | {{max-cache-duration}} |
+| 0x06 | SUBGROUP_DELIVERY_TIMEOUT | Track | {{subgroup-delivery-timeout-ext}} |
 | 0x0B | IMMUTABLE_PROPERTIES | Track, Object | {{immutable-properties}} |
 | 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | {{publisher-priority}} |
 | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track | {{group-order-pref}} |
@@ -4694,7 +4728,7 @@ the length field.
 |:----------------------|:----:|:-----------------------------|
 | INTERNAL_ERROR        | 0x0  | {{closing-subgroup-streams}} |
 | CANCELLED             | 0x1  | {{closing-subgroup-streams}} |
-| DELIVERY_TIMEOUT      | 0x2  | {{closing-subgroup-streams}} |
+| DELIVERY_TIMEOUT      | 0x2  | {{timeouts}}                 |
 | SESSION_CLOSED        | 0x3  | {{closing-subgroup-streams}} |
 | UNKNOWN_OBJECT_STATUS | 0x4  | {{closing-subgroup-streams}} |
 | TOO_FAR_BEHIND        | 0x5  | {{closing-subgroup-streams}} |
