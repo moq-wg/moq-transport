@@ -1777,31 +1777,36 @@ SWITCH_TRANSITION parameter (see {{switch-transition-param}}) carrying G_switch
 as the Switching Group ID and the current live edge GroupID of the To Track as
 the Live Edge Group ID.
 
+If G_switch is less than the Live Edge Group ID, the Relay MUST immediately
+follow the PUBLISH message on the relay-to-subscriber direction of the PUBLISH
+bidi with a FETCH_HEADER (see {{fetch-header}}) carrying the From Subscribe
+Request ID as the Request ID field. The Relay MUST then deliver Objects in
+Groups [G_switch, Live Edge Group ID) in Group and Object order, inline on
+the PUBLISH bidi. No FETCH request from the subscriber is required; the SWITCH
+message acts as the implicit authorization for this catch-up delivery.
+
+The subscriber correlates the inline catch-up delivery to a pending SWITCH by
+matching the FETCH_HEADER Request ID against the From Subscribe Request ID of
+a pending SWITCH whose target Track matches the PUBLISH. A subscriber MUST NOT
+have more than one pending SWITCH for the same target Track simultaneously.
+
 The Relay delivers live To Track Objects — those in Groups at or after the
 Live Edge Group ID — via PUBLISH subgroup data streams. The Relay MUST NOT
-deliver cached past Objects via the PUBLISH stream.
+deliver cached past Objects via PUBLISH subgroup data streams.
 
-If G_switch is less than the Live Edge Group ID, the Relay MUST also open a
-relay-initiated unidirectional data stream (the "catch-up stream") and MUST
-begin the stream with FETCH_HEADER (see {{fetch-header}}) carrying the From
-Subscribe Request ID as the Request ID field. The Relay MUST then deliver
-Objects in Groups [G_switch, Live Edge Group ID) in Group and Object order,
-and MUST close the catch-up stream with a FIN after all available Objects in
-the range have been delivered.
+The subscriber MUST treat the receipt of the first Object at GroupID equal to
+the Live Edge Group ID on a PUBLISH subgroup stream as the signal that catch-up
+delivery is complete.
 
-The subscriber correlates the catch-up stream to a pending SWITCH by matching
-the FETCH_HEADER Request ID against the From Subscribe Request ID of a pending
-SWITCH whose target Track matches the PUBLISH. A subscriber MUST NOT have more
-than one pending SWITCH for the same target Track simultaneously.
+The Relay SHOULD assign higher transmission priority to the PUBLISH bidi than
+to the PUBLISH subgroup streams for the same Track during catch-up, allowing
+the subscriber to close the gap to the live edge quickly. Once the subscriber
+has received the first Object at the Live Edge Group ID, the Relay SHOULD
+restore normal transmission priority to subsequently opened subgroup streams.
 
-The Relay SHOULD assign higher transmission priority to the catch-up stream
-than to the PUBLISH subgroup streams for the same Track, allowing the
-subscriber to close the gap to the live edge quickly. Once the catch-up stream
-is closed, the Relay SHOULD restore normal transmission priority to
-subsequently opened PUBLISH subgroup streams.
-
-If G_switch equals the Live Edge Group ID, no past Objects exist and the Relay
-MUST NOT open a catch-up stream.
+If G_switch equals the Live Edge Group ID, no past Objects exist. The Relay
+MUST NOT include a FETCH_HEADER on the PUBLISH bidi and MUST deliver live
+Objects via PUBLISH subgroup streams immediately.
 
 ### Terminating the From subscription
 
@@ -2299,9 +2304,10 @@ The SWITCH_TRANSITION parameter (Parameter Type TBD) MUST appear in a PUBLISH
 opened by a Relay in response to a SWITCH message (see {{relay-switch}}). It
 MUST NOT appear in any other message. The parameter value contains two
 variable-length integers: the Switching Group ID (G_switch) followed by the
-Live Edge Group ID. Together, these allow the subscriber to determine whether
-a catch-up stream will be opened for past Objects in the range [G_switch,
-Live Edge Group ID) (see {{relay-switch}}).
+Live Edge Group ID. Together, these inform the subscriber of the catch-up
+range [G_switch, Live Edge Group ID) delivered inline on the PUBLISH bidi, and
+identify the GroupID at which live Objects begin on PUBLISH subgroup streams
+(see {{relay-switch}}).
 
 If a PUBLISH contains a SWITCH_TRANSITION parameter but no pending SWITCH
 exists for that target Track, the receiver MUST close the session with
@@ -3235,8 +3241,9 @@ A Subscriber sends a SWITCH message to request that a Relay transition delivery
 from a Track it is currently receiving (the "From Track", identified by the From
 Subscribe Request ID) to a target Track (the "To Track", identified by the Track
 Namespace and Track Name fields). In response, the Relay opens a PUBLISH stream
-for the To Track. If past content exists at the transition point, the Relay also
-opens a catch-up data stream to deliver it proactively (see {{relay-switch}}).
+for the To Track. If past content exists at the transition point, the Relay
+delivers it inline on the PUBLISH bidi before live Objects begin on subgroup
+streams (see {{relay-switch}}).
 
 ~~~
 SWITCH Message {
