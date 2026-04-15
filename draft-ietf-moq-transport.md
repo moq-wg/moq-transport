@@ -1213,9 +1213,7 @@ a suitable Group boundary.
 
 To request a switch, the subscriber sends a SWITCH (see {{message-switch}})
 identifying the Track it is currently receiving and the Track it intends to
-receive next. The subscriber determines both Tracks locally and
-does not rely on the Relay or publisher to infer ABR intent from subscription
-patterns. The Relay responds by opening a PUBLISH for the To Track
+receive next. The subscriber determines both Tracks locally. The Relay responds by opening a PUBLISH for the To Track
 (see {{relay-switch}}); the subscriber need not pre-allocate any Request IDs
 for the SWITCH.
 
