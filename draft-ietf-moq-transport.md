@@ -1224,7 +1224,9 @@ To request a switch, the subscriber sends a SWITCH (see {{message-switch}})
 identifying the Track it is currently receiving and the Track it intends to
 receive next. The subscriber determines both Tracks locally and
 does not rely on the Relay or publisher to infer ABR intent from subscription
-patterns.
+patterns. The Relay responds by opening a PUBLISH for the To Track
+(see {{relay-switch}}); the subscriber need not pre-allocate any Request IDs
+for the SWITCH.
 
 When a Relay receives a SWITCH message, it MUST NOT forward it upstream.
 Instead, the Relay SHOULD perform the transition locally, preparing the
@@ -1727,30 +1729,30 @@ Group g is available for both Tracks as defined above.
 
 Upon receiving a SWITCH message, the Relay MUST first validate that the From
 Subscribe Request ID identifies an Established subscription. If no such
-subscription exists, the Relay MUST send a REQUEST_ERROR for the To Subscribe
-Request ID and MUST NOT modify any existing subscription state.
+subscription exists, the Relay MUST NOT open a PUBLISH for the To Track and
+MUST NOT modify any existing subscription state.
 
 If the Relay receives a SWITCH that references a From Subscribe Request ID for
-which it is already processing a prior SWITCH (i.e., it has not yet sent
-SUBSCRIBE_OK or REQUEST_ERROR for the prior To Subscribe Request ID), the Relay
-MUST reject the new SWITCH by sending REQUEST_ERROR for its To Subscribe Request
-ID with Error Code EXCESSIVE_LOAD. The Relay MAY include a non-zero Retry
-Interval to indicate when the subscriber can retry.
+which it is already processing a prior SWITCH (i.e., it has not yet opened a
+PUBLISH for the prior To Track), the Relay MUST reject the new SWITCH by opening
+a PUBLISH for the To Track and immediately sending PUBLISH_DONE with Status Code
+EXCESSIVE_LOAD. The Relay MAY include a non-zero Retry Interval to indicate when
+the subscriber can retry.
 
-When creating the downstream subscription for the To Track, the Relay MUST apply
-the subscription parameters carried in the SWITCH message as specified in
-{{message-switch}}. When establishing or selecting any upstream subscriptions
-and/or FETCH requests needed to satisfy the switch, the Relay MAY consider those
-parameters but is not required to send identical parameters upstream.
+When opening the PUBLISH for the To Track, the Relay MUST apply the parameters
+carried in the SWITCH message as specified in {{message-switch}}. When
+establishing or selecting any upstream subscriptions and/or FETCH requests needed
+to satisfy the switch, the Relay MAY consider those parameters but is not required
+to send identical parameters upstream.
 
 While attempting to perform the SWITCH operation, the Relay MAY continue
 forwarding Objects from the From subscription. The Relay MUST either (a)
-identify G_switch and send SUBSCRIBE_OK for the To Subscribe Request ID, or (b)
-fail the To Subscribe Request ID with REQUEST_ERROR, within an
-implementation-specific timeout T_switch. If the Relay fails to do so within
-T_switch, it MUST send a REQUEST_ERROR for the To Subscribe Request ID with
-Error Code TIMEOUT, and MUST NOT alter the behavior of the subscription
-associated with the From Subscribe Request ID.
+identify G_switch and open a PUBLISH for the To Track, or (b) open a PUBLISH for
+the To Track and immediately send PUBLISH_DONE with an appropriate Status Code,
+within an implementation-specific timeout T_switch. If the Relay fails to do so
+within T_switch, it MUST open a PUBLISH for the To Track and immediately send
+PUBLISH_DONE with Status Code TIMEOUT, and MUST NOT alter the behavior of the
+subscription associated with the From Subscribe Request ID.
 
 The Relay selects a transition GroupID G_switch as the smallest GroupID g such
 that:
@@ -1763,43 +1765,43 @@ the From subscription. This enables a subscriber to request replacement of
 buffered content that has not been consumed by the application yet.
 
 If the Relay cannot identify any such GroupID before T_switch expires, it MUST
-send a REQUEST_ERROR for the To Subscribe Request ID and MUST NOT alter the
-behavior of the subscription associated with the From Subscribe Request ID.
+open a PUBLISH for the To Track and immediately send PUBLISH_DONE with Status
+Code TIMEOUT, and MUST NOT alter the behavior of the subscription associated
+with the From Subscribe Request ID.
 
-### Completing the SWITCH using FETCH + SUBSCRIBE semantics
+### Completing the SWITCH using PUBLISH Delivery
 
-Once G_switch is identified, the Relay MUST create a downstream subscription
-for the target Track identified by the To Subscribe Request ID and MUST send
-SUBSCRIBE_OK for the To Subscribe Request ID. Once the Relay has sent 
-SUBSCRIBE_OK for the To Subscribe Request ID, the SWITCH operation is considered 
-successful (see {{message-switch}}).
+Once G_switch is identified, the Relay MUST open a PUBLISH stream for the To
+Track (Required Request ID Delta = 0). The PUBLISH MUST include a
+SWITCH_TRANSITION parameter (see {{switch-transition-param}}) carrying G_switch
+as the Switching Group ID and the current live edge GroupID of the To Track as
+the Live Edge Group ID.
 
-The Relay then serves "past content" of the To Track (relative to the subscriber
-receiving the To subscription) using a FETCH identified by the To Fetch Request
-ID, and serves new content using the To subscription.
+The Relay delivers live To Track Objects — those in Groups at or after the
+Live Edge Group ID — via PUBLISH subgroup data streams. The Relay MUST NOT
+deliver cached past Objects via the PUBLISH stream.
 
-The Relay MUST compute a FETCH range with Start Location {G_switch, 0} and End
-Location equal to the first Location that will be delivered via the To
-subscription, such that the Objects delivered via FETCH and SUBSCRIBE are
-contiguous and non-overlapping. The Relay MAY determine this End Location using
-the same Largest-Location based logic used by Joining FETCH (see
-{{joining-fetch-range-calculation}}).
+If G_switch is less than the Live Edge Group ID, the Relay MUST also open a
+relay-initiated unidirectional data stream (the "catch-up stream") and MUST
+begin the stream with FETCH_HEADER (see {{fetch-header}}) carrying the From
+Subscribe Request ID as the Request ID field. The Relay MUST then deliver
+Objects in Groups [G_switch, Live Edge Group ID) in Group and Object order,
+and MUST close the catch-up stream with a FIN after all available Objects in
+the range have been delivered.
 
-To ensure non-overlap on the wire, the Relay MUST NOT forward on the To
-subscription any Object whose Location is within the computed FETCH range until
-the Relay has closed the FETCH data stream (FIN or RESET_STREAM). After the
-FETCH data stream is closed, the Relay MAY begin forwarding Objects on the To
-subscription starting at the first Location beyond the FETCH range.
+The subscriber correlates the catch-up stream to a pending SWITCH by matching
+the FETCH_HEADER Request ID against the From Subscribe Request ID of a pending
+SWITCH whose target Track matches the PUBLISH. A subscriber MUST NOT have more
+than one pending SWITCH for the same target Track simultaneously.
 
-If the resulting FETCH range contains no Objects (for example, switching at the
-next boundary where the To subscription begins at GroupID G_switch), the Relay
-MUST still respond for the To Fetch Request ID by opening the FETCH stream,
-sending FETCH_HEADER, and then closing the stream with a FIN without delivering
-any Objects (see {{fetch-handling}}).
+The Relay SHOULD assign higher transmission priority to the catch-up stream
+than to the PUBLISH subgroup streams for the same Track, allowing the
+subscriber to close the gap to the live edge quickly. Once the catch-up stream
+is closed, the Relay SHOULD restore normal transmission priority to
+subsequently opened PUBLISH subgroup streams.
 
-If the Relay does not have sufficient cached state to determine the FETCH_OK
-immediately, it MUST withhold FETCH_OK until it can do so (see
-{{subscriber-interactions}}).
+If G_switch equals the Live Edge Group ID, no past Objects exist and the Relay
+MUST NOT open a catch-up stream.
 
 ### Terminating the From subscription
 
@@ -1815,23 +1817,19 @@ subscription by sending PUBLISH_DONE for the From Subscribe Request ID.
 
 ### Error Handling Guidance
 
-If the Relay cannot perform the requested operation, it MUST respond with
-REQUEST_ERROR for the To Subscribe Request ID. The following mappings are
-RECOMMENDED:
+If the Relay cannot perform the requested SWITCH operation, it MUST open a
+PUBLISH for the To Track and immediately send PUBLISH_DONE with an appropriate
+Status Code. The following Status Code mappings are RECOMMENDED:
 
-* TIMEOUT: The Relay could not identify G_switch and send SUBSCRIBE_OK for the To
-  Subscribe Request ID within T_switch.
+* TIMEOUT: The Relay could not identify G_switch within T_switch.
 * DOES_NOT_EXIST: The target Track is not available at the publisher.
 * UNAUTHORIZED: Authorization for the target Track failed.
 * NOT_SUPPORTED: The Relay does not support the SWITCH message.
 
-If the Relay has already created state for the To Fetch Request ID and the
-SWITCH fails, the Relay SHOULD also fail the To Fetch Request ID with
-REQUEST_ERROR.
-
 While a SWITCH is pending, if the subscriber sends UNSUBSCRIBE for the From
 Subscribe Request ID before the transition occurs, the Relay SHOULD abandon the
-SWITCH attempt and respond to the To Subscribe Request ID with REQUEST_ERROR.
+SWITCH attempt. If the Relay has already opened a PUBLISH for the To Track, it
+MUST send PUBLISH_DONE for the To Track with Status Code SUBSCRIPTION_ENDED.
 
 ### Subscriber Considerations
 
@@ -2294,6 +2292,20 @@ to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
 
 After sending a NEW_GROUP_REQUEST upstream, the request is considered
 outstanding until the Largest Group increases.
+
+#### SWITCH_TRANSITION Parameter {#switch-transition-param}
+
+The SWITCH_TRANSITION parameter (Parameter Type TBD) MUST appear in a PUBLISH
+opened by a Relay in response to a SWITCH message (see {{relay-switch}}). It
+MUST NOT appear in any other message. The parameter value contains two
+variable-length integers: the Switching Group ID (G_switch) followed by the
+Live Edge Group ID. Together, these allow the subscriber to determine whether
+a catch-up stream will be opened for past Objects in the range [G_switch,
+Live Edge Group ID) (see {{relay-switch}}).
+
+If a PUBLISH contains a SWITCH_TRANSITION parameter but no pending SWITCH
+exists for that target Track, the receiver MUST close the session with
+PROTOCOL_VIOLATION.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -3220,9 +3232,11 @@ FETCH_CANCEL Message {
 ## SWITCH {#message-switch}
 
 A Subscriber sends a SWITCH message to request that a Relay transition delivery
-from one Track (the "From" subscription) to another Track (the "To" Track) while
-preserving SUBSCRIBE and FETCH semantics. The Relay serves "past content" of the
-To Track using a FETCH and serves new content using a SUBSCRIBE.
+from a Track it is currently receiving (the "From Track", identified by the From
+Subscribe Request ID) to a target Track (the "To Track", identified by the Track
+Namespace and Track Name fields). In response, the Relay opens a PUBLISH stream
+for the To Track. If past content exists at the transition point, the Relay also
+opens a catch-up data stream to deliver it proactively (see {{relay-switch}}).
 
 ~~~
 SWITCH Message {
@@ -3230,9 +3244,6 @@ SWITCH Message {
   Length (16),
 
   From Subscribe Request ID (vi64),
-
-  To Subscribe Request ID (vi64),
-  To Fetch Request ID (vi64),
 
   Track Namespace (..),
   Track Name Length (vi64),
@@ -3249,22 +3260,11 @@ The fields of the SWITCH message are as follows:
 
 * From Subscribe Request ID:
   Identifies the Established subscription that is the source of objects before
-  the transition. If no such subscription exists, the receiver MUST send a
-  REQUEST_ERROR for To Subscribe Request ID and MUST NOT modify any subscription
-  state.
-
-* To Subscribe Request ID:
-  Identifies the subscription that will deliver objects after the transition.
-  This Request ID MUST be unused. The receiver creates a new subscription for
-  the target Track and responds with SUBSCRIBE_OK as described in {{relay-switch}}.
-
-* To Fetch Request ID:
-  Identifies the FETCH that will deliver "past content" for the target Track as
-  part of the transition. This Request ID MUST be unused. The receiver responds
-  with FETCH_OK or REQUEST_ERROR as described in {{relay-switch}}.
+  the transition. If no such subscription exists, the receiver MUST NOT open a
+  PUBLISH for the To Track and MUST NOT modify any existing subscription state.
 
 * Track Namespace and Track Name:
-  Identify the target Track and are encoded as in SUBSCRIBE.
+  Identify the To Track and are encoded as in SUBSCRIBE.
 
 * Minimum Switching Group ID:
   The earliest GroupID at which the subscriber permits the transition. The
@@ -3275,24 +3275,15 @@ The fields of the SWITCH message are as follows:
 * Parameters:
   Version-specific Message Parameters encoded as in SUBSCRIBE. The receiver MUST
   use the Parameters present in the SWITCH message as the complete parameter set
-  for the To Track subscription, and MUST NOT inherit Parameters from the
-  subscription identified by the From Subscribe Request ID. If a parameter is
-  omitted from the SWITCH message, the receiver applies the default behavior
-  defined for that parameter for SUBSCRIBE.
+  for the To Track PUBLISH, and MUST NOT inherit Parameters from the
+  subscription identified by the From Subscribe Request ID.
 
 Upon receiving SWITCH, the receiver attempts to select a transition point and
 perform the transition as described in {{relay-switch}}. If the receiver cannot
-identify a suitable transition point and send SUBSCRIBE_OK for the To Subscribe
-Request ID within T_switch, the receiver MUST send a REQUEST_ERROR for the To
-Subscribe Request ID and MUST NOT alter the behavior of the subscription
-associated with the From Subscribe Request ID.
-
-Once the Relay has sent SUBSCRIBE_OK for the To Subscribe Request ID, the SWITCH
-operation is considered successful. Any failure to serve past content (e.g., cache
-miss, upstream FETCH failure, authorization failure, or timeout) MUST be reported
-only as a REQUEST_ERROR for the To Fetch Request ID, and MUST NOT cause the Relay
-to revoke or fail the To subscription. The Relay MUST continue to serve new content
-on the To subscription irrespective of the To Fetch outcome.
+identify a suitable transition point within T_switch, it MUST open a PUBLISH for
+the To Track and immediately send PUBLISH_DONE with an appropriate Status Code,
+and MUST NOT alter the behavior of the subscription associated with the From
+Subscribe Request ID.
 
 ## TRACK_STATUS {#message-track-status}
 
