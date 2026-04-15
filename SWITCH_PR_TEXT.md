@@ -15,12 +15,7 @@ variant), the subscriber can use a switching procedure. The subscriber
 identifies the current Track and the target Track and requests a transition at
 a suitable Group boundary.
 
-#### Coordinated Track Switching for Adaptive Bitrate Streaming
-
-Client-side Adaptive bitrate (ABR) streaming requires a subscriber to
-transition between two Tracks that represent alternative formats of the same
-content. The subscriber knows which Tracks are alternatives, based on
-information such as catalog metadata or an out-of-band manifest.
+#### Coordinated Track Switching
 
 To request a switch, the subscriber sends a SWITCH (see {{message-switch}})
 identifying the Track it is currently receiving and the Track it intends to
