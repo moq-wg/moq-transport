@@ -1764,11 +1764,6 @@ Note that G_switch MAY be smaller than the GroupID currently being forwarded on
 the From subscription. This enables a subscriber to request replacement of
 buffered content that has not been consumed by the application yet.
 
-If the Relay cannot identify any such GroupID before T_switch expires, it MUST
-open a PUBLISH for the To Track and immediately send PUBLISH_DONE with Status
-Code TIMEOUT, and MUST NOT alter the behavior of the subscription associated
-with the From Subscribe Request ID.
-
 ### Completing the SWITCH using PUBLISH Delivery
 
 Once G_switch is identified, the Relay MUST open a PUBLISH stream for the To
