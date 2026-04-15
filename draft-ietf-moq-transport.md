@@ -1209,11 +1209,6 @@ variant), the subscriber can use a switching procedure. The subscriber
 identifies the current Track and the target Track and requests a transition at
 a suitable Group boundary.
 
-SWITCH is intended for use in applications where the publisher (or application)
-defines the two Tracks as switchable (e.g., CMAF switching sets). The Relay does
-not need to verify that two Tracks are switchable; it only executes the
-mechanism defined below.
-
 #### Coordinated Track Switching for Adaptive Bitrate Streaming
 Client-side Adaptive bitrate (ABR) streaming requires a subscriber to
 transition between two Tracks that represent alternative formats of the same
