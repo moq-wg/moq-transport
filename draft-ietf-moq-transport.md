@@ -1447,7 +1447,7 @@ The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
 bidirectional stream and the publisher MUST send a single REQUEST_OK or
 REQUEST_ERROR as the first message on the bidirectional stream in response.
 
-If a Subscription cannot be created because there is no available Request ID,
+If a Subscription cannot be created because there are no available bidirectional streams,
 the Publisher sends a PUBLISH_BLOCKED message on the SUBSCRIBE_TRACKS response
 stream to indicate the Full Track Name of the Subscription that could not be
 established. The Publisher MUST NOT send a PUBLISH for a Track after
@@ -1459,8 +1459,8 @@ forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
 A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS can be cancelled by closing the
-stream with either a FIN or RESET_STREAM. Cancelling does not prohibit original publishers
-from sending further PUBLISH_NAMESPACE or PUBLISH messages, but relays MUST NOT
+stream with either a FIN or RESET_STREAM. Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
+from sending further PUBLISH messages, but relays MUST NOT
 send any further PUBLISH messages to a client without knowing the client is
 interested in and authorized to receive the content.
 
@@ -1473,7 +1473,7 @@ in a namespace without having received a PUBLISH_NAMESPACE for it.
 
 If a publisher is authoritative for a given namespace, or is a relay that has
 received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
-publisher, it MUST send a PUBLISH_NAMESPACE to any subscriber that has
+publisher, it MUST send a NAMESPACE message to any subscriber that has
 sent SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
 
@@ -2815,9 +2815,11 @@ REQUEST_UPDATE.  The overlap restriction applies independently per type: the
 new prefix MUST NOT share a common prefix with any other active
 SUBSCRIBE_NAMESPACE (for a SUBSCRIBE_NAMESPACE update) or SUBSCRIBE_TRACKS
 (for a SUBSCRIBE_TRACKS update) in the same session.  If the update is
-accepted, the publisher adjusts which NAMESPACE, NAMESPACE_DONE, or PUBLISH
-messages it sends to reflect the new prefix.  Messages sent before the
-REQUEST_OK do not reflect the new prefix.
+accepted, NAMESPACE and NAMESPACE_DONE messages following the
+REQUEST_OK will contain Track Namespace suffixes relative to the
+updated prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
+no effect on existing subscriptions.  If the subscriber is no longer
+interested it can cancel the corresponding bidirectional stream.
 
 ## PUBLISH {#message-publish}
 
@@ -3370,11 +3372,6 @@ overlap spaces (see {{message-subscribe-tracks}}).
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
 
-SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE
-messages to a subscriber.  It is useful in applications or relays where
-subscribers are only interested in or authorized to access a subset of
-available namespaces.
-
 The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
 corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
 corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
@@ -3436,7 +3433,7 @@ The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
 
 SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
-a subscriber.  It is useful in applications or relays where subscribers are
+a subscriber.  It is useful for subscribers are
 only interested in or authorized to access a subset of available tracks.
 
 If the FORWARD parameter ({{forward-parameter}}) is present in this message and
