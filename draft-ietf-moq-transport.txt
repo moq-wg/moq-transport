@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 October 2026                                   I. Swett, Ed.
+Expires: 18 October 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           14 April 2026
+                                                           16 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 October 2026.
+   This Internet-Draft will expire on 18 October 2026.
 
 Copyright Notice
 
@@ -109,6 +109,8 @@ Table of Contents
        3.1.4.  Native QUIC
        3.1.5.  Connection URL
      3.2.  Extension Negotiation
+       3.2.1.  Reserved Namespaces
+       3.2.2.  Session-Level Tracks and Namespaces
      3.3.  Session initialization
        3.3.1.  Request Cancellation and Rejection
      3.4.  Unidirectional Stream Types
@@ -224,11 +226,12 @@ Table of Contents
      14.6.  MOQT Auth Token Type
      14.7.  Message Parameters
      14.8.  Properties
-     14.9.  Error Codes
-       14.9.1.  Session Termination Error Codes
-       14.9.2.  REQUEST_ERROR Codes
-       14.9.3.  PUBLISH_DONE Codes
-       14.9.4.  Data Stream Reset Error Codes
+     14.9.  Session-Level Track Names
+     14.10. Error Codes
+       14.10.1.  Session Termination Error Codes
+       14.10.2.  REQUEST_ERROR Codes
+       14.10.3.  PUBLISH_DONE Codes
+       14.10.4.  Data Stream Reset Error Codes
    Contributors
    Use of Generative AI
    References
@@ -1164,6 +1167,48 @@ Table of Contents
    New versions of MOQT MUST specify which existing extensions can be
    used with that version.  New extensions MUST specify the existing
    versions with which they can be used.
+
+3.2.1.  Reserved Namespaces
+
+   MOQT reserves all Track Namespace values whose first tuple field
+   begins with a period (0x2e, .).  These namespaces MUST NOT be used
+   unless their meaning is defined through IANA registration.  Unless
+   otherwise specified, an endpoint that receives a request for an
+   unrecognized reserved namespace MUST pass it to the Application, so
+   that future extensions can define new reserved namespaces without
+   breaking older implementations.
+
+   A Track Namespace whose first field is exactly . (a single period,
+   0x2e) is reserved and MUST NOT be used for any purpose; endpoints
+   MUST NOT publish tracks or namespaces under it and MUST reject
+   requests referencing it with DOES_NOT_EXIST.
+
+3.2.2.  Session-Level Tracks and Namespaces
+
+   MOQT defines the .session namespace (the bytes 0x2e, 0x73, 0x65,
+   0x73, 0x73, 0x69, 0x6f, 0x6e) in the first position of the Track
+   Namespace for session-level tracks and namespaces.  Session-level
+   tracks and namespaces are managed by the MOQT implementation, not the
+   Application.  They provide a mechanism for extending MOQT transport
+   functionality using existing subscription and object delivery
+   machinery, without defining new control messages or stream types.
+
+   The Application MUST NOT publish tracks or namespaces whose first
+   field is .session.  Relays MUST NOT forward requests for session-
+   level tracks and namespaces to other sessions.
+
+   The empty track name in the .session namespace is defined to not
+   exist.  A request with a Track Namespace whose first field is
+   .session and an empty Track Name MUST be rejected with
+   DOES_NOT_EXIST.
+
+   An endpoint that receives a request for an unrecognized session-level
+   track or namespace MUST reject it with REQUEST_ERROR using error code
+   DOES_NOT_EXIST rather than passing it to the Application.
+
+   The track names and namespaces available under the .session namespace
+   are defined by extensions to this specification and registered with
+   IANA (see Section 14.9).
 
 3.3.  Session initialization
 
@@ -2971,7 +3016,7 @@ Table of Contents
       See Section 1.4.4.
 
    The application SHOULD use a relevant error code in REQUEST_ERROR, as
-   defined below and assigned in Section 14.9.2.  Most codepoints have
+   defined below and assigned in Section 14.10.2.  Most codepoints have
    identical meanings for various request types, but some have request-
    specific meanings.
 
@@ -4887,13 +4932,13 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  Properties (Section 14.8)
 
-   *  Session Termination Error Codes (Section 14.9.1)
+   *  Session Termination Error Codes (Section 14.10.1)
 
-   *  REQUEST_ERROR Codes (Section 14.9.2)
+   *  REQUEST_ERROR Codes (Section 14.10.2)
 
-   *  PUBLISH_DONE Codes (Section 14.9.3)
+   *  PUBLISH_DONE Codes (Section 14.10.3)
 
-   *  Data Stream Reset Error Codes (Section 14.9.4)
+   *  Data Stream Reset Error Codes (Section 14.10.4)
 
    *  MOQT Auth Token Type
 
@@ -4921,6 +4966,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    *  MOQT ALPN values
 
    *  Message types
+
+   *  Session-Level Track Names
 
 14.1.  URI Scheme Registrations
 
@@ -5147,9 +5194,40 @@ EXT 1 and EXT N can be modified or removed by Relays
       from uncoordinated sources may encounter different semantics for
       the same code points, creating potential collision risks.
 
-14.9.  Error Codes
+14.9.  Session-Level Track Names
 
-14.9.1.  Session Termination Error Codes
+   This document establishes a registry for session-level track names
+   under the .session namespace (see Section 3.2.2).  The registration
+   policy is Specification Required (per [RFC8126], Section 4.6).
+
+   Each registration must include:
+
+          +=================+==================================+
+          | Field           | Description                      |
+          +=================+==================================+
+          | Track Namespace | The track namespace under the    |
+          |                 | .session namespace, can be empty |
+          +-----------------+----------------------------------+
+          | Track Name      | The track name (bytes) within    |
+          |                 | the full namespace               |
+          +-----------------+----------------------------------+
+          | Description     | Brief description of the track's |
+          |                 | purpose                          |
+          +-----------------+----------------------------------+
+          | Change          | Who may update the registration  |
+          | Controller      |                                  |
+          +-----------------+----------------------------------+
+          | Specification   | Reference to the defining        |
+          |                 | specification                    |
+          +-----------------+----------------------------------+
+
+                                 Table 14
+
+   This document does not define any initial entries.
+
+14.10.  Error Codes
+
+14.10.1.  Session Termination Error Codes
 
      +=============================+=================+===============+
      | Name                        |       Code      | Specification |
@@ -5199,9 +5277,9 @@ EXT 1 and EXT N can be modified or removed by Relays
      | Reserved for greasing       | 0x7f * N + 0x9D | Section 13    |
      +-----------------------------+-----------------+---------------+
 
-                                  Table 14
+                                  Table 15
 
-14.9.2.  REQUEST_ERROR Codes
+14.10.2.  REQUEST_ERROR Codes
 
      +============================+=================+===============+
      | Name                       |       Code      | Specification |
@@ -5243,9 +5321,9 @@ EXT 1 and EXT N can be modified or removed by Relays
      | Reserved for greasing      | 0x7f * N + 0x9D | Section 13    |
      +----------------------------+-----------------+---------------+
 
-                                 Table 15
+                                 Table 16
 
-14.9.3.  PUBLISH_DONE Codes
+14.10.3.  PUBLISH_DONE Codes
 
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
@@ -5273,9 +5351,9 @@ EXT 1 and EXT N can be modified or removed by Relays
         | Reserved for greasing | 0x7f * N + 0x9D | Section 13    |
         +-----------------------+-----------------+---------------+
 
-                                  Table 16
+                                  Table 17
 
-14.9.4.  Data Stream Reset Error Codes
+14.10.4.  Data Stream Reset Error Codes
 
        +=======================+=================+================+
        | Name                  |       Code      | Specification  |
@@ -5299,7 +5377,7 @@ EXT 1 and EXT N can be modified or removed by Relays
        | Reserved for greasing | 0x7f * N + 0x9D | Section 13     |
        +-----------------------+-----------------+----------------+
 
-                                 Table 17
+                                 Table 18
 
 Contributors
 
