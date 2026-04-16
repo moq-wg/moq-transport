@@ -1743,39 +1743,17 @@ of buffered content that has not been consumed by the application yet.
 ### Completing the SWITCH using PUBLISH Delivery
 
 Once G_switch is identified, the Relay MUST open a PUBLISH stream for the
-target Track (Required Request ID Delta = 0). The PUBLISH MUST include a
-SWITCH_TRANSITION parameter (see {{switch-transition-param}}) carrying G_switch
-as the Switching Group ID and the current live edge GroupID of the target Track
-as the Live Edge Group ID.
+target Track. The PUBLISH MUST include a SWITCH_TRANSITION parameter
+(see {{switch-transition-param}}) carrying G_switch as the Switching Group ID
+and the current live edge GroupID of the target Track as the Live Edge Group ID.
 
 If G_switch is less than the Live Edge Group ID, the Relay MUST immediately
 follow the PUBLISH message on the relay-to-subscriber direction of the PUBLISH
 bidirectional stream with a FETCH_HEADER (see {{fetch-header}}) carrying the
 Current Subscribe Request ID as the Request ID field. The Relay MUST then
 deliver Objects in Groups [G_switch, Live Edge Group ID) in Group and Object
-order, inline on the PUBLISH bidirectional stream. No FETCH request from the
-subscriber is required; the SWITCH
-message acts as the implicit authorization for this catch-up delivery.
+order, inline on the PUBLISH bidirectional stream.
 
-The subscriber correlates the inline catch-up delivery to a pending SWITCH by
-matching the FETCH_HEADER Request ID against the Current Subscribe Request ID of
-a pending SWITCH whose target Track matches the PUBLISH. A subscriber MUST NOT
-have more than one pending SWITCH for the same target Track simultaneously.
-
-The Relay delivers live target Track Objects — those in Groups at or after the
-Live Edge Group ID — via PUBLISH subgroup data streams. The Relay MUST NOT
-deliver cached past Objects via PUBLISH subgroup data streams.
-
-The subscriber MUST treat the receipt of the first Object at GroupID equal to
-the Live Edge Group ID on a PUBLISH subgroup stream as the signal that catch-up
-delivery is complete.
-
-The Relay SHOULD assign higher transmission priority to the PUBLISH
-bidirectional stream than
-to the PUBLISH subgroup streams for the same Track during catch-up, allowing
-the subscriber to close the gap to the live edge quickly. Once the subscriber
-has received the first Object at the Live Edge Group ID, the Relay SHOULD
-restore normal transmission priority to subsequently opened subgroup streams.
 
 If G_switch equals the Live Edge Group ID, no past Objects exist. The Relay
 MUST NOT include a FETCH_HEADER on the PUBLISH bidirectional stream and MUST
