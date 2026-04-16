@@ -1704,13 +1704,12 @@ locally and MUST NOT forward the SWITCH message upstream.
 A common Group boundary at GroupID g is established when Group g is available
 for both the current Track and the target Track. A Relay considers Group g
 available for a Track as soon as it has received sufficient bytes to parse an
-Object header identifying GroupID g for that Track; the Relay does not need to
-receive the entire Object payload.
+Object header identifying GroupID g for that Track.
 
 ### Processing Steps
 
-Upon receiving a SWITCH message, the Relay MUST first validate that the Current Subscribe Request ID
-identifies an Established subscription. If no such
+Upon receiving a SWITCH message, the Relay MUST first validate that the
+Current Subscribe Request ID identifies an Established subscription. If no such
 subscription exists, the Relay MUST NOT open a PUBLISH for the target Track and
 MUST NOT modify any existing subscription state.
 
@@ -1727,15 +1726,12 @@ establishing or selecting any upstream subscriptions and/or FETCH requests neede
 to satisfy the switch, the Relay MAY consider those parameters but is not required
 to send identical parameters upstream.
 
-While attempting to perform the SWITCH operation, the Relay MAY continue
-forwarding Objects from the current subscription. The Relay MUST either (a)
-identify G_switch and open a PUBLISH for the target Track, or (b) open a
-PUBLISH for the target Track and immediately send PUBLISH_DONE with an
-appropriate Status Code, within an implementation-specific timeout T_switch.
-If the Relay fails to do so within T_switch, it MUST open a PUBLISH for the
-target Track and immediately send PUBLISH_DONE with Status Code TIMEOUT, and
-MUST NOT alter the behavior of the subscription associated with the Current
-Subscribe Request ID.
+While attempting to perform the SWITCH operation, the Relay MUST continue
+forwarding Objects from the current subscription. The Relay MUST complete the
+operation within an implementation-specific timeout T_switch. On any failure,
+the Relay MUST open a PUBLISH for the target Track, immediately send
+PUBLISH_DONE with an appropriate Status Code, and MUST NOT alter the current
+subscription.
 
 The Relay selects a transition GroupID G_switch as the smallest GroupID g such
 that:
@@ -1757,10 +1753,11 @@ as the Live Edge Group ID.
 
 If G_switch is less than the Live Edge Group ID, the Relay MUST immediately
 follow the PUBLISH message on the relay-to-subscriber direction of the PUBLISH
-bidi with a FETCH_HEADER (see {{fetch-header}}) carrying the Current Subscribe
-Request ID as the Request ID field. The Relay MUST then deliver Objects in
-Groups [G_switch, Live Edge Group ID) in Group and Object order, inline on
-the PUBLISH bidi. No FETCH request from the subscriber is required; the SWITCH
+bidirectional stream with a FETCH_HEADER (see {{fetch-header}}) carrying the
+Current Subscribe Request ID as the Request ID field. The Relay MUST then
+deliver Objects in Groups [G_switch, Live Edge Group ID) in Group and Object
+order, inline on the PUBLISH bidirectional stream. No FETCH request from the
+subscriber is required; the SWITCH
 message acts as the implicit authorization for this catch-up delivery.
 
 The subscriber correlates the inline catch-up delivery to a pending SWITCH by
@@ -1776,14 +1773,16 @@ The subscriber MUST treat the receipt of the first Object at GroupID equal to
 the Live Edge Group ID on a PUBLISH subgroup stream as the signal that catch-up
 delivery is complete.
 
-The Relay SHOULD assign higher transmission priority to the PUBLISH bidi than
+The Relay SHOULD assign higher transmission priority to the PUBLISH
+bidirectional stream than
 to the PUBLISH subgroup streams for the same Track during catch-up, allowing
 the subscriber to close the gap to the live edge quickly. Once the subscriber
 has received the first Object at the Live Edge Group ID, the Relay SHOULD
 restore normal transmission priority to subsequently opened subgroup streams.
 
 If G_switch equals the Live Edge Group ID, no past Objects exist. The Relay
-MUST NOT include a FETCH_HEADER on the PUBLISH bidi and MUST deliver live
+MUST NOT include a FETCH_HEADER on the PUBLISH bidirectional stream and MUST
+deliver live
 Objects via PUBLISH subgroup streams immediately.
 
 ### Terminating the current subscription
@@ -2284,7 +2283,8 @@ opened by a Relay in response to a SWITCH message (see {{relay-switch}}). It
 MUST NOT appear in any other message. The parameter value contains two
 variable-length integers: the Switching Group ID (G_switch) followed by the
 Live Edge Group ID. Together, these inform the subscriber of the catch-up
-range [G_switch, Live Edge Group ID) delivered inline on the PUBLISH bidi, and
+range [G_switch, Live Edge Group ID) delivered inline on the PUBLISH
+bidirectional stream, and
 identify the GroupID at which live Objects begin on PUBLISH subgroup streams
 (see {{relay-switch}}).
 
@@ -3221,7 +3221,8 @@ from a Track it is currently receiving (identified by the Current Subscribe
 Request ID) to a target Track (identified by the Target Track Namespace and
 Target Track Name fields). In response, the Relay opens a PUBLISH stream
 for the To Track. If past content exists at the transition point, the Relay
-delivers it inline on the PUBLISH bidi before live Objects begin on subgroup
+delivers it inline on the PUBLISH bidirectional stream before live Objects
+begin on subgroup
 streams (see {{relay-switch}}).
 
 ~~~
