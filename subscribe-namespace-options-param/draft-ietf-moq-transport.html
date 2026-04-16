@@ -3473,7 +3473,7 @@ interested in all namespaces or all tracks from the receiver, respectively.<a hr
 <p id="section-6.1-5">The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
 bidirectional stream and the publisher <span class="bcp14">MUST</span> send a single REQUEST_OK or
 REQUEST_ERROR as the first message on the bidirectional stream in response.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
-<p id="section-6.1-6">If a Subscription cannot be created because there is no available Request ID,
+<p id="section-6.1-6">If a Subscription cannot be created because there are no available bidirectional streams,
 the Publisher sends a PUBLISH_BLOCKED message on the SUBSCRIBE_TRACKS response
 stream to indicate the Full Track Name of the Subscription that could not be
 established. The Publisher <span class="bcp14">MUST NOT</span> send a PUBLISH for a Track after
@@ -3483,8 +3483,8 @@ to establish a subscription to that track.<a href="#section-6.1-6" class="pilcro
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.<a href="#section-6.1-7" class="pilcrow">¶</a></p>
 <p id="section-6.1-8">A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS can be cancelled by closing the
-stream with either a FIN or RESET_STREAM. Cancelling does not prohibit original publishers
-from sending further PUBLISH_NAMESPACE or PUBLISH messages, but relays <span class="bcp14">MUST NOT</span>
+stream with either a FIN or RESET_STREAM. Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
+from sending further PUBLISH messages, but relays <span class="bcp14">MUST NOT</span>
 send any further PUBLISH messages to a client without knowing the client is
 interested in and authorized to receive the content.<a href="#section-6.1-8" class="pilcrow">¶</a></p>
 </section>
@@ -3500,7 +3500,7 @@ available in that namespace. A subscriber <span class="bcp14">MAY</span> send SU
 in a namespace without having received a PUBLISH_NAMESPACE for it.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.2-2">If a publisher is authoritative for a given namespace, or is a relay that has
 received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
-publisher, it <span class="bcp14">MUST</span> send a PUBLISH_NAMESPACE to any subscriber that has
+publisher, it <span class="bcp14">MUST</span> send a NAMESPACE message to any subscriber that has
 sent SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher <span class="bcp14">MAY</span> send the PUBLISH_NAMESPACE to any other subscriber.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
 <p id="section-6.2-3">An endpoint <span class="bcp14">SHOULD</span> report the reception of a REQUEST_OK or
@@ -5157,9 +5157,11 @@ REQUEST_UPDATE.  The overlap restriction applies independently per type: the
 new prefix <span class="bcp14">MUST NOT</span> share a common prefix with any other active
 SUBSCRIBE_NAMESPACE (for a SUBSCRIBE_NAMESPACE update) or SUBSCRIBE_TRACKS
 (for a SUBSCRIBE_TRACKS update) in the same session.  If the update is
-accepted, the publisher adjusts which NAMESPACE, NAMESPACE_DONE, or PUBLISH
-messages it sends to reflect the new prefix.  Messages sent before the
-REQUEST_OK do not reflect the new prefix.<a href="#section-9.10.2-1" class="pilcrow">¶</a></p>
+accepted, NAMESPACE and NAMESPACE_DONE messages following the
+REQUEST_OK will contain Track Namespace suffixes relative to the
+updated prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
+no effect on existing subscriptions.  If the subscriber is no longer
+interested it can cancel the corresponding bidirectional stream.<a href="#section-9.10.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -5890,20 +5892,16 @@ SUBSCRIBE_NAMESPACE, it <span class="bcp14">MUST</span> respond with REQUEST_ERR
 overlap spaces (see <a href="#message-subscribe-tracks" class="auto internal xref">Section 9.21</a>).<a href="#section-9.20-5" class="pilcrow">¶</a></p>
 <p id="section-9.20-6">The publisher <span class="bcp14">MUST</span> ensure the subscriber is authorized to perform this
 namespace subscription.<a href="#section-9.20-6" class="pilcrow">¶</a></p>
-<p id="section-9.20-7">SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE
-messages to a subscriber.  It is useful in applications or relays where
-subscribers are only interested in or authorized to access a subset of
-available namespaces.<a href="#section-9.20-7" class="pilcrow">¶</a></p>
-<p id="section-9.20-8">The publisher <span class="bcp14">MUST NOT</span> send NAMESPACE_DONE for a namespace suffix before the
+<p id="section-9.20-7">The publisher <span class="bcp14">MUST NOT</span> send NAMESPACE_DONE for a namespace suffix before the
 corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
-corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session with a 'PROTOCOL_VIOLATION'.<a href="#section-9.20-8" class="pilcrow">¶</a></p>
-<p id="section-9.20-9">If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
+corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session with a 'PROTOCOL_VIOLATION'.<a href="#section-9.20-7" class="pilcrow">¶</a></p>
+<p id="section-9.20-8">If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
 timely manner because the SUBSCRIBE_NAMESPACE response stream is blocked by flow
 control, the publisher <span class="bcp14">MAY</span> reset the SUBSCRIBE_NAMESPACE response stream.  When
 a subscriber receives a stream reset or FIN on a SUBSCRIBE_NAMESPACE response
 stream, it <span class="bcp14">SHOULD</span> treat this as though each active namespace received a
 NAMESPACE_DONE. Subscriptions established via PUBLISH on separate bidi streams
-are not affected by closure of the SUBSCRIBE_NAMESPACE stream.<a href="#section-9.20-9" class="pilcrow">¶</a></p>
+are not affected by closure of the SUBSCRIBE_NAMESPACE stream.<a href="#section-9.20-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-subscribe-tracks">
@@ -5966,7 +5964,7 @@ overlap spaces (see <a href="#message-subscribe-ns" class="auto internal xref">S
 <p id="section-9.21-6">The publisher <span class="bcp14">MUST</span> ensure the subscriber is authorized to perform this
 namespace subscription.<a href="#section-9.21-6" class="pilcrow">¶</a></p>
 <p id="section-9.21-7">SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
-a subscriber.  It is useful in applications or relays where subscribers are
+a subscriber.  It is useful for subscribers are
 only interested in or authorized to access a subset of available tracks.<a href="#section-9.21-7" class="pilcrow">¶</a></p>
 <p id="section-9.21-8">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.3.10</a>) is present in this message and
 equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
