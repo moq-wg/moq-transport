@@ -1779,13 +1779,6 @@ the Relay has opened a PUBLISH for the target Track, the Relay MUST abandon the
 SWITCH and MUST open a PUBLISH for the target Track and immediately send
 PUBLISH_DONE with Status Code SUBSCRIPTION_ENDED.
 
-### Subscriber Considerations
-
-Because a Relay may switch into a Group that the subscriber has partially
-received on the From Track, a subscriber MUST be prepared to receive Objects for
-the same (GroupID,ObjectID) from both Tracks and MUST process Objects from at
-most one Track for a given (GroupID,ObjectID).
-
 # Control Messages {#message}
 
 MOQT uses a single bidirectional stream to exchange control messages, as
@@ -2247,11 +2240,10 @@ The SWITCH_TRANSITION parameter (Parameter Type TBD) MUST appear in a PUBLISH
 opened by a Relay in response to a SWITCH message (see {{relay-switch}}). It
 MUST NOT appear in any other message. The parameter value contains two
 variable-length integers: the Switching Group ID (G_switch) followed by the
-Live Edge Group ID. Together, these inform the subscriber of the catch-up
-range [G_switch, Live Edge Group ID) delivered inline on the PUBLISH
-bidirectional stream, and
-identify the GroupID at which live Objects begin on PUBLISH subgroup streams
-(see {{relay-switch}}).
+Live Edge Group ID. Together, these inform the subscriber of the range
+[G_switch, Live Edge Group ID) delivered inline on the PUBLISH bidirectional
+stream, and identify the GroupID at which live Objects begin on PUBLISH
+subgroup streams (see {{relay-switch}}).
 
 If a PUBLISH contains a SWITCH_TRANSITION parameter but no pending SWITCH
 exists for that target Track, the receiver MUST close the session with
@@ -3184,11 +3176,8 @@ FETCH_CANCEL Message {
 A Subscriber sends a SWITCH message to request that a Relay transition delivery
 from a Track it is currently receiving (identified by the Current Subscribe
 Request ID) to a target Track (identified by the Target Track Namespace and
-Target Track Name fields). In response, the Relay opens a PUBLISH stream
-for the To Track. If past content exists at the transition point, the Relay
-delivers it inline on the PUBLISH bidirectional stream before live Objects
-begin on subgroup
-streams (see {{relay-switch}}).
+Target Track Name fields). In response, the Relay opens a PUBLISH stream for
+the target Track (see {{relay-switch}}).
 
 ~~~
 SWITCH Message {
@@ -3230,13 +3219,6 @@ The fields of the SWITCH message are as follows:
   use the Parameters present in the SWITCH message as the complete parameter set
   for the target Track PUBLISH, and MUST NOT inherit Parameters from the
   subscription identified by the Current Subscribe Request ID.
-
-Upon receiving SWITCH, the receiver attempts to select a transition point and
-perform the transition as described in {{relay-switch}}. If the receiver cannot
-identify a suitable transition point within T_switch, it MUST open a PUBLISH for
-the To Track and immediately send PUBLISH_DONE with an appropriate Status Code,
-and MUST NOT alter the behavior of the subscription associated with the From
-Subscribe Request ID.
 
 ## TRACK_STATUS {#message-track-status}
 
