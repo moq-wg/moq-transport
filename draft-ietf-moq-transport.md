@@ -1214,8 +1214,8 @@ subscriber need not pre-allocate any Request IDs for the SWITCH.
 When a Relay receives a SWITCH message, it MUST NOT forward it upstream.
 Instead, the Relay SHOULD perform the transition locally, preparing the
 subscription for the new Track and determining the point at which to stop
-forwarding objects from the old Track and begin forwarding objects from the
-new one (see {{relay-switch}}).
+forwarding objects from the current Track and begin forwarding objects from
+the target Track (see {{relay-switch}}).
 
 #### Dynamically Starting New Groups
 
