@@ -1713,25 +1713,22 @@ Current Subscribe Request ID identifies an Established subscription. If no such
 subscription exists, the Relay MUST NOT open a PUBLISH for the target Track and
 MUST NOT modify any existing subscription state.
 
-If the Relay receives a SWITCH that references a Current Subscribe Request ID for
-which it is already processing a prior SWITCH (i.e., it has not yet opened a
-PUBLISH for the prior target Track), the Relay MUST reject the incoming SWITCH
-by opening a PUBLISH for the target Track and immediately sending PUBLISH_DONE
-with Status Code EXCESSIVE_LOAD. The Relay MAY include a non-zero Retry
-Interval to indicate when the subscriber can retry.
-
-When opening the PUBLISH for the target Track, the Relay MUST apply the parameters
-carried in the SWITCH message as specified in {{message-switch}}. When
-establishing or selecting any upstream subscriptions and/or FETCH requests needed
-to satisfy the switch, the Relay MAY consider those parameters but is not required
-to send identical parameters upstream.
-
 While attempting to perform the SWITCH operation, the Relay MUST continue
 forwarding Objects from the current subscription. The Relay MUST complete the
 operation within an implementation-specific timeout T_switch. On any failure,
 the Relay MUST open a PUBLISH for the target Track, immediately send
 PUBLISH_DONE with an appropriate Status Code, and MUST NOT alter the current
 subscription.
+
+If the Relay is already processing a prior SWITCH for the same Current
+Subscribe Request ID, it MUST treat the incoming SWITCH as a failure with
+Status Code EXCESSIVE_LOAD.
+
+When opening the PUBLISH for the target Track, the Relay MUST apply the
+parameters carried in the SWITCH message as specified in {{message-switch}}.
+When establishing or selecting any upstream subscriptions and/or FETCH requests
+needed to satisfy the switch, the Relay MAY consider those parameters but is
+not required to send identical parameters upstream.
 
 The Relay selects a transition GroupID G_switch as the smallest GroupID g such
 that:
