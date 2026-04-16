@@ -1743,11 +1743,11 @@ Table of Contents
    SUBSCRIBE_NAMESPACE to publishers/relays it has established a session
    with.  The recipient of this message will send any relevant
    NAMESPACE, NAMESPACE_DONE or PUBLISH messages for that namespace, or
-   more specific part of that namespace.  This includes echoing back
-   published Tracks and/or Track Namespaces under the
-   SUBSCRIBE_NAMESPACE prefix to the endpoint that sent them.  If an
-   endpoint accepts its own PUBLISH, this behaves as self-subscription
-   described in Section 5.1.
+   more specific part of that namespace.  An endpoint MUST NOT send
+   PUBLISH messages to a SUBSCRIBE_NAMESPACE subscriber for Tracks or
+   Track Namespaces that the subscriber itself has published on this
+   session.  If an endpoint wishes to receive its own published Tracks,
+   it can explicitly SUBSCRIBE to them.
 
    A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the
    sender is interested in all tracks and/or namespaces from the
