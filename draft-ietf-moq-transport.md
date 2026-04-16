@@ -1446,8 +1446,6 @@ interested in all namespaces or all tracks from the receiver, respectively.
 The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
 bidirectional stream and the publisher MUST send a single REQUEST_OK or
 REQUEST_ERROR as the first message on the bidirectional stream in response.
-The subscriber SHOULD close the session with a protocol error if it detects
-receiving more than one.
 
 If a Subscription cannot be created because there is no available Request ID,
 the Publisher sends a PUBLISH_BLOCKED message on the SUBSCRIBE_TRACKS response
@@ -3426,7 +3424,7 @@ REQUEST_ERROR as the first frame on the response half of the stream, then it
 MUST close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_TRACKS is
 successful, the publisher will send PUBLISH messages on new bidirectional streams
 for tracks within matching namespaces. If it is an error, the stream will be
-immediately closed via FIN.
+closed via FIN after REQUEST_ERROR is sent.
 
 Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
 Track Namespace Prefix that shares a common prefix with an established
