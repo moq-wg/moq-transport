@@ -1203,19 +1203,13 @@ REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
 join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter
 Type `Next Group Start`.
 
-When a subscriber is already receiving one Track and intends to join another
-Track that carries equivalent content (for example a higher or lower bitrate
-variant), the subscriber can use a switching procedure. The subscriber
-identifies the current Track and the target Track and requests a transition at
-a suitable Group boundary.
-
 #### Coordinated Track Switching
 
 To request a switch, the subscriber sends a SWITCH (see {{message-switch}})
-identifying the Track it is currently receiving and the Track it intends to
-receive next. The subscriber determines both Tracks locally. The Relay responds by opening a PUBLISH for the To Track
-(see {{relay-switch}}); the subscriber need not pre-allocate any Request IDs
-for the SWITCH.
+identifying the current Track it is receiving and the target Track it intends
+to receive. The subscriber determines both Tracks locally. The Relay responds
+by opening a PUBLISH for the target Track (see {{relay-switch}}); the
+subscriber need not pre-allocate any Request IDs for the SWITCH.
 
 When a Relay receives a SWITCH message, it MUST NOT forward it upstream.
 Instead, the Relay SHOULD perform the transition locally, preparing the
