@@ -1754,24 +1754,12 @@ Current Subscribe Request ID as the Request ID field. The Relay MUST then
 deliver Objects in Groups [G_switch, Live Edge Group ID) in Group and Object
 order, inline on the PUBLISH bidirectional stream.
 
-
-If G_switch equals the Live Edge Group ID, no past Objects exist. The Relay
-MUST NOT include a FETCH_HEADER on the PUBLISH bidirectional stream and MUST
-deliver live
-Objects via PUBLISH subgroup streams immediately.
-
 ### Terminating the current subscription
 
 Once the Relay begins delivering Objects for the target Track at or after
 G_switch, it MUST NOT deliver any further Objects from the current Track to
-that subscriber.
-
-If Objects from the current Track are already queued on QUIC streams, the Relay
-MUST ensure they are not delivered; the Relay MAY use RESET_STREAM or
-RESET_STREAM_AT on affected subgroup streams to enforce this.
-
-After committing to the transition, the Relay MUST terminate the current
-subscription by sending PUBLISH_DONE for the Current Subscribe Request ID.
+that subscriber and MUST terminate the current subscription by sending
+PUBLISH_DONE for the Current Subscribe Request ID.
 
 ### Error Handling Guidance
 
@@ -1783,11 +1771,13 @@ appropriate Status Code. The following Status Code mappings are RECOMMENDED:
 * DOES_NOT_EXIST: The target Track is not available at the publisher.
 * UNAUTHORIZED: Authorization for the target Track failed.
 * NOT_SUPPORTED: The Relay does not support the SWITCH message.
+* EXCESSIVE_LOAD: A prior SWITCH for the same Current Subscribe Request ID
+  is already being processed.
 
-While a SWITCH is pending, if the subscriber sends UNSUBSCRIBE for the From
-Subscribe Request ID before the transition occurs, the Relay SHOULD abandon the
-SWITCH attempt. If the Relay has already opened a PUBLISH for the To Track, it
-MUST send PUBLISH_DONE for the To Track with Status Code SUBSCRIPTION_ENDED.
+If the subscriber sends UNSUBSCRIBE for the Current Subscribe Request ID before
+the Relay has opened a PUBLISH for the target Track, the Relay MUST abandon the
+SWITCH and MUST open a PUBLISH for the target Track and immediately send
+PUBLISH_DONE with Status Code SUBSCRIPTION_ENDED.
 
 ### Subscriber Considerations
 
