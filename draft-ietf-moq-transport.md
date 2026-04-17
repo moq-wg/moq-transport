@@ -1212,7 +1212,7 @@ by opening a PUBLISH for the target Track (see {{relay-switch}}); the
 subscriber need not pre-allocate any Request IDs for the SWITCH.
 
 When a Relay receives a SWITCH message, it MUST NOT forward it upstream.
-Instead, the Relay SHOULD perform the transition locally, preparing the
+Instead, the Relay MUST perform the transition locally, preparing the
 subscription for the target Track and determining the point at which to stop
 forwarding objects from the current Track and begin forwarding objects from
 the target Track (see {{relay-switch}}).
