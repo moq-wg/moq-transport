@@ -2003,6 +2003,8 @@ new request stream.
 |--------|-----------------------------------------------|----------------|
 | 0xF    | PUBLISH_BLOCKED ({{message-publish-blocked}}) | Request        |
 |--------|-----------------------------------------------|----------------|
+| 0x1F   | SUBGROUP_RESET ({{message-subgroup-reset}})   | Control        |
+|--------|-----------------------------------------------|----------------|
 | 0x2    | REQUEST_UPDATE ({{message-request-update}})   | Request        |
 |--------|-----------------------------------------------|----------------|
 | 0x7    | REQUEST_OK ({{message-request-ok}})           | Request        |
@@ -2422,6 +2424,44 @@ If the parameter is omitted from REQUEST_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
 message, the default value is 1.
 
+### MAX SUB STREAMS Parameter {#max-sub-streams}
+
+The MAX_SUB_STREAMS parameter (Parameter Type 0x33) is a varint. It MAY appear
+in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE for a Subscription. It sets or updates
+a limit on the total number of subgroup streams for the Subscription in order
+to provide flow control.
+
+A Publisher MUST NOT open more subgroup streams for that Subscription than the
+limit allows, and the Subscriber SHOULD close the Session with PROTOCOL_VIOLATION
+if detected. The Subscriber SHOULD increase this limit before the Publisher runs
+out of streams by sending a REQUEST_UPDATE with the Parameter. In REQUEST_UPDATE,
+this Parameter specifies the number of additional streams that can be opened.
+For example, if SUBSCRIBE specified a value of 10, and a REQUEST_UPDATE had a
+value of 5, a total of 15 subgroups streams can be opened for the Subscription.
+
+If this parameter is omitted from SUBSCRIBE or PUBLISH_OK, the number of streams
+is not limited by this mechanism and REQUEST_UPDATEs of that Subscription MUST NOT
+specify the MAX_SUB_STREAMS Parameter.
+
+### MAX SUB BYTES Parameter {#max-sub-bytes}
+
+The MAX_SUB_BYTES parameter (Parameter Type 0x34) is a varint. It MAY appear
+in SUBSCRIBE, PUBLISH_OK, or REQUEST_UPDATE for a Subscription. It sets a
+limit on the total number of bytes sent across all subgroup streams for the
+Subscription in order to provide flow control.
+
+A Publisher MUST NOT send more bytes on subgroup streams than the limit allows,
+and the Subscriber SHOULD close the Session with PROTOCOL_VIOLATION if detected.
+The Subscriber SHOULD increase this limit before the Publisher is blocked by
+sending a REQUEST_UPDATE with the Parameter. In REQUEST_UPDATE, this Parameter
+specifies the number of additional bytes that can be sent. For example, if SUBSCRIBE
+specified a value of 65,536, and a REQUEST_UPDATE had a value of 32,768, 98,304 bytes
+can be sent on subgroup streams for the Subscription.
+
+If this parameter is omitted from SUBSCRIBE or PUBLISH_OK, the number of bytes
+is not limited by this mechanism and REQUEST_UPDATEs of that Subscription MUST NOT
+specify the MAX_SUB_BYTES Parameter.
+
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
 The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint. It MAY appear
@@ -2833,6 +2873,40 @@ SUBSCRIBE_OK Message {
 * Parameters: The parameters are defined in {{message-params}}.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
+
+## SUBGROUP_RESET {#message-subgroup-reset}
+
+A publisher sends a `SUBGROUP_RESET` message on the Subscription's control
+stream to inform the subscriber of the total number of bytes sent on a subgroup
+stream before it was reset. This allows Subscribers using MAX_SUB_BYTES to
+accurately account for bytes sent, even if they weren't delivered,
+similar to QUIC's RESET_STREAM.
+
+The format of `SUBGROUP_RESET` is as follows:
+
+~~~
+SUBGROUP_RESET Message {
+  Type (i) = 0x1F,
+  Length (i),
+  Group ID (i),
+  Subgroup ID (i),
+  Final Size (i),
+}
+~~~
+{: #moq-transport-subgroup-reset-format title="MOQT SUBGROUP_RESET Message"}
+
+* Request ID: See {{request-id}}.
+* Group ID: The identifier of the Group.
+* Subgroup ID: The identifier of the Subgroup.
+* Final Size: The total number of bytes sent on the subgroup stream before it
+  was reset.
+
+If a Subscriber receives a Final Size for a Subgroup that is less than the largest
+offset received, it SHOULD close the Session with FLOW_CONTROL_EXCEEDED.
+
+SUBGROUP_RESET MUST NOT be sent for Subscriptions that do not specify either
+MAX_SUB_STREAMS or MAX_SUB_BYTES and Subscribers SHOULD close the Session with
+a PROTOCOL_VIOLATION if detected.
 
 ## REQUEST_UPDATE {#message-request-update}
 
@@ -3874,6 +3948,13 @@ handling PUBLISH_DONE (see {{message-publish-done}}).  Publishers that reset
 data streams without using RESET_STREAM_AT with an appropriate reliable_size can
 cause subscribers to hold on to subscription state until a timeout expires.
 
+Alternatively, a publisher can send a `SUBGROUP_RESET` control message (see
+{{message-subgroup-reset}}) to communicate the total number of bytes sent on a
+subgroup stream before it was reset. This explicitly avoids relying on
+`RESET_STREAM_AT` and ensures that the subscriber can accurately account for
+byte limits (such as those configured by `MAX_SUB_BYTES`) when the underlying
+transport (e.g., WebTransport) obscures the final stream offset.
+
 A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
@@ -4646,6 +4727,8 @@ Setup Options SHOULD request a provisional registration.
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
+| 0x33 | MAX_SUB_STREAMS | {{max-sub-streams}} |
+| 0x34 | MAX_SUB_BYTES | {{max-sub-bytes}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
@@ -4731,6 +4814,7 @@ This document does not define any initial entries.
 | EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
 | INVALID_AUTHORITY          | 0x19 | {{session-termination}} |
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination}} |
+| FLOW_CONTROL_EXCEEDED      | 0x1B | {{session-termination}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### REQUEST_ERROR Codes {#iana-request-error}
