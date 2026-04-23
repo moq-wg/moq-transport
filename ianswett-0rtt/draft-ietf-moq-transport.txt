@@ -1301,6 +1301,10 @@ Table of Contents
    sending that upstream could cause the Relay to receive a number of
    new Subscriptions on the replaying client's behalf.
 
+   Relays SHOULD implement rate-limiting or validation for 0-RTT
+   requests that trigger upstream subscriptions to mitigate resource
+   exhaustion from replayed packets.
+
 3.3.2.  Request Cancellation and Rejection
 
    Once a request stream has been opened, the request MAY be cancelled

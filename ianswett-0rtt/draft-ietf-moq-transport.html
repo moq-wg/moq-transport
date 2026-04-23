@@ -3065,6 +3065,7 @@ the relay to initiate new upstream Subscriptions. For a SUBSCRIBE_NAMESPACE
 that requested Subscriptions in the Namespace, sending that upstream could
 cause the Relay to receive a number of new Subscriptions on the replaying
 client's behalf.<a href="#section-3.3.1-7" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-8">Relays <span class="bcp14">SHOULD</span> implement rate-limiting or validation for 0-RTT requests that trigger upstream subscriptions to mitigate resource exhaustion from replayed packets.<a href="#section-3.3.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="request-cancellation">
