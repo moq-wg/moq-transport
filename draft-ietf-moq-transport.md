@@ -400,34 +400,6 @@ Reason Phrase {
   such as language tags, that would aid comprehension by any entity other than
   the one that created the text.
 
-### Redirect Structure {#redirect-structure}
-
-A Redirect provides a way for an endpoint to direct the peer to retry a
-request at a different URI and/or for a different Full Track Name.
-
-~~~
-Redirect {
-  Connect URI Length (vi64),
-  Connect URI (..),
-  Track Namespace (..),
-  Track Name Length (vi64),
-  Track Name (..),
-}
-~~~
-
-* Connect URI: The URI to connect to for this track. If the length is
-  zero, the requester SHOULD use the current session's URI. If a server
-  receives a Redirect with a non-zero Connect URI Length it MUST close the
-  session with a `PROTOCOL_VIOLATION`.
-
-* Track Namespace: The Track Namespace to use for the redirected request.
-
-* Track Name: The Track Name to use for the redirected request. Track Name
-  is not meaningful for namespace-scoped requests (SUBSCRIBE_NAMESPACE,
-  PUBLISH_NAMESPACE) and MUST be empty; an endpoint that receives a non-empty
-  Track Name in a Redirect for a namespace-scoped request MUST close the session
-  with a `PROTOCOL_VIOLATION`.
-
 ## Representing Namespace and Track Names
 
 There is often a need to render namespace tuples and track names for
@@ -2058,8 +2030,6 @@ new request stream.
 |--------|-----------------------------------------------|----------------|
 | 0xB    | PUBLISH_DONE ({{message-publish-done}})       | Request        |
 |--------|-----------------------------------------------|----------------|
-| 0x1F   | REDIRECT ({{message-redirect}})               | Request        |
-|--------|-----------------------------------------------|----------------|
 | 0x16   | FETCH ({{message-fetch}})                     | Request, First |
 |--------|-----------------------------------------------|----------------|
 | 0x18   | FETCH_OK ({{message-fetch-ok}})               | Request        |
@@ -2744,8 +2714,38 @@ REQUEST_OK Message {
 
 ## REQUEST_ERROR {#message-request-error}
 
-The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
+The REQUEST_ERROR message is sent in response to any request (SUBSCRIBE, FETCH,
 PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS, REQUEST_UPDATE).
+
+### Redirect Structure {#redirect-structure}
+
+A Redirect provides a way for an endpoint to direct the peer to retry a
+request at a different URI and/or for a different Full Track Name.
+
+~~~
+Redirect {
+  Connect URI Length (vi64),
+  Connect URI (..),
+  Track Namespace (..),
+  Track Name Length (vi64),
+  Track Name (..),
+}
+~~~
+
+* Connect URI: The URI to connect to for this track. If the length is
+  zero, the requester SHOULD use the current session's URI. If a server
+  receives a Redirect with a non-zero Connect URI Length it MUST close the
+  session with a `PROTOCOL_VIOLATION`.
+
+* Track Namespace: The Track Namespace to use for the redirected request.
+
+* Track Name: The Track Name to use for the redirected request. Track Name
+  is not meaningful for namespace-scoped requests (SUBSCRIBE_NAMESPACE,
+  PUBLISH_NAMESPACE) and MUST be empty; an endpoint that receives a non-empty
+  Track Name in a Redirect for a namespace-scoped request MUST close the session
+  with a `PROTOCOL_VIOLATION`.
+
+### REQUEST_ERROR Message Format
 
 ~~~
 REQUEST_ERROR Message {
@@ -3165,34 +3165,6 @@ UPDATE_FAILED (0x8):
 
 EXCESSIVE_LOAD (0x9):
 : The publisher is overloaded and is terminating the subscription.
-
-## REDIRECT {#message-redirect}
-
-An endpoint sends a REDIRECT message on a bidirectional request stream to
-indicate that the peer can re-establish the request on a different session.
-REDIRECT MAY be sent on streams for SUBSCRIBE, PUBLISH, SUBSCRIBE_NAMESPACE,
-and PUBLISH_NAMESPACE. An endpoint MUST close the session with a
-`PROTOCOL_VIOLATION` if it receives a REDIRECT on any other stream type.
-If an endpoint wants to drain an entire Session, it SHOULD use GOAWAY rather
-than sending REDIRECT on each Request.
-
-REDIRECT does not terminate the current request. The sender MAY continue to
-serve the request after sending REDIRECT. For subscriptions, a publisher MAY
-send both REDIRECT and PUBLISH_DONE; the subscriber SHOULD use the Redirect
-information to re-establish the subscription before the current one is fully
-torn down, enabling a seamless handoff.
-
-~~~
-REDIRECT Message {
-  Type (vi64) = 0x1F,
-  Length (16),
-  Redirect (Redirect),
-}
-~~~
-{: #moq-transport-redirect-format title="MOQT REDIRECT Message"}
-
-* Redirect: The location to re-establish the request. See
-  {{redirect-structure}}.
 
 ## FETCH {#message-fetch}
 
