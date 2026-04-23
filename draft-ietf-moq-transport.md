@@ -1072,8 +1072,8 @@ circumstances.
 * SUBSCRIBE_NAMESPACE requests a list of namespaces and the establishment
   of new subscriptions, but does not change the available Namespaces,
   Tracks, or Objects contained within a Track.
-* PUBLISH_NAMESPACE requests Subscriptions for Tracks in the namespace be sent to that
-  Publisher. If a Subscription was sent to the replaying endpoint, it
+* PUBLISH_NAMESPACE requests that Subscriptions under the namespace be sent
+  to that Publisher. If a Subscription was sent to the replaying endpoint, it
   would fail because the endpoint cannot complete the handshake.
 
 Some potential side effects of replay are:
@@ -1082,6 +1082,13 @@ Some potential side effects of replay are:
   Objects to be distributed to active Subscriptions if the relays do
   not identify them as already having been published.
 
+Replays could increase load on the MoQ network. For relay to client
+traffic, this is no worse than 0-RTT in HTTP/3, since it'd be limited by
+the amplification factor until address validation. However, it could cause
+the relay to initiate new upstream Subscriptions. For a SUBSCRIBE_NAMESPACE
+that requested Subscriptions in the Namespace, sending that upstream could
+cause the Relay to receive a number of new Subscriptions on the replaying
+client's behalf.
 
 ### Request Cancellation and Rejection {#request-cancellation}
 
