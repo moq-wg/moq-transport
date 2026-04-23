@@ -3035,8 +3035,9 @@ being requested.<a href="#section-3.3.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-3.3.1-4.3">
               <p id="section-3.3.1-4.3.1">PUBLISH initiates a Subscription and Objects can be immediately sent to
-the Subscriber. Sending the same Objects multiple times does not change
-the Track contents, because MoQ ignores duplicate Objects.<a href="#section-3.3.1-4.3.1" class="pilcrow">¶</a></p>
+the Subscriber. Processing the same Objects multiple times is
+idempotent, as the subscriber or relay can identify and discard
+duplicates based on the Group ID and Object ID.<a href="#section-3.3.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-3.3.1-4.4">
               <p id="section-3.3.1-4.4.1">SUBSCRIBE_NAMESPACE requests a list of namespaces and the establishment
