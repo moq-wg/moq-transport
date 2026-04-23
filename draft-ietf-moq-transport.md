@@ -1071,7 +1071,7 @@ Some potential side effects of replay are:
   Objects to be distributed to active Subscriptions if the relays do
   not identify them as already having been published.
 
-Replays could increase load on the MoQT network. For relay to client
+Replays could increase load on the MOQT network. For relay to client
 traffic, this is no worse than 0-RTT in HTTP/3, since it'd be limited by
 the amplification factor until address validation. However, it could cause
 the relay to initiate new upstream Subscriptions. For a SUBSCRIBE_NAMESPACE
