@@ -666,35 +666,28 @@ to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
-1. An Object is received in a FETCH response with the same Group ID as the
-   previous Object, but whose Object ID is not strictly larger than the previous
-   object.
-2.  In a FETCH response, an Object with a particular Subgroup ID is received, but its
+1.  An Object with a particular Subgroup ID is received, but its
      Publisher Priority is different from that of the previous Object with the same
      Subgroup ID.
-3. An Object is received in an Ascending FETCH response whose Group ID is smaller
-   than the previous Object in the response.
-4. An Object is received in a Descending FETCH response whose Group ID is larger
-   than the previous Object in the response.
-5. An Object is received whose Object ID is larger than the final Object in the
+2. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-6. A Subgroup is received over multiple transport streams terminated by FIN with
+3. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-7. An Object is received in a Group whose Object
+4. An Object is received in a Group whose Object
    ID is larger than the final Object in the Group.  The final Object in a Group
    is the Object with Status END_OF_GROUP, or the last Object before a FIN in a
    Subgroup which has the END_OF_GROUP bit set.  If the end of a Group is
    implicitly determined via a gap in a FETCH response, the final Object in the
    Group remains unknown.
-8. An Object is received whose Group and Object ID are larger than
+5. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
    with Status END_OF_TRACK or the last Object sent in a FETCH whose response
    indicated End of Track.
-9. The same Object is received more than once with different Payload or
-    other immutable properties.
-10. An Object is received with a different Forwarding Preference than previously
-    observed.
+6. The same Object is received more than once with different Payload or
+   other immutable properties.
+7. An Object is received with a different Forwarding Preference than previously
+   observed.
 
 The above list of conditions is not considered exhaustive.
 
@@ -4007,9 +4000,9 @@ format:
 ~~~
 {
   Serialization Flags (vi64),
-  [Group ID (vi64),]
+  [Group ID Delta (vi64),]
   [Subgroup ID (vi64),]
-  [Object ID (vi64),]
+  [Object ID Delta (vi64),]
   [Publisher Priority (8),]
   [Properties (..),]
   Object Payload Length (vi64),
@@ -4046,15 +4039,31 @@ the corresponding condition is true.
 
 Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
-0x04 | Object ID field is present | Object ID is the prior Object's ID plus one
-0x08 | Group ID field is present | Group ID is the prior Object's Group ID
+0x04 | Object ID Delta is present | Object ID is the prior Object's ID plus one
+0x08 | Group ID Delta is present | Group ID is the prior Object's Group ID
 0x10 | Priority field is present | Priority is the prior Object's Priority
 0x20 | Properties field is present | Properties field is not present
 0x40 | Datagram: ignore the two least significant bits | Decode the Subgroup ID as indicated by the two least significant bits
 
-If the first Object in the FETCH response uses a flag that references fields in
-the prior Object, the Subscriber MUST close the session with a
-`PROTOCOL_VIOLATION`.
+The first Object MUST include a Group ID Delta and Object ID Delta, and
+these values are the absolute Group ID and Object ID. If the first Object in
+the FETCH response uses a flag that references fields in the prior Object,
+the Subscriber MUST close the session with a `PROTOCOL_VIOLATION`.
+
+If the Group ID Delta field is present on an Object other than the first, the
+Group ID is computed from the Group ID Delta and the prior Object's Group ID.
+If the Group Order is Ascending, the Group ID is the prior Object's Group ID
+plus the Group ID Delta + 1.  If the Group Order is Descending, the Group ID is
+the prior Object's Group ID minus the (Group ID Delta + 1). If the computed
+Group ID would be less than 0 or greater than 2^64-1, the Subscriber MUST
+close the Session with error 'PROTOCOL_VIOLATION'.
+
+If the Object ID Delta field is present on an Object other than the first in the
+Group, the Object ID is the prior Object's ID plus the Object ID Delta.  When the
+Group ID Delta field is present and therefore the Group ID changes, the Object ID
+is the absolute value of Object ID Delta if present, and 0 otherwise. If the computed
+Object ID would be greater than 2^64-1, the Subscriber MUST close the Session
+with error 'PROTOCOL_VIOLATION'.
 
 The Object Properties structure is defined in {{object-properties}}.
 
