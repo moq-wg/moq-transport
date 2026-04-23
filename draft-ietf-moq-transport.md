@@ -1078,10 +1078,6 @@ circumstances.
 
 Some potential side effects of replay are:
 
-* The NEW_GROUP_REQUEST Parameter {{new-group-request}} can cause a new
-  Group to be started on an existing Track. Replaying a SUBSCRIBE
-  containing a NEW_GROUP_REQUEST could cause more, shorter Groups to
-  be published for a Track.
 * Publishing Objects that were previously published could cause those
   Objects to be distributed to active Subscriptions if the relays do
   not identify them as already having been published.
