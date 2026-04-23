@@ -2645,7 +2645,7 @@ GOAWAY Message {
 The REQUEST_OK message is sent in response to REQUEST_UPDATE, TRACK_STATUS,
 SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests.
 
-When the context is clear, this document uses the shorthand REQUEST_UPDATE_OK,
+This document uses the shorthand REQUEST_UPDATE_OK,
 TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and PUBLISH_NAMESPACE_OK to refer to
 a REQUEST_OK sent in response to the corresponding request type.
 
