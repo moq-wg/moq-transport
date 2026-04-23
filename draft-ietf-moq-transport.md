@@ -3085,7 +3085,10 @@ with a certain number of groups prior to the live edge of a track.
 
 A Joining Fetch is only permitted when the associated subscription has
 Forward State 1; otherwise the publisher MUST close the session with a
-`PROTOCOL_VIOLATION`.
+`PROTOCOL_VIOLATION`. However, if the subscription later switches to
+Forward State 0, the joining FETCH may continue.
+
+Terminating a subscription also terminates any Joining FETCH associated with it.
 
 If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
