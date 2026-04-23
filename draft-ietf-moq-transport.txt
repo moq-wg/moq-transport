@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 18 October 2026                                   I. Swett, Ed.
+Expires: 25 October 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           16 April 2026
+                                                           23 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 October 2026.
+   This Internet-Draft will expire on 25 October 2026.
 
 Copyright Notice
 
@@ -113,6 +113,7 @@ Table of Contents
        3.2.2.  Session-Level Tracks and Namespaces
      3.3.  Session initialization
        3.3.1.  Request Cancellation and Rejection
+       3.3.2.  Stream Reset Error Codes
      3.4.  Unidirectional Stream Types
      3.5.  Termination
      3.6.  Migration
@@ -231,7 +232,7 @@ Table of Contents
        14.10.1.  Session Termination Error Codes
        14.10.2.  REQUEST_ERROR Codes
        14.10.3.  PUBLISH_DONE Codes
-       14.10.4.  Data Stream Reset Error Codes
+       14.10.4.  Stream Reset Error Codes
    Contributors
    Use of Generative AI
    References
@@ -1253,6 +1254,46 @@ Table of Contents
 
    When an endpoint rejects a request without performing any application
    processing, it SHOULD send a REQUEST_ERROR and FIN the stream.
+
+   The application SHOULD use a relevant error code when resetting or
+   sending STOP_SENDING on a request stream, as defined in
+   Section 3.3.2.
+
+3.3.2.  Stream Reset Error Codes
+
+   The application SHOULD use a relevant error code when resetting or
+   sending STOP_SENDING on any stream.
+
+   INTERNAL_ERROR (0x0):  An implementation specific error.
+
+   CANCELLED (0x1):  The stream was cancelled by either endpoint.  For
+      Subscriptions, PUBLISH_DONE (Section 9.13) may have a more
+      detailed status code.
+
+   DELIVERY_TIMEOUT (0x2):  The DELIVERY TIMEOUT (Section 9.3.3) was
+      exceeded for this stream.
+
+   SESSION_CLOSED (0x3):  The session is being closed.
+
+   GOING_AWAY (0x4):  The endpoint is rejecting this request because it
+      has sent or received a GOAWAY.
+
+   TOO_FAR_BEHIND (0x5):  The corresponding subscription has exceeded
+      the publisher's resource limits and is being terminated (see
+      Section 9.3.3).
+
+   UNKNOWN_OBJECT_STATUS (0x6):  In response to a FETCH, the publisher
+      is unable to determine the status of the next Object in the
+      requested range.
+
+   EXPIRED_AUTH_TOKEN (0x7):  The authorization token for the request
+      has expired.
+
+   EXCESSIVE_LOAD (0x9):  The endpoint is overloaded and is resetting
+      this stream.
+
+   MALFORMED_TRACK (0x12):  A relay publisher detected that the track
+      was malformed (see Section 2.4.2).
 
 3.4.  Unidirectional Stream Types
 
@@ -3321,7 +3362,8 @@ Table of Contents
 
    A sender MUST NOT destroy subscription state until it sends
    PUBLISH_DONE, though it can choose to stop sending objects (and thus
-   send PUBLISH_DONE) for any reason.
+   send PUBLISH_DONE) for any reason.  A sender SHOULD send FIN on the
+   subscription's bidi stream immediately after sending PUBLISH_DONE.
 
    A subscriber that receives PUBLISH_DONE SHOULD set a timer of at
    least its delivery timeout in case some objects are still inbound due
@@ -3387,11 +3429,11 @@ Table of Contents
    GOING_AWAY (0x4):  The subscriber or publisher issued a GOAWAY
       message.
 
-   EXPIRED (0x5):  The publisher reached the timeout specified in
-      SUBSCRIBE_OK.
-
-   TOO_FAR_BEHIND (0x6):  The publisher's queue of objects to be sent to
+   TOO_FAR_BEHIND (0x5):  The publisher's queue of objects to be sent to
       the given subscriber exceeds its implementation defined limit.
+
+   EXPIRED (0x6):  The publisher reached the timeout specified in
+      SUBSCRIBE_OK.
 
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 2.4.2).
@@ -3604,8 +3646,8 @@ Table of Contents
    more Objects with unknown status (e.g. a Relay has temporarily lost
    contact with the Original Publisher and does not have the Object in
    cache), it can choose to reset the FETCH data stream with
-   UNKNOWN_OBJECT_STATUS, or indicate the range of unknown Objects and
-   continue serving other known Objects.
+   UNKNOWN_OBJECT_STATUS (Section 3.3.2), or indicate the range of
+   unknown Objects and continue serving other known Objects.
 
 9.15.  FETCH_OK
 
@@ -4333,32 +4375,7 @@ Table of Contents
    indicates the subscriber has renewed interest in forwarded Objects.
 
    The application SHOULD use a relevant error code when resetting a
-   stream, as defined below:
-
-   INTERNAL_ERROR (0x0):  An implementation specific error.
-
-   CANCELLED (0x1):  The subscriber or publisher cancelled the Request.
-      For Subscriptions, PUBLISH_DONE (Section 9.13) will have a more
-      detailed status code.
-
-   DELIVERY_TIMEOUT (0x2):  The DELIVERY TIMEOUT Section 9.3.3 was
-      exceeded for this stream.
-
-   SESSION_CLOSED (0x3):  The publisher session is being closed.
-
-   UNKNOWN_OBJECT_STATUS (0x4):  In response to a FETCH, the publisher
-      is unable to determine the Status of the next Object in the
-      requested range.
-
-   TOO_FAR_BEHIND (0x5):  The corresponding subscription has exceeded
-      the publisher's resource limits and is being terminated (see
-      Section 9.3.3).
-
-   EXCESSIVE_LOAD (0x9):  The publisher is overloaded and is resetting
-      this stream.
-
-   MALFORMED_TRACK (0x12):  A relay publisher detected that the track
-      was malformed (see Section 2.4.2).
+   stream, as defined in Section 3.3.2.
 
 10.4.4.  Fetch Header
 
@@ -4938,7 +4955,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  PUBLISH_DONE Codes (Section 14.10.3)
 
-   *  Data Stream Reset Error Codes (Section 14.10.4)
+   *  Stream Reset Error Codes (Section 14.10.4)
 
    *  MOQT Auth Token Type
 
@@ -5338,9 +5355,9 @@ EXT 1 and EXT N can be modified or removed by Relays
         +-----------------------+-----------------+---------------+
         | GOING_AWAY            |       0x4       | Section 9.13  |
         +-----------------------+-----------------+---------------+
-        | EXPIRED               |       0x5       | Section 9.13  |
+        | TOO_FAR_BEHIND        |       0x5       | Section 9.13  |
         +-----------------------+-----------------+---------------+
-        | TOO_FAR_BEHIND        |       0x6       | Section 9.13  |
+        | EXPIRED               |       0x6       | Section 9.13  |
         +-----------------------+-----------------+---------------+
         | UPDATE_FAILED         |       0x8       | Section 9.13  |
         +-----------------------+-----------------+---------------+
@@ -5353,31 +5370,35 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 17
 
-14.10.4.  Data Stream Reset Error Codes
+14.10.4.  Stream Reset Error Codes
 
-       +=======================+=================+================+
-       | Name                  |       Code      | Specification  |
-       +=======================+=================+================+
-       | INTERNAL_ERROR        |       0x0       | Section 10.4.3 |
-       +-----------------------+-----------------+----------------+
-       | CANCELLED             |       0x1       | Section 10.4.3 |
-       +-----------------------+-----------------+----------------+
-       | DELIVERY_TIMEOUT      |       0x2       | Section 10.4.3 |
-       +-----------------------+-----------------+----------------+
-       | SESSION_CLOSED        |       0x3       | Section 10.4.3 |
-       +-----------------------+-----------------+----------------+
-       | UNKNOWN_OBJECT_STATUS |       0x4       | Section 10.4.3 |
-       +-----------------------+-----------------+----------------+
-       | TOO_FAR_BEHIND        |       0x5       | Section 10.4.3 |
-       +-----------------------+-----------------+----------------+
-       | EXCESSIVE_LOAD        |       0x9       | Section 10.4.3 |
-       +-----------------------+-----------------+----------------+
-       | MALFORMED_TRACK       |       0x12      | Section 10.4.3 |
-       +-----------------------+-----------------+----------------+
-       | Reserved for greasing | 0x7f * N + 0x9D | Section 13     |
-       +-----------------------+-----------------+----------------+
+        +=======================+=================+===============+
+        | Name                  |       Code      | Specification |
+        +=======================+=================+===============+
+        | INTERNAL_ERROR        |       0x0       | Section 3.3.2 |
+        +-----------------------+-----------------+---------------+
+        | CANCELLED             |       0x1       | Section 3.3.2 |
+        +-----------------------+-----------------+---------------+
+        | DELIVERY_TIMEOUT      |       0x2       | Section 3.3.2 |
+        +-----------------------+-----------------+---------------+
+        | SESSION_CLOSED        |       0x3       | Section 3.3.2 |
+        +-----------------------+-----------------+---------------+
+        | GOING_AWAY            |       0x4       | Section 3.3.2 |
+        +-----------------------+-----------------+---------------+
+        | TOO_FAR_BEHIND        |       0x5       | Section 3.3.2 |
+        +-----------------------+-----------------+---------------+
+        | UNKNOWN_OBJECT_STATUS |       0x6       | Section 3.3.2 |
+        +-----------------------+-----------------+---------------+
+        | EXPIRED_AUTH_TOKEN    |       0x7       | Section 3.3.2 |
+        +-----------------------+-----------------+---------------+
+        | EXCESSIVE_LOAD        |       0x9       | Section 3.3.2 |
+        +-----------------------+-----------------+---------------+
+        | MALFORMED_TRACK       |       0x12      | Section 3.3.2 |
+        +-----------------------+-----------------+---------------+
+        | Reserved for greasing | 0x7f * N + 0x9D | Section 13    |
+        +-----------------------+-----------------+---------------+
 
-                                 Table 18
+                                  Table 18
 
 Contributors
 
