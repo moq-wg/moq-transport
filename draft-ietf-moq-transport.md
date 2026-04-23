@@ -2714,8 +2714,38 @@ REQUEST_OK Message {
 
 ## REQUEST_ERROR {#message-request-error}
 
-The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
+The REQUEST_ERROR message is sent in response to any request (SUBSCRIBE, FETCH,
 PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS, REQUEST_UPDATE).
+
+### Redirect Structure {#redirect-structure}
+
+A Redirect provides a way for an endpoint to direct the peer to retry a
+request at a different URI and/or for a different Full Track Name.
+
+~~~
+Redirect {
+  Connect URI Length (vi64),
+  Connect URI (..),
+  Track Namespace (..),
+  Track Name Length (vi64),
+  Track Name (..),
+}
+~~~
+
+* Connect URI: The URI to connect to for this track. If the length is
+  zero, the requester SHOULD use the current session's URI. If a server
+  receives a Redirect with a non-zero Connect URI Length it MUST close the
+  session with a `PROTOCOL_VIOLATION`.
+
+* Track Namespace: The Track Namespace to use for the redirected request.
+
+* Track Name: The Track Name to use for the redirected request. Track Name
+  is not meaningful for namespace-scoped requests (SUBSCRIBE_NAMESPACE,
+  PUBLISH_NAMESPACE) and MUST be empty; an endpoint that receives a non-empty
+  Track Name in a Redirect for a namespace-scoped request MUST close the session
+  with a `PROTOCOL_VIOLATION`.
+
+### REQUEST_ERROR Message Format
 
 ~~~
 REQUEST_ERROR Message {
@@ -2724,6 +2754,7 @@ REQUEST_ERROR Message {
   Error Code (vi64),
   Retry Interval (vi64),
   Error Reason (Reason Phrase),
+  [Redirect (Redirect),]
 }
 ~~~
 {: #moq-transport-request-error format title="MOQT REQUEST_ERROR Message"}
@@ -2735,6 +2766,9 @@ REQUEST_ERROR Message {
 
 * Error Reason: Provides a text description of the request error. See
  {{reason-phrase}}.
+
+* Redirect: Present only when Error Code is REDIRECT. See
+  {{redirect-structure}}.
 
 The application SHOULD use a relevant error code in REQUEST_ERROR,
 as defined below and assigned in {{iana-request-error}}. Most codepoints have
@@ -2783,6 +2817,14 @@ UNSUPPORTED_EXTENSION:
 DUPLICATE_SUBSCRIPTION (0x19):
 : The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
 with the same role as an existing subscription.
+
+REDIRECT:
+: The request cannot be fulfilled by this endpoint, but could succeed at the
+location specified in the Redirect structure. The requester SHOULD establish a
+new session to the provided URI (if present) and retry the request using the
+Full Track Name from the Redirect (if present). This error code can appear in
+response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH_NAMESPACE and
+SUBSCRIBE_NAMESPACE.
 
 Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
@@ -4774,6 +4816,7 @@ This document does not define any initial entries.
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
+| REDIRECT                   | 0x34 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
