@@ -3441,7 +3441,7 @@ Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_O
 or REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.13</a>) are sent regardless of the forward state.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
 <p id="section-5.1-6">A publisher <span class="bcp14">MUST</span> save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
-or REQUEST_OK (in response to a REQUEST_UPDATE) that changes the Forward State
+or REQUEST_UPDATE_OK that changes the Forward State
 from 0 to 1.  This value is called the Joining Location and can be used in a
 Joining FETCH (see <a href="#joining-fetches" class="auto internal xref">Section 9.14.2</a>) while the subscription is in the
 <code>Established</code> state.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
@@ -4014,7 +4014,8 @@ relay is managed and is application specific.<a href="#section-8.5-3" class="pil
 <p id="section-8.5-4">When a publisher wants to stop new subscriptions for a published namespace, it
 cancels the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>) to withdraw the PUBLISH_NAMESPACE.
 A subscriber indicates it will no longer subscribe to Tracks in a namespace it
-previously responded REQUEST_OK to by cancelling the PUBLISH_NAMESPACE request.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
+previously responded PUBLISH_NAMESPACE_OK to by cancelling the
+PUBLISH_NAMESPACE request.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
 <p id="section-8.5-5">A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
 Track Name is matched exactly against existing upstream subscriptions.<a href="#section-8.5-5" class="pilcrow">¶</a></p>
@@ -4086,7 +4087,7 @@ receiving the Objects on the same subscription.<a href="#section-8.5.1-3" class=
 <a href="#section-8.6" class="section-number selfRef">8.6. </a><a href="#name-relay-track-handling" class="section-name selfRef">Relay Track Handling</a>
         </h3>
 <p id="section-8.6-1">A relay <span class="bcp14">MUST</span> include all Properties associated with a Track when sending any PUBLISH,
-SUBSCRIBE_OK, REQUEST_OK when in response to a TRACK_STATUS, or FETCH_OK, unless
+SUBSCRIBE_OK, TRACK_STATUS_OK, or FETCH_OK, unless
 allowed by the property's specification (see <a href="#properties" class="auto internal xref">Section 2.5</a>).<a href="#section-8.6-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -4673,7 +4674,7 @@ unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.<a href="#se
 <a href="#section-9.3.9" class="section-number selfRef">9.3.9. </a><a href="#name-expires-parameter" class="section-name selfRef">EXPIRES Parameter</a>
           </h4>
 <p id="section-9.3.9-1">The EXPIRES parameter (Parameter Type 0x8) is a varint. It <span class="bcp14">MAY</span> appear in
-SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK. It encodes the time
+SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_UPDATE_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or by cancelling the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>).  This value is advisory and the sender
@@ -4682,7 +4683,7 @@ can terminate the subscription prior to or after the expiry time.<a href="#secti
 a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
 more updated AUTHORIZATION_TOKENs, it <span class="bcp14">SHOULD</span> include those in the
 REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
-value in REQUEST_OK. Relays that send this parameter and applications that
+value in REQUEST_UPDATE_OK. Relays that send this parameter and applications that
 receive it <span class="bcp14">MAY</span> introduce jitter to prevent many endpoints from updating
 simultaneously.<a href="#section-9.3.9-2" class="pilcrow">¶</a></p>
 <p id="section-9.3.9-3">If the EXPIRES parameter is 0 or is not present in a message, the subscription
@@ -4695,8 +4696,8 @@ does not expire or expires at an unknown time.<a href="#section-9.3.9-3" class="
 <a href="#section-9.3.10" class="section-number selfRef">9.3.10. </a><a href="#name-largest-object-parameter" class="section-name selfRef">LARGEST OBJECT Parameter</a>
           </h4>
 <p id="section-9.3.10-1">The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It <span class="bcp14">MAY</span> appear
-in SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE or
-TRACK_STATUS). It contains the largest Location (see <a href="#location-structure" class="auto internal xref">Section 1.4.2</a>) in the
+in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, or TRACK_STATUS_OK.
+It contains the largest Location (see <a href="#location-structure" class="auto internal xref">Section 1.4.2</a>) in the
 Track observed by the sending endpoint (see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>). If Objects
 have been published on this Track the Publisher <span class="bcp14">MUST</span> include this parameter.<a href="#section-9.3.10-1" class="pilcrow">¶</a></p>
 <p id="section-9.3.10-2">If omitted from a message, the sending endpoint has not published or received
@@ -4980,11 +4981,14 @@ their status can be determined from the response on each request stream.<a href=
         <h3 id="name-request_ok">
 <a href="#section-9.6" class="section-number selfRef">9.6. </a><a href="#name-request_ok" class="section-name selfRef">REQUEST_OK</a>
         </h3>
-<p id="section-9.6-1">The REQUEST_OK message is sent to a response to REQUEST_UPDATE, TRACK_STATUS,
+<p id="section-9.6-1">The REQUEST_OK message is sent in response to REQUEST_UPDATE, TRACK_STATUS,
 SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests.<a href="#section-9.6-1" class="pilcrow">¶</a></p>
+<p id="section-9.6-2">This document uses the shorthand REQUEST_UPDATE_OK,
+TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and PUBLISH_NAMESPACE_OK to refer to
+a REQUEST_OK sent in response to the corresponding request type.<a href="#section-9.6-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_ok-message"></span><div id="moq-transport-request-ok">
 <figure id="figure-8">
-          <div class="alignLeft art-text artwork" id="section-9.6-2.1">
+          <div class="alignLeft art-text artwork" id="section-9.6-3.1">
 <pre>
 REQUEST_OK Message {
   Type (vi64) = 0x7,
@@ -5000,17 +5004,17 @@ REQUEST_OK Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.6-3.1">
-            <p id="section-9.6-3.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.3</a>.<a href="#section-9.6-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.6-4.1">
+            <p id="section-9.6-4.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.3</a>.<a href="#section-9.6-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.6-3.2">
-            <p id="section-9.6-3.2.1">Track Properties : A sequence of Properties. See <a href="#properties" class="auto internal xref">Section 2.5</a>. The
+          <li class="normal" id="section-9.6-4.2">
+            <p id="section-9.6-4.2.1">Track Properties : A sequence of Properties. See <a href="#properties" class="auto internal xref">Section 2.5</a>. The
 length of Track Properties is the remaining length of the message
 after parsing all previous fields. Track Properties are populated in
-response to TRACK_STATUS messages; they are empty in response to
-REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE.  If an
-endpoint receives Track Properties in response to one of these messages
-it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.6-3.2.1" class="pilcrow">¶</a></p>
+TRACK_STATUS_OK; they are empty in REQUEST_UPDATE_OK,
+SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
+receives Track Properties in one of these messages it <span class="bcp14">MUST</span> close the
+session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.6-4.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5320,8 +5324,8 @@ Largest Location, similar to a new Subscription. FETCH can be used to retrieve
 any necessary Objects smaller than the current Largest Location.<a href="#section-9.10.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.10.1-2">When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
-create a gap in the subscription. The REQUEST_OK in response to the
-REQUEST_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
+create a gap in the subscription. The REQUEST_UPDATE_OK will include the
+LARGEST_OBJECT parameter, and the subscriber
 can issue a FETCH to retrieve the omitted Objects, if any.<a href="#section-9.10.1-2" class="pilcrow">¶</a></p>
 <p id="section-9.10.1-3">When a subscriber narrows their subscription (increase the Start Location and/or
 decrease the End Group), it might still receive Objects outside the
@@ -5671,7 +5675,7 @@ Forward State 1; otherwise the publisher <span class="bcp14">MUST</span> close t
 messages for the associated subscription before evaluating the current
 request. Relays with an upstream subscription in transition from Forward State 0
 to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
-the upstream subscription returns REQUEST_OK with the new Largest Object.<a href="#section-9.14.2-4" class="pilcrow">¶</a></p>
+the upstream subscription returns REQUEST_UPDATE_OK with the new Largest Object.<a href="#section-9.14.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.14.2-5">If no Objects have been published for the track the publisher <span class="bcp14">MUST</span>
 respond with a REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-9.14.2-5" class="pilcrow">¶</a></p>
 <p id="section-9.14.2-6">A Joining Fetch includes this structure:<a href="#section-9.14.2-6" class="pilcrow">¶</a></p>
@@ -5882,11 +5886,11 @@ delivery (e.g. SUBSCRIBER_PRIORITY) are not included.<a href="#section-9.16-2" c
 <p id="section-9.16-3">The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
-REQUEST_OK message with the same parameters and Track Properties it would have
+TRACK_STATUS_OK with the same parameters and Track Properties it would have
 set in a SUBSCRIBE_OK. Track Alias is not used.  A publisher responds to a
 failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
-REQUEST_OK or REQUEST_ERROR are sent.<a href="#section-9.16-3" class="pilcrow">¶</a></p>
+TRACK_STATUS_OK or REQUEST_ERROR are sent.<a href="#section-9.16-3" class="pilcrow">¶</a></p>
 <p id="section-9.16-4">Relays without an <code>Established</code> subscription <span class="bcp14">MAY</span> forward TRACK_STATUS to one or more
 publishers, or <span class="bcp14">MAY</span> initiate a subscription (subject to authorization) as
 described in <a href="#publisher-interactions" class="auto internal xref">Section 8.5</a> to determine the response. The publisher
