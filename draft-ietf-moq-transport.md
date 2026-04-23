@@ -1072,7 +1072,7 @@ circumstances.
 * SUBSCRIBE_NAMESPACE requests a list of namespaces and the establishment
   of new subscriptions, but does not change the available Namespaces,
   Tracks, or Objects contained within a Track.
-* PUBLISH_NAMESPACE indicates that Subscriptions should be sent to the
+* PUBLISH_NAMESPACE requests Subscriptions for Tracks in the namespace be sent to that
   Publisher. If a Subscription was sent to the replaying endpoint, it
   would fail because the endpoint cannot complete the handshake.
 
