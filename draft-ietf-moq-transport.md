@@ -542,11 +542,11 @@ same Subgroup MUST NOT be sent on different streams, unless one of the streams
 was reset prematurely, or upstream conditions have forced objects from a Subgroup
 to be sent out of Object ID order.
 
-Original publishers assign each Subgroup a Subgroup ID, and do so as they see fit.  The
-scope of a Subgroup ID is a Group, so Subgroups from different Groups MAY share a Subgroup
-ID without implying any relationship between them. In general, publishers assign
-objects to subgroups in order to leverage the features of streams as described
-above.
+Original publishers MUST assign each Subgroup a Subgroup ID equal to the Object ID
+of the first Object in the Subgroup.  The scope of a Subgroup ID is a Group, so
+Subgroups from different Groups MAY share a Subgroup ID without implying any
+relationship between them. In general, publishers assign objects to subgroups in
+order to leverage the features of streams as described above.
 
 In general, if Object B is dependent on Object A, then delivery of B can follow
 A, i.e. A and B can be usefully delivered over a single stream.  If an Object is
@@ -1654,8 +1654,7 @@ the objects SHOULD be selected as follows:
    and publisher priority and belong to the same group of the same track, the
    one with **the lowest Subgroup ID** (for objects with forwarding preference
    Subgroup), or **the lowest Object ID** (for objects with forwarding preference
-   Datagram) is scheduled to be sent first.  If the two objects have
-   different Forwarding Preferences the order is implementation dependent.
+   Datagram) is scheduled to be sent first.
 
 The definition of "scheduled to be sent first" in the algorithm is implementation
 dependent and is constrained by the prioritization interface of the underlying
@@ -3822,9 +3821,9 @@ following fields.
 The Object Status field is only sent if the Object Payload Length is zero.
 
 The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
-stream if there was one.  The Object ID is the Object ID Delta if it's the first
-Object in the Subgroup stream. If the resulting Object ID would be greater
-than 2^64 - 1, the endpoint MUST close the session with a
+stream if there was one.  The Object ID is the Subgroup ID + Object ID Delta
+if it's the first Object in the Subgroup stream. If the resulting Object ID
+would be greater than 2^64 - 1, the endpoint MUST close the session with a
 `PROTOCOL_VIOLATION`. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
