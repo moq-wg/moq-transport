@@ -1654,8 +1654,7 @@ the objects SHOULD be selected as follows:
    and publisher priority and belong to the same group of the same track, the
    one with **the lowest Subgroup ID** (for objects with forwarding preference
    Subgroup), or **the lowest Object ID** (for objects with forwarding preference
-   Datagram) is scheduled to be sent first.  If the two objects have
-   different Forwarding Preferences the order is implementation dependent.
+   Datagram) is scheduled to be sent first.
 
 The definition of "scheduled to be sent first" in the algorithm is implementation
 dependent and is constrained by the prioritization interface of the underlying
