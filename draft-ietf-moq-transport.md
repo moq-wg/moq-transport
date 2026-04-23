@@ -1047,7 +1047,7 @@ version of WebTransport, the following would apply to it as well as QUIC.
 0-RTT is not forward secure, so MOQT users need to consider that when
 deciding if 0-RTT is appropriate.
 
-MoQT Messages and Objects as defined in this draft are safe to replay in most
+MOQT Messages and Objects as defined in this draft are safe to replay in most
 circumstances.
 
 * TRACK_STATUS gets the Largest Object and Track Properties, but does not
