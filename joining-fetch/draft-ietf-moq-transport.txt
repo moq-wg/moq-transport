@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 October 2026                                   I. Swett, Ed.
+Expires: 25 October 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           10 April 2026
+                                                           23 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 October 2026.
+   This Internet-Draft will expire on 25 October 2026.
 
 Copyright Notice
 
@@ -3407,7 +3407,11 @@ Table of Contents
 
    A Joining Fetch is only permitted when the associated subscription
    has Forward State 1; otherwise the publisher MUST close the session
-   with a PROTOCOL_VIOLATION.
+   with a PROTOCOL_VIOLATION.  However, if the subscription later
+   switches to Forward State 0, the joining FETCH may continue.
+
+   Terminating a subscription also terminates any Joining FETCH
+   associated with it.
 
    If no Objects have been published for the track the publisher MUST
    respond with a REQUEST_ERROR with error code INVALID_RANGE.
