@@ -1055,8 +1055,9 @@ circumstances.
 * SUBSCRIBE requests Objects be delivered, but does not change the Objects
   being requested.
 * PUBLISH initiates a Subscription and Objects can be immediately sent to
-  the Subscriber. Sending the same Objects multiple times does not change
-  the Track contents, because MoQ ignores duplicate Objects.
+  the Subscriber. Processing the same Objects multiple times is
+  idempotent, as the subscriber or relay can identify and discard
+  duplicates based on the Group ID and Object ID.
 * SUBSCRIBE_NAMESPACE requests a list of namespaces and the establishment
   of new subscriptions, but does not change the available Namespaces,
   Tracks, or Objects contained within a Track.
