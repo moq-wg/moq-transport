@@ -1038,6 +1038,48 @@ a stream that are still open by resetting or sending STOP_SENDING.
 When an endpoint rejects a request without performing any application processing,
 it SHOULD send a REQUEST_ERROR and FIN the stream.
 
+The application SHOULD use a relevant error code when resetting or sending
+STOP_SENDING on a request stream, as defined in {{stream-reset-codes}}.
+
+### Stream Reset Error Codes {#stream-reset-codes}
+
+The application SHOULD use a relevant error code when resetting or sending
+STOP_SENDING on any stream.
+
+INTERNAL_ERROR (0x0):
+: An implementation specific error.
+
+CANCELLED (0x1):
+: The stream was cancelled by either endpoint. For Subscriptions,
+  PUBLISH_DONE ({{message-publish-done}}) may have a more detailed status code.
+
+DELIVERY_TIMEOUT (0x2):
+: The DELIVERY TIMEOUT ({{delivery-timeout}}) was exceeded for this stream.
+
+SESSION_CLOSED (0x3):
+: The session is being closed.
+
+GOING_AWAY (0x4):
+: The endpoint is rejecting this request because it has sent or received a GOAWAY.
+
+TOO_FAR_BEHIND (0x5):
+: The corresponding subscription has exceeded the publisher's resource limits and
+  is being terminated (see {{delivery-timeout}}).
+
+UNKNOWN_OBJECT_STATUS (0x6):
+: In response to a FETCH, the publisher is unable to determine the status
+  of the next Object in the requested range.
+
+EXPIRED_AUTH_TOKEN (0x7):
+: The authorization token for the request has expired.
+
+EXCESSIVE_LOAD (0x9):
+: The endpoint is overloaded and is resetting this stream.
+
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
+  {{malformed-tracks}}).
+
 ## Unidirectional Stream Types {#stream-types}
 
 All unidirectional MOQT streams start with a variable-length integer indicating
@@ -2996,7 +3038,8 @@ ACK of the FIN.
 
 A sender MUST NOT destroy subscription state until it sends PUBLISH_DONE, though
 it can choose to stop sending objects (and thus send PUBLISH_DONE) for any
-reason.
+reason. A sender SHOULD send FIN on the subscription's bidi stream immediately
+after sending PUBLISH_DONE.
 
 A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least its
 delivery timeout in case some objects are still inbound due to prioritization or
@@ -3058,12 +3101,12 @@ SUBSCRIPTION_ENDED (0x3):
 GOING_AWAY (0x4):
 : The subscriber or publisher issued a GOAWAY message.
 
-EXPIRED (0x5):
-: The publisher reached the timeout specified in SUBSCRIBE_OK.
-
-TOO_FAR_BEHIND (0x6):
+TOO_FAR_BEHIND (0x5):
 : The publisher's queue of objects to be sent to the given subscriber exceeds
   its implementation defined limit.
+
+EXPIRED (0x6):
+: The publisher reached the timeout specified in SUBSCRIBE_OK.
 
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
@@ -3262,7 +3305,7 @@ subgroup ID is not used for ordering.
 If a Publisher receives a FETCH with a range that includes one or more Objects with
 unknown status (e.g. a Relay has temporarily lost contact with the Original
 Publisher and does not have the Object in cache), it can choose to reset the
-FETCH data stream with UNKNOWN_OBJECT_STATUS, or indicate the range of unknown
+FETCH data stream with UNKNOWN_OBJECT_STATUS ({{stream-reset-codes}}), or indicate the range of unknown
 Objects and continue serving other known Objects.
 
 ## FETCH_OK {#message-fetch-ok}
@@ -3942,35 +3985,7 @@ State from 0 to 1, it MAY open a new stream to deliver Objects in that Subgroup,
 as the update indicates the subscriber has renewed interest in forwarded Objects.
 
 The application SHOULD use a relevant error code when resetting a stream,
-as defined below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific error.
-
-CANCELLED (0x1):
-: The subscriber or publisher cancelled the Request. For Subscriptions,
-  PUBLISH_DONE ({{message-publish-done}}) will have a more detailed status code.
-
-DELIVERY_TIMEOUT (0x2):
-: The DELIVERY TIMEOUT {{delivery-timeout}} was exceeded for this stream.
-
-SESSION_CLOSED (0x3):
-: The publisher session is being closed.
-
-UNKNOWN_OBJECT_STATUS (0x4):
-: In response to a FETCH, the publisher is unable to determine the Status
-of the next Object in the requested range.
-
-TOO_FAR_BEHIND (0x5):
-: The corresponding subscription has exceeded the publisher's resource limits and
-is being terminated (see {{delivery-timeout}}).
-
-EXCESSIVE_LOAD (0x9):
-: The publisher is overloaded and is resetting this stream.
-
-MALFORMED_TRACK (0x12):
-: A relay publisher detected that the track was malformed (see
-  {{malformed-tracks}}).
+as defined in {{stream-reset-codes}}.
 
 ### Fetch Header {#fetch-header}
 
@@ -4493,7 +4508,7 @@ The following registries include GREASE reservations:
 - Session Termination Error Codes ({{iana-session-termination}})
 - REQUEST_ERROR Codes ({{iana-request-error}})
 - PUBLISH_DONE Codes ({{iana-publish-done}})
-- Data Stream Reset Error Codes ({{iana-reset-stream}})
+- Stream Reset Error Codes ({{iana-reset-stream}})
 - MOQT Auth Token Type
 
 Because new values in these registries can be defined without negotiation,
@@ -4765,25 +4780,27 @@ This document does not define any initial entries.
 | TRACK_ENDED        | 0x2  | {{message-publish-done}} |
 | SUBSCRIPTION_ENDED | 0x3  | {{message-publish-done}} |
 | GOING_AWAY         | 0x4  | {{message-publish-done}} |
-| EXPIRED            | 0x5  | {{message-publish-done}} |
-| TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
+| TOO_FAR_BEHIND     | 0x5  | {{message-publish-done}} |
+| EXPIRED            | 0x6  | {{message-publish-done}} |
 | UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
 | EXCESSIVE_LOAD     | 0x9  | {{message-publish-done}} |
 | MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
-### Data Stream Reset Error Codes {#iana-reset-stream}
+### Stream Reset Error Codes {#iana-reset-stream}
 
-| Name                  | Code | Specification                |
-|:----------------------|:----:|:-----------------------------|
-| INTERNAL_ERROR        | 0x0  | {{closing-subgroup-streams}} |
-| CANCELLED             | 0x1  | {{closing-subgroup-streams}} |
-| DELIVERY_TIMEOUT      | 0x2  | {{closing-subgroup-streams}} |
-| SESSION_CLOSED        | 0x3  | {{closing-subgroup-streams}} |
-| UNKNOWN_OBJECT_STATUS | 0x4  | {{closing-subgroup-streams}} |
-| TOO_FAR_BEHIND        | 0x5  | {{closing-subgroup-streams}} |
-| EXCESSIVE_LOAD        | 0x9  | {{closing-subgroup-streams}} |
-| MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
+| Name                  | Code | Specification            |
+|:----------------------|:----:|:-------------------------|
+| INTERNAL_ERROR        | 0x0  | {{stream-reset-codes}}   |
+| CANCELLED             | 0x1  | {{stream-reset-codes}}   |
+| DELIVERY_TIMEOUT      | 0x2  | {{stream-reset-codes}}   |
+| SESSION_CLOSED        | 0x3  | {{stream-reset-codes}}   |
+| GOING_AWAY            | 0x4  | {{stream-reset-codes}}   |
+| TOO_FAR_BEHIND        | 0x5  | {{stream-reset-codes}}   |
+| UNKNOWN_OBJECT_STATUS | 0x6  | {{stream-reset-codes}}   |
+| EXPIRED_AUTH_TOKEN    | 0x7  | {{stream-reset-codes}}   |
+| EXCESSIVE_LOAD        | 0x9  | {{stream-reset-codes}}   |
+| MALFORMED_TRACK       | 0x12 | {{stream-reset-codes}}   |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
 # Contributors
