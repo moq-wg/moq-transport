@@ -17,18 +17,18 @@ reliability. MOQT operates both point-to-point and through intermediate relays,
 enabling scalable low-latency delivery. Despite its name, MOQT is media
 agnostic and can be used for a wide range of use cases. 
     " name="description">
-<meta content="xml2rfc 3.32.0" name="generator">
+<meta content="xml2rfc 3.33.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.32.0
-    Python 3.12.12
+  xml2rfc 3.33.0
+    Python 3.12.13
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.0.2
-    platformdirs 4.9.4
+    platformdirs 4.9.6
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.32.5
@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 14 October 2026</td>
+<td class="center">Expires 25 October 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-04-12" class="published">12 April 2026</time>
+<time datetime="2026-04-23" class="published">23 April 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-10-14">14 October 2026</time></dd>
+<dd class="expires"><time datetime="2026-10-25">25 October 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 October 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 25 October 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1292,6 +1292,14 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
                 <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-extension-negotiation" class="internal xref">Extension Negotiation</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.1">
+                    <p id="section-toc.1-1.3.2.2.2.1.1"><a href="#section-3.2.1" class="auto internal xref">3.2.1</a>.  <a href="#name-reserved-namespaces" class="internal xref">Reserved Namespaces</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.2">
+                    <p id="section-toc.1-1.3.2.2.2.2.1"><a href="#section-3.2.2" class="auto internal xref">3.2.2</a>.  <a href="#name-session-level-tracks-and-na" class="internal xref">Session-Level Tracks and Namespaces</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
                 <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-session-initialization" class="internal xref">Session initialization</a></p>
@@ -1434,28 +1442,31 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                     <p id="section-toc.1-1.9.2.3.2.3.1"><a href="#section-9.3.3" class="auto internal xref">9.3.3</a>.  <a href="#name-delivery-timeout-parameter" class="internal xref">DELIVERY TIMEOUT Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3.2.4">
-                    <p id="section-toc.1-1.9.2.3.2.4.1"><a href="#section-9.3.4" class="auto internal xref">9.3.4</a>.  <a href="#name-rendezvous-timeout-paramete" class="internal xref">RENDEZVOUS TIMEOUT Parameter</a></p>
+                    <p id="section-toc.1-1.9.2.3.2.4.1"><a href="#section-9.3.4" class="auto internal xref">9.3.4</a>.  <a href="#name-fill-timeout-parameter" class="internal xref">FILL TIMEOUT Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3.2.5">
-                    <p id="section-toc.1-1.9.2.3.2.5.1"><a href="#section-9.3.5" class="auto internal xref">9.3.5</a>.  <a href="#name-subscriber-priority-paramet" class="internal xref">SUBSCRIBER PRIORITY Parameter</a></p>
+                    <p id="section-toc.1-1.9.2.3.2.5.1"><a href="#section-9.3.5" class="auto internal xref">9.3.5</a>.  <a href="#name-rendezvous-timeout-paramete" class="internal xref">RENDEZVOUS TIMEOUT Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3.2.6">
-                    <p id="section-toc.1-1.9.2.3.2.6.1"><a href="#section-9.3.6" class="auto internal xref">9.3.6</a>.  <a href="#name-group-order-parameter" class="internal xref">GROUP ORDER Parameter</a></p>
+                    <p id="section-toc.1-1.9.2.3.2.6.1"><a href="#section-9.3.6" class="auto internal xref">9.3.6</a>.  <a href="#name-subscriber-priority-paramet" class="internal xref">SUBSCRIBER PRIORITY Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3.2.7">
-                    <p id="section-toc.1-1.9.2.3.2.7.1"><a href="#section-9.3.7" class="auto internal xref">9.3.7</a>.  <a href="#name-subscription-filter-paramet" class="internal xref">SUBSCRIPTION FILTER Parameter</a></p>
+                    <p id="section-toc.1-1.9.2.3.2.7.1"><a href="#section-9.3.7" class="auto internal xref">9.3.7</a>.  <a href="#name-group-order-parameter" class="internal xref">GROUP ORDER Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3.2.8">
-                    <p id="section-toc.1-1.9.2.3.2.8.1"><a href="#section-9.3.8" class="auto internal xref">9.3.8</a>.  <a href="#name-expires-parameter" class="internal xref">EXPIRES Parameter</a></p>
+                    <p id="section-toc.1-1.9.2.3.2.8.1"><a href="#section-9.3.8" class="auto internal xref">9.3.8</a>.  <a href="#name-subscription-filter-paramet" class="internal xref">SUBSCRIPTION FILTER Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3.2.9">
-                    <p id="section-toc.1-1.9.2.3.2.9.1"><a href="#section-9.3.9" class="auto internal xref">9.3.9</a>.  <a href="#name-largest-object-parameter" class="internal xref">LARGEST OBJECT Parameter</a></p>
+                    <p id="section-toc.1-1.9.2.3.2.9.1"><a href="#section-9.3.9" class="auto internal xref">9.3.9</a>.  <a href="#name-expires-parameter" class="internal xref">EXPIRES Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3.2.10">
-                    <p id="section-toc.1-1.9.2.3.2.10.1"><a href="#section-9.3.10" class="auto internal xref">9.3.10</a>. <a href="#name-forward-parameter" class="internal xref">FORWARD Parameter</a></p>
+                    <p id="section-toc.1-1.9.2.3.2.10.1"><a href="#section-9.3.10" class="auto internal xref">9.3.10</a>. <a href="#name-largest-object-parameter" class="internal xref">LARGEST OBJECT Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3.2.11">
-                    <p id="section-toc.1-1.9.2.3.2.11.1"><a href="#section-9.3.11" class="auto internal xref">9.3.11</a>. <a href="#name-new-group-request-parameter" class="internal xref">NEW GROUP REQUEST Parameter</a></p>
+                    <p id="section-toc.1-1.9.2.3.2.11.1"><a href="#section-9.3.11" class="auto internal xref">9.3.11</a>. <a href="#name-forward-parameter" class="internal xref">FORWARD Parameter</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3.2.12">
+                    <p id="section-toc.1-1.9.2.3.2.12.1"><a href="#section-9.3.12" class="auto internal xref">9.3.12</a>. <a href="#name-new-group-request-parameter" class="internal xref">NEW GROUP REQUEST Parameter</a></p>
 </li>
                 </ul>
 </li>
@@ -1686,19 +1697,22 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.14.2.8.1"><a href="#section-14.8" class="auto internal xref">14.8</a>.  <a href="#name-properties-2" class="internal xref">Properties</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.9">
-                <p id="section-toc.1-1.14.2.9.1"><a href="#section-14.9" class="auto internal xref">14.9</a>.  <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
+                <p id="section-toc.1-1.14.2.9.1"><a href="#section-14.9" class="auto internal xref">14.9</a>.  <a href="#name-session-level-track-names" class="internal xref">Session-Level Track Names</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.10">
+                <p id="section-toc.1-1.14.2.10.1"><a href="#section-14.10" class="auto internal xref">14.10</a>. <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.9.2.1">
-                    <p id="section-toc.1-1.14.2.9.2.1.1"><a href="#section-14.9.1" class="auto internal xref">14.9.1</a>.  <a href="#name-session-termination-error-c" class="internal xref">Session Termination Error Codes</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.10.2.1">
+                    <p id="section-toc.1-1.14.2.10.2.1.1"><a href="#section-14.10.1" class="auto internal xref">14.10.1</a>.  <a href="#name-session-termination-error-c" class="internal xref">Session Termination Error Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.9.2.2">
-                    <p id="section-toc.1-1.14.2.9.2.2.1"><a href="#section-14.9.2" class="auto internal xref">14.9.2</a>.  <a href="#name-request_error-codes" class="internal xref">REQUEST_ERROR Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.10.2.2">
+                    <p id="section-toc.1-1.14.2.10.2.2.1"><a href="#section-14.10.2" class="auto internal xref">14.10.2</a>.  <a href="#name-request_error-codes" class="internal xref">REQUEST_ERROR Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.9.2.3">
-                    <p id="section-toc.1-1.14.2.9.2.3.1"><a href="#section-14.9.3" class="auto internal xref">14.9.3</a>.  <a href="#name-publish_done-codes" class="internal xref">PUBLISH_DONE Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.10.2.3">
+                    <p id="section-toc.1-1.14.2.10.2.3.1"><a href="#section-14.10.3" class="auto internal xref">14.10.3</a>.  <a href="#name-publish_done-codes" class="internal xref">PUBLISH_DONE Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.9.2.4">
-                    <p id="section-toc.1-1.14.2.9.2.4.1"><a href="#section-14.9.4" class="auto internal xref">14.9.4</a>.  <a href="#name-data-stream-reset-error-cod" class="internal xref">Data Stream Reset Error Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.10.2.4">
+                    <p id="section-toc.1-1.14.2.10.2.4.1"><a href="#section-14.10.4" class="auto internal xref">14.10.4</a>.  <a href="#name-data-stream-reset-error-cod" class="internal xref">Data Stream Reset Error Codes</a></p>
 </li>
                 </ul>
 </li>
@@ -2900,6 +2914,49 @@ extensions.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.2-4">New versions of MOQT <span class="bcp14">MUST</span> specify which existing extensions can be used with
 that version. New extensions <span class="bcp14">MUST</span> specify the existing versions with which they
 can be used.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+<div id="reserved-namespaces">
+<section id="section-3.2.1">
+          <h4 id="name-reserved-namespaces">
+<a href="#section-3.2.1" class="section-number selfRef">3.2.1. </a><a href="#name-reserved-namespaces" class="section-name selfRef">Reserved Namespaces</a>
+          </h4>
+<p id="section-3.2.1-1">MOQT reserves all Track Namespace values whose first tuple field begins with
+a period (0x2e, <code>.</code>). These namespaces <span class="bcp14">MUST NOT</span> be used unless their meaning
+is defined through IANA registration. Unless otherwise specified, an
+endpoint that receives a request for an unrecognized reserved namespace <span class="bcp14">MUST</span>
+pass it to the Application, so that future extensions can define new reserved
+namespaces without breaking older implementations.<a href="#section-3.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.1-2">A Track Namespace whose first field is exactly <code>.</code> (a single period, 0x2e)
+is reserved and <span class="bcp14">MUST NOT</span> be used for any purpose; endpoints <span class="bcp14">MUST NOT</span> publish
+tracks or namespaces under it and <span class="bcp14">MUST</span> reject requests referencing it with
+DOES_NOT_EXIST.<a href="#section-3.2.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="session-level-tracks">
+<section id="section-3.2.2">
+          <h4 id="name-session-level-tracks-and-na">
+<a href="#section-3.2.2" class="section-number selfRef">3.2.2. </a><a href="#name-session-level-tracks-and-na" class="section-name selfRef">Session-Level Tracks and Namespaces</a>
+          </h4>
+<p id="section-3.2.2-1">MOQT defines the <code>.session</code> namespace (the bytes 0x2e, 0x73, 0x65, 0x73,
+0x73, 0x69, 0x6f, 0x6e) in the first position of the Track Namespace for
+session-level tracks and namespaces. Session-level tracks and namespaces are
+managed by the MOQT implementation, not the Application. They provide a
+mechanism for extending MOQT transport functionality using existing
+subscription and object delivery machinery, without defining new control
+messages or stream types.<a href="#section-3.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.2-2">The Application <span class="bcp14">MUST NOT</span> publish tracks or namespaces whose first
+field is <code>.session</code>. Relays <span class="bcp14">MUST NOT</span> forward requests for session-level
+tracks and namespaces to other sessions.<a href="#section-3.2.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.2.2-3">The empty track name in the <code>.session</code> namespace is defined to not exist.
+A request with a Track Namespace whose first field is <code>.session</code> and an
+empty Track Name <span class="bcp14">MUST</span> be rejected with DOES_NOT_EXIST.<a href="#section-3.2.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2.2-4">An endpoint that receives a request for an unrecognized session-level track
+or namespace <span class="bcp14">MUST</span> reject it with REQUEST_ERROR using error code
+DOES_NOT_EXIST rather than passing it to the Application.<a href="#section-3.2.2-4" class="pilcrow">¶</a></p>
+<p id="section-3.2.2-5">The track names and namespaces available under the <code>.session</code> namespace are
+defined by extensions to this specification and registered with IANA (see
+<a href="#iana-session-level-tracks" class="auto internal xref">Section 14.9</a>).<a href="#section-3.2.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="session-init">
@@ -3409,7 +3466,7 @@ close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2
 <p id="section-5.1.2-11">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> close the
 session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-12">If the publisher cannot satisfy the requested Subscription Filter (see
-<a href="#subscription-filter" class="auto internal xref">Section 9.3.7</a>) or if the entire End Group has already been published
+<a href="#subscription-filter" class="auto internal xref">Section 9.3.8</a>) or if the entire End Group has already been published
 it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR with code <code>INVALID_RANGE</code>.  A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range.<a href="#section-5.1.2-12" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3446,7 +3503,7 @@ Object ID is below the application's threshold, the subscriber sends a FETCH for
 the beginning of the Group.  If the Object ID is above the threshold and the
 Track supports dynamic groups, the subscriber sends a REQUEST_UPDATE message with the
 NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
-<a href="#new-group-request" class="auto internal xref">Section 9.3.11</a>).<a href="#section-5.1.3.1-2" class="pilcrow">¶</a></p>
+<a href="#new-group-request" class="auto internal xref">Section 9.3.12</a>).<a href="#section-5.1.3.1-2" class="pilcrow">¶</a></p>
 <p id="section-5.1.3.1-3">Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
 <code>Next Group Start</code> and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
@@ -3505,10 +3562,10 @@ for a namespace.<a href="#section-6-2" class="pilcrow">¶</a></p>
 SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
 recipient of this message will send any relevant NAMESPACE,
 NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
-part of that namespace.  This includes echoing back published Tracks and/or Track
-Namespaces under the SUBSCRIBE_NAMESPACE prefix to the endpoint that sent them.
-If an endpoint accepts its own PUBLISH, this behaves as self-subscription described
-in <a href="#subscriptions" class="auto internal xref">Section 5.1</a>.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+part of that namespace.  An endpoint <span class="bcp14">MUST NOT</span> send PUBLISH messages to a
+SUBSCRIBE_NAMESPACE subscriber for Tracks or Track Namespaces that the
+subscriber itself has published on this session.  If an endpoint wishes to
+receive its own published Tracks, it can explicitly SUBSCRIBE to them.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.1-2">A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the sender is
 interested in all tracks and/or namespaces from the receiver.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 <p id="section-6.1-3">The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
@@ -3906,7 +3963,7 @@ then the Relay <span class="bcp14">MUST</span> use Forward=1 when subscribing up
 request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
 to the Track's namespace or prefix thereof. However, if the relay is
 holding a downstream SUBSCRIBE awaiting a publisher for this Track (see
-<a href="#rendezvous-timeout" class="auto internal xref">Section 9.3.4</a>), it <span class="bcp14">MUST</span> proceed with the SUBSCRIBE and
+<a href="#rendezvous-timeout" class="auto internal xref">Section 9.3.5</a>), it <span class="bcp14">MUST</span> proceed with the SUBSCRIBE and
 <span class="bcp14">MUST NOT</span> also forward the PUBLISH to that subscriber.<a href="#section-8.5-11" class="pilcrow">¶</a></p>
 <p id="section-8.5-12">When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it <span class="bcp14">MUST</span>
@@ -4436,131 +4493,155 @@ for that Object, taking into account priorities, congestion control, and
 any other relevant information.<a href="#section-9.3.3-8" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="rendezvous-timeout">
+<div id="fill-timeout">
 <section id="section-9.3.4">
-          <h4 id="name-rendezvous-timeout-paramete">
-<a href="#section-9.3.4" class="section-number selfRef">9.3.4. </a><a href="#name-rendezvous-timeout-paramete" class="section-name selfRef">RENDEZVOUS TIMEOUT Parameter</a>
+          <h4 id="name-fill-timeout-parameter">
+<a href="#section-9.3.4" class="section-number selfRef">9.3.4. </a><a href="#name-fill-timeout-parameter" class="section-name selfRef">FILL TIMEOUT Parameter</a>
           </h4>
-<p id="section-9.3.4-1">The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) <span class="bcp14">MAY</span> appear in a
-SUBSCRIBE message.<a href="#section-9.3.4-1" class="pilcrow">¶</a></p>
-<p id="section-9.3.4-2">It is the duration in milliseconds the subscriber is willing to wait for a
+<p id="section-9.3.4-1">The FILL_TIMEOUT parameter (Parameter Type 0x0A) <span class="bcp14">MAY</span> appear in a FETCH message.<a href="#section-9.3.4-1" class="pilcrow">¶</a></p>
+<p id="section-9.3.4-2">It is the maximum total duration in milliseconds a relay <span class="bcp14">SHOULD</span> spend waiting
+for upstream sources to provide Objects that are not immediately available
+before reporting them as Unknown gaps in the FETCH response. When a relay
+encounters Objects within the requested range that are not immediately available
+and have unknown status, it issues upstream FETCHes to retrieve them. The Fill
+Timeout represents a total budget for all such upstream FETCHes generated by
+this request. If the budget is exhausted, the relay reports any remaining
+unavailable Objects as Unknown gaps and continues delivering available Objects
+in the range.<a href="#section-9.3.4-2" class="pilcrow">¶</a></p>
+<p id="section-9.3.4-3">A value of 0 indicates the subscriber only wants Objects that are immediately
+available; the relay <span class="bcp14">MUST NOT</span> wait for upstream delivery and <span class="bcp14">MUST</span> report any
+unavailable Objects as Unknown gaps.<a href="#section-9.3.4-3" class="pilcrow">¶</a></p>
+<p id="section-9.3.4-4">If the Fill Timeout parameter is absent, the relay waits for an implementation
+specific duration before reporting Unknown gaps. If the subscriber specifies a Fill
+Timeout larger than the relay is willing to wait, the relay <span class="bcp14">MAY</span> use a shorter
+timeout without informing the subscriber.<a href="#section-9.3.4-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="rendezvous-timeout">
+<section id="section-9.3.5">
+          <h4 id="name-rendezvous-timeout-paramete">
+<a href="#section-9.3.5" class="section-number selfRef">9.3.5. </a><a href="#name-rendezvous-timeout-paramete" class="section-name selfRef">RENDEZVOUS TIMEOUT Parameter</a>
+          </h4>
+<p id="section-9.3.5-1">The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) <span class="bcp14">MAY</span> appear in a
+SUBSCRIBE message.<a href="#section-9.3.5-1" class="pilcrow">¶</a></p>
+<p id="section-9.3.5-2">It is the duration in milliseconds the subscriber is willing to wait for a
 publisher to become available. This applies when a relay receives a SUBSCRIBE
-for a Track that has no current publisher.<a href="#section-9.3.4-2" class="pilcrow">¶</a></p>
-<p id="section-9.3.4-3">If the RENDEZVOUS_TIMEOUT is present, the relay <span class="bcp14">SHOULD</span> hold the subscription
+for a Track that has no current publisher.<a href="#section-9.3.5-2" class="pilcrow">¶</a></p>
+<p id="section-9.3.5-3">If the RENDEZVOUS_TIMEOUT is present, the relay <span class="bcp14">SHOULD</span> hold the subscription
 and wait for a publisher to appear, up to the specified duration. The relay
 does not send SUBSCRIBE_OK until a publisher becomes available. If a publisher
 becomes available within this time, the relay proceeds with the subscription
 normally. If the timeout expires without a publisher, the relay <span class="bcp14">SHOULD</span> respond
-with REQUEST_ERROR with error code TIMEOUT.<a href="#section-9.3.4-3" class="pilcrow">¶</a></p>
-<p id="section-9.3.4-4">The relay <span class="bcp14">MAY</span> use a shorter timeout than requested by the subscriber. For
+with REQUEST_ERROR with error code TIMEOUT.<a href="#section-9.3.5-3" class="pilcrow">¶</a></p>
+<p id="section-9.3.5-4">The relay <span class="bcp14">MAY</span> use a shorter timeout than requested by the subscriber. For
 example, a relay might limit the maximum rendezvous timeout to protect its
-resources.<a href="#section-9.3.4-4" class="pilcrow">¶</a></p>
-<p id="section-9.3.4-5">A value of 0 indicates the subscriber does not want to wait and expects an
+resources.<a href="#section-9.3.5-4" class="pilcrow">¶</a></p>
+<p id="section-9.3.5-5">A value of 0 indicates the subscriber does not want to wait and expects an
 immediate response.  The relay <span class="bcp14">MUST</span> immediately return REQUEST_ERROR with error
-code DOES_NOT_EXIST if no publisher is available<a href="#section-9.3.4-5" class="pilcrow">¶</a></p>
-<p id="section-9.3.4-6">If RENDEZVOUS_TIMEOUT is absent, the default is 0.<a href="#section-9.3.4-6" class="pilcrow">¶</a></p>
+code DOES_NOT_EXIST if no publisher is available<a href="#section-9.3.5-5" class="pilcrow">¶</a></p>
+<p id="section-9.3.5-6">If RENDEZVOUS_TIMEOUT is absent, the default is 0.<a href="#section-9.3.5-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscriber-priority">
-<section id="section-9.3.5">
+<section id="section-9.3.6">
           <h4 id="name-subscriber-priority-paramet">
-<a href="#section-9.3.5" class="section-number selfRef">9.3.5. </a><a href="#name-subscriber-priority-paramet" class="section-name selfRef">SUBSCRIBER PRIORITY Parameter</a>
+<a href="#section-9.3.6" class="section-number selfRef">9.3.6. </a><a href="#name-subscriber-priority-paramet" class="section-name selfRef">SUBSCRIBER PRIORITY Parameter</a>
           </h4>
-<p id="section-9.3.5-1">The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It <span class="bcp14">MAY</span>
+<p id="section-9.3.6-1">The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It <span class="bcp14">MAY</span>
 appear in a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
 or PUBLISH_OK message. It is an integer expressing the priority of a
 subscription relative to other subscriptions and fetch responses in the same
-session. Lower numbers get higher priority. See <a href="#priorities" class="auto internal xref">Section 7</a>.<a href="#section-9.3.5-1" class="pilcrow">¶</a></p>
-<p id="section-9.3.5-2">If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
-the value 128.<a href="#section-9.3.5-2" class="pilcrow">¶</a></p>
+session. Lower numbers get higher priority. See <a href="#priorities" class="auto internal xref">Section 7</a>.<a href="#section-9.3.6-1" class="pilcrow">¶</a></p>
+<p id="section-9.3.6-2">If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
+the value 128.<a href="#section-9.3.6-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="group-order">
-<section id="section-9.3.6">
+<section id="section-9.3.7">
           <h4 id="name-group-order-parameter">
-<a href="#section-9.3.6" class="section-number selfRef">9.3.6. </a><a href="#name-group-order-parameter" class="section-name selfRef">GROUP ORDER Parameter</a>
+<a href="#section-9.3.7" class="section-number selfRef">9.3.7. </a><a href="#name-group-order-parameter" class="section-name selfRef">GROUP ORDER Parameter</a>
           </h4>
-<p id="section-9.3.6-1">The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8. It <span class="bcp14">MAY</span> appear in a
-SUBSCRIBE, PUBLISH_OK, or FETCH.<a href="#section-9.3.6-1" class="pilcrow">¶</a></p>
-<p id="section-9.3.6-2">Its value indicates how to prioritize Objects from different groups within
+<p id="section-9.3.7-1">The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8. It <span class="bcp14">MAY</span> appear in a
+SUBSCRIBE, PUBLISH_OK, or FETCH.<a href="#section-9.3.7-1" class="pilcrow">¶</a></p>
+<p id="section-9.3.7-2">Its value indicates how to prioritize Objects from different groups within
 the same subscription (see <a href="#priorities" class="auto internal xref">Section 7</a>), or how to order Groups in a Fetch
 response (see <a href="#fetch-handling" class="auto internal xref">Section 9.14.3</a>). The allowed values are Ascending (0x1) or
 Descending (0x2). If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span>
-close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.3.6-2" class="pilcrow">¶</a></p>
-<p id="section-9.3.6-3">If omitted from SUBSCRIBE, the publisher's preference from
-the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).<a href="#section-9.3.6-3" class="pilcrow">¶</a></p>
+close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.3.7-2" class="pilcrow">¶</a></p>
+<p id="section-9.3.7-3">If omitted from SUBSCRIBE, the publisher's preference from
+the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).<a href="#section-9.3.7-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscription-filter">
-<section id="section-9.3.7">
+<section id="section-9.3.8">
           <h4 id="name-subscription-filter-paramet">
-<a href="#section-9.3.7" class="section-number selfRef">9.3.7. </a><a href="#name-subscription-filter-paramet" class="section-name selfRef">SUBSCRIPTION FILTER Parameter</a>
+<a href="#section-9.3.8" class="section-number selfRef">9.3.8. </a><a href="#name-subscription-filter-paramet" class="section-name selfRef">SUBSCRIPTION FILTER Parameter</a>
           </h4>
-<p id="section-9.3.7-1">The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
+<p id="section-9.3.8-1">The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
 encoding. It <span class="bcp14">MAY</span> appear in a SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a
-subscription) message. It is a Subscription Filter (see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>).<a href="#section-9.3.7-1" class="pilcrow">¶</a></p>
-<p id="section-9.3.7-2">If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
-unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.<a href="#section-9.3.7-2" class="pilcrow">¶</a></p>
+subscription) message. It is a Subscription Filter (see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>).<a href="#section-9.3.8-1" class="pilcrow">¶</a></p>
+<p id="section-9.3.8-2">If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
+unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.<a href="#section-9.3.8-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="expires">
-<section id="section-9.3.8">
+<section id="section-9.3.9">
           <h4 id="name-expires-parameter">
-<a href="#section-9.3.8" class="section-number selfRef">9.3.8. </a><a href="#name-expires-parameter" class="section-name selfRef">EXPIRES Parameter</a>
+<a href="#section-9.3.9" class="section-number selfRef">9.3.9. </a><a href="#name-expires-parameter" class="section-name selfRef">EXPIRES Parameter</a>
           </h4>
-<p id="section-9.3.8-1">The EXPIRES parameter (Parameter Type 0x8) is a varint. It <span class="bcp14">MAY</span> appear in
+<p id="section-9.3.9-1">The EXPIRES parameter (Parameter Type 0x8) is a varint. It <span class="bcp14">MAY</span> appear in
 SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or by cancelling the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.1</a>).  This value is advisory and the sender
-can terminate the subscription prior to or after the expiry time.<a href="#section-9.3.8-1" class="pilcrow">¶</a></p>
-<p id="section-9.3.8-2">The receiver of the parameter can attempt to extend the subscription by sending
+can terminate the subscription prior to or after the expiry time.<a href="#section-9.3.9-1" class="pilcrow">¶</a></p>
+<p id="section-9.3.9-2">The receiver of the parameter can attempt to extend the subscription by sending
 a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
 more updated AUTHORIZATION_TOKENs, it <span class="bcp14">SHOULD</span> include those in the
 REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
 value in REQUEST_OK. Relays that send this parameter and applications that
 receive it <span class="bcp14">MAY</span> introduce jitter to prevent many endpoints from updating
-simultaneously.<a href="#section-9.3.8-2" class="pilcrow">¶</a></p>
-<p id="section-9.3.8-3">If the EXPIRES parameter is 0 or is not present in a message, the subscription
-does not expire or expires at an unknown time.<a href="#section-9.3.8-3" class="pilcrow">¶</a></p>
+simultaneously.<a href="#section-9.3.9-2" class="pilcrow">¶</a></p>
+<p id="section-9.3.9-3">If the EXPIRES parameter is 0 or is not present in a message, the subscription
+does not expire or expires at an unknown time.<a href="#section-9.3.9-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="largest-param">
-<section id="section-9.3.9">
+<section id="section-9.3.10">
           <h4 id="name-largest-object-parameter">
-<a href="#section-9.3.9" class="section-number selfRef">9.3.9. </a><a href="#name-largest-object-parameter" class="section-name selfRef">LARGEST OBJECT Parameter</a>
+<a href="#section-9.3.10" class="section-number selfRef">9.3.10. </a><a href="#name-largest-object-parameter" class="section-name selfRef">LARGEST OBJECT Parameter</a>
           </h4>
-<p id="section-9.3.9-1">The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It <span class="bcp14">MAY</span> appear
+<p id="section-9.3.10-1">The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It <span class="bcp14">MAY</span> appear
 in SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE or
 TRACK_STATUS). It contains the largest Location (see <a href="#location-structure" class="auto internal xref">Section 1.4.2</a>) in the
 Track observed by the sending endpoint (see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>). If Objects
-have been published on this Track the Publisher <span class="bcp14">MUST</span> include this parameter.<a href="#section-9.3.9-1" class="pilcrow">¶</a></p>
-<p id="section-9.3.9-2">If omitted from a message, the sending endpoint has not published or received
-any Objects in the Track.<a href="#section-9.3.9-2" class="pilcrow">¶</a></p>
+have been published on this Track the Publisher <span class="bcp14">MUST</span> include this parameter.<a href="#section-9.3.10-1" class="pilcrow">¶</a></p>
+<p id="section-9.3.10-2">If omitted from a message, the sending endpoint has not published or received
+any Objects in the Track.<a href="#section-9.3.10-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="forward-parameter">
-<section id="section-9.3.10">
+<section id="section-9.3.11">
           <h4 id="name-forward-parameter">
-<a href="#section-9.3.10" class="section-number selfRef">9.3.10. </a><a href="#name-forward-parameter" class="section-name selfRef">FORWARD Parameter</a>
+<a href="#section-9.3.11" class="section-number selfRef">9.3.11. </a><a href="#name-forward-parameter" class="section-name selfRef">FORWARD Parameter</a>
           </h4>
-<p id="section-9.3.10-1">The FORWARD parameter (Parameter Type 0x10) is a uint8. It <span class="bcp14">MAY</span> appear in
+<p id="section-9.3.11-1">The FORWARD parameter (Parameter Type 0x10) is a uint8. It <span class="bcp14">MAY</span> appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
 SUBSCRIBE_NAMESPACE. It specifies the Forwarding State on affected subscriptions
 (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>). The allowed values are 0 (don't forward) or 1 (forward).
 If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span> close the session
-with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.3.10-1" class="pilcrow">¶</a></p>
-<p id="section-9.3.10-2">If the parameter is omitted from REQUEST_UPDATE, the value for the
+with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.3.11-1" class="pilcrow">¶</a></p>
+<p id="section-9.3.11-2">If the parameter is omitted from REQUEST_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
-message, the default value is 1.<a href="#section-9.3.10-2" class="pilcrow">¶</a></p>
+message, the default value is 1.<a href="#section-9.3.11-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="new-group-request">
-<section id="section-9.3.11">
+<section id="section-9.3.12">
           <h4 id="name-new-group-request-parameter">
-<a href="#section-9.3.11" class="section-number selfRef">9.3.11. </a><a href="#name-new-group-request-parameter" class="section-name selfRef">NEW GROUP REQUEST Parameter</a>
+<a href="#section-9.3.12" class="section-number selfRef">9.3.12. </a><a href="#name-new-group-request-parameter" class="section-name selfRef">NEW GROUP REQUEST Parameter</a>
           </h4>
-<p id="section-9.3.11-1">The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint. It <span class="bcp14">MAY</span> appear
+<p id="section-9.3.12-1">The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint. It <span class="bcp14">MAY</span> appear
 in PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber <span class="bcp14">MUST NOT</span> send
@@ -4568,33 +4649,33 @@ this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
 include the DYNAMIC_GROUPS Property with value 1.  A subscriber <span class="bcp14">MAY</span>
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
-case.<a href="#section-9.3.11-1" class="pilcrow">¶</a></p>
-<p id="section-9.3.11-2">When an Original Publisher that supports dynamic Groups receives a
+case.<a href="#section-9.3.12-1" class="pilcrow">¶</a></p>
+<p id="section-9.3.12-2">When an Original Publisher that supports dynamic Groups receives a
 NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
 it <span class="bcp14">SHOULD</span> end the current Group and begin a new Group as soon as practical.  The
 Original Publisher <span class="bcp14">MAY</span> delay the NEW_GROUP_REQUEST subject to
 implementation specific concerns, for example, achieving a minimum duration for
 each Group. The Original Publisher chooses the next Group ID; there are no
-requirements that it be equal to the NEW_GROUP_REQUEST parameter value.<a href="#section-9.3.11-2" class="pilcrow">¶</a></p>
-<p id="section-9.3.11-3">Relay Handling:<a href="#section-9.3.11-3" class="pilcrow">¶</a></p>
-<p id="section-9.3.11-4">A relay that receives a NEW_GROUP_REQUEST for a Track without an <code>Established</code>
-subscription <span class="bcp14">MUST</span> include the NEW_GROUP_REQUEST when subscribing upstream.<a href="#section-9.3.11-4" class="pilcrow">¶</a></p>
-<p id="section-9.3.11-5">A relay that receives a NEW_GROUP_REQUEST for an <code>Established</code> subscription with a
+requirements that it be equal to the NEW_GROUP_REQUEST parameter value.<a href="#section-9.3.12-2" class="pilcrow">¶</a></p>
+<p id="section-9.3.12-3">Relay Handling:<a href="#section-9.3.12-3" class="pilcrow">¶</a></p>
+<p id="section-9.3.12-4">A relay that receives a NEW_GROUP_REQUEST for a Track without an <code>Established</code>
+subscription <span class="bcp14">MUST</span> include the NEW_GROUP_REQUEST when subscribing upstream.<a href="#section-9.3.12-4" class="pilcrow">¶</a></p>
+<p id="section-9.3.12-5">A relay that receives a NEW_GROUP_REQUEST for an <code>Established</code> subscription with a
 value of 0 or a value larger than the Largest Group <span class="bcp14">MUST</span> send a REQUEST_UPDATE
-including the NEW_GROUP_REQUEST to the publisher unless:<a href="#section-9.3.11-5" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-9.3.11-6">
-<li id="section-9.3.11-6.1">
-              <p id="section-9.3.11-6.1.1">The Track does not support dynamic Groups<a href="#section-9.3.11-6.1.1" class="pilcrow">¶</a></p>
+including the NEW_GROUP_REQUEST to the publisher unless:<a href="#section-9.3.12-5" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-9.3.12-6">
+<li id="section-9.3.12-6.1">
+              <p id="section-9.3.12-6.1.1">The Track does not support dynamic Groups<a href="#section-9.3.12-6.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-9.3.11-6.2">
-              <p id="section-9.3.11-6.2.1">There is already an outstanding NEW_GROUP_REQUEST from this Relay with a
-greater or equal value<a href="#section-9.3.11-6.2.1" class="pilcrow">¶</a></p>
+            <li id="section-9.3.12-6.2">
+              <p id="section-9.3.12-6.2.1">There is already an outstanding NEW_GROUP_REQUEST from this Relay with a
+greater or equal value<a href="#section-9.3.12-6.2.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-9.3.11-7">If a relay receives a NEW_GROUP_REQUEST with a non-zero value less than or equal
-to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.<a href="#section-9.3.11-7" class="pilcrow">¶</a></p>
-<p id="section-9.3.11-8">After sending a NEW_GROUP_REQUEST upstream, the request is considered
-outstanding until the Largest Group increases.<a href="#section-9.3.11-8" class="pilcrow">¶</a></p>
+<p id="section-9.3.12-7">If a relay receives a NEW_GROUP_REQUEST with a non-zero value less than or equal
+to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.<a href="#section-9.3.12-7" class="pilcrow">¶</a></p>
+<p id="section-9.3.12-8">After sending a NEW_GROUP_REQUEST upstream, the request is considered
+outstanding until the Largest Group increases.<a href="#section-9.3.12-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4889,7 +4970,7 @@ sent again, plus one. If the value is 0, the request <span class="bcp14">SHOULD 
 </li>
         </ul>
 <p id="section-9.7-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in REQUEST_ERROR,
-as defined below and assigned in <a href="#iana-request-error" class="auto internal xref">Section 14.9.2</a>. Most codepoints have
+as defined below and assigned in <a href="#iana-request-error" class="auto internal xref">Section 14.10.2</a>. Most codepoints have
 identical meanings for various request types, but some have request-specific
 meanings.<a href="#section-9.7-4" class="pilcrow">¶</a></p>
 <p id="section-9.7-5">If a request is retryable with the same parameters at a later time, the sender
@@ -5240,7 +5321,7 @@ PUBLISH Message {
 send REQUEST_ERROR with error code <code>UNINTERESTED</code>, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.<a href="#section-9.11-4" class="pilcrow">¶</a></p>
-<p id="section-9.11-5">A publisher that sends the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.3.10</a>) equal to 0
+<p id="section-9.11-5">A publisher that sends the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.3.11</a>) equal to 0
 indicates that it will not transmit any objects until the subscriber sets the
 Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
 publisher will start transmitting objects immediately, possibly before
@@ -5606,7 +5687,7 @@ Objects.  The FETCH_OK or REQUEST_ERROR can come at any time relative to object
 delivery.<a href="#section-9.14.3-4" class="pilcrow">¶</a></p>
 <p id="section-9.14.3-5">The publisher responding to a FETCH is
 responsible for delivering all available Objects in the requested range in the
-requested order (see <a href="#group-order" class="auto internal xref">Section 9.3.6</a>). The Objects in the response are delivered on a single
+requested order (see <a href="#group-order" class="auto internal xref">Section 9.3.7</a>). The Objects in the response are delivered on a single
 unidirectional stream. Any gaps in the Group and Object IDs in the response
 stream indicate objects that do not exist.  For Ascending Group Order this
 includes ranges between the first requested object and the first object in the
@@ -5919,7 +6000,7 @@ namespace subscription.<a href="#section-9.20-6" class="pilcrow">¶</a></p>
 or PUBLISH messages to a subscriber.  It is useful in applications or relays
 where subscribers are only interested in or authorized to access a subset of
 available namespaces and tracks.<a href="#section-9.20-7" class="pilcrow">¶</a></p>
-<p id="section-9.20-8">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.3.10</a>) is present in this message and
+<p id="section-9.20-8">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.3.11</a>) is present in this message and
 equal to 0, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set
 the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
 from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
@@ -7265,16 +7346,16 @@ integer values of N (that is, 0x9D, 0x11C, ..., 0x3fffffffffffffde).<a href="#se
           <p id="section-13-4.2.1">Properties (<a href="#iana-properties" class="auto internal xref">Section 14.8</a>)<a href="#section-13-4.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.3">
-          <p id="section-13-4.3.1">Session Termination Error Codes (<a href="#iana-session-termination" class="auto internal xref">Section 14.9.1</a>)<a href="#section-13-4.3.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.3.1">Session Termination Error Codes (<a href="#iana-session-termination" class="auto internal xref">Section 14.10.1</a>)<a href="#section-13-4.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.4">
-          <p id="section-13-4.4.1">REQUEST_ERROR Codes (<a href="#iana-request-error" class="auto internal xref">Section 14.9.2</a>)<a href="#section-13-4.4.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.4.1">REQUEST_ERROR Codes (<a href="#iana-request-error" class="auto internal xref">Section 14.10.2</a>)<a href="#section-13-4.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.5">
-          <p id="section-13-4.5.1">PUBLISH_DONE Codes (<a href="#iana-publish-done" class="auto internal xref">Section 14.9.3</a>)<a href="#section-13-4.5.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.5.1">PUBLISH_DONE Codes (<a href="#iana-publish-done" class="auto internal xref">Section 14.10.3</a>)<a href="#section-13-4.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.6">
-          <p id="section-13-4.6.1">Data Stream Reset Error Codes (<a href="#iana-reset-stream" class="auto internal xref">Section 14.9.4</a>)<a href="#section-13-4.6.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.6.1">Data Stream Reset Error Codes (<a href="#iana-reset-stream" class="auto internal xref">Section 14.10.4</a>)<a href="#section-13-4.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.7">
           <p id="section-13-4.7.1">MOQT Auth Token Type<a href="#section-13-4.7.1" class="pilcrow">¶</a></p>
@@ -7307,6 +7388,9 @@ or PUBLISH_DONE.<a href="#section-13-8" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-14-2.2">
           <p id="section-14-2.2.1">Message types<a href="#section-14-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-14-2.3">
+          <p id="section-14-2.3.1">Session-Level Track Names<a href="#section-14-2.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <div id="uri-scheme-registrations">
@@ -7558,56 +7642,63 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
               <td class="text-left" rowspan="1" colspan="1">0x04</td>
               <td class="text-left" rowspan="1" colspan="1">RENDEZVOUS_TIMEOUT</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#rendezvous-timeout" class="auto internal xref">Section 9.3.4</a>
+                <a href="#rendezvous-timeout" class="auto internal xref">Section 9.3.5</a>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x08</td>
               <td class="text-left" rowspan="1" colspan="1">EXPIRES</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#expires" class="auto internal xref">Section 9.3.8</a>
+                <a href="#expires" class="auto internal xref">Section 9.3.9</a>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x09</td>
               <td class="text-left" rowspan="1" colspan="1">LARGEST_OBJECT</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#largest-param" class="auto internal xref">Section 9.3.9</a>
+                <a href="#largest-param" class="auto internal xref">Section 9.3.10</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x0A</td>
+              <td class="text-left" rowspan="1" colspan="1">FILL_TIMEOUT</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#fill-timeout" class="auto internal xref">Section 9.3.4</a>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x10</td>
               <td class="text-left" rowspan="1" colspan="1">FORWARD</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#forward-parameter" class="auto internal xref">Section 9.3.10</a>
+                <a href="#forward-parameter" class="auto internal xref">Section 9.3.11</a>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x20</td>
               <td class="text-left" rowspan="1" colspan="1">SUBSCRIBER_PRIORITY</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#subscriber-priority" class="auto internal xref">Section 9.3.5</a>
+                <a href="#subscriber-priority" class="auto internal xref">Section 9.3.6</a>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x21</td>
               <td class="text-left" rowspan="1" colspan="1">SUBSCRIPTION_FILTER</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#subscription-filter" class="auto internal xref">Section 9.3.7</a>
+                <a href="#subscription-filter" class="auto internal xref">Section 9.3.8</a>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x22</td>
               <td class="text-left" rowspan="1" colspan="1">GROUP_ORDER</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#group-order" class="auto internal xref">Section 9.3.6</a>
+                <a href="#group-order" class="auto internal xref">Section 9.3.7</a>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x32</td>
               <td class="text-left" rowspan="1" colspan="1">NEW_GROUP_REQUEST</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#new-group-request" class="auto internal xref">Section 9.3.11</a>
+                <a href="#new-group-request" class="auto internal xref">Section 9.3.12</a>
 </td>
             </tr>
           </tbody>
@@ -7749,18 +7840,61 @@ collision risks.<a href="#section-14.8-3.1.3" class="pilcrow">¶</a></p>
         </ul>
 </section>
 </div>
-<div id="iana-error-codes">
+<div id="iana-session-level-tracks">
 <section id="section-14.9">
+        <h3 id="name-session-level-track-names">
+<a href="#section-14.9" class="section-number selfRef">14.9. </a><a href="#name-session-level-track-names" class="section-name selfRef">Session-Level Track Names</a>
+        </h3>
+<p id="section-14.9-1">This document establishes a registry for session-level track names
+under the <code>.session</code> namespace (see <a href="#session-level-tracks" class="auto internal xref">Section 3.2.2</a>). The
+registration policy is Specification Required (per <span>[<a href="#RFC8126" class="cite xref">RFC8126</a>], <a href="https://rfc-editor.org/rfc/rfc8126#section-4.6" class="relref">Section 4.6</a></span>).<a href="#section-14.9-1" class="pilcrow">¶</a></p>
+<p id="section-14.9-2">Each registration must include:<a href="#section-14.9-2" class="pilcrow">¶</a></p>
+<table class="center" id="table-14">
+          <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Field</th>
+              <th class="text-left" rowspan="1" colspan="1">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Track Namespace</td>
+              <td class="text-left" rowspan="1" colspan="1">The track namespace under the <code>.session</code> namespace, can be empty</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Track Name</td>
+              <td class="text-left" rowspan="1" colspan="1">The track name (bytes) within the full namespace</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Description</td>
+              <td class="text-left" rowspan="1" colspan="1">Brief description of the track's purpose</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Change Controller</td>
+              <td class="text-left" rowspan="1" colspan="1">Who may update the registration</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Specification</td>
+              <td class="text-left" rowspan="1" colspan="1">Reference to the defining specification</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-14.9-4">This document does not define any initial entries.<a href="#section-14.9-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-error-codes">
+<section id="section-14.10">
         <h3 id="name-error-codes">
-<a href="#section-14.9" class="section-number selfRef">14.9. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
+<a href="#section-14.10" class="section-number selfRef">14.10. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
         </h3>
 <div id="iana-session-termination">
-<section id="section-14.9.1">
+<section id="section-14.10.1">
           <h4 id="name-session-termination-error-c">
-<a href="#section-14.9.1" class="section-number selfRef">14.9.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
+<a href="#section-14.10.1" class="section-number selfRef">14.10.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
           </h4>
-<table class="center" id="table-14">
-            <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
+<table class="center" id="table-15">
+            <caption><a href="#table-15" class="selfRef">Table 15</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -7928,12 +8062,12 @@ collision risks.<a href="#section-14.8-3.1.3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-request-error">
-<section id="section-14.9.2">
+<section id="section-14.10.2">
           <h4 id="name-request_error-codes">
-<a href="#section-14.9.2" class="section-number selfRef">14.9.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
+<a href="#section-14.10.2" class="section-number selfRef">14.10.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
           </h4>
-<table class="center" id="table-15">
-            <caption><a href="#table-15" class="selfRef">Table 15</a></caption>
+<table class="center" id="table-16">
+            <caption><a href="#table-16" class="selfRef">Table 16</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -8073,12 +8207,12 @@ collision risks.<a href="#section-14.8-3.1.3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-publish-done">
-<section id="section-14.9.3">
+<section id="section-14.10.3">
           <h4 id="name-publish_done-codes">
-<a href="#section-14.9.3" class="section-number selfRef">14.9.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
+<a href="#section-14.10.3" class="section-number selfRef">14.10.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
           </h4>
-<table class="center" id="table-16">
-            <caption><a href="#table-16" class="selfRef">Table 16</a></caption>
+<table class="center" id="table-17">
+            <caption><a href="#table-17" class="selfRef">Table 17</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -8169,12 +8303,12 @@ collision risks.<a href="#section-14.8-3.1.3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-reset-stream">
-<section id="section-14.9.4">
+<section id="section-14.10.4">
           <h4 id="name-data-stream-reset-error-cod">
-<a href="#section-14.9.4" class="section-number selfRef">14.9.4. </a><a href="#name-data-stream-reset-error-cod" class="section-name selfRef">Data Stream Reset Error Codes</a>
+<a href="#section-14.10.4" class="section-number selfRef">14.10.4. </a><a href="#name-data-stream-reset-error-cod" class="section-name selfRef">Data Stream Reset Error Codes</a>
           </h4>
-<table class="center" id="table-17">
-            <caption><a href="#table-17" class="selfRef">Table 17</a></caption>
+<table class="center" id="table-18">
+            <caption><a href="#table-18" class="selfRef">Table 18</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
