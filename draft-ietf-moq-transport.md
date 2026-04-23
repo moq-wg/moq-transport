@@ -3551,7 +3551,7 @@ The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
 
 SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
-a subscriber.  It is useful for subscribers are
+a subscriber.  It is useful for subscribers that are
 only interested in or authorized to access a subset of available tracks.
 
 If the FORWARD parameter ({{forward-parameter}}) is present in this message and
