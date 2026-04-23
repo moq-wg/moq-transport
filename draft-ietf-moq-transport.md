@@ -252,7 +252,7 @@ when describing the binary encoding.
 
 ### Variable-Length Integers
 
-MoQT requires a variable-length integer encoding with the following properties:
+MOQT requires a variable-length integer encoding with the following properties:
 
 1. The encoded length can be determined from the first encoded byte.
 2. The range of 1 byte values is as large as possible.
@@ -263,7 +263,7 @@ first byte to indicate the length of the encoding in bytes. The remaining bits
 after the first 0 and subsequent bytes, if any, represent the integer value,
 encoded in network byte order.
 
-Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can encode up to 64
+Integers are encoded in 1 to 9 bytes and can encode up to 64
 bit unsigned integers. The following table summarizes the encoding properties.
 
 |--------------|----------------|-------------|------------------------|
@@ -281,6 +281,8 @@ bit unsigned integers. The following table summarizes the encoding properties.
 |--------------|----------------|-------------|------------------------|
 | 111110       | 6              | 42          | 0-4398046511103        |
 |--------------|----------------|-------------|------------------------|
+| 1111110      | 7              | 49          | 0-562949953421311      |
+|--------------|----------------|-------------|------------------------|
 | 11111110     | 8              | 56          | 0-72057594037927935    |
 |--------------|----------------|-------------|------------------------|
 | 11111111     | 9              | 64          | 0-18446744073709551615 |
@@ -297,17 +299,14 @@ The following table contains some example encodings:
 | 0xbbbd               | 15,293                     |
 | 0xed7f3e7d           | 226,442,877                |
 | 0xfaa1a0e403d8       | 2,893,212,287,960          |
+| 0xfc8998abc66bc0     | 151,288,809,941,952        |
 | 0xfefa318fa8e3ca11   | 70,423,237,261,249,041     |
 | 0xffffffffffffffffff | 18,446,744,073,709,551,615 |
 |----------------------|----------------------------|
 {: format title="Example Integer Encodings"}
 
-11111100 is an invalid code point.  An endpoint that receives this value MUST
-close the session with a `PROTOCOL_VIOLATION`.
-
-To reduce unnecessary use of bandwidth, variable length integers SHOULD be
-encoded using the least number of bytes possible to represent the required
-value.
+Variable length integers do not need to be encoded using the minimum number of
+bytes; any encoding length that can represent the value is valid.
 
 x (vi64):
 
@@ -744,7 +743,7 @@ ways, for example:
 
 Tracks and Objects can have additional relay-visible fields, known as
 Properties, which do not require negotiation, and can be used to alter
-MoQT Object distribution.
+MOQT Object distribution.
 
 Properties are defined in {{moqt-properties}} as well as external
 specifications and are registered in an IANA table {{iana}}. These
@@ -752,7 +751,8 @@ specifications define the type and value of the property, along with any rules
 concerning processing, modification, caching and forwarding.
 
 If a Relay does not support a Property, it MUST NOT be modified, MUST be
-forwarded, and MUST be cached with the Track or Object.  If a Track or Object
+forwarded, and MUST be cached with the Track or Object, unless it is a Mandatory
+Track Property as described in {{mandatory-track-properties}}.  If a Track or Object
 arrives with a different set of unknown properties than previously cached,
 the most recent set SHOULD replace any cached values, removing any unknown
 values not present in the new set.  Relays MUST NOT attempt to merge sets
@@ -786,6 +786,43 @@ applications using the same code point in these ranges may assign different
 meanings; the interpretation depends on the track or application
 context known to the publisher and subscriber.
 
+### Mandatory Track Properties {#mandatory-track-properties}
+
+Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
+Properties. These properties MUST have Track scope. Mandatory Track Properties
+have special handling rules that prevent tracks with required extensions from
+being forwarded to or processed by endpoints that do not understand them.
+
+An Object received with a Mandatory Track Property as an Object Property is
+malformed (see {{malformed-tracks}}).
+
+When an endpoint receives Track Properties (in PUBLISH, SUBSCRIBE_OK, or
+FETCH_OK messages) containing a Mandatory Track Property type that it does not
+understand, it MUST NOT process or forward that track:
+
+* For PUBLISH messages: the subscriber MUST respond with REQUEST_ERROR with
+  error code UNSUPPORTED_EXTENSION.
+
+* For SUBSCRIBE_OK messages: the subscriber MUST cancel the subscription
+  (see {{request-cancellation}}).  If the subscriber is a relay with pending
+  downstream subscribers, it MUST send REQUEST_ERROR with error code
+  UNSUPPORTED_EXTENSION to the downstream subscribers.
+
+* For FETCH_OK messages: the subscriber MUST cancel the fetch
+  (see {{request-cancellation}}).  If the subscriber is a relay and has not yet
+  sent a FETCH_OK or REQUEST_ERROR downstream, it MUST send REQUEST_ERROR with
+  error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
+  relay has already forwarded data on a fetch stream, it MUST reset the stream.
+
+A publisher that knows a subscriber does not support a Mandatory Track Property
+SHOULD take the following action:
+
+* For SUBSCRIBE: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+
+* For FETCH: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+
+* For PUBLISH: do not publish the track to that subscriber.
+
 # Sessions {#session}
 
 ## Session establishment {#session-establishment}
@@ -800,7 +837,7 @@ MUST be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3.
 
 There is no definition of the protocol over other transports,
-such as TCP, and applications using MoQ might need to fallback to
+such as TCP, and applications using MOQT might need to fallback to
 another protocol when QUIC or WebTransport aren't available.
 
 MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
@@ -920,6 +957,46 @@ extensions.
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
+
+### Reserved Namespaces {#reserved-namespaces}
+
+MOQT reserves all Track Namespace values whose first tuple field begins with
+a period (0x2e, `.`). These namespaces MUST NOT be used unless their meaning
+is defined through IANA registration. Unless otherwise specified, an
+endpoint that receives a request for an unrecognized reserved namespace MUST
+pass it to the Application, so that future extensions can define new reserved
+namespaces without breaking older implementations.
+
+A Track Namespace whose first field is exactly `.` (a single period, 0x2e)
+is reserved and MUST NOT be used for any purpose; endpoints MUST NOT publish
+tracks or namespaces under it and MUST reject requests referencing it with
+DOES_NOT_EXIST.
+
+### Session-Level Tracks and Namespaces {#session-level-tracks}
+
+MOQT defines the `.session` namespace (the bytes 0x2e, 0x73, 0x65, 0x73,
+0x73, 0x69, 0x6f, 0x6e) in the first position of the Track Namespace for
+session-level tracks and namespaces. Session-level tracks and namespaces are
+managed by the MOQT implementation, not the Application. They provide a
+mechanism for extending MOQT transport functionality using existing
+subscription and object delivery machinery, without defining new control
+messages or stream types.
+
+The Application MUST NOT publish tracks or namespaces whose first
+field is `.session`. Relays MUST NOT forward requests for session-level
+tracks and namespaces to other sessions.
+
+The empty track name in the `.session` namespace is defined to not exist.
+A request with a Track Namespace whose first field is `.session` and an
+empty Track Name MUST be rejected with DOES_NOT_EXIST.
+
+An endpoint that receives a request for an unrecognized session-level track
+or namespace MUST reject it with REQUEST_ERROR using error code
+DOES_NOT_EXIST rather than passing it to the Application.
+
+The track names and namespaces available under the `.session` namespace are
+defined by extensions to this specification and registered with IANA (see
+{{iana-session-level-tracks}}).
 
 ## Session initialization {#session-init}
 
@@ -1350,6 +1427,11 @@ close the session with a `PROTOCOL_VIOLATION`.
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
 
+If the publisher cannot satisfy the requested Subscription Filter (see
+{{subscription-filter}}) or if the entire End Group has already been published
+it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
+NOT send objects from outside the requested range.
+
 ### Joining an Ongoing Track
 
 The MOQT Object model is designed with the concept that the beginning of a Group
@@ -1359,9 +1441,11 @@ will have different approaches for when to begin a new Group.
 
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
 REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
-{{joining-fetches}}) for the intended start Group, which can be relative.  To
-join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter
-Type `Next Group Start`.
+{{joining-fetches}}) for the intended start Group, which can be relative.  When
+the Joining FETCH follows a REQUEST_UPDATE that transitions Forward State from
+0 to 1, the FETCH MUST set its Required Request ID ({{required-request-id}}) to
+the REQUEST_UPDATE's Request ID or later.  To join a Track at the next Group, the
+subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
 
 #### Dynamically Starting New Groups
 
@@ -1509,7 +1593,7 @@ PUBLISH_NAMESPACE messages.
 
 # Priorities {#priorities}
 
-MoQ priorities allow a subscriber and original publisher to influence
+MOQT priorities allow a subscriber and original publisher to influence
 the transmission order of Objects within a session in the presence of
 congestion.
 
@@ -1609,14 +1693,14 @@ subscriptions. Relays' use of these fields for upstream subscriptions can be
 based on factors specific to it, such as the popularity of the content or
 policy, or relays can specify the same value for all upstream subscriptions.
 
-MoQ Sessions can span multiple namespaces, and priorities might not
+MOQT Sessions can span multiple namespaces, and priorities might not
 be coordinated across namespaces.  The subscriber's priority is
 considered first, so there is a mechanism for a subscriber to fix
 incompatibilities between different namespaces prioritization schemes.
 Additionally, it is anticipated that when multiple namespaces
 are present within a session, the namespaces could be coordinating,
 possibly part of the same application.  In cases when pooling among
-namespaces is expected to cause issues, multiple MoQ sessions, either
+namespaces is expected to cause issues, multiple MOQT sessions, either
 within a single connection or on multiple connections can be used.
 
 Implementations that have a default priority SHOULD set it to a value in
@@ -1625,14 +1709,14 @@ set either higher or lower.
 
 # Relays {#relays-moq}
 
-Relays are leveraged to enable distribution scale in the MoQ
+Relays are leveraged to enable distribution scale in the MOQT
 architecture. Relays can be used to form an overlay delivery network,
 similar in functionality to Content Delivery Networks
 (CDNs). Additionally, relays serve as policy enforcement points by
 validating subscribe and publish requests at the edge of a network.
 
 Relays are endpoints, which means they terminate Transport Sessions in order to
-have visibility of MoQ Object metadata.
+have visibility of MOQT Object metadata.
 
 ## Caching Relays
 
@@ -2219,6 +2303,29 @@ successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
 any other relevant information.
 
+### FILL TIMEOUT Parameter {#fill-timeout}
+
+The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a FETCH message.
+
+It is the maximum total duration in milliseconds a relay SHOULD spend waiting
+for upstream sources to provide Objects that are not immediately available
+before reporting them as Unknown gaps in the FETCH response. When a relay
+encounters Objects within the requested range that are not immediately available
+and have unknown status, it issues upstream FETCHes to retrieve them. The Fill
+Timeout represents a total budget for all such upstream FETCHes generated by
+this request. If the budget is exhausted, the relay reports any remaining
+unavailable Objects as Unknown gaps and continues delivering available Objects
+in the range.
+
+A value of 0 indicates the subscriber only wants Objects that are immediately
+available; the relay MUST NOT wait for upstream delivery and MUST report any
+unavailable Objects as Unknown gaps.
+
+If the Fill Timeout parameter is absent, the relay waits for an implementation
+specific duration before reporting Unknown gaps. If the subscriber specifies a Fill
+Timeout larger than the relay is willing to wait, the relay MAY use a shorter
+timeout without informing the subscriber.
+
 ### RENDEZVOUS TIMEOUT Parameter {#rendezvous-timeout}
 
 The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) MAY appear in a
@@ -2310,7 +2417,7 @@ have been published on this Track the Publisher MUST include this parameter.
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
 
-### FORWARD Parameter
+### FORWARD Parameter {#forward-parameter}
 
 The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
@@ -2559,12 +2666,21 @@ REQUEST_OK Message {
   Type (vi64) = 0x7,
   Length (16),
   Number of Parameters (vi64),
-  Parameters (..) ...
+  Parameters (..) ...,
+  Track Properties (..),
 }
 ~~~
 {: #moq-transport-request-ok format title="MOQT REQUEST_OK Message"}
 
 * Parameters: The parameters are defined in {{message-params}}.
+
+* Track Properties : A sequence of Properties. See {{properties}}. The
+  length of Track Properties is the remaining length of the message
+  after parsing all previous fields. Track Properties are populated in
+  response to TRACK_STATUS messages; they are empty in response to
+  REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE.  If an
+  endpoint receives Track Properties in response to one of these messages
+  it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 ## REQUEST_ERROR {#message-request-error}
 
@@ -2630,6 +2746,10 @@ GOING_AWAY:
 EXCESSIVE_LOAD:
 : The responder is overloaded and cannot process the request at this time. The
 sender SHOULD use the Retry Interval to indicate when the request can be retried.
+
+UNSUPPORTED_EXTENSION:
+: The track contains a Mandatory Track Property
+(see {{mandatory-track-properties}}) that the endpoint does not understand.
 
 DUPLICATE_SUBSCRIPTION (0x19):
 : The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
@@ -2711,15 +2831,6 @@ On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
 specified, and start sending objects.
 
-If the publisher cannot satisfy the requested Subscription Filter (see
-{{subscription-filter}}) or if the entire End Group has already been published
-it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
-NOT send objects from outside the requested range.
-
-Subscribing with the FORWARD parameter ({{forward-parameter}}) equal to 0 allows
-publisher or relay to prepare to serve the subscription in advance, reducing the
-time to receive objects in the future.
-
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
 A publisher sends a SUBSCRIBE_OK as the first response message on the
@@ -2738,10 +2849,7 @@ SUBSCRIBE_OK Message {
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}). The same Track Alias MUST NOT be used by a publisher to refer to
-  two different Tracks simultaneously in the same session. If a subscriber receives a
-  SUBSCRIBE_OK that uses the same Track Alias as a different track with an
-  `Established` subscription, it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
+  {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -2806,6 +2914,16 @@ a FETCH, the publisher MUST reset the FETCH data stream. When a REQUEST_UPDATE
 fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder MUST close
 the bidi stream.
 
+A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
+coalesce their processing by applying only the cumulative result.
+Parameter values from later REQUEST_UPDATE messages override values
+from earlier ones. The receiver MUST still send a REQUEST_OK for
+each successful update, but it is not required to process
+intermediate states individually. If the coalesced REQUEST_UPDATE
+results in REQUEST_ERROR, only a single REQUEST_ERROR will be
+sent and the sender of the REQUEST_UPDATEs will not always be
+able to determine which caused an error.
+
 ### Updating Namespace Subscriptions
 
 A subscriber can update the Track Namespace Prefix of an established
@@ -2853,10 +2971,7 @@ PUBLISH Message {
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}). The same Track Alias MUST NOT be used by a publisher to refer to
-  two different Tracks simultaneously in the same session. If a subscriber receives a
-  PUBLISH that uses the same Track Alias as a different track with an `Established`
-  subscription, it MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
+  {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -2892,8 +3007,6 @@ PUBLISH_OK Message {
 
 * Parameters: The parameters are defined in {{message-params}}.
 
-TODO: A similar section to SUBSCRIBE about how the publisher handles a
-filter that is entirely behind Largest Object or is otherwise invalid.
 
 ## PUBLISH_DONE {#message-publish-done}
 
@@ -3060,7 +3173,11 @@ with a certain number of groups prior to the live edge of a track.
 
 A Joining Fetch is only permitted when the associated subscription has
 Forward State 1; otherwise the publisher MUST close the session with a
-`PROTOCOL_VIOLATION`.
+`PROTOCOL_VIOLATION`. A publisher MUST process any pending REQUEST_UPDATE
+messages for the associated subscription before evaluating the current
+request. Relays with an upstream subscription in transition from Forward State 0
+to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
+the upstream subscription returns REQUEST_OK with the new Largest Object.
 
 If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
@@ -3237,8 +3354,9 @@ delivery (e.g. SUBSCRIBER_PRIORITY) are not included.
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
-REQUEST_OK message with the same parameters it would have set in a SUBSCRIBE_OK.
-Track Alias is not used.  A publisher responds to a failed TRACK_STATUS with an
+REQUEST_OK message with the same parameters and Track Properties it would have
+set in a SUBSCRIBE_OK. Track Alias is not used.  A publisher responds to a
+failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
 REQUEST_OK or REQUEST_ERROR are sent.
 
@@ -3354,9 +3472,9 @@ SUBSCRIBE_NAMESPACE Message {
 * Parameters: The parameters are defined in {{message-params}}.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
-of the stream. If the subscriber receives any frame other than a REQUEST_OK or a
-REQUEST_ERROR as the first frame on the response half of the stream, then it
-MUST close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
+of the stream. If the subscriber receives any message other than a REQUEST_OK or a
+REQUEST_ERROR as the first message on the response half of the stream, then it MUST
+close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
 stream. If it is an error, the stream will be immediately closed via FIN. When
 there are changes to the namespaces being published and the subscriber is
@@ -3416,9 +3534,9 @@ SUBSCRIBE_TRACKS Message {
 * Parameters: The parameters are defined in {{message-params}}.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
-of the stream. If the subscriber receives any frame other than a REQUEST_OK or a
-REQUEST_ERROR as the first frame on the response half of the stream, then it
-MUST close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_TRACKS is
+of the stream. If the subscriber receives any message other than a REQUEST_OK or a
+REQUEST_ERROR as the first message on the response half of the stream, then it MUST
+close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_TRACKS is
 successful, the publisher will send PUBLISH messages on new bidirectional streams
 for tracks within matching namespaces. If it is an error, the stream will be
 closed via FIN after REQUEST_ERROR is sent.
@@ -3485,12 +3603,18 @@ An endpoint that receives an unknown datagram type MUST close the session.
 Every Object has a 'Object Forwarding Preference' and the Original Publisher
 MAY use both Subgroups and Datagrams within a Group or Track.
 
-## Track Alias
+## Track Alias {#track-alias}
 
 To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
 the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}) or PUBLISH
 ({{message-publish}}).
+
+The same Track Alias MUST NOT be used by a publisher to refer to two different
+Tracks simultaneously in the same session. If a subscriber receives a
+PUBLISH or SUBSCRIBE_OK that uses the same Track Alias as a different Track
+with an `Established` subscription, it MUST close the session with error
+`DUPLICATE_TRACK_ALIAS`.
 
 Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
 retain sufficient state to quickly discard these unwanted Objects, rather than
@@ -3505,7 +3629,7 @@ cache, and forward it.  Objects are sent by publishers.
 
 ### Object Header {#object-header}
 
-A canonical MoQ Object has the following fields:
+A canonical MOQT Object has the following fields:
 
 * Track Namespace and Track Name: The track this object belongs to.
 
@@ -3688,7 +3812,7 @@ Header field values.
 
 Streams aside from the control streams MAY be canceled due to congestion
 or other reasons by either the publisher or subscriber. Early termination of a
-unidirectional stream does not affect the MoQ application state, and therefore has
+unidirectional stream does not affect the MOQT application state, and therefore has
 no effect on outstanding subscriptions. Termination of a bidi request stream
 terminates the Subscription, Fetch, Track Status, Publish Namespace, or Subscribe Namespace
 request. When possible, Publishers SHOULD send a PUBLISH_DONE when terminating a
@@ -3888,7 +4012,10 @@ Subgroups in the Group or the subscription, although applications might cancel a
 Subgroups in a Group at once.
 
 A publisher that receives a STOP_SENDING on a Subgroup stream SHOULD NOT attempt
-to open a new stream to deliver additional Objects in that Subgroup.
+to open a new stream to deliver additional Objects in that Subgroup.  However,
+if the publisher subsequently receives a REQUEST_UPDATE that changes the Forward
+State from 0 to 1, it MAY open a new stream to deliver Objects in that Subgroup,
+as the update indicates the subscriber has renewed interest in forwarded Objects.
 
 The application SHOULD use a relevant error code when resetting a stream,
 as defined below:
@@ -4469,6 +4596,7 @@ TODO: fill out currently missing registries:
 
 * MOQT ALPN values
 * Message types
+* Session-Level Track Names
 
 ## URI Scheme Registrations
 
@@ -4589,6 +4717,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x04 | RENDEZVOUS_TIMEOUT | {{rendezvous-timeout}} |
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
+| 0x0A | FILL_TIMEOUT | {{fill-timeout}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
@@ -4622,13 +4751,36 @@ the length field.
   - 0x80 to 0x37FF: Specification Required (2-byte encoding)
   - 0x3800 to 0x3FFF: Reserved for application-specific use (2-byte encoding,
     no registration permitted)
-  - 0x4000 and above: First Come First Served
+  - 0x4000 to 0x7FFF: Reserved for Mandatory Track Properties
+    (see {{mandatory-track-properties}}). Properties registered in this range
+    MUST have Track scope; Object scope properties MUST NOT be registered in
+    this range.
+  - 0x8000 and above: First Come First Served
 
   Code points reserved for application-specific use will never be allocated
   by IANA. Applications using these values do not need to coordinate with
   IANA.  Note that applications consuming tracks from uncoordinated sources may
   encounter different semantics for the same code points, creating potential
   collision risks.
+
+## Session-Level Track Names {#iana-session-level-tracks}
+
+This document establishes a registry for session-level track names
+under the `.session` namespace (see {{session-level-tracks}}). The
+registration policy is Specification Required (per {{!RFC8126,
+Section 4.6}}).
+
+Each registration must include:
+
+| Field | Description |
+|:------|:------------|
+| Track Namespace | The track namespace under the `.session` namespace, can be empty |
+| Track Name | The track name (bytes) within the full namespace |
+| Description | Brief description of the track's purpose |
+| Change Controller | Who may update the registration |
+| Specification | Reference to the defining specification |
+
+This document does not define any initial entries.
 
 ## Error Codes {#iana-error-codes}
 
@@ -4679,6 +4831,7 @@ the length field.
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
+| UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
@@ -4770,7 +4923,7 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Add NAMESPACE_TOO_LARGE error and stream reset for large namespaces (#1496)
 * Add TOO_FAR_BEHIND stream reset code (#1445)
 * Add REQUEST_UPDATE to list of REQUEST_ERROR causes (#1466)
-* Enforce REQUEST_OK/ERROR as first frame on the response stream (#1499)
+* Enforce REQUEST_OK/ERROR as first message on the response stream (#1499)
 * Allow joining FETCH for PUBLISH and REQUEST_UPDATE with forward=1 (#1335)
 * Allow DELIVERY_TIMEOUT value of 0 to mean no timeout (#1450)
 * Allow zero-element namespaces (#1472)
