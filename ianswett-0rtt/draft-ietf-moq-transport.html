@@ -3069,15 +3069,9 @@ would fail because the endpoint cannot complete the handshake.<a href="#section-
 <p id="section-3.3.2-5">Some potential side effects of replay are:<a href="#section-3.3.2-5" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.3.2-6.1">
-              <p id="section-3.3.2-6.1.1">The NEW_GROUP_REQUEST Parameter <a href="#new-group-request" class="auto internal xref">Section 9.3.12</a> can cause a new
-Group to be started on an existing Track. Replaying a SUBSCRIBE
-containing a NEW_GROUP_REQUEST could cause more, shorter Groups to
-be published for a Track.<a href="#section-3.3.2-6.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.3.2-6.2">
-              <p id="section-3.3.2-6.2.1">Publishing Objects that were previously published could cause those
+              <p id="section-3.3.2-6.1.1">Publishing Objects that were previously published could cause those
 Objects to be distributed to active Subscriptions if the relays do
-not identify them as already having been published.<a href="#section-3.3.2-6.2.1" class="pilcrow">¶</a></p>
+not identify them as already having been published.<a href="#section-3.3.2-6.1.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
