@@ -1261,10 +1261,10 @@ Table of Contents
    0-RTT is used with an existing or future version of WebTransport, the
    following would apply to it as well as QUIC.
 
-   0-RTT is not forward secure, so MoQ users need to consider that when
+   0-RTT is not forward secure, so MoQT users need to consider that when
    deciding if 0-RTT is appropriate.
 
-   MoQ Messages and Objects as defined in this draft are safe to replay
+   MoQT Messages and Objects as defined in this draft are safe to replay
    in most circumstances.
 
    *  TRACK_STATUS gets the Largest Object and Track Properties, but
