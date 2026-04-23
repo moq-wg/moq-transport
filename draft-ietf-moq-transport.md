@@ -1034,11 +1034,11 @@ a peer will support. Message Parameters requiring negotiation SHOULD NOT
 be used prior to receiving the peer's SETUP message unless the application
 requires the extension or the endpoint knows the peer supports the
 extension. If an unsupported Message Parameter is used, the peer will be
-unable to process it and the session will be terminated. See {message-params}.
+unable to process it and the session will be terminated. See {{message-params}}.
 
 ### 0-RTT
 
-QUIC supports 0-RTT ({{Section 2.3 of ?RFC8446}}), but Webtransport over QUIC
+QUIC supports 0-RTT ({{Section 2.3 of ?RFC8446}}), but WebTransport over QUIC
 is not expected to use 0-RTT, because initializing a WebTransport session
 uses CONNECT, which is not a safe method. {{?RFC8470}} describes the use of
 0-RTT with HTTP in more detail. If 0-RTT is used with an existing or future
