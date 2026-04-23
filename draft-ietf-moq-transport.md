@@ -1513,6 +1513,9 @@ groups. A publisher that does will begin the next group as soon as practical.
 
 ## Fetch State Management
 
+FETCH messages are sent on either their own Bidirectional stream or the
+bidirectional stream of an associated SUBSCRIBE (see {{joining-fetches}}).
+
 The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
 FETCH.
 
@@ -1522,6 +1525,9 @@ receives a FIN or is reset. If the data stream is already open,
 the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
 data stream as well as the the bidi request stream. It MUST send STOP_SENDING
 for the bidi request stream.
+
+If on an associated SUBSCRIBE request stream, closing the stream terminates the
+FETCH request.
 
 The Publisher can destroy fetch state as soon as it has received a
 STOP_SENDING. It MUST reset the bidi request stream and unidirectional
@@ -2029,7 +2035,7 @@ new request stream.
 |--------|-----------------------------------------------|----------------|
 | 0xB    | PUBLISH_DONE ({{message-publish-done}})       | Request        |
 |--------|-----------------------------------------------|----------------|
-| 0x16   | FETCH ({{message-fetch}})                     | Request, First |
+| 0x16   | FETCH ({{message-fetch}})                     | Request, sometimes First |
 |--------|-----------------------------------------------|----------------|
 | 0x18   | FETCH_OK ({{message-fetch-ok}})               | Request        |
 |--------|-----------------------------------------------|----------------|
@@ -3121,18 +3127,10 @@ EXCESSIVE_LOAD (0x9):
 
 ## FETCH {#message-fetch}
 
-A subscriber sends FETCH as the first message on a new bidi stream to a
-publisher to request a range of already published objects within a track.
-
-There are three types of Fetch messages.
-
-Code | Fetch Type
-0x1 | Standalone Fetch
-0x2 | Relative Joining Fetch
-0x3 | Absolute Joining Fetch
-
-An endpoint that receives a Fetch Type other than 0x1, 0x2 or 0x3 MUST close
-the session with a `PROTOCOL_VIOLATION`.
+A subscriber can send a FETCH as the first message on a new bidi stream, in
+which case it is a "Standalone FETCH", or in an existing SUBSCRIBE or PUBLISH
+bidi stream, in which case it is a "Joining FETCH". Joining FETCH is further
+subdivided into "Relative Joining FETCH" or "Absolute Joining FETCH".
 
 ### Standalone Fetch
 
@@ -3162,12 +3160,8 @@ Standalone Fetch {
 
 ### Joining Fetches
 
-A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of a subscription in the `Established` or
-`Pending (subscriber)` state. Because Joining Fetch references an existing
-subscription, if that subscription has not yet been established, the Publisher
-receiving the Joining Fetch buffers the pending Joining Fetch until either
-the Subscription is established or the request times out.
+A Joining Fetch is associated with a Subscribe or Publish request that
+initiated the stream that sent it.
 
 A publisher receiving a Joining Fetch uses properties of the associated
 subscription to determine the Track Namespace, Track Name
@@ -3175,16 +3169,32 @@ and End Location such that it is contiguous with the associated
 subscription.  The subscriber can set the Start Location to an absolute
 Location or a Location relative to the Largest group.
 
+A Joining FETCH shares parameters with the associated subscription. If a
+parameter can only be included in SUBSCRIBE or PUBLISH_OK, it only applies to
+the subscription. If it can only be included in a FETCH, it only applies to
+the FETCH. If it can apply to both, it applies to both. Therefore, a joining
+FETCH inherits the parameters from the associated subscription. Similarly,
+any parameters included in a Joining FETCH therefore function as a
+REQUEST_UPDATE to the subscription if the parameters apply. Finally, any
+subsequent REQUEST_UPDATE applies to both.
+
+If a publisher responds to joining FETCH with REQUEST_ERROR, it does not
+terminate the stream, and any parameter changes to the subscription are not
+applied.
+
+After sending FETCH_OK, if the joining FETCH is terminated for any reason not
+affecting the associated SUBSCRIBE, the endpoint MUST terminate the
+unidirectional Fetch stream but not the request stream.
+
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer
 with a certain number of groups prior to the live edge of a track.
 
 A Joining Fetch is only permitted when the associated subscription has
 Forward State 1; otherwise the publisher MUST close the session with a
-`PROTOCOL_VIOLATION`. A publisher MUST process any pending REQUEST_UPDATE
-messages for the associated subscription before evaluating the current
-request. Relays with an upstream subscription in transition from Forward State 0
-to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
-the upstream subscription returns REQUEST_OK with the new Largest Object.
+`PROTOCOL_VIOLATION`. However, if the subscription later switches to
+Forward State 0, the joining FETCH may continue.
+
+Terminating a subscription also terminates any Joining FETCH associated with it.
 
 If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
@@ -3193,10 +3203,14 @@ A Joining Fetch includes this structure:
 
 ~~~
 Joining Fetch {
-  Joining Request ID (vi64),
+  Fetch Type (vi64),
   Joining Start (vi64)
 }
 ~~~
+
+* Fetch Type: Identifies the type of Fetch, whether Relative
+  Joining (0x2) or Absolute Joining (0x3). An endpoing that receives any other
+  value MUST close the session with a PROTOCOL_VIOLATION.
 
 * Joining Request ID: The Request ID of the subscription to be joined. If a
   publisher receives a Joining Fetch with a Request ID that does not correspond
@@ -3237,7 +3251,6 @@ FETCH Message {
   Length (16),
   Request ID (vi64),
   Required Request ID Delta (vi64),
-  Fetch Type (vi64),
   [Standalone (Standalone Fetch),]
   [Joining (Joining Fetch),]
   Number of Parameters (vi64),
@@ -3250,12 +3263,9 @@ FETCH Message {
 
 * Required Request ID Delta: See {{required-request-id}}.
 
-* Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
-  Joining or Absolute Joining.
+* Standalone: Standalone Fetch structure included when on a new Bidi stream.
 
-* Standalone: Standalone Fetch structure included when Fetch Type is 0x1
-
-* Joining: Joining Fetch structure included when Fetch Type is 0x2 or 0x3.
+* Joining: Joining Fetch structure included when on a SUBSCRIBE or PUBLISH stream.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
