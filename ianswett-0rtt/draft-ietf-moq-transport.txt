@@ -1229,7 +1229,7 @@ Table of Contents
    unless negotiated.  If they do, the peer MUST close the Session with
    a PROTOCOL_VIOLATION.  Objects are sent on unidirectional streams.
 
-   As such, a client or server can initiate a MoQ session, subscribe,
+   As such, a client or server can initiate a MoQT session, subscribe,
    and start publishing Objects all in parallel.
 
    Unidirectional streams containing Objects or bidirectional stream(s)
