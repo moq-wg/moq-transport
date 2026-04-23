@@ -3009,13 +3009,13 @@ a peer will support. Message Parameters requiring negotiation <span class="bcp14
 be used prior to receiving the peer's SETUP message unless the application
 requires the extension or the endpoint knows the peer supports the
 extension. If an unsupported Message Parameter is used, the peer will be
-unable to process it and the session will be terminated. See {message-params}.<a href="#section-3.3-6" class="pilcrow">¶</a></p>
+unable to process it and the session will be terminated. See <a href="#message-params" class="auto internal xref">Section 9.3</a>.<a href="#section-3.3-6" class="pilcrow">¶</a></p>
 <div id="rtt">
 <section id="section-3.3.1">
           <h4 id="name-0-rtt">
 <a href="#section-3.3.1" class="section-number selfRef">3.3.1. </a><a href="#name-0-rtt" class="section-name selfRef">0-RTT</a>
           </h4>
-<p id="section-3.3.1-1">QUIC supports 0-RTT (<span><a href="https://rfc-editor.org/rfc/rfc8446#section-2.3" class="relref">Section 2.3</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>), but Webtransport over QUIC
+<p id="section-3.3.1-1">QUIC supports 0-RTT (<span><a href="https://rfc-editor.org/rfc/rfc8446#section-2.3" class="relref">Section 2.3</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>), but WebTransport over QUIC
 is not expected to use 0-RTT, because initializing a WebTransport session
 uses CONNECT, which is not a safe method. <span>[<a href="#RFC8470" class="cite xref">RFC8470</a>]</span> describes the use of
 0-RTT with HTTP in more detail. If 0-RTT is used with an existing or future
