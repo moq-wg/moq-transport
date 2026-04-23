@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 14 October 2026                                   I. Swett, Ed.
+Expires: 25 October 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           12 April 2026
+                                                           23 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 October 2026.
+   This Internet-Draft will expire on 25 October 2026.
 
 Copyright Notice
 
@@ -109,6 +109,8 @@ Table of Contents
        3.1.4.  Native QUIC
        3.1.5.  Connection URL
      3.2.  Extension Negotiation
+       3.2.1.  Reserved Namespaces
+       3.2.2.  Session-Level Tracks and Namespaces
      3.3.  Session initialization
        3.3.1.  Request Cancellation and Rejection
      3.4.  Unidirectional Stream Types
@@ -149,14 +151,15 @@ Table of Contents
        9.3.1.  Parameter Scope
        9.3.2.  AUTHORIZATION TOKEN Parameter
        9.3.3.  DELIVERY TIMEOUT Parameter
-       9.3.4.  RENDEZVOUS TIMEOUT Parameter
-       9.3.5.  SUBSCRIBER PRIORITY Parameter
-       9.3.6.  GROUP ORDER Parameter
-       9.3.7.  SUBSCRIPTION FILTER Parameter
-       9.3.8.  EXPIRES Parameter
-       9.3.9.  LARGEST OBJECT Parameter
-       9.3.10. FORWARD Parameter
-       9.3.11. NEW GROUP REQUEST Parameter
+       9.3.4.  FILL TIMEOUT Parameter
+       9.3.5.  RENDEZVOUS TIMEOUT Parameter
+       9.3.6.  SUBSCRIBER PRIORITY Parameter
+       9.3.7.  GROUP ORDER Parameter
+       9.3.8.  SUBSCRIPTION FILTER Parameter
+       9.3.9.  EXPIRES Parameter
+       9.3.10. LARGEST OBJECT Parameter
+       9.3.11. FORWARD Parameter
+       9.3.12. NEW GROUP REQUEST Parameter
      9.4.  SETUP
        9.4.1.  Setup Options
      9.5.  GOAWAY
@@ -223,11 +226,12 @@ Table of Contents
      14.6.  MOQT Auth Token Type
      14.7.  Message Parameters
      14.8.  Properties
-     14.9.  Error Codes
-       14.9.1.  Session Termination Error Codes
-       14.9.2.  REQUEST_ERROR Codes
-       14.9.3.  PUBLISH_DONE Codes
-       14.9.4.  Data Stream Reset Error Codes
+     14.9.  Session-Level Track Names
+     14.10. Error Codes
+       14.10.1.  Session Termination Error Codes
+       14.10.2.  REQUEST_ERROR Codes
+       14.10.3.  PUBLISH_DONE Codes
+       14.10.4.  Data Stream Reset Error Codes
    Contributors
    Use of Generative AI
    References
@@ -1164,6 +1168,48 @@ Table of Contents
    used with that version.  New extensions MUST specify the existing
    versions with which they can be used.
 
+3.2.1.  Reserved Namespaces
+
+   MOQT reserves all Track Namespace values whose first tuple field
+   begins with a period (0x2e, .).  These namespaces MUST NOT be used
+   unless their meaning is defined through IANA registration.  Unless
+   otherwise specified, an endpoint that receives a request for an
+   unrecognized reserved namespace MUST pass it to the Application, so
+   that future extensions can define new reserved namespaces without
+   breaking older implementations.
+
+   A Track Namespace whose first field is exactly . (a single period,
+   0x2e) is reserved and MUST NOT be used for any purpose; endpoints
+   MUST NOT publish tracks or namespaces under it and MUST reject
+   requests referencing it with DOES_NOT_EXIST.
+
+3.2.2.  Session-Level Tracks and Namespaces
+
+   MOQT defines the .session namespace (the bytes 0x2e, 0x73, 0x65,
+   0x73, 0x73, 0x69, 0x6f, 0x6e) in the first position of the Track
+   Namespace for session-level tracks and namespaces.  Session-level
+   tracks and namespaces are managed by the MOQT implementation, not the
+   Application.  They provide a mechanism for extending MOQT transport
+   functionality using existing subscription and object delivery
+   machinery, without defining new control messages or stream types.
+
+   The Application MUST NOT publish tracks or namespaces whose first
+   field is .session.  Relays MUST NOT forward requests for session-
+   level tracks and namespaces to other sessions.
+
+   The empty track name in the .session namespace is defined to not
+   exist.  A request with a Track Namespace whose first field is
+   .session and an empty Track Name MUST be rejected with
+   DOES_NOT_EXIST.
+
+   An endpoint that receives a request for an unrecognized session-level
+   track or namespace MUST reject it with REQUEST_ERROR using error code
+   DOES_NOT_EXIST rather than passing it to the Application.
+
+   The track names and namespaces available under the .session namespace
+   are defined by extensions to this specification and registered with
+   IANA (see Section 14.9).
+
 3.3.  Session initialization
 
    MOQT uses a pair of unidirectional streams for creating the session
@@ -1613,7 +1659,7 @@ Table of Contents
    close the session with PROTOCOL_VIOLATION.
 
    If the publisher cannot satisfy the requested Subscription Filter
-   (see Section 9.3.7) or if the entire End Group has already been
+   (see Section 9.3.8) or if the entire End Group has already been
    published it SHOULD send a REQUEST_ERROR with code INVALID_RANGE.  A
    publisher MUST NOT send objects from outside the requested range.
 
@@ -1651,7 +1697,7 @@ Table of Contents
    Object ID is above the threshold and the Track supports dynamic
    groups, the subscriber sends a REQUEST_UPDATE message with the
    NEW_GROUP_REQUEST parameter equal to the Largest Location's Group,
-   plus one (see Section 9.3.11).
+   plus one (see Section 9.3.12).
 
    Another possible subscriber pattern is to send a SUBSCRIBE with
    Filter Type Next Group Start and NEW_GROUP_REQUEST equal to 0.  The
@@ -1703,11 +1749,11 @@ Table of Contents
    SUBSCRIBE_NAMESPACE to publishers/relays it has established a session
    with.  The recipient of this message will send any relevant
    NAMESPACE, NAMESPACE_DONE or PUBLISH messages for that namespace, or
-   more specific part of that namespace.  This includes echoing back
-   published Tracks and/or Track Namespaces under the
-   SUBSCRIBE_NAMESPACE prefix to the endpoint that sent them.  If an
-   endpoint accepts its own PUBLISH, this behaves as self-subscription
-   described in Section 5.1.
+   more specific part of that namespace.  An endpoint MUST NOT send
+   PUBLISH messages to a SUBSCRIBE_NAMESPACE subscriber for Tracks or
+   Track Namespaces that the subscriber itself has published on this
+   session.  If an endpoint wishes to receive its own published Tracks,
+   it can explicitly SUBSCRIBE to them.
 
    A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the
    sender is interested in all tracks and/or namespaces from the
@@ -2125,7 +2171,7 @@ Table of Contents
    PUBLISH request to each subscriber that has subscribed (via
    SUBSCRIBE_NAMESPACE) to the Track's namespace or prefix thereof.
    However, if the relay is holding a downstream SUBSCRIBE awaiting a
-   publisher for this Track (see Section 9.3.4), it MUST proceed with
+   publisher for this Track (see Section 9.3.5), it MUST proceed with
    the SUBSCRIBE and MUST NOT also forward the PUBLISH to that
    subscriber.
 
@@ -2551,7 +2597,33 @@ Table of Contents
    data for that Object, taking into account priorities, congestion
    control, and any other relevant information.
 
-9.3.4.  RENDEZVOUS TIMEOUT Parameter
+9.3.4.  FILL TIMEOUT Parameter
+
+   The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a
+   FETCH message.
+
+   It is the maximum total duration in milliseconds a relay SHOULD spend
+   waiting for upstream sources to provide Objects that are not
+   immediately available before reporting them as Unknown gaps in the
+   FETCH response.  When a relay encounters Objects within the requested
+   range that are not immediately available and have unknown status, it
+   issues upstream FETCHes to retrieve them.  The Fill Timeout
+   represents a total budget for all such upstream FETCHes generated by
+   this request.  If the budget is exhausted, the relay reports any
+   remaining unavailable Objects as Unknown gaps and continues
+   delivering available Objects in the range.
+
+   A value of 0 indicates the subscriber only wants Objects that are
+   immediately available; the relay MUST NOT wait for upstream delivery
+   and MUST report any unavailable Objects as Unknown gaps.
+
+   If the Fill Timeout parameter is absent, the relay waits for an
+   implementation specific duration before reporting Unknown gaps.  If
+   the subscriber specifies a Fill Timeout larger than the relay is
+   willing to wait, the relay MAY use a shorter timeout without
+   informing the subscriber.
+
+9.3.5.  RENDEZVOUS TIMEOUT Parameter
 
    The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) MAY appear in
    a SUBSCRIBE message.
@@ -2579,7 +2651,7 @@ Table of Contents
 
    If RENDEZVOUS_TIMEOUT is absent, the default is 0.
 
-9.3.5.  SUBSCRIBER PRIORITY Parameter
+9.3.6.  SUBSCRIBER PRIORITY Parameter
 
    The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8.
    It MAY appear in a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a
@@ -2591,7 +2663,7 @@ Table of Contents
    If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
    the value 128.
 
-9.3.6.  GROUP ORDER Parameter
+9.3.7.  GROUP ORDER Parameter
 
    The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8.  It MAY
    appear in a SUBSCRIBE, PUBLISH_OK, or FETCH.
@@ -2606,7 +2678,7 @@ Table of Contents
    If omitted from SUBSCRIBE, the publisher's preference from the Track
    is used.  If omitted from FETCH, the receiver uses Ascending (0x1).
 
-9.3.7.  SUBSCRIPTION FILTER Parameter
+9.3.8.  SUBSCRIPTION FILTER Parameter
 
    The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) uses length-
    prefixed encoding.  It MAY appear in a SUBSCRIBE, PUBLISH_OK or
@@ -2616,7 +2688,7 @@ Table of Contents
    If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
    unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
-9.3.8.  EXPIRES Parameter
+9.3.9.  EXPIRES Parameter
 
    The EXPIRES parameter (Parameter Type 0x8) is a varint.  It MAY
    appear in SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK.  It
@@ -2637,7 +2709,7 @@ Table of Contents
    If the EXPIRES parameter is 0 or is not present in a message, the
    subscription does not expire or expires at an unknown time.
 
-9.3.9.  LARGEST OBJECT Parameter
+9.3.10.  LARGEST OBJECT Parameter
 
    The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location.  It
    MAY appear in SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to
@@ -2649,7 +2721,7 @@ Table of Contents
    If omitted from a message, the sending endpoint has not published or
    received any Objects in the Track.
 
-9.3.10.  FORWARD Parameter
+9.3.11.  FORWARD Parameter
 
    The FORWARD parameter (Parameter Type 0x10) is a uint8.  It MAY
    appear in SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH,
@@ -2663,7 +2735,7 @@ Table of Contents
    subscription remains unchanged.  If the parameter is omitted from any
    other message, the default value is 1.
 
-9.3.11.  NEW GROUP REQUEST Parameter
+9.3.12.  NEW GROUP REQUEST Parameter
 
    The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint.
    It MAY appear in PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a
@@ -2950,7 +3022,7 @@ Table of Contents
       See Section 1.4.4.
 
    The application SHOULD use a relevant error code in REQUEST_ERROR, as
-   defined below and assigned in Section 14.9.2.  Most codepoints have
+   defined below and assigned in Section 14.10.2.  Most codepoints have
    identical meanings for various request types, but some have request-
    specific meanings.
 
@@ -3205,7 +3277,7 @@ Table of Contents
    abandon reading any publisher initiated streams associated with that
    subscription using a STOP_SENDING frame.
 
-   A publisher that sends the FORWARD parameter (Section 9.3.10) equal
+   A publisher that sends the FORWARD parameter (Section 9.3.11) equal
    to 0 indicates that it will not transmit any objects until the
    subscriber sets the Forward State to 1.  If the FORWARD parameter is
    omitted or equal to 1, the publisher will start transmitting objects
@@ -3493,7 +3565,7 @@ Table of Contents
 
    The publisher responding to a FETCH is responsible for delivering all
    available Objects in the requested range in the requested order (see
-   Section 9.3.6).  The Objects in the response are delivered on a
+   Section 9.3.7).  The Objects in the response are delivered on a
    single unidirectional stream.  Any gaps in the Group and Object IDs
    in the response stream indicate objects that do not exist.  For
    Ascending Group Order this includes ranges between the first
@@ -3749,7 +3821,7 @@ Table of Contents
    in applications or relays where subscribers are only interested in or
    authorized to access a subset of available namespaces and tracks.
 
-   If the FORWARD parameter (Section 9.3.10) is present in this message
+   If the FORWARD parameter (Section 9.3.11) is present in this message
    and equal to 0, PUBLISH messages resulting from this
    SUBSCRIBE_NAMESPACE will set the FORWARD parameter to 0.  If the
    FORWARD parameter is equal to 1 or omitted from this message, PUBLISH
@@ -4869,13 +4941,13 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  Properties (Section 14.8)
 
-   *  Session Termination Error Codes (Section 14.9.1)
+   *  Session Termination Error Codes (Section 14.10.1)
 
-   *  REQUEST_ERROR Codes (Section 14.9.2)
+   *  REQUEST_ERROR Codes (Section 14.10.2)
 
-   *  PUBLISH_DONE Codes (Section 14.9.3)
+   *  PUBLISH_DONE Codes (Section 14.10.3)
 
-   *  Data Stream Reset Error Codes (Section 14.9.4)
+   *  Data Stream Reset Error Codes (Section 14.10.4)
 
    *  MOQT Auth Token Type
 
@@ -4903,6 +4975,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    *  MOQT ALPN values
 
    *  Message types
+
+   *  Session-Level Track Names
 
 14.1.  URI Scheme Registrations
 
@@ -5046,21 +5120,23 @@ EXT 1 and EXT N can be modified or removed by Relays
          +----------------+---------------------+----------------+
          | 0x03           | AUTHORIZATION_TOKEN | Section 9.3.2  |
          +----------------+---------------------+----------------+
-         | 0x04           | RENDEZVOUS_TIMEOUT  | Section 9.3.4  |
+         | 0x04           | RENDEZVOUS_TIMEOUT  | Section 9.3.5  |
          +----------------+---------------------+----------------+
-         | 0x08           | EXPIRES             | Section 9.3.8  |
+         | 0x08           | EXPIRES             | Section 9.3.9  |
          +----------------+---------------------+----------------+
-         | 0x09           | LARGEST_OBJECT      | Section 9.3.9  |
+         | 0x09           | LARGEST_OBJECT      | Section 9.3.10 |
          +----------------+---------------------+----------------+
-         | 0x10           | FORWARD             | Section 9.3.10 |
+         | 0x0A           | FILL_TIMEOUT        | Section 9.3.4  |
          +----------------+---------------------+----------------+
-         | 0x20           | SUBSCRIBER_PRIORITY | Section 9.3.5  |
+         | 0x10           | FORWARD             | Section 9.3.11 |
          +----------------+---------------------+----------------+
-         | 0x21           | SUBSCRIPTION_FILTER | Section 9.3.7  |
+         | 0x20           | SUBSCRIBER_PRIORITY | Section 9.3.6  |
          +----------------+---------------------+----------------+
-         | 0x22           | GROUP_ORDER         | Section 9.3.6  |
+         | 0x21           | SUBSCRIPTION_FILTER | Section 9.3.8  |
          +----------------+---------------------+----------------+
-         | 0x32           | NEW_GROUP_REQUEST   | Section 9.3.11 |
+         | 0x22           | GROUP_ORDER         | Section 9.3.7  |
+         +----------------+---------------------+----------------+
+         | 0x32           | NEW_GROUP_REQUEST   | Section 9.3.12 |
          +----------------+---------------------+----------------+
 
                                   Table 12
@@ -5127,9 +5203,40 @@ EXT 1 and EXT N can be modified or removed by Relays
       from uncoordinated sources may encounter different semantics for
       the same code points, creating potential collision risks.
 
-14.9.  Error Codes
+14.9.  Session-Level Track Names
 
-14.9.1.  Session Termination Error Codes
+   This document establishes a registry for session-level track names
+   under the .session namespace (see Section 3.2.2).  The registration
+   policy is Specification Required (per [RFC8126], Section 4.6).
+
+   Each registration must include:
+
+          +=================+==================================+
+          | Field           | Description                      |
+          +=================+==================================+
+          | Track Namespace | The track namespace under the    |
+          |                 | .session namespace, can be empty |
+          +-----------------+----------------------------------+
+          | Track Name      | The track name (bytes) within    |
+          |                 | the full namespace               |
+          +-----------------+----------------------------------+
+          | Description     | Brief description of the track's |
+          |                 | purpose                          |
+          +-----------------+----------------------------------+
+          | Change          | Who may update the registration  |
+          | Controller      |                                  |
+          +-----------------+----------------------------------+
+          | Specification   | Reference to the defining        |
+          |                 | specification                    |
+          +-----------------+----------------------------------+
+
+                                 Table 14
+
+   This document does not define any initial entries.
+
+14.10.  Error Codes
+
+14.10.1.  Session Termination Error Codes
 
      +=============================+=================+===============+
      | Name                        |       Code      | Specification |
@@ -5179,9 +5286,9 @@ EXT 1 and EXT N can be modified or removed by Relays
      | Reserved for greasing       | 0x7f * N + 0x9D | Section 13    |
      +-----------------------------+-----------------+---------------+
 
-                                  Table 14
+                                  Table 15
 
-14.9.2.  REQUEST_ERROR Codes
+14.10.2.  REQUEST_ERROR Codes
 
      +============================+=================+===============+
      | Name                       |       Code      | Specification |
@@ -5223,9 +5330,9 @@ EXT 1 and EXT N can be modified or removed by Relays
      | Reserved for greasing      | 0x7f * N + 0x9D | Section 13    |
      +----------------------------+-----------------+---------------+
 
-                                 Table 15
+                                 Table 16
 
-14.9.3.  PUBLISH_DONE Codes
+14.10.3.  PUBLISH_DONE Codes
 
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
@@ -5253,9 +5360,9 @@ EXT 1 and EXT N can be modified or removed by Relays
         | Reserved for greasing | 0x7f * N + 0x9D | Section 13    |
         +-----------------------+-----------------+---------------+
 
-                                  Table 16
+                                  Table 17
 
-14.9.4.  Data Stream Reset Error Codes
+14.10.4.  Data Stream Reset Error Codes
 
        +=======================+=================+================+
        | Name                  |       Code      | Specification  |
@@ -5279,7 +5386,7 @@ EXT 1 and EXT N can be modified or removed by Relays
        | Reserved for greasing | 0x7f * N + 0x9D | Section 13     |
        +-----------------------+-----------------+----------------+
 
-                                 Table 17
+                                 Table 18
 
 Contributors
 
