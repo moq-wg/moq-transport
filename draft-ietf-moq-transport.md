@@ -1015,6 +1015,9 @@ begin with any other message type unless negotiated. If they do, the peer MUST
 close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
 streams.
 
+As such, a client or server can initiate a MoQ session, subscribe, and
+start publishing Objects all in parallel.
+
 Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
 the data SHOULD be buffered until both control streams arrive and setup is
@@ -1025,21 +1028,6 @@ control streams are established.
 A control stream MUST NOT be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
 `PROTOCOL_VIOLATION`.
-
-### Minimizing Setup Latency
-
-MoQ uses two unidirectional streams for SETUP messages to allow either
-endpoint to initiate a MoQ Session.
-
-Bidirectional request streams cannot be processed until the SETUP message
-has been processed, but they can be sent.
-
-If a PUBLISH request is sent prior to receiving the peer's SETUP, Objects
-associated with the PUBLISH can be sent prior to receiving a PUBLISH_OK
-in response, as is always true with PUBLISH.
-
-As such, a client or server can initiate a MoQ session, subscribe, and
-start publishing Objects all in parallel.
 
 Prior to receiving the peer's SETUP message, it's unknown what extensions
 a peer will support. Message Parameters requiring negotiation SHOULD NOT
