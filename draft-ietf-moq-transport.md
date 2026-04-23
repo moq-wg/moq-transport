@@ -1015,7 +1015,7 @@ begin with any other message type unless negotiated. If they do, the peer MUST
 close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
 streams.
 
-As such, a client or server can initiate a MoQT session, subscribe, and
+As such, a client can initiate a MOQT session, subscribe, and
 start publishing Objects all in parallel.
 
 Unidirectional streams containing Objects or bidirectional stream(s) beginning
