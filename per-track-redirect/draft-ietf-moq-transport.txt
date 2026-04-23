@@ -88,7 +88,6 @@ Table of Contents
        1.4.2.  Location Structure
        1.4.3.  Key-Value-Pair Structure
        1.4.4.  Reason Phrase Structure
-       1.4.5.  Redirect Structure
      1.5.  Representing Namespace and Track Names
        1.5.1.  Parsing Serialized Names
    2.  Object Data Model
@@ -167,6 +166,8 @@ Table of Contents
      9.5.  GOAWAY
      9.6.  REQUEST_OK
      9.7.  REQUEST_ERROR
+       9.7.1.  Redirect Structure
+       9.7.2.  REQUEST_ERROR Message Format
      9.8.  SUBSCRIBE
      9.9.  SUBSCRIBE_OK
      9.10. REQUEST_UPDATE
@@ -174,18 +175,17 @@ Table of Contents
      9.11. PUBLISH
      9.12. PUBLISH_OK
      9.13. PUBLISH_DONE
-     9.14. REDIRECT
-     9.15. FETCH
-       9.15.1.  Standalone Fetch
-       9.15.2.  Joining Fetches
-       9.15.3.  Fetch Handling
-     9.16. FETCH_OK
-     9.17. TRACK_STATUS
-     9.18. PUBLISH_NAMESPACE
-     9.19. NAMESPACE
-     9.20. NAMESPACE_DONE
-     9.21. SUBSCRIBE_NAMESPACE
-     9.22. PUBLISH_BLOCKED
+     9.14. FETCH
+       9.14.1.  Standalone Fetch
+       9.14.2.  Joining Fetches
+       9.14.3.  Fetch Handling
+     9.15. FETCH_OK
+     9.16. TRACK_STATUS
+     9.17. PUBLISH_NAMESPACE
+     9.18. NAMESPACE
+     9.19. NAMESPACE_DONE
+     9.20. SUBSCRIBE_NAMESPACE
+     9.21. PUBLISH_BLOCKED
    10. Data Streams and Datagrams
      10.1.  Track Alias
      10.2.  Objects
@@ -571,34 +571,6 @@ Table of Contents
       string and does not carry information, such as language tags, that
       would aid comprehension by any entity other than the one that
       created the text.
-
-1.4.5.  Redirect Structure
-
-   A Redirect provides a way for an endpoint to direct the peer to retry
-   a request at a different URI and/or for a different Full Track Name.
-
-   Redirect {
-     Connect URI Length (vi64),
-     Connect URI (..),
-     Track Namespace (..),
-     Track Name Length (vi64),
-     Track Name (..),
-   }
-
-   *  Connect URI: The URI to connect to for this track.  If the length
-      is zero, the requester SHOULD use the current session's URI.  If a
-      server receives a Redirect with a non-zero Connect URI Length it
-      MUST close the session with a PROTOCOL_VIOLATION.
-
-   *  Track Namespace: The Track Namespace to use for the redirected
-      request.
-
-   *  Track Name: The Track Name to use for the redirected request.
-      Track Name is not meaningful for namespace-scoped requests
-      (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE) and MUST be empty; an
-      endpoint that receives a non-empty Track Name in a Redirect for a
-      namespace-scoped request MUST close the session with a
-      PROTOCOL_VIOLATION.
 
 1.5.  Representing Namespace and Track Names
 
@@ -1601,7 +1573,7 @@ Table of Contents
    A publisher MUST save the Largest Location communicated in
    SUBSCRIBE_OK, PUBLISH or REQUEST_UPDATE_OK that changes the Forward
    State from 0 to 1.  This value is called the Joining Location and can
-   be used in a Joining FETCH (see Section 9.15.2) while the
+   be used in a Joining FETCH (see Section 9.14.2) while the
    subscription is in the Established state.
 
    Either endpoint can initiate a subscription to a track without
@@ -1738,7 +1710,7 @@ Table of Contents
 
    To join a Track at a past Group, the subscriber sends a SUBSCRIBE,
    PUBLISH_OK or REQUEST_UPDATE with Forward State 1 followed by a
-   Joining FETCH (see Section 9.15.2) for the intended start Group,
+   Joining FETCH (see Section 9.14.2) for the intended start Group,
    which can be relative.  When the Joining FETCH follows a
    REQUEST_UPDATE that transitions Forward State from 0 to 1, the FETCH
    MUST set its Required Request ID (Section 9.2) to the
@@ -2108,7 +2080,7 @@ Table of Contents
 8.4.  Subscriber Interactions
 
    Subscribers request Tracks by sending a SUBSCRIBE (see Section 9.8)
-   or FETCH (see Section 9.15) control message for each Track of
+   or FETCH (see Section 9.14) control message for each Track of
    interest.  Relays MUST ensure subscribers are authorized to access
    the content associated with the Track.  The authorization information
    can be part of request itself or part of the encompassing session.
@@ -2336,23 +2308,21 @@ Table of Contents
      +--------+------------------------------------+----------------+
      |    0xB | PUBLISH_DONE (Section 9.13)        | Request        |
      +--------+------------------------------------+----------------+
-     |   0x1F | REDIRECT (Section 9.14)            | Request        |
+     |   0x16 | FETCH (Section 9.14)               | Request, First |
      +--------+------------------------------------+----------------+
-     |   0x16 | FETCH (Section 9.15)               | Request, First |
+     |   0x18 | FETCH_OK (Section 9.15)            | Request        |
      +--------+------------------------------------+----------------+
-     |   0x18 | FETCH_OK (Section 9.16)            | Request        |
+     |    0xD | TRACK_STATUS (Section 9.16)        | Request, First |
      +--------+------------------------------------+----------------+
-     |    0xD | TRACK_STATUS (Section 9.17)        | Request, First |
+     |    0x6 | PUBLISH_NAMESPACE (Section 9.17)   | Request, First |
      +--------+------------------------------------+----------------+
-     |    0x6 | PUBLISH_NAMESPACE (Section 9.18)   | Request, First |
+     |   0x11 | SUBSCRIBE_NAMESPACE (Section 9.20) | Request, First |
      +--------+------------------------------------+----------------+
-     |   0x11 | SUBSCRIBE_NAMESPACE (Section 9.21) | Request, First |
+     |    0x8 | NAMESPACE (Section 9.18)           | Request        |
      +--------+------------------------------------+----------------+
-     |    0x8 | NAMESPACE (Section 9.19)           | Request        |
+     |    0xE | NAMESPACE_DONE (Section 9.19)      | Request        |
      +--------+------------------------------------+----------------+
-     |    0xE | NAMESPACE_DONE (Section 9.20)      | Request        |
-     +--------+------------------------------------+----------------+
-     |    0xF | PUBLISH_BLOCKED (Section 9.22)     | Request        |
+     |    0xF | PUBLISH_BLOCKED (Section 9.21)     | Request        |
      +--------+------------------------------------+----------------+
      |    0x2 | REQUEST_UPDATE (Section 9.10)      | Request        |
      +--------+------------------------------------+----------------+
@@ -2736,7 +2706,7 @@ Table of Contents
 
    Its value indicates how to prioritize Objects from different groups
    within the same subscription (see Section 7), or how to order Groups
-   in a Fetch response (see Section 9.15.3).  The allowed values are
+   in a Fetch response (see Section 9.14.3).  The allowed values are
    Ascending (0x1) or Descending (0x2).  If an endpoint receives a value
    outside this range, it MUST close the session with
    PROTOCOL_VIOLATION.
@@ -3068,9 +3038,39 @@ Table of Contents
 
 9.7.  REQUEST_ERROR
 
-   The REQUEST_ERROR message is sent to a response to any request
+   The REQUEST_ERROR message is sent in response to any request
    (SUBSCRIBE, FETCH, PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
    TRACK_STATUS, REQUEST_UPDATE).
+
+9.7.1.  Redirect Structure
+
+   A Redirect provides a way for an endpoint to direct the peer to retry
+   a request at a different URI and/or for a different Full Track Name.
+
+   Redirect {
+     Connect URI Length (vi64),
+     Connect URI (..),
+     Track Namespace (..),
+     Track Name Length (vi64),
+     Track Name (..),
+   }
+
+   *  Connect URI: The URI to connect to for this track.  If the length
+      is zero, the requester SHOULD use the current session's URI.  If a
+      server receives a Redirect with a non-zero Connect URI Length it
+      MUST close the session with a PROTOCOL_VIOLATION.
+
+   *  Track Namespace: The Track Namespace to use for the redirected
+      request.
+
+   *  Track Name: The Track Name to use for the redirected request.
+      Track Name is not meaningful for namespace-scoped requests
+      (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE) and MUST be empty; an
+      endpoint that receives a non-empty Track Name in a Redirect for a
+      namespace-scoped request MUST close the session with a
+      PROTOCOL_VIOLATION.
+
+9.7.2.  REQUEST_ERROR Message Format
 
    REQUEST_ERROR Message {
      Type (vi64) = 0x5,
@@ -3093,7 +3093,7 @@ Table of Contents
       See Section 1.4.4.
 
    *  Redirect: Present only when Error Code is REDIRECT.  See
-      Section 1.4.5.
+      Section 9.7.1.
 
    The application SHOULD use a relevant error code in REQUEST_ERROR, as
    defined below and assigned in Section 14.10.2.  Most codepoints have
@@ -3185,7 +3185,7 @@ Table of Contents
    for a track.
 
    Subscribe only requests newly published or received Objects.  Objects
-   from the past are retrieved using FETCH (Section 9.15).
+   from the past are retrieved using FETCH (Section 9.14).
 
    The format of SUBSCRIBE is as follows:
 
@@ -3490,36 +3490,7 @@ Table of Contents
    EXCESSIVE_LOAD (0x9):  The publisher is overloaded and is terminating
       the subscription.
 
-9.14.  REDIRECT
-
-   An endpoint sends a REDIRECT message on a bidirectional request
-   stream to indicate that the peer can re-establish the request on a
-   different session.  REDIRECT MAY be sent on streams for SUBSCRIBE,
-   PUBLISH, SUBSCRIBE_NAMESPACE, and PUBLISH_NAMESPACE.  An endpoint
-   MUST close the session with a PROTOCOL_VIOLATION if it receives a
-   REDIRECT on any other stream type.  If an endpoint wants to drain an
-   entire Session, it SHOULD use GOAWAY rather than sending REDIRECT on
-   each Request.
-
-   REDIRECT does not terminate the current request.  The sender MAY
-   continue to serve the request after sending REDIRECT.  For
-   subscriptions, a publisher MAY send both REDIRECT and PUBLISH_DONE;
-   the subscriber SHOULD use the Redirect information to re-establish
-   the subscription before the current one is fully torn down, enabling
-   a seamless handoff.
-
-   REDIRECT Message {
-     Type (vi64) = 0x1F,
-     Length (16),
-     Redirect (Redirect),
-   }
-
-                      Figure 16: MOQT REDIRECT Message
-
-   *  Redirect: The location to re-establish the request.  See
-      Section 1.4.5.
-
-9.15.  FETCH
+9.14.  FETCH
 
    A subscriber sends FETCH as the first message on a new bidi stream to
    a publisher to request a range of already published objects within a
@@ -3542,7 +3513,7 @@ Table of Contents
    An endpoint that receives a Fetch Type other than 0x1, 0x2 or 0x3
    MUST close the session with a PROTOCOL_VIOLATION.
 
-9.15.1.  Standalone Fetch
+9.14.1.  Standalone Fetch
 
    A Fetch of Objects performed independently of any Subscribe.
 
@@ -3567,7 +3538,7 @@ Table of Contents
    *  End Location: The end Location, plus 1.  A Location.Object value
       of 0 means the entire group is requested.
 
-9.15.2.  Joining Fetches
+9.14.2.  Joining Fetches
 
    A Joining Fetch is associated with a Subscribe request by specifying
    the Request ID of a subscription in the Established or Pending
@@ -3615,7 +3586,7 @@ Table of Contents
    *  Joining Start : A relative or absolute value used to determine the
       Start Location, described below.
 
-9.15.2.1.  Joining Fetch Range Calculation
+9.14.2.1.  Joining Fetch Range Calculation
 
    The Joining Location value from the corresponding subscription is
    used to calculate the end of a Joining Fetch, so the Objects
@@ -3636,7 +3607,7 @@ Table of Contents
    For an Absolute Joining Fetch, the publisher sets the Start Location
    to {Joining Start, 0}.
 
-9.15.3.  Fetch Handling
+9.14.3.  Fetch Handling
 
    The format of FETCH is as follows:
 
@@ -3652,7 +3623,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                       Figure 17: MOQT FETCH Message
+                       Figure 16: MOQT FETCH Message
 
    *  Request ID: See Section 9.1.
 
@@ -3724,7 +3695,7 @@ Table of Contents
    UNKNOWN_OBJECT_STATUS (Section 3.3.2), or indicate the range of
    unknown Objects and continue serving other known Objects.
 
-9.16.  FETCH_OK
+9.15.  FETCH_OK
 
    A publisher sends a FETCH_OK as the first message on the bidi stream
    in response to a successful fetch.  A publisher MAY send Objects in
@@ -3741,7 +3712,7 @@ Table of Contents
      Track Properties (..),
    }
 
-                      Figure 18: MOQT FETCH_OK Message
+                      Figure 17: MOQT FETCH_OK Message
 
    *  End Of Track: 1 if all Objects have been published on this Track,
       and the End Location is the final Object in the Track, 0 if not.
@@ -3756,7 +3727,7 @@ Table of Contents
          known (possibly final) Object, End Location is {Largest.Group,
          Largest.Object + 1} Where Fetch.End Location is either
          Fetch.Standalone.End Location or the computed End Location
-         described in Section 9.15.2.1.
+         described in Section 9.14.2.1.
 
       If End Location is smaller than the Start Location in the
       corresponding FETCH the receiver MUST close the session with a
@@ -3766,7 +3737,7 @@ Table of Contents
 
    *  Track Properties : A sequence of Properties.  See Section 2.5.
 
-9.17.  TRACK_STATUS
+9.16.  TRACK_STATUS
 
    A potential subscriber sends TRACK_STATUS as the first and only
    message on a new bidi stream to obtain information about the current
@@ -3792,7 +3763,7 @@ Table of Contents
    The publisher does not send PUBLISH_DONE for this request, and the
    subscriber cannot send REQUEST_UPDATE.
 
-9.18.  PUBLISH_NAMESPACE
+9.17.  PUBLISH_NAMESPACE
 
    The publisher sends the PUBLISH_NAMESPACE message as the first
    message on a new bidi stream to advertise that it has tracks
@@ -3809,7 +3780,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                 Figure 19: MOQT PUBLISH_NAMESPACE Message
+                 Figure 18: MOQT PUBLISH_NAMESPACE Message
 
    *  Request ID: See Section 9.1.
 
@@ -3820,7 +3791,7 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 9.3.
 
-9.19.  NAMESPACE
+9.18.  NAMESPACE
 
    The NAMESPACE message is similar to the PUBLISH_NAMESPACE message,
    except it is sent on the response stream of a SUBSCRIBE_NAMESPACE
@@ -3834,14 +3805,14 @@ Table of Contents
      Track Namespace Suffix (..),
    }
 
-                     Figure 20: MOQT NAMESPACE Message
+                     Figure 19: MOQT NAMESPACE Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1 after removing namespace
       tuples included in 'Track Namespace Prefix' {message-subscribe-
       ns}.
 
-9.20.  NAMESPACE_DONE
+9.19.  NAMESPACE_DONE
 
    The publisher sends the NAMESPACE_DONE control message to indicate
    its intent to stop serving new subscriptions for tracks within the
@@ -3856,13 +3827,13 @@ Table of Contents
      Track Namespace Suffix (..)
    }
 
-                   Figure 21: MOQT NAMESPACE_DONE Message
+                   Figure 20: MOQT NAMESPACE_DONE Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1.  The namespace begins with
       the 'Track Namespace Prefix' specified in {message-subscribe-ns}.
 
-9.21.  SUBSCRIBE_NAMESPACE
+9.20.  SUBSCRIBE_NAMESPACE
 
    The subscriber sends a SUBSCRIBE_NAMESPACE control message on a new
    bidirectional stream to a publisher to request the current set of
@@ -3880,7 +3851,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                Figure 22: MOQT SUBSCRIBE_NAMESPACE Message
+                Figure 21: MOQT SUBSCRIBE_NAMESPACE Message
 
    *  Request ID: See Section 9.1.
 
@@ -3955,7 +3926,7 @@ Table of Contents
    bidi streams are not affected by closure of the SUBSCRIBE_NAMESPACE
    stream.
 
-9.22.  PUBLISH_BLOCKED
+9.21.  PUBLISH_BLOCKED
 
    The publisher sends the PUBLISH_BLOCKED control message to indicate
    it cannot send a PUBLISH message to initiate a new Subscription for a
@@ -3972,7 +3943,7 @@ Table of Contents
      Track Name (..),
    }
 
-                  Figure 23: MOQT PUBLISH_BLOCKED Message
+                  Figure 22: MOQT PUBLISH_BLOCKED Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1.  The namespace begins with
@@ -4150,7 +4121,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                      Figure 24: MOQT OBJECT_DATAGRAM
+                      Figure 23: MOQT OBJECT_DATAGRAM
 
    The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or
    the set of values from 0x00 to 0x0F, 0x20 to 0x2F).  However, not all
@@ -4251,7 +4222,7 @@ Table of Contents
      [Publisher Priority (8),]
    }
 
-                      Figure 25: MOQT SUBGROUP_HEADER
+                      Figure 24: MOQT SUBGROUP_HEADER
 
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
@@ -4335,7 +4306,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                   Figure 26: MOQT Subgroup Object Fields
+                   Figure 25: MOQT Subgroup Object Fields
 
 10.4.3.  Closing Subgroup Streams
 
@@ -4463,7 +4434,7 @@ Table of Contents
      Request ID (vi64),
    }
 
-                        Figure 27: MOQT FETCH_HEADER
+                        Figure 26: MOQT FETCH_HEADER
 
    Each Object sent on a FETCH stream after the FETCH_HEADER has the
    following format:
@@ -4479,7 +4450,7 @@ Table of Contents
      [Object Payload (..),]
    }
 
-                    Figure 28: MOQT Fetch Object Fields
+                    Figure 27: MOQT Fetch Object Fields
 
    The Serialization Flags field defines the serialization of the
    Object.  It is a variable-length integer.  When less than 128, the
@@ -4612,7 +4583,7 @@ Table of Contents
      Padding Data (..) = 0x00..
    }
 
-                       Figure 29: MOQT Padding Stream
+                       Figure 28: MOQT Padding Stream
 
    The receiver MUST discard all data received on a padding stream to
    prevent exhausting flow control.
@@ -4631,7 +4602,7 @@ Table of Contents
      Padding Data (..) = 0x00..
    }
 
-                      Figure 30: MOQT Padding Datagram
+                      Figure 29: MOQT Padding Datagram
 
    The receiver MUST discard all data received in a padding datagram.
 
