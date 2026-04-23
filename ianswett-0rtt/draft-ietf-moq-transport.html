@@ -2996,7 +2996,7 @@ SUBSCRIBE_NAMESPACE. Bidirectional streams <span class="bcp14">MUST NOT</span>
 begin with any other message type unless negotiated. If they do, the peer <span class="bcp14">MUST</span>
 close the Session with a <code>PROTOCOL_VIOLATION</code>. Objects are sent on unidirectional
 streams.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
-<p id="section-3.3-3">As such, a client or server can initiate a MoQT session, subscribe, and
+<p id="section-3.3-3">As such, a client can initiate a MOQT session, subscribe, and
 start publishing Objects all in parallel.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 <p id="section-3.3-4">Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
