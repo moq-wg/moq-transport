@@ -1305,13 +1305,10 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-session-initialization" class="internal xref">Session initialization</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.1">
-                    <p id="section-toc.1-1.3.2.3.2.1.1"><a href="#section-3.3.1" class="auto internal xref">3.3.1</a>.  <a href="#name-minimizing-setup-latency" class="internal xref">Minimizing Setup Latency</a></p>
+                    <p id="section-toc.1-1.3.2.3.2.1.1"><a href="#section-3.3.1" class="auto internal xref">3.3.1</a>.  <a href="#name-0-rtt" class="internal xref">0-RTT</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.2">
-                    <p id="section-toc.1-1.3.2.3.2.2.1"><a href="#section-3.3.2" class="auto internal xref">3.3.2</a>.  <a href="#name-0-rtt" class="internal xref">0-RTT</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.3">
-                    <p id="section-toc.1-1.3.2.3.2.3.1"><a href="#section-3.3.3" class="auto internal xref">3.3.3</a>.  <a href="#name-request-cancellation-and-re" class="internal xref">Request Cancellation and Rejection</a></p>
+                    <p id="section-toc.1-1.3.2.3.2.2.1"><a href="#section-3.3.2" class="auto internal xref">3.3.2</a>.  <a href="#name-request-cancellation-and-re" class="internal xref">Request Cancellation and Rejection</a></p>
 </li>
                 </ul>
 </li>
@@ -2636,7 +2633,7 @@ observed.<a href="#section-2.4.2-2.10.1" class="pilcrow">¶</a></p>
 <p id="section-2.4.2-3">The above list of conditions is not considered exhaustive.<a href="#section-2.4.2-3" class="pilcrow">¶</a></p>
 <p id="section-2.4.2-4">When a subscriber detects a Malformed Track, it <span class="bcp14">MUST</span> cancel any corresponding
 subscription or fetches for that Track from that publisher
-(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.3</a>), and <span class="bcp14">SHOULD</span> deliver an error to the application.
+(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>), and <span class="bcp14">SHOULD</span> deliver an error to the application.
 If a relay detects a Malformed Track, it <span class="bcp14">MUST</span> immediately terminate downstream
 subscriptions with PUBLISH_DONE and reset any fetch streams with
 Status Code <code>MALFORMED_TRACK</code>. Object(s) triggering Malformed Track status
@@ -2755,13 +2752,13 @@ error code UNSUPPORTED_EXTENSION.<a href="#section-2.5.1-4.1.1" class="pilcrow">
 </li>
             <li class="normal" id="section-2.5.1-4.2">
               <p id="section-2.5.1-4.2.1">For SUBSCRIBE_OK messages: the subscriber <span class="bcp14">MUST</span> cancel the subscription
-(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.3</a>).  If the subscriber is a relay with pending
+(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>).  If the subscriber is a relay with pending
 downstream subscribers, it <span class="bcp14">MUST</span> send REQUEST_ERROR with error code
 UNSUPPORTED_EXTENSION to the downstream subscribers.<a href="#section-2.5.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-2.5.1-4.3">
               <p id="section-2.5.1-4.3.1">For FETCH_OK messages: the subscriber <span class="bcp14">MUST</span> cancel the fetch
-(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.3</a>).  If the subscriber is a relay and has not yet
+(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>).  If the subscriber is a relay and has not yet
 sent a FETCH_OK or REQUEST_ERROR downstream, it <span class="bcp14">MUST</span> send REQUEST_ERROR with
 error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
 relay has already forwarded data on a fetch stream, it <span class="bcp14">MUST</span> reset the stream.<a href="#section-2.5.1-4.3.1" class="pilcrow">¶</a></p>
@@ -2996,105 +2993,91 @@ SUBSCRIBE_NAMESPACE. Bidirectional streams <span class="bcp14">MUST NOT</span>
 begin with any other message type unless negotiated. If they do, the peer <span class="bcp14">MUST</span>
 close the Session with a <code>PROTOCOL_VIOLATION</code>. Objects are sent on unidirectional
 streams.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
-<p id="section-3.3-3">Unidirectional streams containing Objects or bidirectional stream(s) beginning
+<p id="section-3.3-3">As such, a client or server can initiate a MoQ session, subscribe, and
+start publishing Objects all in parallel.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+<p id="section-3.3-4">Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
 the data <span class="bcp14">SHOULD</span> be buffered until both control streams arrive and setup is
 complete. If an implementation does not want to buffer or if the message type is
 not supported, it <span class="bcp14">MAY</span> reset such bidirectional streams before the session and
-control streams are established.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
-<p id="section-3.3-4">A control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer during the
+control streams are established.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
+<p id="section-3.3-5">A control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
-<code>PROTOCOL_VIOLATION</code>.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
-<div id="minimizing-setup-latency">
-<section id="section-3.3.1">
-          <h4 id="name-minimizing-setup-latency">
-<a href="#section-3.3.1" class="section-number selfRef">3.3.1. </a><a href="#name-minimizing-setup-latency" class="section-name selfRef">Minimizing Setup Latency</a>
-          </h4>
-<p id="section-3.3.1-1">MoQ uses two unidirectional streams for SETUP messages to allow either
-endpoint to initiate a MoQ Session.<a href="#section-3.3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-2">Bidirectional request streams cannot be processed until the SETUP message
-has been processed, but they can be sent.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-3">If a PUBLISH request is sent prior to receiving the peer's SETUP, Objects
-associated with the PUBLISH can be sent prior to receiving a PUBLISH_OK
-in response, as is always true with PUBLISH.<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-4">As such, a client or server can initiate a MoQ session, subscribe, and
-start publishing Objects all in parallel.<a href="#section-3.3.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-5">Prior to receiving the peer's SETUP message, it's unknown what extensions
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-3.3-5" class="pilcrow">¶</a></p>
+<p id="section-3.3-6">Prior to receiving the peer's SETUP message, it's unknown what extensions
 a peer will support. Message Parameters requiring negotiation <span class="bcp14">SHOULD NOT</span>
 be used prior to receiving the peer's SETUP message unless the application
 requires the extension or the endpoint knows the peer supports the
 extension. If an unsupported Message Parameter is used, the peer will be
-unable to process it and the session will be terminated. See {message-params}.<a href="#section-3.3.1-5" class="pilcrow">¶</a></p>
-</section>
-</div>
+unable to process it and the session will be terminated. See {message-params}.<a href="#section-3.3-6" class="pilcrow">¶</a></p>
 <div id="rtt">
-<section id="section-3.3.2">
+<section id="section-3.3.1">
           <h4 id="name-0-rtt">
-<a href="#section-3.3.2" class="section-number selfRef">3.3.2. </a><a href="#name-0-rtt" class="section-name selfRef">0-RTT</a>
+<a href="#section-3.3.1" class="section-number selfRef">3.3.1. </a><a href="#name-0-rtt" class="section-name selfRef">0-RTT</a>
           </h4>
-<p id="section-3.3.2-1">QUIC supports 0-RTT (<span><a href="https://rfc-editor.org/rfc/rfc8446#section-2.3" class="relref">Section 2.3</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>), but Webtransport over QUIC
+<p id="section-3.3.1-1">QUIC supports 0-RTT (<span><a href="https://rfc-editor.org/rfc/rfc8446#section-2.3" class="relref">Section 2.3</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>), but Webtransport over QUIC
 is not expected to use 0-RTT, because initializing a WebTransport session
 uses CONNECT, which is not a safe method. <span>[<a href="#RFC8470" class="cite xref">RFC8470</a>]</span> describes the use of
 0-RTT with HTTP in more detail. If 0-RTT is used with an existing or future
-version of WebTransport, the following would apply to it as well as QUIC.<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
-<p id="section-3.3.2-2">0-RTT is not forward secure, so MoQ users need to consider that when
-deciding if 0-RTT is appropriate.<a href="#section-3.3.2-2" class="pilcrow">¶</a></p>
-<p id="section-3.3.2-3">MoQ Messages and Objects as defined in this draft are safe to replay in most
-circumstances.<a href="#section-3.3.2-3" class="pilcrow">¶</a></p>
+version of WebTransport, the following would apply to it as well as QUIC.<a href="#section-3.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-2">0-RTT is not forward secure, so MoQ users need to consider that when
+deciding if 0-RTT is appropriate.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-3">MoQ Messages and Objects as defined in this draft are safe to replay in most
+circumstances.<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.3.2-4.1">
-              <p id="section-3.3.2-4.1.1">TRACK_STATUS gets the Largest Object and Track Properties, but does not
-change the state of a Track or any Object in the Track.<a href="#section-3.3.2-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-3.3.1-4.1">
+              <p id="section-3.3.1-4.1.1">TRACK_STATUS gets the Largest Object and Track Properties, but does not
+change the state of a Track or any Object in the Track.<a href="#section-3.3.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.3.2-4.2">
-              <p id="section-3.3.2-4.2.1">SUBSCRIBE requests Objects be delivered, but does not change the Objects
-being requested.<a href="#section-3.3.2-4.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-3.3.1-4.2">
+              <p id="section-3.3.1-4.2.1">SUBSCRIBE requests Objects be delivered, but does not change the Objects
+being requested.<a href="#section-3.3.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.3.2-4.3">
-              <p id="section-3.3.2-4.3.1">PUBLISH initiates a Subscription and Objects can be immediately sent to
+            <li class="normal" id="section-3.3.1-4.3">
+              <p id="section-3.3.1-4.3.1">PUBLISH initiates a Subscription and Objects can be immediately sent to
 the Subscriber. Sending the same Objects multiple times does not change
-the Track contents, because MoQ ignores duplicate Objects.<a href="#section-3.3.2-4.3.1" class="pilcrow">¶</a></p>
+the Track contents, because MoQ ignores duplicate Objects.<a href="#section-3.3.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.3.2-4.4">
-              <p id="section-3.3.2-4.4.1">SUBSCRIBE_NAMESPACE requests a list of namespaces and the establishment
+            <li class="normal" id="section-3.3.1-4.4">
+              <p id="section-3.3.1-4.4.1">SUBSCRIBE_NAMESPACE requests a list of namespaces and the establishment
 of new subscriptions, but does not change the available Namespaces,
-Tracks, or Objects contained within a Track.<a href="#section-3.3.2-4.4.1" class="pilcrow">¶</a></p>
+Tracks, or Objects contained within a Track.<a href="#section-3.3.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.3.2-4.5">
-              <p id="section-3.3.2-4.5.1">PUBLISH_NAMESPACE requests that Subscriptions under the namespace be sent
+            <li class="normal" id="section-3.3.1-4.5">
+              <p id="section-3.3.1-4.5.1">PUBLISH_NAMESPACE requests that Subscriptions under the namespace be sent
 to that Publisher. If a Subscription was sent to the replaying endpoint, it
-would fail because the endpoint cannot complete the handshake.<a href="#section-3.3.2-4.5.1" class="pilcrow">¶</a></p>
+would fail because the endpoint cannot complete the handshake.<a href="#section-3.3.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-3.3.2-5">Some potential side effects of replay are:<a href="#section-3.3.2-5" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-5">Some potential side effects of replay are:<a href="#section-3.3.1-5" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.3.2-6.1">
-              <p id="section-3.3.2-6.1.1">Publishing Objects that were previously published could cause those
+<li class="normal" id="section-3.3.1-6.1">
+              <p id="section-3.3.1-6.1.1">Publishing Objects that were previously published could cause those
 Objects to be distributed to active Subscriptions if the relays do
-not identify them as already having been published.<a href="#section-3.3.2-6.1.1" class="pilcrow">¶</a></p>
+not identify them as already having been published.<a href="#section-3.3.1-6.1.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-3.3.2-7">Replays could increase load on the MoQ network. For relay to client
+<p id="section-3.3.1-7">Replays could increase load on the MoQ network. For relay to client
 traffic, this is no worse than 0-RTT in HTTP/3, since it'd be limited by
 the amplification factor until address validation. However, it could cause
 the relay to initiate new upstream Subscriptions. For a SUBSCRIBE_NAMESPACE
 that requested Subscriptions in the Namespace, sending that upstream could
 cause the Relay to receive a number of new Subscriptions on the replaying
-client's behalf.<a href="#section-3.3.2-7" class="pilcrow">¶</a></p>
+client's behalf.<a href="#section-3.3.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="request-cancellation">
-<section id="section-3.3.3">
+<section id="section-3.3.2">
           <h4 id="name-request-cancellation-and-re">
-<a href="#section-3.3.3" class="section-number selfRef">3.3.3. </a><a href="#name-request-cancellation-and-re" class="section-name selfRef">Request Cancellation and Rejection</a>
+<a href="#section-3.3.2" class="section-number selfRef">3.3.2. </a><a href="#name-request-cancellation-and-re" class="section-name selfRef">Request Cancellation and Rejection</a>
           </h4>
-<p id="section-3.3.3-1">Once a request stream has been opened, the request <span class="bcp14">MAY</span> be cancelled by either
+<p id="section-3.3.2-1">Once a request stream has been opened, the request <span class="bcp14">MAY</span> be cancelled by either
 endpoint. Senders cancel requests if the response is no longer of interest;
-Receivers cancel requests if they are unable to or choose not to respond.<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.3.3-2">Implementations <span class="bcp14">SHOULD</span> cancel requests by abruptly terminating any directions of
-a stream that are still open by resetting or sending STOP_SENDING.<a href="#section-3.3.3-2" class="pilcrow">¶</a></p>
-<p id="section-3.3.3-3">When an endpoint rejects a request without performing any application processing,
-it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR and FIN the stream.<a href="#section-3.3.3-3" class="pilcrow">¶</a></p>
+Receivers cancel requests if they are unable to or choose not to respond.<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.2-2">Implementations <span class="bcp14">SHOULD</span> cancel requests by abruptly terminating any directions of
+a stream that are still open by resetting or sending STOP_SENDING.<a href="#section-3.3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.3.2-3">When an endpoint rejects a request without performing any application processing,
+it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR and FIN the stream.<a href="#section-3.3.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3495,7 +3478,7 @@ the Subscriber dropping Objects if its buffering limits are exceeded (see
 <a href="#section-5.1.1" class="section-number selfRef">5.1.1. </a><a href="#name-subscription-state-manageme" class="section-name selfRef">Subscription State Management</a>
           </h4>
 <p id="section-5.1.1-1">A subscriber keeps subscription state until it cancels the request
-(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.3</a>), or after receipt of a PUBLISH_DONE or
+(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>), or after receipt of a PUBLISH_DONE or
 REQUEST_ERROR. Note that PUBLISH_DONE does not usually indicate that state
 can immediately be destroyed, see <a href="#message-publish-done" class="auto internal xref">Section 9.13</a>.<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1.1-2">The Publisher can destroy subscription state as soon as it has received
@@ -3619,7 +3602,7 @@ groups. A publisher that does will begin the next group as soon as practical.<a 
 <p id="section-5.2-1">The publisher <span class="bcp14">MUST</span> send exactly one FETCH_OK or REQUEST_ERROR in response to a
 FETCH.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <p id="section-5.2-2">A subscriber keeps FETCH state until it cancels the request
-(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.3</a>), receives REQUEST_ERROR, or the FETCH data stream
+(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>), receives REQUEST_ERROR, or the FETCH data stream
 receives a FIN or is reset. If the data stream is already open,
 the subscriber wishing to cancel the FETCH <span class="bcp14">MAY</span> send STOP_SENDING for the
 data stream as well as the the bidi request stream. It <span class="bcp14">MUST</span> send STOP_SENDING
@@ -3706,10 +3689,10 @@ subscriber <span class="bcp14">MUST</span> send exactly one REQUEST_OK or REQUES
 message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
 <span class="bcp14">SHOULD</span> close the session with a protocol error if it receives more than one.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
 <p id="section-6.2-4">A PUBLISH_NAMESPACE is withdrawn by cancelling the request
-(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.3</a>), although it is not a protocol error for
+(see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>), although it is not a protocol error for
 the subscriber to send a SUBSCRIBE or FETCH message for a track in a
 namespace after the namespace is withdrawn.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2-5">A subscriber can cancel the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.3</a>) to revoke
+<p id="section-6.2-5">A subscriber can cancel the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>) to revoke
 acceptance of a PUBLISH_NAMESPACE. If the reason for cancellation is expiration
 of authorization credentials, the publisher can send PUBLISH_NAMESPACE again
 on a new bidi stream with refreshed authorization, or close the stream and
@@ -3934,7 +3917,7 @@ explain how Relays maintain subscriptions to all available publishers for a
 given Track.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <p id="section-8.3-2">There is no specified limit to the number of publishers of a Track Namespace or
 Track.  An implementation can use mechanisms such as REQUEST_ERROR or
-unsubscribing (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.3</a>) if it cannot accept an additional
+unsubscribing (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>) if it cannot accept an additional
 publisher due to implementation constraints. Implementations can consider the
 establishment or idle time of the session or subscription to determine which
 publisher to reject or disconnect.<a href="#section-8.3-2" class="pilcrow">¶</a></p>
@@ -3994,7 +3977,7 @@ networks, such as WiFi to Cellular, and QUIC Connection Migration is not possibl
 of connecting to a new relay and sending the SUBSCRIBE requests for
 all <code>Established</code> subscriptions to the new relay. The new relay will send a
 response to the subscribes and if they are successful, the subscriptions
-to the old relay can be cancelled (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.3</a>).<a href="#section-8.4.1-2" class="pilcrow">¶</a></p>
+to the old relay can be cancelled (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>).<a href="#section-8.4.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4026,7 +4009,7 @@ an explicit PUBLISH_NAMESPACE.
 The authorization and identification of the publisher depends on the way the
 relay is managed and is application specific.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
 <p id="section-8.5-4">When a publisher wants to stop new subscriptions for a published namespace, it
-cancels the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.3</a>) to withdraw the PUBLISH_NAMESPACE.
+cancels the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>) to withdraw the PUBLISH_NAMESPACE.
 A subscriber indicates it will no longer subscribe to Tracks in a namespace it
 previously responded REQUEST_OK to by cancelling the PUBLISH_NAMESPACE request.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
 <p id="section-8.5-5">A Relay connects publishers and subscribers by managing sessions based on the
@@ -4690,7 +4673,7 @@ unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.<a href="#se
 SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
-or by cancelling the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.3</a>).  This value is advisory and the sender
+or by cancelling the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>).  This value is advisory and the sender
 can terminate the subscription prior to or after the expiry time.<a href="#section-9.3.9-1" class="pilcrow">¶</a></p>
 <p id="section-9.3.9-2">The receiver of the parameter can attempt to extend the subscription by sending
 a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
