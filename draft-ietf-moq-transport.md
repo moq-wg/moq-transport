@@ -1088,7 +1088,9 @@ the type of the stream.
 |-------------|-------------------------------------------------|
 | ID          | Type                                            |
 |------------:|:------------------------------------------------|
-| 0x05        | FETCH_HEADER  ({{fetch-header}})                |
+| 0x50        | FETCH_HEADER  ({{fetch-header}})                |
+|-------------|-------------------------------------------------|
+| 0x00-0x0F / 0x20-0x2D / 0x24..0x25 / 0x28..0x29 / 0x2C..0x2D, | OBJECT_STREAM  ({{object-datagram}})    |
 |-------------|-------------------------------------------------|
 | 0x10-0x15 / 0x18-0x1D / 0x30-0x35 / 0x38-0x3D | SUBGROUP_HEADER  ({{subgroup-header}}) |
 |-------------|-------------------------------------------------|
@@ -1100,8 +1102,8 @@ the type of the stream.
 An endpoint that receives an unknown stream type MUST close the session.
 
 Control streams (SETUP) are described in {{session-init}}.
-Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
-Padding streams are described in {{padding}}.
+Data streams (FETCH_HEADER, SUBGROUP_HEADER, OBJECT_STREAM) are described
+in {{data-streams}}. Padding streams are described in {{padding}}.
 
 ## Termination  {#session-termination}
 
@@ -3565,7 +3567,7 @@ A publisher sends Objects matching a subscription on Data Streams or Datagrams
 and sends Objects matching a FETCH request on one Data Stream.
 
 Unidirectional stream types are defined in {{stream-types}}. Data streams
-use SUBGROUP_HEADER or FETCH_HEADER types.
+use SUBGROUP_HEADER, FETCH_HEADER, or OBJECT_STREAM types.
 
 All MOQT datagrams start with a variable-length integer indicating the type of
 the datagram.  See {{object-datagram}}.
@@ -3690,7 +3692,8 @@ choose to buffer it for a brief period to handle reordering with the control
 message that establishes the Track Alias.
 
 An Object received in an `OBJECT_DATAGRAM` message has an `Object Forwarding
-Preference` = `Datagram`.
+Preference` = `Datagram`. An Object received in an `OBJECT_STREAM` message has
+an `Object Forwarding Preference` = `Subgroup`.
 
 To send an Object with `Object Forwarding Preference` = `Datagram`, determine
 the length of the header and payload and send the Object as datagram.  When the
@@ -3704,12 +3707,14 @@ through the MOQT network, increasing the size of the Object and the chances it
 will exceed the maximum datagram size of a downstream session and be dropped.
 
 
-### Object Datagram {#object-datagram}
+### Single Object Delivery {#object-datagram}
 
-An `OBJECT_DATAGRAM` carries a single object in a datagram.
+An Object can be sent in a Datagram or a Stream. When sent in a datagram, it
+is an `OBJECT_DATAGRAM`. When sent in a stream, it is an `OBJECT_STREAM`.
+They share the same format.
 
 ~~~
-OBJECT_DATAGRAM {
+OBJECT_DATAGRAM / OBJECT_STREAM {
   Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
              0x28..0x29 / 0x2C..0x2D,
   Track Alias (vi64),
@@ -3721,23 +3726,23 @@ OBJECT_DATAGRAM {
   [Object Payload (..),]
 }
 ~~~
-{: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
+{: #object-datagram-format title="MOQT OBJECT_DATAGRAM / OBJECT_STREAM"}
 
-The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or the set of
-values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
-range are valid. The four low-order bits and bit 5 of the Type field determine
-which fields are present in the datagram:
+The Type field in the OBJECT_DATAGRAM or OBJECT_STREAM takes the
+form 0b00X0XXXX (or the set of values from 0x00 to 0x0F, 0x20 to 0x2F).
+However, not all Type values in this range are valid. The four low-order bits
+and bit 5 of the Type field determine which fields are present:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is
   present. When set to 1, the Object Properties structure defined in
   {{object-properties}} is present. When set to 0, the field is absent.
-  If an endpoint receives a datagram with the PROPERTIES bit set and an
+  If an endpoint receives a datagram or stream with the PROPERTIES bit set and an
   Properties Length of 0, it MUST close the session with a
   `PROTOCOL_VIOLATION`.
 
 * The **END_OF_GROUP** bit (0x02) indicates End of Group. When set to 1, this
   indicates that no Object with the same Group ID and an Object ID greater than
-  the Object ID in this datagram exists.
+  the Object ID in this message exists.
 
 * The **ZERO_OBJECT_ID** bit (0x04) indicates when the Object ID field is
   present.  When set to 1, the Object ID field is omitted and the Object ID
@@ -3748,14 +3753,14 @@ which fields are present in the datagram:
   the Publisher Priority specified in the control message that established the
   subscription. When set to 0, the Priority field is present.
 
-* The **STATUS** bit (0x20) indicates whether the datagram contains an Object
+* The **STATUS** bit (0x20) indicates whether the message contains an Object
   Status or Object Payload. When set to 1, the Object Status field is present
   and there is no Object Payload. When set to 0, the Object Payload is present
   and the Object Status field is omitted. There is no explicit length field for
-  the Object Payload; the entirety of the transport datagram following the
+  the Object Payload; the entirety of the transport datagram or stream following the
   Object header contains the payload.
 
-The following Type values are invalid. If an endpoint receives a datagram with
+The following Type values are invalid. If an endpoint receives an OBJECT_DATAGRAM or OBJECT_STREAM with
 any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 
 * Type values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set: 0x22,
@@ -3765,7 +3770,7 @@ any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 * Type values that do not match the form 0b00X0XXXX (i.e., Type values outside the
   ranges 0x00..0x0F and 0x20..0x2F).
 
-If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
+If an OBJECT_DATAGRAM or OBJECT_STREAM includes both the STATUS bit and PROPERTIES bit, and the
 Object Status is not Normal (0x0), the endpoint MUST close the session with a
 `PROTOCOL_VIOLATION`, because only Normal Objects can have Properties.
 
@@ -3999,7 +4004,7 @@ track requested in the Fetch message identified by `Request ID`.
 
 ~~~
 FETCH_HEADER {
-  Type (vi64) = 0x5,
+  Type (vi64) = 0x50,
   Request ID (vi64),
 }
 ~~~
