@@ -1520,9 +1520,8 @@ including echoing back Track Namespaces under the prefix that have been publishe
 to it.
 
 SUBSCRIBE_TRACKS requests track subscriptions: the publisher sends PUBLISH
-messages for tracks within matching namespaces, including echoing back published
-Tracks under the prefix to the subscriber. If an endpoint accepts its own PUBLISH,
-this behaves as self-subscription described in {{subscriptions}}.
+messages for tracks within matching namespaces, excluding tracks published
+by the subscriber.
 
 Either message with zero Track Namespace fields indicates the sender is
 interested in all namespaces or all tracks from the receiver, respectively.
