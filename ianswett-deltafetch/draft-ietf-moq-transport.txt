@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 25 October 2026                                   I. Swett, Ed.
+Expires: 29 October 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           23 April 2026
+                                                           27 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 October 2026.
+   This Internet-Draft will expire on 29 October 2026.
 
 Copyright Notice
 
@@ -4480,13 +4480,14 @@ Table of Contents
    less than 0 or greater than 2^64-1, the Subscriber MUST close the
    Session with error 'PROTOCOL_VIOLATION'.
 
-   If the Object ID Delta field is present on an Object other than the
-   first in the Group, the Object ID is the prior Object's ID plus the
-   Object ID Delta.  When the Group ID Delta field is present and
-   therefore the Group ID changes, the Object ID is the absolute value
-   of Object ID Delta if present, and 0 otherwise.  If the computed
-   Object ID would be greater than 2^64-1, the Subscriber MUST close the
-   Session with error 'PROTOCOL_VIOLATION'.
+   When the Group ID Delta field is present, the Object ID is the value
+   of Object ID Delta if present.  When the Group ID Delta field is not
+   present, the Object ID is the prior Object's ID plus the Object ID
+   Delta if present.  If Object ID Delta is not present, the Object ID
+   is the prior Object's ID plus one, regardless of which group it
+   belongs to.  If the computed Object ID would be greater than 2^64-1,
+   the Subscriber MUST close the Session with error
+   'PROTOCOL_VIOLATION'.
 
    The Object Properties structure is defined in Section 10.2.1.2.
 

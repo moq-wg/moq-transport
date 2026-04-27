@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 25 October 2026</td>
+<td class="center">Expires 29 October 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-04-23" class="published">23 April 2026</time>
+<time datetime="2026-04-27" class="published">27 April 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-10-25">25 October 2026</time></dd>
+<dd class="expires"><time datetime="2026-10-29">29 October 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 25 October 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 29 October 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -6797,12 +6797,12 @@ plus the Group ID Delta + 1.  If the Group Order is Descending, the Group ID is
 the prior Object's Group ID minus the (Group ID Delta + 1). If the computed
 Group ID would be less than 0 or greater than 2^64-1, the Subscriber <span class="bcp14">MUST</span>
 close the Session with error 'PROTOCOL_VIOLATION'.<a href="#section-10.4.4.1-6" class="pilcrow">¶</a></p>
-<p id="section-10.4.4.1-7">If the Object ID Delta field is present on an Object other than the first in the
-Group, the Object ID is the prior Object's ID plus the Object ID Delta.  When the
-Group ID Delta field is present and therefore the Group ID changes, the Object ID
-is the absolute value of Object ID Delta if present, and 0 otherwise. If the computed
-Object ID would be greater than 2^64-1, the Subscriber <span class="bcp14">MUST</span> close the Session
-with error 'PROTOCOL_VIOLATION'.<a href="#section-10.4.4.1-7" class="pilcrow">¶</a></p>
+<p id="section-10.4.4.1-7">When the Group ID Delta field is present, the Object ID is the value of Object ID Delta if
+present. When the Group ID Delta field is not present, the Object ID is the prior Object's ID
+plus the Object ID Delta if present. If Object ID Delta is not present, the Object ID is the
+prior Object's ID plus one, regardless of which group it belongs to. If the computed Object ID
+would be greater than 2^64-1, the Subscriber <span class="bcp14">MUST</span> close the Session with error
+'PROTOCOL_VIOLATION'.<a href="#section-10.4.4.1-7" class="pilcrow">¶</a></p>
 <p id="section-10.4.4.1-8">The Object Properties structure is defined in <a href="#object-properties" class="auto internal xref">Section 10.2.1.2</a>.<a href="#section-10.4.4.1-8" class="pilcrow">¶</a></p>
 <p id="section-10.4.4.1-9">When encoding an Object with a Forwarding Preference of "Datagram" (see
 <a href="#object-properties" class="auto internal xref">Section 10.2.1.2</a>), the object has no Subgroup ID. The publisher <span class="bcp14">MUST</span> SET bit 0x40 to '1'.
