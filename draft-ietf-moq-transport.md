@@ -263,7 +263,7 @@ first byte to indicate the length of the encoding in bytes. The remaining bits
 after the first 0 and subsequent bytes, if any, represent the integer value,
 encoded in network byte order.
 
-Integers are encoded in 1, 2, 3, 4, 5, 6, 8, or 9 bytes and can encode up to 64
+Integers are encoded in 1 to 9 bytes and can encode up to 64
 bit unsigned integers. The following table summarizes the encoding properties.
 
 |--------------|----------------|-------------|------------------------|
@@ -281,6 +281,8 @@ bit unsigned integers. The following table summarizes the encoding properties.
 |--------------|----------------|-------------|------------------------|
 | 111110       | 6              | 42          | 0-4398046511103        |
 |--------------|----------------|-------------|------------------------|
+| 1111110      | 7              | 49          | 0-562949953421311      |
+|--------------|----------------|-------------|------------------------|
 | 11111110     | 8              | 56          | 0-72057594037927935    |
 |--------------|----------------|-------------|------------------------|
 | 11111111     | 9              | 64          | 0-18446744073709551615 |
@@ -297,17 +299,14 @@ The following table contains some example encodings:
 | 0xbbbd               | 15,293                     |
 | 0xed7f3e7d           | 226,442,877                |
 | 0xfaa1a0e403d8       | 2,893,212,287,960          |
+| 0xfc8998abc66bc0     | 151,288,809,941,952        |
 | 0xfefa318fa8e3ca11   | 70,423,237,261,249,041     |
 | 0xffffffffffffffffff | 18,446,744,073,709,551,615 |
 |----------------------|----------------------------|
 {: format title="Example Integer Encodings"}
 
-11111100 is an invalid code point.  An endpoint that receives this value MUST
-close the session with a `PROTOCOL_VIOLATION`.
-
-To reduce unnecessary use of bandwidth, variable length integers SHOULD be
-encoded using the least number of bytes possible to represent the required
-value.
+Variable length integers do not need to be encoded using the minimum number of
+bytes; any encoding length that can represent the value is valid.
 
 x (vi64):
 
@@ -667,35 +666,28 @@ to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
-1. An Object is received in a FETCH response with the same Group ID as the
-   previous Object, but whose Object ID is not strictly larger than the previous
-   object.
-2.  In a FETCH response, an Object with a particular Subgroup ID is received, but its
+1.  An Object with a particular Subgroup ID is received, but its
      Publisher Priority is different from that of the previous Object with the same
      Subgroup ID.
-3. An Object is received in an Ascending FETCH response whose Group ID is smaller
-   than the previous Object in the response.
-4. An Object is received in a Descending FETCH response whose Group ID is larger
-   than the previous Object in the response.
-5. An Object is received whose Object ID is larger than the final Object in the
+2. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-6. A Subgroup is received over multiple transport streams terminated by FIN with
+3. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-7. An Object is received in a Group whose Object
+4. An Object is received in a Group whose Object
    ID is larger than the final Object in the Group.  The final Object in a Group
    is the Object with Status END_OF_GROUP, or the last Object before a FIN in a
    Subgroup which has the END_OF_GROUP bit set.  If the end of a Group is
    implicitly determined via a gap in a FETCH response, the final Object in the
    Group remains unknown.
-8. An Object is received whose Group and Object ID are larger than
+5. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
    with Status END_OF_TRACK or the last Object sent in a FETCH whose response
    indicated End of Track.
-9. The same Object is received more than once with different Payload or
-    other immutable properties.
-10. An Object is received with a different Forwarding Preference than previously
-    observed.
+6. The same Object is received more than once with different Payload or
+   other immutable properties.
+7. An Object is received with a different Forwarding Preference than previously
+   observed.
 
 The above list of conditions is not considered exhaustive.
 
@@ -959,6 +951,46 @@ New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
 
+### Reserved Namespaces {#reserved-namespaces}
+
+MOQT reserves all Track Namespace values whose first tuple field begins with
+a period (0x2e, `.`). These namespaces MUST NOT be used unless their meaning
+is defined through IANA registration. Unless otherwise specified, an
+endpoint that receives a request for an unrecognized reserved namespace MUST
+pass it to the Application, so that future extensions can define new reserved
+namespaces without breaking older implementations.
+
+A Track Namespace whose first field is exactly `.` (a single period, 0x2e)
+is reserved and MUST NOT be used for any purpose; endpoints MUST NOT publish
+tracks or namespaces under it and MUST reject requests referencing it with
+DOES_NOT_EXIST.
+
+### Session-Level Tracks and Namespaces {#session-level-tracks}
+
+MOQT defines the `.session` namespace (the bytes 0x2e, 0x73, 0x65, 0x73,
+0x73, 0x69, 0x6f, 0x6e) in the first position of the Track Namespace for
+session-level tracks and namespaces. Session-level tracks and namespaces are
+managed by the MOQT implementation, not the Application. They provide a
+mechanism for extending MOQT transport functionality using existing
+subscription and object delivery machinery, without defining new control
+messages or stream types.
+
+The Application MUST NOT publish tracks or namespaces whose first
+field is `.session`. Relays MUST NOT forward requests for session-level
+tracks and namespaces to other sessions.
+
+The empty track name in the `.session` namespace is defined to not exist.
+A request with a Track Namespace whose first field is `.session` and an
+empty Track Name MUST be rejected with DOES_NOT_EXIST.
+
+An endpoint that receives a request for an unrecognized session-level track
+or namespace MUST reject it with REQUEST_ERROR using error code
+DOES_NOT_EXIST rather than passing it to the Application.
+
+The track names and namespaces available under the `.session` namespace are
+defined by extensions to this specification and registered with IANA (see
+{{iana-session-level-tracks}}).
+
 ## Session initialization {#session-init}
 
 MOQT uses a pair of unidirectional streams for creating the session and
@@ -998,6 +1030,48 @@ a stream that are still open by resetting or sending STOP_SENDING.
 
 When an endpoint rejects a request without performing any application processing,
 it SHOULD send a REQUEST_ERROR and FIN the stream.
+
+The application SHOULD use a relevant error code when resetting or sending
+STOP_SENDING on a request stream, as defined in {{stream-reset-codes}}.
+
+### Stream Reset Error Codes {#stream-reset-codes}
+
+The application SHOULD use a relevant error code when resetting or sending
+STOP_SENDING on any stream.
+
+INTERNAL_ERROR (0x0):
+: An implementation specific error.
+
+CANCELLED (0x1):
+: The stream was cancelled by either endpoint. For Subscriptions,
+  PUBLISH_DONE ({{message-publish-done}}) may have a more detailed status code.
+
+DELIVERY_TIMEOUT (0x2):
+: The DELIVERY TIMEOUT ({{delivery-timeout}}) was exceeded for this stream.
+
+SESSION_CLOSED (0x3):
+: The session is being closed.
+
+GOING_AWAY (0x4):
+: The endpoint is rejecting this request because it has sent or received a GOAWAY.
+
+TOO_FAR_BEHIND (0x5):
+: The corresponding subscription has exceeded the publisher's resource limits and
+  is being terminated (see {{delivery-timeout}}).
+
+UNKNOWN_OBJECT_STATUS (0x6):
+: In response to a FETCH, the publisher is unable to determine the status
+  of the next Object in the requested range.
+
+EXPIRED_AUTH_TOKEN (0x7):
+: The authorization token for the request has expired.
+
+EXCESSIVE_LOAD (0x9):
+: The endpoint is overloaded and is resetting this stream.
+
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
+  {{malformed-tracks}}).
 
 ## Unidirectional Stream Types {#stream-types}
 
@@ -1269,7 +1343,7 @@ or REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
 
 A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
-or REQUEST_OK (in response to a REQUEST_UPDATE) that changes the Forward State
+or REQUEST_UPDATE_OK that changes the Forward State
 from 0 to 1.  This value is called the Joining Location and can be used in a
 Joining FETCH (see {{joining-fetches}}) while the subscription is in the
 `Established` state.
@@ -1475,10 +1549,10 @@ If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
 recipient of this message will send any relevant NAMESPACE,
 NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
-part of that namespace.  This includes echoing back published Tracks and/or Track
-Namespaces under the SUBSCRIBE_NAMESPACE prefix to the endpoint that sent them.
-If an endpoint accepts its own PUBLISH, this behaves as self-subscription described
-in {{subscriptions}}.
+part of that namespace.  An endpoint MUST NOT send PUBLISH messages to a
+SUBSCRIBE_NAMESPACE subscriber for Tracks or Track Namespaces that the
+subscriber itself has published on this session.  If an endpoint wishes to
+receive its own published Tracks, it can explicitly SUBSCRIBE to them.
 
 A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the sender is
 interested in all tracks and/or namespaces from the receiver.
@@ -1812,7 +1886,8 @@ relay is managed and is application specific.
 When a publisher wants to stop new subscriptions for a published namespace, it
 cancels the request (see {{request-cancellation}}) to withdraw the PUBLISH_NAMESPACE.
 A subscriber indicates it will no longer subscribe to Tracks in a namespace it
-previously responded REQUEST_OK to by cancelling the PUBLISH_NAMESPACE request.
+previously responded PUBLISH_NAMESPACE_OK to by cancelling the
+PUBLISH_NAMESPACE request.
 
 A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
@@ -1887,7 +1962,7 @@ receiving the Objects on the same subscription.
 ## Relay Track Handling
 
 A relay MUST include all Properties associated with a Track when sending any PUBLISH,
-SUBSCRIBE_OK, REQUEST_OK when in response to a TRACK_STATUS, or FETCH_OK, unless
+SUBSCRIBE_OK, TRACK_STATUS_OK, or FETCH_OK, unless
 allowed by the property's specification (see {{properties}}).
 
 ## Relay Object Handling
@@ -2258,6 +2333,29 @@ successfully delivered within the timeout period before sending any data
 for that Object, taking into account priorities, congestion control, and
 any other relevant information.
 
+### FILL TIMEOUT Parameter {#fill-timeout}
+
+The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a FETCH message.
+
+It is the maximum total duration in milliseconds a relay SHOULD spend waiting
+for upstream sources to provide Objects that are not immediately available
+before reporting them as Unknown gaps in the FETCH response. When a relay
+encounters Objects within the requested range that are not immediately available
+and have unknown status, it issues upstream FETCHes to retrieve them. The Fill
+Timeout represents a total budget for all such upstream FETCHes generated by
+this request. If the budget is exhausted, the relay reports any remaining
+unavailable Objects as Unknown gaps and continues delivering available Objects
+in the range.
+
+A value of 0 indicates the subscriber only wants Objects that are immediately
+available; the relay MUST NOT wait for upstream delivery and MUST report any
+unavailable Objects as Unknown gaps.
+
+If the Fill Timeout parameter is absent, the relay waits for an implementation
+specific duration before reporting Unknown gaps. If the subscriber specifies a Fill
+Timeout larger than the relay is willing to wait, the relay MAY use a shorter
+timeout without informing the subscriber.
+
 ### RENDEZVOUS TIMEOUT Parameter {#rendezvous-timeout}
 
 The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) MAY appear in a
@@ -2321,7 +2419,7 @@ unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 ### EXPIRES Parameter {#expires}
 
 The EXPIRES parameter (Parameter Type 0x8) is a varint. It MAY appear in
-SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK. It encodes the time
+SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_UPDATE_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or by cancelling the request (see {{request-cancellation}}).  This value is advisory and the sender
@@ -2331,7 +2429,7 @@ The receiver of the parameter can attempt to extend the subscription by sending
 a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
 more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
 REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
-value in REQUEST_OK. Relays that send this parameter and applications that
+value in REQUEST_UPDATE_OK. Relays that send this parameter and applications that
 receive it MAY introduce jitter to prevent many endpoints from updating
 simultaneously.
 
@@ -2341,8 +2439,8 @@ does not expire or expires at an unknown time.
 ### LARGEST OBJECT Parameter {#largest-param}
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
-in SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE or
-TRACK_STATUS). It contains the largest Location (see {{location-structure}}) in the
+in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, or TRACK_STATUS_OK.
+It contains the largest Location (see {{location-structure}}) in the
 Track observed by the sending endpoint (see {{subscription-filters}}). If Objects
 have been published on this Track the Publisher MUST include this parameter.
 
@@ -2619,8 +2717,12 @@ GOAWAY Message {
 
 ## REQUEST_OK {#message-request-ok}
 
-The REQUEST_OK message is sent to a response to REQUEST_UPDATE, TRACK_STATUS,
+The REQUEST_OK message is sent in response to REQUEST_UPDATE, TRACK_STATUS,
 SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests.
+
+This document uses the shorthand REQUEST_UPDATE_OK,
+TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and PUBLISH_NAMESPACE_OK to refer to
+a REQUEST_OK sent in response to the corresponding request type.
 
 ~~~
 REQUEST_OK Message {
@@ -2638,10 +2740,10 @@ REQUEST_OK Message {
 * Track Properties : A sequence of Properties. See {{properties}}. The
   length of Track Properties is the remaining length of the message
   after parsing all previous fields. Track Properties are populated in
-  response to TRACK_STATUS messages; they are empty in response to
-  REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE.  If an
-  endpoint receives Track Properties in response to one of these messages
-  it MUST close the session with a `PROTOCOL_VIOLATION`.
+  TRACK_STATUS_OK; they are empty in REQUEST_UPDATE_OK,
+  SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
+  receives Track Properties in one of these messages it MUST close the
+  session with a `PROTOCOL_VIOLATION`.
 
 ## REQUEST_ERROR {#message-request-error}
 
@@ -2890,8 +2992,8 @@ any necessary Objects smaller than the current Largest Location.
 
 When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
-create a gap in the subscription. The REQUEST_OK in response to the
-REQUEST_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
+create a gap in the subscription. The REQUEST_UPDATE_OK will include the
+LARGEST_OBJECT parameter, and the subscriber
 can issue a FETCH to retrieve the omitted Objects, if any.
 
 When a subscriber narrows their subscription (increase the Start Location and/or
@@ -2904,6 +3006,16 @@ PUBLISH_DONE with error code `UPDATE_FAILED`. When a REQUEST_UPDATE fails for
 a FETCH, the publisher MUST reset the FETCH data stream. When a REQUEST_UPDATE
 fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder MUST close
 the bidi stream.
+
+A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
+coalesce their processing by applying only the cumulative result.
+Parameter values from later REQUEST_UPDATE messages override values
+from earlier ones. The receiver MUST still send a REQUEST_OK for
+each successful update, but it is not required to process
+intermediate states individually. If the coalesced REQUEST_UPDATE
+results in REQUEST_ERROR, only a single REQUEST_ERROR will be
+sent and the sender of the REQUEST_UPDATEs will not always be
+able to determine which caused an error.
 
 ## PUBLISH {#message-publish}
 
@@ -2998,7 +3110,8 @@ ACK of the FIN.
 
 A sender MUST NOT destroy subscription state until it sends PUBLISH_DONE, though
 it can choose to stop sending objects (and thus send PUBLISH_DONE) for any
-reason.
+reason. A sender SHOULD send FIN on the subscription's bidi stream immediately
+after sending PUBLISH_DONE.
 
 A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least its
 delivery timeout in case some objects are still inbound due to prioritization or
@@ -3060,12 +3173,12 @@ SUBSCRIPTION_ENDED (0x3):
 GOING_AWAY (0x4):
 : The subscriber or publisher issued a GOAWAY message.
 
-EXPIRED (0x5):
-: The publisher reached the timeout specified in SUBSCRIBE_OK.
-
-TOO_FAR_BEHIND (0x6):
+TOO_FAR_BEHIND (0x5):
 : The publisher's queue of objects to be sent to the given subscriber exceeds
   its implementation defined limit.
+
+EXPIRED (0x6):
+: The publisher reached the timeout specified in SUBSCRIBE_OK.
 
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
@@ -3143,7 +3256,7 @@ Forward State 1; otherwise the publisher MUST close the session with a
 messages for the associated subscription before evaluating the current
 request. Relays with an upstream subscription in transition from Forward State 0
 to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
-the upstream subscription returns REQUEST_OK with the new Largest Object.
+the upstream subscription returns REQUEST_UPDATE_OK with the new Largest Object.
 
 If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
@@ -3264,7 +3377,7 @@ subgroup ID is not used for ordering.
 If a Publisher receives a FETCH with a range that includes one or more Objects with
 unknown status (e.g. a Relay has temporarily lost contact with the Original
 Publisher and does not have the Object in cache), it can choose to reset the
-FETCH data stream with UNKNOWN_OBJECT_STATUS, or indicate the range of unknown
+FETCH data stream with UNKNOWN_OBJECT_STATUS ({{stream-reset-codes}}), or indicate the range of unknown
 Objects and continue serving other known Objects.
 
 ## FETCH_OK {#message-fetch-ok}
@@ -3320,11 +3433,11 @@ delivery (e.g. SUBSCRIBER_PRIORITY) are not included.
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
-REQUEST_OK message with the same parameters and Track Properties it would have
+TRACK_STATUS_OK with the same parameters and Track Properties it would have
 set in a SUBSCRIBE_OK. Track Alias is not used.  A publisher responds to a
 failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
-REQUEST_OK or REQUEST_ERROR are sent.
+TRACK_STATUS_OK or REQUEST_ERROR are sent.
 
 Relays without an `Established` subscription MAY forward TRACK_STATUS to one or more
 publishers, or MAY initiate a subscription (subject to authorization) as
@@ -3945,38 +4058,13 @@ Subgroups in the Group or the subscription, although applications might cancel a
 Subgroups in a Group at once.
 
 A publisher that receives a STOP_SENDING on a Subgroup stream SHOULD NOT attempt
-to open a new stream to deliver additional Objects in that Subgroup.
+to open a new stream to deliver additional Objects in that Subgroup.  However,
+if the publisher subsequently receives a REQUEST_UPDATE that changes the Forward
+State from 0 to 1, it MAY open a new stream to deliver Objects in that Subgroup,
+as the update indicates the subscriber has renewed interest in forwarded Objects.
 
 The application SHOULD use a relevant error code when resetting a stream,
-as defined below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific error.
-
-CANCELLED (0x1):
-: The subscriber or publisher cancelled the Request. For Subscriptions,
-  PUBLISH_DONE ({{message-publish-done}}) will have a more detailed status code.
-
-DELIVERY_TIMEOUT (0x2):
-: The DELIVERY TIMEOUT {{delivery-timeout}} was exceeded for this stream.
-
-SESSION_CLOSED (0x3):
-: The publisher session is being closed.
-
-UNKNOWN_OBJECT_STATUS (0x4):
-: In response to a FETCH, the publisher is unable to determine the Status
-of the next Object in the requested range.
-
-TOO_FAR_BEHIND (0x5):
-: The corresponding subscription has exceeded the publisher's resource limits and
-is being terminated (see {{delivery-timeout}}).
-
-EXCESSIVE_LOAD (0x9):
-: The publisher is overloaded and is resetting this stream.
-
-MALFORMED_TRACK (0x12):
-: A relay publisher detected that the track was malformed (see
-  {{malformed-tracks}}).
+as defined in {{stream-reset-codes}}.
 
 ### Fetch Header {#fetch-header}
 
@@ -3998,9 +4086,9 @@ format:
 ~~~
 {
   Serialization Flags (vi64),
-  [Group ID (vi64),]
+  [Group ID Delta (vi64),]
   [Subgroup ID (vi64),]
-  [Object ID (vi64),]
+  [Object ID Delta (vi64),]
   [Publisher Priority (8),]
   [Properties (..),]
   Object Payload Length (vi64),
@@ -4037,15 +4125,31 @@ the corresponding condition is true.
 
 Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
-0x04 | Object ID field is present | Object ID is the prior Object's ID plus one
-0x08 | Group ID field is present | Group ID is the prior Object's Group ID
+0x04 | Object ID Delta is present | Object ID is the prior Object's ID plus one
+0x08 | Group ID Delta is present | Group ID is the prior Object's Group ID
 0x10 | Priority field is present | Priority is the prior Object's Priority
 0x20 | Properties field is present | Properties field is not present
 0x40 | Datagram: ignore the two least significant bits | Decode the Subgroup ID as indicated by the two least significant bits
 
-If the first Object in the FETCH response uses a flag that references fields in
-the prior Object, the Subscriber MUST close the session with a
-`PROTOCOL_VIOLATION`.
+The first Object MUST include a Group ID Delta and Object ID Delta, and
+these values are the absolute Group ID and Object ID. If the first Object in
+the FETCH response uses a flag that references fields in the prior Object,
+the Subscriber MUST close the session with a `PROTOCOL_VIOLATION`.
+
+If the Group ID Delta field is present on an Object other than the first, the
+Group ID is computed from the Group ID Delta and the prior Object's Group ID.
+If the Group Order is Ascending, the Group ID is the prior Object's Group ID
+plus the Group ID Delta + 1.  If the Group Order is Descending, the Group ID is
+the prior Object's Group ID minus the (Group ID Delta + 1). If the computed
+Group ID would be less than 0 or greater than 2^64-1, the Subscriber MUST
+close the Session with error 'PROTOCOL_VIOLATION'.
+
+When the Group ID Delta field is present, the Object ID is the value of Object ID Delta if
+present. When the Group ID Delta field is not present, the Object ID is the prior Object's ID
+plus the Object ID Delta if present. If Object ID Delta is not present, the Object ID is the
+prior Object's ID plus one, regardless of which group it belongs to. If the computed Object ID
+would be greater than 2^64-1, the Subscriber MUST close the Session with error
+'PROTOCOL_VIOLATION'.
 
 The Object Properties structure is defined in {{object-properties}}.
 
@@ -4499,7 +4603,7 @@ The following registries include GREASE reservations:
 - Session Termination Error Codes ({{iana-session-termination}})
 - REQUEST_ERROR Codes ({{iana-request-error}})
 - PUBLISH_DONE Codes ({{iana-publish-done}})
-- Data Stream Reset Error Codes ({{iana-reset-stream}})
+- Stream Reset Error Codes ({{iana-reset-stream}})
 - MOQT Auth Token Type
 
 Because new values in these registries can be defined without negotiation,
@@ -4525,6 +4629,7 @@ TODO: fill out currently missing registries:
 
 * MOQT ALPN values
 * Message types
+* Session-Level Track Names
 
 ## URI Scheme Registrations
 
@@ -4645,6 +4750,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x04 | RENDEZVOUS_TIMEOUT | {{rendezvous-timeout}} |
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
+| 0x0A | FILL_TIMEOUT | {{fill-timeout}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
@@ -4690,6 +4796,25 @@ the length field.
   IANA.  Note that applications consuming tracks from uncoordinated sources may
   encounter different semantics for the same code points, creating potential
   collision risks.
+
+## Session-Level Track Names {#iana-session-level-tracks}
+
+This document establishes a registry for session-level track names
+under the `.session` namespace (see {{session-level-tracks}}). The
+registration policy is Specification Required (per {{!RFC8126,
+Section 4.6}}).
+
+Each registration must include:
+
+| Field | Description |
+|:------|:------------|
+| Track Namespace | The track namespace under the `.session` namespace, can be empty |
+| Track Name | The track name (bytes) within the full namespace |
+| Description | Brief description of the track's purpose |
+| Change Controller | Who may update the registration |
+| Specification | Reference to the defining specification |
+
+This document does not define any initial entries.
 
 ## Error Codes {#iana-error-codes}
 
@@ -4753,25 +4878,27 @@ the length field.
 | TRACK_ENDED        | 0x2  | {{message-publish-done}} |
 | SUBSCRIPTION_ENDED | 0x3  | {{message-publish-done}} |
 | GOING_AWAY         | 0x4  | {{message-publish-done}} |
-| EXPIRED            | 0x5  | {{message-publish-done}} |
-| TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
+| TOO_FAR_BEHIND     | 0x5  | {{message-publish-done}} |
+| EXPIRED            | 0x6  | {{message-publish-done}} |
 | UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
 | EXCESSIVE_LOAD     | 0x9  | {{message-publish-done}} |
 | MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
-### Data Stream Reset Error Codes {#iana-reset-stream}
+### Stream Reset Error Codes {#iana-reset-stream}
 
-| Name                  | Code | Specification                |
-|:----------------------|:----:|:-----------------------------|
-| INTERNAL_ERROR        | 0x0  | {{closing-subgroup-streams}} |
-| CANCELLED             | 0x1  | {{closing-subgroup-streams}} |
-| DELIVERY_TIMEOUT      | 0x2  | {{closing-subgroup-streams}} |
-| SESSION_CLOSED        | 0x3  | {{closing-subgroup-streams}} |
-| UNKNOWN_OBJECT_STATUS | 0x4  | {{closing-subgroup-streams}} |
-| TOO_FAR_BEHIND        | 0x5  | {{closing-subgroup-streams}} |
-| EXCESSIVE_LOAD        | 0x9  | {{closing-subgroup-streams}} |
-| MALFORMED_TRACK       | 0x12 | {{closing-subgroup-streams}} |
+| Name                  | Code | Specification            |
+|:----------------------|:----:|:-------------------------|
+| INTERNAL_ERROR        | 0x0  | {{stream-reset-codes}}   |
+| CANCELLED             | 0x1  | {{stream-reset-codes}}   |
+| DELIVERY_TIMEOUT      | 0x2  | {{stream-reset-codes}}   |
+| SESSION_CLOSED        | 0x3  | {{stream-reset-codes}}   |
+| GOING_AWAY            | 0x4  | {{stream-reset-codes}}   |
+| TOO_FAR_BEHIND        | 0x5  | {{stream-reset-codes}}   |
+| UNKNOWN_OBJECT_STATUS | 0x6  | {{stream-reset-codes}}   |
+| EXPIRED_AUTH_TOKEN    | 0x7  | {{stream-reset-codes}}   |
+| EXCESSIVE_LOAD        | 0x9  | {{stream-reset-codes}}   |
+| MALFORMED_TRACK       | 0x12 | {{stream-reset-codes}}   |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
 # Contributors
