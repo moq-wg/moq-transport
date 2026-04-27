@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 25 October 2026                                   I. Swett, Ed.
+Expires: 29 October 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           23 April 2026
+                                                           27 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 October 2026.
+   This Internet-Draft will expire on 29 October 2026.
 
 Copyright Notice
 
@@ -1755,10 +1755,8 @@ Table of Contents
    the prefix that have been published to it.
 
    SUBSCRIBE_TRACKS requests track subscriptions: the publisher sends
-   PUBLISH messages for tracks within matching namespaces, including
-   echoing back published Tracks under the prefix to the subscriber.  If
-   an endpoint accepts its own PUBLISH, this behaves as self-
-   subscription described in Section 5.1.
+   PUBLISH messages for tracks within matching namespaces, excluding
+   tracks published by the subscriber.
 
    Either message with zero Track Namespace fields indicates the sender
    is interested in all namespaces or all tracks from the receiver,
