@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 25 October 2026                                   I. Swett, Ed.
+Expires: 29 October 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           23 April 2026
+                                                           27 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 October 2026.
+   This Internet-Draft will expire on 29 October 2026.
 
 Copyright Notice
 
@@ -3145,7 +3145,12 @@ Table of Contents
       (if present) and retry the request using the Full Track Name from
       the Redirect (if present).  This error code can appear in response
       to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH_NAMESPACE and
-      SUBSCRIBE_NAMESPACE.
+      SUBSCRIBE_NAMESPACE.  Relays are not required to follow redirects
+      from upstream and MAY forward a REDIRECT response to matching
+      downstream requests.  A relay MAY cache a REDIRECT response for a
+      Full Track Name for up to Retry Interval milliseconds and use it
+      to respond to subsequent matching requests without forwarding them
+      upstream.
 
    Below are errors for use by the publisher.  They can appear in
    response to SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE,
