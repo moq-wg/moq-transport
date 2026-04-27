@@ -1733,8 +1733,11 @@ not required to send identical parameters upstream.
 The Relay selects a transition GroupID G_switch as the smallest GroupID g such
 that:
 
-* g is greater than or equal to the Minimum Switching Group ID; and
-* g is a common Group boundary for the current Track and the target Track.
+* g is greater than or equal to the Minimum Switching Group ID;
+* g is a common Group boundary for the current Track and the target Track; and
+* for every GroupID g' in [g, Live Edge Group ID), if g' is available for the
+  current Track at the Relay, then g' is also available for the target Track
+  at the Relay.
 
 Note that G_switch MAY be smaller than the GroupID currently being forwarded
 on the current subscription. This enables a subscriber to request replacement
