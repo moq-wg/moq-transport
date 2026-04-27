@@ -1124,10 +1124,6 @@ INVALID_REQUEST_ID (0x4):
 : The endpoint received a Request ID with an incorrect least significant
   bit for the sender, or a duplicate Request ID. See {{request-id}}.
 
-INVALID_REQUIRED_REQUEST_ID (0x7):
-: The endpoint received a Required Request ID Delta that results
-in an invalid Request ID. See {{required-request-id}}.
-
 DUPLICATE_TRACK_ALIAS (0x5):
 : The endpoint attempted to use a Track Alias that was already in use.
 
@@ -1476,11 +1472,9 @@ will have different approaches for when to begin a new Group.
 
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
 REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
-{{joining-fetches}}) for the intended start Group, which can be relative.  When
-the Joining FETCH follows a REQUEST_UPDATE that transitions Forward State from
-0 to 1, the FETCH MUST set its Required Request ID ({{required-request-id}}) to
-the REQUEST_UPDATE's Request ID or later.  To join a Track at the next Group, the
-subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
+{{joining-fetches}}) for the intended start Group, which can be relative.
+To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
+Filter Type `Next Group Start`.
 
 #### Dynamically Starting New Groups
 
@@ -2071,30 +2065,6 @@ they are sent on the same bidirectional stream as the request.
 If an endpoint receives a Request ID where the least significant bit is
 incorrect for the sender, or a duplicate Request ID, it MUST close the
 session with `INVALID_REQUEST_ID`.
-
-## Required Request ID {#required-request-id}
-
-Every request message includes a Required Request ID Delta field
-that specifies a dependency on a prior request. The Required Request ID
-is computed as:
-
-~~~
-    Required Request ID = Request ID - (2 × Required Request ID
-  Delta)
-~~~
-
-A Required Request ID Delta of 0 indicates no dependency. When
-a dependency exists, the receiver MUST NOT process the dependent
-request before the referenced request. This is an ordering
-constraint only; the referenced request does not need to complete
-successfully. If the referenced request does not arrive, the
-receiver will time out the dependent request.
-
-The delta is scaled by two because request IDs from each endpoint
-use alternating parity (odd or even), so valid dependencies always
-differ by a multiple of two. An endpoint MUST close the session with
-INVALID_REQUIRED_REQUEST_ID if it receives a delta where
-2 × Required Request ID Delta exceeds the Request ID.
 
 ## Message Parameters {#message-params}
 
@@ -2825,7 +2795,6 @@ SUBSCRIBE Message {
   Type (vi64) = 0x3,
   Length (16),
   Request ID (vi64),
-  Required Request ID Delta (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -2836,8 +2805,6 @@ SUBSCRIBE Message {
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
 
 * Request ID: See {{request-id}}.
-
-* Required Request ID Delta: See {{required-request-id}}.
 
 * Track Namespace: Identifies the namespace of the track as defined in
   ({{track-name}}).
@@ -2896,7 +2863,6 @@ REQUEST_UPDATE Message {
   Type (vi64) = 0x2,
   Length (16),
   Request ID (vi64),
-  Required Request ID Delta (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -2904,8 +2870,6 @@ REQUEST_UPDATE Message {
 {: #moq-transport-request-update-format title="MOQT REQUEST_UPDATE Message"}
 
 * Request ID: See {{request-id}}.
-
-* Required Request ID Delta: See {{required-request-id}}.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -2954,7 +2918,6 @@ PUBLISH Message {
   Type (vi64) = 0x1D,
   Length (16),
   Request ID (vi64),
-  Required Request ID Delta (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -2967,8 +2930,6 @@ PUBLISH Message {
 {: #moq-transport-publish-format title="MOQT PUBLISH Message"}
 
 * Request ID: See {{request-id}}.
-
-* Required Request ID Delta: See {{required-request-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in ({{track-name}})
 
@@ -3234,7 +3195,6 @@ FETCH Message {
   Type (vi64) = 0x16,
   Length (16),
   Request ID (vi64),
-  Required Request ID Delta (vi64),
   Fetch Type (vi64),
   [Standalone (Standalone Fetch),]
   [Joining (Joining Fetch),]
@@ -3245,8 +3205,6 @@ FETCH Message {
 {: #moq-transport-fetch-format title="MOQT FETCH Message"}
 
 * Request ID: See {{request-id}}.
-
-* Required Request ID Delta: See {{required-request-id}}.
 
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
@@ -3382,7 +3340,6 @@ PUBLISH_NAMESPACE Message {
   Type (vi64) = 0x6,
   Length (16),
   Request ID (vi64),
-  Required Request ID Delta (vi64),
   Track Namespace (..),
   Number of Parameters (vi64),
   Parameters (..) ...
@@ -3391,8 +3348,6 @@ PUBLISH_NAMESPACE Message {
 {: #moq-transport-pub-ns-format title="MOQT PUBLISH_NAMESPACE Message"}
 
 * Request ID: See {{request-id}}.
-
-* Required Request ID Delta: See {{required-request-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in
   {{track-name}}.
@@ -3453,7 +3408,6 @@ SUBSCRIBE_NAMESPACE Message {
   Type (vi64) = 0x11,
   Length (16),
   Request ID (vi64),
-  Required Request ID Delta (vi64),
   Track Namespace Prefix (..),
   Subscribe Options (vi64),
   Number of Parameters (vi64),
@@ -3463,8 +3417,6 @@ SUBSCRIBE_NAMESPACE Message {
 {: #moq-transport-subscribe-ns-format title="MOQT SUBSCRIBE_NAMESPACE Message"}
 
 * Request ID: See {{request-id}}.
-
-* Required Request ID Delta: See {{required-request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
   {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
@@ -4746,7 +4698,6 @@ This document does not define any initial entries.
 | INVALID_REQUEST_ID         | 0x4  | {{session-termination}} |
 | DUPLICATE_TRACK_ALIAS      | 0x5  | {{session-termination}} |
 | KEY_VALUE_FORMATTING_ERROR | 0x6  | {{session-termination}} |
-| INVALID_REQUIRED_REQUEST_ID | 0x7 | {{session-termination}} |
 | INVALID_PATH               | 0x8  | {{session-termination}} |
 | MALFORMED_PATH             | 0x9  | {{session-termination}} |
 | GOAWAY_TIMEOUT             | 0x10 | {{session-termination}} |
