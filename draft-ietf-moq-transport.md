@@ -4058,12 +4058,12 @@ the prior Object's Group ID minus the (Group ID Delta + 1). If the computed
 Group ID would be less than 0 or greater than 2^64-1, the Subscriber MUST
 close the Session with error 'PROTOCOL_VIOLATION'.
 
-If the Object ID Delta field is present on an Object other than the first in the
-Group, the Object ID is the prior Object's ID plus the Object ID Delta.  When the
-Group ID Delta field is present and therefore the Group ID changes, the Object ID
-is the absolute value of Object ID Delta if present, and 0 otherwise. If the computed
-Object ID would be greater than 2^64-1, the Subscriber MUST close the Session
-with error 'PROTOCOL_VIOLATION'.
+When the Group ID Delta field is present, the Object ID is the value of Object ID Delta if
+present. When the Group ID Delta field is not present, the Object ID is the prior Object's ID
+plus the Object ID Delta if present. If Object ID Delta is not present, the Object ID is the
+prior Object's ID plus one, regardless of which group it belongs to. If the computed Object ID
+would be greater than 2^64-1, the Subscriber MUST close the Session with error
+'PROTOCOL_VIOLATION'.
 
 The Object Properties structure is defined in {{object-properties}}.
 
