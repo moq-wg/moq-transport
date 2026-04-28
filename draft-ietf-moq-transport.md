@@ -3183,6 +3183,8 @@ messages for the associated subscription before evaluating the current
 request. Relays with an upstream subscription in transition from Forward State 0
 to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
 the upstream subscription returns REQUEST_UPDATE_OK with the new Largest Object.
+Changing the Forward State of the associated subscription to 0 after the Joining
+Fetch has been accepted has no effect on the Joining Fetch.
 
 If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
