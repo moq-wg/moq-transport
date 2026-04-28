@@ -1996,55 +1996,55 @@ control stream ({{session-init}}), and Request indicates a bidirectional
 request stream. Messages marked "First" MUST be the first message on a
 new request stream.
 
-|--------|-----------------------------------------------|----------------|
-| ID     | Messages                                      | Stream         |
-|-------:|:----------------------------------------------|:---------------|
-| 0x01   | RESERVED (SETUP for version 00)               |                |
-|--------|-----------------------------------------------|----------------|
-| 0x40   | RESERVED (CLIENT_SETUP for <= 10)             |                |
-|--------|-----------------------------------------------|----------------|
-| 0x41   | RESERVED (SERVER_SETUP for <= 10)             |                |
-|--------|-----------------------------------------------|----------------|
-| 0x20   | RESERVED (CLIENT_SETUP in <= 16)              |                |
-|--------|-----------------------------------------------|----------------|
-| 0x21   | RESERVED (SERVER_SETUP in <= 16)              |                |
-|--------|-----------------------------------------------|----------------|
-| 0x2F00 | SETUP ({{message-setup}})                     | Control        |
-|--------|-----------------------------------------------|----------------|
-| 0x10   | GOAWAY ({{message-goaway}})                   | Control        |
-|--------|-----------------------------------------------|----------------|
-| 0x3    | SUBSCRIBE ({{message-subscribe-req}})         | Request, First |
-|--------|-----------------------------------------------|----------------|
-| 0x4    | SUBSCRIBE_OK ({{message-subscribe-ok}})       | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0x1D   | PUBLISH ({{message-publish}})                 | Request, First |
-|--------|-----------------------------------------------|----------------|
-| 0x1E   | PUBLISH_OK ({{message-publish-ok}})           | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0xB    | PUBLISH_DONE ({{message-publish-done}})       | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0x16   | FETCH ({{message-fetch}})                     | Request, First |
-|--------|-----------------------------------------------|----------------|
-| 0x18   | FETCH_OK ({{message-fetch-ok}})               | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0xD    | TRACK_STATUS ({{message-track-status}})       | Request, First |
-|--------|-----------------------------------------------|----------------|
-| 0x6    | PUBLISH_NAMESPACE ({{message-pub-ns}})        | Request, First |
-|--------|-----------------------------------------------|----------------|
-| 0x11   | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})| Request, First |
-|--------|-----------------------------------------------|----------------|
-| 0x8    | NAMESPACE ({{message-namespace}})             | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0xE    | NAMESPACE_DONE ({{message-namespace-done}})   | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0xF    | PUBLISH_BLOCKED ({{message-publish-blocked}}) | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0x2    | REQUEST_UPDATE ({{message-request-update}})   | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0x7    | REQUEST_OK ({{message-request-ok}})           | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0x5    | REQUEST_ERROR ({{message-request-error}})     | Request        |
-|--------|-----------------------------------------------|----------------|
+|--------|-----------------------------------------------|------------------|
+| ID     | Messages                                      | Stream           |
+|-------:|:----------------------------------------------|:-----------------|
+| 0x01   | RESERVED (SETUP for version 00)               |                  |
+|--------|-----------------------------------------------|------------------|
+| 0x40   | RESERVED (CLIENT_SETUP for <= 10)             |                  |
+|--------|-----------------------------------------------|------------------|
+| 0x41   | RESERVED (SERVER_SETUP for <= 10)             |                  |
+|--------|-----------------------------------------------|------------------|
+| 0x20   | RESERVED (CLIENT_SETUP in <= 16)              |                  |
+|--------|-----------------------------------------------|------------------|
+| 0x21   | RESERVED (SERVER_SETUP in <= 16)              |                  |
+|--------|-----------------------------------------------|------------------|
+| 0x2F00 | SETUP ({{message-setup}})                     | Control          |
+|--------|-----------------------------------------------|------------------|
+| 0x10   | GOAWAY ({{message-goaway}})                   | Control, Request |
+|--------|-----------------------------------------------|------------------|
+| 0x3    | SUBSCRIBE ({{message-subscribe-req}})         | Request, First   |
+|--------|-----------------------------------------------|------------------|
+| 0x4    | SUBSCRIBE_OK ({{message-subscribe-ok}})       | Request          |
+|--------|-----------------------------------------------|------------------|
+| 0x1D   | PUBLISH ({{message-publish}})                 | Request, First   |
+|--------|-----------------------------------------------|------------------|
+| 0x1E   | PUBLISH_OK ({{message-publish-ok}})           | Request          |
+|--------|-----------------------------------------------|------------------|
+| 0xB    | PUBLISH_DONE ({{message-publish-done}})       | Request          |
+|--------|-----------------------------------------------|------------------|
+| 0x16   | FETCH ({{message-fetch}})                     | Request, First   |
+|--------|-----------------------------------------------|------------------|
+| 0x18   | FETCH_OK ({{message-fetch-ok}})               | Request          |
+|--------|-----------------------------------------------|------------------|
+| 0xD    | TRACK_STATUS ({{message-track-status}})       | Request, First   |
+|--------|-----------------------------------------------|------------------|
+| 0x6    | PUBLISH_NAMESPACE ({{message-pub-ns}})        | Request, First   |
+|--------|-----------------------------------------------|------------------|
+| 0x11   | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})| Request, First   |
+|--------|-----------------------------------------------|------------------|
+| 0x8    | NAMESPACE ({{message-namespace}})             | Request          |
+|--------|-----------------------------------------------|------------------|
+| 0xE    | NAMESPACE_DONE ({{message-namespace-done}})   | Request          |
+|--------|-----------------------------------------------|------------------|
+| 0xF    | PUBLISH_BLOCKED ({{message-publish-blocked}}) | Request          |
+|--------|-----------------------------------------------|------------------|
+| 0x2    | REQUEST_UPDATE ({{message-request-update}})   | Request          |
+|--------|-----------------------------------------------|------------------|
+| 0x7    | REQUEST_OK ({{message-request-ok}})           | Request          |
+|--------|-----------------------------------------------|------------------|
+| 0x5    | REQUEST_ERROR ({{message-request-error}})     | Request          |
+|--------|-----------------------------------------------|------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
 Control messages have a length to make parsing easier, but no control messages
@@ -2615,15 +2615,22 @@ undermines the usefulness of implementation identification for debugging.
 ## GOAWAY {#message-goaway}
 
 An endpoint sends a `GOAWAY` message on its control stream to inform the peer
-it intends to close the session soon.  When sent by a server, it can initiate session migration
-({{session-migration}}) with an optional URI.  When sent by a client, the New
-Session URI MUST be zero length.
+it intends to close the session soon.  When sent by a server, it can initiate
+session migration ({{session-migration}}) with an optional URI.  A client MUST
+send a zero-length New Session URI in any GOAWAY, as clients cannot instruct
+servers to initiate connections.
+
+A `GOAWAY` MAY also be sent on a request stream to initiate migration of
+that individual request.  Upon receiving a GOAWAY on a request stream, the
+endpoint SHOULD re-issue that specific request on a session at the specified
+URI (or the current session if no URI is provided), and close the old request
+stream using the appropriate mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).
 
 The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually UNSUBSCRIBE for each existing subscription, while a
 publisher MAY reject new requests after sending a GOAWAY.
 
-Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to the
+Upon receiving a GOAWAY on the control stream, an endpoint SHOULD NOT initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE and TRACK_STATUS.
 
@@ -2634,7 +2641,8 @@ An endpoint that receives a GOAWAY MAY reject new requests with an appropriate
 error code (e.g., REQUEST_ERROR with error code GOING_AWAY).
 
 The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
-({{session-termination}}) if it receives multiple GOAWAY messages.
+({{session-termination}}) if it receives more than one GOAWAY on the
+control stream or on a single request stream.
 
 ~~~
 GOAWAY Message {
@@ -2643,15 +2651,15 @@ GOAWAY Message {
   New Session URI Length (vi64),
   New Session URI (..),
   Timeout (vi64),
-  Request ID (vi64),
+  [Request ID (vi64)],
 }
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
 
 * New Session URI: When received by a client, indicates where the client can
-  connect to continue this session.  The client MUST use this URI for the new
-  session if provided. If the URI is zero bytes long, the current URI is reused
-  instead. The new session URI SHOULD use the same scheme
+  connect to continue this session or re-issue this request.  The client MUST
+  use this URI for the new session if provided. If the URI is zero bytes long,
+  the current URI is reused instead. The new session URI SHOULD use the same scheme
   as the current URI to ensure compatibility.  The maximum length of the New
   Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
   maximum, it MUST close the session with a `PROTOCOL_VIOLATION`.
@@ -2659,21 +2667,25 @@ GOAWAY Message {
   If a server receives a GOAWAY with a non-zero New Session URI Length it MUST
   close the session with a `PROTOCOL_VIOLATION`.
 
-* Timeout: The time in milliseconds the sender will wait for the session to be
-  gracefully closed before closing the session with `GOAWAY_TIMEOUT`. A value of
-  0 indicates the sender has no specific timeout, and the recipient SHOULD still
-  close the session as quickly as possible. This is a hint; the sender of the
-  GOAWAY MAY close the session before the indicated timeout has elapsed.
+* Timeout: The time in milliseconds the sender will wait for graceful closure.
+  When sent on the control stream, the sender closes the session with
+  `GOAWAY_TIMEOUT` after the indicated timeout if there are still open requests.
+  When sent on a request stream, the sender SHOULD reset the stream with
+  `GOING_AWAY` after the indicated timeout.  A value of 0 indicates the sender has no
+  specific timeout, and the recipient SHOULD still migrate as quickly as
+  possible. This is a hint; the sender of the GOAWAY MAY close the session or
+  reset the stream before the indicated timeout has elapsed.
 
-* Request ID: The smallest peer Request ID that was not or might not have been
-  processed prior to sending the GOAWAY. If no requests have been processed,
-  this is 0 (at a server) or 1 (at a client). If the parity of the Request ID
-  does not match the receiver's parity, the endpoint MUST close the session with
-  `INVALID_REQUEST_ID`. Requests with a Request ID equal to or greater than the
-  indicated value, as well as any requests that arrive after the GOAWAY, MUST be
-  rejected with REQUEST_ERROR using error code GOING_AWAY. Requests with a
-  Request ID less than the indicated value were or might have been processed;
-  their status can be determined from the response on each request stream.
+* Request ID: Present only when sent on the control stream.  The smallest peer
+  Request ID that was not or might not have been processed prior to sending the
+  GOAWAY. If no requests have been processed, this is 0 (at a server) or 1 (at a
+  client). If the parity of the Request ID does not match the receiver's parity,
+  the endpoint MUST close the session with `INVALID_REQUEST_ID`. Requests with a
+  Request ID equal to or greater than the indicated value, as well as any
+  requests that arrive after the GOAWAY, MUST be rejected with REQUEST_ERROR
+  using error code GOING_AWAY. Requests with a Request ID less than the indicated
+  value were or might have been processed; their status can be determined from
+  the response on each request stream.
 
 ## REQUEST_OK {#message-request-ok}
 
