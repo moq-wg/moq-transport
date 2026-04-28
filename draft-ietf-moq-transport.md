@@ -1037,9 +1037,6 @@ uses CONNECT, which is not a safe method. {{?RFC8470}} describes the use of
 0-RTT with HTTP in more detail. If 0-RTT is used with an existing or future
 version of WebTransport, the following would apply to it as well as QUIC.
 
-0-RTT is not forward secure, so MOQT users need to consider that when
-deciding if 0-RTT is appropriate.
-
 MOQT Messages and Objects as defined in this draft are safe to replay in most
 circumstances.
 
