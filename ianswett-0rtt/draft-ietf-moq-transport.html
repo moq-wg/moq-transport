@@ -3010,54 +3010,52 @@ is not expected to use 0-RTT, because initializing a WebTransport session
 uses CONNECT, which is not a safe method. <span>[<a href="#RFC8470" class="cite xref">RFC8470</a>]</span> describes the use of
 0-RTT with HTTP in more detail. If 0-RTT is used with an existing or future
 version of WebTransport, the following would apply to it as well as QUIC.<a href="#section-3.3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-2">0-RTT is not forward secure, so MOQT users need to consider that when
-deciding if 0-RTT is appropriate.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-3">MOQT Messages and Objects as defined in this draft are safe to replay in most
-circumstances.<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-2">MOQT Messages and Objects as defined in this draft are safe to replay in most
+circumstances.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.3.1-4.1">
-              <p id="section-3.3.1-4.1.1">TRACK_STATUS gets the Largest Object and Track Properties, but does not
-change the state of a Track or any Object in the Track.<a href="#section-3.3.1-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-3.3.1-3.1">
+              <p id="section-3.3.1-3.1.1">TRACK_STATUS gets the Largest Object and Track Properties, but does not
+change the state of a Track or any Object in the Track.<a href="#section-3.3.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.3.1-4.2">
-              <p id="section-3.3.1-4.2.1">SUBSCRIBE requests Objects be delivered, but does not change the Objects
-being requested.<a href="#section-3.3.1-4.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-3.3.1-3.2">
+              <p id="section-3.3.1-3.2.1">SUBSCRIBE requests Objects be delivered, but does not change the Objects
+being requested.<a href="#section-3.3.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.3.1-4.3">
-              <p id="section-3.3.1-4.3.1">PUBLISH initiates a Subscription and Objects can be immediately sent to
+            <li class="normal" id="section-3.3.1-3.3">
+              <p id="section-3.3.1-3.3.1">PUBLISH initiates a Subscription and Objects can be immediately sent to
 the Subscriber. Processing the same Objects multiple times is
 idempotent, as the subscriber or relay can identify and discard
-duplicates based on the Group ID and Object ID.<a href="#section-3.3.1-4.3.1" class="pilcrow">¶</a></p>
+duplicates based on the Group ID and Object ID.<a href="#section-3.3.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.3.1-4.4">
-              <p id="section-3.3.1-4.4.1">SUBSCRIBE_NAMESPACE requests a list of namespaces and the establishment
+            <li class="normal" id="section-3.3.1-3.4">
+              <p id="section-3.3.1-3.4.1">SUBSCRIBE_NAMESPACE requests a list of namespaces and the establishment
 of new subscriptions, but does not change the available Namespaces,
-Tracks, or Objects contained within a Track.<a href="#section-3.3.1-4.4.1" class="pilcrow">¶</a></p>
+Tracks, or Objects contained within a Track.<a href="#section-3.3.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.3.1-4.5">
-              <p id="section-3.3.1-4.5.1">PUBLISH_NAMESPACE requests that Subscriptions under the namespace be sent
+            <li class="normal" id="section-3.3.1-3.5">
+              <p id="section-3.3.1-3.5.1">PUBLISH_NAMESPACE requests that Subscriptions under the namespace be sent
 to that Publisher. If a Subscription was sent to the replaying endpoint, it
-would fail because the endpoint cannot complete the handshake.<a href="#section-3.3.1-4.5.1" class="pilcrow">¶</a></p>
+would fail because the endpoint cannot complete the handshake.<a href="#section-3.3.1-3.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-3.3.1-5">Some potential side effects of replay are:<a href="#section-3.3.1-5" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-4">Some potential side effects of replay are:<a href="#section-3.3.1-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.3.1-6.1">
-              <p id="section-3.3.1-6.1.1">Publishing Objects that were previously published could cause those
+<li class="normal" id="section-3.3.1-5.1">
+              <p id="section-3.3.1-5.1.1">Publishing Objects that were previously published could cause those
 Objects to be distributed to active Subscriptions if the relays do
-not identify them as already having been published.<a href="#section-3.3.1-6.1.1" class="pilcrow">¶</a></p>
+not identify them as already having been published.<a href="#section-3.3.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-3.3.1-7">Replays could increase load on the MOQT network. For relay to client
+<p id="section-3.3.1-6">Replays could increase load on the MOQT network. For relay to client
 traffic, this is no worse than 0-RTT in HTTP/3, since the server is limited by
 the amplification factor until address validation. However, it could cause
 the relay to initiate new upstream Subscriptions. For a SUBSCRIBE_NAMESPACE
 that requested Subscriptions in the Namespace, sending that upstream could
 cause the Relay to receive a number of new Subscriptions on the replaying
-client's behalf.<a href="#section-3.3.1-7" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-8">Relays <span class="bcp14">SHOULD</span> implement rate-limiting or validation for 0-RTT requests
+client's behalf.<a href="#section-3.3.1-6" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-7">Relays <span class="bcp14">SHOULD</span> implement rate-limiting or validation for 0-RTT requests
 that trigger upstream subscriptions to mitigate resource exhaustion from
-replayed packets.<a href="#section-3.3.1-8" class="pilcrow">¶</a></p>
+replayed packets.<a href="#section-3.3.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="request-cancellation">
