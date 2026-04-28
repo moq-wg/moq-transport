@@ -666,35 +666,28 @@ to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
-1. An Object is received in a FETCH response with the same Group ID as the
-   previous Object, but whose Object ID is not strictly larger than the previous
-   object.
-2.  In a FETCH response, an Object with a particular Subgroup ID is received, but its
+1.  An Object with a particular Subgroup ID is received, but its
      Publisher Priority is different from that of the previous Object with the same
      Subgroup ID.
-3. An Object is received in an Ascending FETCH response whose Group ID is smaller
-   than the previous Object in the response.
-4. An Object is received in a Descending FETCH response whose Group ID is larger
-   than the previous Object in the response.
-5. An Object is received whose Object ID is larger than the final Object in the
+2. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-6. A Subgroup is received over multiple transport streams terminated by FIN with
+3. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-7. An Object is received in a Group whose Object
+4. An Object is received in a Group whose Object
    ID is larger than the final Object in the Group.  The final Object in a Group
    is the Object with Status END_OF_GROUP, or the last Object before a FIN in a
    Subgroup which has the END_OF_GROUP bit set.  If the end of a Group is
    implicitly determined via a gap in a FETCH response, the final Object in the
    Group remains unknown.
-8. An Object is received whose Group and Object ID are larger than
+5. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
    with Status END_OF_TRACK or the last Object sent in a FETCH whose response
    indicated End of Track.
-9. The same Object is received more than once with different Payload or
-    other immutable properties.
-10. An Object is received with a different Forwarding Preference than previously
-    observed.
+6. The same Object is received more than once with different Payload or
+   other immutable properties.
+7. An Object is received with a different Forwarding Preference than previously
+   observed.
 
 The above list of conditions is not considered exhaustive.
 
@@ -1407,7 +1400,7 @@ or REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
 
 A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
-or REQUEST_OK (in response to a REQUEST_UPDATE) that changes the Forward State
+or REQUEST_UPDATE_OK that changes the Forward State
 from 0 to 1.  This value is called the Joining Location and can be used in a
 Joining FETCH (see {{joining-fetches}}) while the subscription is in the
 `Established` state.
@@ -1950,7 +1943,8 @@ relay is managed and is application specific.
 When a publisher wants to stop new subscriptions for a published namespace, it
 cancels the request (see {{request-cancellation}}) to withdraw the PUBLISH_NAMESPACE.
 A subscriber indicates it will no longer subscribe to Tracks in a namespace it
-previously responded REQUEST_OK to by cancelling the PUBLISH_NAMESPACE request.
+previously responded PUBLISH_NAMESPACE_OK to by cancelling the
+PUBLISH_NAMESPACE request.
 
 A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
@@ -2025,7 +2019,7 @@ receiving the Objects on the same subscription.
 ## Relay Track Handling
 
 A relay MUST include all Properties associated with a Track when sending any PUBLISH,
-SUBSCRIBE_OK, REQUEST_OK when in response to a TRACK_STATUS, or FETCH_OK, unless
+SUBSCRIBE_OK, TRACK_STATUS_OK, or FETCH_OK, unless
 allowed by the property's specification (see {{properties}}).
 
 ## Relay Object Handling
@@ -2480,7 +2474,7 @@ unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 ### EXPIRES Parameter {#expires}
 
 The EXPIRES parameter (Parameter Type 0x8) is a varint. It MAY appear in
-SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_OK. It encodes the time
+SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_UPDATE_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or by cancelling the request (see {{request-cancellation}}).  This value is advisory and the sender
@@ -2490,7 +2484,7 @@ The receiver of the parameter can attempt to extend the subscription by sending
 a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
 more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
 REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
-value in REQUEST_OK. Relays that send this parameter and applications that
+value in REQUEST_UPDATE_OK. Relays that send this parameter and applications that
 receive it MAY introduce jitter to prevent many endpoints from updating
 simultaneously.
 
@@ -2500,8 +2494,8 @@ does not expire or expires at an unknown time.
 ### LARGEST OBJECT Parameter {#largest-param}
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
-in SUBSCRIBE_OK, PUBLISH or in REQUEST_OK (in response to REQUEST_UPDATE or
-TRACK_STATUS). It contains the largest Location (see {{location-structure}}) in the
+in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, or TRACK_STATUS_OK.
+It contains the largest Location (see {{location-structure}}) in the
 Track observed by the sending endpoint (see {{subscription-filters}}). If Objects
 have been published on this Track the Publisher MUST include this parameter.
 
@@ -2740,8 +2734,12 @@ GOAWAY Message {
 
 ## REQUEST_OK {#message-request-ok}
 
-The REQUEST_OK message is sent to a response to REQUEST_UPDATE, TRACK_STATUS,
+The REQUEST_OK message is sent in response to REQUEST_UPDATE, TRACK_STATUS,
 SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests.
+
+This document uses the shorthand REQUEST_UPDATE_OK,
+TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and PUBLISH_NAMESPACE_OK to refer to
+a REQUEST_OK sent in response to the corresponding request type.
 
 ~~~
 REQUEST_OK Message {
@@ -2759,10 +2757,10 @@ REQUEST_OK Message {
 * Track Properties : A sequence of Properties. See {{properties}}. The
   length of Track Properties is the remaining length of the message
   after parsing all previous fields. Track Properties are populated in
-  response to TRACK_STATUS messages; they are empty in response to
-  REQUEST_UPDATE, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE.  If an
-  endpoint receives Track Properties in response to one of these messages
-  it MUST close the session with a `PROTOCOL_VIOLATION`.
+  TRACK_STATUS_OK; they are empty in REQUEST_UPDATE_OK,
+  SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
+  receives Track Properties in one of these messages it MUST close the
+  session with a `PROTOCOL_VIOLATION`.
 
 ## REQUEST_ERROR {#message-request-error}
 
@@ -2977,8 +2975,8 @@ any necessary Objects smaller than the current Largest Location.
 
 When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
-create a gap in the subscription. The REQUEST_OK in response to the
-REQUEST_UPDATE will include the LARGEST_OBJECT parameter, and the subscriber
+create a gap in the subscription. The REQUEST_UPDATE_OK will include the
+LARGEST_OBJECT parameter, and the subscriber
 can issue a FETCH to retrieve the omitted Objects, if any.
 
 When a subscriber narrows their subscription (increase the Start Location and/or
@@ -3241,7 +3239,7 @@ Forward State 1; otherwise the publisher MUST close the session with a
 messages for the associated subscription before evaluating the current
 request. Relays with an upstream subscription in transition from Forward State 0
 to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
-the upstream subscription returns REQUEST_OK with the new Largest Object.
+the upstream subscription returns REQUEST_UPDATE_OK with the new Largest Object.
 
 If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
@@ -3418,11 +3416,11 @@ delivery (e.g. SUBSCRIBER_PRIORITY) are not included.
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
-REQUEST_OK message with the same parameters and Track Properties it would have
+TRACK_STATUS_OK with the same parameters and Track Properties it would have
 set in a SUBSCRIBE_OK. Track Alias is not used.  A publisher responds to a
 failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
-REQUEST_OK or REQUEST_ERROR are sent.
+TRACK_STATUS_OK or REQUEST_ERROR are sent.
 
 Relays without an `Established` subscription MAY forward TRACK_STATUS to one or more
 publishers, or MAY initiate a subscription (subject to authorization) as
@@ -4064,9 +4062,9 @@ format:
 ~~~
 {
   Serialization Flags (vi64),
-  [Group ID (vi64),]
+  [Group ID Delta (vi64),]
   [Subgroup ID (vi64),]
-  [Object ID (vi64),]
+  [Object ID Delta (vi64),]
   [Publisher Priority (8),]
   [Properties (..),]
   Object Payload Length (vi64),
@@ -4103,15 +4101,31 @@ the corresponding condition is true.
 
 Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
-0x04 | Object ID field is present | Object ID is the prior Object's ID plus one
-0x08 | Group ID field is present | Group ID is the prior Object's Group ID
+0x04 | Object ID Delta is present | Object ID is the prior Object's ID plus one
+0x08 | Group ID Delta is present | Group ID is the prior Object's Group ID
 0x10 | Priority field is present | Priority is the prior Object's Priority
 0x20 | Properties field is present | Properties field is not present
 0x40 | Datagram: ignore the two least significant bits | Decode the Subgroup ID as indicated by the two least significant bits
 
-If the first Object in the FETCH response uses a flag that references fields in
-the prior Object, the Subscriber MUST close the session with a
-`PROTOCOL_VIOLATION`.
+The first Object MUST include a Group ID Delta and Object ID Delta, and
+these values are the absolute Group ID and Object ID. If the first Object in
+the FETCH response uses a flag that references fields in the prior Object,
+the Subscriber MUST close the session with a `PROTOCOL_VIOLATION`.
+
+If the Group ID Delta field is present on an Object other than the first, the
+Group ID is computed from the Group ID Delta and the prior Object's Group ID.
+If the Group Order is Ascending, the Group ID is the prior Object's Group ID
+plus the Group ID Delta + 1.  If the Group Order is Descending, the Group ID is
+the prior Object's Group ID minus the (Group ID Delta + 1). If the computed
+Group ID would be less than 0 or greater than 2^64-1, the Subscriber MUST
+close the Session with error 'PROTOCOL_VIOLATION'.
+
+When the Group ID Delta field is present, the Object ID is the value of Object ID Delta if
+present. When the Group ID Delta field is not present, the Object ID is the prior Object's ID
+plus the Object ID Delta if present. If Object ID Delta is not present, the Object ID is the
+prior Object's ID plus one, regardless of which group it belongs to. If the computed Object ID
+would be greater than 2^64-1, the Subscriber MUST close the Session with error
+'PROTOCOL_VIOLATION'.
 
 The Object Properties structure is defined in {{object-properties}}.
 
