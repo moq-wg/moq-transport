@@ -1286,7 +1286,8 @@ All subscriptions begin in the `Idle` state. A subscription can be
 initiated and moved to the `Pending` state by either a publisher or a
 subscriber.  A publisher initiates a subscription to a track by
 sending the PUBLISH message.  The subscriber either accepts or rejects
-the subscription using PUBLISH_OK or REQUEST_ERROR.  A subscriber
+the subscription using PUBLISH_OK ({{message-request-ok}}) or
+REQUEST_ERROR.  A subscriber
 initiates a subscription to a track by sending the SUBSCRIBE message.
 The publisher either accepts or rejects the subscription using
 SUBSCRIBE_OK or REQUEST_ERROR.  Once either of these sequences is
@@ -1331,8 +1332,8 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
 ~~~
 
 A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
-a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
-response to a PUBLISH. The peer SHOULD close the session with a protocol error
+a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK
+({{message-request-ok}}) or REQUEST_ERROR in response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
 All `Established` subscriptions have a Forward State which is either 0 or 1.
@@ -2019,8 +2020,6 @@ new request stream.
 |--------|-----------------------------------------------|----------------|
 | 0x1D   | PUBLISH ({{message-publish}})                 | Request, First |
 |--------|-----------------------------------------------|----------------|
-| 0x1E   | PUBLISH_OK ({{message-publish-ok}})           | Request        |
-|--------|-----------------------------------------------|----------------|
 | 0xB    | PUBLISH_DONE ({{message-publish-done}})       | Request        |
 |--------|-----------------------------------------------|----------------|
 | 0x16   | FETCH ({{message-fetch}})                     | Request, First |
@@ -2677,12 +2676,13 @@ GOAWAY Message {
 
 ## REQUEST_OK {#message-request-ok}
 
-The REQUEST_OK message is sent in response to REQUEST_UPDATE, TRACK_STATUS,
-SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests.
+The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
+TRACK_STATUS, SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests.
 
-This document uses the shorthand REQUEST_UPDATE_OK,
-TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and PUBLISH_NAMESPACE_OK to refer to
-a REQUEST_OK sent in response to the corresponding request type.
+This document uses the shorthand PUBLISH_OK,
+REQUEST_UPDATE_OK, TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and
+PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
+corresponding request type.
 
 ~~~
 REQUEST_OK Message {
@@ -2700,7 +2700,7 @@ REQUEST_OK Message {
 * Track Properties : A sequence of Properties. See {{properties}}. The
   length of Track Properties is the remaining length of the message
   after parsing all previous fields. Track Properties are populated in
-  TRACK_STATUS_OK; they are empty in REQUEST_UPDATE_OK,
+  TRACK_STATUS_OK; they are empty in PUBLISH_OK, REQUEST_UPDATE_OK,
   SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
   receives Track Properties in one of these messages it MUST close the
   session with a `PROTOCOL_VIOLATION`.
@@ -2993,25 +2993,6 @@ publisher will start transmitting objects immediately, possibly before
 PUBLISH_OK.
 
 
-## PUBLISH_OK {#message-publish-ok}
-
-The subscriber sends a PUBLISH_OK as the first response message on the
-bidi stream to acknowledge the successful authorization and acceptance of a
-PUBLISH message, and establish a subscription.
-
-~~~
-PUBLISH_OK Message {
-  Type (vi64) = 0x1E,
-  Length (16),
-  Number of Parameters (vi64),
-  Parameters (..) ...,
-}
-~~~
-{: #moq-transport-publish-ok format title="MOQT PUBLISH_OK Message"}
-
-* Parameters: The parameters are defined in {{message-params}}.
-
-
 ## PUBLISH_DONE {#message-publish-done}
 
 A publisher sends a `PUBLISH_DONE` message as the final message before
@@ -3177,8 +3158,9 @@ A Subscriber can use a Joining Fetch to, for example, fill a playback buffer
 with a certain number of groups prior to the live edge of a track.
 
 A Joining Fetch is only permitted when the associated subscription has
-Forward State 1; otherwise the publisher MUST close the session with a
-`PROTOCOL_VIOLATION`. A publisher MUST process any pending REQUEST_UPDATE
+Forward State 1; otherwise the publisher MUST respond with a
+REQUEST_ERROR with error code `INVALID_RANGE`. A publisher MUST process
+any pending REQUEST_UPDATE
 messages for the associated subscription before evaluating the current
 request. Relays with an upstream subscription in transition from Forward State 0
 to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
