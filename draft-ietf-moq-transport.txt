@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 29 October 2026                                   I. Swett, Ed.
+Expires: 31 October 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           27 April 2026
+                                                           29 April 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 October 2026.
+   This Internet-Draft will expire on 31 October 2026.
 
 Copyright Notice
 
@@ -3505,13 +3505,14 @@ Table of Contents
    track.
 
    A Joining Fetch is only permitted when the associated subscription
-   has Forward State 1; otherwise the publisher MUST close the session
-   with a PROTOCOL_VIOLATION.  A publisher MUST process any pending
-   REQUEST_UPDATE messages for the associated subscription before
-   evaluating the current request.  Relays with an upstream subscription
-   in transition from Forward State 0 to 1 can either send a Joining
-   Fetch upstream or buffer the Joining Fetch until the upstream
-   subscription returns REQUEST_UPDATE_OK with the new Largest Object.
+   has Forward State 1; otherwise the publisher MUST respond with a
+   REQUEST_ERROR with error code INVALID_RANGE.  A publisher MUST
+   process any pending REQUEST_UPDATE messages for the associated
+   subscription before evaluating the current request.  Relays with an
+   upstream subscription in transition from Forward State 0 to 1 can
+   either send a Joining Fetch upstream or buffer the Joining Fetch
+   until the upstream subscription returns REQUEST_UPDATE_OK with the
+   new Largest Object.
 
    If no Objects have been published for the track the publisher MUST
    respond with a REQUEST_ERROR with error code INVALID_RANGE.
