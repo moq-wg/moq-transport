@@ -1817,7 +1817,7 @@ Table of Contents
 
    If a publisher is authoritative for a given namespace, or is a relay
    that has received an authorized PUBLISH_NAMESPACE for that namespace
-   from an upstream publisher, it MUST send a PUBLISH_NAMESPACE to any
+   from an upstream publisher, it MUST send a NAMESPACE to any
    subscriber that has subscribed via SUBSCRIBE_NAMESPACE for that
    namespace, or a prefix of that namespace.  A publisher MAY send the
    PUBLISH_NAMESPACE to any other subscriber.

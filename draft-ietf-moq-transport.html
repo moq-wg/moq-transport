@@ -3666,7 +3666,7 @@ available in that namespace. A subscriber <span class="bcp14">MAY</span> send SU
 in a namespace without having received a PUBLISH_NAMESPACE for it.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.2-2">If a publisher is authoritative for a given namespace, or is a relay that has
 received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
-publisher, it <span class="bcp14">MUST</span> send a PUBLISH_NAMESPACE to any subscriber that has
+publisher, it <span class="bcp14">MUST</span> send a NAMESPACE to any subscriber that has
 subscribed via SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher <span class="bcp14">MAY</span> send the PUBLISH_NAMESPACE to any other subscriber.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
 <p id="section-6.2-3">An endpoint <span class="bcp14">SHOULD</span> report the reception of a REQUEST_OK or
