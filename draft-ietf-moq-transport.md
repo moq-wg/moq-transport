@@ -4394,6 +4394,18 @@ which resources the end point providing the token is authorized to
 perform and access. Relays when receiving requests will verify the
 token to determine that the request made is authorized.
 
+### Replay Attacks
+
+Authorization tokens SHOULD include mechanisms to prevent replay
+attacks. Common Access Tokens {{CAT}} provide replay protection through
+DPoP (Demonstrating Proof-of-Possession), which binds tokens to client
+cryptographic keys and requires fresh proofs with unique identifiers
+(jti) and timestamps for each request. Privacy Pass {{PPA}} tokens
+include a client-generated nonce for uniqueness and bind tokens to
+their issuance context through a challenge digest. Relays SHOULD track
+token identifiers within a configured time window to detect and reject
+replayed tokens.
+
 ## Media Security  {#sec-media}
 
 The MOQT hop-by-hop model does provide hop by hop confidentiality and
