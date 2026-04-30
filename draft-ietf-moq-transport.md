@@ -1060,7 +1060,7 @@ Some potential side effects of replay are:
 * Publishing Objects that were previously published could cause those
   Objects to be distributed to active Subscriptions if the relays do
   not identify them as already having been published. This re-distribution could
-  also make them available in cache again after they previously had expired.
+  also make them available in cache again after they previously expired.
 
 Replays could increase load on the MOQT network. For relay to client
 traffic, this is no worse than 0-RTT in HTTP/3, since the server is limited by
