@@ -4338,6 +4338,15 @@ namespaces. Relays that aggregate subscriptions from multiple
 downstream subscribers MUST ensure each subscriber is independently
 authorized.
 
+### Subscription Amplification
+
+A malicious subscriber could attempt to overwhelm a publisher or relay
+by requesting subscriptions to many tracks simultaneously. Relays
+SHOULD implement rate limiting on subscription requests and MAY reject
+excessive subscriptions with REQUEST_ERROR. Publishers SHOULD monitor
+the number of active subscriptions and enforce limits to prevent
+resource exhaustion from a single subscriber or session.
+
 TODO: Describe Cache Poisoning attacks
 
 ## Communication Security
