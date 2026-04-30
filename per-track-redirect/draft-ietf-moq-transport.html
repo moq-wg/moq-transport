@@ -5060,16 +5060,15 @@ receives a Redirect with a non-zero Connect URI Length it <span class="bcp14">MU
 session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.7.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.7.1-3.2">
-              <p id="section-9.7.1-3.2.1">Track Namespace: The Track Namespace to use for the redirected request. If
-both Track Namespace and Track Name have zero length, the redirected request
-uses the same Full Track Name as the original request.<a href="#section-9.7.1-3.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.7.1-3.3">
-              <p id="section-9.7.1-3.3.1">Track Name: The Track Name to use for the redirected request. Track Name
-is not meaningful for namespace-scoped requests (SUBSCRIBE_NAMESPACE,
-PUBLISH_NAMESPACE) and <span class="bcp14">MUST</span> be empty; an endpoint that receives a non-empty
-Track Name in a Redirect for a namespace-scoped request <span class="bcp14">MUST</span> close the session
-with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.7.1-3.3.1" class="pilcrow">¶</a></p>
+              <p id="section-9.7.1-3.2.1">Track Namespace and Track Name: The Track Namespace and Track Name to use
+for the redirected request. If both have zero length, the redirected request
+uses the same values as the original request. Otherwise, Track Namespace and
+Track Name are the literal values for the redirected request.<a href="#section-9.7.1-3.2.1" class="pilcrow">¶</a></p>
+<p id="section-9.7.1-3.2.2">
+Track Name is not meaningful for namespace-scoped requests
+(SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE) and <span class="bcp14">MUST</span> be empty; an endpoint that
+receives a non-empty Track Name in a Redirect for a namespace-scoped request
+<span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.7.1-3.2.2" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
