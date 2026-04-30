@@ -4347,7 +4347,7 @@ integrity and endpoint authentication between subscriber and
 publisher. Implementations use QUIC or WebTransport to fulfill
 the basic communication security requirements and these
 implementations SHOULD follow best practices for TLS 1.3 and QUIC.
-Relay authentication is required to
+Relays MUST be authenticated to
 prevent impersonation of relays.
 
 It must be noted that the basic security protection offered by QUIC or
@@ -4363,7 +4363,7 @@ depend on TLS based mechanisms due to challenges with identifiers and
 certificate distribution. Instead they rely primarily on
 token based schemes.
 
-Relays will be identified using TLS based authentication to prevent
+Relays SHOULD be identified using TLS based authentication to prevent
 impersonation attacks. Mutual TLS is expected to be widely used for
 node level identification between relays, especially within one
 organization. However, in some deployments mutual TLS may be possible
