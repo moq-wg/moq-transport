@@ -5177,9 +5177,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 13
 
-   The following table contains provisional registrations for draft-
-   ietf-moq-loc.  These entries share the same Property Type space as
-   the table above.
+   The following table contains provisional registrations for other
+   active drafts in the moq wg.  These entries share the same Property
+   Type space as the table above.
 
     +======+=====================+===============+====================+
     | Type | Name                | Scope         | Specification      |
