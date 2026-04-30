@@ -4318,7 +4318,7 @@ An Object MUST NOT contain more than one instance of this property.
 
 MOQT is a protocol used hop-by-hop in a chain between original
 publishers to relay, (possibly) relay to relay, and relay to end
-subscribers. Thus, the security consideration need to consider first
+subscribers. Thus, the security considerations need to consider first
 what happens between two nodes, but also consider the impacts end to
 end over several hops of MOQT.
 
@@ -4351,7 +4351,7 @@ appropriate  {{sec-authorization}}.
 
 It must be noted that the basic security protection offered by QUIC or
 TCP/TLS does not prevent traffic pattern analysis as object
-sizes, sizes of request messages etc can make it possible for an third
+sizes, sizes of request messages etc can make it possible for a third
 party observer of the traffic between subscriber and publisher to
 identify media content, user patterns and media stream origin.
 
@@ -4363,7 +4363,7 @@ certificate distribution. Instead they rely primarily on
 token based schemes.
 
 Relays will be identified using TLS based authentication to prevent
-impersanation attacks. Mutual TLS is expected to be widely used for
+impersonation attacks. Mutual TLS is expected to be widely used for
 node level identification between relays, especially within one
 organization. However, in some deployments mutual TLS may be possible
 to use also for end subscribers or original publishers. However, as
@@ -4379,14 +4379,14 @@ current tokens are Privacy Pass Authentication for Media over QUIC
 {{PPA}} and Authentication scheme for MOQT using Common Access Tokens
 {{CAT}}.
 
-The tokens is expected to contain information about which actions and
+Tokens are expected to contain information about which actions and
 which resources the end point providing the token is authorized to
 perform and access. Relays when receiving requests will verify the
 token to determine that the request made is authorized.
 
 ## Media Security  {#sec-media}
 
-The MOQT hop-by-hop model do provide hop by hop confidentiality and
+The MOQT hop-by-hop model does provide hop by hop confidentiality and
 integrity protection of the media objects. However, due to the
 hop-by-hop model media objects unless additionally protected are
 subject to access by the relay as well as modification intentional as
@@ -4397,21 +4397,21 @@ original publishers are subject to several considerations. The first
 is source authenticity, i.e. to know that the received media objects
 are what the original publisher actually published. The information
 needing to be source authenticated is not only the encoded media
-itself, but also some meta data. For example timestamps are cruical to
+itself, but also some meta data. For example timestamps are crucial to
 understand where on the timeline this media fragment belongs.
 
 The second aspect is content confidentiality, i.e. how to prevent the
 relays from having access to the media content itself and minimize what
 the relay can deduce about the content. Media object
 sizes and traffic patterns do enable some analysis of the
-content. Also the track namespace and track name is possible to
+content. Also the track namespace and track name are possible to
 analyze and also correlate between end subscribers by relays.
 
-The end-to-end media security are handled by mechanisms external to this
+The end-to-end media security is handled by mechanisms external to this
 specification. They need to provide source authenticity and
-confidentiality. MOQT's media object model do enable both the media
+confidentiality. MOQT's media object model does enable both the media
 data itself as well as media object headers to be confidentiality and
-integrity protected, as well a supporting a class of visible to relay
+integrity protected, as well as supporting a class of visible to relay
 headers that are integrity protected but not encrypted.
 
 Current proposals for media security include:
