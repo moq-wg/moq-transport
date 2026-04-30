@@ -4674,6 +4674,17 @@ Setup Options SHOULD request a provisional registration.
 | 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
 | 0x7f * N + 0x9D | Reserved for greasing | Any | {{grease}} |
 
+The following table contains provisional registrations for draft-ietf-moq-loc.
+These entries share the same Property Type space as the table above.
+
+| Type | Name | Scope | Specification |
+|-----:|:-----|:------|:--------------|
+| 0x06 | TIMESTAMP | Object | draft-ietf-moq-loc |
+| 0x08 | TIMESCALE | Track, Object | draft-ietf-moq-loc |
+| 0x0A | VIDEO_FRAME_MARKING | Object | draft-ietf-moq-loc |
+| 0x0C | AUDIO_LEVEL | Object | draft-ietf-moq-loc |
+| 0x0D | VIDEO_CONFIG | Object | draft-ietf-moq-loc |
+
 Endpoints MUST ignore unknown Property types, skipping them using
 the length field.
 
