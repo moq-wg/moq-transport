@@ -1044,7 +1044,7 @@ circumstances.
   change the state of a Track or any Object in the Track.
 * SUBSCRIBE requests Objects be delivered, but does not change the Objects
   being requested.
-* PUBLISH initiates a Subscription and Objects can be immediately sent to
+* PUBLISH initiates a Subscription. Objects can be immediately sent to
   the Subscriber. Processing the same Objects multiple times is
   idempotent, as the subscriber or relay can identify and discard
   duplicates based on the Group ID and Object ID.
