@@ -4330,7 +4330,13 @@ within the chain from original publisher to end subscribers will have
 access to track identifiers as well as the object's content
 unless it is end-to-end encrypted {{sec-media}}.
 
-TODO: Expand this section, including subscriptions.
+Subscriptions require authorization to prevent unauthorized access to
+content. Relays MUST verify that subscribers are authorized before
+forwarding content. Subscription requests can carry authorization
+tokens to prove the subscriber's right to access specific tracks or
+namespaces. Relays that aggregate subscriptions from multiple
+downstream subscribers MUST ensure each subscriber is independently
+authorized.
 
 TODO: Describe Cache Poisoning attacks
 
