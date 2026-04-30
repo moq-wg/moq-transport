@@ -3043,7 +3043,8 @@ would fail because the endpoint cannot complete the handshake.<a href="#section-
 <li class="normal" id="section-3.3.1-5.1">
               <p id="section-3.3.1-5.1.1">Publishing Objects that were previously published could cause those
 Objects to be distributed to active Subscriptions if the relays do
-not identify them as already having been published.<a href="#section-3.3.1-5.1.1" class="pilcrow">¶</a></p>
+not identify them as already having been published. This re-distribution could
+also make them available in cache again after they previously expired.<a href="#section-3.3.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-3.3.1-6">Replays could increase load on the MOQT network. For relay to client
