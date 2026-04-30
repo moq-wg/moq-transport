@@ -205,16 +205,19 @@ Table of Contents
      11.7.  Prior Group ID Gap
      11.8.  Prior Object ID Gap
    12. Security Considerations
-     12.1.  Communication Security
-     12.2.  Authorization
-     12.3.  Media Security
-     12.4.  Resource Exhaustion
-     12.5.  Timeouts
-       12.5.1.  Idle Connection Handling
-     12.6.  Relay security considerations
-       12.6.1.  State maintenance
-       12.6.2.  SUBSCRIBE_NAMESPACE with short prefixes
-     12.7.  Implementation Identification Fingerprinting
+     12.1.  Subscription Amplification
+     12.2.  Communication Security
+     12.3.  Authorization
+       12.3.1.  Replay Attacks
+     12.4.  Media Security
+       12.4.1.  Key Management
+     12.5.  Resource Exhaustion
+     12.6.  Timeouts
+       12.6.1.  Idle Connection Handling
+     12.7.  Relay security considerations
+       12.7.1.  State maintenance
+       12.7.2.  SUBSCRIBE_NAMESPACE with short prefixes
+     12.8.  Implementation Identification Fingerprinting
    13. Grease
    14. IANA Considerations
      14.1.  URI Scheme Registrations
@@ -4752,7 +4755,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    limit monitoring and leakage of privacy sensitive information.  The
    relays within the chain from original publisher to end subscribers
    will have access to track identifiers as well as the object's content
-   unless it is end-to-end encrypted Section 12.3.
+   unless it is end-to-end encrypted Section 12.4.
 
    Subscriptions require authorization to prevent unauthorized access to
    content.  Relays MUST verify that subscribers are authorized before
@@ -4762,9 +4765,18 @@ EXT 1 and EXT N can be modified or removed by Relays
    downstream subscribers MUST ensure each subscriber is independently
    authorized.
 
+12.1.  Subscription Amplification
+
+   A malicious subscriber could attempt to overwhelm a publisher or
+   relay by requesting subscriptions to many tracks simultaneously.
+   Relays SHOULD implement rate limiting on subscription requests and
+   MAY reject excessive subscriptions with REQUEST_ERROR.  Publishers
+   SHOULD monitor the number of active subscriptions and enforce limits
+   to prevent resource exhaustion from a single subscriber or session.
+
    TODO: Describe Cache Poisoning attacks
 
-12.1.  Communication Security
+12.2.  Communication Security
 
    MOQT depends on a secure transport to provide confidentiality,
    integrity and endpoint authentication between subscriber and
@@ -4779,7 +4791,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    observer of the traffic between subscriber and publisher to identify
    media content, user patterns and media stream origin.
 
-12.2.  Authorization
+12.3.  Authorization
 
    Authentication of original publishers and end subscribers does not
    depend on TLS based mechanisms due to challenges with identifiers and
@@ -4808,7 +4820,19 @@ EXT 1 and EXT N can be modified or removed by Relays
    perform and access.  Relays when receiving requests will verify the
    token to determine that the request made is authorized.
 
-12.3.  Media Security
+12.3.1.  Replay Attacks
+
+   Authorization tokens SHOULD include mechanisms to prevent replay
+   attacks.  Common Access Tokens [CAT] provide replay protection
+   through DPoP (Demonstrating Proof-of-Possession), which binds tokens
+   to client cryptographic keys and requires fresh proofs with unique
+   identifiers (jti) and timestamps for each request.  Privacy Pass
+   [PPA] tokens include a client-generated nonce for uniqueness and bind
+   tokens to their issuance context through a challenge digest.  Relays
+   SHOULD track token identifiers within a configured time window to
+   detect and reject replayed tokens.
+
+12.4.  Media Security
 
    The MOQT hop-by-hop model does provide hop by hop confidentiality and
    integrity protection of the media objects.  However, due to the hop-
@@ -4842,7 +4866,17 @@ EXT 1 and EXT N can be modified or removed by Relays
    Current proposals for media security include: - An E2EE scheme based
    on SFRAME: [I-D.jennings-moq-secure-objects].
 
-12.4.  Resource Exhaustion
+12.4.1.  Key Management
+
+   End-to-end encryption requires secure key distribution between
+   original publishers and end subscribers without exposing keys to
+   intermediate relays.  Key management schemes SHOULD support key
+   rotation to limit the impact of key compromise.  The key distribution
+   mechanism is outside the scope of MOQT but MUST ensure that only
+   authorized subscribers can obtain decryption keys for protected
+   content.
+
+12.5.  Resource Exhaustion
 
    Live content requires significant bandwidth and resources.  Failure
    to set limits will quickly cause resource exhaustion.
@@ -4860,14 +4894,14 @@ EXT 1 and EXT N can be modified or removed by Relays
    publisher and subscriber MUST cancel a stream, preferably the one
    with the lowest priority, after reaching a resource limit.
 
-12.5.  Timeouts
+12.6.  Timeouts
 
    Implementations are advised to use timeouts to prevent resource
    exhaustion attacks by a peer that does not send expected data within
    an expected time.  Each implementation is expected to set its own
    timeouts.
 
-12.5.1.  Idle Connection Handling
+12.6.1.  Idle Connection Handling
 
    The transport connection (e.g., QUIC) underlying a MOQT session can
    close due to idle timeout if no data is exchanged, either because
@@ -4890,9 +4924,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    The choice of mechanism is implementation-specific.
 
-12.6.  Relay security considerations
+12.7.  Relay security considerations
 
-12.6.1.  State maintenance
+12.7.1.  State maintenance
 
    A Relay SHOULD have mechanisms to prevent malicious endpoints from
    flooding it with PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests
@@ -4902,7 +4936,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    SUBSCRIBE_NAMESPACE requests that cause the state maintenance for the
    session to be excessive.
 
-12.6.2.  SUBSCRIBE_NAMESPACE with short prefixes
+12.7.2.  SUBSCRIBE_NAMESPACE with short prefixes
 
    A Relay can use authorization rules in order to prevent subscriptions
    closer to the root of a large prefix tree.  Otherwise, if an entity
@@ -4911,7 +4945,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    changes occur in the tree of namespaces, the relay would have to send
    matching NAMESPACE/NAMESPACE_DONE messages.
 
-12.7.  Implementation Identification Fingerprinting
+12.8.  Implementation Identification Fingerprinting
 
    The MOQT_IMPLEMENTATION option (Section 9.4.1.5) can reveal
    information that contributes to fingerprinting, a set of techniques
