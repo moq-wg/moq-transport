@@ -4344,11 +4344,6 @@ implementations SHOULD follow best practices for TLS 1.3 and QUIC.
 Relay authentication is required to
 prevent impersonation of relays.
 
-Authentication of original publishers and end subscribers does not
-depend on TLS based mechanisms due to challenges with identifiers and
-certificate distribution, although mutual TLS MAY be used when
-appropriate  {{sec-authorization}}.
-
 It must be noted that the basic security protection offered by QUIC or
 TCP/TLS does not prevent traffic pattern analysis as object
 sizes, sizes of request messages etc can make it possible for a third
