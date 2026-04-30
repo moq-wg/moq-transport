@@ -4439,6 +4439,15 @@ headers that are integrity protected but not encrypted.
 Current proposals for media security include:
  - An E2EE scheme based on SFRAME: {{I-D.jennings-moq-secure-objects}}.
 
+### Key Management
+
+End-to-end encryption requires secure key distribution between original
+publishers and end subscribers without exposing keys to intermediate
+relays. Key management schemes SHOULD support key rotation to limit the
+impact of key compromise. The key distribution mechanism is outside the
+scope of MOQT but MUST ensure that only authorized subscribers can
+obtain decryption keys for protected content.
+
 ## Resource Exhaustion
 
 Live content requires significant bandwidth and resources.  Failure to
