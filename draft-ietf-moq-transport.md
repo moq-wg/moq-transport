@@ -2737,7 +2737,9 @@ Redirect {
   receives a Redirect with a non-zero Connect URI Length it MUST close the
   session with a `PROTOCOL_VIOLATION`.
 
-* Track Namespace: The Track Namespace to use for the redirected request.
+* Track Namespace: The Track Namespace to use for the redirected request. If
+  both Track Namespace and Track Name have zero length, the redirected request
+  uses the same Full Track Name as the original request.
 
 * Track Name: The Track Name to use for the redirected request. Track Name
   is not meaningful for namespace-scoped requests (SUBSCRIBE_NAMESPACE,
