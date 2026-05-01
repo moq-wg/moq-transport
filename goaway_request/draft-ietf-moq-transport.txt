@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 30 October 2026                                   I. Swett, Ed.
+Expires: 2 November 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           28 April 2026
+                                                              1 May 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 October 2026.
+   This Internet-Draft will expire on 2 November 2026.
 
 Copyright Notice
 
@@ -2992,9 +2992,9 @@ Table of Contents
       if there are still open requests.  When sent on a request stream,
       the sender SHOULD reset the stream with GOING_AWAY after the
       indicated timeout.  A value of 0 indicates the sender has no
-      specific timeout, and the recipient SHOULD still migrate as
-      quickly as possible.  This is a hint; the sender of the GOAWAY MAY
-      close the session or reset the stream before the indicated timeout
+      specific timeout, but the recipient SHOULD migrate as quickly as
+      possible.  This is a hint; the sender of the GOAWAY MAY close the
+      session or reset the request stream before the indicated timeout
       has elapsed.
 
    *  Request ID: Present only when sent on the control stream.  The
