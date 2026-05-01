@@ -2672,9 +2672,9 @@ GOAWAY Message {
   `GOAWAY_TIMEOUT` after the indicated timeout if there are still open requests.
   When sent on a request stream, the sender SHOULD reset the stream with
   `GOING_AWAY` after the indicated timeout.  A value of 0 indicates the sender has no
-  specific timeout, and the recipient SHOULD still migrate as quickly as
+  specific timeout, but the recipient SHOULD migrate as quickly as
   possible. This is a hint; the sender of the GOAWAY MAY close the session or
-  reset the stream before the indicated timeout has elapsed.
+  reset the request stream before the indicated timeout has elapsed.
 
 * Request ID: Present only when sent on the control stream.  The smallest peer
   Request ID that was not or might not have been processed prior to sending the
