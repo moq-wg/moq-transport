@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 1 November 2026                                   I. Swett, Ed.
+Expires: 2 November 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           30 April 2026
+                                                              1 May 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 November 2026.
+   This Internet-Draft will expire on 2 November 2026.
 
 Copyright Notice
 
@@ -166,6 +166,8 @@ Table of Contents
      9.5.  GOAWAY
      9.6.  REQUEST_OK
      9.7.  REQUEST_ERROR
+       9.7.1.  Redirect Structure
+       9.7.2.  REQUEST_ERROR Message Format
      9.8.  SUBSCRIBE
      9.9.  SUBSCRIBE_OK
      9.10. REQUEST_UPDATE
@@ -3026,9 +3028,41 @@ Table of Contents
 
 9.7.  REQUEST_ERROR
 
-   The REQUEST_ERROR message is sent to a response to any request
+   The REQUEST_ERROR message is sent in response to any request
    (SUBSCRIBE, FETCH, PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
    TRACK_STATUS, REQUEST_UPDATE).
+
+9.7.1.  Redirect Structure
+
+   A Redirect provides a way for an endpoint to direct the peer to retry
+   a request at a different URI and/or for a different Full Track Name.
+
+   Redirect {
+     Connect URI Length (vi64),
+     Connect URI (..),
+     Track Namespace (..),
+     Track Name Length (vi64),
+     Track Name (..),
+   }
+
+   *  Connect URI: The URI to connect to for this track.  If the length
+      is zero, the requester SHOULD use the current session's URI.  If a
+      server receives a Redirect with a non-zero Connect URI Length it
+      MUST close the session with a PROTOCOL_VIOLATION.
+
+   *  Track Namespace and Track Name: The Track Namespace and Track Name
+      to use for the redirected request.  If both have zero length, the
+      redirected request uses the same values as the original request.
+      Otherwise, Track Namespace and Track Name are the literal values
+      for the redirected request.
+
+      Track Name is not meaningful for namespace-scoped requests
+      (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE) and MUST be empty; an
+      endpoint that receives a non-empty Track Name in a Redirect for a
+      namespace-scoped request MUST close the session with a
+      PROTOCOL_VIOLATION.
+
+9.7.2.  REQUEST_ERROR Message Format
 
    REQUEST_ERROR Message {
      Type (vi64) = 0x5,
@@ -3036,6 +3070,7 @@ Table of Contents
      Error Code (vi64),
      Retry Interval (vi64),
      Error Reason (Reason Phrase),
+     [Redirect (Redirect),]
    }
 
                     Figure 9: MOQT REQUEST_ERROR Message
@@ -3048,6 +3083,9 @@ Table of Contents
 
    *  Error Reason: Provides a text description of the request error.
       See Section 1.4.4.
+
+   *  Redirect: Present only when Error Code is REDIRECT.  See
+      Section 9.7.1.
 
    The application SHOULD use a relevant error code in REQUEST_ERROR, as
    defined below and assigned in Section 14.10.2.  Most codepoints have
@@ -3092,6 +3130,19 @@ Table of Contents
    DUPLICATE_SUBSCRIPTION (0x19):  The PUBLISH or SUBSCRIBE request
       attempted to create a subscription to a Track with the same role
       as an existing subscription.
+
+   REDIRECT:  The request cannot be fulfilled by this endpoint, but
+      could succeed at the location specified in the Redirect structure.
+      The requester SHOULD establish a new session to the provided URI
+      (if present) and retry the request using the Full Track Name from
+      the Redirect (if present).  This error code can appear in response
+      to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH_NAMESPACE and
+      SUBSCRIBE_NAMESPACE.  Relays are not required to follow redirects
+      from upstream and MAY forward a REDIRECT response to matching
+      downstream requests.  A relay MAY cache a REDIRECT response for a
+      Full Track Name for up to Retry Interval milliseconds and use it
+      to respond to subsequent matching requests without forwarding them
+      upstream.
 
    Below are errors for use by the publisher.  They can appear in
    response to SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE,
@@ -5350,6 +5401,8 @@ EXT 1 and EXT N can be modified or removed by Relays
      | INVALID_JOINING_REQUEST_ID |       0x32      | Section 9.7   |
      +----------------------------+-----------------+---------------+
      | UNSUPPORTED_EXTENSION      |       0x33      | Section 9.7   |
+     +----------------------------+-----------------+---------------+
+     | REDIRECT                   |       0x34      | Section 9.7   |
      +----------------------------+-----------------+---------------+
      | Reserved for greasing      | 0x7f * N + 0x9D | Section 13    |
      +----------------------------+-----------------+---------------+
