@@ -2049,57 +2049,57 @@ control stream ({{session-init}}), and Request indicates a bidirectional
 request stream. Messages marked "First" MUST be the first message on a
 new request stream.
 
-|--------|-----------------------------------------------|------------------|
-| ID     | Messages                                      | Stream           |
-|-------:|:----------------------------------------------|:-----------------|
-| 0x01   | RESERVED (SETUP for version 00)               |                  |
-|--------|-----------------------------------------------|------------------|
-| 0x40   | RESERVED (CLIENT_SETUP for <= 10)             |                  |
-|--------|-----------------------------------------------|------------------|
-| 0x41   | RESERVED (SERVER_SETUP for <= 10)             |                  |
-|--------|-----------------------------------------------|------------------|
-| 0x20   | RESERVED (CLIENT_SETUP in <= 16)              |                  |
-|--------|-----------------------------------------------|------------------|
-| 0x21   | RESERVED (SERVER_SETUP in <= 16)              |                  |
-|--------|-----------------------------------------------|------------------|
-| 0x2F00 | SETUP ({{message-setup}})                     | Control          |
-|--------|-----------------------------------------------|------------------|
-| 0x10   | GOAWAY ({{message-goaway}})                   | Control, Request |
-|--------|-----------------------------------------------|------------------|
-| 0x3    | SUBSCRIBE ({{message-subscribe-req}})         | Request, First   |
-|--------|-----------------------------------------------|------------------|
-| 0x4    | SUBSCRIBE_OK ({{message-subscribe-ok}})       | Request          |
-|--------|-----------------------------------------------|------------------|
-| 0x1D   | PUBLISH ({{message-publish}})                 | Request, First   |
-|--------|-----------------------------------------------|------------------|
-| 0x1E   | PUBLISH_OK ({{message-request-ok}})           | Request          |
-|--------|-----------------------------------------------|------------------|
-| 0xB    | PUBLISH_DONE ({{message-publish-done}})       | Request          |
-|--------|-----------------------------------------------|------------------|
-| 0x16   | FETCH ({{message-fetch}})                     | Request, First   |
-|--------|-----------------------------------------------|------------------|
-| 0x18   | FETCH_OK ({{message-fetch-ok}})               | Request          |
-|--------|-----------------------------------------------|------------------|
-| 0xD    | TRACK_STATUS ({{message-track-status}})       | Request, First   |
-|--------|-----------------------------------------------|------------------|
-| 0x6    | PUBLISH_NAMESPACE ({{message-pub-ns}})        | Request, First   |
-|--------|-----------------------------------------------|------------------|
-| 0x50   | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})| Request, First   |
-|--------|-----------------------------------------------|------------------|
-| 0x51   | SUBSCRIBE_TRACKS ({{message-subscribe-tracks}})| Request, First  |
-|--------|-----------------------------------------------|------------------|
-| 0x8    | NAMESPACE ({{message-namespace}})             | Request          |
-|--------|-----------------------------------------------|------------------|
-| 0xE    | NAMESPACE_DONE ({{message-namespace-done}})   | Request          |
-|--------|-----------------------------------------------|------------------|
-| 0xF    | PUBLISH_BLOCKED ({{message-publish-blocked}}) | Request          |
-|--------|-----------------------------------------------|------------------|
-| 0x2    | REQUEST_UPDATE ({{message-request-update}})   | Request          |
-|--------|-----------------------------------------------|------------------|
-| 0x7    | REQUEST_OK ({{message-request-ok}})           | Request          |
-|--------|-----------------------------------------------|------------------|
-| 0x5    | REQUEST_ERROR ({{message-request-error}})     | Request          |
-|--------|-----------------------------------------------|------------------|
+|--------|------------------------------------------------|------------------|
+| ID     | Messages                                       | Stream           |
+|-------:|:-----------------------------------------------|:-----------------|
+| 0x01   | RESERVED (SETUP for version 00)                |                  |
+|--------|------------------------------------------------|------------------|
+| 0x40   | RESERVED (CLIENT_SETUP for <= 10)              |                  |
+|--------|------------------------------------------------|------------------|
+| 0x41   | RESERVED (SERVER_SETUP for <= 10)              |                  |
+|--------|------------------------------------------------|------------------|
+| 0x20   | RESERVED (CLIENT_SETUP in <= 16)               |                  |
+|--------|------------------------------------------------|------------------|
+| 0x21   | RESERVED (SERVER_SETUP in <= 16)               |                  |
+|--------|------------------------------------------------|------------------|
+| 0x2F00 | SETUP ({{message-setup}})                      | Control          |
+|--------|------------------------------------------------|------------------|
+| 0x10   | GOAWAY ({{message-goaway}})                    | Control, Request |
+|--------|------------------------------------------------|------------------|
+| 0x3    | SUBSCRIBE ({{message-subscribe-req}})          | Request, First   |
+|--------|------------------------------------------------|------------------|
+| 0x4    | SUBSCRIBE_OK ({{message-subscribe-ok}})        | Request          |
+|--------|------------------------------------------------|------------------|
+| 0x1D   | PUBLISH ({{message-publish}})                  | Request, First   |
+|--------|------------------------------------------------|------------------|
+| 0x1E   | PUBLISH_OK ({{message-request-ok}})            | Request          |
+|--------|------------------------------------------------|------------------|
+| 0xB    | PUBLISH_DONE ({{message-publish-done}})        | Request          |
+|--------|------------------------------------------------|------------------|
+| 0x16   | FETCH ({{message-fetch}})                      | Request, First   |
+|--------|------------------------------------------------|------------------|
+| 0x18   | FETCH_OK ({{message-fetch-ok}})                | Request          |
+|--------|------------------------------------------------|------------------|
+| 0xD    | TRACK_STATUS ({{message-track-status}})        | Request, First   |
+|--------|------------------------------------------------|------------------|
+| 0x6    | PUBLISH_NAMESPACE ({{message-pub-ns}})         | Request, First   |
+|--------|------------------------------------------------|------------------|
+| 0x50   | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}}) | Request, First   |
+|--------|------------------------------------------------|------------------|
+| 0x51   | SUBSCRIBE_TRACKS ({{message-subscribe-tracks}})| Request, First   |
+|--------|------------------------------------------------|------------------|
+| 0x8    | NAMESPACE ({{message-namespace}})              | Request          |
+|--------|------------------------------------------------|------------------|
+| 0xE    | NAMESPACE_DONE ({{message-namespace-done}})    | Request          |
+|--------|------------------------------------------------|------------------|
+| 0xF    | PUBLISH_BLOCKED ({{message-publish-blocked}})  | Request          |
+|--------|------------------------------------------------|------------------|
+| 0x2    | REQUEST_UPDATE ({{message-request-update}})    | Request          |
+|--------|------------------------------------------------|------------------|
+| 0x7    | REQUEST_OK ({{message-request-ok}})            | Request          |
+|--------|------------------------------------------------|------------------|
+| 0x5    | REQUEST_ERROR ({{message-request-error}})      | Request          |
+|--------|------------------------------------------------|------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
 Control messages have a length to make parsing easier, but no control messages
@@ -2713,9 +2713,9 @@ GOAWAY Message {
   `GOAWAY_TIMEOUT` after the indicated timeout if there are still open requests.
   When sent on a request stream, the sender SHOULD reset the stream with
   `GOING_AWAY` after the indicated timeout.  A value of 0 indicates the sender has no
-  specific timeout, and the recipient SHOULD still migrate as quickly as
+  specific timeout, but the recipient SHOULD migrate as quickly as
   possible. This is a hint; the sender of the GOAWAY MAY close the session or
-  reset the stream before the indicated timeout has elapsed.
+  reset the request stream before the indicated timeout has elapsed.
 
 * Request ID: Present only when sent on the control stream.  The smallest peer
   Request ID that was not or might not have been processed prior to sending the
