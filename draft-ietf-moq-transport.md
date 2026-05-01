@@ -1286,7 +1286,8 @@ All subscriptions begin in the `Idle` state. A subscription can be
 initiated and moved to the `Pending` state by either a publisher or a
 subscriber.  A publisher initiates a subscription to a track by
 sending the PUBLISH message.  The subscriber either accepts or rejects
-the subscription using PUBLISH_OK or REQUEST_ERROR.  A subscriber
+the subscription using PUBLISH_OK ({{message-request-ok}}) or
+REQUEST_ERROR.  A subscriber
 initiates a subscription to a track by sending the SUBSCRIBE message.
 The publisher either accepts or rejects the subscription using
 SUBSCRIBE_OK or REQUEST_ERROR.  Once either of these sequences is
@@ -1331,8 +1332,8 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
 ~~~
 
 A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
-a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
-response to a PUBLISH. The peer SHOULD close the session with a protocol error
+a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK
+({{message-request-ok}}) or REQUEST_ERROR in response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
 All `Established` subscriptions have a Forward State which is either 0 or 1.
@@ -2693,12 +2694,14 @@ GOAWAY Message {
 
 ## REQUEST_OK {#message-request-ok}
 
-The REQUEST_OK message is sent in response to REQUEST_UPDATE, TRACK_STATUS,
-SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE requests.
+The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
+TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
+requests.
 
-This document uses the shorthand REQUEST_UPDATE_OK,
-TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and PUBLISH_NAMESPACE_OK to refer to
-a REQUEST_OK sent in response to the corresponding request type.
+This document uses the shorthand PUBLISH_OK,
+REQUEST_UPDATE_OK, TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and
+PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
+corresponding request type.
 
 ~~~
 REQUEST_OK Message {
@@ -2716,16 +2719,48 @@ REQUEST_OK Message {
 * Track Properties : A sequence of Properties. See {{properties}}. The
   length of Track Properties is the remaining length of the message
   after parsing all previous fields. Track Properties are populated in
-  TRACK_STATUS_OK; they are empty in REQUEST_UPDATE_OK,
+  TRACK_STATUS_OK; they are empty in PUBLISH_OK, REQUEST_UPDATE_OK,
   SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
   receives Track Properties in one of these messages it MUST close the
   session with a `PROTOCOL_VIOLATION`.
 
 ## REQUEST_ERROR {#message-request-error}
 
-The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
+The REQUEST_ERROR message is sent in response to any request (SUBSCRIBE, FETCH,
 PUBLISH, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS,
 REQUEST_UPDATE).
+
+### Redirect Structure {#redirect-structure}
+
+A Redirect provides a way for an endpoint to direct the peer to retry a
+request at a different URI and/or for a different Full Track Name.
+
+~~~
+Redirect {
+  Connect URI Length (vi64),
+  Connect URI (..),
+  Track Namespace (..),
+  Track Name Length (vi64),
+  Track Name (..),
+}
+~~~
+
+* Connect URI: The URI to connect to for this track. If the length is
+  zero, the requester SHOULD use the current session's URI. If a server
+  receives a Redirect with a non-zero Connect URI Length it MUST close the
+  session with a `PROTOCOL_VIOLATION`.
+
+* Track Namespace and Track Name: The Track Namespace and Track Name to use
+  for the redirected request. If both have zero length, the redirected request
+  uses the same values as the original request. Otherwise, Track Namespace and
+  Track Name are the literal values for the redirected request.
+
+  Track Name is not meaningful for namespace-scoped requests
+  (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE) and MUST be empty; an endpoint that
+  receives a non-empty Track Name in a Redirect for a namespace-scoped request
+  MUST close the session with a `PROTOCOL_VIOLATION`.
+
+### REQUEST_ERROR Message Format
 
 ~~~
 REQUEST_ERROR Message {
@@ -2734,6 +2769,7 @@ REQUEST_ERROR Message {
   Error Code (vi64),
   Retry Interval (vi64),
   Error Reason (Reason Phrase),
+  [Redirect (Redirect),]
 }
 ~~~
 {: #moq-transport-request-error format title="MOQT REQUEST_ERROR Message"}
@@ -2745,6 +2781,9 @@ REQUEST_ERROR Message {
 
 * Error Reason: Provides a text description of the request error. See
  {{reason-phrase}}.
+
+* Redirect: Present only when Error Code is REDIRECT. See
+  {{redirect-structure}}.
 
 The application SHOULD use a relevant error code in REQUEST_ERROR,
 as defined below and assigned in {{iana-request-error}}. Most codepoints have
@@ -2793,6 +2832,18 @@ UNSUPPORTED_EXTENSION:
 DUPLICATE_SUBSCRIPTION (0x19):
 : The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
 with the same role as an existing subscription.
+
+REDIRECT:
+: The request cannot be fulfilled by this endpoint, but could succeed at the
+location specified in the Redirect structure. The requester SHOULD establish a
+new session to the provided URI (if present) and retry the request using the
+Full Track Name from the Redirect (if present). This error code can appear in
+response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH_NAMESPACE and
+SUBSCRIBE_NAMESPACE. Relays are not required to follow redirects from upstream
+and MAY forward a REDIRECT response to matching downstream requests. A relay
+MAY cache a REDIRECT response for a Full Track Name for up to Retry Interval
+milliseconds and use it to respond to subsequent matching requests without
+forwarding them upstream.
 
 Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS,
@@ -3028,25 +3079,6 @@ publisher will start transmitting objects immediately, possibly before
 PUBLISH_OK.
 
 
-## PUBLISH_OK {#message-publish-ok}
-
-The subscriber sends a PUBLISH_OK as the first response message on the
-bidi stream to acknowledge the successful authorization and acceptance of a
-PUBLISH message, and establish a subscription.
-
-~~~
-PUBLISH_OK Message {
-  Type (vi64) = 0x1E,
-  Length (16),
-  Number of Parameters (vi64),
-  Parameters (..) ...,
-}
-~~~
-{: #moq-transport-publish-ok format title="MOQT PUBLISH_OK Message"}
-
-* Parameters: The parameters are defined in {{message-params}}.
-
-
 ## PUBLISH_DONE {#message-publish-done}
 
 A publisher sends a `PUBLISH_DONE` message as the final message before
@@ -3212,8 +3244,9 @@ A Subscriber can use a Joining Fetch to, for example, fill a playback buffer
 with a certain number of groups prior to the live edge of a track.
 
 A Joining Fetch is only permitted when the associated subscription has
-Forward State 1; otherwise the publisher MUST close the session with a
-`PROTOCOL_VIOLATION`. A publisher MUST process any pending REQUEST_UPDATE
+Forward State 1; otherwise the publisher MUST respond with a
+REQUEST_ERROR with error code `INVALID_RANGE`. A publisher MUST process
+any pending REQUEST_UPDATE
 messages for the associated subscription before evaluating the current
 request. Relays with an upstream subscription in transition from Forward State 0
 to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
@@ -4769,6 +4802,17 @@ Setup Options SHOULD request a provisional registration.
 | 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
 | 0x7f * N + 0x9D | Reserved for greasing | Any | {{grease}} |
 
+The following table contains provisional registrations for other active drafts in the moq wg.
+These entries share the same Property Type space as the table above.
+
+| Type | Name | Scope | Specification |
+|-----:|:-----|:------|:--------------|
+| 0x06 | TIMESTAMP | Object | draft-ietf-moq-loc |
+| 0x08 | TIMESCALE | Track, Object | draft-ietf-moq-loc |
+| 0x0A | VIDEO_FRAME_MARKING | Object | draft-ietf-moq-loc |
+| 0x0C | AUDIO_LEVEL | Object | draft-ietf-moq-loc |
+| 0x0D | VIDEO_CONFIG | Object | draft-ietf-moq-loc |
+
 Endpoints MUST ignore unknown Property types, skipping them using
 the length field.
 
@@ -4860,6 +4904,7 @@ This document does not define any initial entries.
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
+| REDIRECT                   | 0x34 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
