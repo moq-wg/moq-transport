@@ -2510,7 +2510,7 @@ outstanding until the Largest Group increases.
 The TRACK_NAMESPACE_PREFIX parameter (Parameter Type 0x34) uses the Track
 Namespace encoding described in {{track-name}}.  It MAY appear in REQUEST_UPDATE
 for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It updates the Track
-Namespace Prefix for that subscription.  If the new prefix would overlap with
+Namespace Prefix for that subscription.  If the new prefix would share a common prefix with
 another active subscription of the same type in the same session, the receiver
 MUST respond with REQUEST_ERROR with error code `PREFIX_OVERLAP`.
 
@@ -2870,7 +2870,7 @@ Errors below can only be used in response to one message type.
 
 PREFIX_OVERLAP:
 : In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
-overlaps with another subscription of the same type in the same session.
+shares a common prefix with another subscription of the same type in the same session.
 SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have independent overlap spaces, so a
 SUBSCRIBE_NAMESPACE and a SUBSCRIBE_TRACKS may share the same prefix.
 
