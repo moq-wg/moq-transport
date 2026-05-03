@@ -1343,8 +1343,6 @@ Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_O
 or REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
 
-
-
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
 without knowing the client is interested in and authorized to receive the
@@ -1458,18 +1456,18 @@ If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
 close the session with a `PROTOCOL_VIOLATION`.
 
 Join Absolute Group (0x5): The filter Start Group is specified explicitly. The
-publisher calculates `Start Location` as `{Start Group, 0}`.
-If the calculated `Start Location` is less than `Largest Object`,
-the publisher creates a FETCH_HEADER stream to deliver Objects
-from `Start Location` up to `Largest Object`.
+publisher calculates `Start Location` as `{Start Group, 0}`. If the calculated
+`Start Location` is less than `Largest Object`, the publisher creates a
+unidirectional stream starting with a FETCH_HEADER to deliver Objects from
+`Start Location` up to `Largest Object`.
 There is no End Group - the subscription is open ended.
 
 Join Relative Group (0x6): The filter Start Group is specified relative to the
 Largest Object. The publisher calculates `Start Location` as
-`{Largest Object.Group - Start Group, 0}`.
-If the calculated `Start Location` is less than `Largest Object`,
-the publisher creates a FETCH_HEADER stream to deliver Objects
-from `Start Location` up to `Largest Object`.
+`{Largest Object.Group - Start Group, 0}`. If the calculated
+`Start Location` is less than `Largest Object`, the publisher creates a
+unidirectional stream starting with a FETCH_HEADER to deliver Objects from
+`Start Location` up to `Largest Object`.
 There is no End Group - the subscription is open ended.
 
 An endpoint that receives a filter type other than the above MUST close the
