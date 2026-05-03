@@ -3539,17 +3539,17 @@ delivered will be the Group ID in <code>Start Location</code> plus the <code>End
 If the resulting Group ID would be greater than 2^64 - 1, the endpoint <span class="bcp14">MUST</span>
 close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-11">Join Absolute Group (0x5): The filter Start Group is specified explicitly. The
-publisher calculates <code>Start Location</code> as <code>{Start Group, 0}</code>.
-If the calculated <code>Start Location</code> is less than <code>Largest Object</code>,
-the publisher creates a FETCH_HEADER stream to deliver Objects
-from <code>Start Location</code> up to <code>Largest Object</code>.
+publisher calculates <code>Start Location</code> as <code>{Start Group, 0}</code>. If the calculated
+<code>Start Location</code> is less than <code>Largest Object</code>, the publisher creates a
+unidirectional stream starting with a FETCH_HEADER to deliver Objects from
+<code>Start Location</code> up to <code>Largest Object</code>.
 There is no End Group - the subscription is open ended.<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-12">Join Relative Group (0x6): The filter Start Group is specified relative to the
 Largest Object. The publisher calculates <code>Start Location</code> as
-<code>{Largest Object.Group - Start Group, 0}</code>.
-If the calculated <code>Start Location</code> is less than <code>Largest Object</code>,
-the publisher creates a FETCH_HEADER stream to deliver Objects
-from <code>Start Location</code> up to <code>Largest Object</code>.
+<code>{Largest Object.Group - Start Group, 0}</code>. If the calculated
+<code>Start Location</code> is less than <code>Largest Object</code>, the publisher creates a
+unidirectional stream starting with a FETCH_HEADER to deliver Objects from
+<code>Start Location</code> up to <code>Largest Object</code>.
 There is no End Group - the subscription is open ended.<a href="#section-5.1.2-12" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-13">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> close the
 session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-13" class="pilcrow">¶</a></p>

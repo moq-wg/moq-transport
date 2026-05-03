@@ -1682,17 +1682,17 @@ Table of Contents
    Join Absolute Group (0x5): The filter Start Group is specified
    explicitly.  The publisher calculates Start Location as {Start Group,
    0}. If the calculated Start Location is less than Largest Object, the
-   publisher creates a FETCH_HEADER stream to deliver Objects from Start
-   Location up to Largest Object.  There is no End Group - the
-   subscription is open ended.
+   publisher creates a unidirectional stream starting with a
+   FETCH_HEADER to deliver Objects from Start Location up to Largest
+   Object.  There is no End Group - the subscription is open ended.
 
    Join Relative Group (0x6): The filter Start Group is specified
    relative to the Largest Object.  The publisher calculates Start
    Location as {Largest Object.Group - Start Group, 0}. If the
    calculated Start Location is less than Largest Object, the publisher
-   creates a FETCH_HEADER stream to deliver Objects from Start Location
-   up to Largest Object.  There is no End Group - the subscription is
-   open ended.
+   creates a unidirectional stream starting with a FETCH_HEADER to
+   deliver Objects from Start Location up to Largest Object.  There is
+   no End Group - the subscription is open ended.
 
    An endpoint that receives a filter type other than the above MUST
    close the session with PROTOCOL_VIOLATION.
