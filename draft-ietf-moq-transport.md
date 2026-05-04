@@ -1333,8 +1333,8 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
 
 A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
 a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK
-({{message-request-ok}}) or REQUEST_ERROR in response to a PUBLISH. The peer SHOULD close the session with a protocol error
-if it receives more than one.
+({{message-request-ok}}) or REQUEST_ERROR in response to a PUBLISH. The peer
+SHOULD close the session with a protocol error if it receives more than one.
 
 All `Established` subscriptions have a Forward State which is either 0 or 1.
 The publisher does not send Objects if the Forward State is 0, and does send them
@@ -1342,12 +1342,6 @@ if the Forward State is 1.  The initiator of the subscription sets the initial
 Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_OK
 or REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
-
-A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
-or REQUEST_UPDATE_OK that changes the Forward State
-from 0 to 1.  This value is called the Joining Location and can be used in a
-Joining FETCH (see {{joining-fetches}}) while the subscription is in the
-`Established` state.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -1426,6 +1420,7 @@ Subscription Filter {
   Filter Type (vi64),
   [Start Location (Location),]
   [End Group Delta (vi64),]
+  [Start Group (vi64),]
 }
 ~~~
 
@@ -1460,6 +1455,21 @@ delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
 If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
 close the session with a `PROTOCOL_VIOLATION`.
 
+Join Absolute Group (0x5): The filter Start Group is specified explicitly. The
+publisher calculates `Start Location` as `{Start Group, 0}`. If the calculated
+`Start Location` is less than `Largest Object`, the publisher creates a
+unidirectional stream starting with a FETCH_HEADER to deliver Objects from
+`Start Location` up to `Largest Object`.
+There is no End Group - the subscription is open ended.
+
+Join Relative Group (0x6): The filter Start Group is specified relative to the
+Largest Object. The publisher calculates `Start Location` as
+`{Largest Object.Group - Start Group, 0}`. If the calculated
+`Start Location` is less than `Largest Object`, the publisher creates a
+unidirectional stream starting with a FETCH_HEADER to deliver Objects from
+`Start Location` up to `Largest Object`.
+There is no End Group - the subscription is open ended.
+
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
 
@@ -1475,20 +1485,24 @@ is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
-To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
-REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
-{{joining-fetches}}) for the intended start Group, which can be relative.  When
-the Joining FETCH follows a REQUEST_UPDATE that transitions Forward State from
-0 to 1, the FETCH MUST set its Required Request ID ({{required-request-id}}) to
-the REQUEST_UPDATE's Request ID or later.  To join a Track at the next Group, the
-subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE with
+Filter Type `Join Absolute Group` or `Join Relative Group` for the intended start
+Group. To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
+Filter Type `Next Group Start`.
+
+For Join Relative Group and Join Absolute Group, the 'Group Order' applies to
+all requested Objects. If the 'Group Order' is ascending, Objects from the past
+sent on single unidirectional stream will be prioritized higher than more recent
+Objects delivered via Subscribe style delivery when both are available. If the
+'Group Order' is descending, Objects from the most recent Group will be delivered
+with higher priority when they are available.
 
 #### Dynamically Starting New Groups
 
 While some publishers will deterministically create new Groups, other
 applications might want to only begin a new Group when needed.  A subscriber
 joining a Track might detect that it is more efficient to request the Original
-Publisher create a new group than issue a Joining FETCH.  Publishers indicate a
+Publisher create a new group than request past Objects.  Publishers indicate a
 Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
 ({{dynamic-groups}}).
 
@@ -2063,8 +2077,7 @@ the length of the Message Payload, the receiver MUST close the session with a
 ## Request ID {#request-id}
 
 Request ID is included in request messages and is used to identify
-requests across messages. For example, Joining Fetch references
-the Request ID of a SUBSCRIBE.
+requests across messages.
 
 The client generates even numbered Request IDs, starting at 0, and the
 server generates odd numbered Request IDs, starting at 1.  Each
@@ -2878,10 +2891,6 @@ NAMESPACE_TOO_LARGE:
 : In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
 matches more publishers than the relay is willing to enumerate.
 
-INVALID_JOINING_REQUEST_ID:
-: In response to a Joining FETCH, the referenced Request ID is not an
-`Established` Subscription.
-
 ## SUBSCRIBE {#message-subscribe-req}
 
 A subscription causes the publisher to send newly published objects for a track.
@@ -3189,112 +3198,6 @@ EXCESSIVE_LOAD (0x9):
 A subscriber sends FETCH as the first message on a new bidi stream to a
 publisher to request a range of already published objects within a track.
 
-There are three types of Fetch messages.
-
-Code | Fetch Type
-0x1 | Standalone Fetch
-0x2 | Relative Joining Fetch
-0x3 | Absolute Joining Fetch
-
-An endpoint that receives a Fetch Type other than 0x1, 0x2 or 0x3 MUST close
-the session with a `PROTOCOL_VIOLATION`.
-
-### Standalone Fetch
-
-A Fetch of Objects performed independently of any Subscribe.
-
-A Standalone Fetch includes this structure:
-
-~~~
-Standalone Fetch {
-  Track Namespace (..),
-  Track Name Length (vi64),
-  Track Name (..),
-  Start Location (Location),
-  End Location (Location)
-}
-~~~
-
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Start Location: The start Location.
-
-* End Location: The end Location, plus 1. A Location.Object value of 0
-  means the entire group is requested.
-
-### Joining Fetches
-
-A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of a subscription in the `Established` or
-`Pending (subscriber)` state. Because Joining Fetch references an existing
-subscription, if that subscription has not yet been established, the Publisher
-receiving the Joining Fetch buffers the pending Joining Fetch until either
-the Subscription is established or the request times out.
-
-A publisher receiving a Joining Fetch uses properties of the associated
-subscription to determine the Track Namespace, Track Name
-and End Location such that it is contiguous with the associated
-subscription.  The subscriber can set the Start Location to an absolute
-Location or a Location relative to the Largest group.
-
-A Subscriber can use a Joining Fetch to, for example, fill a playback buffer
-with a certain number of groups prior to the live edge of a track.
-
-A Joining Fetch is only permitted when the associated subscription has
-Forward State 1; otherwise the publisher MUST respond with a
-REQUEST_ERROR with error code `INVALID_RANGE`. A publisher MUST process
-any pending REQUEST_UPDATE
-messages for the associated subscription before evaluating the current
-request. Relays with an upstream subscription in transition from Forward State 0
-to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
-the upstream subscription returns REQUEST_UPDATE_OK with the new Largest Object.
-Changing the Forward State of the associated subscription to 0 after the Joining
-Fetch has been accepted has no effect on the Joining Fetch.
-
-If no Objects have been published for the track the publisher MUST
-respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
-
-A Joining Fetch includes this structure:
-
-~~~
-Joining Fetch {
-  Joining Request ID (vi64),
-  Joining Start (vi64)
-}
-~~~
-
-* Joining Request ID: The Request ID of the subscription to be joined. If a
-  publisher receives a Joining Fetch with a Request ID that does not correspond
-  to a subscription in the same session in the `Established` or `Pending
-  (subscriber)` states, it MUST return a REQUEST_ERROR with error code
-  `INVALID_JOINING_REQUEST_ID`.
-
-* Joining Start : A relative or absolute value used to determine the Start
-  Location, described below.
-
-#### Joining Fetch Range Calculation
-
-The Joining Location value from the corresponding
-subscription is used to calculate the end of a Joining Fetch, so the
-Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
-
-The publisher receiving a Joining Fetch sets the End Location to
-{Joining Location.Group, Joining Location.Object + 1} (see {{subscriptions}}.
-
-Note: the last Object included in the Joining FETCH response is the Object
-at the Joining Location.  The `+ 1` above indicates the equivalent Standalone
-Fetch encoding.
-
-For a Relative Joining Fetch, the publisher sets the Start Location to
-{Joining Location.Group - Joining Start, 0}.
-
-For an Absolute Joining Fetch, the publisher sets the Start Location to
-{Joining Start, 0}.
-
-
 ### Fetch Handling
 
 The format of FETCH is as follows:
@@ -3305,9 +3208,11 @@ FETCH Message {
   Length (16),
   Request ID (vi64),
   Required Request ID Delta (vi64),
-  Fetch Type (vi64),
-  [Standalone (Standalone Fetch),]
-  [Joining (Joining Fetch),]
+  Track Namespace (..),
+  Track Name Length (vi64),
+  Track Name (..),
+  Start Location (Location),
+  End Location (Location),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -3318,12 +3223,15 @@ FETCH Message {
 
 * Required Request ID Delta: See {{required-request-id}}.
 
-* Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
-  Joining or Absolute Joining.
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
 
-* Standalone: Standalone Fetch structure included when Fetch Type is 0x1
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Joining: Joining Fetch structure included when Fetch Type is 0x2 or 0x3.
+* Start Location: The start Location.
+
+* End Location: The end Location, plus 1. A Location.Object value of 0
+  means the entire group is requested.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -3356,7 +3264,7 @@ The Object Forwarding Preference does not apply to fetches.
 
 Fetch specifies an inclusive range of Objects starting at Start Location and
 ending at End Location. End Location MUST specify the same or a larger Location
-than Start Location for Standalone and Absolute Joining Fetches.
+than Start Location.
 
 Objects larger than the Largest Object will not be retrieved by a FETCH.  If the
 requested End Location exceeds the Largest available Object, the actual end of
@@ -3406,8 +3314,6 @@ FETCH_OK Message {
   the requested range extends beyond published data:
    - If the requested FETCH End Location was beyond the Largest known (possibly
      final) Object, End Location is {Largest.Group, Largest.Object + 1}
-  Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
-  End Location described in {{joining-fetch-range-calculation}}.
 
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
@@ -4904,7 +4810,6 @@ This document does not define any initial entries.
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
-| INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
 | REDIRECT                   | 0x34 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
