@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 4 November 2026</td>
+<td class="center">Expires 5 November 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-05-03" class="published">3 May 2026</time>
+<time datetime="2026-05-04" class="published">4 May 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-11-04">4 November 2026</time></dd>
+<dd class="expires"><time datetime="2026-11-05">5 November 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 4 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 5 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3428,8 +3428,8 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
 </div>
 <p id="section-5.1-4">A publisher <span class="bcp14">MUST</span> send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
 a SUBSCRIBE. A subscriber <span class="bcp14">MUST</span> send exactly one PUBLISH_OK
-(<a href="#message-request-ok" class="auto internal xref">Section 9.6</a>) or REQUEST_ERROR in response to a PUBLISH. The peer <span class="bcp14">SHOULD</span> close the session with a protocol error
-if it receives more than one.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+(<a href="#message-request-ok" class="auto internal xref">Section 9.6</a>) or REQUEST_ERROR in response to a PUBLISH. The peer
+<span class="bcp14">SHOULD</span> close the session with a protocol error if it receives more than one.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
 <p id="section-5.1-5">All <code>Established</code> subscriptions have a Forward State which is either 0 or 1.
 The publisher does not send Objects if the Forward State is 0, and does send them
 if the Forward State is 1.  The initiator of the subscription sets the initial
@@ -3568,8 +3568,15 @@ is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.<a href="#section-5.1.3-1" class="pilcrow">¶</a></p>
 <p id="section-5.1.3-2">To join a Track at a past Group, the subscriber sends a SUBSCRIBE with
-Filter Type <code>Join Absolute Group</code> or <code>Join Relative Group</code> for the intended start Group.
-To join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter Type <code>Next Group Start</code>.<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
+Filter Type <code>Join Absolute Group</code> or <code>Join Relative Group</code> for the intended start
+Group. To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
+Filter Type <code>Next Group Start</code>.<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.1.3-3">For Join Relative Group and Join Absolute Group, the 'Group Order' applies to
+all requested Objects. If the 'Group Order' is ascending, Objects from the past
+sent on single unidirectional stream will be prioritized higher than more recent
+Objects delivered via Subscribe style delivery when both are available. If the
+'Group Order' is descending, Objects from the most recent Group will be delivered
+with higher priority when they are available.<a href="#section-5.1.3-3" class="pilcrow">¶</a></p>
 <div id="dynamically-starting-new-groups">
 <section id="section-5.1.3.1">
             <h5 id="name-dynamically-starting-new-gr">

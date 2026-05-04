@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 4 November 2026                                   I. Swett, Ed.
+Expires: 5 November 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                              3 May 2026
+                                                              4 May 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 November 2026.
+   This Internet-Draft will expire on 5 November 2026.
 
 Copyright Notice
 
@@ -1714,6 +1714,14 @@ Table of Contents
    with Filter Type Join Absolute Group or Join Relative Group for the
    intended start Group.  To join a Track at the next Group, the
    subscriber sends a SUBSCRIBE with Filter Type Next Group Start.
+
+   For Join Relative Group and Join Absolute Group, the 'Group Order'
+   applies to all requested Objects.  If the 'Group Order' is ascending,
+   Objects from the past sent on single unidirectional stream will be
+   prioritized higher than more recent Objects delivered via Subscribe
+   style delivery when both are available.  If the 'Group Order' is
+   descending, Objects from the most recent Group will be delivered with
+   higher priority when they are available.
 
 5.1.3.1.  Dynamically Starting New Groups
 
