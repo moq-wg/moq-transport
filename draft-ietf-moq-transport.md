@@ -1333,8 +1333,8 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
 
 A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
 a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK
-({{message-request-ok}}) or REQUEST_ERROR in response to a PUBLISH. The peer SHOULD close the session with a protocol error
-if it receives more than one.
+({{message-request-ok}}) or REQUEST_ERROR in response to a PUBLISH. The peer
+SHOULD close the session with a protocol error if it receives more than one.
 
 All `Established` subscriptions have a Forward State which is either 0 or 1.
 The publisher does not send Objects if the Forward State is 0, and does send them
@@ -1486,8 +1486,16 @@ request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE with
-Filter Type `Join Absolute Group` or `Join Relative Group` for the intended start Group.
-To join a Track at the next Group, the subscriber sends a SUBSCRIBE with Filter Type `Next Group Start`.
+Filter Type `Join Absolute Group` or `Join Relative Group` for the intended start
+Group. To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
+Filter Type `Next Group Start`.
+
+For Join Relative Group and Join Absolute Group, the 'Group Order' applies to
+all requested Objects. If the 'Group Order' is ascending, Objects from the past
+sent on single unidirectional stream will be prioritized higher than more recent
+Objects delivered via Subscribe style delivery when both are available. If the
+'Group Order' is descending, Objects from the most recent Group will be delivered
+with higher priority when they are available.
 
 #### Dynamically Starting New Groups
 
