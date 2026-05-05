@@ -1842,7 +1842,7 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})             |
 |-------|-----------------------------------------------------|
-| 0x1F  | SWITCH ({{message-switch}})                         |
+| 0x1B  | SWITCH ({{message-switch}})                         |
 |-------|-----------------------------------------------------|
 | 0xD   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
@@ -3184,7 +3184,7 @@ the target Track (see {{relay-switch}}).
 
 ~~~
 SWITCH Message {
-  Type (vi64) = 0x1F,
+  Type (vi64) = 0x1B,
   Length (16),
 
   Current Subscribe Request ID (vi64),
