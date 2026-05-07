@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 1 November 2026                                   I. Swett, Ed.
+Expires: 8 November 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           30 April 2026
+                                                              7 May 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 November 2026.
+   This Internet-Draft will expire on 8 November 2026.
 
 Copyright Notice
 
@@ -1292,8 +1292,8 @@ Table of Contents
    Relay to receive a number of new Subscriptions on the replaying
    client's behalf.
 
-   Relays SHOULD implement rate-limiting or validation for 0-RTT
-   requests that trigger upstream subscriptions to mitigate resource
+   Relays MAY defer initiating upstream subscriptions until the
+   handshake is complete or reject 0-RTT entirely to mitigate resource
    exhaustion from replayed packets.
 
 3.3.2.  Request Cancellation and Rejection
