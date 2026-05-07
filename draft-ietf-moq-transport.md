@@ -2660,7 +2660,6 @@ GOAWAY Message {
   New Session URI Length (vi64),
   New Session URI (..),
   Timeout (vi64),
-  Request ID (vi64),
 }
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
@@ -2682,15 +2681,6 @@ GOAWAY Message {
   close the session as quickly as possible. This is a hint; the sender of the
   GOAWAY MAY close the session before the indicated timeout has elapsed.
 
-* Request ID: The smallest peer Request ID that was not or might not have been
-  processed prior to sending the GOAWAY. If no requests have been processed,
-  this is 0 (at a server) or 1 (at a client). If the parity of the Request ID
-  does not match the receiver's parity, the endpoint MUST close the session with
-  `INVALID_REQUEST_ID`. Requests with a Request ID equal to or greater than the
-  indicated value, as well as any requests that arrive after the GOAWAY, MUST be
-  rejected with REQUEST_ERROR using error code GOING_AWAY. Requests with a
-  Request ID less than the indicated value were or might have been processed;
-  their status can be determined from the response on each request stream.
 
 ## REQUEST_OK {#message-request-ok}
 
