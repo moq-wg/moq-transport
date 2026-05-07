@@ -1001,9 +1001,9 @@ Depending on whether 0-RTT is available on the QUIC connection, either client or
 server might be able to send stream data first.
 
 In addition to the control streams, this specification uses bidirectional streams
-to carry requests.  A request stream begins with one of these six message types:
-TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE, and
-SUBSCRIBE_NAMESPACE. Bidirectional streams MUST NOT
+to carry requests.  A request stream begins with one of these seven message types:
+TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
+SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Bidirectional streams MUST NOT
 begin with any other message type unless negotiated. If they do, the peer MUST
 close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
 streams.
@@ -1340,7 +1340,8 @@ All subscriptions begin in the `Idle` state. A subscription can be
 initiated and moved to the `Pending` state by either a publisher or a
 subscriber.  A publisher initiates a subscription to a track by
 sending the PUBLISH message.  The subscriber either accepts or rejects
-the subscription using PUBLISH_OK or REQUEST_ERROR.  A subscriber
+the subscription using PUBLISH_OK ({{message-request-ok}}) or
+REQUEST_ERROR.  A subscriber
 initiates a subscription to a track by sending the SUBSCRIBE message.
 The publisher either accepts or rejects the subscription using
 SUBSCRIBE_OK or REQUEST_ERROR.  Once either of these sequences is
@@ -1385,8 +1386,8 @@ REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
 ~~~
 
 A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
-a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK or REQUEST_ERROR in
-response to a PUBLISH. The peer SHOULD close the session with a protocol error
+a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK
+({{message-request-ok}}) or REQUEST_ERROR in response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
 All `Established` subscriptions have a Forward State which is either 0 or 1.
@@ -1590,7 +1591,7 @@ done in the context of an established MOQT session.
 
 Given sufficient out of band information, it is valid for a subscriber to send a
 SUBSCRIBE or FETCH message to a publisher (including a relay) without any
-previous MOQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, PUBLISH and
+previous MOQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH and
 PUBLISH_NAMESPACE messages provide an in-band means of discovery of publishers
 for a namespace.
 
@@ -1600,35 +1601,39 @@ The syntax of these messages is described in {{message}}.
 ## Subscribing to Namespaces
 
 If the subscriber is aware of a namespace of interest, it can send
-SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
-recipient of this message will send any relevant NAMESPACE,
-NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
-part of that namespace.  An endpoint MUST NOT send PUBLISH messages to a
-SUBSCRIBE_NAMESPACE subscriber for Tracks or Track Namespaces that the
-subscriber itself has published on this session.  If an endpoint wishes to
-receive its own published Tracks, it can explicitly SUBSCRIBE to them.
+SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS to publishers/relays it has established
+a session with.
 
-A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the sender is
-interested in all tracks and/or namespaces from the receiver.
+SUBSCRIBE_NAMESPACE requests namespace discovery: the publisher sends relevant
+NAMESPACE and NAMESPACE_DONE messages for namespaces matching the prefix,
+including echoing back Track Namespaces under the prefix that have been published
+to it.
 
-The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream and the
-publisher MUST send a single REQUEST_OK or REQUEST_ERROR as the first message on the
-bidirectional stream in response to a SUBSCRIBE_NAMESPACE. The subscriber
-SHOULD close the session with a protocol error if it detects receiving more
-than one.
+SUBSCRIBE_TRACKS requests track subscriptions: the publisher sends PUBLISH
+messages for tracks within matching namespaces, excluding tracks published
+by the subscriber.
 
-If a Subscription cannot be created because there is no available Request ID,
-the Publisher sends a PUBLISH_BLOCKED message on the response stream to indicate
-the Full Track Name of the Subscription that could not be established. The Publisher
-MUST NOT send a PUBLISH for a Track after PUBLISH_BLOCKED has been sent.  The subscriber can instead issue a SUBSCRIBE to establish a subscription to that track.
+Either message with zero Track Namespace fields indicates the sender is
+interested in all namespaces or all tracks from the receiver, respectively.
+
+The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
+bidirectional stream and the publisher MUST send a single REQUEST_OK or
+REQUEST_ERROR as the first message on the bidirectional stream in response.
+
+If a Subscription cannot be created because there are no available bidirectional streams,
+the Publisher sends a PUBLISH_BLOCKED message on the SUBSCRIBE_TRACKS response
+stream to indicate the Full Track Name of the Subscription that could not be
+established. The Publisher MUST NOT send a PUBLISH for a Track after
+PUBLISH_BLOCKED has been sent.  The subscriber can instead issue a SUBSCRIBE
+to establish a subscription to that track.
 
 The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
-A SUBSCRIBE_NAMESPACE can be cancelled by closing the stream with
-either a FIN or by resetting it. Cancelling does not prohibit original publishers
-from sending further PUBLISH_NAMESPACE or PUBLISH messages, but relays MUST NOT
+A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS can be cancelled by closing the
+stream with either a FIN or RESET_STREAM. Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
+from sending further PUBLISH messages, but relays MUST NOT
 send any further PUBLISH messages to a client without knowing the client is
 interested in and authorized to receive the content.
 
@@ -1641,8 +1646,8 @@ in a namespace without having received a PUBLISH_NAMESPACE for it.
 
 If a publisher is authoritative for a given namespace, or is a relay that has
 received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
-publisher, it MUST send a PUBLISH_NAMESPACE to any subscriber that has
-subscribed via SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
+publisher, it MUST send a NAMESPACE message to any subscriber that has
+sent SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
 
 An endpoint SHOULD report the reception of a REQUEST_OK or
@@ -1977,8 +1982,8 @@ subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
 then the Relay MUST use Forward=1 when subscribing upstream.
 
 When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
-request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
-to the Track's namespace or prefix thereof. However, if the relay is
+request to each subscriber that has sent SUBSCRIBE_TRACKS for the Track's
+namespace or a prefix thereof. However, if the relay is
 holding a downstream SUBSCRIBE awaiting a publisher for this Track (see
 {{rendezvous-timeout}}), it MUST proceed with the SUBSCRIBE and
 MUST NOT also forward the PUBLISH to that subscriber.
@@ -2050,55 +2055,57 @@ control stream ({{session-init}}), and Request indicates a bidirectional
 request stream. Messages marked "First" MUST be the first message on a
 new request stream.
 
-|--------|-----------------------------------------------|----------------|
-| ID     | Messages                                      | Stream         |
-|-------:|:----------------------------------------------|:---------------|
-| 0x01   | RESERVED (SETUP for version 00)               |                |
-|--------|-----------------------------------------------|----------------|
-| 0x40   | RESERVED (CLIENT_SETUP for <= 10)             |                |
-|--------|-----------------------------------------------|----------------|
-| 0x41   | RESERVED (SERVER_SETUP for <= 10)             |                |
-|--------|-----------------------------------------------|----------------|
-| 0x20   | RESERVED (CLIENT_SETUP in <= 16)              |                |
-|--------|-----------------------------------------------|----------------|
-| 0x21   | RESERVED (SERVER_SETUP in <= 16)              |                |
-|--------|-----------------------------------------------|----------------|
-| 0x2F00 | SETUP ({{message-setup}})                     | Control        |
-|--------|-----------------------------------------------|----------------|
-| 0x10   | GOAWAY ({{message-goaway}})                   | Control        |
-|--------|-----------------------------------------------|----------------|
-| 0x3    | SUBSCRIBE ({{message-subscribe-req}})         | Request, First |
-|--------|-----------------------------------------------|----------------|
-| 0x4    | SUBSCRIBE_OK ({{message-subscribe-ok}})       | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0x1D   | PUBLISH ({{message-publish}})                 | Request, First |
-|--------|-----------------------------------------------|----------------|
-| 0x1E   | PUBLISH_OK ({{message-publish-ok}})           | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0xB    | PUBLISH_DONE ({{message-publish-done}})       | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0x16   | FETCH ({{message-fetch}})                     | Request, First |
-|--------|-----------------------------------------------|----------------|
-| 0x18   | FETCH_OK ({{message-fetch-ok}})               | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0xD    | TRACK_STATUS ({{message-track-status}})       | Request, First |
-|--------|-----------------------------------------------|----------------|
-| 0x6    | PUBLISH_NAMESPACE ({{message-pub-ns}})        | Request, First |
-|--------|-----------------------------------------------|----------------|
-| 0x11   | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})| Request, First |
-|--------|-----------------------------------------------|----------------|
-| 0x8    | NAMESPACE ({{message-namespace}})             | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0xE    | NAMESPACE_DONE ({{message-namespace-done}})   | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0xF    | PUBLISH_BLOCKED ({{message-publish-blocked}}) | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0x2    | REQUEST_UPDATE ({{message-request-update}})   | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0x7    | REQUEST_OK ({{message-request-ok}})           | Request        |
-|--------|-----------------------------------------------|----------------|
-| 0x5    | REQUEST_ERROR ({{message-request-error}})     | Request        |
-|--------|-----------------------------------------------|----------------|
+|--------|------------------------------------------------|----------------|
+| ID     | Messages                                       | Stream         |
+|-------:|:-----------------------------------------------|:---------------|
+| 0x01   | RESERVED (SETUP for version 00)                |                |
+|--------|------------------------------------------------|----------------|
+| 0x40   | RESERVED (CLIENT_SETUP for <= 10)              |                |
+|--------|------------------------------------------------|----------------|
+| 0x41   | RESERVED (SERVER_SETUP for <= 10)              |                |
+|--------|------------------------------------------------|----------------|
+| 0x20   | RESERVED (CLIENT_SETUP in <= 16)               |                |
+|--------|------------------------------------------------|----------------|
+| 0x21   | RESERVED (SERVER_SETUP in <= 16)               |                |
+|--------|------------------------------------------------|----------------|
+| 0x2F00 | SETUP ({{message-setup}})                      | Control        |
+|--------|------------------------------------------------|----------------|
+| 0x10   | GOAWAY ({{message-goaway}})                    | Control        |
+|--------|------------------------------------------------|----------------|
+| 0x3    | SUBSCRIBE ({{message-subscribe-req}})          | Request, First |
+|--------|------------------------------------------------|----------------|
+| 0x4    | SUBSCRIBE_OK ({{message-subscribe-ok}})        | Request        |
+|--------|------------------------------------------------|----------------|
+| 0x1D   | PUBLISH ({{message-publish}})                  | Request, First |
+|--------|------------------------------------------------|----------------|
+| 0x1E   | PUBLISH_OK ({{message-request-ok}})            | Request        |
+|--------|------------------------------------------------|----------------|
+| 0xB    | PUBLISH_DONE ({{message-publish-done}})        | Request        |
+|--------|------------------------------------------------|----------------|
+| 0x16   | FETCH ({{message-fetch}})                      | Request, First |
+|--------|------------------------------------------------|----------------|
+| 0x18   | FETCH_OK ({{message-fetch-ok}})                | Request        |
+|--------|------------------------------------------------|----------------|
+| 0xD    | TRACK_STATUS ({{message-track-status}})        | Request, First |
+|--------|------------------------------------------------|----------------|
+| 0x6    | PUBLISH_NAMESPACE ({{message-pub-ns}})         | Request, First |
+|--------|------------------------------------------------|----------------|
+| 0x50   | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}}) | Request, First |
+|--------|------------------------------------------------|----------------|
+| 0x51   | SUBSCRIBE_TRACKS ({{message-subscribe-tracks}})| Request, First |
+|--------|------------------------------------------------|----------------|
+| 0x8    | NAMESPACE ({{message-namespace}})              | Request        |
+|--------|------------------------------------------------|----------------|
+| 0xE    | NAMESPACE_DONE ({{message-namespace-done}})    | Request        |
+|--------|------------------------------------------------|----------------|
+| 0xF    | PUBLISH_BLOCKED ({{message-publish-blocked}})  | Request        |
+|--------|------------------------------------------------|----------------|
+| 0x2    | REQUEST_UPDATE ({{message-request-update}})    | Request        |
+|--------|------------------------------------------------|----------------|
+| 0x7    | REQUEST_OK ({{message-request-ok}})            | Request        |
+|--------|------------------------------------------------|----------------|
+| 0x5    | REQUEST_ERROR ({{message-request-error}})      | Request        |
+|--------|------------------------------------------------|----------------|
 
 An endpoint that receives an unknown message type MUST close the session.
 Control messages have a length to make parsing easier, but no control messages
@@ -2117,8 +2124,9 @@ The client generates even numbered Request IDs, starting at 0, and the
 server generates odd numbered Request IDs, starting at 1.  Each
 endpoint increments its Request ID by 2 for each new request.
 
-Each SUBSCRIBE, PUBLISH, FETCH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
-REQUEST_UPDATE, and TRACK_STATUS message consumes a Request ID. Only
+Each SUBSCRIBE, PUBLISH, FETCH, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS,
+PUBLISH_NAMESPACE, REQUEST_UPDATE, and TRACK_STATUS message consumes a
+Request ID. Only
 request messages include a Request ID; response messages do not, since
 they are sent on the same bidirectional stream as the request.
 
@@ -2220,7 +2228,7 @@ Message Parameters to appear in Setup messages.
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) uses Length-prefixed
 encoding. It MAY appear in a PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
-SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
+SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
 parameter conveys information to authorize the sender to perform the operation
 carrying the parameter.
 
@@ -2503,7 +2511,7 @@ any Objects in the Track.
 
 The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
-SUBSCRIBE_NAMESPACE. It specifies the Forwarding State on affected subscriptions
+SUBSCRIBE_TRACKS. It specifies the Forwarding State on affected subscriptions
 (see {{subscriptions}}). The allowed values are 0 (don't forward) or 1 (forward).
 If an endpoint receives a value outside this range, it MUST close the session
 with `PROTOCOL_VIOLATION`.
@@ -2550,6 +2558,15 @@ to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
 
 After sending a NEW_GROUP_REQUEST upstream, the request is considered
 outstanding until the Largest Group increases.
+
+### TRACK_NAMESPACE_PREFIX Parameter {#track-namespace-prefix-param}
+
+The TRACK_NAMESPACE_PREFIX parameter (Parameter Type 0x34) uses the Track
+Namespace encoding described in {{track-name}}.  It MAY appear in REQUEST_UPDATE
+for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It updates the Track
+Namespace Prefix for that subscription.  If the new prefix would share a common prefix with
+another active subscription of the same type in the same session, the receiver
+MUST respond with REQUEST_ERROR with error code `PREFIX_OVERLAP`.
 
 ## SETUP {#message-setup}
 
@@ -2679,7 +2696,7 @@ publisher MAY reject new requests after sending a GOAWAY.
 
 Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-SUBSCRIBE_NAMESPACE and TRACK_STATUS.
+SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and TRACK_STATUS.
 
 Sending a GOAWAY does not prevent the sender from initiating new requests,
 though the sender SHOULD avoid initiating requests unless required by migration
@@ -2731,12 +2748,14 @@ GOAWAY Message {
 
 ## REQUEST_OK {#message-request-ok}
 
-The REQUEST_OK message is sent in response to REQUEST_UPDATE, TRACK_STATUS,
-SUBSCRIBE_NAMESPACE and PUBLISH_NAMESPACE requests.
+The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
+TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
+requests.
 
-This document uses the shorthand REQUEST_UPDATE_OK,
-TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and PUBLISH_NAMESPACE_OK to refer to
-a REQUEST_OK sent in response to the corresponding request type.
+This document uses the shorthand PUBLISH_OK,
+REQUEST_UPDATE_OK, TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and
+PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
+corresponding request type.
 
 ~~~
 REQUEST_OK Message {
@@ -2754,15 +2773,48 @@ REQUEST_OK Message {
 * Track Properties : A sequence of Properties. See {{properties}}. The
   length of Track Properties is the remaining length of the message
   after parsing all previous fields. Track Properties are populated in
-  TRACK_STATUS_OK; they are empty in REQUEST_UPDATE_OK,
+  TRACK_STATUS_OK; they are empty in PUBLISH_OK, REQUEST_UPDATE_OK,
   SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
   receives Track Properties in one of these messages it MUST close the
   session with a `PROTOCOL_VIOLATION`.
 
 ## REQUEST_ERROR {#message-request-error}
 
-The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
-PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS, REQUEST_UPDATE).
+The REQUEST_ERROR message is sent in response to any request (SUBSCRIBE, FETCH,
+PUBLISH, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS,
+REQUEST_UPDATE).
+
+### Redirect Structure {#redirect-structure}
+
+A Redirect provides a way for an endpoint to direct the peer to retry a
+request at a different URI and/or for a different Full Track Name.
+
+~~~
+Redirect {
+  Connect URI Length (vi64),
+  Connect URI (..),
+  Track Namespace (..),
+  Track Name Length (vi64),
+  Track Name (..),
+}
+~~~
+
+* Connect URI: The URI to connect to for this track. If the length is
+  zero, the requester SHOULD use the current session's URI. If a server
+  receives a Redirect with a non-zero Connect URI Length it MUST close the
+  session with a `PROTOCOL_VIOLATION`.
+
+* Track Namespace and Track Name: The Track Namespace and Track Name to use
+  for the redirected request. If both have zero length, the redirected request
+  uses the same values as the original request. Otherwise, Track Namespace and
+  Track Name are the literal values for the redirected request.
+
+  Track Name is not meaningful for namespace-scoped requests
+  (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE) and MUST be empty; an endpoint that
+  receives a non-empty Track Name in a Redirect for a namespace-scoped request
+  MUST close the session with a `PROTOCOL_VIOLATION`.
+
+### REQUEST_ERROR Message Format
 
 ~~~
 REQUEST_ERROR Message {
@@ -2771,6 +2823,7 @@ REQUEST_ERROR Message {
   Error Code (vi64),
   Retry Interval (vi64),
   Error Reason (Reason Phrase),
+  [Redirect (Redirect),]
 }
 ~~~
 {: #moq-transport-request-error format title="MOQT REQUEST_ERROR Message"}
@@ -2782,6 +2835,9 @@ REQUEST_ERROR Message {
 
 * Error Reason: Provides a text description of the request error. See
  {{reason-phrase}}.
+
+* Redirect: Present only when Error Code is REDIRECT. See
+  {{redirect-structure}}.
 
 The application SHOULD use a relevant error code in REQUEST_ERROR,
 as defined below and assigned in {{iana-request-error}}. Most codepoints have
@@ -2831,8 +2887,21 @@ DUPLICATE_SUBSCRIPTION (0x19):
 : The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
 with the same role as an existing subscription.
 
+REDIRECT:
+: The request cannot be fulfilled by this endpoint, but could succeed at the
+location specified in the Redirect structure. The requester SHOULD establish a
+new session to the provided URI (if present) and retry the request using the
+Full Track Name from the Redirect (if present). This error code can appear in
+response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH_NAMESPACE and
+SUBSCRIBE_NAMESPACE. Relays are not required to follow redirects from upstream
+and MAY forward a REDIRECT response to matching downstream requests. A relay
+MAY cache a REDIRECT response for a Full Track Name for up to Retry Interval
+milliseconds and use it to respond to subsequent matching requests without
+forwarding them upstream.
+
 Below are errors for use by the publisher. They can appear in response to
-SUBSCRIBE, FETCH, TRACK_STATUS, and SUBSCRIBE_NAMESPACE, unless otherwise noted.
+SUBSCRIBE, FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS,
+unless otherwise noted.
 
 DOES_NOT_EXIST:
 : The track or namespace is not available at the publisher.
@@ -2854,12 +2923,14 @@ UNINTERESTED:
 Errors below can only be used in response to one message type.
 
 PREFIX_OVERLAP:
-: In response to SUBSCRIBE_NAMESPACE, the namespace prefix overlaps with another
-SUBSCRIBE_NAMESPACE in the same session.
+: In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
+shares a common prefix with another subscription of the same type in the same session.
+SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have independent overlap spaces, so a
+SUBSCRIBE_NAMESPACE and a SUBSCRIBE_TRACKS may share the same prefix.
 
 NAMESPACE_TOO_LARGE:
-: In response to SUBSCRIBE_NAMESPACE, the namespace prefix matches more
-publishers than the relay is willing to enumerate.
+: In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
+matches more publishers than the relay is willing to enumerate.
 
 INVALID_JOINING_REQUEST_ID:
 : In response to a Joining FETCH, the referenced Request ID is not an
@@ -2931,7 +3002,7 @@ SUBSCRIBE_OK Message {
 ## REQUEST_UPDATE {#message-request-update}
 
 The sender of a request (SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-SUBSCRIBE_NAMESPACE) can later send a REQUEST_UPDATE on the
+SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS) can later send a REQUEST_UPDATE on the
 same bidi stream as the request to modify it.  A subscriber can also send
 REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.
 
@@ -2997,6 +3068,21 @@ results in REQUEST_ERROR, only a single REQUEST_ERROR will be
 sent and the sender of the REQUEST_UPDATEs will not always be
 able to determine which caused an error.
 
+### Updating Namespace Subscriptions
+
+A subscriber can update the Track Namespace Prefix of an established
+SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS by including the
+TRACK_NAMESPACE_PREFIX parameter ({{track-namespace-prefix-param}}) in a
+REQUEST_UPDATE.  The overlap restriction applies independently per type: the
+new prefix MUST NOT share a common prefix with any other active
+SUBSCRIBE_NAMESPACE (for a SUBSCRIBE_NAMESPACE update) or SUBSCRIBE_TRACKS
+(for a SUBSCRIBE_TRACKS update) in the same session.  If the update is
+accepted, NAMESPACE and NAMESPACE_DONE messages following the
+REQUEST_OK will contain Track Namespace suffixes relative to the
+updated prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
+no effect on existing subscriptions.  If the subscriber is no longer
+interested it can cancel the corresponding bidirectional stream.
+
 ## PUBLISH {#message-publish}
 
 The publisher sends PUBLISH as the first message on a new bidirectional stream
@@ -3045,25 +3131,6 @@ indicates that it will not transmit any objects until the subscriber sets the
 Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
 publisher will start transmitting objects immediately, possibly before
 PUBLISH_OK.
-
-
-## PUBLISH_OK {#message-publish-ok}
-
-The subscriber sends a PUBLISH_OK as the first response message on the
-bidi stream to acknowledge the successful authorization and acceptance of a
-PUBLISH message, and establish a subscription.
-
-~~~
-PUBLISH_OK Message {
-  Type (vi64) = 0x1E,
-  Length (16),
-  Number of Parameters (vi64),
-  Parameters (..) ...,
-}
-~~~
-{: #moq-transport-publish-ok format title="MOQT PUBLISH_OK Message"}
-
-* Parameters: The parameters are defined in {{message-params}}.
 
 
 ## PUBLISH_DONE {#message-publish-done}
@@ -3231,12 +3298,15 @@ A Subscriber can use a Joining Fetch to, for example, fill a playback buffer
 with a certain number of groups prior to the live edge of a track.
 
 A Joining Fetch is only permitted when the associated subscription has
-Forward State 1; otherwise the publisher MUST close the session with a
-`PROTOCOL_VIOLATION`. A publisher MUST process any pending REQUEST_UPDATE
+Forward State 1; otherwise the publisher MUST respond with a
+REQUEST_ERROR with error code `INVALID_RANGE`. A publisher MUST process
+any pending REQUEST_UPDATE
 messages for the associated subscription before evaluating the current
 request. Relays with an upstream subscription in transition from Forward State 0
 to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
 the upstream subscription returns REQUEST_UPDATE_OK with the new Largest Object.
+Changing the Forward State of the associated subscription to 0 after the Joining
+Fetch has been accepted has no effect on the Joining Fetch.
 
 If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
@@ -3499,17 +3569,15 @@ NAMESPACE_DONE Message {
 
 The subscriber sends a SUBSCRIBE_NAMESPACE control message on a new
 bidirectional stream to a publisher to request the current set of matching
-published namespaces and/or `Established` subscriptions, as well as future
-updates to the set.
+published namespaces, as well as future updates to the set.
 
 ~~~
 SUBSCRIBE_NAMESPACE Message {
-  Type (vi64) = 0x11,
+  Type (vi64) = 0x50,
   Length (16),
   Request ID (vi64),
   Required Request ID Delta (vi64),
   Track Namespace Prefix (..),
-  Subscribe Options (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -3530,9 +3598,6 @@ SUBSCRIBE_NAMESPACE Message {
   Track Namespace Prefix consisting of greater than than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-* Subscribe Options: Allows subscribers to request PUBLISH (0x00),
-  NAMESPACE (0x01), or both (0x02) for a given SUBSCRIBE_NAMESPACE request.
-
 * Parameters: The parameters are defined in {{message-params}}.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
@@ -3540,33 +3605,19 @@ of the stream. If the subscriber receives any message other than a REQUEST_OK or
 REQUEST_ERROR as the first message on the response half of the stream, then it MUST
 close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
-stream if they are requested. If it is an error, the stream will be immediately
-closed via FIN. Also, any matching PUBLISH messages without an `Established`
-Subscription will be established on new bidirectional streams. When there are
-changes to the namespaces or subscriptions being published and the subscriber
-is subscribed to them, the publisher sends the corresponding NAMESPACE,
-NAMESPACE_DONE, or PUBLISH messages.
+stream. If it is an error, the stream will be immediately closed via FIN. When
+there are changes to the namespaces being published and the subscriber is
+subscribed to them, the publisher sends the corresponding NAMESPACE or
+NAMESPACE_DONE messages.
 
-A subscriber cannot make overlapping namespace subscriptions on a single
-session. Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
-Track Namespace Prefix that shares a common prefix with an established namespace
-subscription, it MUST respond with REQUEST_ERROR with error code
-`PREFIX_OVERLAP`.
+Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
+Track Namespace Prefix that shares a common prefix with an established
+SUBSCRIBE_NAMESPACE, it MUST respond with REQUEST_ERROR with error code
+`PREFIX_OVERLAP`.  SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have independent
+overlap spaces (see {{message-subscribe-tracks}}).
 
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
-
-SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE
-or PUBLISH messages to a subscriber.  It is useful in applications or relays
-where subscribers are only interested in or authorized to access a subset of
-available namespaces and tracks.
-
-If the FORWARD parameter ({{forward-parameter}}) is present in this message and
-equal to 0, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will set
-the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
-from this message, PUBLISH messages resulting from this SUBSCRIBE_NAMESPACE will
-set the FORWARD parameter to 1, or indicate that value by omitting the parameter
-(see {{subscriptions}}).
 
 The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
 corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
@@ -3580,12 +3631,71 @@ stream, it SHOULD treat this as though each active namespace received a
 NAMESPACE_DONE. Subscriptions established via PUBLISH on separate bidi streams
 are not affected by closure of the SUBSCRIBE_NAMESPACE stream.
 
+## SUBSCRIBE_TRACKS {#message-subscribe-tracks}
+
+The subscriber sends a SUBSCRIBE_TRACKS control message on a new bidirectional
+stream to a publisher to request PUBLISH messages for all tracks within matching
+namespaces, as well as future track publications within those namespaces.
+
+~~~
+SUBSCRIBE_TRACKS Message {
+  Type (vi64) = 0x51,
+  Length (16),
+  Request ID (vi64),
+  Required Request ID Delta (vi64),
+  Track Namespace Prefix (..),
+  Number of Parameters (vi64),
+  Parameters (..) ...
+}
+~~~
+{: #moq-transport-subscribe-tracks-format title="MOQT SUBSCRIBE_TRACKS Message"}
+
+* Request ID: See {{request-id}}.
+
+* Required Request ID Delta: See {{required-request-id}}.
+
+* Track Namespace Prefix: A Track Namespace structure as described in
+  {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
+  matched against track namespaces known to the publisher.  If an endpoint
+  receives a Track Namespace Prefix consisting of greater than 32 Track
+  Namespace Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
+
+* Parameters: The parameters are defined in {{message-params}}.
+
+The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
+of the stream. If the subscriber receives any message other than a REQUEST_OK or a
+REQUEST_ERROR as the first message on the response half of the stream, then it MUST
+close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_TRACKS is
+successful, the publisher will send PUBLISH messages on new bidirectional streams
+for tracks within matching namespaces. If it is an error, the stream will be
+closed via FIN after REQUEST_ERROR is sent.
+
+Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
+Track Namespace Prefix that shares a common prefix with an established
+SUBSCRIBE_TRACKS, it MUST respond with REQUEST_ERROR with error code
+`PREFIX_OVERLAP`.  SUBSCRIBE_TRACKS and SUBSCRIBE_NAMESPACE have independent
+overlap spaces (see {{message-subscribe-ns}}).
+
+The publisher MUST ensure the subscriber is authorized to perform this
+namespace subscription.
+
+SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
+a subscriber.  It is useful for subscribers that are
+only interested in or authorized to access a subset of available tracks.
+
+If the FORWARD parameter ({{forward-parameter}}) is present in this message and
+equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
+the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
+from this message, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
+set the FORWARD parameter to 1, or indicate that value by omitting the parameter
+(see {{subscriptions}}).
+
 ## PUBLISH_BLOCKED {#message-publish-blocked}
 
 The publisher sends the `PUBLISH_BLOCKED` control message to indicate it cannot
 send a PUBLISH message to initiate a new Subscription for a Track in the
-SUBSCRIBE_NAMESPACE's Track Namespace. All PUBLISH_BLOCKED messages are in
-response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after the
+SUBSCRIBE_TRACKS's Track Namespace. All PUBLISH_BLOCKED messages are in
+response to a SUBSCRIBE_TRACKS, so only the namespace tuples after the
 'Track Namespace Prefix' are included in the 'Track Namespace Suffix'.
 
 ~~~
@@ -3601,7 +3711,7 @@ PUBLISH_BLOCKED Message {
 
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}}. The namespace begins with the
-  'Track Namespace Prefix' specified in {message-subscribe-ns}.
+  'Track Namespace Prefix' specified in {message-subscribe-tracks}.
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
@@ -4514,19 +4624,20 @@ The choice of mechanism is implementation-specific.
 ### State maintenance
 
 A Relay SHOULD have mechanisms to prevent malicious endpoints from flooding it
-with PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that could bloat data
-structures. It could use QUIC stream limits to limit the number of
-such requests, or could have application-specific policies that can reject
-incoming PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that cause the state
-maintenance for the session to be excessive.
+with PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE, or SUBSCRIBE_TRACKS requests that
+could bloat data structures. It could use QUIC stream limits to limit the number
+of such requests, or could have application-specific policies that can reject
+incoming requests that cause the state maintenance for the session to be
+excessive.
 
-### SUBSCRIBE_NAMESPACE with short prefixes
+### SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS with short prefixes
 
 A Relay can use authorization rules in order to prevent subscriptions closer
 to the root of a large prefix tree. Otherwise, if an entity sends a relay a
-SUBSCRIBE_NAMESPACE message with a short prefix, it can cause the relay to send
-a large volume of NAMESPACE messages. As changes occur in the tree of namespaces,
-the relay would have to send matching NAMESPACE/NAMESPACE_DONE messages.
+SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS message with a short prefix, it can
+cause the relay to send a large volume of NAMESPACE or PUBLISH messages. As
+changes occur in the tree of namespaces, the relay would have to send matching
+NAMESPACE/NAMESPACE_DONE messages or initiate new PUBLISH streams.
 
 ## Implementation Identification Fingerprinting {#impl-fingerprinting}
 
@@ -4729,6 +4840,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
+| 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
@@ -4745,6 +4857,17 @@ Setup Options SHOULD request a provisional registration.
 | 0x3C | PRIOR_GROUP_ID_GAP | Object | {{prior-group-id-gap}} |
 | 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
 | 0x7f * N + 0x9D | Reserved for greasing | Any | {{grease}} |
+
+The following table contains provisional registrations for other active drafts in the moq wg.
+These entries share the same Property Type space as the table above.
+
+| Type | Name | Scope | Specification |
+|-----:|:-----|:------|:--------------|
+| 0x06 | TIMESTAMP | Object | draft-ietf-moq-loc |
+| 0x08 | TIMESCALE | Track, Object | draft-ietf-moq-loc |
+| 0x0A | VIDEO_FRAME_MARKING | Object | draft-ietf-moq-loc |
+| 0x0C | AUDIO_LEVEL | Object | draft-ietf-moq-loc |
+| 0x0D | VIDEO_CONFIG | Object | draft-ietf-moq-loc |
 
 Endpoints MUST ignore unknown Property types, skipping them using
 the length field.
@@ -4837,6 +4960,7 @@ This document does not define any initial entries.
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
+| REDIRECT                   | 0x34 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
