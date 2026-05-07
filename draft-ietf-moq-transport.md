@@ -1070,9 +1070,8 @@ that requested Subscriptions in the Namespace, sending that upstream could
 cause the Relay to receive a number of new Subscriptions on the replaying
 client's behalf.
 
-Relays SHOULD implement rate-limiting or validation for 0-RTT requests
-that trigger upstream subscriptions to mitigate resource exhaustion from
-replayed packets.
+Relays MAY defer initiating upstream subscriptions until the handshake is complete
+or reject 0-RTT entirely to mitigate resource exhaustion from replayed packets.
 
 ### Request Cancellation and Rejection {#request-cancellation}
 
