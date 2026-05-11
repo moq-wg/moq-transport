@@ -829,9 +829,10 @@ connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
 MUST be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3.
 
-There is no definition of the protocol over other transports,
-such as TCP, and applications using MOQT might need to fallback to
-another protocol when QUIC or WebTransport aren't available.
+When the moqt-18 ALPN is negotiated over TLS+TCP, the underlying
+framing uses QMux version 1 {{!QMUX=I-D.ietf-quic-qmux-01}}.
+
+\[\[RFC editor: please remove the previous paragraph before publication.]]
 
 MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 ({{WebTransport, Section 3.3}}) to perform version negotiation.
