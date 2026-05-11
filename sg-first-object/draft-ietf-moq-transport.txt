@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 30 October 2026                                   I. Swett, Ed.
+Expires: 12 November 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           28 April 2026
+                                                             11 May 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 October 2026.
+   This Internet-Draft will expire on 12 November 2026.
 
 Copyright Notice
 
@@ -738,6 +738,12 @@ Table of Contents
    makes a reasonable tradeoff between having an optimal mapping of
    Object relationships in a Group and minimizing the number of streams
    used.
+
+   When the Original Publisher opens a new subgroup, it MUST set the
+   FIRST_OBJECT bit (Section 10.4.2) to indicate that the subgroup
+   begins with the first object published in that subgroup.  A relay
+   forwarding a subgroup MUST preserve the value of this bit from the
+   upstream publisher.
 
 2.3.  Groups
 
@@ -4215,10 +4221,7 @@ Table of Contents
 
    *  The *FIRST_OBJECT* bit (0x40) indicates that this subgroup
       contains the first object published in the subgroup by the
-      original publisher.  A relay forwarding a subgroup MUST preserve
-      the value of this bit from the upstream publisher.  A subscriber
-      can use this signal to identify the subgroup that contains the
-      starting point of the publisher's live output within a group.
+      original publisher.
 
    The following Type values are invalid.  If an endpoint receives a
    stream header with any of these Type values, it MUST close the
