@@ -1533,8 +1533,7 @@ TRACK_FILTER Parameter {
   Type (vi64) = 0x29,
   Length (vi64),
   Property Type (vi64),
-  MaxTracksSelected (vi64),
-  Timeout (vi64)
+  MaxTracksSelected (vi64)
 }
 ~~~
 
@@ -1542,8 +1541,9 @@ MaxTracksSelected limits the number of tracks selected concurrently,
 which MUST NOT exceed the MAX_TRACKS_SELECTED setup option value sent
 by the peer.  A value of 0 is a `PROTOCOL_VIOLATION`.
 
-Timeout limits the number of milliseconds a selected track can remain
-selected without publishing an object with Property Type.
+TrackFilterTimeout is a Track Property that limits the number of
+milliseconds a selected track can remain selected without publishing
+an object with Property Type.
 
 #### Track Selection
 
@@ -4290,6 +4290,11 @@ for this Track. If an endpoint receives a value larger than 1, it MUST close
 the session with `PROTOCOL_VIOLATION`.
 
 If omitted, the value is 0.
+
+## TRACK FILTER TIMEOUT {#track-filter-timeout}
+
+TRACK_FILTER_TIMEOUT (Property Type 0x32) is a Track Property.
+See {{track-filter}}. If omitted, the value is 1 second.
 
 ## Immutable Properties
 
