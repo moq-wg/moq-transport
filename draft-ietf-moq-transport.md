@@ -1699,12 +1699,12 @@ SUBGROUP_DELIVERY_TIMEOUT is not zero, once the MOQT implementation becomes
 aware that all of the objects on the subgroup have been published (either by
 receiving a FIN from the upstream subscription, or, in case of the original
 publisher, through being notified of this fact by the application), it MUST
-start a timer that will reset the underlying subgroup stream after
-SUBGROUP_DELIVERY_TIMEOUT elapses.  The subgroup timeout timer MUST remain
-active until the underlying transport stream reaches "all data committed" state
-({{!I-D.ietf-webtrans-overview, Section 4.3}}); this ensures that MOQT can time
-out subgroups where all of the data has been sent, but the stream has not been
-fully closed due to the packet loss.
+reset the underlying subgroup stream after SUBGROUP_DELIVERY_TIMEOUT elapses.
+The subgroup timeout timer MUST remain active until the underlying transport
+stream reaches "all data committed" state ({{!I-D.ietf-webtrans-overview,
+Section 4.3}}); this ensures that MOQT can time out subgroups where all of the
+data has been sent, but the stream has not been fully closed due to the packet
+loss.
 
 For objects with Object Forwarding Preference set to Datagram, the
 SUBGROUP_DELIVERY_TIMEOUT acts the same way as OBJECT_DELIVERY_TIMEOUT; if both
