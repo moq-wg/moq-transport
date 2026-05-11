@@ -2456,9 +2456,10 @@ likely belongs in a different Subgroup.<a href="#section-2.2-7" class="pilcrow">
 reasonable tradeoff between having an optimal mapping of Object relationships in
 a Group and minimizing the number of streams used.<a href="#section-2.2-8" class="pilcrow">¶</a></p>
 <p id="section-2.2-9">When the Original Publisher opens a new subgroup, it <span class="bcp14">MUST</span> set the FIRST_OBJECT
-bit (<a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>) to indicate that the subgroup begins with the first
-object published in that subgroup. A relay forwarding a subgroup <span class="bcp14">MUST</span> preserve
-the value of this bit from the upstream publisher.<a href="#section-2.2-9" class="pilcrow">¶</a></p>
+bit (<a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>) to indicate that the first object in the subgroup
+stream is the first object ever published in that subgroup. A relay forwarding a
+subgroup that begins with the first object ever published in that subgroup <span class="bcp14">MUST</span>
+set the FIRST_OBJECT bit.<a href="#section-2.2-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="model-group">
@@ -6501,8 +6502,8 @@ established the subscription. When set to 0, the Priority field is present in
 the Subgroup header.<a href="#section-10.4.2-6.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.4.2-6.5">
-              <p id="section-10.4.2-6.5.1">The <strong>FIRST_OBJECT</strong> bit (0x40) indicates that this subgroup contains the
-first object published in the subgroup by the original publisher.<a href="#section-10.4.2-6.5.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.2-6.5.1">The <strong>FIRST_OBJECT</strong> bit (0x40) indicates that the first object in this
+subgroup stream is the first object published in the subgroup by the original publisher.<a href="#section-10.4.2-6.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-10.4.2-7">The following Type values are invalid. If an endpoint receives a stream header
