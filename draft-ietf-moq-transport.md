@@ -1662,7 +1662,7 @@ Implementations that have a default priority SHOULD set it to a value in
 the middle of the range (eg: 128) to allow non-default priorities to be
 set either higher or lower.
 
-# Delivery Timeouts and Data Reliability {#timeouts}
+# Delivery Timeouts and Data Reliability {#delivery-timeouts}
 
 Each MOQT subscription has two timeout values associated with it: a
 SUBGROUP_DELIVERY_TIMEOUT and an OBJECT_DELIVERY_TIMEOUT.  Both of those values
@@ -1670,7 +1670,7 @@ are expressed in milliseconds; both are optional; a value of 0 means that
 there is no timeout set.
 
 The publisher communicates both timeout values as a Track Property; the
-subscriber communicates them as a Message Parameter.  For each type of timeout,
+subscriber communicates them as Message Parameters.  For each type of timeout,
 if both the publisher and the subscriber have a non-zero value, the smaller of
 the two is used.
 
