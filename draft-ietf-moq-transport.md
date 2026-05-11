@@ -1578,7 +1578,7 @@ A subscriber keeps FETCH state until it cancels the request
 (see {{request-cancellation}}), receives REQUEST_ERROR, or the FETCH data stream
 receives a FIN or is reset. If the data stream is already open,
 the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
-data stream as well as the the bidi request stream. It MUST send STOP_SENDING
+data stream as well as the bidi request stream. It MUST send STOP_SENDING
 for the bidi request stream.
 
 The Publisher can destroy fetch state as soon as it has received a
@@ -3532,7 +3532,7 @@ NAMESPACE Message {
 
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}} after removing namespace tuples included in
-  'Track Namespace Prefix' {message-subscribe-ns}.
+  'Track Namespace Prefix' {{message-subscribe-ns}}.
 
 ## NAMESPACE_DONE {#message-namespace-done}
 
@@ -3553,7 +3553,7 @@ NAMESPACE_DONE Message {
 
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}}. The namespace begins with the
-  'Track Namespace Prefix' specified in {message-subscribe-ns}.
+  'Track Namespace Prefix' specified in {{message-subscribe-ns}}.
 
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
@@ -3582,7 +3582,7 @@ SUBSCRIBE_NAMESPACE Message {
   namespaces ("example.com", "meeting=123", "participant=100") and
   ("example.com", "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for
   ("example.com", "meeting=123") would match both.  If an endpoint receives a
-  Track Namespace Prefix consisting of greater than than 32 Track Namespace
+  Track Namespace Prefix consisting of greater than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 * Parameters: The parameters are defined in {{message-params}}.
@@ -3695,7 +3695,7 @@ PUBLISH_BLOCKED Message {
 
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}}. The namespace begins with the
-  'Track Namespace Prefix' specified in {message-subscribe-tracks}.
+  'Track Namespace Prefix' specified in {{message-subscribe-tracks}}.
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
