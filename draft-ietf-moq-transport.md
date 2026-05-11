@@ -2446,11 +2446,11 @@ have been published on this Track the Publisher MUST include this parameter.
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
 
-A relay MUST NOT populate the LARGEST_OBJECT parameter from the contents
-of its cache. A relay MUST set LARGEST_OBJECT to the largest of the
-LARGEST_OBJECT values received from the upstream publisher in SUBSCRIBE_OK,
-PUBLISH, or REQUEST_UPDATE_OK, or the Location of an Object received on
-the upstream subscription, whichever is largest.
+A relay MUST set LARGEST_OBJECT to the largest of the following:
+
+1. Any LARGEST_OBJECT value received from the upstream publisher in SUBSCRIBE_OK,
+PUBLISH, or REQUEST_UPDATE_OK
+2. The largest Location of an Object received on an upstream subscription
 
 ### FORWARD Parameter {#forward-parameter}
 
