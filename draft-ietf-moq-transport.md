@@ -558,6 +558,12 @@ When assigning Objects to different Subgroups, the Original Publisher makes a
 reasonable tradeoff between having an optimal mapping of Object relationships in
 a Group and minimizing the number of streams used.
 
+When the Original Publisher opens a new subgroup, it MUST set the FIRST_OBJECT
+bit ({{subgroup-header}}) to indicate that the first object in the subgroup
+stream is the first object ever published in that subgroup. A relay forwarding a
+subgroup that begins with the first object ever published in that subgroup MUST
+set the FIRST_OBJECT bit.
+
 ## Groups {#model-group}
 
 A group is a collection of Objects and is a sub-unit of a Track
@@ -1137,7 +1143,7 @@ the type of the stream.
 |------------:|:------------------------------------------------|
 | 0x05        | FETCH_HEADER  ({{fetch-header}})                |
 |-------------|-------------------------------------------------|
-| 0x10-0x15 / 0x18-0x1D / 0x30-0x35 / 0x38-0x3D | SUBGROUP_HEADER  ({{subgroup-header}}) |
+| 0b0XX1XXXX  | SUBGROUP_HEADER  ({{subgroup-header}})          |
 |-------------|-------------------------------------------------|
 | 0x2F00      | SETUP ({{message-setup}})                       |
 |-------------|-------------------------------------------------|
@@ -3925,7 +3931,8 @@ flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D,
+  Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D /
+             0x50..0x55 / 0x58..0x5D / 0x70..0x75 / 0x78..0x7D,
   Track Alias (vi64),
   Group ID (vi64),
   [Subgroup ID (vi64),]
@@ -3937,10 +3944,11 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-The Type field in the SUBGROUP_HEADER takes the form 0b00X1XXXX (or the set of
-values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to
-1. However, not all Type values in this range are valid. The four low-order bits
-and bit 5 determine which fields are present in the header:
+The Type field in the SUBGROUP_HEADER takes the form 0b0XX1XXXX (or the set of
+values from 0x10 to 0x1F, 0x30 to 0x3F, 0x50 to 0x5F, 0x70 to 0x7F), where
+bit 4 is always set to 1. However, not all Type values in this range are
+valid. The four low-order bits and bits 5-6 determine which fields are present
+in the header:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is present
   in all Objects in this Subgroup. When set to 1, the Object Properties structure
@@ -3970,15 +3978,20 @@ and bit 5 determine which fields are present in the header:
   established the subscription. When set to 0, the Priority field is present in
   the Subgroup header.
 
+* The **FIRST_OBJECT** bit (0x40) indicates that the first object in this
+subgroup stream is the first object published in the subgroup by the original publisher.
+
 The following Type values are invalid. If an endpoint receives a stream header
 with any of these Type values, it MUST close the session with a
 `PROTOCOL_VIOLATION`:
 
-* Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36, 0x37,
-  0x3E, 0x3F. This mode is reserved for future use.
+* Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36,
+  0x37, 0x3E, 0x3F, 0x56, 0x57, 0x5E, 0x5F, 0x76, 0x77, 0x7E, 0x7F. This mode
+  is reserved for future use.
 
-* Type values that do not match the form 0b00X1XXXX (i.e., Type values outside the
-  ranges 0x10..0x1F and 0x30..0x3F, or values where bit 4 is not set).
+* Type values that do not match the form 0b0XX1XXXX (i.e., Type values outside
+  the ranges 0x10..0x1F, 0x30..0x3F, 0x50..0x5F, and 0x70..0x7F, or values
+  where bit 4 is not set).
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
