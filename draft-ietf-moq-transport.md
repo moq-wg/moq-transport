@@ -4604,11 +4604,11 @@ implementations SHOULD follow best practices for TLS 1.3 and QUIC.
 Relays MUST be authenticated to
 prevent impersonation of relays.
 
-It must be noted that the basic security protection offered by QUIC or
-TCP/TLS does not prevent traffic pattern analysis as object
-sizes, sizes of request messages etc can make it possible for a third
-party observer of the traffic between subscriber and publisher to
-identify media content, user patterns and media stream origin.
+Note that the basic security protection offered by QUIC or TCP/TLS
+does not prevent traffic pattern analysis as object sizes, sizes of
+request messages etc can make it possible for a third party observer
+of the traffic between subscriber and publisher to identify media
+content, user patterns and media stream origin.
 
 ## Authorization {#sec-authorization}
 
@@ -4619,8 +4619,8 @@ token based schemes.
 
 Mutual TLS is expected to be widely used for node level identification
 between relays, especially within one organization. However, in some
-deployments mutual TLS may be possible to use also for end subscribers
-or original publishers. However, as only node level authentication is
+deployments mutual TLS can also be used for end subscribers or
+original publishers. However, as only node level authentication is
 provided, what a particular identified node is allowed to do is not
 provided at TLS level.
 
@@ -4628,7 +4628,7 @@ MOQT has functionality to carry Authorization tokens as message
 parameters when requests are sent. These tokens can be of type the
 service requires to meet its security goals which can be
 varied. Therefore, already two variants of authorization tokens have
-been defined for MOQT and more may be defined in the future. The
+been defined for MOQT and more are expected to be defined in the future. The
 current tokens are Privacy Pass Authentication for Media over QUIC
 {{PPA}} and Authentication scheme for MOQT using Common Access Tokens
 {{CAT}}.
@@ -4778,7 +4778,7 @@ To mitigate fingerprinting risks:
 * Implementations MAY provide users with the ability to configure or disable
   the MOQT_IMPLEMENTATION option.
 
-Operators should be aware that detailed implementation identification
+Operators are advised that detailed implementation identification
 facilitates the same privacy concerns as persistent identifiers, since it
 enables correlation of sessions across time.
 
