@@ -1685,9 +1685,10 @@ Forwarding Preference:
   OBJECT_DELIVERY_TIMEOUT, it MUST reset the underlying transport stream with
   the reset stream code DELIVERY_TIMEOUT (see {{closing-subgroup-streams}}) and
   SHOULD NOT attempt to open a new stream to deliver additional Objects in that
-  Subgroup.  In order for this timeout mechanism to be efficient, the
-  implementations SHOULD limit the amount of data buffered at the underlying
-  transport layer.
+  Subgroup.  This SHOULD apply to retransmissions if the underlying transport
+  implementation allows.  If not, in order for this timeout mechanism to be
+  effective, the implementations SHOULD limit the amount of data buffered at
+  the underlying transport.
 - For datagrams, the implementation MUST drop the datagrams if the time elapsed
   since the first byte exceeds OBJECT_DELIVERY_TIMEOUT.  Similar to subgroups,
   implementations SHOULD either minimize datagram queueing, or use datagram
