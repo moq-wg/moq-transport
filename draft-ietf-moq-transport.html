@@ -4010,7 +4010,8 @@ relay authorizes a user are outside the scope of this specification.<a href="#se
 <p id="section-8.4-2">The relay <span class="bcp14">MUST</span> have an <code>Established</code> upstream subscription before sending
 SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
-<span class="bcp14">MUST</span> withhold sending FETCH_OK until it does.<a href="#section-8.4-2" class="pilcrow">¶</a></p>
+<span class="bcp14">MUST</span> withhold sending FETCH_OK until it does.  Relays <span class="bcp14">MUST</span> follow the
+constraints on LARGEST_OBJECT defined in <a href="#largest-param" class="auto internal xref">Section 9.2.10</a>.<a href="#section-8.4-2" class="pilcrow">¶</a></p>
 <p id="section-8.4-3">Publishers maintain a list of <code>Established</code> downstream subscriptions for
 each Track. Relays use the Track Alias (<a href="#track-alias" class="auto internal xref">Section 10.1</a>) of an incoming Object
 to identify its Track and find the current subscribers.  Each new Object
@@ -4748,6 +4749,16 @@ Track observed by the sending endpoint (see <a href="#subscription-filters" clas
 have been published on this Track the Publisher <span class="bcp14">MUST</span> include this parameter.<a href="#section-9.2.10-1" class="pilcrow">¶</a></p>
 <p id="section-9.2.10-2">If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.<a href="#section-9.2.10-2" class="pilcrow">¶</a></p>
+<p id="section-9.2.10-3">A relay <span class="bcp14">MUST</span> set LARGEST_OBJECT to the largest of the following:<a href="#section-9.2.10-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-9.2.10-4">
+<li id="section-9.2.10-4.1">
+              <p id="section-9.2.10-4.1.1">Any LARGEST_OBJECT value received from the upstream publisher in SUBSCRIBE_OK,
+PUBLISH, or REQUEST_UPDATE_OK<a href="#section-9.2.10-4.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-9.2.10-4.2">
+              <p id="section-9.2.10-4.2.1">The largest Location of an Object received on an upstream subscription<a href="#section-9.2.10-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          </ol>
 </section>
 </div>
 <div id="forward-parameter">
