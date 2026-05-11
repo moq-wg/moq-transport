@@ -715,6 +715,13 @@ on a local network may limit the scope to a single connection; by
 contrast, an application that uses multiple CDNs to serve media may
 require the scope to include all of those CDNs.
 
+A single MOQT transport session is tied to the scope that is negotiated in the
+beginning of the session. Unless the application has additional information,
+two tracks are assumed to belong to the same scope if and only if the authority
+and the path values are equal. The authority and the path values are
+communicated through the CLIENT_SETUP message in case of raw QUIC, and through
+HTTP request header fields in case of WebTransport.
+
 Because each Full Track Name is unique within an MOQT scope, they can be used as
 a cache key for the track. If, at a given moment in time, two tracks within the
 same scope contain different data, they MUST have different names and/or
