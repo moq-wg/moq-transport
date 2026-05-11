@@ -2658,32 +2658,38 @@ narrow the scope is. An application that deals with connections between devices
 on a local network may limit the scope to a single connection; by
 contrast, an application that uses multiple CDNs to serve media may
 require the scope to include all of those CDNs.<a href="#section-2.4.3-1" class="pilcrow">¶</a></p>
-<p id="section-2.4.3-2">Because each Full Track Name is unique within an MOQT scope, they can be used as
+<p id="section-2.4.3-2">A single MOQT transport session is tied to the scope that is negotiated in the
+beginning of the session. Unless the application has additional information,
+two tracks are assumed to belong to the same scope if and only if the authority
+and the path values are equal. The authority and the path values are
+communicated through the CLIENT_SETUP message in case of raw QUIC, and through
+HTTP request header fields in case of WebTransport.<a href="#section-2.4.3-2" class="pilcrow">¶</a></p>
+<p id="section-2.4.3-3">Because each Full Track Name is unique within an MOQT scope, they can be used as
 a cache key for the track. If, at a given moment in time, two tracks within the
 same scope contain different data, they <span class="bcp14">MUST</span> have different names and/or
 namespaces. MOQT provides subscribers with the ability to alter the specific
 manner in which tracks are delivered via Parameters, but the actual content of
 the tracks does not depend on those parameters; this is in contrast to protocols
-like HTTP, where request headers can alter the server response.<a href="#section-2.4.3-2" class="pilcrow">¶</a></p>
-<p id="section-2.4.3-3">A publisher that loses state (e.g. crashes) and intends to resume publishing on
+like HTTP, where request headers can alter the server response.<a href="#section-2.4.3-3" class="pilcrow">¶</a></p>
+<p id="section-2.4.3-4">A publisher that loses state (e.g. crashes) and intends to resume publishing on
 the same Track risks colliding with previously published Objects and violating
 the above requirements.  A publisher can handle this in application specific
-ways, for example:<a href="#section-2.4.3-3" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-2.4.3-4">
-<li id="section-2.4.3-4.1">
-              <p id="section-2.4.3-4.1.1">Select a unique Track Name or Track Namespace whenever it resumes
+ways, for example:<a href="#section-2.4.3-4" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-2.4.3-5">
+<li id="section-2.4.3-5.1">
+              <p id="section-2.4.3-5.1.1">Select a unique Track Name or Track Namespace whenever it resumes
 publishing. For example, it can base one of the Namespace Fields on the
-current time, or select a sufficiently large random value.<a href="#section-2.4.3-4.1.1" class="pilcrow">¶</a></p>
+current time, or select a sufficiently large random value.<a href="#section-2.4.3-5.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.4.3-4.2">
-              <p id="section-2.4.3-4.2.1">Resume publishing under a previous Track Name and Namespace and set the
+            <li id="section-2.4.3-5.2">
+              <p id="section-2.4.3-5.2.1">Resume publishing under a previous Track Name and Namespace and set the
 initial Group ID to a unique value guaranteed to be larger than all
 previously used groups.  This can be done by choosing a Group ID based on the
-current time.<a href="#section-2.4.3-4.2.1" class="pilcrow">¶</a></p>
+current time.<a href="#section-2.4.3-5.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.4.3-4.3">
-              <p id="section-2.4.3-4.3.1">Use TRACK_STATUS or similar mechanism to query the previous state to
-determine the largest published Group ID.<a href="#section-2.4.3-4.3.1" class="pilcrow">¶</a></p>
+            <li id="section-2.4.3-5.3">
+              <p id="section-2.4.3-5.3.1">Use TRACK_STATUS or similar mechanism to query the previous state to
+determine the largest published Group ID.<a href="#section-2.4.3-5.3.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
 </section>
