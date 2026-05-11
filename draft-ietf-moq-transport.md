@@ -559,9 +559,10 @@ reasonable tradeoff between having an optimal mapping of Object relationships in
 a Group and minimizing the number of streams used.
 
 When the Original Publisher opens a new subgroup, it MUST set the FIRST_OBJECT
-bit ({{subgroup-header}}) to indicate that the subgroup begins with the first
-object published in that subgroup. A relay forwarding a subgroup MUST preserve
-the value of this bit from the upstream publisher.
+bit ({{subgroup-header}}) to indicate that the first object in the subgroup
+stream is the first object ever published in that subgroup. A relay forwarding a
+subgroup that begins with the first object ever published in that subgroup MUST
+set the FIRST_OBJECT bit.
 
 ## Groups {#model-group}
 
@@ -3852,8 +3853,8 @@ in the header:
   established the subscription. When set to 0, the Priority field is present in
   the Subgroup header.
 
-* The **FIRST_OBJECT** bit (0x40) indicates that this subgroup contains the
-  first object published in the subgroup by the original publisher.
+* The **FIRST_OBJECT** bit (0x40) indicates that the first object in this
+subgroup stream is the first object published in the subgroup by the original publisher.
 
 The following Type values are invalid. If an endpoint receives a stream header
 with any of these Type values, it MUST close the session with a
