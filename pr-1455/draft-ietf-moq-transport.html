@@ -31,8 +31,8 @@ agnostic and can be used for a wide range of use cases.
     platformdirs 4.9.6
     pycountry 24.6.1
     PyYAML 6.0.3
-    requests 2.32.5
-    wcwidth 0.6.0
+    requests 2.33.1
+    wcwidth 0.7.0
 -->
 <link href="draft-ietf-moq-transport.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1053,11 +1053,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">April 2026</td>
+<td class="right">May 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 1 November 2026</td>
+<td class="center">Expires 12 November 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-04-30" class="published">30 April 2026</time>
+<time datetime="2026-05-11" class="published">11 May 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-11-01">1 November 2026</time></dd>
+<dd class="expires"><time datetime="2026-11-12">12 November 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 1 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 12 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -7220,15 +7220,16 @@ securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
 within the chain from original publisher to end subscribers will have
-access to track identifiers as well as the object's content
+access to track identifiers, metadata, as well as the object's content
 unless it is end-to-end encrypted <a href="#sec-media" class="auto internal xref">Section 12.4</a>.<a href="#section-12-2" class="pilcrow">¶</a></p>
-<p id="section-12-3">Subscriptions require authorization to prevent unauthorized access to
-content. Relays <span class="bcp14">MUST</span> verify that subscribers are authorized before
-forwarding content. Subscription requests can carry authorization
-tokens to prove the subscriber's right to access specific tracks or
-namespaces. Relays that aggregate subscriptions from multiple
-downstream subscribers <span class="bcp14">MUST</span> ensure each subscriber is independently
-authorized.<a href="#section-12-3" class="pilcrow">¶</a></p>
+<p id="section-12-3">Publishers serving subscriptions require authorization to prevent
+unauthorized access to content. Relays <span class="bcp14">MUST</span> verify that subscribers
+are authorized before serving objects. Subscription requests can carry
+authorization tokens (see <a href="#sec-authorization" class="auto internal xref">Section 12.3</a>) to prove the
+subscriber's right to access specific tracks or namespaces. Relays
+that aggregate subscriptions from multiple downstream subscribers <span class="bcp14">MUST</span>
+ensure each subscriber is independently authorized, as there may be
+only one upstream subscription serving multiple downstream subscribers.<a href="#section-12-3" class="pilcrow">¶</a></p>
 <div id="subscription-amplification">
 <section id="section-12.1">
         <h3 id="name-subscription-amplification">
@@ -7271,13 +7272,12 @@ identify media content, user patterns and media stream origin.<a href="#section-
 depend on TLS based mechanisms due to challenges with identifiers and
 certificate distribution. Instead they rely primarily on
 token based schemes.<a href="#section-12.3-1" class="pilcrow">¶</a></p>
-<p id="section-12.3-2">Relays <span class="bcp14">SHOULD</span> be identified using TLS based authentication to prevent
-impersonation attacks. Mutual TLS is expected to be widely used for
-node level identification between relays, especially within one
-organization. However, in some deployments mutual TLS may be possible
-to use also for end subscribers or original publishers. However, as
-only node level authentication is provided, what a particular
-identified node is allowed to do is not provided at TLS level.<a href="#section-12.3-2" class="pilcrow">¶</a></p>
+<p id="section-12.3-2">Mutual TLS is expected to be widely used for node level identification
+between relays, especially within one organization. However, in some
+deployments mutual TLS may be possible to use also for end subscribers
+or original publishers. However, as only node level authentication is
+provided, what a particular identified node is allowed to do is not
+provided at TLS level.<a href="#section-12.3-2" class="pilcrow">¶</a></p>
 <p id="section-12.3-3">MOQT has functionality to carry Authorization tokens as message
 parameters when requests are sent. These tokens can be of type the
 service requires to meet its security goals which can be
@@ -7287,7 +7287,7 @@ current tokens are Privacy Pass Authentication for Media over QUIC
 <span>[<a href="#PPA" class="cite xref">PPA</a>]</span> and Authentication scheme for MOQT using Common Access Tokens
 <span>[<a href="#CAT" class="cite xref">CAT</a>]</span>.<a href="#section-12.3-3" class="pilcrow">¶</a></p>
 <p id="section-12.3-4">Tokens are expected to contain information about which actions and
-which resources the end point providing the token is authorized to
+which resources the endpoint providing the token is authorized to
 perform and access. Relays when receiving requests will verify the
 token to determine that the request made is authorized.<a href="#section-12.3-4" class="pilcrow">¶</a></p>
 <div id="replay-attacks">
@@ -7295,15 +7295,10 @@ token to determine that the request made is authorized.<a href="#section-12.3-4"
           <h4 id="name-replay-attacks">
 <a href="#section-12.3.1" class="section-number selfRef">12.3.1. </a><a href="#name-replay-attacks" class="section-name selfRef">Replay Attacks</a>
           </h4>
-<p id="section-12.3.1-1">Authorization tokens <span class="bcp14">SHOULD</span> include mechanisms to prevent replay
-attacks. Common Access Tokens <span>[<a href="#CAT" class="cite xref">CAT</a>]</span> provide replay protection through
-DPoP (Demonstrating Proof-of-Possession), which binds tokens to client
-cryptographic keys and requires fresh proofs with unique identifiers
-(jti) and timestamps for each request. Privacy Pass <span>[<a href="#PPA" class="cite xref">PPA</a>]</span> tokens
-include a client-generated nonce for uniqueness and bind tokens to
-their issuance context through a challenge digest. Relays <span class="bcp14">SHOULD</span> track
-token identifiers within a configured time window to detect and reject
-replayed tokens.<a href="#section-12.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-12.3.1-1">Replay protection for authorization tokens is the responsibility of
+the specific token scheme used. Token schemes such as <span>[<a href="#CAT" class="cite xref">CAT</a>]</span> and
+<span>[<a href="#PPA" class="cite xref">PPA</a>]</span> include requirements for relays when processing tokens and
+requests.<a href="#section-12.3.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -7313,11 +7308,10 @@ replayed tokens.<a href="#section-12.3.1-1" class="pilcrow">¶</a></p>
         <h3 id="name-media-security">
 <a href="#section-12.4" class="section-number selfRef">12.4. </a><a href="#name-media-security" class="section-name selfRef">Media Security</a>
         </h3>
-<p id="section-12.4-1">The MOQT hop-by-hop model does provide hop by hop confidentiality and
-integrity protection of the media objects. However, due to the
-hop-by-hop model media objects unless additionally protected are
-subject to access by the relay as well as modification intentional as
-well as accidental.<a href="#section-12.4-1" class="pilcrow">¶</a></p>
+<p id="section-12.4-1">MOQT provides confidentiality and integrity protection of media
+objects on each hop. However, media objects are accessible to relays,
+and are subject to both intentional and accidental modification,
+unless they are additionally end-to-end protected.<a href="#section-12.4-1" class="pilcrow">¶</a></p>
 <p id="section-12.4-2">The media objects transported by MOQT in various tracks from various
 original publishers are subject to several considerations. The first
 is source authenticity, i.e. to know that the received media objects
@@ -7325,12 +7319,10 @@ are what the original publisher actually published. The information
 needing to be source authenticated is not only the encoded media
 itself, but also some meta data. For example timestamps are crucial to
 understand where on the timeline this media fragment belongs.<a href="#section-12.4-2" class="pilcrow">¶</a></p>
-<p id="section-12.4-3">The second aspect is content confidentiality, i.e. how to prevent the
-relays from having access to the media content itself and minimize what
-the relay can deduce about the content. Media object
-sizes and traffic patterns do enable some analysis of the
-content. Also the track namespace and track name are possible to
-analyze and also correlate between end subscribers by relays.<a href="#section-12.4-3" class="pilcrow">¶</a></p>
+<p id="section-12.4-3">The second aspect is content confidentiality. Beyond direct relay
+access to media objects, object sizes and traffic patterns enable
+analysis of content. Track namespace and track name can also be
+analyzed and correlated between end subscribers by relays.<a href="#section-12.4-3" class="pilcrow">¶</a></p>
 <p id="section-12.4-4">The end-to-end media security is handled by mechanisms external to this
 specification. They need to provide source authenticity and
 confidentiality. MOQT's media object model does enable both the media
@@ -7338,7 +7330,7 @@ data itself as well as media object headers to be confidentiality and
 integrity protected, as well as supporting a class of visible to relay
 headers that are integrity protected but not encrypted.<a href="#section-12.4-4" class="pilcrow">¶</a></p>
 <p id="section-12.4-5">Current proposals for media security include:
- - An E2EE scheme based on SFRAME: <span>[<a href="#I-D.jennings-moq-secure-objects" class="cite xref">I-D.jennings-moq-secure-objects</a>]</span>.<a href="#section-12.4-5" class="pilcrow">¶</a></p>
+ - An E2EE scheme based on SFRAME: <span>[<a href="#I-D.ietf-moq-secure-objects" class="cite xref">I-D.ietf-moq-secure-objects</a>]</span>.<a href="#section-12.4-5" class="pilcrow">¶</a></p>
 <div id="key-management">
 <section id="section-12.4.1">
           <h4 id="name-key-management">
@@ -8710,6 +8702,10 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
         <dd>
 <span class="refAuthor">Curley, L.</span>, <span class="refAuthor">Pugin, K.</span>, <span class="refAuthor">Nandakumar, S.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"Warp - Live Media Transport over QUIC"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-lcurley-warp-04</span>, <time datetime="2023-03-13" class="refDate">13 March 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-lcurley-warp-04">https://datatracker.ietf.org/doc/html/draft-lcurley-warp-04</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="I-D.ietf-moq-secure-objects">[I-D.ietf-moq-secure-objects]</dt>
+        <dd>
+<span class="refAuthor">Jennings, C. F.</span>, <span class="refAuthor">Nandakumar, S.</span>, and <span class="refAuthor">R. Barnes</span>, <span class="refTitle">"End-to-End Secure Objects for Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-secure-objects-00</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-secure-objects-00">https://datatracker.ietf.org/doc/html/draft-ietf-moq-secure-objects-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
         <dd>
 <span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-04</span>, <time datetime="2025-12-14" class="refDate">14 December 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-04">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-04</a>&gt;</span>. </dd>
@@ -8717,10 +8713,6 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
 <span class="refAuthor">Kinnear, E.</span> and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-12</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="I-D.jennings-moq-secure-objects">[I-D.jennings-moq-secure-objects]</dt>
-        <dd>
-<span class="refAuthor">Jennings, C. F.</span>, <span class="refAuthor">Nandakumar, S.</span>, and <span class="refAuthor">R. Barnes</span>, <span class="refTitle">"End-to-End Secure Objects for Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jennings-moq-secure-objects-04</span>, <time datetime="2026-02-08" class="refDate">8 February 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jennings-moq-secure-objects-04">https://datatracker.ietf.org/doc/html/draft-jennings-moq-secure-objects-04</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PPA">[PPA]</dt>
         <dd>
