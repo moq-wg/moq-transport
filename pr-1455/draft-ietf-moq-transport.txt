@@ -1820,7 +1820,7 @@ Table of Contents
    Section 3.3.2), receives REQUEST_ERROR, or the FETCH data stream
    receives a FIN or is reset.  If the data stream is already open, the
    subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
-   data stream as well as the the bidi request stream.  It MUST send
+   data stream as well as the bidi request stream.  It MUST send
    STOP_SENDING for the bidi request stream.
 
    The Publisher can destroy fetch state as soon as it has received a
@@ -3898,8 +3898,7 @@ Table of Contents
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1 after removing namespace
-      tuples included in 'Track Namespace Prefix' {message-subscribe-
-      ns}.
+      tuples included in 'Track Namespace Prefix' Section 9.18.
 
 9.17.  NAMESPACE_DONE
 
@@ -3920,7 +3919,7 @@ Table of Contents
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1.  The namespace begins with
-      the 'Track Namespace Prefix' specified in {message-subscribe-ns}.
+      the 'Track Namespace Prefix' specified in Section 9.18.
 
 9.18.  SUBSCRIBE_NAMESPACE
 
@@ -3949,8 +3948,8 @@ Table of Contents
       "meeting=123", "participant=100") and ("example.com",
       "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for
       ("example.com", "meeting=123") would match both.  If an endpoint
-      receives a Track Namespace Prefix consisting of greater than than
-      32 Track Namespace Fields, it MUST close the session with a
+      receives a Track Namespace Prefix consisting of greater than 32
+      Track Namespace Fields, it MUST close the session with a
       PROTOCOL_VIOLATION.
 
    *  Parameters: The parameters are defined in Section 9.2.
@@ -4069,8 +4068,7 @@ Table of Contents
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1.  The namespace begins with
-      the 'Track Namespace Prefix' specified in {message-subscribe-
-      tracks}.
+      the 'Track Namespace Prefix' specified in Section 9.19.
 
    *  Track Name: Identifies the track name as defined in
       (Section 2.4.1).
