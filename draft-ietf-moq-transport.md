@@ -1878,7 +1878,8 @@ relay authorizes a user are outside the scope of this specification.
 The relay MUST have an `Established` upstream subscription before sending
 SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
-MUST withhold sending FETCH_OK until it does.
+MUST withhold sending FETCH_OK until it does.  Relays MUST follow the
+constraints on LARGEST_OBJECT defined in {{largest-param}}.
 
 Publishers maintain a list of `Established` downstream subscriptions for
 each Track. Relays use the Track Alias ({{track-alias}}) of an incoming Object
@@ -2482,6 +2483,12 @@ have been published on this Track the Publisher MUST include this parameter.
 
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
+
+A relay MUST set LARGEST_OBJECT to the largest of the following:
+
+1. Any LARGEST_OBJECT value received from the upstream publisher in SUBSCRIBE_OK,
+PUBLISH, or REQUEST_UPDATE_OK
+2. The largest Location of an Object received on an upstream subscription
 
 ### FORWARD Parameter {#forward-parameter}
 
