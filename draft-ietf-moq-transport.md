@@ -3606,7 +3606,6 @@ SUBSCRIBE_TRACKS Message {
   Type (vi64) = 0x51,
   Length (16),
   Request ID (vi64),
-  Required Request ID Delta (vi64),
   Track Namespace Prefix (..),
   Number of Parameters (vi64),
   Parameters (..) ...
@@ -3615,8 +3614,6 @@ SUBSCRIBE_TRACKS Message {
 {: #moq-transport-subscribe-tracks-format title="MOQT SUBSCRIBE_TRACKS Message"}
 
 * Request ID: See {{request-id}}.
-
-* Required Request ID Delta: See {{required-request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
   {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
