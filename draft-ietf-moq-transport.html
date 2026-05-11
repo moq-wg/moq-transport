@@ -2469,6 +2469,11 @@ likely belongs in a different Subgroup.<a href="#section-2.2-7" class="pilcrow">
 <p id="section-2.2-8">When assigning Objects to different Subgroups, the Original Publisher makes a
 reasonable tradeoff between having an optimal mapping of Object relationships in
 a Group and minimizing the number of streams used.<a href="#section-2.2-8" class="pilcrow">¶</a></p>
+<p id="section-2.2-9">When the Original Publisher opens a new subgroup, it <span class="bcp14">MUST</span> set the FIRST_OBJECT
+bit (<a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>) to indicate that the first object in the subgroup
+stream is the first object ever published in that subgroup. A relay forwarding a
+subgroup that begins with the first object ever published in that subgroup <span class="bcp14">MUST</span>
+set the FIRST_OBJECT bit.<a href="#section-2.2-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="model-group">
@@ -3173,7 +3178,7 @@ the type of the stream.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 10.4.4</a>)</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x10-0x15 / 0x18-0x1D / 0x30-0x35 / 0x38-0x3D</td>
+              <td class="text-right" rowspan="1" colspan="1">0b0XX1XXXX</td>
               <td class="text-left" rowspan="1" colspan="1">SUBGROUP_HEADER  (<a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>)</td>
             </tr>
             <tr>
@@ -6598,7 +6603,8 @@ flow control, while the sender waits for flow control to send the message.<a hre
             <div class="alignLeft art-text artwork" id="section-10.4.2-3.1">
 <pre>
 SUBGROUP_HEADER {
-  Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D,
+  Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D /
+             0x50..0x55 / 0x58..0x5D / 0x70..0x75 / 0x78..0x7D,
   Track Alias (vi64),
   Group ID (vi64),
   [Subgroup ID (vi64),]
@@ -6612,10 +6618,11 @@ SUBGROUP_HEADER {
 </div>
 <p id="section-10.4.2-4">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
 <code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-10.4.2-4" class="pilcrow">¶</a></p>
-<p id="section-10.4.2-5">The Type field in the SUBGROUP_HEADER takes the form 0b00X1XXXX (or the set of
-values from 0x10 to 0x1F, 0x30 to 0x3F), where bit 4 is always set to
-1. However, not all Type values in this range are valid. The four low-order bits
-and bit 5 determine which fields are present in the header:<a href="#section-10.4.2-5" class="pilcrow">¶</a></p>
+<p id="section-10.4.2-5">The Type field in the SUBGROUP_HEADER takes the form 0b0XX1XXXX (or the set of
+values from 0x10 to 0x1F, 0x30 to 0x3F, 0x50 to 0x5F, 0x70 to 0x7F), where
+bit 4 is always set to 1. However, not all Type values in this range are
+valid. The four low-order bits and bits 5-6 determine which fields are present
+in the header:<a href="#section-10.4.2-5" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.4.2-6.1">
               <p id="section-10.4.2-6.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is present
@@ -6658,18 +6665,24 @@ inherits the Publisher Priority specified in the control message that
 established the subscription. When set to 0, the Priority field is present in
 the Subgroup header.<a href="#section-10.4.2-6.4.1" class="pilcrow">¶</a></p>
 </li>
+            <li class="normal" id="section-10.4.2-6.5">
+              <p id="section-10.4.2-6.5.1">The <strong>FIRST_OBJECT</strong> bit (0x40) indicates that the first object in this
+subgroup stream is the first object published in the subgroup by the original publisher.<a href="#section-10.4.2-6.5.1" class="pilcrow">¶</a></p>
+</li>
           </ul>
 <p id="section-10.4.2-7">The following Type values are invalid. If an endpoint receives a stream header
 with any of these Type values, it <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>:<a href="#section-10.4.2-7" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10.4.2-8.1">
-              <p id="section-10.4.2-8.1.1">Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36, 0x37,
-0x3E, 0x3F. This mode is reserved for future use.<a href="#section-10.4.2-8.1.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.2-8.1.1">Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36,
+0x37, 0x3E, 0x3F, 0x56, 0x57, 0x5E, 0x5F, 0x76, 0x77, 0x7E, 0x7F. This mode
+is reserved for future use.<a href="#section-10.4.2-8.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.4.2-8.2">
-              <p id="section-10.4.2-8.2.1">Type values that do not match the form 0b00X1XXXX (i.e., Type values outside the
-ranges 0x10..0x1F and 0x30..0x3F, or values where bit 4 is not set).<a href="#section-10.4.2-8.2.1" class="pilcrow">¶</a></p>
+              <p id="section-10.4.2-8.2.1">Type values that do not match the form 0b0XX1XXXX (i.e., Type values outside
+the ranges 0x10..0x1F, 0x30..0x3F, 0x50..0x5F, and 0x70..0x7F, or values
+where bit 4 is not set).<a href="#section-10.4.2-8.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-10.4.2-9">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
