@@ -57,7 +57,7 @@ normative:
 informative:
   CAT: I-D.ietf-moq-c4m
   PPA: I-D.ietf-moq-privacy-pass-auth
-  I-D.jennings-moq-secure-objects:
+  I-D.ietf-moq-secure-objects:
 
 --- abstract
 
@@ -4401,16 +4401,17 @@ securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
 within the chain from original publisher to end subscribers will have
-access to track identifiers as well as the object's content
+access to track identifiers, metadata, as well as the object's content
 unless it is end-to-end encrypted {{sec-media}}.
 
-Subscriptions require authorization to prevent unauthorized access to
-content. Relays MUST verify that subscribers are authorized before
-forwarding content. Subscription requests can carry authorization
-tokens to prove the subscriber's right to access specific tracks or
-namespaces. Relays that aggregate subscriptions from multiple
-downstream subscribers MUST ensure each subscriber is independently
-authorized.
+Publishers serving subscriptions require authorization to prevent
+unauthorized access to content. Relays MUST verify that subscribers
+are authorized before serving objects. Subscription requests can carry
+authorization tokens (see {{sec-authorization}}) to prove the
+subscriber's right to access specific tracks or namespaces. Relays
+that aggregate subscriptions from multiple downstream subscribers MUST
+ensure each subscriber is independently authorized, as there may be
+only one upstream subscription serving multiple downstream subscribers.
 
 ### Subscription Amplification
 
@@ -4446,13 +4447,12 @@ depend on TLS based mechanisms due to challenges with identifiers and
 certificate distribution. Instead they rely primarily on
 token based schemes.
 
-Relays SHOULD be identified using TLS based authentication to prevent
-impersonation attacks. Mutual TLS is expected to be widely used for
-node level identification between relays, especially within one
-organization. However, in some deployments mutual TLS may be possible
-to use also for end subscribers or original publishers. However, as
-only node level authentication is provided, what a particular
-identified node is allowed to do is not provided at TLS level.
+Mutual TLS is expected to be widely used for node level identification
+between relays, especially within one organization. However, in some
+deployments mutual TLS may be possible to use also for end subscribers
+or original publishers. However, as only node level authentication is
+provided, what a particular identified node is allowed to do is not
+provided at TLS level.
 
 MOQT has functionality to carry Authorization tokens as message
 parameters when requests are sent. These tokens can be of type the
@@ -4464,29 +4464,23 @@ current tokens are Privacy Pass Authentication for Media over QUIC
 {{CAT}}.
 
 Tokens are expected to contain information about which actions and
-which resources the end point providing the token is authorized to
+which resources the endpoint providing the token is authorized to
 perform and access. Relays when receiving requests will verify the
 token to determine that the request made is authorized.
 
 ### Replay Attacks
 
-Authorization tokens SHOULD include mechanisms to prevent replay
-attacks. Common Access Tokens {{CAT}} provide replay protection through
-DPoP (Demonstrating Proof-of-Possession), which binds tokens to client
-cryptographic keys and requires fresh proofs with unique identifiers
-(jti) and timestamps for each request. Privacy Pass {{PPA}} tokens
-include a client-generated nonce for uniqueness and bind tokens to
-their issuance context through a challenge digest. Relays SHOULD track
-token identifiers within a configured time window to detect and reject
-replayed tokens.
+Replay protection for authorization tokens is the responsibility of
+the specific token scheme used. Token schemes such as {{CAT}} and
+{{PPA}} include requirements for relays when processing tokens and
+requests.
 
 ## Media Security  {#sec-media}
 
-The MOQT hop-by-hop model does provide hop by hop confidentiality and
-integrity protection of the media objects. However, due to the
-hop-by-hop model media objects unless additionally protected are
-subject to access by the relay as well as modification intentional as
-well as accidental.
+MOQT provides confidentiality and integrity protection of media
+objects on each hop. However, media objects are accessible to relays,
+and are subject to both intentional and accidental modification,
+unless they are additionally end-to-end protected.
 
 The media objects transported by MOQT in various tracks from various
 original publishers are subject to several considerations. The first
@@ -4496,12 +4490,10 @@ needing to be source authenticated is not only the encoded media
 itself, but also some meta data. For example timestamps are crucial to
 understand where on the timeline this media fragment belongs.
 
-The second aspect is content confidentiality, i.e. how to prevent the
-relays from having access to the media content itself and minimize what
-the relay can deduce about the content. Media object
-sizes and traffic patterns do enable some analysis of the
-content. Also the track namespace and track name are possible to
-analyze and also correlate between end subscribers by relays.
+The second aspect is content confidentiality. Beyond direct relay
+access to media objects, object sizes and traffic patterns enable
+analysis of content. Track namespace and track name can also be
+analyzed and correlated between end subscribers by relays.
 
 The end-to-end media security is handled by mechanisms external to this
 specification. They need to provide source authenticity and
@@ -4511,7 +4503,7 @@ integrity protected, as well as supporting a class of visible to relay
 headers that are integrity protected but not encrypted.
 
 Current proposals for media security include:
- - An E2EE scheme based on SFRAME: {{I-D.jennings-moq-secure-objects}}.
+ - An E2EE scheme based on SFRAME: {{I-D.ietf-moq-secure-objects}}.
 
 ### Key Management
 
