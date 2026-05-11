@@ -1816,7 +1816,7 @@ to identify its Track and find the current subscribers.  Each new Object
 belonging to the Track is forwarded to each subscriber, as allowed by the
 subscription's filter (see {{message-subscribe-req}}), and delivered according
 to the priority (see {{priorities}}) and delivery timeout (see
-{{timeouts}}).
+{{delivery-timeouts}}).
 
 A relay MUST NOT reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
@@ -2279,7 +2279,7 @@ that alias has not received a response.
 
 The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a varint. It
 MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.  Its
-semantics are defined in {{timeouts}}.
+semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
 be forwarded upstream by a relay that intends to serve multiple subscriptions
@@ -2289,7 +2289,7 @@ for the same track.
 
 The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a varint. It
 MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.  Its
-semantics are defined in {{timeouts}}.
+semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
 be forwarded upstream by a relay that intends to serve multiple subscriptions
@@ -2961,7 +2961,7 @@ that it should receive any late-opening streams in a relatively short time.
 
 Note that some objects in the subscribed track might never be delivered,
 because a stream was reset, or never opened in the first place, due to the
-delivery timeouts (see {{timeouts}}).
+delivery timeouts (see {{delivery-timeouts}}).
 
 A sender MUST NOT send PUBLISH_DONE until it has closed all streams it will ever
 open, and has no further datagrams to send, for a subscription. After sending
@@ -3836,7 +3836,7 @@ If a sender closes the stream before delivering all such objects to the QUIC
 stream, it MUST reset the stream. This includes, but is
 not limited to:
 
-* Either of the delivery timeouts defined in {{timeouts}}
+* Either of the delivery timeouts defined in {{delivery-timeouts}}
 * Early termination of subscription due to request cancellation
 * A publisher's decision to end the subscription early
 * A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
@@ -3928,7 +3928,7 @@ CANCELLED (0x1):
   PUBLISH_DONE ({{message-publish-done}}) will have a more detailed status code.
 
 DELIVERY_TIMEOUT (0x2):
-: A delivery timeout {{timeouts}} was exceeded for this stream.
+: A delivery timeout {{delivery-timeouts}} was exceeded for this stream.
 
 SESSION_CLOSED (0x3):
 : The publisher session is being closed.
@@ -3939,7 +3939,7 @@ of the next Object in the requested range.
 
 TOO_FAR_BEHIND (0x5):
 : The corresponding subscription has exceeded the publisher's resource limits and
-is being terminated (see {{timeouts}}).
+is being terminated (see {{delivery-timeouts}}).
 
 EXCESSIVE_LOAD (0x9):
 : The publisher is overloaded and is resetting this stream.
@@ -4164,12 +4164,12 @@ See {{properties}} for usage guidance.
 ## SUBGROUP_DELIVERY_TIMEOUT {#subgroup-delivery-timeout-ext}
 
 SUBGROUP_DELIVERY_TIMEOUT (Property Type 0x06) is a Track Property.  It is a
-varint.  Its semantics are defined in {{timeouts}}.
+varint.  Its semantics are defined in {{delivery-timeouts}}.
 
 ## OBJECT_DELIVERY_TIMEOUT {#object-delivery-timeout-ext}
 
 OBJECT_DELIVERY_TIMEOUT (Property Type 0x02) is a Track Property.  It is a
-varint.  Its semantics are defined in {{timeouts}}.
+varint.  Its semantics are defined in {{delivery-timeouts}}.
 
 ## MAX CACHE DURATION {#max-cache-duration}
 
@@ -4728,7 +4728,7 @@ the length field.
 |:----------------------|:----:|:-----------------------------|
 | INTERNAL_ERROR        | 0x0  | {{closing-subgroup-streams}} |
 | CANCELLED             | 0x1  | {{closing-subgroup-streams}} |
-| DELIVERY_TIMEOUT      | 0x2  | {{timeouts}}                 |
+| DELIVERY_TIMEOUT      | 0x2  | {{delivery-timeouts}}                 |
 | SESSION_CLOSED        | 0x3  | {{closing-subgroup-streams}} |
 | UNKNOWN_OBJECT_STATUS | 0x4  | {{closing-subgroup-streams}} |
 | TOO_FAR_BEHIND        | 0x5  | {{closing-subgroup-streams}} |
