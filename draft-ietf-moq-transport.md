@@ -1526,6 +1526,27 @@ delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
 If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
 close the session with a `PROTOCOL_VIOLATION`.
 
+Largest Available Group (0x5): The filter Largest Avaiable Group provides a way
+to join the track on the newest group that is immediately available.
+Specifically:
+* If the original publisher receives a SUBSCRIBE, and it has all of the objects
+  for the current group available, it SHOULD serve the subscription as if the
+  Largest Object is `(Largest Object.Group ID, 0)`.
+* If the original publisher does not have all of the objects for the current
+  group available to serve, it MUST treat this filter as Next Group Start.
+* If a relay has an existing upstream subscription, it MUST follow the same
+  rules as the original publisher; since a relay does not have the knowledge
+  of the object ID structure that the original publisher has, it is defined to
+  "have all objects for the current group available" if it could serve a FETCH
+  for the range `[(Largest Object.Group ID, 0); (Largest Object.Group ID,
+  Largest Object.Object ID)]`.
+* If a relay does not have an existing upstream subscription, it MUST use the
+  Largest Avaiable Group filter when subscribing to the upstream publisher.
+
+TODO: we may need to tell the subscriber which of the scenarios above have
+occurred; consider porting `START_LOCATION` from
+<https://github.com/afrind/moq-transport/pull/15/changes>.
+
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
 
