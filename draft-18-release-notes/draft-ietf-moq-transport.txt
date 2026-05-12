@@ -5999,6 +5999,8 @@ A.1.  Since draft-ietf-moq-transport-17
 
    *  Add FIRST_OBJECT bit to SUBGROUP_HEADER type (#1618)
 
+   *  Split DELIVERY_TIMEOUT into two types of timeout (#1605)
+
    *  FILL_TIMEOUT parameter (#1490)
 
    *  Forbid relays from lying about LARGEST_OBJECT (#1621)
