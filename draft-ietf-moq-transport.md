@@ -4566,7 +4566,7 @@ subscribers. Thus, the security considerations need to consider first
 what happens between two nodes, but also consider the impacts end to
 end over several hops of MOQT.
 
-MoQ uses a trust model where on each hop the nodes need to be
+MOQT uses a trust model where on each hop the nodes need to be
 securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
@@ -4581,7 +4581,7 @@ subscriber's right to access specific tracks or namespaces. Relays
 that aggregate subscriptions from multiple downstream subscribers MUST
 ensure each subscriber is independently authorized.
 
-### Subscription Amplification
+## Subscription Amplification
 
 A malicious subscriber could attempt to overwhelm a publisher or relay
 by requesting subscriptions to many tracks simultaneously. Relays
@@ -4608,6 +4608,9 @@ request messages, etc can make it possible for a third party observer
 to identify media content, user patterns and media stream origin.
 
 ## Authorization {#sec-authorization}
+
+MOQT supports authorization via mutual TLS for node-level identification
+and token-based schemes for fine-grained access control.
 
 Mutual TLS is expected to be widely used for node level identification
 between relays, especially within one organization. However, in some
@@ -4660,7 +4663,7 @@ The end-to-end media security is handled by mechanisms external to this
 specification. They need to provide source authenticity and
 confidentiality. MOQT's object model does enable both the object
 data itself as well as Object Properties to be confidentiality and
-integrity protected. MoQT also supports Object Properties being
+integrity protected. MOQT also supports Object Properties being
 integrity protected but not encrypted.
 
 Current proposals for media security include:
