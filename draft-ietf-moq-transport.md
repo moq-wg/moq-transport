@@ -5133,6 +5133,64 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 
 Issue and pull request numbers are listed with a leading octothorp.
 
+## Since draft-ietf-moq-transport-17
+
+**Session and Control Plane**
+
+* Unified moqt:// URI scheme for QUIC and WebTransport (#1486)
+* Add fragment identifier support for moqt URIs (#1571)
+* Split SUBSCRIBE_NAMESPACE into SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS
+  (#1542)
+* Remove Required Request ID (#1615)
+* Add REDIRECT for request errors and established subscriptions (#1534)
+* Allow GOAWAY on request streams to migrate individual requests (#1617)
+* Add Request ID to GOAWAY (#1559)
+* Remove PUBLISH_OK message type, make it a REQUEST_OK alias (#1611)
+* Generalize stream reset codes to all request streams, add new codes,
+  align with PUBLISH_DONE (#1606)
+* Add Track Properties to REQUEST_OK (#1576)
+* Add support for mandatory-to-understand track extensions (#1509)
+* Exclude your own tracks from SUBSCRIBE_NAMESPACE (#1596)
+* Add Session-Level Tracks reserved namespace (#1562)
+* Allow coalescing REQUEST_UPDATE processing (#1540)
+* SUBSCRIBE takes precedence over SUBSCRIBE_NAMESPACE at relay (#1533)
+* Don't close the Session for unknown errors (#1561)
+* Clarify REQUEST_UPDATE failure behavior for all request types (#1539)
+* Clarify SUBSCRIBE_NAMESPACE stream closure semantics (#1541)
+* FETCH to a track with no objects returns INVALID_RANGE (#1537)
+* Clarify FETCH_OK End Location semantics (#1536)
+* Clarify definition of scope (#1629)
+* Clarify Joining Fetch behavior:
+  - Joining FETCH is unaffected by forward changing to 0 (#1620)
+  - Joining Fetch forward state mismatch is a request error (#1609)
+  - Clarify Joining Fetch ordering with Forward State transitions (#1577)
+
+**Data Plane Wire Format and Handling**
+
+* Make Object ID and Group ID delta encoded in Fetch responses (#1586)
+* Add FIRST_OBJECT bit to SUBGROUP_HEADER type (#1618)
+* FILL_TIMEOUT parameter (#1490)
+* Forbid relays from lying about LARGEST_OBJECT (#1621)
+* Allow publisher to reopen subgroup after REQUEST_UPDATE forward 0->1
+  (#1583)
+* Allow 7-byte varint and non-minimal encodings (#1595)
+* Padding streams and datagrams (#1475)
+* Close session when delta encoding wraps (#1560)
+
+**Notable Editorial Changes**
+
+* Clarify Object existence and cross-source contradictions (#1566)
+* Clarify immutable track properties (#1535)
+* Improve Startup Latency and 0-RTT guidance (#1544)
+* Improve Security Considerations section (#1625)
+* Rewrite abstract and introduction (#1556)
+* Define textual aliases for REQUEST_OK by request type (#1610)
+* Add IANA registry for Setup Options (#1564)
+* Add provisional registry for LOC properties (#1624)
+* Update MOQ Properties registration policies (#1525)
+* Add stream type column to message type table (#1555)
+* Fix grease examples to match 0x7f multiplier (#1569)
+
 ## Since draft-ietf-moq-transport-16
 
 **Session and Control Plane**
