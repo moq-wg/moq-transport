@@ -55,6 +55,9 @@ normative:
   WebTransport: I-D.ietf-webtrans-http3
 
 informative:
+  CAT: I-D.ietf-moq-c4m
+  PPA: I-D.ietf-moq-privacy-pass-auth
+  I-D.ietf-moq-secure-objects:
 
 --- abstract
 
@@ -1575,7 +1578,7 @@ A subscriber keeps FETCH state until it cancels the request
 (see {{request-cancellation}}), receives REQUEST_ERROR, or the FETCH data stream
 receives a FIN or is reset. If the data stream is already open,
 the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
-data stream as well as the the bidi request stream. It MUST send STOP_SENDING
+data stream as well as the bidi request stream. It MUST send STOP_SENDING
 for the bidi request stream.
 
 The Publisher can destroy fetch state as soon as it has received a
@@ -3529,7 +3532,7 @@ NAMESPACE Message {
 
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}} after removing namespace tuples included in
-  'Track Namespace Prefix' {message-subscribe-ns}.
+  'Track Namespace Prefix' {{message-subscribe-ns}}.
 
 ## NAMESPACE_DONE {#message-namespace-done}
 
@@ -3550,7 +3553,7 @@ NAMESPACE_DONE Message {
 
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}}. The namespace begins with the
-  'Track Namespace Prefix' specified in {message-subscribe-ns}.
+  'Track Namespace Prefix' specified in {{message-subscribe-ns}}.
 
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
@@ -3579,7 +3582,7 @@ SUBSCRIBE_NAMESPACE Message {
   namespaces ("example.com", "meeting=123", "participant=100") and
   ("example.com", "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for
   ("example.com", "meeting=123") would match both.  If an endpoint receives a
-  Track Namespace Prefix consisting of greater than than 32 Track Namespace
+  Track Namespace Prefix consisting of greater than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 * Parameters: The parameters are defined in {{message-params}}.
@@ -3692,7 +3695,7 @@ PUBLISH_BLOCKED Message {
 
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}}. The namespace begins with the
-  'Track Namespace Prefix' specified in {message-subscribe-tracks}.
+  'Track Namespace Prefix' specified in {{message-subscribe-tracks}}.
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
@@ -4557,9 +4560,117 @@ An Object MUST NOT contain more than one instance of this property.
 
 # Security Considerations {#security}
 
-TODO: Expand this section, including subscriptions.
+MOQT is a protocol used hop-by-hop between original
+publishers to relay, (possibly) relay to relay, and relay to end
+subscribers. Thus, the security considerations need to consider first
+what happens between two nodes, but also consider the impacts end to
+end over several hops of MOQT.
+
+MOQT uses a trust model where on each hop the nodes need to be
+securely identified, authorized to use resources of the peer, provide
+confidentiality and integrity to prevent third party attacks and limit
+monitoring and leakage of privacy sensitive information. The relays
+within the chain from original publisher to end subscribers will have
+access to Track names, Track Properties, Object Properties, as well as the object's content
+unless it is end-to-end encrypted {{sec-media}}.
+
+Publishers, including Relays, require authorization to prevent unauthorized
+subscriptions to content. Subscription requests can carry
+authorization tokens (see {{sec-authorization}}) to prove the
+subscriber's right to access specific tracks or namespaces. Relays
+that aggregate subscriptions from multiple downstream subscribers MUST
+ensure each subscriber is independently authorized.
+
+## Subscription Amplification
+
+A malicious subscriber could attempt to overwhelm a publisher or relay
+by requesting subscriptions to many tracks simultaneously. Relays
+SHOULD implement rate limiting on subscription requests and MAY reject
+excessive subscriptions with REQUEST_ERROR using the EXCESSIVE_LOAD error code.
+Publishers SHOULD monitor
+the number of active subscriptions and enforce limits to prevent
+resource exhaustion from a single subscriber or session.
 
 TODO: Describe Cache Poisoning attacks
+
+## Communication Security
+
+MOQT depends on a secure transport to provide confidentiality,
+integrity and endpoint authentication between subscriber and
+publisher. Implementations use QUIC or WebTransport to fulfill
+the basic communication security requirements and these
+implementations SHOULD follow best practices for TLS 1.3 and QUIC.
+Relays MUST use authentication to prevent impersonation.
+
+Note that the basic security protection offered by QUIC or TCP/TLS
+does not prevent traffic pattern analysis. Object sizes, sizes of
+request messages, etc can make it possible for a third party observer
+to identify media content, user patterns and media stream origin.
+
+## Authorization {#sec-authorization}
+
+MOQT supports authorization via mutual TLS for node-level identification
+and token-based schemes for fine-grained access control.
+
+Mutual TLS is expected to be widely used for node level identification
+between relays, especially within one organization. However, in some
+deployments mutual TLS can also be used for end subscribers or
+original publishers. However, as only node level authentication is
+provided, what a particular identified node is allowed to do is not
+provided at TLS level.
+
+MOQT has functionality to carry Authorization tokens as message
+parameters. These tokens can vary based on the application
+requirements. Two variants of authorization tokens have already
+been defined for MOQT, and more are expected in the future. The
+current tokens are Privacy Pass Authentication for Media over QUIC
+{{PPA}} and Authentication scheme for MOQT using Common Access Tokens
+{{CAT}}.
+
+Tokens are expected to contain information about which actions and
+which resources the endpoint providing the token is authorized to
+perform and access. Relays will verify the
+token to ensure that the request is authorized.
+
+### Replay Attacks
+
+Replay protection for authorization tokens is the responsibility of
+the specific token scheme used. Token schemes such as {{CAT}} and
+{{PPA}} include requirements for relays when processing tokens and
+requests.
+
+## Media Security  {#sec-media}
+
+MOQT uses secure transports that provide confidentiality and integrity
+protection. However, media objects are accessible to relays,
+and are subject to both intentional and accidental modification,
+unless they are additionally end-to-end protected.
+
+The media objects transported by MOQT in various tracks from various
+original publishers are subject to several considerations. The first
+is source authenticity, i.e. to know that the received media objects
+are what the original publisher actually published. In addition to
+the media objects, it can also be important to authenticate some
+Track and Object Properties. For example, timestamps are crucial to
+understand where on the timeline this media fragment belongs.
+
+The second aspect is content confidentiality. Beyond direct relay
+access to media objects, object sizes and traffic patterns enable
+analysis of content. Track namespace and track name can also be
+analyzed and correlated between end subscribers by relays.
+
+The end-to-end media security is handled by mechanisms external to this
+specification. They need to provide source authenticity and
+confidentiality. MOQT's object model does enable both the object
+data itself as well as Object Properties to be confidentiality and
+integrity protected. MOQT also supports Object Properties being
+integrity protected but not encrypted.
+
+Current proposals for media security include:
+ - An E2EE scheme based on SFRAME: {{I-D.ietf-moq-secure-objects}}.
+
+Secure key distribution for end-to-end encryption is specific to the
+encryption system and deployment, and outside the scope of this document.
 
 ## Resource Exhaustion
 
@@ -4655,7 +4766,7 @@ To mitigate fingerprinting risks:
 * Implementations MAY provide users with the ability to configure or disable
   the MOQT_IMPLEMENTATION option.
 
-Operators should be aware that detailed implementation identification
+Operators are advised that detailed implementation identification
 facilitates the same privacy concerns as persistent identifiers, since it
 enables correlation of sessions across time.
 
