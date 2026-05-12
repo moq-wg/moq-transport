@@ -4609,11 +4609,6 @@ to identify media content, user patterns and media stream origin.
 
 ## Authorization {#sec-authorization}
 
-Authentication of original publishers and end subscribers might not
-depend on TLS based mechanisms due to challenges with identifiers and
-certificate distribution. They can instead rely on
-token based schemes.
-
 Mutual TLS is expected to be widely used for node level identification
 between relays, especially within one organization. However, in some
 deployments mutual TLS can also be used for end subscribers or
@@ -4671,14 +4666,8 @@ integrity protected but not encrypted.
 Current proposals for media security include:
  - An E2EE scheme based on SFRAME: {{I-D.ietf-moq-secure-objects}}.
 
-### Key Management
-
-End-to-end encryption requires secure key distribution between original
-publishers and end subscribers without exposing keys to intermediate
-relays. Key management schemes SHOULD support key rotation to limit the
-impact of key compromise. The key distribution mechanism is outside the
-scope of MOQT but MUST ensure that only authorized subscribers can
-obtain decryption keys for protected content.
+Secure key distribution for end-to-end encryption is specific to the
+encryption system and deployment, and outside the scope of this document.
 
 ## Resource Exhaustion
 
