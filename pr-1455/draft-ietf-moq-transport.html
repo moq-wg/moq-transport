@@ -7440,7 +7440,7 @@ removed otherwise.<a href="#section-11.8-5" class="pilcrow">¶</a></p>
       <h2 id="name-security-considerations">
 <a href="#section-12" class="section-number selfRef">12. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-12-1">MOQT is a protocol used hop-by-hop in a chain between original
+<p id="section-12-1">MOQT is a protocol used hop-by-hop between original
 publishers to relay, (possibly) relay to relay, and relay to end
 subscribers. Thus, the security considerations need to consider first
 what happens between two nodes, but also consider the impacts end to
@@ -7452,14 +7452,12 @@ monitoring and leakage of privacy sensitive information. The relays
 within the chain from original publisher to end subscribers will have
 access to Track names, Track Properties, Object Properties, as well as the object's content
 unless it is end-to-end encrypted <a href="#sec-media" class="auto internal xref">Section 12.4</a>.<a href="#section-12-2" class="pilcrow">¶</a></p>
-<p id="section-12-3">Publishers require authorization to prevent unauthorized
-subscriptions to content. Relays <span class="bcp14">MUST</span> verify that subscribers
-are authorized before serving objects. Subscription requests can carry
+<p id="section-12-3">Publishers, including Relays, require authorization to prevent unauthorized
+subscriptions to content. Subscription requests can carry
 authorization tokens (see <a href="#sec-authorization" class="auto internal xref">Section 12.3</a>) to prove the
 subscriber's right to access specific tracks or namespaces. Relays
 that aggregate subscriptions from multiple downstream subscribers <span class="bcp14">MUST</span>
-ensure each subscriber is independently authorized, as there may be
-only one upstream subscription serving multiple downstream subscribers.<a href="#section-12-3" class="pilcrow">¶</a></p>
+ensure each subscriber is independently authorized.<a href="#section-12-3" class="pilcrow">¶</a></p>
 <div id="subscription-amplification">
 <section id="section-12.1">
         <h3 id="name-subscription-amplification">
@@ -7468,7 +7466,8 @@ only one upstream subscription serving multiple downstream subscribers.<a href="
 <p id="section-12.1-1">A malicious subscriber could attempt to overwhelm a publisher or relay
 by requesting subscriptions to many tracks simultaneously. Relays
 <span class="bcp14">SHOULD</span> implement rate limiting on subscription requests and <span class="bcp14">MAY</span> reject
-excessive subscriptions with REQUEST_ERROR. Publishers <span class="bcp14">SHOULD</span> monitor
+excessive subscriptions with REQUEST_ERROR using the EXCESSIVE_LOAD error code.
+Publishers <span class="bcp14">SHOULD</span> monitor
 the number of active subscriptions and enforce limits to prevent
 resource exhaustion from a single subscriber or session.<a href="#section-12.1-1" class="pilcrow">¶</a></p>
 <p id="section-12.1-2">TODO: Describe Cache Poisoning attacks<a href="#section-12.1-2" class="pilcrow">¶</a></p>
