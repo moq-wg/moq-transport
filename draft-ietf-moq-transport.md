@@ -1675,20 +1675,22 @@ if both the publisher and the subscriber have a non-zero value, the smaller of
 the two is used.
 
 If the OBJECT_DELIVERY_TIMEOUT is not zero, the MOQT implementation MUST retain
-the time at which the first byte of every object has been either received from
-the upstream subscription, or provided by the original publisher application.
-The actual mechanism by which the timeout works depends on the Object
-Forwarding Preference:
+the time at which the first payload byte of every object has been either
+received from the upstream subscription, or provided by the original publisher
+application.  The actual mechanism by which the timeout works depends on the
+Object Forwarding Preference:
 
 - For subgroups, the implementation MUST check the time elapsed since the first
-  byte of the object before attempting to send it; if the time elapsed exceeds
-  OBJECT_DELIVERY_TIMEOUT, it MUST reset the underlying transport stream with
-  the reset stream code DELIVERY_TIMEOUT (see {{closing-subgroup-streams}}) and
-  SHOULD NOT attempt to open a new stream to deliver additional Objects in that
-  Subgroup.  This SHOULD apply to retransmissions if the underlying transport
-  implementation allows.  If not, in order for this timeout mechanism to be
-  effective, the implementations SHOULD limit the amount of data buffered at
-  the underlying transport.
+  byte of the object before attempting to pass it to the underlying transport
+  for transmission; if the time elapsed exceeds OBJECT_DELIVERY_TIMEOUT, it
+  MUST reset the underlying transport stream with the reset stream code
+  DELIVERY_TIMEOUT (see {{closing-subgroup-streams}}) and SHOULD NOT attempt to
+  open a new stream to deliver additional Objects in that Subgroup.  The
+  implementation SHOULD check object delivery timeouts before retransmissing
+  object data if the underlying transport implementation allows that.  The
+  implementations SHOULD minimize the amount of data buffered at the underlying
+  transport layer, as any data buffered at this layer can no longer be timed
+  out, potentially leading to transmission of expired data.
 - For datagrams, the implementation MUST drop the datagrams if the time elapsed
   since the first byte exceeds OBJECT_DELIVERY_TIMEOUT.  Similar to subgroups,
   implementations SHOULD either minimize datagram queueing, or use datagram
