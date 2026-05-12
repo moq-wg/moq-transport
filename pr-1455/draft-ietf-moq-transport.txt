@@ -218,7 +218,6 @@ Table of Contents
      12.3.  Authorization
        12.3.1.  Replay Attacks
      12.4.  Media Security
-       12.4.1.  Key Management
      12.5.  Resource Exhaustion
      12.6.  Timeouts
        12.6.1.  Idle Connection Handling
@@ -5024,7 +5023,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    between two nodes, but also consider the impacts end to end over
    several hops of MOQT.
 
-   MoQ uses a trust model where on each hop the nodes need to be
+   MOQT uses a trust model where on each hop the nodes need to be
    securely identified, authorized to use resources of the peer, provide
    confidentiality and integrity to prevent third party attacks and
    limit monitoring and leakage of privacy sensitive information.  The
@@ -5068,10 +5067,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 12.3.  Authorization
 
-   Authentication of original publishers and end subscribers might not
-   depend on TLS based mechanisms due to challenges with identifiers and
-   certificate distribution.  They can instead rely on token based
-   schemes.
+   MOQT supports authorization via mutual TLS for node-level
+   identification and token-based schemes for fine-grained access
+   control.
 
    Mutual TLS is expected to be widely used for node level
    identification between relays, especially within one organization.
@@ -5123,21 +5121,15 @@ EXT 1 and EXT N can be modified or removed by Relays
    this specification.  They need to provide source authenticity and
    confidentiality.  MOQT's object model does enable both the object
    data itself as well as Object Properties to be confidentiality and
-   integrity protected.  MoQT also supports Object Properties being
+   integrity protected.  MOQT also supports Object Properties being
    integrity protected but not encrypted.
 
    Current proposals for media security include: - An E2EE scheme based
    on SFRAME: [I-D.ietf-moq-secure-objects].
 
-12.4.1.  Key Management
-
-   End-to-end encryption requires secure key distribution between
-   original publishers and end subscribers without exposing keys to
-   intermediate relays.  Key management schemes SHOULD support key
-   rotation to limit the impact of key compromise.  The key distribution
-   mechanism is outside the scope of MOQT but MUST ensure that only
-   authorized subscribers can obtain decryption keys for protected
-   content.
+   Secure key distribution for end-to-end encryption is specific to the
+   encryption system and deployment, and outside the scope of this
+   document.
 
 12.5.  Resource Exhaustion
 
