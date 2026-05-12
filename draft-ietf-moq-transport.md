@@ -5169,6 +5169,7 @@ Issue and pull request numbers are listed with a leading octothorp.
 
 * Make Object ID and Group ID delta encoded in Fetch responses (#1586)
 * Add FIRST_OBJECT bit to SUBGROUP_HEADER type (#1618)
+* Split DELIVERY_TIMEOUT into two types of timeout (#1605)
 * FILL_TIMEOUT parameter (#1490)
 * Forbid relays from lying about LARGEST_OBJECT (#1621)
 * Allow publisher to reopen subgroup after REQUEST_UPDATE forward 0->1
