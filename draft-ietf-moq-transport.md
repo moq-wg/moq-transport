@@ -1842,16 +1842,17 @@ Object Forwarding Preference:
   parameter in the W3C WebTransport API).
 
 If the Object Forwarding Preference is Subgroup and the value of
-SUBGROUP_DELIVERY_TIMEOUT is not zero, once the MOQT implementation becomes
-aware that all of the objects on the subgroup have been published (either by
-receiving a FIN from the upstream subscription, or, in case of the original
-publisher, through being notified of this fact by the application), it MUST
-reset the underlying subgroup stream after SUBGROUP_DELIVERY_TIMEOUT elapses.
-The subgroup timeout timer MUST remain active until the underlying transport
-stream reaches "all data committed" state ({{!I-D.ietf-webtrans-overview,
-Section 4.3}}); this ensures that MOQT can time out subgroups where all of the
-data has been sent, but the stream has not been fully closed due to the packet
-loss.
+SUBGROUP_DELIVERY_TIMEOUT is not zero, the MOQT implementation MUST
+start a timer of SUBGROUP_DELIVERY_TIMEOUT duration once it becomes
+aware that all of the objects on the subgroup have been published
+(either by receiving a FIN from the upstream subscription, or, in case
+of the original publisher, through being notified of this fact by the
+application).  If the timer expires before the underlying transport
+stream reaches "all data committed" state
+({{!I-D.ietf-webtrans-overview, Section 4.3}}), the implementation
+MUST reset the stream.  This ensures that MOQT can time out subgroups
+where all of the data has been sent but not yet fully delivered due to
+packet loss.
 
 For objects with Object Forwarding Preference set to Datagram, the
 SUBGROUP_DELIVERY_TIMEOUT acts the same way as OBJECT_DELIVERY_TIMEOUT; if both
