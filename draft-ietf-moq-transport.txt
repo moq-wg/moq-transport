@@ -252,13 +252,14 @@ Table of Contents
      Normative References
      Informative References
    Appendix A.  Change Log
-     A.1.  Since draft-ietf-moq-transport-16
-     A.2.  Since draft-ietf-moq-transport-15
-     A.3.  Since draft-ietf-moq-transport-14
-     A.4.  Since draft-ietf-moq-transport-13
-     A.5.  Since draft-ietf-moq-transport-12
-     A.6.  Since draft-ietf-moq-transport-11
-     A.7.  Since draft-ietf-moq-transport-10
+     A.1.  Since draft-ietf-moq-transport-17
+     A.2.  Since draft-ietf-moq-transport-16
+     A.3.  Since draft-ietf-moq-transport-15
+     A.4.  Since draft-ietf-moq-transport-14
+     A.5.  Since draft-ietf-moq-transport-13
+     A.6.  Since draft-ietf-moq-transport-12
+     A.7.  Since draft-ietf-moq-transport-11
+     A.8.  Since draft-ietf-moq-transport-10
    Authors' Addresses
 
 1.  Introduction
@@ -5987,7 +5988,114 @@ Appendix A.  Change Log
 
    Issue and pull request numbers are listed with a leading octothorp.
 
-A.1.  Since draft-ietf-moq-transport-16
+A.1.  Since draft-ietf-moq-transport-17
+
+   *Session and Control Plane*
+
+   *  Unified moqt:// URI scheme for QUIC and WebTransport (#1486)
+
+   *  Add fragment identifier support for moqt URIs (#1571)
+
+   *  Split SUBSCRIBE_NAMESPACE into SUBSCRIBE_NAMESPACE and
+      SUBSCRIBE_TRACKS (#1542)
+
+   *  Remove Required Request ID (#1615)
+
+   *  Add REDIRECT for request errors and established subscriptions
+      (#1534)
+
+   *  Allow GOAWAY on request streams to migrate individual requests
+      (#1617)
+
+   *  Add Request ID to GOAWAY (#1559)
+
+   *  Remove PUBLISH_OK message type, make it a REQUEST_OK alias (#1611)
+
+   *  Generalize stream reset codes to all request streams, add new
+      codes, align with PUBLISH_DONE (#1606)
+
+   *  Add Track Properties to REQUEST_OK (#1576)
+
+   *  Add support for mandatory-to-understand track extensions (#1509)
+
+   *  Exclude your own tracks from SUBSCRIBE_NAMESPACE (#1596)
+
+   *  Add Session-Level Tracks reserved namespace (#1562)
+
+   *  Allow coalescing REQUEST_UPDATE processing (#1540)
+
+   *  SUBSCRIBE takes precedence over SUBSCRIBE_NAMESPACE at relay
+      (#1533)
+
+   *  Don't close the Session for unknown errors (#1561)
+
+   *  Clarify REQUEST_UPDATE failure behavior for all request types
+      (#1539)
+
+   *  Clarify SUBSCRIBE_NAMESPACE stream closure semantics (#1541)
+
+   *  FETCH to a track with no objects returns INVALID_RANGE (#1537)
+
+   *  Clarify FETCH_OK End Location semantics (#1536)
+
+   *  Clarify definition of scope (#1629)
+
+   *  Clarify Joining Fetch behavior:
+
+      -  Joining FETCH is unaffected by forward changing to 0 (#1620)
+
+      -  Joining Fetch forward state mismatch is a request error (#1609)
+
+      -  Clarify Joining Fetch ordering with Forward State transitions
+         (#1577)
+
+   *Data Plane Wire Format and Handling*
+
+   *  Make Object ID and Group ID delta encoded in Fetch responses
+      (#1586)
+
+   *  Add FIRST_OBJECT bit to SUBGROUP_HEADER type (#1618)
+
+   *  Split DELIVERY_TIMEOUT into two types of timeout (#1605)
+
+   *  FILL_TIMEOUT parameter (#1490)
+
+   *  Forbid relays from lying about LARGEST_OBJECT (#1621)
+
+   *  Allow publisher to reopen subgroup after REQUEST_UPDATE forward
+      0->1 (#1583)
+
+   *  Allow 7-byte varint and non-minimal encodings (#1595)
+
+   *  Padding streams and datagrams (#1475)
+
+   *  Close session when delta encoding wraps (#1560)
+
+   *Notable Editorial Changes*
+
+   *  Clarify Object existence and cross-source contradictions (#1566)
+
+   *  Clarify immutable track properties (#1535)
+
+   *  Improve Startup Latency and 0-RTT guidance (#1544)
+
+   *  Improve Security Considerations section (#1625)
+
+   *  Rewrite abstract and introduction (#1556)
+
+   *  Define textual aliases for REQUEST_OK by request type (#1610)
+
+   *  Add IANA registry for Setup Options (#1564)
+
+   *  Add provisional registry for LOC properties (#1624)
+
+   *  Update MOQ Properties registration policies (#1525)
+
+   *  Add stream type column to message type table (#1555)
+
+   *  Fix grease examples to match 0x7f multiplier (#1569)
+
+A.2.  Since draft-ietf-moq-transport-16
 
    *Session and Control Plane*
 
@@ -6088,7 +6196,7 @@ A.1.  Since draft-ietf-moq-transport-16
 
    *  Add generative AI disclosure per IRTF guidelines
 
-A.2.  Since draft-ietf-moq-transport-15
+A.3.  Since draft-ietf-moq-transport-15
 
    *Setup and Control Plane*
 
@@ -6166,7 +6274,7 @@ A.2.  Since draft-ietf-moq-transport-15
 
    *  A Publisher might not use the congestion window (#1408)
 
-A.3.  Since draft-ietf-moq-transport-14
+A.4.  Since draft-ietf-moq-transport-14
 
    *Setup and Control Plane*
 
@@ -6229,7 +6337,7 @@ A.3.  Since draft-ietf-moq-transport-14
 
    *  Clarify joining fetch end location (#1286)
 
-A.4.  Since draft-ietf-moq-transport-13
+A.5.  Since draft-ietf-moq-transport-13
 
    *Setup and Control Plane*
 
@@ -6301,7 +6409,7 @@ A.4.  Since draft-ietf-moq-transport-13
 
    *  Reformat Error Codes (#1091)
 
-A.5.  Since draft-ietf-moq-transport-12
+A.6.  Since draft-ietf-moq-transport-12
 
    *  TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly
       mirror SUBSCRIBE/OK/ERROR (#1015)
@@ -6309,7 +6417,7 @@ A.5.  Since draft-ietf-moq-transport-12
    *  SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE
       (#1049)
 
-A.6.  Since draft-ietf-moq-transport-11
+A.7.  Since draft-ietf-moq-transport-11
 
    *  Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
 
@@ -6335,7 +6443,7 @@ A.6.  Since draft-ietf-moq-transport-11
    *  Add PUBLISH for publisher initiated subscriptions (#995) and fix
       the PUBLISH codepoints (#1048, #1051)
 
-A.7.  Since draft-ietf-moq-transport-10
+A.8.  Since draft-ietf-moq-transport-10
 
    *  Added Common Structure definitions - Location, Key-Value-Pair and
       Reason Phrase
