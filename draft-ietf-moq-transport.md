@@ -1841,6 +1841,11 @@ Object Forwarding Preference:
   queueing mechanisms that support time bounds (such as the `outgoingMaxAge`
   parameter in the W3C WebTransport API).
 
+Publishers SHOULD consider whether the entire Object can likely be successfully
+delivered within the OBJECT_DELIVERY_TIMEOUT before sending any data for that
+Object, taking into account priorities, congestion control, and any other
+relevant information.
+
 If the Object Forwarding Preference is Subgroup and the value of
 SUBGROUP_DELIVERY_TIMEOUT is not zero, the MOQT implementation MUST
 start a timer of SUBGROUP_DELIVERY_TIMEOUT duration once it becomes
