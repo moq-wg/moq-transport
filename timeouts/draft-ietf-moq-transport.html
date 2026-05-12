@@ -3987,19 +3987,25 @@ queueing mechanisms that support time bounds (such as the <code>outgoingMaxAge</
 parameter in the W3C WebTransport API).<a href="#section-8-4.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-8-5">If the Object Forwarding Preference is Subgroup and the value of
-SUBGROUP_DELIVERY_TIMEOUT is not zero, once the MOQT implementation becomes
-aware that all of the objects on the subgroup have been published (either by
-receiving a FIN from the upstream subscription, or, in case of the original
-publisher, through being notified of this fact by the application), it <span class="bcp14">MUST</span>
-reset the underlying subgroup stream after SUBGROUP_DELIVERY_TIMEOUT elapses.
-The subgroup timeout timer <span class="bcp14">MUST</span> remain active until the underlying transport
-stream reaches "all data committed" state (<span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12#section-4.3" class="relref">Section 4.3</a></span>); this ensures that MOQT can time out subgroups where all of the
-data has been sent, but the stream has not been fully closed due to the packet
-loss.<a href="#section-8-5" class="pilcrow">¶</a></p>
-<p id="section-8-6">For objects with Object Forwarding Preference set to Datagram, the
+<p id="section-8-5">Publishers <span class="bcp14">SHOULD</span> consider whether the entire Object can likely be successfully
+delivered within the OBJECT_DELIVERY_TIMEOUT before sending any data for that
+Object, taking into account priorities, congestion control, and any other
+relevant information.<a href="#section-8-5" class="pilcrow">¶</a></p>
+<p id="section-8-6">If the Object Forwarding Preference is Subgroup and the value of
+SUBGROUP_DELIVERY_TIMEOUT is not zero, the MOQT implementation <span class="bcp14">MUST</span>
+start a timer of SUBGROUP_DELIVERY_TIMEOUT duration once it becomes
+aware that all of the objects on the subgroup have been published
+(either by receiving a FIN from the upstream subscription, or, in case
+of the original publisher, through being notified of this fact by the
+application).  If the timer expires before the underlying transport
+stream reaches "all data committed" state
+(<span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12#section-4.3" class="relref">Section 4.3</a></span>), the implementation
+<span class="bcp14">MUST</span> reset the stream.  This ensures that MOQT can time out subgroups
+where all of the data has been sent but not yet fully delivered due to
+packet loss.<a href="#section-8-6" class="pilcrow">¶</a></p>
+<p id="section-8-7">For objects with Object Forwarding Preference set to Datagram, the
 SUBGROUP_DELIVERY_TIMEOUT acts the same way as OBJECT_DELIVERY_TIMEOUT; if both
-are non-zero, the smaller of the two is used.<a href="#section-8-6" class="pilcrow">¶</a></p>
+are non-zero, the smaller of the two is used.<a href="#section-8-7" class="pilcrow">¶</a></p>
 <span id="name-comparison-of-the-delivery-"></span><div id="timeout-comparison">
 <table class="center" id="table-4">
         <caption>
@@ -4032,14 +4038,14 @@ are non-zero, the smaller of the two is used.<a href="#section-8-6" class="pilcr
         </tbody>
       </table>
 </div>
-<p id="section-8-8">Publishers can, at their discretion, discontinue forwarding Objects before
+<p id="section-8-9">Publishers can, at their discretion, discontinue forwarding Objects before
 either of the timeouts occurs, subject to stream closure and ordering
 constraints described in <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.4.3</a>.  However, if none of the
 timeouts are set to a non-zero value, all Objects in the track matching the
 subscription filter are delivered as indicated by their Group Order and
 Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher <span class="bcp14">MAY</span>
-terminate the subscription using PUBLISH_DONE with error <code>TOO_FAR_BEHIND</code>.<a href="#section-8-8" class="pilcrow">¶</a></p>
+terminate the subscription using PUBLISH_DONE with error <code>TOO_FAR_BEHIND</code>.<a href="#section-8-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relays-moq">
