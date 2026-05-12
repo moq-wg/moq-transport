@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 12 November 2026</td>
+<td class="center">Expires 13 November 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-05-11" class="published">11 May 2026</time>
+<time datetime="2026-05-12" class="published">12 May 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-11-12">12 November 2026</time></dd>
+<dd class="expires"><time datetime="2026-11-13">13 November 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1144,7 +1144,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 12 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 13 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -7445,15 +7445,15 @@ publishers to relay, (possibly) relay to relay, and relay to end
 subscribers. Thus, the security considerations need to consider first
 what happens between two nodes, but also consider the impacts end to
 end over several hops of MOQT.<a href="#section-12-1" class="pilcrow">¶</a></p>
-<p id="section-12-2">This results in a trust model where on each hop the nodes need to be
+<p id="section-12-2">MoQ uses a trust model where on each hop the nodes need to be
 securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
 within the chain from original publisher to end subscribers will have
-access to track identifiers, metadata, as well as the object's content
+access to Track names, Track Properties, Object Properties, as well as the object's content
 unless it is end-to-end encrypted <a href="#sec-media" class="auto internal xref">Section 12.4</a>.<a href="#section-12-2" class="pilcrow">¶</a></p>
-<p id="section-12-3">Publishers serving subscriptions require authorization to prevent
-unauthorized access to content. Relays <span class="bcp14">MUST</span> verify that subscribers
+<p id="section-12-3">Publishers require authorization to prevent unauthorized
+subscriptions to content. Relays <span class="bcp14">MUST</span> verify that subscribers
 are authorized before serving objects. Subscription requests can carry
 authorization tokens (see <a href="#sec-authorization" class="auto internal xref">Section 12.3</a>) to prove the
 subscriber's right to access specific tracks or namespaces. Relays
@@ -7484,13 +7484,11 @@ integrity and endpoint authentication between subscriber and
 publisher. Implementations use QUIC or WebTransport to fulfill
 the basic communication security requirements and these
 implementations <span class="bcp14">SHOULD</span> follow best practices for TLS 1.3 and QUIC.
-Relays <span class="bcp14">MUST</span> be authenticated to
-prevent impersonation of relays.<a href="#section-12.2-1" class="pilcrow">¶</a></p>
+Relays <span class="bcp14">MUST</span> use authentication to prevent impersonation.<a href="#section-12.2-1" class="pilcrow">¶</a></p>
 <p id="section-12.2-2">Note that the basic security protection offered by QUIC or TCP/TLS
-does not prevent traffic pattern analysis as object sizes, sizes of
-request messages etc can make it possible for a third party observer
-of the traffic between subscriber and publisher to identify media
-content, user patterns and media stream origin.<a href="#section-12.2-2" class="pilcrow">¶</a></p>
+does not prevent traffic pattern analysis. Object sizes, sizes of
+request messages, etc can make it possible for a third party observer
+to identify media content, user patterns and media stream origin.<a href="#section-12.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-authorization">
@@ -7498,9 +7496,9 @@ content, user patterns and media stream origin.<a href="#section-12.2-2" class="
         <h3 id="name-authorization">
 <a href="#section-12.3" class="section-number selfRef">12.3. </a><a href="#name-authorization" class="section-name selfRef">Authorization</a>
         </h3>
-<p id="section-12.3-1">Authentication of original publishers and end subscribers does not
+<p id="section-12.3-1">Authentication of original publishers and end subscribers might not
 depend on TLS based mechanisms due to challenges with identifiers and
-certificate distribution. Instead they rely primarily on
+certificate distribution. They can instead rely on
 token based schemes.<a href="#section-12.3-1" class="pilcrow">¶</a></p>
 <p id="section-12.3-2">Mutual TLS is expected to be widely used for node level identification
 between relays, especially within one organization. However, in some
@@ -7509,17 +7507,16 @@ original publishers. However, as only node level authentication is
 provided, what a particular identified node is allowed to do is not
 provided at TLS level.<a href="#section-12.3-2" class="pilcrow">¶</a></p>
 <p id="section-12.3-3">MOQT has functionality to carry Authorization tokens as message
-parameters when requests are sent. These tokens can be of type the
-service requires to meet its security goals which can be
-varied. Therefore, already two variants of authorization tokens have
-been defined for MOQT and more are expected to be defined in the future. The
+parameters. These tokens can vary based on the application
+requirements. Two variants of authorization tokens have already
+been defined for MOQT, and more are expected in the future. The
 current tokens are Privacy Pass Authentication for Media over QUIC
 <span>[<a href="#PPA" class="cite xref">PPA</a>]</span> and Authentication scheme for MOQT using Common Access Tokens
 <span>[<a href="#CAT" class="cite xref">CAT</a>]</span>.<a href="#section-12.3-3" class="pilcrow">¶</a></p>
 <p id="section-12.3-4">Tokens are expected to contain information about which actions and
 which resources the endpoint providing the token is authorized to
-perform and access. Relays when receiving requests will verify the
-token to determine that the request made is authorized.<a href="#section-12.3-4" class="pilcrow">¶</a></p>
+perform and access. Relays will verify the
+token to ensure that the request is authorized.<a href="#section-12.3-4" class="pilcrow">¶</a></p>
 <div id="replay-attacks">
 <section id="section-12.3.1">
           <h4 id="name-replay-attacks">
@@ -7538,16 +7535,16 @@ requests.<a href="#section-12.3.1-1" class="pilcrow">¶</a></p>
         <h3 id="name-media-security">
 <a href="#section-12.4" class="section-number selfRef">12.4. </a><a href="#name-media-security" class="section-name selfRef">Media Security</a>
         </h3>
-<p id="section-12.4-1">MOQT provides confidentiality and integrity protection of media
-objects on each hop. However, media objects are accessible to relays,
+<p id="section-12.4-1">MOQT uses secure transports that provide confidentiality and integrity
+protection. However, media objects are accessible to relays,
 and are subject to both intentional and accidental modification,
 unless they are additionally end-to-end protected.<a href="#section-12.4-1" class="pilcrow">¶</a></p>
 <p id="section-12.4-2">The media objects transported by MOQT in various tracks from various
 original publishers are subject to several considerations. The first
 is source authenticity, i.e. to know that the received media objects
-are what the original publisher actually published. The information
-needing to be source authenticated is not only the encoded media
-itself, but also some meta data. For example timestamps are crucial to
+are what the original publisher actually published. In addition to
+the media objects, it can also be important to authenticate some
+Track and Object Properties. For example, timestamps are crucial to
 understand where on the timeline this media fragment belongs.<a href="#section-12.4-2" class="pilcrow">¶</a></p>
 <p id="section-12.4-3">The second aspect is content confidentiality. Beyond direct relay
 access to media objects, object sizes and traffic patterns enable
@@ -7555,10 +7552,10 @@ analysis of content. Track namespace and track name can also be
 analyzed and correlated between end subscribers by relays.<a href="#section-12.4-3" class="pilcrow">¶</a></p>
 <p id="section-12.4-4">The end-to-end media security is handled by mechanisms external to this
 specification. They need to provide source authenticity and
-confidentiality. MOQT's media object model does enable both the media
-data itself as well as media object headers to be confidentiality and
-integrity protected, as well as supporting a class of visible to relay
-headers that are integrity protected but not encrypted.<a href="#section-12.4-4" class="pilcrow">¶</a></p>
+confidentiality. MOQT's object model does enable both the object
+data itself as well as Object Properties to be confidentiality and
+integrity protected. MoQT also supports Object Properties being
+integrity protected but not encrypted.<a href="#section-12.4-4" class="pilcrow">¶</a></p>
 <p id="section-12.4-5">Current proposals for media security include:
  - An E2EE scheme based on SFRAME: <span>[<a href="#I-D.ietf-moq-secure-objects" class="cite xref">I-D.ietf-moq-secure-objects</a>]</span>.<a href="#section-12.4-5" class="pilcrow">¶</a></p>
 <div id="key-management">
