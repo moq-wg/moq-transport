@@ -4560,7 +4560,7 @@ An Object MUST NOT contain more than one instance of this property.
 
 # Security Considerations {#security}
 
-MOQT is a protocol used hop-by-hop in a chain between original
+MOQT is a protocol used hop-by-hop between original
 publishers to relay, (possibly) relay to relay, and relay to end
 subscribers. Thus, the security considerations need to consider first
 what happens between two nodes, but also consider the impacts end to
@@ -4574,21 +4574,20 @@ within the chain from original publisher to end subscribers will have
 access to Track names, Track Properties, Object Properties, as well as the object's content
 unless it is end-to-end encrypted {{sec-media}}.
 
-Publishers require authorization to prevent unauthorized
-subscriptions to content. Relays MUST verify that subscribers
-are authorized before serving objects. Subscription requests can carry
+Publishers, including Relays, require authorization to prevent unauthorized
+subscriptions to content. Subscription requests can carry
 authorization tokens (see {{sec-authorization}}) to prove the
 subscriber's right to access specific tracks or namespaces. Relays
 that aggregate subscriptions from multiple downstream subscribers MUST
-ensure each subscriber is independently authorized, as there may be
-only one upstream subscription serving multiple downstream subscribers.
+ensure each subscriber is independently authorized.
 
 ### Subscription Amplification
 
 A malicious subscriber could attempt to overwhelm a publisher or relay
 by requesting subscriptions to many tracks simultaneously. Relays
 SHOULD implement rate limiting on subscription requests and MAY reject
-excessive subscriptions with REQUEST_ERROR. Publishers SHOULD monitor
+excessive subscriptions with REQUEST_ERROR using the EXCESSIVE_LOAD error code.
+Publishers SHOULD monitor
 the number of active subscriptions and enforce limits to prevent
 resource exhaustion from a single subscriber or session.
 
