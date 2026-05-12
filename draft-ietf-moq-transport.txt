@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 November 2026                                  I. Swett, Ed.
+Expires: 13 November 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             11 May 2026
+                                                             12 May 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 November 2026.
+   This Internet-Draft will expire on 13 November 2026.
 
 Copyright Notice
 
@@ -213,14 +213,19 @@ Table of Contents
      11.7.  Prior Group ID Gap
      11.8.  Prior Object ID Gap
    12. Security Considerations
-     12.1.  Resource Exhaustion
-     12.2.  Timeouts
-       12.2.1.  Idle Connection Handling
-     12.3.  Relay security considerations
-       12.3.1.  State maintenance
-       12.3.2.  SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS with short
+     12.1.  Subscription Amplification
+     12.2.  Communication Security
+     12.3.  Authorization
+       12.3.1.  Replay Attacks
+     12.4.  Media Security
+     12.5.  Resource Exhaustion
+     12.6.  Timeouts
+       12.6.1.  Idle Connection Handling
+     12.7.  Relay security considerations
+       12.7.1.  State maintenance
+       12.7.2.  SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS with short
                prefixes
-     12.4.  Implementation Identification Fingerprinting
+     12.8.  Implementation Identification Fingerprinting
    13. Grease
    14. IANA Considerations
      14.1.  URI Scheme Registrations
@@ -1814,7 +1819,7 @@ Table of Contents
    Section 3.3.2), receives REQUEST_ERROR, or the FETCH data stream
    receives a FIN or is reset.  If the data stream is already open, the
    subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
-   data stream as well as the the bidi request stream.  It MUST send
+   data stream as well as the bidi request stream.  It MUST send
    STOP_SENDING for the bidi request stream.
 
    The Publisher can destroy fetch state as soon as it has received a
@@ -3892,8 +3897,7 @@ Table of Contents
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1 after removing namespace
-      tuples included in 'Track Namespace Prefix' {message-subscribe-
-      ns}.
+      tuples included in 'Track Namespace Prefix' Section 9.18.
 
 9.17.  NAMESPACE_DONE
 
@@ -3914,7 +3918,7 @@ Table of Contents
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1.  The namespace begins with
-      the 'Track Namespace Prefix' specified in {message-subscribe-ns}.
+      the 'Track Namespace Prefix' specified in Section 9.18.
 
 9.18.  SUBSCRIBE_NAMESPACE
 
@@ -3943,8 +3947,8 @@ Table of Contents
       "meeting=123", "participant=100") and ("example.com",
       "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for
       ("example.com", "meeting=123") would match both.  If an endpoint
-      receives a Track Namespace Prefix consisting of greater than than
-      32 Track Namespace Fields, it MUST close the session with a
+      receives a Track Namespace Prefix consisting of greater than 32
+      Track Namespace Fields, it MUST close the session with a
       PROTOCOL_VIOLATION.
 
    *  Parameters: The parameters are defined in Section 9.2.
@@ -4063,8 +4067,7 @@ Table of Contents
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1.  The namespace begins with
-      the 'Track Namespace Prefix' specified in {message-subscribe-
-      tracks}.
+      the 'Track Namespace Prefix' specified in Section 9.19.
 
    *  Track Name: Identifies the track name as defined in
       (Section 2.4.1).
@@ -5014,11 +5017,121 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 12.  Security Considerations
 
-   TODO: Expand this section, including subscriptions.
+   MOQT is a protocol used hop-by-hop between original publishers to
+   relay, (possibly) relay to relay, and relay to end subscribers.
+   Thus, the security considerations need to consider first what happens
+   between two nodes, but also consider the impacts end to end over
+   several hops of MOQT.
+
+   MOQT uses a trust model where on each hop the nodes need to be
+   securely identified, authorized to use resources of the peer, provide
+   confidentiality and integrity to prevent third party attacks and
+   limit monitoring and leakage of privacy sensitive information.  The
+   relays within the chain from original publisher to end subscribers
+   will have access to Track names, Track Properties, Object Properties,
+   as well as the object's content unless it is end-to-end encrypted
+   Section 12.4.
+
+   Publishers, including Relays, require authorization to prevent
+   unauthorized subscriptions to content.  Subscription requests can
+   carry authorization tokens (see Section 12.3) to prove the
+   subscriber's right to access specific tracks or namespaces.  Relays
+   that aggregate subscriptions from multiple downstream subscribers
+   MUST ensure each subscriber is independently authorized.
+
+12.1.  Subscription Amplification
+
+   A malicious subscriber could attempt to overwhelm a publisher or
+   relay by requesting subscriptions to many tracks simultaneously.
+   Relays SHOULD implement rate limiting on subscription requests and
+   MAY reject excessive subscriptions with REQUEST_ERROR using the
+   EXCESSIVE_LOAD error code.  Publishers SHOULD monitor the number of
+   active subscriptions and enforce limits to prevent resource
+   exhaustion from a single subscriber or session.
 
    TODO: Describe Cache Poisoning attacks
 
-12.1.  Resource Exhaustion
+12.2.  Communication Security
+
+   MOQT depends on a secure transport to provide confidentiality,
+   integrity and endpoint authentication between subscriber and
+   publisher.  Implementations use QUIC or WebTransport to fulfill the
+   basic communication security requirements and these implementations
+   SHOULD follow best practices for TLS 1.3 and QUIC.  Relays MUST use
+   authentication to prevent impersonation.
+
+   Note that the basic security protection offered by QUIC or TCP/TLS
+   does not prevent traffic pattern analysis.  Object sizes, sizes of
+   request messages, etc can make it possible for a third party observer
+   to identify media content, user patterns and media stream origin.
+
+12.3.  Authorization
+
+   MOQT supports authorization via mutual TLS for node-level
+   identification and token-based schemes for fine-grained access
+   control.
+
+   Mutual TLS is expected to be widely used for node level
+   identification between relays, especially within one organization.
+   However, in some deployments mutual TLS can also be used for end
+   subscribers or original publishers.  However, as only node level
+   authentication is provided, what a particular identified node is
+   allowed to do is not provided at TLS level.
+
+   MOQT has functionality to carry Authorization tokens as message
+   parameters.  These tokens can vary based on the application
+   requirements.  Two variants of authorization tokens have already been
+   defined for MOQT, and more are expected in the future.  The current
+   tokens are Privacy Pass Authentication for Media over QUIC [PPA] and
+   Authentication scheme for MOQT using Common Access Tokens [CAT].
+
+   Tokens are expected to contain information about which actions and
+   which resources the endpoint providing the token is authorized to
+   perform and access.  Relays will verify the token to ensure that the
+   request is authorized.
+
+12.3.1.  Replay Attacks
+
+   Replay protection for authorization tokens is the responsibility of
+   the specific token scheme used.  Token schemes such as [CAT] and
+   [PPA] include requirements for relays when processing tokens and
+   requests.
+
+12.4.  Media Security
+
+   MOQT uses secure transports that provide confidentiality and
+   integrity protection.  However, media objects are accessible to
+   relays, and are subject to both intentional and accidental
+   modification, unless they are additionally end-to-end protected.
+
+   The media objects transported by MOQT in various tracks from various
+   original publishers are subject to several considerations.  The first
+   is source authenticity, i.e. to know that the received media objects
+   are what the original publisher actually published.  In addition to
+   the media objects, it can also be important to authenticate some
+   Track and Object Properties.  For example, timestamps are crucial to
+   understand where on the timeline this media fragment belongs.
+
+   The second aspect is content confidentiality.  Beyond direct relay
+   access to media objects, object sizes and traffic patterns enable
+   analysis of content.  Track namespace and track name can also be
+   analyzed and correlated between end subscribers by relays.
+
+   The end-to-end media security is handled by mechanisms external to
+   this specification.  They need to provide source authenticity and
+   confidentiality.  MOQT's object model does enable both the object
+   data itself as well as Object Properties to be confidentiality and
+   integrity protected.  MOQT also supports Object Properties being
+   integrity protected but not encrypted.
+
+   Current proposals for media security include: - An E2EE scheme based
+   on SFRAME: [I-D.ietf-moq-secure-objects].
+
+   Secure key distribution for end-to-end encryption is specific to the
+   encryption system and deployment, and outside the scope of this
+   document.
+
+12.5.  Resource Exhaustion
 
    Live content requires significant bandwidth and resources.  Failure
    to set limits will quickly cause resource exhaustion.
@@ -5036,14 +5149,14 @@ EXT 1 and EXT N can be modified or removed by Relays
    publisher and subscriber MUST cancel a stream, preferably the one
    with the lowest priority, after reaching a resource limit.
 
-12.2.  Timeouts
+12.6.  Timeouts
 
    Implementations are advised to use timeouts to prevent resource
    exhaustion attacks by a peer that does not send expected data within
    an expected time.  Each implementation is expected to set its own
    timeouts.
 
-12.2.1.  Idle Connection Handling
+12.6.1.  Idle Connection Handling
 
    The transport connection (e.g., QUIC) underlying a MOQT session can
    close due to idle timeout if no data is exchanged, either because
@@ -5066,9 +5179,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    The choice of mechanism is implementation-specific.
 
-12.3.  Relay security considerations
+12.7.  Relay security considerations
 
-12.3.1.  State maintenance
+12.7.1.  State maintenance
 
    A Relay SHOULD have mechanisms to prevent malicious endpoints from
    flooding it with PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE, or
@@ -5077,7 +5190,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    have application-specific policies that can reject incoming requests
    that cause the state maintenance for the session to be excessive.
 
-12.3.2.  SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS with short prefixes
+12.7.2.  SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS with short prefixes
 
    A Relay can use authorization rules in order to prevent subscriptions
    closer to the root of a large prefix tree.  Otherwise, if an entity
@@ -5087,7 +5200,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    namespaces, the relay would have to send matching NAMESPACE/
    NAMESPACE_DONE messages or initiate new PUBLISH streams.
 
-12.4.  Implementation Identification Fingerprinting
+12.8.  Implementation Identification Fingerprinting
 
    The MOQT_IMPLEMENTATION option (Section 9.3.1.5) can reveal
    information that contributes to fingerprinting, a set of techniques
@@ -5117,7 +5230,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    *  Implementations MAY provide users with the ability to configure or
       disable the MOQT_IMPLEMENTATION option.
 
-   Operators should be aware that detailed implementation identification
+   Operators are advised that detailed implementation identification
    facilitates the same privacy concerns as persistent identifiers,
    since it enables correlation of sessions across time.
 
@@ -5725,6 +5838,13 @@ Normative References
 
 Informative References
 
+   [CAT]      Law, W., Lemmons, C., Simon, G., and S. Nandakumar,
+              "Authentication scheme for MOQT using Common Access
+              Tokens", Work in Progress, Internet-Draft, draft-ietf-moq-
+              c4m-00, 19 September 2025,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-
+              00>.
+
    [I-D.draft-jennings-moq-quicr-proto]
               Jennings, C. F., Nandakumar, S., and C. Huitema, "QuicR -
               Media Delivery Protocol over QUIC", Work in Progress,
@@ -5747,6 +5867,13 @@ Informative References
               <https://datatracker.ietf.org/doc/html/draft-lcurley-warp-
               04>.
 
+   [I-D.ietf-moq-secure-objects]
+              Jennings, C. F., Nandakumar, S., and R. Barnes, "End-to-
+              End Secure Objects for Media over QUIC Transport", Work in
+              Progress, Internet-Draft, draft-ietf-moq-secure-objects-
+              00, 2 March 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-moq-secure-objects-00>.
+
    [I-D.ietf-scone-protocol]
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
@@ -5761,6 +5888,13 @@ Informative References
               webtrans-overview-12, 2 March 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
               webtrans-overview-12>.
+
+   [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
+              Pass Authentication for Media over QUIC (MoQ)", Work in
+              Progress, Internet-Draft, draft-ietf-moq-privacy-pass-
+              auth-02, 2 March 2026,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
+              privacy-pass-auth-02>.
 
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
