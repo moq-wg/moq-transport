@@ -1814,9 +1814,11 @@ are expressed in milliseconds; both are optional; a value of 0 means that
 there is no timeout set.
 
 The publisher communicates both timeout values as a Track Property; the
-subscriber communicates them as Message Parameters.  For each type of timeout,
-if both the publisher and the subscriber have a non-zero value, the smaller of
-the two is used.
+subscriber communicates them as Message Parameters.  Either timeout value can
+also be set as an Object Property on the first object in a subgroup, overriding
+the Track-level value for that subgroup.  For each type of timeout, if both the
+publisher and the subscriber have a non-zero value, the smaller of the two is
+used.
 
 If the OBJECT_DELIVERY_TIMEOUT is not zero, the MOQT implementation MUST retain
 the time at which the first payload byte of every object has been either
@@ -4414,13 +4416,17 @@ See {{properties}} for usage guidance.
 
 ## SUBGROUP_DELIVERY_TIMEOUT {#subgroup-delivery-timeout-ext}
 
-SUBGROUP_DELIVERY_TIMEOUT (Property Type 0x06) is a Track Property.  It is a
-varint.  Its semantics are defined in {{delivery-timeouts}}.
+SUBGROUP_DELIVERY_TIMEOUT (Property Type 0x06) is a Track and Object Property.
+It is a varint.  Its semantics are defined in {{delivery-timeouts}}.  As an
+Object Property on the first object in a subgroup, it overrides the Track-level
+value for that subgroup.
 
 ## OBJECT_DELIVERY_TIMEOUT {#object-delivery-timeout-ext}
 
-OBJECT_DELIVERY_TIMEOUT (Property Type 0x02) is a Track Property.  It is a
-varint.  Its semantics are defined in {{delivery-timeouts}}.
+OBJECT_DELIVERY_TIMEOUT (Property Type 0x02) is a Track and Object Property.
+It is a varint.  Its semantics are defined in {{delivery-timeouts}}.  As an
+Object Property on the first object in a subgroup, it overrides the Track-level
+value for that subgroup.
 
 ## MAX CACHE DURATION {#max-cache-duration}
 
@@ -4984,9 +4990,9 @@ Setup Options SHOULD request a provisional registration.
 
 | Type | Name | Scope | Specification |
 |-----:|:-----|:------|:--------------|
-| 0x02 | OBJECT_DELIVERY_TIMEOUT | Track | {{object-delivery-timeout-ext}} |
+| 0x02 | OBJECT_DELIVERY_TIMEOUT | Track, Object | {{object-delivery-timeout-ext}} |
 | 0x04 | MAX_CACHE_DURATION | Track | {{max-cache-duration}} |
-| 0x06 | SUBGROUP_DELIVERY_TIMEOUT | Track | {{subgroup-delivery-timeout-ext}} |
+| 0x06 | SUBGROUP_DELIVERY_TIMEOUT | Track, Object | {{subgroup-delivery-timeout-ext}} |
 | 0x0B | IMMUTABLE_PROPERTIES | Track, Object | {{immutable-properties}} |
 | 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | {{publisher-priority}} |
 | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track | {{group-order-pref}} |
