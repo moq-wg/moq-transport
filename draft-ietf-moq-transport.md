@@ -845,10 +845,6 @@ connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
 MUST be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3.
 
-There is no definition of the protocol over other transports,
-such as TCP, and applications using MOQT might need to fallback to
-another protocol when QUIC or WebTransport aren't available.
-
 MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 ({{WebTransport, Section 3.3}}) to perform version negotiation.
 
@@ -857,7 +853,13 @@ MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 The ALPN value {{!RFC7301}} for the final version of this specification
 is `moqt`.  ALPNs used to identify IETF drafts are created by appending
 the draft number to "moqt-". For example, draft-ietf-moq-transport-13
-would be identified as "moqt-13".
+would be identified as "moqt-13".  When using QMux {{QMUX}} over
+TLS+TCP, ALPNs are created by appending the draft number to "moqt-qx-".
+For example, draft-ietf-moq-transport-18 over QMux would be identified
+as "moqt-qx-18".
+
+When the moqt-qx-18 ALPN is negotiated over TLS+TCP, the underlying
+framing uses QMux version 1 {{!QMUX=I-D.ietf-quic-qmux-01}}.
 
 Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
 negotiation in the SETUP messages.
@@ -922,8 +924,10 @@ and `h3` that it supports in its TLS ClientHello, in preference order. If the
 server selects an MOQT ALPN, the session proceeds as described in
 {{native-quic}}. If the server selects `h3`, the client establishes a
 WebTransport session as described in {{webtransport}}. On a TCP+TLS
-connection, the client offers `h2` in its TLS ClientHello and establishes a
-WebTransport session as described in {{webtransport}}.
+connection, the client offers MOQT QMux ALPNs (e.g. `moqt-qx-18`) and/or
+`h2` in its TLS ClientHello. If the server selects a MOQT QMux ALPN, the
+session uses QMux {{QMUX}} framing. If the server selects `h2`, the client
+establishes a WebTransport session as described in {{webtransport}}.
 
 ### WebTransport {#webtransport}
 
