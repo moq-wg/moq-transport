@@ -1750,12 +1750,17 @@ target Track. The PUBLISH MUST include a SWITCH_TRANSITION parameter
 (see {{switch-transition-param}}) carrying G_switch as the Switching Group ID
 and the current live edge GroupID of the target Track as the Live Edge Group ID.
 
-If G_switch is less than the Live Edge Group ID, the Relay MUST immediately
-follow the PUBLISH message on the relay-to-subscriber direction of the PUBLISH
-bidirectional stream with a FETCH_HEADER (see {{fetch-header}}) carrying the
-Current Subscribe Request ID as the Request ID field. The Relay MUST then
-deliver Objects in Groups [G_switch, Live Edge Group ID) in Group and Object
-order, inline on the PUBLISH bidirectional stream.
+If G_switch is less than the Live Edge Group ID, the Relay MUST open a
+unidirectional stream for catch-up delivery. The Relay MUST begin that stream
+with a FETCH_HEADER (see {{fetch-header}}) carrying the Request ID of the PUBLISH
+opened for the target Track. The Relay MUST deliver Objects in Groups [G_switch,
+Live Edge Group ID) in Group and Object order on that stream, and MUST send FIN
+after the last Object in the range. The Relay SHOULD assign a higher QUIC stream
+priority to this catch-up stream than to any concurrent SUBGROUP_HEADER streams
+for the target Track until the catch-up stream is closed.
+
+Live Objects at or after the Live Edge Group ID MUST be delivered on
+SUBGROUP_HEADER streams following normal PUBLISH delivery mechanics.
 
 ### Terminating the current subscription
 
@@ -2243,10 +2248,10 @@ The SWITCH_TRANSITION parameter (Parameter Type TBD) MUST appear in a PUBLISH
 opened by a Relay in response to a SWITCH message (see {{relay-switch}}). It
 MUST NOT appear in any other message. The parameter value contains two
 variable-length integers: the Switching Group ID (G_switch) followed by the
-Live Edge Group ID. Together, these inform the subscriber of the range
-[G_switch, Live Edge Group ID) delivered inline on the PUBLISH bidirectional
-stream, and identify the GroupID at which live Objects begin on PUBLISH
-subgroup streams (see {{relay-switch}}).
+Live Edge Group ID. Together, these inform the subscriber of the catch-up range
+[G_switch, Live Edge Group ID) delivered on a dedicated FETCH_HEADER stream
+(see {{relay-switch}}), and identify the GroupID at which live Objects begin on
+SUBGROUP_HEADER streams.
 
 If a PUBLISH contains a SWITCH_TRANSITION parameter but no pending SWITCH
 exists for that target Track, the receiver MUST close the session with
@@ -3894,7 +3899,10 @@ MALFORMED_TRACK (0x12):
 ### Fetch Header {#fetch-header}
 
 When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
-track requested in the Fetch message identified by `Request ID`.
+track identified by `Request ID`. Normally, `Request ID` identifies the Fetch
+message that triggered delivery. When a Relay opens a catch-up stream for SWITCH
+delivery (see {{relay-switch}}), there is no subscriber Fetch message; `Request ID`
+instead carries the Request ID of the PUBLISH opened for the target Track.
 
 ~~~
 FETCH_HEADER {
