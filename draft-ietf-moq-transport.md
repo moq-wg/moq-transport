@@ -1577,7 +1577,7 @@ and forward delivery.
 The fill range cannot be expanded via REQUEST_UPDATE. To retrieve additional
 past objects, use a standalone FETCH.
 
-FILL_TIMEOUT (see {{delivery-timeout}}) applies to fill fetch streams in the
+FILL_TIMEOUT (see {{delivery-timeouts}}) applies to fill fetch streams in the
 same way it applies to standalone fetches.
 
 ### Joining an Ongoing Track
@@ -2498,7 +2498,9 @@ for the same track.
 
 ### FILL TIMEOUT Parameter {#fill-timeout}
 
-The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a FETCH message.
+The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a FETCH or
+SUBSCRIBE message. When present in a SUBSCRIBE with a fill filter type, it
+applies to the fill fetch stream.
 
 It is the maximum total duration in milliseconds a relay SHOULD spend waiting
 for upstream sources to provide Objects that are not immediately available
@@ -2563,7 +2565,7 @@ SUBSCRIBE, PUBLISH_OK, or FETCH.
 
 Its value indicates how to prioritize Objects from different groups within
 the same subscription (see {{priorities}}), or how to order Groups in a Fetch
-response (see {{fetch-handling}}). The allowed values are Ascending (0x1),
+response (see {{message-fetch}}). The allowed values are Ascending (0x1),
 Descending (0x2), or Inside Out (0x3). Inside Out orders fill fetch stream
 objects in descending order and subscribe stream objects in ascending order;
 when used with a subscription that has no fill, it degenerates to Ascending;
