@@ -1587,6 +1587,13 @@ is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a fill
+filter type: AbsoluteStartFill, AbsoluteRangeFill, or RelativeStart with N > 0.
+The publisher responds with SUBSCRIBE_OK including LARGEST_OBJECT, which serves
+as the boundary between fill and live delivery. The publisher opens a fill fetch
+stream for objects before `{Largest Object.Group, 0}` and delivers current and
+future objects on subscribe streams (see {{fill-semantics}}).
+
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
 Filter Type `Next Group Start`.
 
