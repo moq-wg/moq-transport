@@ -1643,6 +1643,17 @@ Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
 results in error.
 
+## Fill Fetch Stream Cancellation
+
+A fill fetch stream can be cancelled independently of the subscription by
+sending STOP_SENDING on the fill fetch stream. The subscription continues
+to deliver objects on subscribe streams.
+
+Cancelling the subscription (STOP_SENDING on the bidi stream) cancels both
+the fill fetch stream and forward delivery.
+
+The fill fetch stream is closed with a FIN when all past objects up to the
+fill boundary (LARGEST_OBJECT from SUBSCRIBE_OK) have been delivered.
 
 # Namespace Discovery {#track-discovery}
 
@@ -2105,6 +2116,12 @@ PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
 When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
 one publisher is available, the Relay MAY send the FETCH to any of them.
+
+When a Relay receives a downstream SUBSCRIBE with a fill filter type, it MAY
+serve the fill portion from its cache. If the cache does not contain the
+requested objects, the Relay MAY issue upstream standalone FETCHes to retrieve
+them. The fill fetch stream opened to the downstream subscriber uses the
+subscription's Request ID.
 
 When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 `Established` upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
@@ -4144,7 +4161,9 @@ as defined in {{stream-reset-codes}}.
 ### Fetch Header {#fetch-header}
 
 When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
-track requested in the Fetch message identified by `Request ID`.
+track requested in the Fetch message identified by `Request ID`. A FETCH_HEADER
+can also be opened by a publisher for fill delivery, using the Request ID of
+a subscription with a fill filter type (see {{fill-semantics}}).
 
 ~~~
 FETCH_HEADER {
