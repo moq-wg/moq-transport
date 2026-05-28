@@ -1782,9 +1782,11 @@ schedulable object.  A default can be specified in the parameters of PUBLISH, or
 SUBSCRIBE_OK. Publisher priority can also be specified in a subgroup header or
 datagram (see {{data-streams}}).
 
-`Group Order` is a property of an individual subscription.  It can be either
-'Ascending' (groups with lower group ID are sent first), or 'Descending'
-(groups with higher group ID are sent first).  The subscriber optionally
+`Group Order` is a property of an individual subscription.  It can be
+'Ascending' (groups with lower group ID are sent first), 'Descending'
+(groups with higher group ID are sent first), or 'Inside Out' (fill
+fetch stream objects are sent in descending order while subscribe stream
+objects are sent in ascending order).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
 publisher's preference is used if the subscriber did not express one (by
 omitting the Group Order parameter).  The group order of an existing
@@ -1803,7 +1805,10 @@ the objects SHOULD be selected as follows:
 2. If two objects in response to the same request have the same subscriber
    and publisher priority, but belong to two different groups of the same track,
    **the group order** of the associated subscription is used to
-   decide the one that is scheduled to be sent first.
+   decide the one that is scheduled to be sent first. For Inside Out group
+   order, subscribe-delivered objects are preferred over fill-delivered objects;
+   within subscribe objects, ascending group order is used; within fill objects,
+   descending group order is used.
 3. If two objects in response to the same request have the same subscriber
    and publisher priority and belong to the same group of the same track, the
    one with **the lowest Subgroup ID** (for objects with forwarding preference
@@ -2541,8 +2546,12 @@ SUBSCRIBE, PUBLISH_OK, or FETCH.
 
 Its value indicates how to prioritize Objects from different groups within
 the same subscription (see {{priorities}}), or how to order Groups in a Fetch
-response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
-Descending (0x2). If an endpoint receives a value outside this range, it MUST
+response (see {{fetch-handling}}). The allowed values are Ascending (0x1),
+Descending (0x2), or Inside Out (0x3). Inside Out orders fill fetch stream
+objects in descending order and subscribe stream objects in ascending order;
+when used with a subscription that has no fill, it degenerates to Ascending;
+when used with a standalone FETCH, it degenerates to Descending.
+If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
 
 If omitted from SUBSCRIBE, the publisher's preference from
@@ -4197,8 +4206,8 @@ the Subscriber MUST close the session with a `PROTOCOL_VIOLATION`.
 If the Group ID Delta field is present on an Object other than the first, the
 Group ID is computed from the Group ID Delta and the prior Object's Group ID.
 If the Group Order is Ascending, the Group ID is the prior Object's Group ID
-plus the Group ID Delta + 1.  If the Group Order is Descending, the Group ID is
-the prior Object's Group ID minus the (Group ID Delta + 1). If the computed
+plus the Group ID Delta + 1.  If the Group Order is Descending or Inside Out,
+the Group ID is the prior Object's Group ID minus the (Group ID Delta + 1). If the computed
 Group ID would be less than 0 or greater than 2^64-1, the Subscriber MUST
 close the Session with error 'PROTOCOL_VIOLATION'.
 
@@ -4396,9 +4405,9 @@ DEFAULT_PUBLISHER_GROUP_ORDER (Property Type 0x22) is a Track Property.
 
 It is an enum indicating the publisher's preference for prioritizing Objects
 from different groups within the
-same subscription (see {{priorities}}). The allowed values are Ascending (0x1) or
-Descending (0x2). If an endpoint receives a value outside this range, it MUST
-close the session with `PROTOCOL_VIOLATION`.
+same subscription (see {{priorities}}). The allowed values are Ascending (0x1),
+Descending (0x2), or Inside Out (0x3). If an endpoint receives a value outside
+this range, it MUST close the session with `PROTOCOL_VIOLATION`.
 
 If omitted, the publisher's preference is Ascending (0x1).
 
