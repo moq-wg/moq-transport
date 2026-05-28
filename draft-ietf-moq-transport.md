@@ -2594,6 +2594,10 @@ It contains the largest Location (see {{location-structure}}) in the
 Track observed by the sending endpoint (see {{subscription-filters}}). If Objects
 have been published on this Track the Publisher MUST include this parameter.
 
+When a fill filter type is used, LARGEST_OBJECT in SUBSCRIBE_OK defines the
+boundary between fill fetch stream delivery and subscribe stream delivery
+(see {{fill-semantics}}).
+
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
 
@@ -3044,8 +3048,9 @@ matches more publishers than the relay is willing to enumerate.
 
 A subscription causes the publisher to send newly published objects for a track.
 
-Subscribe only requests newly published or received Objects.  Objects from the
-past are retrieved using FETCH ({{message-fetch}}).
+Subscribe requests newly published or received Objects. When a fill filter type
+is used (see {{subscription-filters}}), past objects before the current group are
+additionally delivered on a fill fetch stream opened by the publisher.
 
 The format of SUBSCRIBE is as follows:
 
@@ -3138,6 +3143,9 @@ When a subscriber decreases the Start Location of the Subscription Filter
 (see {{subscription-filters}}), the Start Location can be smaller than the Track's
 Largest Location, similar to a new Subscription. FETCH can be used to retrieve
 any necessary Objects smaller than the current Largest Location.
+
+The fill range of a subscription using a fill filter type cannot be expanded
+via REQUEST_UPDATE. To retrieve additional past objects, use a standalone FETCH.
 
 When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
