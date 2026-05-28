@@ -1490,6 +1490,7 @@ Subscription Filter {
   Filter Type (vi64),
   [Start Location (Location),]
   [End Group Delta (vi64),]
+  [Relative Previous (vi64),]
 }
 ~~~
 
@@ -1524,6 +1525,31 @@ delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
 If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
 close the session with a `PROTOCOL_VIOLATION`.
 
+AbsoluteStartFill (0x5): The filter Start Location is specified explicitly.
+Objects from Start Location up to but not including `{Largest Object.Group, 0}`
+are delivered on a fill fetch stream (see {{fill-semantics}}). Objects from
+`{Largest Object.Group, 0}` onward are delivered on subscribe streams. There is
+no End Group - the subscription is open ended.
+
+AbsoluteRangeFill (0x6): The filter Start Location and End Group Delta are
+specified explicitly. Objects from Start Location up to but not including
+`{Largest Object.Group, 0}` are delivered on a fill fetch stream (see
+{{fill-semantics}}). Objects from `{Largest Object.Group, 0}` onward are
+delivered on subscribe streams. If the End Group is before `Largest Object.Group`,
+only fill delivery occurs.
+TODO: Determine behavior when end is before current group — pure fill with no
+subscribe delivery, or auto-close.
+
+RelativeStart (0x7): A single varint N specifying how many groups before
+`Largest Object.Group` to start. The Start Location is
+`{Largest Object.Group - N, 0}`. When N > 0, objects from Start Location up to
+but not including `{Largest Object.Group, 0}` are delivered on a fill fetch
+stream (see {{fill-semantics}}), and objects from `{Largest Object.Group, 0}`
+onward are delivered on subscribe streams. When N = 0, no fill fetch stream is
+opened; cached objects from `{Largest Object.Group, 0}` are delivered on
+subscribe streams, transitioning to live delivery on the same streams.
+There is no End Group - the subscription is open ended.
+
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
 
@@ -1531,6 +1557,28 @@ If the publisher cannot satisfy the requested Subscription Filter (see
 {{subscription-filter}}) or if the entire End Group has already been published
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
+
+### Fill Semantics {#fill-semantics}
+
+Fill filter types (AbsoluteStartFill, AbsoluteRangeFill, and RelativeStart
+with N > 0) cause the publisher to open a unidirectional stream with a
+FETCH_HEADER (see {{fetch-header}}) using the subscription's Request ID to
+deliver objects before the current group. This is called a fill fetch stream.
+
+The fill fetch stream carries objects from the fill Start Location up to but
+not including `{Largest Object.Group, 0}`, where `Largest Object` is the value
+communicated in SUBSCRIBE_OK. Subscribe streams carry objects from
+`{Largest Object.Group, 0}` onward.
+
+The fill fetch stream and subscription share the same Request ID, subscriber
+priority, and authorization. Setting Forward State to 0 suppresses both fill
+and forward delivery.
+
+The fill range cannot be expanded via REQUEST_UPDATE. To retrieve additional
+past objects, use a standalone FETCH.
+
+FILL_TIMEOUT (see {{delivery-timeout}}) applies to fill fetch streams in the
+same way it applies to standalone fetches.
 
 ### Joining an Ongoing Track
 
