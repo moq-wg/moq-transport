@@ -1525,13 +1525,17 @@ delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
 If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
 close the session with a `PROTOCOL_VIOLATION`.
 
-AbsoluteStartFill (0x5): The filter Start Location is specified explicitly.
+AbsoluteStartFill (0x5): Start Location is present. The filter Start Location
+is specified explicitly.
 Objects from Start Location up to but not including `{Largest Object.Group, 0}`
 are delivered on a fill fetch stream (see {{fill-semantics}}). Objects from
 `{Largest Object.Group, 0}` onward are delivered using subscribe subgroups and
-datagrams. There is no End Group - the subscription is open ended.
+datagrams. There is no End Group - the subscription is open ended. If the Start
+Location is at or after `{Largest Object.Group, 0}`, the fill range is empty
+and no fill fetch stream is opened.
 
-AbsoluteRangeFill (0x6): The filter Start Location and End Group Delta are
+AbsoluteRangeFill (0x6): Start Location and End Group Delta are present. The
+filter Start Location and End Group Delta are
 specified explicitly. Objects from Start Location up to but not including
 `{Largest Object.Group, 0}` are delivered on a fill fetch stream (see
 {{fill-semantics}}). Objects from `{Largest Object.Group, 0}` onward are
@@ -1540,11 +1544,13 @@ delivered using subscribe subgroups and datagrams. If the End Group is before
 TODO: Determine behavior when end is before current group — does the
 subscription auto-close, or remain open for possible REQUEST_UPDATE?
 
-CurrentGroup (0x7): The filter Start Location is `{Largest Object.Group, 0}`.
+CurrentGroup (0x7): No additional fields are present. The filter Start Location
+is `{Largest Object.Group, 0}`.
 If no content has been delivered yet, the filter Start Location is {0, 0}.
 There is no End Group - the subscription is open ended.
 
-RelativeStartFill (0x8): A single varint N. The Start Location is
+RelativeStartFill (0x8): Relative Previous is present. The value N in
+Relative Previous determines the Start Location:
 `{Largest Object.Group - (N + 1), 0}`. Objects from Start Location up to but
 not including `{Largest Object.Group, 0}` are delivered on a fill fetch stream
 (see {{fill-semantics}}), and objects from `{Largest Object.Group, 0}` onward
@@ -1596,12 +1602,17 @@ not including `{Largest Object.Group, 0}`, where `Largest Object` is the value
 communicated in SUBSCRIBE_OK or REQUEST_UPDATE_OK. For RelativeStartFill, both
 sides compute the fill Start Location as `{Largest Object.Group - (N + 1), 0}`
 using the LARGEST_OBJECT from the response. Subscribe subgroups and datagrams
-carry objects from `{Largest Object.Group, 0}` onward.
+carry objects from `{Largest Object.Group, 0}` onward. If the fill Start
+Location is at or after `{Largest Object.Group, 0}`, the fill range is empty
+and the publisher does not open a fill fetch stream.
 
-The fill fetch stream and subscription share all subscription parameters,
-including Request ID, subscriber priority, and authorization. Setting Forward
-State to 0 implicitly cancels the fill
-fetch stream and suppresses forward delivery. The publisher MUST reset any
+The fill fetch stream and subscription share subscription parameters
+including subscriber priority and authorization. The FETCH_HEADER on the
+fill fetch stream carries the Request ID of the message that initiated
+it: the SUBSCRIBE Request ID for the initial fill, or the REQUEST_UPDATE
+Request ID for a subsequent fill. Setting Forward
+State to 0 implicitly cancels all fill
+fetch streams and suppresses forward delivery. The publisher MUST reset any
 open fill fetch streams when Forward State transitions to 0.
 
 A REQUEST_UPDATE containing a SUBSCRIPTION_FILTER with a fill filter type
@@ -2624,7 +2635,8 @@ Fill filter types (AbsoluteStartFill, AbsoluteRangeFill, RelativeStartFill)
 and CurrentGroup MUST NOT appear in PUBLISH_OK. A publisher that receives a
 PUBLISH_OK with one of these filter types MUST close the session with
 `PROTOCOL_VIOLATION`. The LARGEST_OBJECT in PUBLISH may be stale by the time
-PUBLISH_OK is processed, making the fill or start boundary unreliable. To fill-join a track initiated via PUBLISH, the
+PUBLISH_OK is processed, making the fill or start boundary unreliable.
+To fill-join a track initiated via PUBLISH, the
 subscriber SHOULD respond with PUBLISH_OK with Forward State 0, then send
 REQUEST_UPDATE with Forward State 1 and a fill filter type. The
 REQUEST_UPDATE_OK will contain a fresh LARGEST_OBJECT establishing the correct
