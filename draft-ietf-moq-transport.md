@@ -2113,6 +2113,97 @@ A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
 prioritize sending Objects based on {{priorities}}.
 
+## Dynamic Track Switching {#dynamic-track-switching}
+
+Dynamic Track Switching (DTS) is a subscriber-initiated and controlled behavior in which
+relays dynamically select which track to forward from a switching set based on
+available downstream bandwidth.
+
+The subscriber is responsible for grouping tracks into switching sets based on
+application-level knowledge. A switching set is a collection of tracks representing
+the same content encoded at different throughput levels, typically from a single source.
+Tracks within a switching set are time-aligned at group boundaries, allowing the relay
+to switch between tracks at group boundaries without initiating reception errors at
+the client. The relay selects exactly one track per switching set to forward at any
+given time.
+
+
+### Switching set establishment 
+
+Subscribers can create switching sets through two methods. Both support single or multiple
+switching sets and result in identical relay behavior:
+
+* Individual SUBSCRIBE: - the subscriber sends a separate SUBSCRIBE message for each track,
+  and appends the SWITCHING-SET-ASSIGNMENT parameter to assign the track to a switching set. 
+
+* SUBSCRIBE_NAMESPACE: - the subscriber sends a SUBSCRIBE_NAMESPACE message. For each matching
+  track, the relay will issue a PUBLISH message. The subscriber assigns tracks to switching sets
+  by appending the SWITCHING-SET-ASSIGNMENT parameter to the PUBLISH_OK message. 
+
+In both cases, tracks are grouped into a switching set by specifying the same switching set ID.
+The subscriber sets activate=0 for all tracks except the last one in each set, then sets
+activate=1 on the final track to signal that the set is complete and the relay should
+begin active track selection.
+
+### Subscriber operations
+
+To modify and established switching set, the subscriber can
+
+* Add track to existing set: send SUBSCRIBE or PUBLISH_OK with a SWITCHING-SET-ASSIGNMENT parameter
+  referencing an existing set.
+* Remove track: Unsubscribe from that track
+* Pause DTS: Send REQUEST_UPDATE with a SWITCHING-SET-ASSIGNMENT parameter defining activate = 0
+* Resume DTS: Send REQUEST_UPDATE with a SWITCHING-SET-ASSIGNMENT parameter defining activate = 1
+
+### Relay behavior
+
+When the relay receives a subscription with SWITCHING-SET-ASSIGNMENT:
+
+1. Add subscription to the specified switching set, creating the set if needed.
+2. Set Forward state to 0 for the new subscription
+3. Store the Set throughput fraction and rank as properties of the set
+4. If Activate switching = 1, begin active track selection
+
+If the relay receives a PUBLISH_DONE message, or an UNSUBSCRIBE for a subscription that was
+previously added to a switching set, then it must remove that subscription from the switching set
+and continue to process the switching across the remaining subscriptions within that set.
+
+If all tracks are removed from a previously established switching set, then that set is
+considered deleted and is removed from the bandwidth allocation algorithm. 
+
+### Bandwidth Allocation {#allocation-algorithm}
+
+The relay maintains:
+
+- `B_total`: Estimated downstream bandwidth capacity for the subscriber connection. The
+  relay MUST maintain a bandwidth estimate for each downstream subscriber. The timebase of this
+  estimate SHOULD be at least the Group duration of the track. The estimate is obtained
+  periodically from the QUIC stack (e.g., congestion window pacing rate, smoothed RTT)
+  and MAY be supplemented by external sources or application-level feedback. The exact mechanism
+  is not defined by this specification and MAY vary between implementations. 
+- `sum_F`: Sum of all set fractions, updated incrementally as subscriptions are added or removed
+- 'set.fraction': for each switching set, the switching set fraction, as defined by the set
+  throughput fraction of the SWITCHING-SET-ASSIGNMENT {{switching-set-assignment-param}} parameter.
+
+On a periodic update interval or at a minimum of a new Group boundary, the relay executes the
+following algorithm:
+
+~~~
+B_remaining  = B_total
+for each set in ascending rank order:
+  set.target = B_remaining × set.fraction / sum_F
+  set.allocated = min(set.target, B_remaining)
+  set.selected = track in set with highest throughput where track.throughput <= set.allocated
+  B_remaining -= set.selected.throughput
+for each track in a switching set:
+  set forward state = track.selected
+~~~
+
+The rank ordering ensures higher-priority sets receive their target allocation first; lower-priority sets
+absorb any bandwidth shortfall. When bandwidth is sufficient, all sets receive `allocated = target`.
+When bandwidth is constrained, higher-priority sets (lower rank value) are protected while
+lower-priority sets receive less than their target or nothing.
+
 # Control Messages {#message}
 
 MOQT uses a pair of unidirectional streams to exchange control messages, as
@@ -2605,6 +2696,52 @@ Namespace Prefix for that subscription.  If the new prefix would share a common 
 another active subscription of the same type in the same session, the receiver
 MUST respond with REQUEST_ERROR with error code `PREFIX_OVERLAP`.
 
+### SWITCHING_SET_ASSIGNMENT Parameter {#switching-set-assignment-param}
+
+The SWITCHING-SET-ASSIGNMENT parameter (Parameter Type 0x41) MAY appear in a SUBSCRIBE,
+REQUEST_UPDATE, or PUBLISH_OK message. This parameter assigns a subscription to a DTS
+switching set and specifies bandwidth allocation and optional ranking values.
+
+~~~
+SWITCHING-SET-ASSIGNMENT {
+  Switching set ID (vi64),
+  Throughput threshold (vi64),
+  Set throughput fraction (vi64),
+  Activate switching (1),
+  [Set rank (8)]
+}
+~~~
+
+* Switching set ID: Integer identifying the switching set. A track MUST only be assigned
+  to one switching set at a time. If a subscription attempts to assign a track that is
+  already assigned to a different switching set, the relay MUST reject the subscription
+  with a Parameter Error.
+
+* Throughput threshold: Minimum throughput (kbps) required to select this track.
+
+* Set throughput fraction: Relative weight for bandwidth allocation, expressed as an
+  integer 1 <= N <= 10. Each set receives bandwidth proportional to its fraction:
+  `target = B_total × fraction / sum_F`. Fractions are relative weights, not absolute
+  percentages; for example, fractions of 6, 4, 3 (sum_F=13) allocate 46%, 31%, 23%
+  respectively. This allows sets to be added or removed without requiring other sets to
+  update their fractions. When multiple subscriptions in the same switching set specify
+  different fraction values, the relay MUST use the value from the most recently received
+  message for that set.
+
+* Activate switching: When set to 0, DTS switching is paused for this set (use when
+  more subscriptions will be added, or to temporarily freeze the current selection).
+  When set to 1, the relay activates or resumes switching. Changes to the selected
+  track take effect at the next group boundary.
+
+* Set rank (optional): Degradation priority when bandwidth is constrained, expressed as
+  an 8-bit unsigned integer (1-255). Default is 1. Values outside this range MUST result in
+  a protocol error. Lower values indicate higher priority (protected from degradation).
+  When bandwidth is sufficient, all sets receive their fraction-based allocation. When
+  bandwidth is constrained, lower-ranked sets (higher numeric value) degrade first: they
+  select lower-throughput tracks or receive no bandwidth, while higher-ranked sets maintain
+  their target allocation. See {{allocation-algorithm}} for details.
+
+
 ## SETUP {#message-setup}
 
 The `SETUP` message is the first message each endpoint sends on its control
@@ -2718,6 +2855,14 @@ Senders SHOULD limit the value to the implementation name and version, avoiding
 advertising or other nonessential information. Implementations SHOULD NOT use
 the identifiers of other implementations to declare compatibility, as this
 undermines the usefulness of implementation identification for debugging.
+
+#### MAX_DTS_CONCURRENT_TRACKS {#max-dts-concurrent-tracks}
+
+The MAX_DTS_CONCURRENT_TRACKS option (Option Type 0x08) communicates the
+maximum number of tracks that can be allocated to Dynamic Track Switching (DTS)
+switching sets within a MOQT session. This maximum is the sum of all tracks
+across all switching sets within the session. This option is optional. The
+default value is 0 which prohibits the use of Dynamic Track Switching.
 
 
 ## GOAWAY {#message-goaway}
@@ -4932,6 +5077,7 @@ This registry is initially empty.
 | 0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | {{max-auth-token-cache-size}} |
 | 0x05 | AUTHORITY | {{authority}} |
 | 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
+| 0x08 | MAX_DTS_CONCURRENT_TRACKS| {{max-dts-concurrent-tracks}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 Endpoints MUST ignore unknown Setup Options as specified in
@@ -4977,6 +5123,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
+| 0x41 | SWITCHING-SET-ASSIGNMENT | {{switching-set-assignment-param}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
