@@ -1611,8 +1611,8 @@ including subscriber priority and authorization. The FETCH_HEADER on the
 fill fetch stream carries the Request ID of the message that initiated
 it: the SUBSCRIBE Request ID for the initial fill, or the REQUEST_UPDATE
 Request ID for a subsequent fill. Setting Forward
-State to 0 implicitly cancels all fill
-fetch streams and suppresses forward delivery. The publisher MUST reset any
+State to 0 implicitly cancels any fill
+fetch stream and suppresses forward delivery. The publisher MUST reset any
 open fill fetch streams when Forward State transitions to 0.
 
 A REQUEST_UPDATE containing a SUBSCRIPTION_FILTER with a fill filter type
