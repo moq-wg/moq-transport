@@ -1576,19 +1576,18 @@ group via subscribe subgroups and datagrams. For subsequent Groups, Objects
 are delivered normally as they are published.
 
 The publisher MUST begin each subgroup with the lowest Object ID published by
-the Original Publisher in that subgroup. If the publisher is unable to deliver
-any subgroups or datagrams for the current Group (e.g., an empty cache and
-the Original Publisher no longer has the data), the publisher SHOULD send a
-REQUEST_ERROR with code `INVALID_RANGE`.
-
-Relays MUST obtain all Objects in the current Group that are not already
-cached. A relay MUST NOT deliver an Object in a subgroup unless all prior
+the Original Publisher in that subgroup.
+A relay MUST NOT deliver an Object in a subgroup unless all prior
 Objects in that subgroup are accounted for — either already received,
 confirmed non-existent via gap properties, or fetched from upstream. An
 existing upstream subscription that started before the current Group will
 typically deliver these Objects without additional action, though temporary
 gaps can exist until they arrive. A relay without an active upstream
 subscription can issue one with CurrentGroup; otherwise it uses FETCH.
+There is no guarantee the subscriber will receive any subgroups or datagrams
+for the Current Group due to DELIVERY_TIMEOUT, MAX_CACHE_DURATION,
+or lack of data availability.  If the publisher opens a subgroup for the Current
+Group it is unable to complete, it can reset it with CURRENT_GROUP_UNAVAILABLE.
 
 ### Fill Semantics {#fill-semantics}
 
