@@ -2162,7 +2162,7 @@ When the relay receives a subscription with SWITCHING-SET-ASSIGNMENT:
 1. Add subscription to the specified switching set, creating the set if needed.
 2. Set Forward state to 0 for the new subscription
 3. Store the Set throughput fraction and rank as properties of the set
-4. If Activate switching = 1, begin active track selection
+4. If Activate switching = 1, begin active track selection, forwarding objects for selected track.
 
 If the relay receives a PUBLISH_DONE message, or an UNSUBSCRIBE for a subscription that was
 previously added to a switching set, then it must remove that subscription from the switching set
