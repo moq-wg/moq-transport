@@ -1139,6 +1139,9 @@ EXPIRED_AUTH_TOKEN (0x7):
 EXCESSIVE_LOAD (0x9):
 : The endpoint is overloaded and is resetting this stream.
 
+CURRENT_GROUP_UNAVAILABLE (0xA):
+: The publisher is unable to complete the subscriber's request for the current group.
+
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
@@ -5162,6 +5165,7 @@ This document does not define any initial entries.
 | UNKNOWN_OBJECT_STATUS | 0x6  | {{stream-reset-codes}}   |
 | EXPIRED_AUTH_TOKEN    | 0x7  | {{stream-reset-codes}}   |
 | EXCESSIVE_LOAD        | 0x9  | {{stream-reset-codes}}   |
+| CURRENT_GROUP_UNAVAILABLE | 0xA | {{stream-reset-codes}} |
 | MALFORMED_TRACK       | 0x12 | {{stream-reset-codes}}   |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
