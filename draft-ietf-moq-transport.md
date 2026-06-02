@@ -2128,17 +2128,17 @@ the client. The relay selects exactly one track per switching set to forward at 
 given time.
 
 
-### Switching set establishment 
+### Switching set establishment
 
 Subscribers can create switching sets through two methods. Both support single or multiple
 switching sets and result in identical relay behavior:
 
 * Individual SUBSCRIBE: - the subscriber sends a separate SUBSCRIBE message for each track,
-  and appends the SWITCHING-SET-ASSIGNMENT parameter to assign the track to a switching set. 
+  and appends the SWITCHING-SET-ASSIGNMENT parameter to assign the track to a switching set.
 
 * SUBSCRIBE_NAMESPACE: - the subscriber sends a SUBSCRIBE_NAMESPACE message. For each matching
   track, the relay will issue a PUBLISH message. The subscriber assigns tracks to switching sets
-  by appending the SWITCHING-SET-ASSIGNMENT parameter to the PUBLISH_OK message. 
+  by appending the SWITCHING-SET-ASSIGNMENT parameter to the PUBLISH_OK message.
 
 In both cases, tracks are grouped into a switching set by specifying the same switching set ID.
 The subscriber sets activate=0 for all tracks except the last one in each set, then sets
@@ -2169,7 +2169,7 @@ previously added to a switching set, then it must remove that subscription from 
 and continue to process the switching across the remaining subscriptions within that set.
 
 If all tracks are removed from a previously established switching set, then that set is
-considered deleted and is removed from the bandwidth allocation algorithm. 
+considered deleted and is removed from the bandwidth allocation algorithm.
 
 ### Bandwidth Allocation {#allocation-algorithm}
 
@@ -2180,7 +2180,7 @@ The relay maintains:
   estimate SHOULD be at least the Group duration of the track. The estimate is obtained
   periodically from the QUIC stack (e.g., congestion window pacing rate, smoothed RTT)
   and MAY be supplemented by external sources or application-level feedback. The exact mechanism
-  is not defined by this specification and MAY vary between implementations. 
+  is not defined by this specification and MAY vary between implementations.
 - `sum_F`: Sum of all set fractions, updated incrementally as subscriptions are added or removed
 - 'set.fraction': for each switching set, the switching set fraction, as defined by the set
   throughput fraction of the SWITCHING-SET-ASSIGNMENT {{switching-set-assignment-param}} parameter.
