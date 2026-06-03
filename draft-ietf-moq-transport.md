@@ -3053,7 +3053,9 @@ same bidi stream as the request to modify it.  A subscriber can also send
 REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.
 
 The receiver of a REQUEST_UPDATE MUST respond with exactly one REQUEST_OK
-or REQUEST_ERROR message indicating if the update was successful.
+or REQUEST_ERROR message indicating if the update was successful, unless it
+is coalescing failed updates to produce just one REQUEST_ERROR for multiple
+REQUEST_UPDATE messages.
 
 If a parameter previously set on the request is not present in
 `REQUEST_UPDATE`, its value remains unchanged.
