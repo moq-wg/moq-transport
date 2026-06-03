@@ -1528,7 +1528,7 @@ delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
 If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
 close the session with a `PROTOCOL_VIOLATION`.
 
-AbsoluteStartFill (0x5): Start Location is present. The filter Start Location
+AbsoluteStartFill (0x5): The filter Start Location
 is specified explicitly.
 Objects from Start Location up to but not including `{Largest Object.Group, 0}`
 are delivered on a fill fetch stream (see {{fill-semantics}}). Objects from
@@ -1537,7 +1537,7 @@ datagrams. There is no End Group - the subscription is open ended. If the Start
 Location is at or after `{Largest Object.Group, 0}`, the fill range is empty
 and no fill fetch stream is opened.
 
-AbsoluteRangeFill (0x6): Start Location and End Group Delta are present. The
+AbsoluteRangeFill (0x6): The
 filter Start Location and End Group Delta are
 specified explicitly. Objects from Start Location up to but not including
 `{Largest Object.Group, 0}` are delivered on a fill fetch stream (see
@@ -1573,7 +1573,7 @@ NOT send objects from outside the requested range.
 
 When a subscription's filter includes the current group — as with
 CurrentGroup, RelativeStartFill, AbsoluteStartFill with a Start Location at
-or before the current group, or AbsoluteRange that crosses the current group
+or before the current group, or AbsoluteRangeFill that crosses the current group
 — the publisher delivers both cached and newly published Objects for that
 group via subscribe subgroups and datagrams. For subsequent Groups, Objects
 are delivered normally as they are published.
@@ -1596,15 +1596,17 @@ Group it is unable to complete, it can reset it with CURRENT_GROUP_UNAVAILABLE.
 
 Fill filter types (AbsoluteStartFill, AbsoluteRangeFill, and
 RelativeStartFill) cause the publisher to open a unidirectional stream with a
-FETCH_HEADER (see {{fetch-header}}) using the subscription's Request ID to
-deliver objects before the current group. This is called a fill fetch stream.
+FETCH_HEADER (see {{fetch-header}}) to deliver objects before the current
+group. This is called a fill fetch stream.  The fill fetch stream uses either
+subscription's Request ID, or the Request ID of the REQUEST_UPDATE that
+triggered the fill.
 
 The fill fetch stream carries objects from the fill Start Location up to but
 not including `{Largest Object.Group, 0}`, where `Largest Object` is the value
 communicated in SUBSCRIBE_OK or REQUEST_UPDATE_OK. For RelativeStartFill, both
 sides compute the fill Start Location as `{Largest Object.Group - (N + 1), 0}`
 using the LARGEST_OBJECT from the response. Subscribe subgroups and datagrams
-carry objects from `{Largest Object.Group, 0}` onward. If the fill Start
+carry objects from `{Largest Object.Group, 0}` onward. If the Start
 Location is at or after `{Largest Object.Group, 0}`, the fill range is empty
 and the publisher does not open a fill fetch stream.
 
@@ -1619,7 +1621,8 @@ open fill fetch streams when Forward State transitions to 0.
 
 A REQUEST_UPDATE containing a SUBSCRIPTION_FILTER with a fill filter type
 opens a new fill fetch stream. The fill fetch stream uses the Request ID from
-the REQUEST_UPDATE. The REQUEST_UPDATE_OK will include LARGEST_OBJECT
+A REQUEST_UPDATE containing a SUBSCRIPTION_FILTER with a fill filter type
+opens a new fill fetch stream with the the Request ID from
 establishing the fill boundary for the new fill fetch stream.
 
 FILL_TIMEOUT (see {{delivery-timeouts}}) applies to fill fetch streams in the
@@ -1696,7 +1699,7 @@ results in error.
 ## Fill Fetch Stream Cancellation
 
 A fill fetch stream can be cancelled independently of the subscription by
-sending STOP_SENDING on the fill fetch stream. The subscription continues
+sending STOP_SENDING. The subscription continues
 to deliver objects using subscribe subgroups and datagrams.
 
 Cancelling the subscription (STOP_SENDING on the bidi stream) cancels both
@@ -2168,7 +2171,7 @@ When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
 one publisher is available, the Relay MAY send the FETCH to any of them.
 
-When a Relay receives a downstream SUBSCRIBE with a fill filter type or
+When a Relay receives a SUBSCRIBE with a fill filter type or
 CurrentGroup, it serves the fill or current group portion from its cache and
 retrieves any missing objects upstream using SUBSCRIBE or standalone FETCHes
 (see {{current-group-delivery}} and {{fill-semantics}}).
@@ -2319,7 +2322,7 @@ the length of the Message Payload, the receiver MUST close the session with a
 
 Request ID is included in request messages and is used to identify
 requests across messages. For example, fetch streams reference
-the Request ID of a SUBSCRIBE, PUBLISH or FETCH.
+the Request ID of a SUBSCRIBE, PUBLISH, FETCH, or REQUEST_UPDATE.
 
 The client generates even numbered Request IDs, starting at 0, and the
 server generates odd numbered Request IDs, starting at 1.  Each
@@ -2637,7 +2640,7 @@ Fill filter types (AbsoluteStartFill, AbsoluteRangeFill, RelativeStartFill)
 and CurrentGroup MUST NOT appear in PUBLISH_OK. A publisher that receives a
 PUBLISH_OK with one of these filter types MUST close the session with
 `PROTOCOL_VIOLATION`. The LARGEST_OBJECT in PUBLISH may be stale by the time
-PUBLISH_OK is processed, making the fill or start boundary unreliable.
+PUBLISH_OK is processed, making the fill boundary unreliable.
 To fill-join a track initiated via PUBLISH, the
 subscriber SHOULD respond with PUBLISH_OK with Forward State 0, then send
 REQUEST_UPDATE with Forward State 1 and a fill filter type. The
@@ -4222,9 +4225,7 @@ as defined in {{stream-reset-codes}}.
 ### Fetch Header {#fetch-header}
 
 When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
-track requested in the Fetch message identified by `Request ID`. A FETCH_HEADER
-can also be opened by a publisher for fill delivery, using the Request ID of
-a subscription with a fill filter type (see {{fill-semantics}}).
+track requested in the message identified by `Request ID`.
 
 ~~~
 FETCH_HEADER {
