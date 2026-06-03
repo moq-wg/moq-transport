@@ -1635,6 +1635,9 @@ is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
+To join a Track at the current Group, the subscriber sends a SUBSCRIBE with
+Filter Type `CurrentGroup`.
+
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a fill
 filter type: AbsoluteStartFill, AbsoluteRangeFill, or RelativeStartFill.
 The publisher responds with SUBSCRIBE_OK including LARGEST_OBJECT.
@@ -1643,9 +1646,6 @@ Objects prior to the current group are requested, the publisher opens a fill
 fetch stream for objects before `{Largest Object.Group, 0}` and delivers
 current and future objects using subscribe subgroups and datagrams (see
 {{fill-semantics}}).
-
-To join a Track at the current Group, the subscriber sends a SUBSCRIBE with
-Filter Type `CurrentGroup`.
 
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
 Filter Type `Next Group Start`.
@@ -1707,7 +1707,7 @@ the fill fetch stream and forward delivery.  The publisher MUST reset any open
 fill fetch streams associated with a cancelled subscription.
 
 The fill fetch stream is closed with a FIN after all past objects up to the
-fill boundary (LARGEST_OBJECT from SUBSCRIBE_OK) have been delivered.
+fill boundary ({LARGEST_OBJECT, 0} from SUBSCRIBE_OK) have been delivered.
 
 # Namespace Discovery {#track-discovery}
 
@@ -2554,7 +2554,8 @@ for the same track.
 The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a FETCH,
 SUBSCRIBE, or REQUEST_UPDATE (for a subscription) message. When present in a
 SUBSCRIBE or REQUEST_UPDATE with a fill filter type, it applies to the fill
-fetch stream.
+fetch stream.  If it is present in a SUBSCRIBE or REQUEST_UPDATE without a
+fill filter type, it is ignored.
 
 It is the maximum total duration in milliseconds a relay SHOULD spend waiting
 for upstream sources to provide Objects that are not immediately available
