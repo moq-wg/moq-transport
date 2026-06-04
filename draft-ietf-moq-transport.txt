@@ -3414,7 +3414,8 @@ Table of Contents
 
    The receiver of a REQUEST_UPDATE MUST respond with exactly one
    REQUEST_OK or REQUEST_ERROR message indicating if the update was
-   successful.
+   successful, unless it is coalescing failed updates to produce just
+   one REQUEST_ERROR for multiple REQUEST_UPDATE messages.
 
    If a parameter previously set on the request is not present in
    REQUEST_UPDATE, its value remains unchanged.
@@ -3542,7 +3543,7 @@ Table of Contents
    closing the subscription's bidi stream to indicate it is done
    publishing Objects for that subscription.  The Status Code indicates
    why the subscription ended, and whether it was an error.  Because
-   PUBLISH_DONE is sent on a control stream, it is likely to arrive at
+   PUBLISH_DONE is sent on a request stream, it is likely to arrive at
    the receiver before late-arriving objects, and often even late-
    opening streams.  However, the receiver uses it as an indication that
    it should receive any late-opening streams in a relatively short
