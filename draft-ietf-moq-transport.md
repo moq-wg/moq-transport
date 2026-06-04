@@ -2510,7 +2510,8 @@ unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 ### EXPIRES Parameter {#expires}
 
 The EXPIRES parameter (Parameter Type 0x8) is a varint. It MAY appear in
-SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_UPDATE_OK. It encodes the time
+SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK,
+PUBLISH_NAMESPACE_OK, or REQUEST_UPDATE_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
 the subscription. The sender will terminate the subscription using PUBLISH_DONE
 or by cancelling the request (see {{request-cancellation}}).  This value is advisory and the sender
