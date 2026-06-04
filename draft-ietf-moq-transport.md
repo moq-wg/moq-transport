@@ -2184,6 +2184,8 @@ The relay maintains:
 - `sum_F`: Sum of all set fractions, updated incrementally as subscriptions are added or removed
 - 'set.fraction': for each switching set, the switching set fraction, as defined by the set
   throughput fraction of the SWITCHING-SET-ASSIGNMENT {{switching-set-assignment-param}} parameter.
+  - 'set.rank': for each switching set, the switching set rank, as defined by the optional set
+  rank field of the SWITCHING-SET-ASSIGNMENT {{switching-set-assignment-param}} parameter.
 
 On a periodic update interval or at a minimum of a new Group boundary, the relay executes the
 following algorithm:
