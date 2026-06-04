@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 November 2026                                  I. Swett, Ed.
+Expires: 6 December 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             12 May 2026
+                                                             4 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 November 2026.
+   This Internet-Draft will expire on 6 December 2026.
 
 Copyright Notice
 
@@ -2842,8 +2842,9 @@ Table of Contents
 10.2.10.  EXPIRES Parameter
 
    The EXPIRES parameter (Parameter Type 0x8) is a varint.  It MAY
-   appear in SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, or REQUEST_UPDATE_OK.
-   It encodes the time in milliseconds after which the sender of the
+   appear in SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE_NAMESPACE_OK,
+   SUBSCRIBE_TRACKS_OK, PUBLISH_NAMESPACE_OK, or REQUEST_UPDATE_OK.  It
+   encodes the time in milliseconds after which the sender of the
    parameter will terminate the subscription.  The sender will terminate
    the subscription using PUBLISH_DONE or by cancelling the request (see
    Section 3.3.2).  This value is advisory and the sender can terminate
