@@ -3181,7 +3181,7 @@ PUBLISH_OK.
 A publisher sends a `PUBLISH_DONE` message as the final message before
 closing the subscription's bidi stream to indicate it is done publishing Objects
 for that subscription.  The Status Code indicates why the subscription
-ended, and whether it was an error. Because PUBLISH_DONE is sent on a control
+ended, and whether it was an error. Because PUBLISH_DONE is sent on a request
 stream, it is likely to arrive at the receiver before late-arriving objects, and
 often even late-opening streams. However, the receiver uses it as an indication
 that it should receive any late-opening streams in a relatively short time.
