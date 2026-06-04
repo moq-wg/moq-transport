@@ -2136,7 +2136,7 @@ switching sets and result in identical relay behavior:
 * Individual SUBSCRIBE: - the subscriber sends a separate SUBSCRIBE message for each track,
   and appends the SWITCHING-SET-ASSIGNMENT parameter to assign the track to a switching set.
 
-* SUBSCRIBE_NAMESPACE: - the subscriber sends a SUBSCRIBE_NAMESPACE message. For each matching
+* SUBSCRIBE_TRACKS: - the subscriber sends a SUBSCRIBE_TRACKS message. For each matching
   track, the relay will issue a PUBLISH message. The subscriber assigns tracks to switching sets
   by appending the SWITCHING-SET-ASSIGNMENT parameter to the PUBLISH_OK message.
 
