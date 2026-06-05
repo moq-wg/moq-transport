@@ -1816,7 +1816,9 @@ there is no timeout set.
 The publisher communicates both timeout values as a Track Property; the
 subscriber communicates them as Message Parameters.  Either timeout value can
 also be set as an Object Property on the first object in a subgroup, overriding
-the Track-level value for that subgroup.  For each type of timeout, the
+the Track-level value for that subgroup.  If either timeout is set as an Object
+Property on any object other than the first in a subgroup, it is ignored.  For
+each type of timeout, the
 publisher's value is the Object Property when present on the first object of the
 subgroup, and the Track Property otherwise.  If both the publisher's value and
 the subscriber's value are non-zero, the smaller of the two is used.
@@ -4420,14 +4422,14 @@ See {{properties}} for usage guidance.
 SUBGROUP_DELIVERY_TIMEOUT (Property Type 0x06) is a Track and Object Property.
 It is a varint.  Its semantics are defined in {{delivery-timeouts}}.  As an
 Object Property on the first object in a subgroup, it overrides the Track-level
-value for that subgroup.
+value for that subgroup; it is ignored on any other object in the subgroup.
 
 ## OBJECT_DELIVERY_TIMEOUT {#object-delivery-timeout-ext}
 
 OBJECT_DELIVERY_TIMEOUT (Property Type 0x02) is a Track and Object Property.
 It is a varint.  Its semantics are defined in {{delivery-timeouts}}.  As an
 Object Property on the first object in a subgroup, it overrides the Track-level
-value for that subgroup.
+value for that subgroup; it is ignored on any other object in the subgroup.
 
 ## MAX CACHE DURATION {#max-cache-duration}
 
