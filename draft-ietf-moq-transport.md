@@ -1745,10 +1745,12 @@ of buffered content that has not been consumed by the application yet.
 
 ### Completing the SWITCH using PUBLISH Delivery
 
-Once G_switch is identified, the Relay MUST open a PUBLISH stream for the
+Once all Objects from the current Track for Groups with GroupID less than
+G_switch have been delivered, the Relay MUST open a PUBLISH stream for the
 target Track. The PUBLISH MUST include a SWITCH_TRANSITION parameter
 (see {{switch-transition-param}}) carrying G_switch as the Switching Group ID
-and the current live edge GroupID of the target Track as the Live Edge Group ID.
+and the live edge GroupID of the target Track at the time the PUBLISH is
+opened as the Live Edge Group ID.
 
 If G_switch is less than the Live Edge Group ID, the Relay MUST open a
 unidirectional stream for catch-up delivery. The Relay MUST begin that stream
