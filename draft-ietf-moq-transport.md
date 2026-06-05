@@ -2141,28 +2141,32 @@ switching sets and result in identical relay behavior:
   by appending the SWITCHING-SET-ASSIGNMENT parameter to the PUBLISH_OK message.
 
 In both cases, tracks are grouped into a switching set by specifying the same switching set ID.
-The subscriber sets activate=0 for all tracks except the last one in each set, then sets
-activate=1 on the final track to signal that the set is complete and the relay should
-begin active track selection.
+The subscriber sets activate = N, where N is the number of tracks that will be assigned to that
+switching set.
 
 ### Subscriber operations
 
-To modify and established switching set, the subscriber can
+To modify an established switching set, the subscriber can
 
-* Add track to existing set: send SUBSCRIBE or PUBLISH_OK with a SWITCHING-SET-ASSIGNMENT parameter
+* Add a track to an existing set: send SUBSCRIBE or PUBLISH_OK with a SWITCHING-SET-ASSIGNMENT parameter
   referencing an existing set.
-* Remove track: Unsubscribe from that track
-* Pause DTS: Send REQUEST_UPDATE with a SWITCHING-SET-ASSIGNMENT parameter defining activate = 0
-* Resume DTS: Send REQUEST_UPDATE with a SWITCHING-SET-ASSIGNMENT parameter defining activate = 1
+* Remove a track from a set: unsubscribe from that track.
+* Pause DTS: Send REQUEST_UPDATE for any track assigned to that set with a SWITCHING-SET-ASSIGNMENT
+  parameter defining activate = 0.
+* Resume DTS: Send REQUEST_UPDATE for any track assigned to that set with a SWITCHING-SET-ASSIGNMENT
+  parameter defining activate = N, where N is the number of tracks assigned to that switching set. 
 
 ### Relay behavior
 
 When the relay receives a subscription with SWITCHING-SET-ASSIGNMENT:
 
-1. Add subscription to the specified switching set, creating the set if needed.
-2. Set Forward state to 0 for the new subscription
-3. Store the Set throughput fraction and rank as properties of the set
-4. If Activate switching = 1, begin active track selection, forwarding objects for selected track.
+1. Add the subscription to the specified switching set, creating the set if needed.
+2. Set Forward state to 0 for the new subscription.
+3. Store 'throughput' as a property of the subscription.
+4. Store 'fraction', 'rank' and 'activate' as properties of the set.
+5. If the number of tracks assigned to the set is >= the activate switching value, then begin
+   active track selection by applying the bandwidth allocation algorithm {{allocation-algorithm}} at the
+   next group boundary.
 
 If the relay receives a PUBLISH_DONE message, or an UNSUBSCRIBE for a subscription that was
 previously added to a switching set, then it must remove that subscription from the switching set
@@ -2184,7 +2188,7 @@ The relay maintains:
 - `sum_F`: Sum of all set fractions, updated incrementally as subscriptions are added or removed
 - 'set.fraction': for each switching set, the switching set fraction, as defined by the set
   throughput fraction of the SWITCHING-SET-ASSIGNMENT {{switching-set-assignment-param}} parameter.
-  - 'set.rank': for each switching set, the switching set rank, as defined by the optional set
+- 'set.rank': for each switching set, the switching set rank, as defined by the optional set
   rank field of the SWITCHING-SET-ASSIGNMENT {{switching-set-assignment-param}} parameter.
 
 On a periodic update interval or at a minimum of a new Group boundary, the relay executes the
@@ -2709,7 +2713,7 @@ SWITCHING-SET-ASSIGNMENT {
   Switching set ID (vi64),
   Throughput threshold (vi64),
   Set throughput fraction (vi64),
-  Activate switching (1),
+  Activate switching (vi64),
   [Set rank (8)]
 }
 ~~~
@@ -2717,7 +2721,10 @@ SWITCHING-SET-ASSIGNMENT {
 * Switching set ID: Integer identifying the switching set. A track MUST only be assigned
   to one switching set at a time. If a subscription attempts to assign a track that is
   already assigned to a different switching set, the relay MUST reject the subscription
-  with a Parameter Error.
+  with a Parameter Error. If a subscription attempts to assign a track, when the number of
+  tracks already assigned to switching sets within the session is
+  >= MAX_DTS_CONCURRENT_TRACKS {{max-dts-concurrent-tracks}}, then the relay MUST reject
+  the subscription with a Parameter Error.
 
 * Throughput threshold: Minimum throughput (kbps) required to select this track.
 
@@ -2730,10 +2737,9 @@ SWITCHING-SET-ASSIGNMENT {
   different fraction values, the relay MUST use the value from the most recently received
   message for that set.
 
-* Activate switching: When set to 0, DTS switching is paused for this set (use when
-  more subscriptions will be added, or to temporarily freeze the current selection).
-  When set to 1, the relay activates or resumes switching. Changes to the selected
-  track take effect at the next group boundary.
+* Activate switching: Integer, when set to 0, pauses DTS switching for this set. When set
+  to N, the relay activates or resumes switching as soon as the number of tracks assigned to
+  the switching set is >= N.  Activation takes effect at the next group boundary.
 
 * Set rank (optional): Degradation priority when bandwidth is constrained, expressed as
   an 8-bit unsigned integer (1-255). Default is 1. Values outside this range MUST result in
