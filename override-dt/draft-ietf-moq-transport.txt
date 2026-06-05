@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 14 November 2026                                  I. Swett, Ed.
+Expires: 7 December 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             13 May 2026
+                                                             5 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 November 2026.
+   This Internet-Draft will expire on 7 December 2026.
 
 Copyright Notice
 
@@ -2088,8 +2088,10 @@ Table of Contents
    the subscriber communicates them as Message Parameters.  Either
    timeout value can also be set as an Object Property on the first
    object in a subgroup, overriding the Track-level value for that
-   subgroup.  For each type of timeout, if both the publisher and the
-   subscriber have a non-zero value, the smaller of the two is used.
+   subgroup.  For each type of timeout, the publisher's value is the
+   Object Property when present on the first object of the subgroup, and
+   the Track Property otherwise.  If both the publisher's value and the
+   subscriber's value are non-zero, the smaller of the two is used.
 
    If the OBJECT_DELIVERY_TIMEOUT is not zero, the MOQT implementation
    MUST retain the time at which the first payload byte of every object
