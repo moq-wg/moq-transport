@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 6 December 2026                                   I. Swett, Ed.
+Expires: 7 December 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             4 June 2026
+                                                             5 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 December 2026.
+   This Internet-Draft will expire on 7 December 2026.
 
 Copyright Notice
 
@@ -2085,9 +2085,15 @@ Table of Contents
    value of 0 means that there is no timeout set.
 
    The publisher communicates both timeout values as a Track Property;
-   the subscriber communicates them as Message Parameters.  For each
-   type of timeout, if both the publisher and the subscriber have a non-
-   zero value, the smaller of the two is used.
+   the subscriber communicates them as Message Parameters.  Either
+   timeout value can also be set as an Object Property on the first
+   object in a subgroup, overriding the Track-level value for that
+   subgroup.  If either timeout is set as an Object Property on any
+   object other than the first in a subgroup, it is ignored.  For each
+   type of timeout, the publisher's value is the Object Property when
+   present on the first object of the subgroup, and the Track Property
+   otherwise.  If both the publisher's value and the subscriber's value
+   are non-zero, the smaller of the two is used.
 
    If the OBJECT_DELIVERY_TIMEOUT is not zero, the MOQT implementation
    MUST retain the time at which the first payload byte of every object
@@ -4881,13 +4887,19 @@ Table of Contents
 
 12.1.  SUBGROUP_DELIVERY_TIMEOUT
 
-   SUBGROUP_DELIVERY_TIMEOUT (Property Type 0x06) is a Track Property.
-   It is a varint.  Its semantics are defined in Section 8.
+   SUBGROUP_DELIVERY_TIMEOUT (Property Type 0x06) is a Track and Object
+   Property.  It is a varint.  Its semantics are defined in Section 8.
+   As an Object Property on the first object in a subgroup, it overrides
+   the Track-level value for that subgroup; it is ignored on any other
+   object in the subgroup.
 
 12.2.  OBJECT_DELIVERY_TIMEOUT
 
-   OBJECT_DELIVERY_TIMEOUT (Property Type 0x02) is a Track Property.  It
-   is a varint.  Its semantics are defined in Section 8.
+   OBJECT_DELIVERY_TIMEOUT (Property Type 0x02) is a Track and Object
+   Property.  It is a varint.  Its semantics are defined in Section 8.
+   As an Object Property on the first object in a subgroup, it overrides
+   the Track-level value for that subgroup; it is ignored on any other
+   object in the subgroup.
 
 12.3.  MAX CACHE DURATION
 
@@ -5518,11 +5530,13 @@ EXT 1 and EXT N can be modified or removed by Relays
    +==========+===============================+========+===============+
    |     Type | Name                          | Scope  | Specification |
    +==========+===============================+========+===============+
-   |     0x02 | OBJECT_DELIVERY_TIMEOUT       | Track  | Section 12.2  |
+   |     0x02 | OBJECT_DELIVERY_TIMEOUT       | Track, | Section 12.2  |
+   |          |                               | Object |               |
    +----------+-------------------------------+--------+---------------+
    |     0x04 | MAX_CACHE_DURATION            | Track  | Section 12.3  |
    +----------+-------------------------------+--------+---------------+
-   |     0x06 | SUBGROUP_DELIVERY_TIMEOUT     | Track  | Section 12.1  |
+   |     0x06 | SUBGROUP_DELIVERY_TIMEOUT     | Track, | Section 12.1  |
+   |          |                               | Object |               |
    +----------+-------------------------------+--------+---------------+
    |     0x0B | IMMUTABLE_PROPERTIES          | Track, | Section 12.7  |
    |          |                               | Object |               |
