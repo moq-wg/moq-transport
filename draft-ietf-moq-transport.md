@@ -2154,7 +2154,7 @@ To modify an established switching set, the subscriber can
 * Pause DTS: Send REQUEST_UPDATE for any track assigned to that set with a SWITCHING-SET-ASSIGNMENT
   parameter defining activate = 0.
 * Resume DTS: Send REQUEST_UPDATE for any track assigned to that set with a SWITCHING-SET-ASSIGNMENT
-  parameter defining activate = N, where N is the number of tracks assigned to that switching set. 
+  parameter defining activate = N, where N is the number of tracks assigned to that switching set.
 
 ### Relay behavior
 
