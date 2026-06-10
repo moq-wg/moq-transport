@@ -4680,6 +4680,33 @@ which resources the endpoint providing the token is authorized to
 perform and access. Relays will verify the
 token to ensure that the request is authorized.
 
+### Authorization Verification by Role
+
+The following describes how authorization verification applies to Original
+Publishers, End Subscribers, and Relays (as defined in {{terms}}):
+
+Authorization verification differs by role in the delivery chain:
+
+- Original Publishers are verified by Relays using AUTHORIZATION TOKEN
+  on PUBLISH_NAMESPACE and PUBLISH messages. A Relay MUST NOT forward
+  content from an Original Publisher that has not been authorized.
+
+- End Subscribers that send SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS
+  implicitly trust the Relay to have verified Original Publishers for
+  namespaces within the requested prefix. The application provides the
+  End Subscriber with the Relay identity and namespace; sending
+  SUBSCRIBE_NAMESPACE to that Relay constitutes delegation of publisher
+  verification.
+
+- Relay-to-Relay authorization is deployment-specific and outside the
+  scope of this document.
+
+In controlled deployments, applications MAY use out-of-band mechanisms to
+share authorization credentials directly between publishers and end
+subscribers, enabling end-to-end verification independent of relay
+delegation. The specification of such mechanisms is outside the scope of
+this document.
+
 ### Replay Attacks
 
 Replay protection for authorization tokens is the responsibility of
