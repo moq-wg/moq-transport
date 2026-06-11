@@ -1184,7 +1184,10 @@ INTERNAL_ERROR (0x1):
 : An implementation specific error occurred.
 
 UNAUTHORIZED (0x2):
-: The client is not authorized to establish a session.
+: The client is not authorized to establish a session. The client MAY
+  establish a new session with appropriate authorization credentials.
+  The Reason Phrase MAY contain information to assist the client in
+  obtaining valid credentials.
 
 PROTOCOL_VIOLATION (0x3):
 : The remote endpoint performed an action that was disallowed by the
@@ -2340,7 +2343,9 @@ message, it MUST close the session with a `PROTOCOL_VIOLATION`.
 * Token Type - a numeric identifier for the type of Token payload being
   transmitted. This type is defined by the IANA table "MOQT Auth Token Type" (see
   {{iana}}). Type 0 is reserved to indicate that the type is not defined in the
-  table and is negotiated out-of-band between client and receiver.
+  table and is negotiated out-of-band between client and receiver. The Token Type
+  identifies the authorization scheme; each scheme defines its own internal type
+  hierarchy within Token Value.
 
 * Token Value - the payload of the Token. The contents and serialization of this
   payload are defined by the Token Type.
@@ -2878,6 +2883,8 @@ REQUEST_ERROR Message {
   Error Code (vi64),
   Retry Interval (vi64),
   Error Reason (Reason Phrase),
+  Error Payload Length (vi64),
+  Error Payload (..),
   [Redirect (Redirect),]
 }
 ~~~
@@ -2890,6 +2897,15 @@ REQUEST_ERROR Message {
 
 * Error Reason: Provides a text description of the request error. See
  {{reason-phrase}}.
+
+* Error Payload Length: A variable-length integer specifying the length of the
+  error payload in bytes. A value of 0 indicates no payload is present.
+
+* Error Payload: An opaque byte sequence whose interpretation is defined by
+  the Error Code. Authorization schemes and other extensions use this field to
+  carry structured binary data (e.g., token challenges) that cannot be
+  represented in a UTF-8 reason phrase. Endpoints that do not recognize the
+  Error Code MUST ignore the Error Payload.
 
 * Redirect: Present only when Error Code is REDIRECT. See
   {{redirect-structure}}.
