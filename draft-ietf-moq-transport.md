@@ -1186,7 +1186,7 @@ INTERNAL_ERROR (0x1):
 UNAUTHORIZED (0x2):
 : The client is not authorized to establish a session. The client MAY
   establish a new session with appropriate authorization credentials.
-  The Reason Phrase MAY contain information to assist the client in
+  The Reason Phrase (Error Reason and Error Payload) MAY contain information to assist the client in
   obtaining valid credentials.
 
 PROTOCOL_VIOLATION (0x3):
