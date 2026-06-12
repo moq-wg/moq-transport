@@ -2903,7 +2903,7 @@ REQUEST_ERROR Message {
 
 * Error Payload: An opaque byte sequence whose interpretation is defined by
   the Error Code. Authorization schemes and other extensions use this field to
-  carry structured binary data (e.g., token challenges) that cannot be
+  carry structured binary data (e.g., token challenges) that would not be
   represented in a UTF-8 reason phrase. Endpoints that do not recognize the
   Error Code MUST ignore the Error Payload.
 
