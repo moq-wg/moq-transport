@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 December 2026                                  I. Swett, Ed.
+Expires: 14 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            11 June 2026
+                                                            12 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 December 2026.
+   This Internet-Draft will expire on 14 December 2026.
 
 Copyright Notice
 
@@ -1421,8 +1421,9 @@ Table of Contents
 
    UNAUTHORIZED (0x2):  The client is not authorized to establish a
       session.  The client MAY establish a new session with appropriate
-      authorization credentials.  The Reason Phrase MAY contain
-      information to assist the client in obtaining valid credentials.
+      authorization credentials.  The Reason Phrase (Error Reason and
+      Error Payload) MAY contain information to assist the client in
+      obtaining valid credentials.
 
    PROTOCOL_VIOLATION (0x3):  The remote endpoint performed an action
       that was disallowed by the specification.
@@ -3267,7 +3268,7 @@ Table of Contents
    *  Error Payload: An opaque byte sequence whose interpretation is
       defined by the Error Code.  Authorization schemes and other
       extensions use this field to carry structured binary data (e.g.,
-      token challenges) that cannot be represented in a UTF-8 reason
+      token challenges) that would not be represented in a UTF-8 reason
       phrase.  Endpoints that do not recognize the Error Code MUST
       ignore the Error Payload.
 
