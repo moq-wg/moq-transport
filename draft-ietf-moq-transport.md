@@ -5172,7 +5172,7 @@ document:
 # Use of Generative AI
 {:numbered="false"}
 
-AI was used to assist with drafting and editing text for this
+Generative AI tools were used to assist with drafting and editing text for this
 document. All AI-generated content was reviewed and approved by the editors.
 
 --- back
