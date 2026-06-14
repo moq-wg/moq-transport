@@ -4580,8 +4580,8 @@ An Object MUST NOT contain more than one instance of this property.
 Prior Object ID Gap only applies to Objects, not Tracks.
 
 Prior Object ID Gap (Property Type 0x3E) is a variable length integer
-containing the number of Objects prior to the current Object that do not and
-will never exist. For example, if the Original Publisher is publishing Object
+containing the number of Objects prior to the current Object that do not, and
+will never, exist. For example, if the Original Publisher is publishing Object
 10 in Group 3 and knows it will never publish Objects 8 or 9 in this Group, it
 can include Prior Object ID Gap = 2.  A Track is considered malformed (see
 {{malformed-tracks}}) if any of the following conditions are detected:
