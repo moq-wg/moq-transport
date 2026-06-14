@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 December 2026                                   I. Swett, Ed.
+Expires: 16 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             5 June 2026
+                                                            14 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 December 2026.
+   This Internet-Draft will expire on 16 December 2026.
 
 Copyright Notice
 
@@ -4427,8 +4427,8 @@ Table of Contents
    *  The *PROPERTIES* bit (0x01) indicates when the Properties field is
       present in all Objects in this Subgroup.  When set to 1, the
       Object Properties structure defined in Section 11.2.1.2 is present
-      in all Objects.  When set to 0, the field is never present.
-      Objects with no properties set Properties Length to 0.
+      in all Objects; Objects with no properties set Properties Length
+      to 0.  When set to 0, the field is never present.
 
    *  The *SUBGROUP_ID_MODE* field (bits 1-2, mask 0x06) is a two-bit
       field that determines the encoding of the Subgroup ID.  To extract
