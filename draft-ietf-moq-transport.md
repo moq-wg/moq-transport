@@ -1663,7 +1663,7 @@ namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
 An endpoint SHOULD report the reception of a REQUEST_OK or
 REQUEST_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
-namespace. This might be especially useful in upload or chat applications. A
+namespace. A
 subscriber MUST send exactly one REQUEST_OK or REQUEST_ERROR as the first
 message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
 SHOULD close the session with a protocol error if it receives more than one.
