@@ -300,7 +300,7 @@ The following table contains some example encodings:
 | 0x25                 | 37                         |
 | 0x8025               | 37                         |
 | 0xbbbd               | 15,293                     |
-| 0xed7f3e7d           | 226,442,877                |
+| 0xed7f3e7d           | 226,442,8                |
 | 0xfaa1a0e403d8       | 2,893,212,287,960          |
 | 0xfc8998abc66bc0     | 151,288,809,941,952        |
 | 0xfefa318fa8e3ca11   | 70,423,237,261,249,041     |
@@ -4054,7 +4054,7 @@ with any of these Type values, it MUST close the session with a
 `PROTOCOL_VIOLATION`:
 
 * Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36,
-  0x37, 0x3E, 0x3F, 0x56, 0x57, 0x5E, 0x5F, 0x76, 0x77, 0x7E, 0x7F. This mode
+  0x37, 0x3E, 0x3F, 0x56, 0x57, 0x5E, 0x5F, 0x76, 0x, 0x7E, 0x7F. This mode
   is reserved for future use.
 
 * Type values that do not match the form 0b0XX1XXXX (i.e., Type values outside
@@ -4392,10 +4392,12 @@ SUBGROUP_HEADER {
 {
   Object ID Delta = 0 (Object ID is 0)
   Properties Length = 33
-    { Type = 4
+    {
+      Type = 4
       Value = 2186796243
     },
-    { Type = 77
+    {
+      Type = 77
       Length = 21
       Value = "traceID:123456"
     }
