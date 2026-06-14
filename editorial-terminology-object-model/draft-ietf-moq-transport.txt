@@ -696,6 +696,12 @@ Table of Contents
    3.  The state of the Object is unknown, either because it has not yet
        been received, or it has not been produced yet.
 
+   A gap in the observed Object IDs does not by itself convey any
+   information about the skipped Objects.  Skipped Objects remain in the
+   unknown state until they are received or their non-existence is
+   signalled, for example in a FETCH stream (see Section 11.4.4) or via
+   a Prior Object ID Gap (see Section 12.9).
+
    Since Objects can be delivered out of order, an endpoint can receive
    an Object after it has already recorded that the Object does not
    exist (e.g., via a FETCH gap from one source and later delivery via a

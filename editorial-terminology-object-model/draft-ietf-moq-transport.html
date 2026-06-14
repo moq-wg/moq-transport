@@ -2453,15 +2453,19 @@ existing, but not vice versa.<a href="#section-2.1-4.2.1" class="pilcrow">¶</a>
 received, or it has not been produced yet.<a href="#section-2.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-2.1-5">Since Objects can be delivered out of order, an endpoint can receive an Object
+<p id="section-2.1-5">A gap in the observed Object IDs does not by itself convey any information about
+the skipped Objects. Skipped Objects remain in the unknown state until they are
+received or their non-existence is signalled, for example in a FETCH stream (see
+<a href="#fetch-header" class="auto internal xref">Section 11.4.4</a>) or via a Prior Object ID Gap (see <a href="#prior-object-id-gap" class="auto internal xref">Section 12.9</a>).<a href="#section-2.1-5" class="pilcrow">¶</a></p>
+<p id="section-2.1-6">Since Objects can be delivered out of order, an endpoint can receive an Object
 after it has already recorded that the Object does not exist (e.g., via a FETCH
 gap from one source and later delivery via a subscription).  This is not a
-protocol error and the Track is not malformed.<a href="#section-2.1-5" class="pilcrow">¶</a></p>
-<p id="section-2.1-6">Whenever the publisher communicates that certain objects do not exist, this
+protocol error and the Track is not malformed.<a href="#section-2.1-6" class="pilcrow">¶</a></p>
+<p id="section-2.1-7">Whenever the publisher communicates that certain objects do not exist, this
 fact is expressed as a contiguous range of non-existent objects and
 by including Properties indicating the group/object gaps; MOQT
 implementers should take that into account when selecting appropriate data
-structures.<a href="#section-2.1-6" class="pilcrow">¶</a></p>
+structures.<a href="#section-2.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="model-subgroup">
