@@ -4020,8 +4020,8 @@ in the header:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is present
   in all Objects in this Subgroup. When set to 1, the Object Properties structure
-  defined in {{object-properties}} is present in all Objects. When set to 0, the
-  field is never present. Objects with no properties set Properties Length to 0.
+  defined in {{object-properties}} is present in all Objects; Objects with no
+  properties set Properties Length to 0. When set to 0, the field is never present.
 
 * The **SUBGROUP_ID_MODE** field (bits 1-2, mask 0x06) is a two-bit field that
   determines the encoding of the Subgroup ID. To extract this value, perform a
