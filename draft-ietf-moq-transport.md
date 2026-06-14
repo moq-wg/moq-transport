@@ -1667,6 +1667,63 @@ Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
 results in error.
 
+## Track Switching {#track-switching}
+
+A subscriber can atomically stop delivery on one subscription (the suspend
+subscription) and start delivery on another (the resume subscription) by
+including the SWITCH_FROM parameter ({{switch-from}}) in a SUBSCRIBE or
+REQUEST_UPDATE on the resume subscription's request stream.  This enables track
+switching (e.g., ABR quality changes, alternate camera angles, or meeting
+participants) without tearing down subscriptions or issuing standalone fetches.
+
+On receiving a message containing SWITCH_FROM, the publisher:
+
+1. Validates that Switch From Request ID identifies an existing subscription
+   and is not the same as the resume subscription's Request ID. If not,
+   responds with REQUEST_ERROR `INVALID_SWITCH`. The resume subscription
+   MUST be transitioning from Forward State 0 to 1 as part of the switch; if
+   it already has Forward State 1, or the message carrying SWITCH_FROM has
+   FORWARD = 0, the publisher responds with REQUEST_ERROR `INVALID_SWITCH`.
+
+2. Sets resume to Forward State 1 and applies the SUBSCRIPTION_FILTER. This
+   ensures objects after the Current Group are not missed.
+
+3. Waits until it is ready to publish an object from the SUBSCRIPTION_FILTER's
+   Start Location's Group (the Start Group; see {{subscription-filters}}),
+   computed from the resume track at the time the request is received, while
+   continuing to deliver objects on the suspend subscription.  When GROUP_ORDER
+   is Descending and Start Group is before the Current Group, the publisher
+   waits for the first object in the largest fill group instead.
+
+4. Stops delivery on the suspend subscription:
+
+   * Mode Hard (0x0): sets Forward State 0 on the suspend subscription. If
+     Publish Done is 1, the publisher also sends PUBLISH_DONE.
+
+   In all modes, the publisher also resets any outstanding suspend data for
+   groups greater than or equal to the Start Group; objects already in flight
+   can still be received by the subscriber.
+
+   If Publish Done is 0, the suspend subscription remains established.
+
+5. Begins delivery of resume subscription from Start Group. If the
+   SUBSCRIPTION_FILTER is a fill filter type, opens a fill fetch stream using
+   the resume subscription's Request ID (see {{fill-semantics}}), if necessary.
+
+6. Responds with SUBSCRIBE_OK or REQUEST_OK as appropriate, including
+   LARGEST_OBJECT if the SUBSCRIPTION_FILTER is a fill filter type.
+
+If the publisher times out waiting to be ready to publish an object from the
+Start Group on the resume track, it MUST respond with REQUEST_ERROR `TIMEOUT`.
+
+### Relay Handling of SWITCH_FROM {#relay-switch-from}
+
+When a relay receives a message containing SWITCH_FROM, it MUST NOT forward the
+SWITCH_FROM parameter upstream. The relay handles the switch locally, applying
+the start group computation from {{track-switching}} using its locally observed
+state for the resume track and servicing any fill fetch stream from its cache
+and upstream sources as described in {{fill-semantics}}.
+
 # Namespace Discovery {#track-discovery}
 
 Discovery of MOQT servers is always done out-of-band. Namespace discovery can be
@@ -2595,6 +2652,37 @@ close the session with `PROTOCOL_VIOLATION`.
 If omitted from SUBSCRIBE, the publisher's preference from
 the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 
+### SWITCH_FROM Parameter {#switch-from}
+
+The SWITCH_FROM parameter (Parameter Type 0x24) consists of a varint Switch
+From Request ID, a varint Mode, and a single byte of flags. It MAY appear in a
+SUBSCRIBE or REQUEST_UPDATE (for a subscription) message.
+
+~~~
+SWITCH_FROM {
+  Switch From Request ID (vi64),
+  Mode (vi64),
+  Publish Done (1),
+  Reserved (7),
+}
+~~~
+
+* Switch From Request ID: The Request ID of the subscription to suspend.
+
+* Mode: A vi64 enum selecting how the suspend subscription is stopped. The
+  following mode is defined: Hard (0x0). An endpoint that receives a Mode value
+  that is not defined MUST close the session with `PROTOCOL_VIOLATION`. See
+  {{track-switching}}.
+
+* Publish Done: If 1, the publisher sends PUBLISH_DONE on the suspend
+  subscription as described in {{track-switching}}.
+
+* Reserved: MUST be 0. An endpoint that receives a non-zero value MUST
+  close the session with `PROTOCOL_VIOLATION`.
+
+When present, the enclosing SUBSCRIBE or REQUEST_UPDATE initiates a track
+switch as described in {{track-switching}}.
+
 ### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
 The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
@@ -3095,6 +3183,13 @@ INVALID_RANGE:
 MALFORMED_TRACK:
 : In response to a FETCH, a relay publisher detected the track was
 malformed (see {{malformed-tracks}}).
+
+INVALID_SWITCH:
+: In response to a SUBSCRIBE or REQUEST_UPDATE carrying SWITCH_FROM, the track
+switch cannot be performed: the Switch From Request ID does not identify an
+existing subscription, is the same as the resume subscription's Request ID, the
+resume subscription is not transitioning from Forward State 0 to 1, or the
+message carrying SWITCH_FROM has FORWARD = 0 (see {{track-switching}}).
 
 The following are errors for use by the subscriber. They can appear in response
 to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
@@ -5014,6 +5109,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x23 | FILL_PARAMETERS | {{fill-parameters}} |
+| 0x24 | SWITCH_FROM | {{switch-from}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 
@@ -5133,6 +5229,7 @@ This document does not define any initial entries.
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
+| INVALID_SWITCH             | 0x32 | {{message-request-error}} |
 | UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
 | REDIRECT                   | 0x34 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
