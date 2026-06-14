@@ -223,8 +223,13 @@ Congestion:
 
 Group:
 
-: A temporal sequence of objects. A group represents a join point in a
-  track. See ({{model-group}}).
+: A collection of objects within a track. A group represents a join point
+  in a track. See ({{model-group}}).
+
+Subgroup:
+
+: A sequence of one or more objects from the same group, sent on a single
+  transport stream whenever possible. See ({{model-subgroup}}).
 
 Object:
 
@@ -495,8 +500,6 @@ responsible for the content of the object payload. This includes the
 underlying encoding, compression, any end-to-end encryption, or
 authentication. A relay MUST NOT combine, split, or otherwise modify object
 payloads.
-
-Objects within a Group are in ascending order by Object ID.
 
 From the perspective of a subscriber or a cache, an Object can be in three
 possible states:
