@@ -1091,12 +1091,39 @@ or reject 0-RTT entirely to mitigate resource exhaustion from replayed packets.
 
 ### Request Cancellation and Rejection {#request-cancellation}
 
+A request stream is bidirectional and each direction is closed independently,
+either gracefully with a FIN or abruptly with RESET_STREAM. An endpoint can also
+ask its peer to abruptly close a direction by sending STOP_SENDING.
+
+A FIN gracefully closes one direction of a request stream. It indicates only
+that the endpoint will send no further messages in that direction; it is not a
+request cancellation. An endpoint MUST NOT send a FIN on a direction of a request
+stream until it has sent every message that is required on that direction for the
+request type (see {{message}}). In particular, the endpoint sending the response
+to a request MUST send the corresponding response message (a REQUEST_OK variant,
+SUBSCRIBE_OK, FETCH_OK, or REQUEST_ERROR), and the publisher of an `Established`
+subscription MUST send PUBLISH_DONE, before sending a FIN. An endpoint that
+receives a FIN before the required messages have arrived treats the request as
+failed, and MAY treat the condition as a session error (see
+{{session-termination}}).
+
+An endpoint MAY send a FIN immediately after a message when it has nothing
+further to send on that direction. A requester has nothing further to send after
+a TRACK_STATUS or PUBLISH_NAMESPACE, and MAY FIN immediately. A requester MAY FIN
+immediately after a SUBSCRIBE, FETCH, SUBSCRIBE_NAMESPACE, or SUBSCRIBE_TRACKS if
+it will not send a REQUEST_UPDATE; this does not cancel the request. A responder
+MAY FIN immediately after a TRACK_STATUS_OK or a REQUEST_ERROR. The publisher of
+a subscription sends PUBLISH_DONE immediately before its FIN.
+
 Once a request stream has been opened, the request MAY be cancelled by either
 endpoint. Senders cancel requests if the response is no longer of interest;
 Receivers cancel requests if they are unable to or choose not to respond.
-
-Implementations SHOULD cancel requests by abruptly terminating any directions of
-a stream that are still open by resetting or sending STOP_SENDING.
+Implementations cancel a request by abruptly terminating any directions of the
+stream that are still open, using RESET_STREAM for a direction they are sending
+and STOP_SENDING for a direction they are receiving. Because a FIN does not
+cancel a request, an endpoint that has already sent a FIN on its sending
+direction and subsequently wishes to cancel sends STOP_SENDING on the receiving
+direction.
 
 When an endpoint rejects a request without performing any application processing,
 it SHOULD send a REQUEST_ERROR and FIN the stream.
@@ -1641,8 +1668,11 @@ The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
-A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS can be cancelled by closing the
-stream with either a FIN or RESET_STREAM. Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
+A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS is cancelled as described in
+{{request-cancellation}}, by resetting or sending STOP_SENDING on the stream. A
+FIN sent by the subscriber on its direction indicates only that it will send no
+further REQUEST_UPDATE and does not cancel the request. Cancelling
+SUBSCRIBE_TRACKS does not prohibit original publishers
 from sending further PUBLISH messages, but relays MUST NOT
 send any further PUBLISH messages to a client without knowing the client is
 interested in and authorized to receive the content.
@@ -3203,8 +3233,15 @@ subscription state to enforce the subgroup delivery timeout.
 
 A sender MUST NOT destroy subscription state until it sends PUBLISH_DONE, though
 it can choose to stop sending objects (and thus send PUBLISH_DONE) for any
-reason. A sender SHOULD send FIN on the subscription's bidi stream immediately
-after sending PUBLISH_DONE.
+reason. A publisher MUST NOT send a FIN on its direction of an `Established`
+subscription's bidi stream before sending PUBLISH_DONE, and SHOULD send the FIN
+immediately after PUBLISH_DONE. A subscriber that receives a FIN on the
+publisher's direction of an `Established` subscription without a preceding
+PUBLISH_DONE treats the subscription as failed, and MAY treat the condition as a
+session error (see {{session-termination}}). A publisher that has not
+established the subscription (for example, because it has sent REQUEST_ERROR, or
+received one in response to a PUBLISH) is not required to send PUBLISH_DONE
+before closing the stream.
 
 A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least the
 larger of SUBGROUP_DELIVERY_TIMEOUT or OBJECT_DELIVERY_TIMEOUT in case some
