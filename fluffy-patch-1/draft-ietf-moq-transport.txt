@@ -5836,9 +5836,9 @@ Contributors
 
 Use of Generative AI
 
-   AI was used to assist with drafting and editing text for this
-   document.  All AI-generated content was reviewed and approved by the
-   editors.
+   Generative AI tools were used to assist with drafting and editing
+   text for this document.  All AI-generated content was reviewed and
+   approved by the editors.
 
 References
 
