@@ -1700,6 +1700,17 @@ On receiving a message containing SWITCH_FROM, the publisher:
    * Mode Hard (0x0): sets Forward State 0 on the suspend subscription. If
      Publish Done is 1, the publisher also sends PUBLISH_DONE.
 
+   * Mode Soft (0x1): when Start Group is greater than zero, the publisher
+     updates the suspend subscription's End Group to Start Group - 1 and
+     delivery continues until that group is reached; otherwise the publisher
+     stops delivery on the suspend subscription immediately, as in Hard mode.
+     Outstanding fill fetch streams on the suspend subscription are not
+     cancelled. This mode is most useful when the suspend and resume tracks
+     are group-aligned (i.e., share group boundaries), ensuring a clean
+     handoff between tracks. If Publish Done is 1, the publisher sends
+     PUBLISH_DONE after sending the final Object in Start Group - 1, if
+     signaled by the publisher, or after an implementation-specific timeout.
+
    In all modes, the publisher also resets any outstanding suspend data for
    groups greater than or equal to the Start Group; objects already in flight
    can still be received by the subscriber.
@@ -2670,9 +2681,9 @@ SWITCH_FROM {
 * Switch From Request ID: The Request ID of the subscription to suspend.
 
 * Mode: A vi64 enum selecting how the suspend subscription is stopped. The
-  following mode is defined: Hard (0x0). An endpoint that receives a Mode value
-  that is not defined MUST close the session with `PROTOCOL_VIOLATION`. See
-  {{track-switching}}.
+  following modes are defined: Hard (0x0) and Soft (0x1). An endpoint that
+  receives a Mode value that is not defined MUST close the session with
+  `PROTOCOL_VIOLATION`. See {{track-switching}}.
 
 * Publish Done: If 1, the publisher sends PUBLISH_DONE on the suspend
   subscription as described in {{track-switching}}.
