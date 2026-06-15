@@ -4710,6 +4710,12 @@ access to media objects, object sizes and traffic patterns enable
 analysis of content. Track namespace and track name can also be
 analyzed and correlated between end subscribers by relays.
 
+Consistent with the principle of confidential operation by default,
+content that must not be exposed to relays can be kept confidential by
+applying end-to-end object encryption, for example using Secure Objects
+({{I-D.ietf-moq-secure-objects}}), so that relays retain access only to
+the metadata required for forwarding.
+
 The end-to-end media security is handled by mechanisms external to this
 specification. They need to provide source authenticity and
 confidentiality. MOQT's object model does enable both the object
