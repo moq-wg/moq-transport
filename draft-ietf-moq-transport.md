@@ -300,7 +300,7 @@ The following table contains some example encodings:
 | 0x25                 | 37                         |
 | 0x8025               | 37                         |
 | 0xbbbd               | 15,293                     |
-| 0xed7f3e7d           | 226,442,8                |
+| 0xed7f3e7d           | 226,442,877                |
 | 0xfaa1a0e403d8       | 2,893,212,287,960          |
 | 0xfc8998abc66bc0     | 151,288,809,941,952        |
 | 0xfefa318fa8e3ca11   | 70,423,237,261,249,041     |
