@@ -309,7 +309,10 @@ The following table contains some example encodings:
 {: format title="Example Integer Encodings"}
 
 Variable length integers do not need to be encoded using the minimum number of
-bytes; any encoding length that can represent the value is valid.
+bytes; any encoding length that can represent the value is valid. Note that, as
+a result, the same numeric value can be represented by more than one byte
+sequence. For example, the value 0 can be encoded as `0x00`, `0x8000`,
+`0xc00000`, or any longer form.
 
 x (vi64):
 
@@ -3845,6 +3848,10 @@ not exist.
          that is equal to or greater than the one specified exist.
 
 All of those SHOULD be cached.
+
+There is no Object Status value indicating the end of a Subgroup. The end of a
+Subgroup is signaled by closing its stream with a FIN
+(see {{closing-subgroup-streams}}).
 
 Any other value SHOULD be treated as a protocol error and the session SHOULD
 be closed with a `PROTOCOL_VIOLATION` ({{session-termination}}).
