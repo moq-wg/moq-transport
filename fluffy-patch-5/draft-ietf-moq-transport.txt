@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 December 2026                                  I. Swett, Ed.
+Expires: 17 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            14 June 2026
+                                                            15 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 December 2026.
+   This Internet-Draft will expire on 17 December 2026.
 
 Copyright Notice
 
@@ -5015,10 +5015,10 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    Prior Group ID Gap (Property Type 0x3C) is a variable length integer
    containing the number of Groups prior to the current Group that do
-   not and will never exist.  For example, if the Original Publisher is
-   publishing an Object in Group 7 and knows it will never publish any
-   Objects in Group 8 or Group 9, it can include Prior Group ID Gap = 2
-   in any number of Objects in Group 10, as it sees fit.  A Track is
+   not, and will never, exist.  For example, if the Original Publisher
+   is publishing an Object in Group 7 and knows it will never publish
+   any Objects in Group 8 or Group 9, it can include Prior Group ID Gap
+   = 2 in any number of Objects in Group 10, as it sees fit.  A Track is
    considered malformed (see Section 2.4.2) if any of the following
    conditions are detected:
 
