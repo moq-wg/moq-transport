@@ -429,6 +429,9 @@ readable form while still supporting binary values.
 When parsing a serialized namespace or track name back to its binary form,
 implementations MUST apply the following rules to ensure a canonical encoding:
 
+* A period (.) MUST be followed by exactly two hex digits. A trailing period
+  or a period followed by fewer than two hex digits is invalid.
+
 * The hex digits following a period (.) MUST be lowercase (a-f). Uppercase
   hex digits (A-F) are invalid and MUST cause parsing to fail.
 
@@ -436,9 +439,6 @@ implementations MUST apply the following rules to ensure a canonical encoding:
   in their hex-encoded form. For example, `.61` is invalid because `a` must
   be represented as the literal character `a`. A parser MUST reject such
   redundant encodings.
-
-* A period (.) MUST be followed by exactly two hex digits. A trailing period
-  or a period followed by fewer than two hex digits is invalid.
 
 These rules ensure that the encoding is bijective: every binary value has
 exactly one valid serialized representation, and every valid serialized
