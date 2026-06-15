@@ -853,7 +853,7 @@ MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 ({{WebTransport, Section 3.3}}) to perform version negotiation.
 
 The ALPN value {{!RFC7301}} for the final version of this specification
-is `moqt`. 
+is `moqt`.
 
 \[\[RFC editor: please remove the remainder of this section before publication.]]
 
