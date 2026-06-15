@@ -3861,6 +3861,9 @@ to MOQT Object distribution. Any Object metadata never intended to be accessed
 by the transport or Relays SHOULD be serialized as part of the Object payload
 and not as an Object Property.
 
+Object Properties that are intended to be visible to relays but not modified by
+them SHOULD be serialized within Immutable Properties ({{immutable-properties}}).
+
 Object Properties are serialized as a length in bytes followed by
 Key-Value-Pairs (see {{moq-key-value-pair}}).
 
