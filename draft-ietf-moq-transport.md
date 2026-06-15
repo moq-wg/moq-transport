@@ -2116,8 +2116,7 @@ A relay MUST NOT modify Object fields when forwarding, except for
 Object Properties as specified in {{properties}}.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
-combine, split, or otherwise modify object payloads.  A relay SHOULD
-prioritize sending Objects based on {{priorities}}.
+combine, split, or otherwise modify object payloads.
 
 # Control Messages {#message}
 
