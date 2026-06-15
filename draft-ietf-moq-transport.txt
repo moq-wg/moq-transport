@@ -4858,10 +4858,12 @@ Table of Contents
    {
      Object ID Delta = 0 (Object ID is 0)
      Properties Length = 33
-       { Type = 4
+       {
+         Type = 4
          Value = 2186796243
        },
-       { Type = 77
+       {
+         Type = 77
          Length = 21
          Value = "traceID:123456"
        }
