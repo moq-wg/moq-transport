@@ -3846,6 +3846,10 @@ not exist.
 
 All of those SHOULD be cached.
 
+There is no Object Status value indicating the end of a Subgroup. The end of a
+Subgroup is signaled by closing its stream with a FIN
+(see {{closing-subgroup-streams}}).
+
 Any other value SHOULD be treated as a protocol error and the session SHOULD
 be closed with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 An Object MUST have an empty payload unless its Object Status value is
