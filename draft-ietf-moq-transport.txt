@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 December 2026                                  I. Swett, Ed.
+Expires: 17 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            14 June 2026
+                                                            15 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 December 2026.
+   This Internet-Draft will expire on 17 December 2026.
 
 Copyright Notice
 
@@ -1315,10 +1315,9 @@ Table of Contents
    traffic, this is no worse than 0-RTT in HTTP/3, since the server is
    limited by the amplification factor until address validation.
    However, it could cause the relay to initiate new upstream
-   Subscriptions.  For a SUBSCRIBE_NAMESPACE that requested
-   Subscriptions in the Namespace, sending that upstream could cause the
-   Relay to receive a number of new Subscriptions on the replaying
-   client's behalf.
+   Subscriptions.  For a SUBSCRIBE_TRACKS request, sending that upstream
+   could cause the Relay to receive a number of new Subscriptions on the
+   replaying client's behalf.
 
    Relays MAY defer initiating upstream subscriptions until the
    handshake is complete or reject 0-RTT entirely to mitigate resource
@@ -5015,10 +5014,10 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    Prior Group ID Gap (Property Type 0x3C) is a variable length integer
    containing the number of Groups prior to the current Group that do
-   not and will never exist.  For example, if the Original Publisher is
-   publishing an Object in Group 7 and knows it will never publish any
-   Objects in Group 8 or Group 9, it can include Prior Group ID Gap = 2
-   in any number of Objects in Group 10, as it sees fit.  A Track is
+   not, and will never, exist.  For example, if the Original Publisher
+   is publishing an Object in Group 7 and knows it will never publish
+   any Objects in Group 8 or Group 9, it can include Prior Group ID Gap
+   = 2 in any number of Objects in Group 10, as it sees fit.  A Track is
    considered malformed (see Section 2.4.2) if any of the following
    conditions are detected:
 
@@ -5054,8 +5053,8 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    Prior Object ID Gap (Property Type 0x3E) is a variable length integer
    containing the number of Objects prior to the current Object that do
-   not and will never exist.  For example, if the Original Publisher is
-   publishing Object 10 in Group 3 and knows it will never publish
+   not, and will never, exist.  For example, if the Original Publisher
+   is publishing Object 10 in Group 3 and knows it will never publish
    Objects 8 or 9 in this Group, it can include Prior Object ID Gap = 2.
    A Track is considered malformed (see Section 2.4.2) if any of the
    following conditions are detected:
