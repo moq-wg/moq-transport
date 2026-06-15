@@ -4663,12 +4663,10 @@ to identify media content, user patterns and media stream origin.
 MOQT supports authorization via mutual TLS for node-level identification
 and token-based schemes for fine-grained access control.
 
-Mutual TLS is expected to be widely used for node level identification
-between relays, especially within one organization. However, in some
-deployments mutual TLS can also be used for end subscribers or
-original publishers. However, as only node level authentication is
-provided, what a particular identified node is allowed to do is not
-provided at TLS level.
+Mutual TLS provides node-level identification and can be used between
+relays as well as for end subscribers or original publishers. As only
+node-level authentication is provided, what a particular identified node
+is allowed to do is not provided at the TLS level.
 
 MOQT has functionality to carry Authorization tokens as message
 parameters. These tokens can vary based on the application
