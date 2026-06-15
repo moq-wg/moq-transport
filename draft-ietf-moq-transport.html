@@ -3786,7 +3786,7 @@ namespace. A publisher <span class="bcp14">MAY</span> send the PUBLISH_NAMESPACE
 <p id="section-6.2-3">An endpoint <span class="bcp14">SHOULD</span> report the reception of a REQUEST_OK or
 REQUEST_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
-namespace. This might be especially useful in upload or chat applications. A
+namespace. A
 subscriber <span class="bcp14">MUST</span> send exactly one REQUEST_OK or REQUEST_ERROR as the first
 message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
 <span class="bcp14">SHOULD</span> close the session with a protocol error if it receives more than one.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
