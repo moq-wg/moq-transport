@@ -309,7 +309,10 @@ The following table contains some example encodings:
 {: format title="Example Integer Encodings"}
 
 Variable length integers do not need to be encoded using the minimum number of
-bytes; any encoding length that can represent the value is valid.
+bytes; any encoding length that can represent the value is valid. Note that, as
+a result, the same numeric value can be represented by more than one byte
+sequence. For example, the value 0 can be encoded as `0x00`, `0x8000`,
+`0xc00000`, or any longer form.
 
 x (vi64):
 
