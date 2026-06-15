@@ -2129,7 +2129,7 @@ formatted as follows:
 MOQT Control Message {
   Message Type (vi64),
   Message Length (16),
-  Message Payload (..),
+  Message Body (..),
 }
 ~~~
 {: #moq-transport-message-format title="MOQT Control Message"}
@@ -2194,9 +2194,9 @@ new request stream.
 
 An endpoint that receives an unknown message type MUST close the session.
 Control messages have a length to make parsing easier, but no control messages
-are intended to be ignored. The length is set to the number of bytes in Message
-Payload, which is defined by each message type.  If the length does not match
-the length of the Message Payload, the receiver MUST close the session with a
+are intended to be ignored. The length is set to the number of bytes in the
+Message Body, which is defined by each message type.  If the length does not
+match the length of the Message Body, the receiver MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
 ## Request ID {#request-id}
