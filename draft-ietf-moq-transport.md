@@ -4546,8 +4546,8 @@ An Object MUST NOT contain more than one instance of this property.
 Prior Group ID Gap only applies to Objects, not Tracks.
 
 Prior Group ID Gap (Property Type 0x3C) is a variable length integer
-containing the number of Groups prior to the current Group that do not and will
-never exist. For example, if the Original Publisher is publishing an Object in
+containing the number of Groups prior to the current Group that do not, and will
+never, exist. For example, if the Original Publisher is publishing an Object in
 Group 7 and knows it will never publish any Objects in Group 8 or Group 9, it
 can include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it
 sees fit.  A Track is considered malformed (see {{malformed-tracks}}) if any of
@@ -4580,8 +4580,8 @@ An Object MUST NOT contain more than one instance of this property.
 Prior Object ID Gap only applies to Objects, not Tracks.
 
 Prior Object ID Gap (Property Type 0x3E) is a variable length integer
-containing the number of Objects prior to the current Object that do not and
-will never exist. For example, if the Original Publisher is publishing Object
+containing the number of Objects prior to the current Object that do not, and
+will never, exist. For example, if the Original Publisher is publishing Object
 10 in Group 3 and knows it will never publish Objects 8 or 9 in this Group, it
 can include Prior Object ID Gap = 2.  A Track is considered malformed (see
 {{malformed-tracks}}) if any of the following conditions are detected:
