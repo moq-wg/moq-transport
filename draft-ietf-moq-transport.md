@@ -852,10 +852,12 @@ another protocol when QUIC or WebTransport aren't available.
 MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 ({{WebTransport, Section 3.3}}) to perform version negotiation.
 
+The ALPN value {{!RFC7301}} for the final version of this specification
+is `moqt`.
+
 \[\[RFC editor: please remove the remainder of this section before publication.]]
 
-The ALPN value {{!RFC7301}} for the final version of this specification
-is `moqt`.  ALPNs used to identify IETF drafts are created by appending
+ALPNs used to identify IETF drafts are created by appending
 the draft number to "moqt-". For example, draft-ietf-moq-transport-13
 would be identified as "moqt-13".
 
