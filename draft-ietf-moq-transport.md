@@ -1140,6 +1140,9 @@ EXPIRED_AUTH_TOKEN (0x7):
 EXCESSIVE_LOAD (0x9):
 : The endpoint is overloaded and is resetting this stream.
 
+CURRENT_GROUP_UNAVAILABLE (0xA):
+: The publisher is unable to complete the subscriber's request for the current group.
+
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
@@ -1412,9 +1415,7 @@ PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state
 
 A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
 or REQUEST_UPDATE_OK that changes the Forward State
-from 0 to 1.  This value is called the Joining Location and can be used in a
-Joining FETCH (see {{joining-fetches}}) while the subscription is in the
-`Established` state.
+from 0 to 1.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -1493,6 +1494,7 @@ Subscription Filter {
   Filter Type (vi64),
   [Start Location (Location),]
   [End Group Delta (vi64),]
+  [Relative Previous (vi64),]
 }
 ~~~
 
@@ -1527,6 +1529,39 @@ delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
 If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
 close the session with a `PROTOCOL_VIOLATION`.
 
+AbsoluteStartFill (0x5): The filter Start Location
+is specified explicitly.
+Objects from Start Location up to but not including `{Largest Object.Group, 0}`
+are delivered on a fill fetch stream (see {{fill-semantics}}). Objects from
+`{Largest Object.Group, 0}` onward are delivered using subscribe subgroups and
+datagrams. There is no End Group - the subscription is open ended. If the Start
+Location is at or after `{Largest Object.Group, 0}`, the fill range is empty
+and no fill fetch stream is opened.
+
+AbsoluteRangeFill (0x6): The
+filter Start Location and End Group Delta are
+specified explicitly. Objects from Start Location up to but not including
+`{Largest Object.Group, 0}` are delivered on a fill fetch stream (see
+{{fill-semantics}}). Objects from `{Largest Object.Group, 0}` onward are
+delivered using subscribe subgroups and datagrams. If the End Group is before
+`Largest Object.Group`, only fill delivery occurs.
+TODO: Determine behavior when end is before current group — does the
+subscription auto-close, or remain open for possible REQUEST_UPDATE?
+
+CurrentGroup (0x7): No additional fields are present. The filter Start Location
+is `{Largest Object.Group, 0}`.
+If no content has been delivered yet, the filter Start Location is {0, 0}.
+There is no End Group - the subscription is open ended.
+
+RelativeStartFill (0x8): Relative Previous is present. The value N in
+Relative Previous determines the Start Location:
+`{Largest Object.Group - (N + 1), 0}`. Objects from Start Location up to but
+not including `{Largest Object.Group, 0}` are delivered on a fill fetch stream
+(see {{fill-semantics}}), and objects from `{Largest Object.Group, 0}` onward
+are delivered using subscribe subgroups and datagrams. If N + 1 is greater than
+Largest Object.Group, the Start Location is `{0, 0}`. There is no End Group -
+the subscription is open ended.
+
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
 
@@ -1535,6 +1570,65 @@ If the publisher cannot satisfy the requested Subscription Filter (see
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
 
+### Current Group Delivery {#current-group-delivery}
+
+When a subscription's filter includes the current group — as with
+CurrentGroup, RelativeStartFill, AbsoluteStartFill with a Start Location at
+or before the current group, or AbsoluteRangeFill that crosses the current group
+— the publisher delivers both cached and newly published Objects for that
+group via subscribe subgroups and datagrams. For subsequent Groups, Objects
+are delivered normally as they are published.
+
+The publisher MUST begin each subgroup with the lowest Object ID published by
+the Original Publisher in that subgroup.
+A relay MUST NOT deliver an Object in a subgroup unless all prior
+Objects in that subgroup are accounted for — either already received,
+confirmed non-existent via gap properties, or fetched from upstream. An
+existing upstream subscription that started before the current Group will
+typically deliver these Objects without additional action, though temporary
+gaps can exist until they arrive. A relay without an active upstream
+subscription can issue one with CurrentGroup; otherwise it uses FETCH.
+There is no guarantee the subscriber will receive any subgroups or datagrams
+for the Current Group due to DELIVERY_TIMEOUT, MAX_CACHE_DURATION,
+or lack of data availability.  If the publisher opens a subgroup for the Current
+Group it is unable to complete, it can reset it with CURRENT_GROUP_UNAVAILABLE.
+
+### Fill Semantics {#fill-semantics}
+
+Fill filter types (AbsoluteStartFill, AbsoluteRangeFill, and
+RelativeStartFill) cause the publisher to open a unidirectional stream with a
+FETCH_HEADER (see {{fetch-header}}) to deliver objects before the current
+group. This is called a fill fetch stream.  The fill fetch stream uses either
+subscription's Request ID, or the Request ID of the REQUEST_UPDATE that
+triggered the fill.
+
+The fill fetch stream carries objects from the fill Start Location up to but
+not including `{Largest Object.Group, 0}`, where `Largest Object` is the value
+communicated in SUBSCRIBE_OK or REQUEST_UPDATE_OK. For RelativeStartFill, both
+sides compute the fill Start Location as `{Largest Object.Group - (N + 1), 0}`
+using the LARGEST_OBJECT from the response. Subscribe subgroups and datagrams
+carry objects from `{Largest Object.Group, 0}` onward. If the Start
+Location is at or after `{Largest Object.Group, 0}`, the fill range is empty
+and the publisher does not open a fill fetch stream.
+
+The fill fetch stream and subscription share subscription parameters
+including subscriber priority and authorization. The FETCH_HEADER on the
+fill fetch stream carries the Request ID of the message that initiated
+it: the SUBSCRIBE Request ID for the initial fill, or the REQUEST_UPDATE
+Request ID for a subsequent fill. Setting Forward
+State to 0 implicitly cancels any fill
+fetch stream and suppresses forward delivery. The publisher MUST reset any
+open fill fetch streams when Forward State transitions to 0.
+
+A REQUEST_UPDATE containing a SUBSCRIPTION_FILTER with a fill filter type
+opens a new fill fetch stream. The fill fetch stream uses the Request ID from
+A REQUEST_UPDATE containing a SUBSCRIPTION_FILTER with a fill filter type
+opens a new fill fetch stream with the the Request ID from
+establishing the fill boundary for the new fill fetch stream.
+
+FILL_TIMEOUT (see {{delivery-timeouts}}) applies to fill fetch streams in the
+same way it applies to standalone fetches.
+
 ### Joining an Ongoing Track
 
 The MOQT Object model is designed with the concept that the beginning of a Group
@@ -1542,9 +1636,18 @@ is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
-To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
-REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
-{{joining-fetches}}) for the intended start Group, which can be relative.
+To join a Track at the current Group, the subscriber sends a SUBSCRIBE with
+Filter Type `CurrentGroup`.
+
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a fill
+filter type: AbsoluteStartFill, AbsoluteRangeFill, or RelativeStartFill.
+The publisher responds with SUBSCRIBE_OK including LARGEST_OBJECT.
+Largest Object.Group indicates the boundary between fill and live delivery. If
+Objects prior to the current group are requested, the publisher opens a fill
+fetch stream for objects before `{Largest Object.Group, 0}` and delivers
+current and future objects using subscribe subgroups and datagrams (see
+{{fill-semantics}}).
+
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
 Filter Type `Next Group Start`.
 
@@ -1553,7 +1656,7 @@ Filter Type `Next Group Start`.
 While some publishers will deterministically create new Groups, other
 applications might want to only begin a new Group when needed.  A subscriber
 joining a Track might detect that it is more efficient to request the Original
-Publisher create a new group than issue a Joining FETCH.  Publishers indicate a
+Publisher create a new group than to subscribe using CurrentGroup.  Publishers indicate a
 Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
 ({{dynamic-groups}}).
 
@@ -1594,6 +1697,18 @@ Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
 results in error.
 
+## Fill Fetch Stream Cancellation
+
+A fill fetch stream can be cancelled independently of the subscription by
+sending STOP_SENDING. The subscription continues
+to deliver objects using subscribe subgroups and datagrams.
+
+Cancelling the subscription (STOP_SENDING on the bidi stream) cancels both
+the fill fetch stream and forward delivery.  The publisher MUST reset any open
+fill fetch streams associated with a cancelled subscription.
+
+The fill fetch stream is closed with a FIN after all past objects up to the
+fill boundary ({LARGEST_OBJECT, 0} from SUBSCRIBE_OK) have been delivered.
 
 # Namespace Discovery {#track-discovery}
 
@@ -1733,9 +1848,11 @@ schedulable object.  A default can be specified in the parameters of PUBLISH, or
 SUBSCRIBE_OK. Publisher priority can also be specified in a subgroup header or
 datagram (see {{data-streams}}).
 
-`Group Order` is a property of an individual subscription.  It can be either
-'Ascending' (groups with lower group ID are sent first), or 'Descending'
-(groups with higher group ID are sent first).  The subscriber optionally
+`Group Order` is a property of an individual subscription.  It can be
+'Ascending' (groups with lower group ID are sent first), 'Descending'
+(groups with higher group ID are sent first), or 'FillDescending' (fill
+fetch stream objects are sent in descending order while subscribe stream
+objects are sent in ascending order).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
 publisher's preference is used if the subscriber did not express one (by
 omitting the Group Order parameter).  The group order of an existing
@@ -1754,7 +1871,10 @@ the objects SHOULD be selected as follows:
 2. If two objects in response to the same request have the same subscriber
    and publisher priority, but belong to two different groups of the same track,
    **the group order** of the associated subscription is used to
-   decide the one that is scheduled to be sent first.
+   decide the one that is scheduled to be sent first. For FillDescending group
+   order, subscribe-delivered objects are preferred over fill-delivered objects;
+   within subscribe objects, ascending group order is used; within fill objects,
+   descending group order is used.
 3. If two objects in response to the same request have the same subscriber
    and publisher priority and belong to the same group of the same track, the
    one with **the lowest Subgroup ID** (for objects with forwarding preference
@@ -2057,6 +2177,11 @@ When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
 one publisher is available, the Relay MAY send the FETCH to any of them.
 
+When a Relay receives a SUBSCRIBE with a fill filter type or
+CurrentGroup, it serves the fill or current group portion from its cache and
+retrieves any missing objects upstream using SUBSCRIBE or standalone FETCHes
+(see {{current-group-delivery}} and {{fill-semantics}}).
+
 When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 `Established` upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
 SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
@@ -2202,8 +2327,8 @@ the length of the Message Payload, the receiver MUST close the session with a
 ## Request ID {#request-id}
 
 Request ID is included in request messages and is used to identify
-requests across messages. For example, Joining Fetch references
-the Request ID of a SUBSCRIBE.
+requests across messages. For example, fetch streams reference
+the Request ID of a SUBSCRIBE, PUBLISH, FETCH, or REQUEST_UPDATE.
 
 The client generates even numbered Request IDs, starting at 0, and the
 server generates odd numbered Request IDs, starting at 1.  Each
@@ -2432,7 +2557,11 @@ for the same track.
 
 ### FILL TIMEOUT Parameter {#fill-timeout}
 
-The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a FETCH message.
+The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a FETCH,
+SUBSCRIBE, or REQUEST_UPDATE (for a subscription) message. When present in a
+SUBSCRIBE or REQUEST_UPDATE with a fill filter type, it applies to the fill
+fetch stream.  If it is present in a SUBSCRIBE or REQUEST_UPDATE without a
+fill filter type, it is ignored.
 
 It is the maximum total duration in milliseconds a relay SHOULD spend waiting
 for upstream sources to provide Objects that are not immediately available
@@ -2497,8 +2626,12 @@ SUBSCRIBE, PUBLISH_OK, or FETCH.
 
 Its value indicates how to prioritize Objects from different groups within
 the same subscription (see {{priorities}}), or how to order Groups in a Fetch
-response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
-Descending (0x2). If an endpoint receives a value outside this range, it MUST
+response (see {{message-fetch}}). The allowed values are Ascending (0x1),
+Descending (0x2), or FillDescending (0x3). FillDescending orders fill fetch stream
+objects in descending order and subscribe objects in ascending order;
+when used with a subscription that has no fill, it is equivalent to Ascending;
+when used with a standalone FETCH, it is equivalent to Descending.
+If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
 
 If omitted from SUBSCRIBE, the publisher's preference from
@@ -2509,6 +2642,17 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
 encoding. It MAY appear in a SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a
 subscription) message. It is a Subscription Filter (see {{subscription-filters}}).
+
+Fill filter types (AbsoluteStartFill, AbsoluteRangeFill, RelativeStartFill)
+and CurrentGroup MUST NOT appear in PUBLISH_OK. A publisher that receives a
+PUBLISH_OK with one of these filter types MUST close the session with
+`PROTOCOL_VIOLATION`. The LARGEST_OBJECT in PUBLISH may be stale by the time
+PUBLISH_OK is processed, making the fill boundary unreliable.
+To fill-join a track initiated via PUBLISH, the
+subscriber SHOULD respond with PUBLISH_OK with Forward State 0, then send
+REQUEST_UPDATE with Forward State 1 and a fill filter type. The
+REQUEST_UPDATE_OK will contain a fresh LARGEST_OBJECT establishing the correct
+fill boundary.
 
 If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
@@ -2988,16 +3132,11 @@ NAMESPACE_TOO_LARGE:
 : In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
 matches more publishers than the relay is willing to enumerate.
 
-INVALID_JOINING_REQUEST_ID:
-: In response to a Joining FETCH, the referenced Request ID is not an
-`Established` Subscription.
-
 ## SUBSCRIBE {#message-subscribe-req}
 
-A subscription causes the publisher to send newly published objects for a track.
+SUBSCRIBE initiates a subscription to a track.  The associated parameters determine
+the range and mechanism of object delivery.
 
-Subscribe only requests newly published or received Objects.  Objects from the
-past are retrieved using FETCH ({{message-fetch}}).
 
 The format of SUBSCRIBE is as follows:
 
@@ -3093,6 +3232,11 @@ When a subscriber decreases the Start Location of the Subscription Filter
 Largest Location, similar to a new Subscription. FETCH can be used to retrieve
 any necessary Objects smaller than the current Largest Location.
 
+When a REQUEST_UPDATE contains a SUBSCRIPTION_FILTER with a fill filter type,
+the publisher opens a new fill fetch stream using the REQUEST_UPDATE's
+Request ID. The REQUEST_UPDATE_OK will include LARGEST_OBJECT establishing
+the fill boundary for the new fill fetch stream.
+
 When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
 create a gap in the subscription. The REQUEST_UPDATE_OK will include the
@@ -3179,7 +3323,8 @@ A publisher that sends the FORWARD parameter ({{forward-parameter}}) equal to 0
 indicates that it will not transmit any objects until the subscriber sets the
 Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
 publisher will start transmitting objects immediately, possibly before
-PUBLISH_OK.
+PUBLISH_OK. Delivery starts at the Largest Object at the time the publisher
+begins sending.
 
 
 ## PUBLISH_DONE {#message-publish-done}
@@ -3291,31 +3436,25 @@ EXCESSIVE_LOAD (0x9):
 A subscriber sends FETCH as the first message on a new bidi stream to a
 publisher to request a range of already published objects within a track.
 
-There are three types of Fetch messages.
-
-Code | Fetch Type
-0x1 | Standalone Fetch
-0x2 | Relative Joining Fetch
-0x3 | Absolute Joining Fetch
-
-An endpoint that receives a Fetch Type other than 0x1, 0x2 or 0x3 MUST close
-the session with a `PROTOCOL_VIOLATION`.
-
-### Standalone Fetch
-
-A Fetch of Objects performed independently of any Subscribe.
-
-A Standalone Fetch includes this structure:
+The format of FETCH is as follows:
 
 ~~~
-Standalone Fetch {
+FETCH Message {
+  Type (vi64) = 0x16,
+  Length (16),
+  Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
   Start Location (Location),
-  End Location (Location)
+  End Location (Location),
+  Number of Parameters (vi64),
+  Parameters (..) ...
 }
 ~~~
+{: #moq-transport-fetch-format title="MOQT FETCH Message"}
+
+* Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -3326,103 +3465,6 @@ Standalone Fetch {
 
 * End Location: The end Location, plus 1. A Location.Object value of 0
   means the entire group is requested.
-
-### Joining Fetches
-
-A Joining Fetch is associated with a Subscribe request by
-specifying the Request ID of a subscription in the `Established` or
-`Pending (subscriber)` state. Because Joining Fetch references an existing
-subscription, if that subscription has not yet been established, the Publisher
-receiving the Joining Fetch buffers the pending Joining Fetch until either
-the Subscription is established or the request times out.
-
-A publisher receiving a Joining Fetch uses properties of the associated
-subscription to determine the Track Namespace, Track Name
-and End Location such that it is contiguous with the associated
-subscription.  The subscriber can set the Start Location to an absolute
-Location or a Location relative to the Largest group.
-
-A Subscriber can use a Joining Fetch to, for example, fill a playback buffer
-with a certain number of groups prior to the live edge of a track.
-
-A Joining Fetch is only permitted when the associated subscription has
-Forward State 1; otherwise the publisher MUST respond with a
-REQUEST_ERROR with error code `INVALID_RANGE`. A publisher MUST process
-any pending REQUEST_UPDATE
-messages for the associated subscription before evaluating the current
-request. Relays with an upstream subscription in transition from Forward State 0
-to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
-the upstream subscription returns REQUEST_UPDATE_OK with the new Largest Object.
-Changing the Forward State of the associated subscription to 0 after the Joining
-Fetch has been accepted has no effect on the Joining Fetch.
-
-If no Objects have been published for the track the publisher MUST
-respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
-
-A Joining Fetch includes this structure:
-
-~~~
-Joining Fetch {
-  Joining Request ID (vi64),
-  Joining Start (vi64)
-}
-~~~
-
-* Joining Request ID: The Request ID of the subscription to be joined. If a
-  publisher receives a Joining Fetch with a Request ID that does not correspond
-  to a subscription in the same session in the `Established` or `Pending
-  (subscriber)` states, it MUST return a REQUEST_ERROR with error code
-  `INVALID_JOINING_REQUEST_ID`.
-
-* Joining Start : A relative or absolute value used to determine the Start
-  Location, described below.
-
-#### Joining Fetch Range Calculation
-
-The Joining Location value from the corresponding
-subscription is used to calculate the end of a Joining Fetch, so the
-Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
-
-The publisher receiving a Joining Fetch sets the End Location to
-{Joining Location.Group, Joining Location.Object + 1} (see {{subscriptions}}.
-
-Note: the last Object included in the Joining FETCH response is the Object
-at the Joining Location.  The `+ 1` above indicates the equivalent Standalone
-Fetch encoding.
-
-For a Relative Joining Fetch, the publisher sets the Start Location to
-{Joining Location.Group - Joining Start, 0}.
-
-For an Absolute Joining Fetch, the publisher sets the Start Location to
-{Joining Start, 0}.
-
-
-### Fetch Handling
-
-The format of FETCH is as follows:
-
-~~~
-FETCH Message {
-  Type (vi64) = 0x16,
-  Length (16),
-  Request ID (vi64),
-  Fetch Type (vi64),
-  [Standalone (Standalone Fetch),]
-  [Joining (Joining Fetch),]
-  Number of Parameters (vi64),
-  Parameters (..) ...
-}
-~~~
-{: #moq-transport-fetch-format title="MOQT FETCH Message"}
-
-* Request ID: See {{request-id}}.
-
-* Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
-  Joining or Absolute Joining.
-
-* Standalone: Standalone Fetch structure included when Fetch Type is 0x1
-
-* Joining: Joining Fetch structure included when Fetch Type is 0x2 or 0x3.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -3455,7 +3497,7 @@ The Object Forwarding Preference does not apply to fetches.
 
 Fetch specifies an inclusive range of Objects starting at Start Location and
 ending at End Location. End Location MUST specify the same or a larger Location
-than Start Location for Standalone and Absolute Joining Fetches.
+than Start Location.
 
 Objects larger than the Largest Object will not be retrieved by a FETCH.  If the
 requested End Location exceeds the Largest available Object, the actual end of
@@ -3505,8 +3547,6 @@ FETCH_OK Message {
   the requested range extends beyond published data:
    - If the requested FETCH End Location was beyond the Largest known (possibly
      final) Object, End Location is {Largest.Group, Largest.Object + 1}
-  Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
-  End Location described in {{joining-fetch-range-calculation}}.
 
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
@@ -4195,7 +4235,7 @@ as defined in {{stream-reset-codes}}.
 ### Fetch Header {#fetch-header}
 
 When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
-track requested in the Fetch message identified by `Request ID`.
+track requested in the message identified by `Request ID`.
 
 ~~~
 FETCH_HEADER {
@@ -4265,8 +4305,8 @@ the Subscriber MUST close the session with a `PROTOCOL_VIOLATION`.
 If the Group ID Delta field is present on an Object other than the first, the
 Group ID is computed from the Group ID Delta and the prior Object's Group ID.
 If the Group Order is Ascending, the Group ID is the prior Object's Group ID
-plus the Group ID Delta + 1.  If the Group Order is Descending, the Group ID is
-the prior Object's Group ID minus the (Group ID Delta + 1). If the computed
+plus the Group ID Delta + 1.  If the Group Order is Descending or FillDescending,
+the Group ID is the prior Object's Group ID minus the (Group ID Delta + 1). If the computed
 Group ID would be less than 0 or greater than 2^64-1, the Subscriber MUST
 close the Session with error 'PROTOCOL_VIOLATION'.
 
@@ -4470,9 +4510,9 @@ DEFAULT_PUBLISHER_GROUP_ORDER (Property Type 0x22) is a Track Property.
 
 It is an enum indicating the publisher's preference for prioritizing Objects
 from different groups within the
-same subscription (see {{priorities}}). The allowed values are Ascending (0x1) or
-Descending (0x2). If an endpoint receives a value outside this range, it MUST
-close the session with `PROTOCOL_VIOLATION`.
+same subscription (see {{priorities}}). The allowed values are Ascending (0x1),
+Descending (0x2), or FillDescending (0x3). If an endpoint receives a value outside
+this range, it MUST close the session with `PROTOCOL_VIOLATION`.
 
 If omitted, the publisher's preference is Ascending (0x1).
 
@@ -5109,7 +5149,6 @@ This document does not define any initial entries.
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
-| INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
 | REDIRECT                   | 0x34 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
@@ -5143,6 +5182,7 @@ This document does not define any initial entries.
 | UNKNOWN_OBJECT_STATUS | 0x6  | {{stream-reset-codes}}   |
 | EXPIRED_AUTH_TOKEN    | 0x7  | {{stream-reset-codes}}   |
 | EXCESSIVE_LOAD        | 0x9  | {{stream-reset-codes}}   |
+| CURRENT_GROUP_UNAVAILABLE | 0xA | {{stream-reset-codes}} |
 | MALFORMED_TRACK       | 0x12 | {{stream-reset-codes}}   |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
