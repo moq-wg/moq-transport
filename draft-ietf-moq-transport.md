@@ -1974,7 +1974,7 @@ to the priority (see {{priorities}}) and delivery timeout (see
 {{delivery-timeouts}}).
 
 A relay MUST NOT reorder or drop objects received on a multi-object stream when
-forwarding to subscribers, unless it has application specific information.
+forwarding to subscribers.
 
 Relays MAY aggregate authorized subscriptions for a given Track when
 multiple subscribers request the same Track. Subscription aggregation
