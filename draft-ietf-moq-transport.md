@@ -3848,7 +3848,10 @@ All of those SHOULD be cached.
 
 Any other value SHOULD be treated as a protocol error and the session SHOULD
 be closed with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-Any object with a status code other than zero MUST have an empty payload.
+An Object MUST have an empty payload unless its Object Status value is
+registered as permitting a payload in the Object Status registry
+({{iana-object-status}}). Of the values defined in this document, only Normal
+(0x0) permits a payload.
 
 #### Object Properties {#object-properties}
 
@@ -5042,6 +5045,22 @@ the length field.
   IANA.  Note that applications consuming tracks from uncoordinated sources may
   encounter different semantics for the same code points, creating potential
   collision risks.
+
+## Object Status {#iana-object-status}
+
+This document establishes a registry for Object Status values (see
+{{object-status}}). The "Payload" column indicates whether an Object with that
+status is permitted to carry a non-empty payload.
+
+| Code | Name | Payload | Specification |
+|-----:|:-----|:--------|:--------------|
+| 0x0 | Normal | Yes | {{object-status}} |
+| 0x3 | End of Group | No | {{object-status}} |
+| 0x4 | End of Track | No | {{object-status}} |
+
+New Object Status values are registered using the Specification Required
+policy ({{!RFC8126, Section 4.6}}). Each registration MUST indicate whether the
+status permits a payload.
 
 ## Session-Level Track Names {#iana-session-level-tracks}
 
