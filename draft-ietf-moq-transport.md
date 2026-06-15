@@ -967,7 +967,8 @@ extensions.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
-can be used.
+can be used. These relationships are recorded in the MOQT Extensions registry
+({{iana-extensions}}).
 
 ### Reserved Namespaces {#reserved-namespaces}
 
@@ -4864,6 +4865,20 @@ TODO: fill out currently missing registries:
 * MOQT ALPN values
 * Message types
 * Session-Level Track Names
+
+## MOQT Extensions {#iana-extensions}
+
+This document establishes a registry to track MOQT extensions and the MOQT
+versions with which each can be used (see {{extensibility}}). New versions of
+MOQT update the "Applicable Versions" of existing extensions, and new extensions
+register the versions with which they can be used.
+
+| Name | Applicable Versions | Specification |
+|:-----|:--------------------|:--------------|
+| - | - | - |
+
+New extensions are registered using the Specification Required policy
+({{!RFC8126, Section 4.6}}).
 
 ## URI Scheme Registrations
 
