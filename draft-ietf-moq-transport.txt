@@ -4244,6 +4244,10 @@ Table of Contents
 
    All of those SHOULD be cached.
 
+   There is no Object Status value indicating the end of a Subgroup.
+   The end of a Subgroup is signaled by closing its stream with a FIN
+   (see Section 11.4.3).
+
    Any other value SHOULD be treated as a protocol error and the session
    SHOULD be closed with a PROTOCOL_VIOLATION (Section 3.5).  Any object
    with a status code other than zero MUST have an empty payload.

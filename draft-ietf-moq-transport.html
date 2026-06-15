@@ -6548,9 +6548,12 @@ not exist.<a href="#section-11.2.1.1-1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-11.2.1.1-4">All of those <span class="bcp14">SHOULD</span> be cached.<a href="#section-11.2.1.1-4" class="pilcrow">¶</a></p>
-<p id="section-11.2.1.1-5">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and the session <span class="bcp14">SHOULD</span>
+<p id="section-11.2.1.1-5">There is no Object Status value indicating the end of a Subgroup. The end of a
+Subgroup is signaled by closing its stream with a FIN
+(see <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.4.3</a>).<a href="#section-11.2.1.1-5" class="pilcrow">¶</a></p>
+<p id="section-11.2.1.1-6">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and the session <span class="bcp14">SHOULD</span>
 be closed with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).
-Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-11.2.1.1-5" class="pilcrow">¶</a></p>
+Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-11.2.1.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="object-properties">
