@@ -1055,7 +1055,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 17 December 2026</td>
+<td class="center">Expires 18 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-15" class="published">15 June 2026</time>
+<time datetime="2026-06-16" class="published">16 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-17">17 December 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-18">18 December 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 17 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 18 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2193,7 +2193,10 @@ bit unsigned integers. The following table summarizes the encoding properties.<a
             </tbody>
           </table>
 <p id="section-1.4.1-8">Variable length integers do not need to be encoded using the minimum number of
-bytes; any encoding length that can represent the value is valid.<a href="#section-1.4.1-8" class="pilcrow">¶</a></p>
+bytes; any encoding length that can represent the value is valid. Note that, as
+a result, the same numeric value can be represented by more than one byte
+sequence. For example, the value 0 can be encoded as <code>0x00</code>, <code>0x8000</code>,
+<code>0xc00000</code>, or any longer form.<a href="#section-1.4.1-8" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-1.4.1-9">
             <dt id="section-1.4.1-9.1">x (vi64):</dt>
             <dd style="margin-left: 1.5em" id="section-1.4.1-9.2">
@@ -6203,7 +6206,7 @@ in the 'Track Namespace Suffix'.<a href="#section-10.16-1" class="pilcrow">¶</a
           <div class="alignLeft art-text artwork" id="section-10.16-2.1">
 <pre>
 NAMESPACE Message {
-  Type (i) = 0x8,
+  Type (vi64) = 0x8,
   Length (16),
   Track Namespace Suffix (..),
 }
@@ -6237,7 +6240,7 @@ in the 'Track Namespace Suffix'.<a href="#section-10.17-1" class="pilcrow">¶</a
           <div class="alignLeft art-text artwork" id="section-10.17-2.1">
 <pre>
 NAMESPACE_DONE Message {
-  Type (i) = 0xE,
+  Type (vi64) = 0xE,
   Length (16),
   Track Namespace Suffix (..)
 }
@@ -6618,7 +6621,7 @@ will exceed the maximum datagram size of a downstream session and be dropped.<a 
             <div class="alignLeft art-text artwork" id="section-11.3.1-2.1">
 <pre>
 OBJECT_DATAGRAM {
-  Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
+  Type (vi64) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
              0x28..0x29 / 0x2C..0x2D,
   Track Alias (vi64),
   Group ID (vi64),
@@ -6739,7 +6742,7 @@ flow control, while the sender waits for flow control to send the message.<a hre
             <div class="alignLeft art-text artwork" id="section-11.4.2-3.1">
 <pre>
 SUBGROUP_HEADER {
-  Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D /
+  Type (vi64) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D /
              0x50..0x55 / 0x58..0x5D / 0x70..0x75 / 0x78..0x7D,
   Track Alias (vi64),
   Group ID (vi64),

@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 17 December 2026                                  I. Swett, Ed.
+Expires: 18 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            15 June 2026
+                                                            16 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 December 2026.
+   This Internet-Draft will expire on 18 December 2026.
 
 Copyright Notice
 
@@ -491,7 +491,9 @@ Table of Contents
 
    Variable length integers do not need to be encoded using the minimum
    number of bytes; any encoding length that can represent the value is
-   valid.
+   valid.  Note that, as a result, the same numeric value can be
+   represented by more than one byte sequence.  For example, the value 0
+   can be encoded as 0x00, 0x8000, 0xc00000, or any longer form.
 
    x (vi64):  Indicates that x holds an integer value using the
       variable-length encoding as described above.
@@ -3958,7 +3960,7 @@ Table of Contents
    Namespace Prefix' are included in the 'Track Namespace Suffix'.
 
    NAMESPACE Message {
-     Type (i) = 0x8,
+     Type (vi64) = 0x8,
      Length (16),
      Track Namespace Suffix (..),
    }
@@ -3979,7 +3981,7 @@ Table of Contents
    Suffix'.
 
    NAMESPACE_DONE Message {
-     Type (i) = 0xE,
+     Type (vi64) = 0xE,
      Length (16),
      Track Namespace Suffix (..)
    }
@@ -4304,7 +4306,7 @@ Table of Contents
    An OBJECT_DATAGRAM carries a single object in a datagram.
 
    OBJECT_DATAGRAM {
-     Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
+     Type (vi64) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
                 0x28..0x29 / 0x2C..0x2D,
      Track Alias (vi64),
      Group ID (vi64),
@@ -4409,7 +4411,7 @@ Table of Contents
    control to send the message.
 
    SUBGROUP_HEADER {
-     Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D /
+     Type (vi64) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D /
                 0x50..0x55 / 0x58..0x5D / 0x70..0x75 / 0x78..0x7D,
      Track Alias (vi64),
      Group ID (vi64),
