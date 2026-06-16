@@ -3578,7 +3578,7 @@ in the 'Track Namespace Suffix'.
 
 ~~~
 NAMESPACE Message {
-  Type (i) = 0x8,
+  Type (vi64) = 0x8,
   Length (16),
   Track Namespace Suffix (..),
 }
