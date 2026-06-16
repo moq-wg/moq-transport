@@ -1616,7 +1616,9 @@ The syntax of these messages is described in {{message}}.
 
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS to publishers/relays it has established
-a session with.
+a session with. The Track Namespace Prefix carried in these messages is
+compared against the namespaces known to the receiver using Namespace Prefix
+Matching ({{namespace-prefix-matching}}).
 
 SUBSCRIBE_NAMESPACE requests namespace discovery: the publisher sends relevant
 NAMESPACE and NAMESPACE_DONE messages for namespaces matching the prefix,
@@ -2048,6 +2050,7 @@ SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the fields
 in the Track Namespace are matched sequentially, requiring an exact match for
 each field. If the published or subscribed Track Namespace has the same or fewer
 fields than the Track Namespace in the message, it qualifies as a match.
+{: #namespace-prefix-matching}
 
 For example:
 A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
