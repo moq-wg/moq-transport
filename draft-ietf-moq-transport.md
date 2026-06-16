@@ -785,7 +785,7 @@ See {{iana}}.
 Certain Property type ranges are reserved for application-specific
 use and will never be allocated by IANA in future MOQT specifications:
 
-* 0x38 to 0x3F (1-byte encoding): 8 code points for applications with
+* 0x78 to 0x7F (1-byte encoding): 8 code points for applications with
   tight space constraints
 * 0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including grease
   {{grease}}) for applications with moderate space constraints
@@ -4434,7 +4434,7 @@ The following Properties are defined in MOQT. Each Property
 specifies whether it can be used with Tracks, Objects, or both.
 
 Property types in ranges reserved for application-specific use
-(0x38-0x3F, 0x3800-0x3FFF) are not defined by MOQT.
+(0x78-0x7F, 0x3800-0x3FFF) are not defined by MOQT.
 See {{properties}} for usage guidance.
 
 ## SUBGROUP_DELIVERY_TIMEOUT {#subgroup-delivery-timeout-ext}
