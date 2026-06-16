@@ -2265,7 +2265,8 @@ has to understand every Message Parameter, there is no need for a mechanism to
 skip unknown parameters. Because unknown parameters cannot be skipped, the block
 is bounded by a parameter count rather than a length.
 
-The Message Parameter types defined in this version of MOQT are listed below.
+The Message Parameter types defined in this version of MOQT are defined in
+the following subsections.
 
 Senders MUST NOT repeat the same Parameter Type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
