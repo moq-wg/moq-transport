@@ -406,7 +406,7 @@ Reason Phrase {
   such as language tags, that would aid comprehension by any entity other than
   the one that created the text.
 
-## Representing Namespace and Track Names
+## Representing Namespace and Track Names {#namespace-name-format}
 
 There is often a need to render namespace tuples and track names for
 purposes such as logging, representing track filenames, or use in
@@ -3635,11 +3635,11 @@ SUBSCRIBE_NAMESPACE Message {
 
 * Track Namespace Prefix: A Track Namespace structure as described in
   {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
-  matched against track namespaces known to the publisher.  For example, if the
-  publisher is a relay that has received PUBLISH_NAMESPACE messages for
-  namespaces ("example.com", "meeting=123", "participant=100") and
-  ("example.com", "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for
-  ("example.com", "meeting=123") would match both.  If an endpoint receives a
+  matched against track namespaces known to the publisher.  For example, using
+  the serialized format from {{namespace-name-format}}, if the publisher is a
+  relay that has received PUBLISH_NAMESPACE messages for namespaces
+  `example.2ecom-123-100` and `example.2ecom-123-200`, a SUBSCRIBE_NAMESPACE for
+  `example.2ecom-123` would match both.  If an endpoint receives a
   Track Namespace Prefix consisting of greater than 32 Track Namespace
   Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
