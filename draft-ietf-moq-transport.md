@@ -1723,26 +1723,29 @@ A `priority number`is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.
 
 `Subscriber Priority` is a priority number associated with an individual
-request.  It is specified in the SUBSCRIBE or FETCH message, and can be
-updated via REQUEST_UPDATE message.  The subscriber priority of an individual
-schedulable object is the subscriber priority of the request that caused that
-object to be sent. When subscriber priority is changed, a best effort SHOULD be
+request.  It is carried in the SUBSCRIBER_PRIORITY parameter
+({{subscriber-priority}}), and can be updated.  The subscriber priority of an
+individual schedulable object is the subscriber priority of the request that
+caused that object to be sent. When subscriber priority is changed, a best
+effort SHOULD be
 made to apply the change to all objects that have not been scheduled, but it is
 implementation dependent what happens to objects that have already been
 scheduled.
 
 `Publisher Priority` is a priority number associated with an individual
-schedulable object.  A default can be specified in the parameters of PUBLISH, or
-SUBSCRIBE_OK. Publisher priority can also be specified in a subgroup header or
-datagram (see {{data-streams}}).
+schedulable object.  A default for the subscription is specified in the
+DEFAULT_PUBLISHER_PRIORITY Track Property ({{publisher-priority}}). Publisher
+priority can also be set per subgroup or datagram in the subgroup header or
+datagram (see {{data-streams}}), which overrides the default.
 
 `Group Order` is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
-communicates its group order preference in the SUBSCRIBE message; the
-publisher's preference is used if the subscriber did not express one (by
-omitting the Group Order parameter).  The group order of an existing
-subscription cannot be changed.
+communicates its group order preference in the GROUP_ORDER parameter
+({{group-order}}); the publisher's preference, carried in the
+DEFAULT_PUBLISHER_GROUP_ORDER Track Property ({{group-order-pref}}), is used if
+the subscriber did not express one (by omitting the GROUP_ORDER parameter).  The
+group order of an existing subscription cannot be changed.
 
 ## Scheduling Algorithm
 
