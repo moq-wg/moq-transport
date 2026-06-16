@@ -3599,7 +3599,7 @@ in the 'Track Namespace Suffix'.
 
 ~~~
 NAMESPACE_DONE Message {
-  Type (i) = 0xE,
+  Type (vi64) = 0xE,
   Length (16),
   Track Namespace Suffix (..)
 }
@@ -3910,7 +3910,7 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
+  Type (vi64) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
              0x28..0x29 / 0x2C..0x2D,
   Track Alias (vi64),
   Group ID (vi64),
@@ -4007,7 +4007,7 @@ flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D /
+  Type (vi64) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D /
              0x50..0x55 / 0x58..0x5D / 0x70..0x75 / 0x78..0x7D,
   Track Alias (vi64),
   Group ID (vi64),
