@@ -2118,6 +2118,8 @@ Object Properties as specified in {{properties}}.
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.
 
+Relays prioritize forwarded Objects as described in {{priorities}}.
+
 # Control Messages {#message}
 
 MOQT uses a pair of unidirectional streams to exchange control messages, as
