@@ -3744,7 +3744,9 @@ for a namespace.<a href="#section-6-2" class="pilcrow">¶</a></p>
         </h3>
 <p id="section-6.1-1">If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS to publishers/relays it has established
-a session with.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+a session with. The Track Namespace Prefix carried in these messages is
+compared against the namespaces known to the receiver using Namespace Prefix
+Matching (<a href="#namespace-prefix-matching" class="auto internal xref">Section 9.5, Paragraph 6</a>).<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.1-2">SUBSCRIBE_NAMESPACE requests namespace discovery: the publisher sends relevant
 NAMESPACE and NAMESPACE_DONE messages for namespaces matching the prefix,
 including echoing back Track Namespaces under the prefix that have been published
@@ -4228,11 +4230,13 @@ PUBLISH_NAMESPACE request.<a href="#section-9.5-4" class="pilcrow">¶</a></p>
 <p id="section-9.5-5">A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
 Track Name is matched exactly against existing upstream subscriptions.<a href="#section-9.5-5" class="pilcrow">¶</a></p>
+<div id="namespace-prefix-matching">
 <p id="section-9.5-6">Namespace Prefix Matching is further used to decide which publishers receive a
 SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the fields
 in the Track Namespace are matched sequentially, requiring an exact match for
 each field. If the published or subscribed Track Namespace has the same or fewer
 fields than the Track Namespace in the message, it qualifies as a match.<a href="#section-9.5-6" class="pilcrow">¶</a></p>
+</div>
 <p id="section-9.5-7">For example:
 A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
 that sent PUBLISH_NAMESPACE messages with namespace=(foo) or namespace=(foo,
@@ -4557,7 +4561,8 @@ Parameter <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_
 has to understand every Message Parameter, there is no need for a mechanism to
 skip unknown parameters. Because unknown parameters cannot be skipped, the block
 is bounded by a parameter count rather than a length.<a href="#section-10.2-6" class="pilcrow">¶</a></p>
-<p id="section-10.2-7">The Message Parameter types defined in this version of MOQT are listed below.<a href="#section-10.2-7" class="pilcrow">¶</a></p>
+<p id="section-10.2-7">The Message Parameter types defined in this version of MOQT are defined in
+the following subsections.<a href="#section-10.2-7" class="pilcrow">¶</a></p>
 <p id="section-10.2-8">Senders <span class="bcp14">MUST NOT</span> repeat the same Parameter Type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers <span class="bcp14">SHOULD</span> check that there are no

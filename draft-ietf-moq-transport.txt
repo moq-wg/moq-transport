@@ -1860,7 +1860,9 @@ Table of Contents
 
    If the subscriber is aware of a namespace of interest, it can send
    SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS to publishers/relays it has
-   established a session with.
+   established a session with.  The Track Namespace Prefix carried in
+   these messages is compared against the namespaces known to the
+   receiver using Namespace Prefix Matching (Section 9.5, Paragraph 6).
 
    SUBSCRIBE_NAMESPACE requests namespace discovery: the publisher sends
    relevant NAMESPACE and NAMESPACE_DONE messages for namespaces
@@ -2576,7 +2578,7 @@ Table of Contents
    is bounded by a parameter count rather than a length.
 
    The Message Parameter types defined in this version of MOQT are
-   listed below.
+   defined in the following subsections.
 
    Senders MUST NOT repeat the same Parameter Type in a message unless
    the parameter definition explicitly allows multiple instances of that
