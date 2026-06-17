@@ -777,8 +777,11 @@ the most recent set SHOULD replace any cached values, removing any unknown
 values not present in the new set.  Relays MUST NOT attempt to merge sets
 of unknown properties received in different messages.
 
-If a Relay supports a Property, it MAY be modified, added, removed, and/or
-cached, subject to the processing rules specified in the definition.
+If a Relay supports a Property, it MUST follow the processing rules in the
+Property's definition.  Unless those rules permit otherwise, a Relay MUST NOT
+modify, add, or remove the Property; it MUST forward the Property to downstream
+subscribers and MUST cache it with the Track or Object if the Track or Object is
+cached.
 
 Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
 Track Properties always appear as the final field in the messages that
