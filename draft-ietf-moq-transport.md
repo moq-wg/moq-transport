@@ -926,8 +926,21 @@ Types" registry ({{iana-fragment-types}}).
 The default operation for dereferencing a `moqt` URI is to establish a
 MOQT session to the identified server.
 
-TODO: Add URI scheme security considerations per RFC 7595 Section 3.7
-(e.g., authority in SNI, path/query exposure).
+The `moqt` URI scheme has the following security considerations:
+
+- The `authority` component is sent in the TLS SNI extension during
+  connection establishment, exposing the target server identity to
+  on-path observers. Encrypted Client Hello (ECH) {{?RFC9580}} can
+  mitigate this exposure.
+
+- Since MOQT connections terminate at each relay (unlike HTTPS, where
+  TLS extends end-to-end to the origin server), the `path-abempty` and
+  `query` components are visible to every relay in the chain.
+
+- Applications SHOULD NOT embed credentials, session tokens, or
+  privacy-sensitive identifiers in `path` or `query` components, as
+  relays MAY log these values and track scope matching could allow
+  correlation across subscribers.
 
 TODO: Add internationalization statement per RFC 7595 Section 3.6.
 
