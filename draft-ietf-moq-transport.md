@@ -911,6 +911,8 @@ that registers the fragment type.
 Fragment type identifiers are registered in the "MOQT URI Fragment
 Types" registry ({{iana-fragment-types}}).
 
+### Dereferencing a MOQT URI
+
 The default operation for dereferencing a `moqt` URI is to establish a
 MOQT session to the identified server.
 
