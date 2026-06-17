@@ -678,27 +678,24 @@ to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
-1.  An Object with a particular Subgroup ID is received, but its
-     Publisher Priority is different from that of the previous Object with the same
-     Subgroup ID.
-2. An Object is received whose Object ID is larger than the final Object in the
+1. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-3. A Subgroup is received over multiple transport streams terminated by FIN with
+2. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-4. An Object is received in a Group whose Object
+3. An Object is received in a Group whose Object
    ID is larger than the final Object in the Group.  The final Object in a Group
    is the Object with Status END_OF_GROUP, or the last Object before a FIN in a
    Subgroup which has the END_OF_GROUP bit set.  If the end of a Group is
    implicitly determined via a gap in a FETCH response, the final Object in the
    Group remains unknown.
-5. An Object is received whose Group and Object ID are larger than
+4. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
    with Status END_OF_TRACK or the last Object sent in a FETCH whose response
    indicated End of Track.
-6. The same Object is received more than once with different Payload or
+5. The same Object is received more than once with different Payload or
    other immutable properties.
-7. An Object is received with a different Forwarding Preference than previously
+6. An Object is received with a different Forwarding Preference than previously
    observed.
 
 The above list of conditions is not considered exhaustive.
@@ -1736,9 +1733,17 @@ scheduled.
 
 `Publisher Priority` is a priority number associated with an individual
 schedulable object.  A default for the subscription is specified in the
-DEFAULT_PUBLISHER_PRIORITY Track Property ({{publisher-priority}}). Publisher
+DEFAULT_PUBLISHER_PRIORITY parameter ({{publisher-priority}}). Publisher
 priority can also be set per subgroup or datagram in the subgroup header or
-datagram (see {{data-streams}}), which overrides the default.
+datagram (see {{data-streams}}), which MUST take precedence over the default.
+
+DEFAULT_PUBLISHER_PRIORITY can be updated using REQUEST_UPDATE. Changing
+the default is best-effort and not synchronized with the data plane. When
+an object omits the Publisher Priority, a subscriber resolves it using
+the default in effect when the object was received and SHOULD cache
+the resolved value, so a later change does not alter already-cached
+objects. If conflicting Publisher Priority values are observed for the
+same object, a subscriber SHOULD use the lower priority.
 
 `Group Order` is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
@@ -1916,7 +1921,7 @@ fields that can be updated are the following:
    to the constraints of the specific property.
 
 An endpoint that receives a duplicate Object with a different Forwarding
-Preference, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
+Preference, Subgroup ID, or Payload MUST treat the track as Malformed.
 
 For ranges of objects that do not exist, relays MAY change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
@@ -2500,6 +2505,17 @@ session. Lower numbers get higher priority. See {{priorities}}.
 If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
 the value 128.
 
+### DEFAULT PUBLISHER PRIORITY Parameter {#publisher-priority}
+
+The DEFAULT_PUBLISHER_PRIORITY parameter (Parameter Type 0x0E)
+is a uint8. It MAY appear in a PUBLISH, SUBSCRIBE_OK, FETCH_OK, or
+REQUEST_UPDATE message. It is the default Publisher Priority (see
+{{priorities}}) for Subgroups and Datagrams of the subscription that
+do not carry an explicit Publisher Priority. Lower numbers get higher
+priority.
+
+If omitted, the default Publisher Priority is 128.
+
 ### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8. It MAY appear in a
@@ -3068,6 +3084,8 @@ The sender of a request (SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS) can later send a REQUEST_UPDATE on the
 same bidi stream as the request to modify it.  A subscriber can also send
 REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.
+The publisher can also send REQUEST_UPDATEto modify parameters set
+using SUBSCRIBE_OK.
 
 The receiver of a REQUEST_UPDATE MUST respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful, unless it
@@ -3952,8 +3970,8 @@ which fields are present in the datagram:
 
 * The **DEFAULT_PRIORITY** bit (0x08) indicates when the Priority field is
   present. When set to 1, the Priority field is omitted and this Object inherits
-  the Publisher Priority specified in the control message that established the
-  subscription. When set to 0, the Priority field is present.
+  the subscription's current default Publisher Priority (see
+  {{publisher-priority}}). When set to 0, the Priority field is present.
 
 * The **STATUS** bit (0x20) indicates whether the datagram contains an Object
   Status or Object Payload. When set to 1, the Object Status field is present
@@ -4057,8 +4075,8 @@ in the header:
 
 * The **DEFAULT_PRIORITY** bit (0x20) indicates when the Priority field is
   present. When set to 1, the Priority field is omitted and this Subgroup
-  inherits the Publisher Priority specified in the control message that
-  established the subscription. When set to 0, the Priority field is present in
+  inherits the subscription's current default Publisher Priority (see
+  {{publisher-priority}}). When set to 0, the Priority field is present in
   the Subgroup header.
 
 * The **FIRST_OBJECT** bit (0x40) indicates that the first object in this
@@ -4466,17 +4484,6 @@ handles a downstream request that includes those Objects re-requests them.
 
 If MAX_CACHE_DURATION is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
-
-## DEFAULT PUBLISHER PRIORITY {#publisher-priority}
-
-DEFAULT PUBLISHER PRIORITY (Property Type 0x0E) is a Track Property
-that specifies the priority of a subscription relative to other subscriptions
-in the same session.  The value is from 0 to 255 and lower numbers get higher
-priority.  See {{priorities}}. Priorities above 255 are invalid. Subgroups and
-Datagrams for this subscription inherit this priority, unless they specifically
-override it.
-
-If omitted, the Default Publisher Priority is 128.
 
 ## DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
 
@@ -5000,6 +5007,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
 | 0x0A | FILL_TIMEOUT | {{fill-timeout}} |
+| 0x0E | DEFAULT_PUBLISHER_PRIORITY | {{publisher-priority}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
@@ -5017,7 +5025,6 @@ Setup Options SHOULD request a provisional registration.
 | 0x04 | MAX_CACHE_DURATION | Track | {{max-cache-duration}} |
 | 0x06 | SUBGROUP_DELIVERY_TIMEOUT | Track, Object | {{subgroup-delivery-timeout-ext}} |
 | 0x0B | IMMUTABLE_PROPERTIES | Track, Object | {{immutable-properties}} |
-| 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | {{publisher-priority}} |
 | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track | {{group-order-pref}} |
 | 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
 | 0x3C | PRIOR_GROUP_ID_GAP | Object | {{prior-group-id-gap}} |
@@ -5220,6 +5227,8 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Exclude your own tracks from SUBSCRIBE_NAMESPACE (#1596)
 * Add Session-Level Tracks reserved namespace (#1562)
 * Allow coalescing REQUEST_UPDATE processing (#1540)
+* Make Default Publisher Priority an updatable parameter; stop malforming on
+  priority change (#1270)
 * SUBSCRIBE takes precedence over SUBSCRIBE_NAMESPACE at relay (#1533)
 * Don't close the Session for unknown errors (#1561)
 * Clarify REQUEST_UPDATE failure behavior for all request types (#1539)
