@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 18 December 2026                                  I. Swett, Ed.
+Expires: 19 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            16 June 2026
+                                                            17 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 December 2026.
+   This Internet-Draft will expire on 19 December 2026.
 
 Copyright Notice
 
@@ -996,7 +996,7 @@ Table of Contents
    use and will never be allocated by IANA in future MOQT
    specifications:
 
-   *  0x38 to 0x3F (1-byte encoding): 8 code points for applications
+   *  0x78 to 0x7F (1-byte encoding): 8 code points for applications
       with tight space constraints
 
    *  0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including
@@ -4895,7 +4895,7 @@ Table of Contents
    specifies whether it can be used with Tracks, Objects, or both.
 
    Property types in ranges reserved for application-specific use
-   (0x38-0x3F, 0x3800-0x3FFF) are not defined by MOQT.  See Section 2.5
+   (0x78-0x7F, 0x3800-0x3FFF) are not defined by MOQT.  See Section 2.5
    for usage guidance.
 
 12.1.  SUBGROUP_DELIVERY_TIMEOUT
