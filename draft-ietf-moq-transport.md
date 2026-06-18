@@ -496,8 +496,7 @@ payload portion may be encrypted, in which case it is only visible to the
 Original Publisher and End Subscribers. The Original Publisher is solely
 responsible for the content of the object payload. This includes the
 underlying encoding, compression, any end-to-end encryption, or
-authentication. A relay MUST NOT combine, split, or otherwise modify object
-payloads.
+authentication.
 
 Objects within a Group are in ascending order by Object ID.
 
