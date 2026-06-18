@@ -1665,9 +1665,9 @@ publisher, it MUST send a NAMESPACE message to any subscriber that has
 sent SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
 
-A subscriber MAY receive a PUBLISH_NAMESPACE on the control stream for a
-namespace that falls within an active SUBSCRIBE_NAMESPACE prefix. This can
-occur when SUBSCRIBE_NAMESPACE or its response is in flight at the same time
+A subscriber can receive a PUBLISH_NAMESPACE on the control stream for a
+namespace that falls within an active SUBSCRIBE_NAMESPACE prefix. This
+occurs when SUBSCRIBE_NAMESPACE or its response is in flight at the same time
 as a PUBLISH_NAMESPACE, or when an original publisher sends PUBLISH_NAMESPACE
 to advertise namespaces within the prefix being discovered. Such a
 PUBLISH_NAMESPACE is valid and MAY carry an AUTHORIZATION TOKEN parameter.
