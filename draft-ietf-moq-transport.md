@@ -223,8 +223,13 @@ Congestion:
 
 Group:
 
-: A temporal sequence of objects. A group represents a join point in a
-  track. See ({{model-group}}).
+: A collection of objects within a track. A group represents a join point
+  in a track. See ({{model-group}}).
+
+Subgroup:
+
+: A sequence of one or more objects from the same group, sent on a single
+  transport stream whenever possible. See ({{model-subgroup}}).
 
 Object:
 
@@ -498,8 +503,6 @@ responsible for the content of the object payload. This includes the
 underlying encoding, compression, any end-to-end encryption, or
 authentication.
 
-Objects within a Group are in ascending order by Object ID.
-
 From the perspective of a subscriber or a cache, an Object can be in three
 possible states:
 
@@ -509,6 +512,11 @@ possible states:
    existing, but not vice versa.
 3. The state of the Object is unknown, either because it has not yet been
    received, or it has not been produced yet.
+
+A gap in the observed Object IDs does not by itself convey any information about
+the skipped Objects. Skipped Objects remain in the unknown state until they are
+received or their non-existence is signalled, for example in a FETCH stream (see
+{{fetch-header}}) or via a Prior Object ID Gap (see {{prior-object-id-gap}}).
 
 Since Objects can be delivered out of order, an endpoint can receive an Object
 after it has already recorded that the Object does not exist (e.g., via a FETCH
