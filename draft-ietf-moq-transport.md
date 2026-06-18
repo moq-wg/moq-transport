@@ -223,8 +223,13 @@ Congestion:
 
 Group:
 
-: A temporal sequence of objects. A group represents a join point in a
-  track. See ({{model-group}}).
+: A collection of objects within a track. A group represents a join point
+  in a track. See ({{model-group}}).
+
+Subgroup:
+
+: A sequence of one or more objects from the same group, sent on a single
+  transport stream whenever possible. See ({{model-subgroup}}).
 
 Object:
 
@@ -496,10 +501,7 @@ payload portion may be encrypted, in which case it is only visible to the
 Original Publisher and End Subscribers. The Original Publisher is solely
 responsible for the content of the object payload. This includes the
 underlying encoding, compression, any end-to-end encryption, or
-authentication. A relay MUST NOT combine, split, or otherwise modify object
-payloads.
-
-Objects within a Group are in ascending order by Object ID.
+authentication.
 
 From the perspective of a subscriber or a cache, an Object can be in three
 possible states:
@@ -510,6 +512,11 @@ possible states:
    existing, but not vice versa.
 3. The state of the Object is unknown, either because it has not yet been
    received, or it has not been produced yet.
+
+A gap in the observed Object IDs does not by itself convey any information about
+the skipped Objects. Skipped Objects remain in the unknown state until they are
+received or their non-existence is signalled, for example in a FETCH stream (see
+{{fetch-header}}) or via a Prior Object ID Gap (see {{prior-object-id-gap}}).
 
 Since Objects can be delivered out of order, an endpoint can receive an Object
 after it has already recorded that the Object does not exist (e.g., via a FETCH
@@ -1032,7 +1039,9 @@ close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectiona
 streams.
 
 As such, a client can initiate a MOQT session, subscribe, and
-start publishing Objects all in parallel.
+start publishing Objects all in parallel. When this is done before the
+handshake completes using 0-RTT, the security implications described in
+{{zero-rtt}} apply.
 
 Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
@@ -1052,7 +1061,7 @@ requires the extension or the endpoint knows the peer supports the
 extension. If an unsupported Message Parameter is used, the peer will be
 unable to process it and the session will be terminated. See {{message-params}}.
 
-### 0-RTT
+### 0-RTT {#zero-rtt}
 
 QUIC supports 0-RTT ({{Section 2.3 of ?RFC8446}}), but WebTransport over QUIC
 is not expected to use 0-RTT, because initializing a WebTransport session
@@ -2140,7 +2149,7 @@ formatted as follows:
 MOQT Control Message {
   Message Type (vi64),
   Message Length (16),
-  Message Payload (..),
+  Message Body (..),
 }
 ~~~
 {: #moq-transport-message-format title="MOQT Control Message"}
@@ -2205,9 +2214,9 @@ new request stream.
 
 An endpoint that receives an unknown message type MUST close the session.
 Control messages have a length to make parsing easier, but no control messages
-are intended to be ignored. The length is set to the number of bytes in Message
-Payload, which is defined by each message type.  If the length does not match
-the length of the Message Payload, the receiver MUST close the session with a
+are intended to be ignored. The length is set to the number of bytes in the
+Message Body, which is defined by each message type.  If the length does not
+match the length of the Message Body, the receiver MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
 ## Request ID {#request-id}
@@ -2960,8 +2969,9 @@ REDIRECT:
 location specified in the Redirect structure. The requester SHOULD establish a
 new session to the provided URI (if present) and retry the request using the
 Full Track Name from the Redirect (if present). This error code can appear in
-response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH_NAMESPACE and
-SUBSCRIBE_NAMESPACE. Relays are not required to follow redirects from upstream
+response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
+SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
+redirects from upstream
 and MAY forward a REDIRECT response to matching downstream requests. A relay
 MAY cache a REDIRECT response for a Full Track Name for up to Retry Interval
 milliseconds and use it to respond to subsequent matching requests without
