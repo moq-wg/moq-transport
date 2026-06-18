@@ -3767,23 +3767,27 @@ messages for tracks within matching namespaces, excluding tracks published
 by the subscriber.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 <p id="section-6.1-4">Either message with zero Track Namespace fields indicates the sender is
 interested in all namespaces or all tracks from the receiver, respectively.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
-<p id="section-6.1-5">The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
+<p id="section-6.1-5">By sending SUBSCRIBE_NAMESPACE, the subscriber indicates that it trusts the
+relay to be authoritative for namespaces matching the requested prefix.
+NAMESPACE messages received on the SUBSCRIBE_NAMESPACE response stream inherit
+this trust and do not independently carry authorization.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
+<p id="section-6.1-6">The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
 bidirectional stream and the publisher <span class="bcp14">MUST</span> send a single REQUEST_OK or
-REQUEST_ERROR as the first message on the bidirectional stream in response.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
-<p id="section-6.1-6">If a Subscription cannot be created because there are no available bidirectional streams,
+REQUEST_ERROR as the first message on the bidirectional stream in response.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
+<p id="section-6.1-7">If a Subscription cannot be created because there are no available bidirectional streams,
 the Publisher sends a PUBLISH_BLOCKED message on the SUBSCRIBE_TRACKS response
 stream to indicate the Full Track Name of the Subscription that could not be
 established. The Publisher <span class="bcp14">MUST NOT</span> send a PUBLISH for a Track after
 PUBLISH_BLOCKED has been sent.  The subscriber can instead issue a SUBSCRIBE
-to establish a subscription to that track.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
-<p id="section-6.1-7">The receiver of a REQUEST_OK or REQUEST_ERROR ought to
+to establish a subscription to that track.<a href="#section-6.1-7" class="pilcrow">¶</a></p>
+<p id="section-6.1-8">The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
-publishers to contact, if any.<a href="#section-6.1-7" class="pilcrow">¶</a></p>
-<p id="section-6.1-8">A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS can be cancelled by closing the
+publishers to contact, if any.<a href="#section-6.1-8" class="pilcrow">¶</a></p>
+<p id="section-6.1-9">A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS can be cancelled by closing the
 stream with either a FIN or RESET_STREAM. Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
 from sending further PUBLISH messages, but relays <span class="bcp14">MUST NOT</span>
 send any further PUBLISH messages to a client without knowing the client is
-interested in and authorized to receive the content.<a href="#section-6.1-8" class="pilcrow">¶</a></p>
+interested in and authorized to receive the content.<a href="#section-6.1-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="publishing-namespaces">
@@ -3800,30 +3804,37 @@ received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
 publisher, it <span class="bcp14">MUST</span> send a NAMESPACE message to any subscriber that has
 sent SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher <span class="bcp14">MAY</span> send the PUBLISH_NAMESPACE to any other subscriber.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
-<p id="section-6.2-3">An endpoint <span class="bcp14">SHOULD</span> report the reception of a REQUEST_OK or
+<p id="section-6.2-3">A subscriber can receive a PUBLISH_NAMESPACE on a request stream for a
+namespace that falls within an active SUBSCRIBE_NAMESPACE prefix. This
+occurs when SUBSCRIBE_NAMESPACE or its response is in flight at the same time
+as a PUBLISH_NAMESPACE, or when an original publisher sends PUBLISH_NAMESPACE
+to advertise namespaces within the prefix being discovered. Such a
+PUBLISH_NAMESPACE is valid and <span class="bcp14">MAY</span> carry an AUTHORIZATION TOKEN parameter.
+Its lifetime is independent of the SUBSCRIBE_NAMESPACE stream.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.2-4">An endpoint <span class="bcp14">SHOULD</span> report the reception of a REQUEST_OK or
 REQUEST_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
 namespace. A
 subscriber <span class="bcp14">MUST</span> send exactly one REQUEST_OK or REQUEST_ERROR as the first
 message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
-<span class="bcp14">SHOULD</span> close the session with a protocol error if it receives more than one.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
-<p id="section-6.2-4">A PUBLISH_NAMESPACE is withdrawn by cancelling the request
+<span class="bcp14">SHOULD</span> close the session with a protocol error if it receives more than one.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2-5">A PUBLISH_NAMESPACE is withdrawn by cancelling the request
 (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>), although it is not a protocol error for
 the subscriber to send a SUBSCRIBE or FETCH message for a track in a
-namespace after the namespace is withdrawn.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2-5">A subscriber can cancel the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>) to revoke
+namespace after the namespace is withdrawn.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.2-6">A subscriber can cancel the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>) to revoke
 acceptance of a PUBLISH_NAMESPACE. If the reason for cancellation is expiration
 of authorization credentials, the publisher can send PUBLISH_NAMESPACE again
 on a new bidi stream with refreshed authorization, or close the stream and
-discard associated state.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
-<p id="section-6.2-6">While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
+discard associated state.<a href="#section-6.2-6" class="pilcrow">¶</a></p>
+<p id="section-6.2-7">While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
 subscribers, it is not a full-fledged routing protocol and does not protect
 against loops and other phenomena. In particular, PUBLISH_NAMESPACE <span class="bcp14">SHOULD NOT</span>
-be used to find paths through richly connected networks of relays.<a href="#section-6.2-6" class="pilcrow">¶</a></p>
-<p id="section-6.2-7">A subscriber <span class="bcp14">MAY</span> send a SUBSCRIBE or FETCH for a track to any publisher. If it
+be used to find paths through richly connected networks of relays.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
+<p id="section-6.2-8">A subscriber <span class="bcp14">MAY</span> send a SUBSCRIBE or FETCH for a track to any publisher. If it
 has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
 namespace for that track, it <span class="bcp14">SHOULD</span> only request it from the senders of those
-PUBLISH_NAMESPACE messages.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
+PUBLISH_NAMESPACE messages.<a href="#section-6.2-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -5154,7 +5165,6 @@ GOAWAY Message {
   New Session URI Length (vi64),
   New Session URI (..),
   Timeout (vi64),
-  [Request ID (vi64)],
 }
 </pre>
 </div>
@@ -5184,18 +5194,6 @@ When sent on a request stream, the sender <span class="bcp14">SHOULD</span> rese
 specific timeout, but the recipient <span class="bcp14">SHOULD</span> migrate as quickly as
 possible. This is a hint; the sender of the GOAWAY <span class="bcp14">MAY</span> close the session or
 reset the request stream before the indicated timeout has elapsed.<a href="#section-10.4-8.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-10.4-8.3">
-            <p id="section-10.4-8.3.1">Request ID: Present only when sent on the control stream.  The smallest peer
-Request ID that was not or might not have been processed prior to sending the
-GOAWAY. If no requests have been processed, this is 0 (at a server) or 1 (at a
-client). If the parity of the Request ID does not match the receiver's parity,
-the endpoint <span class="bcp14">MUST</span> close the session with <code>INVALID_REQUEST_ID</code>. Requests with a
-Request ID equal to or greater than the indicated value, as well as any
-requests that arrive after the GOAWAY, <span class="bcp14">MUST</span> be rejected with REQUEST_ERROR
-using error code GOING_AWAY. Requests with a Request ID less than the indicated
-value were or might have been processed; their status can be determined from
-the response on each request stream.<a href="#section-10.4-8.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
