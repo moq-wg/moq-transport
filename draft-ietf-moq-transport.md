@@ -4175,8 +4175,7 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (vi64) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
-             0x28..0x29 / 0x2C..0x2D,
+  Type (vi64) = 0b00X0XXXX,
   Track Alias (vi64),
   Group ID (vi64),
   [Object ID (vi64),]
@@ -4188,10 +4187,24 @@ OBJECT_DATAGRAM {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
-The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or the set of
-values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
-range are valid. The four low-order bits and bit 5 of the Type field determine
-which fields are present in the datagram:
+The Type field in the OBJECT_DATAGRAM is a single-byte vi64 with the following
+bit layout:
+
+~~~
+  7   6   5   4   3   2   1   0
++---+---+---+---+---+---+---+---+
+| 0 | 0 | S | 0 | D | Z | E | P |
++---+---+---+---+---+---+---+---+
+
+P = PROPERTIES (0x01)
+E = END_OF_GROUP (0x02)
+Z = ZERO_OBJECT_ID (0x04)
+D = DEFAULT_PRIORITY (0x08)
+S = STATUS (0x20)
+~~~
+
+Not all Type values in this range are valid. The four low-order bits and bit 5
+of the Type field determine which fields are present in the datagram:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is
   present. When set to 1, the Object Properties structure defined in
@@ -4270,8 +4283,7 @@ flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (vi64) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D /
-             0x50..0x55 / 0x58..0x5D / 0x70..0x75 / 0x78..0x7D,
+  Type (vi64) = 0b0XX1XXXX,
   Track Alias (vi64),
   Group ID (vi64),
   [Subgroup ID (vi64),]
@@ -4283,11 +4295,25 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-The Type field in the SUBGROUP_HEADER takes the form 0b0XX1XXXX (or the set of
-values from 0x10 to 0x1F, 0x30 to 0x3F, 0x50 to 0x5F, 0x70 to 0x7F), where
-bit 4 is always set to 1. However, not all Type values in this range are
-valid. The four low-order bits and bits 5-6 determine which fields are present
-in the header:
+The Type field in the SUBGROUP_HEADER is a single-byte vi64 with the following
+bit layout:
+
+~~~
+  7   6   5   4   3   2   1   0
++---+---+---+---+---+---+---+---+
+| 0 | F | S | 1 | E | M1| M0| P |
++---+---+---+---+---+---+---+---+
+
+P  = PROPERTIES (0x01)
+M1:M0 = SUBGROUP_ID_MODE (0x06)
+E  = END_OF_GROUP (0x08)
+S  = DEFAULT_PRIORITY (0x20)
+F  = FIRST_OBJECT (0x40)
+~~~
+
+Bit 4 is always set to 1. Not all Type values in this range are valid. The
+four low-order bits and bits 5-6 determine which fields are present in the
+header:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is present
   in all Objects in this Subgroup. When set to 1, the Object Properties structure
