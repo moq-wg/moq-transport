@@ -1260,7 +1260,9 @@ Table of Contents
    unidirectional streams.
 
    As such, a client can initiate a MOQT session, subscribe, and start
-   publishing Objects all in parallel.
+   publishing Objects all in parallel.  When this is done before the
+   handshake completes using 0-RTT, the security implications described
+   in Section 3.3.1 apply.
 
    Unidirectional streams containing Objects or bidirectional stream(s)
    beginning with a request message could arrive prior to the control

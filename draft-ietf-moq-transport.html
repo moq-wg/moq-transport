@@ -3046,7 +3046,9 @@ begin with any other message type unless negotiated. If they do, the peer <span 
 close the Session with a <code>PROTOCOL_VIOLATION</code>. Objects are sent on unidirectional
 streams.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">As such, a client can initiate a MOQT session, subscribe, and
-start publishing Objects all in parallel.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+start publishing Objects all in parallel. When this is done before the
+handshake completes using 0-RTT, the security implications described in
+<a href="#zero-rtt" class="auto internal xref">Section 3.3.1</a> apply.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 <p id="section-3.3-4">Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
 the data <span class="bcp14">SHOULD</span> be buffered until both control streams arrive and setup is
@@ -3062,7 +3064,7 @@ be used prior to receiving the peer's SETUP message unless the application
 requires the extension or the endpoint knows the peer supports the
 extension. If an unsupported Message Parameter is used, the peer will be
 unable to process it and the session will be terminated. See <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-3.3-6" class="pilcrow">¶</a></p>
-<div id="rtt">
+<div id="zero-rtt">
 <section id="section-3.3.1">
           <h4 id="name-0-rtt">
 <a href="#section-3.3.1" class="section-number selfRef">3.3.1. </a><a href="#name-0-rtt" class="section-name selfRef">0-RTT</a>
