@@ -121,6 +121,8 @@ Table of Contents
        3.5.2.  Control Message Errors (0x30-0x3F)
        3.5.3.  Session and Setup Errors (0x40-0x4F)
        3.5.4.  Naming and Encoding Errors (0x50-0x5F)
+       3.5.5.  Other Session Termination Codes
+       3.5.6.  Reason Phrase in Session Termination
      3.6.  Migration
      3.7.  Congestion Control
        3.7.1.  Bufferbloat
@@ -1453,10 +1455,8 @@ Table of Contents
 
 3.5.1.  Data Stream Errors (0x20-0x2F)
 
-   INVALID_OBJECT_FORMAT (0x20):  An Object contained an invalid status
-      value, invalid datagram or stream header type bits, properties on
-      a non-Normal status Object, or a PROPERTIES bit set with a
-      Properties Length of zero.
+   INVALID_HEADER_TYPE (0x20):  An Object Datagram or Subgroup stream
+      header Type field contained an invalid bit combination.
 
    TRUNCATED_STREAM (0x21):  A data stream ended gracefully (FIN) in the
       middle of a serialized Object.
@@ -1464,13 +1464,24 @@ Table of Contents
    DATA_ID_OVERFLOW (0x22):  A computed Object ID or Group ID would be
       less than 0 or exceed 2^64-1.
 
-   INVALID_FETCH_OBJECT (0x23):  The first Object in a FETCH response
-      referenced fields from a prior Object, a Serialization Flags value
-      was not recognized, or a flag referenced a prior Object's Subgroup
-      ID or Priority when no prior Object exists.
+   INVALID_OBJECT_STATUS (0x23):  An Object Status value was received
+      that is not defined by this specification.
 
    STREAM_COUNT_EXCEEDED (0x24):  More data streams were opened for a
       subscription than declared in Stream Count.
+
+   INVALID_OBJECT_PROPERTIES (0x25):  An Object with a non-Normal status
+      included properties, or the PROPERTIES bit was set with a
+      Properties Length of zero.
+
+   MISSING_PRIOR_OBJECT (0x26):  A field referenced a prior Object that
+      does not exist, such as the first Object in a FETCH response using
+      a flag that references prior Object fields, or using a flag that
+      references a prior Subgroup ID or Priority after an End of Range
+      indicator with no preceding Object.
+
+   INVALID_SERIALIZATION_FLAGS (0x27):  A Serialization Flags value in a
+      FETCH response was not recognized.
 
 3.5.2.  Control Message Errors (0x30-0x3F)
 
@@ -1482,14 +1493,22 @@ Table of Contents
       had a computed Type exceeding 2^64-1, or had a value outside its
       defined allowed set.
 
-   INVALID_REQUEST_FIELD (0x32):  A control message contained an invalid
-      field value, including: an unrecognized Subscription Filter type
-      or Fetch Type, a Fetch End Location smaller than its Start
-      Location, Track Properties in a message where they must be empty,
-      or an unexpected first message on a response stream.
+   INVALID_REQUEST_TYPE (0x32):  A Subscription Filter type or Fetch
+      Type was received that is not defined by this specification.
 
    DUPLICATE_GOAWAY (0x33):  More than one GOAWAY was received on the
       control stream or on a single request stream.
+
+   INVALID_FETCH_RANGE (0x34):  The End Location in a FETCH was smaller
+      than the Start Location.
+
+   MISPLACED_TRACK_PROPERTIES (0x35):  Track Properties were present in
+      a message where they must be empty (PUBLISH_OK, REQUEST_UPDATE_OK,
+      SUBSCRIBE_NAMESPACE_OK, or PUBLISH_NAMESPACE_OK).
+
+   UNEXPECTED_RESPONSE_MESSAGE (0x36):  The first message on the
+      response half of a request stream was not REQUEST_OK or
+      REQUEST_ERROR.
 
 3.5.3.  Session and Setup Errors (0x40-0x4F)
 
@@ -1521,17 +1540,7 @@ Table of Contents
       2^64-1, including Key-Value Pair Delta Type or Group ID in a
       Subscription Filter.
 
-   When closing a session with any of the above error codes,
-   implementations SHOULD include a reason phrase (see Section 1.4.4)
-   that identifies the specific condition.  Implementations SHOULD
-   format the reason phrase as:
-
-   <section-number>: <short description>
-
-   For example, "4.2.1: Object ID overflow" or "3.3: unknown parameter
-   0x42".  The section number refers to the relevant section of this
-   specification.  Including a reason phrase is OPTIONAL; an endpoint
-   concerned about information disclosure MAY omit it.
+3.5.5.  Other Session Termination Codes
 
    INVALID_REQUEST_ID (0x4):  The endpoint received a Request ID with an
       incorrect least significant bit for the sender, or a duplicate
@@ -1587,6 +1596,20 @@ Table of Contents
 
    MALFORMED_AUTHORITY (0x1A):  The AUTHORITY value is syntactically
       invalid.
+
+3.5.6.  Reason Phrase in Session Termination
+
+   When closing a session with any error code, implementations SHOULD
+   include a reason phrase (see Section 1.4.4) that identifies the
+   specific condition.  Implementations SHOULD format the reason phrase
+   as:
+
+   <section-number>: <short description>
+
+   For example, "4.2.1: Object ID overflow" or "3.3: unknown parameter
+   0x42".  The section number refers to the relevant section of this
+   specification.  Including a reason phrase is OPTIONAL; an endpoint
+   concerned about information disclosure MAY omit it.
 
    An endpoint MAY choose to treat a subscription or request specific
    error as a session error under certain circumstances, closing the
@@ -1877,7 +1900,7 @@ Table of Contents
    with a FIELD_VALUE_OVERFLOW.
 
    An endpoint that receives a filter type other than the above MUST
-   close the session with INVALID_REQUEST_FIELD.
+   close the session with INVALID_REQUEST_TYPE.
 
    If the publisher cannot satisfy the requested Subscription Filter
    (see Section 10.2.9) or if the entire End Group has already been
@@ -3298,8 +3321,8 @@ Table of Contents
       populated in TRACK_STATUS_OK; they are empty in PUBLISH_OK,
       REQUEST_UPDATE_OK, SUBSCRIBE_NAMESPACE_OK and
       PUBLISH_NAMESPACE_OK.  If an endpoint receives Track Properties in
-      one of these messages it MUST close the session with an
-      INVALID_REQUEST_FIELD.
+      one of these messages it MUST close the session with a
+      MISPLACED_TRACK_PROPERTIES.
 
 10.6.  REQUEST_ERROR
 
@@ -3777,7 +3800,7 @@ Table of Contents
                                   Table 6
 
    An endpoint that receives a Fetch Type other than 0x1, 0x2 or 0x3
-   MUST close the session with an INVALID_REQUEST_FIELD.
+   MUST close the session with an INVALID_REQUEST_TYPE.
 
 10.12.1.  Standalone Fetch
 
@@ -3997,7 +4020,7 @@ Table of Contents
 
       If End Location is smaller than the Start Location in the
       corresponding FETCH the receiver MUST close the session with an
-      INVALID_REQUEST_FIELD.
+      INVALID_FETCH_RANGE.
 
    *  Parameters: The parameters are defined in Section 10.2.
 
@@ -4132,12 +4155,13 @@ Table of Contents
    response half of the stream.  If the subscriber receives any message
    other than a REQUEST_OK or a REQUEST_ERROR as the first message on
    the response half of the stream, then it MUST close the session with
-   an INVALID_REQUEST_FIELD.  If the SUBSCRIBE_NAMESPACE is successful,
-   the publisher will send matching NAMESPACE messages on the response
-   stream.  If it is an error, the stream will be immediately closed via
-   FIN.  When there are changes to the namespaces being published and
-   the subscriber is subscribed to them, the publisher sends the
-   corresponding NAMESPACE or NAMESPACE_DONE messages.
+   an UNEXPECTED_RESPONSE_MESSAGE.  If the SUBSCRIBE_NAMESPACE is
+   successful, the publisher will send matching NAMESPACE messages on
+   the response stream.  If it is an error, the stream will be
+   immediately closed via FIN.  When there are changes to the namespaces
+   being published and the subscriber is subscribed to them, the
+   publisher sends the corresponding NAMESPACE or NAMESPACE_DONE
+   messages.
 
    Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with
    a Track Namespace Prefix that shares a common prefix with an
@@ -4196,10 +4220,11 @@ Table of Contents
    response half of the stream.  If the subscriber receives any message
    other than a REQUEST_OK or a REQUEST_ERROR as the first message on
    the response half of the stream, then it MUST close the session with
-   an INVALID_REQUEST_FIELD.  If the SUBSCRIBE_TRACKS is successful, the
-   publisher will send PUBLISH messages on new bidirectional streams for
-   tracks within matching namespaces.  If it is an error, the stream
-   will be closed via FIN after REQUEST_ERROR is sent.
+   an UNEXPECTED_RESPONSE_MESSAGE.  If the SUBSCRIBE_TRACKS is
+   successful, the publisher will send PUBLISH messages on new
+   bidirectional streams for tracks within matching namespaces.  If it
+   is an error, the stream will be closed via FIN after REQUEST_ERROR is
+   sent.
 
    Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
    Track Namespace Prefix that shares a common prefix with an
@@ -4354,14 +4379,14 @@ Table of Contents
    (see Section 11.4.3).
 
    Any other value SHOULD be treated as a protocol error and the session
-   SHOULD be closed with an INVALID_OBJECT_FORMAT (Section 3.5).  Any
+   SHOULD be closed with an INVALID_OBJECT_STATUS (Section 3.5).  Any
    object with a status code other than zero MUST have an empty payload.
 
 11.2.1.2.  Object Properties
 
    Any Object with status Normal can have properties (Section 2.5).  If
    an endpoint receives properties on an Object with status that is not
-   Normal, it MUST close the session with an INVALID_OBJECT_FORMAT.
+   Normal, it MUST close the session with an INVALID_OBJECT_PROPERTIES.
 
    Object Properties are visible to relays and are intended to be
    relevant to MOQT Object distribution.  Any Object metadata never
@@ -4433,7 +4458,7 @@ Table of Contents
       in Section 11.2.1.2 is present.  When set to 0, the field is
       absent.  If an endpoint receives a datagram with the PROPERTIES
       bit set and an Properties Length of 0, it MUST close the session
-      with an INVALID_OBJECT_FORMAT.
+      with an INVALID_OBJECT_PROPERTIES.
 
    *  The *END_OF_GROUP* bit (0x02) indicates End of Group.  When set to
       1, this indicates that no Object with the same Group ID and an
@@ -4459,7 +4484,7 @@ Table of Contents
 
    The following Type values are invalid.  If an endpoint receives a
    datagram with any of these Type values, it MUST close the session
-   with an INVALID_OBJECT_FORMAT:
+   with an INVALID_HEADER_TYPE:
 
    *  Type values with both the STATUS bit (0x20) and END_OF_GROUP bit
       (0x02) set: 0x22, 0x23, 0x26, 0x27, 0x2A, 0x2B, 0x2E, 0x2F.  An
@@ -4470,8 +4495,8 @@ Table of Contents
 
    If an Object Datagram includes both the STATUS bit and PROPERTIES
    bit, and the Object Status is not Normal (0x0), the endpoint MUST
-   close the session with an INVALID_OBJECT_FORMAT, because only Normal
-   Objects can have Properties.
+   close the session with an INVALID_OBJECT_PROPERTIES, because only
+   Normal Objects can have Properties.
 
 11.4.  Streams
 
@@ -4573,7 +4598,7 @@ Table of Contents
 
    The following Type values are invalid.  If an endpoint receives a
    stream header with any of these Type values, it MUST close the
-   session with an INVALID_OBJECT_FORMAT:
+   session with an INVALID_HEADER_TYPE:
 
    *  Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E,
       0x1F, 0x36, 0x37, 0x3E, 0x3F, 0x56, 0x57, 0x5E, 0x5F, 0x76, 0x77,
@@ -4771,7 +4796,7 @@ Table of Contents
 
                                   Table 7
 
-   Any other value is an INVALID_FETCH_OBJECT.
+   Any other value is an INVALID_SERIALIZATION_FLAGS.
 
 11.4.4.1.  Flags
 
@@ -4828,8 +4853,8 @@ Table of Contents
    The first Object MUST include a Group ID Delta and Object ID Delta,
    and these values are the absolute Group ID and Object ID.  If the
    first Object in the FETCH response uses a flag that references fields
-   in the prior Object, the Subscriber MUST close the session with an
-   INVALID_FETCH_OBJECT.
+   in the prior Object, the Subscriber MUST close the session with a
+   MISSING_PRIOR_OBJECT.
 
    If the Group ID Delta field is present on an Object other than the
    first, the Group ID is computed from the Group ID Delta and the prior
@@ -4877,13 +4902,12 @@ Table of Contents
 
    *  Prior Subgroup ID: The Subgroup ID from the last actual Object
       before the End of Range indicator.  If there was no prior Object,
-      using a flag that references the prior Subgroup ID is an
-      INVALID_FETCH_OBJECT.
+      using a flag that references the prior Subgroup ID is a
+      MISSING_PRIOR_OBJECT.
 
    *  Prior Priority: The Priority from the last actual Object before
       the End of Range indicator.  If there was no prior Object, using a
-      flag that references the prior Priority is an
-      INVALID_FETCH_OBJECT.
+      flag that references the prior Priority is a MISSING_PRIOR_OBJECT.
 
 11.5.  Padding
 
@@ -5754,83 +5778,95 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 15.10.1.  Session Termination Error Codes
 
-     +============================+=================+===============+
-     | Name                       |       Code      | Specification |
-     +============================+=================+===============+
-     | NO_ERROR                   |       0x0       | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | INTERNAL_ERROR             |       0x1       | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | UNAUTHORIZED               |       0x2       | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | PROTOCOL_VIOLATION         |       0x3       | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | INVALID_REQUEST_ID         |       0x4       | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | DUPLICATE_TRACK_ALIAS      |       0x5       | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | KEY_VALUE_FORMATTING_ERROR |       0x6       | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | INVALID_PATH               |       0x8       | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | MALFORMED_PATH             |       0x9       | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | GOAWAY_TIMEOUT             |       0x10      | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | CONTROL_MESSAGE_TIMEOUT    |       0x11      | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | DATA_STREAM_TIMEOUT        |       0x12      | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | AUTH_TOKEN_CACHE_OVERFLOW  |       0x13      | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | DUPLICATE_AUTH_TOKEN_ALIAS |       0x14      | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | VERSION_NEGOTIATION_FAILED |       0x15      | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | MALFORMED_AUTH_TOKEN       |       0x16      | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | UNKNOWN_AUTH_TOKEN_ALIAS   |       0x17      | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | EXPIRED_AUTH_TOKEN         |       0x18      | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | INVALID_AUTHORITY          |       0x19      | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | MALFORMED_AUTHORITY        |       0x1A      | Section 3.5   |
-     +----------------------------+-----------------+---------------+
-     | INVALID_OBJECT_FORMAT      |       0x20      | Section 3.5.1 |
-     +----------------------------+-----------------+---------------+
-     | TRUNCATED_STREAM           |       0x21      | Section 3.5.1 |
-     +----------------------------+-----------------+---------------+
-     | DATA_ID_OVERFLOW           |       0x22      | Section 3.5.1 |
-     +----------------------------+-----------------+---------------+
-     | INVALID_FETCH_OBJECT       |       0x23      | Section 3.5.1 |
-     +----------------------------+-----------------+---------------+
-     | STREAM_COUNT_EXCEEDED      |       0x24      | Section 3.5.1 |
-     +----------------------------+-----------------+---------------+
-     | MALFORMED_MESSAGE          |       0x30      | Section 3.5.2 |
-     +----------------------------+-----------------+---------------+
-     | INVALID_PARAMETER          |       0x31      | Section 3.5.2 |
-     +----------------------------+-----------------+---------------+
-     | INVALID_REQUEST_FIELD      |       0x32      | Section 3.5.2 |
-     +----------------------------+-----------------+---------------+
-     | DUPLICATE_GOAWAY           |       0x33      | Section 3.5.2 |
-     +----------------------------+-----------------+---------------+
-     | INVALID_STREAM_STATE       |       0x40      | Section 3.5.3 |
-     +----------------------------+-----------------+---------------+
-     | ROLE_VIOLATION             |       0x41      | Section 3.5.3 |
-     +----------------------------+-----------------+---------------+
-     | MESSAGE_ORDERING           |       0x42      | Section 3.5.3 |
-     +----------------------------+-----------------+---------------+
-     | INVALID_TRACK_NAME         |       0x50      | Section 3.5.4 |
-     +----------------------------+-----------------+---------------+
-     | FIELD_LENGTH_EXCEEDED      |       0x51      | Section 3.5.4 |
-     +----------------------------+-----------------+---------------+
-     | FIELD_VALUE_OVERFLOW       |       0x52      | Section 3.5.4 |
-     +----------------------------+-----------------+---------------+
-     | Reserved for greasing      | 0x7f * N + 0x9D | Section 14    |
-     +----------------------------+-----------------+---------------+
+     +=============================+=================+===============+
+     | Name                        |       Code      | Specification |
+     +=============================+=================+===============+
+     | NO_ERROR                    |       0x0       | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | INTERNAL_ERROR              |       0x1       | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | UNAUTHORIZED                |       0x2       | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | PROTOCOL_VIOLATION          |       0x3       | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_REQUEST_ID          |       0x4       | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | DUPLICATE_TRACK_ALIAS       |       0x5       | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | KEY_VALUE_FORMATTING_ERROR  |       0x6       | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_PATH                |       0x8       | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | MALFORMED_PATH              |       0x9       | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | GOAWAY_TIMEOUT              |       0x10      | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | CONTROL_MESSAGE_TIMEOUT     |       0x11      | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | DATA_STREAM_TIMEOUT         |       0x12      | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | AUTH_TOKEN_CACHE_OVERFLOW   |       0x13      | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | DUPLICATE_AUTH_TOKEN_ALIAS  |       0x14      | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | VERSION_NEGOTIATION_FAILED  |       0x15      | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | MALFORMED_AUTH_TOKEN        |       0x16      | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | UNKNOWN_AUTH_TOKEN_ALIAS    |       0x17      | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | EXPIRED_AUTH_TOKEN          |       0x18      | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_AUTHORITY           |       0x19      | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | MALFORMED_AUTHORITY         |       0x1A      | Section 3.5   |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_HEADER_TYPE         |       0x20      | Section 3.5.1 |
+     +-----------------------------+-----------------+---------------+
+     | TRUNCATED_STREAM            |       0x21      | Section 3.5.1 |
+     +-----------------------------+-----------------+---------------+
+     | DATA_ID_OVERFLOW            |       0x22      | Section 3.5.1 |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_OBJECT_STATUS       |       0x23      | Section 3.5.1 |
+     +-----------------------------+-----------------+---------------+
+     | STREAM_COUNT_EXCEEDED       |       0x24      | Section 3.5.1 |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_OBJECT_PROPERTIES   |       0x25      | Section 3.5.1 |
+     +-----------------------------+-----------------+---------------+
+     | MISSING_PRIOR_OBJECT        |       0x26      | Section 3.5.1 |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_SERIALIZATION_FLAGS |       0x27      | Section 3.5.1 |
+     +-----------------------------+-----------------+---------------+
+     | MALFORMED_MESSAGE           |       0x30      | Section 3.5.2 |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_PARAMETER           |       0x31      | Section 3.5.2 |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_REQUEST_TYPE        |       0x32      | Section 3.5.2 |
+     +-----------------------------+-----------------+---------------+
+     | DUPLICATE_GOAWAY            |       0x33      | Section 3.5.2 |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_FETCH_RANGE         |       0x34      | Section 3.5.2 |
+     +-----------------------------+-----------------+---------------+
+     | MISPLACED_TRACK_PROPERTIES  |       0x35      | Section 3.5.2 |
+     +-----------------------------+-----------------+---------------+
+     | UNEXPECTED_RESPONSE_MESSAGE |       0x36      | Section 3.5.2 |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_STREAM_STATE        |       0x40      | Section 3.5.3 |
+     +-----------------------------+-----------------+---------------+
+     | ROLE_VIOLATION              |       0x41      | Section 3.5.3 |
+     +-----------------------------+-----------------+---------------+
+     | MESSAGE_ORDERING            |       0x42      | Section 3.5.3 |
+     +-----------------------------+-----------------+---------------+
+     | INVALID_TRACK_NAME          |       0x50      | Section 3.5.4 |
+     +-----------------------------+-----------------+---------------+
+     | FIELD_LENGTH_EXCEEDED       |       0x51      | Section 3.5.4 |
+     +-----------------------------+-----------------+---------------+
+     | FIELD_VALUE_OVERFLOW        |       0x52      | Section 3.5.4 |
+     +-----------------------------+-----------------+---------------+
+     | Reserved for greasing       | 0x7f * N + 0x9D | Section 14    |
+     +-----------------------------+-----------------+---------------+
 
-                                 Table 17
+                                  Table 17
 
 15.10.2.  REQUEST_ERROR Codes
 

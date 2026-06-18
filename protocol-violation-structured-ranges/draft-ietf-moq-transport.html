@@ -1331,6 +1331,12 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.5.2.4">
                     <p id="section-toc.1-1.3.2.5.2.4.1"><a href="#section-3.5.4" class="auto internal xref">3.5.4</a>.  <a href="#name-naming-and-encoding-errors-" class="internal xref">Naming and Encoding Errors (0x50-0x5F)</a></p>
 </li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.5.2.5">
+                    <p id="section-toc.1-1.3.2.5.2.5.1"><a href="#section-3.5.5" class="auto internal xref">3.5.5</a>.  <a href="#name-other-session-termination-c" class="internal xref">Other Session Termination Codes</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.5.2.6">
+                    <p id="section-toc.1-1.3.2.5.2.6.1"><a href="#section-3.5.6" class="auto internal xref">3.5.6</a>.  <a href="#name-reason-phrase-in-session-te" class="internal xref">Reason Phrase in Session Termination</a></p>
+</li>
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.6">
@@ -3308,11 +3314,10 @@ identify the category:<a href="#section-3.5-4" class="pilcrow">¶</a></p>
 <a href="#section-3.5.1" class="section-number selfRef">3.5.1. </a><a href="#name-data-stream-errors-0x20-0x2" class="section-name selfRef">Data Stream Errors (0x20-0x2F)</a>
           </h4>
 <span class="break"></span><dl class="dlParallel" id="section-3.5.1-1">
-            <dt id="section-3.5.1-1.1">INVALID_OBJECT_FORMAT (0x20):</dt>
+            <dt id="section-3.5.1-1.1">INVALID_HEADER_TYPE (0x20):</dt>
             <dd style="margin-left: 1.5em" id="section-3.5.1-1.2">
-              <p id="section-3.5.1-1.2.1">An Object contained an invalid status value, invalid datagram or stream
-header type bits, properties on a non-Normal status Object, or a PROPERTIES
-bit set with a Properties Length of zero.<a href="#section-3.5.1-1.2.1" class="pilcrow">¶</a></p>
+              <p id="section-3.5.1-1.2.1">An Object Datagram or Subgroup stream header Type field contained an
+invalid bit combination.<a href="#section-3.5.1-1.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-3.5.1-1.3">TRUNCATED_STREAM (0x21):</dt>
@@ -3325,17 +3330,35 @@ bit set with a Properties Length of zero.<a href="#section-3.5.1-1.2.1" class="p
               <p id="section-3.5.1-1.6.1">A computed Object ID or Group ID would be less than 0 or exceed 2^64-1.<a href="#section-3.5.1-1.6.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.1-1.7">INVALID_FETCH_OBJECT (0x23):</dt>
+<dt id="section-3.5.1-1.7">INVALID_OBJECT_STATUS (0x23):</dt>
             <dd style="margin-left: 1.5em" id="section-3.5.1-1.8">
-              <p id="section-3.5.1-1.8.1">The first Object in a FETCH response referenced fields from a prior Object,
-a Serialization Flags value was not recognized, or a flag referenced a prior
-Object's Subgroup ID or Priority when no prior Object exists.<a href="#section-3.5.1-1.8.1" class="pilcrow">¶</a></p>
+              <p id="section-3.5.1-1.8.1">An Object Status value was received that is not defined by this
+specification.<a href="#section-3.5.1-1.8.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-3.5.1-1.9">STREAM_COUNT_EXCEEDED (0x24):</dt>
             <dd style="margin-left: 1.5em" id="section-3.5.1-1.10">
               <p id="section-3.5.1-1.10.1">More data streams were opened for a subscription than declared in
 Stream Count.<a href="#section-3.5.1-1.10.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.5.1-1.11">INVALID_OBJECT_PROPERTIES (0x25):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.1-1.12">
+              <p id="section-3.5.1-1.12.1">An Object with a non-Normal status included properties, or the PROPERTIES
+bit was set with a Properties Length of zero.<a href="#section-3.5.1-1.12.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.5.1-1.13">MISSING_PRIOR_OBJECT (0x26):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.1-1.14">
+              <p id="section-3.5.1-1.14.1">A field referenced a prior Object that does not exist, such as the first
+Object in a FETCH response using a flag that references prior Object fields,
+or using a flag that references a prior Subgroup ID or Priority after an
+End of Range indicator with no preceding Object.<a href="#section-3.5.1-1.14.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.5.1-1.15">INVALID_SERIALIZATION_FLAGS (0x27):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.1-1.16">
+              <p id="section-3.5.1-1.16.1">A Serialization Flags value in a FETCH response was not recognized.<a href="#section-3.5.1-1.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -3360,18 +3383,34 @@ where it is not permitted, had a computed Type exceeding 2^64-1, or had
 a value outside its defined allowed set.<a href="#section-3.5.2-1.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.2-1.5">INVALID_REQUEST_FIELD (0x32):</dt>
+<dt id="section-3.5.2-1.5">INVALID_REQUEST_TYPE (0x32):</dt>
             <dd style="margin-left: 1.5em" id="section-3.5.2-1.6">
-              <p id="section-3.5.2-1.6.1">A control message contained an invalid field value, including: an
-unrecognized Subscription Filter type or Fetch Type, a Fetch End Location
-smaller than its Start Location, Track Properties in a message where they
-must be empty, or an unexpected first message on a response stream.<a href="#section-3.5.2-1.6.1" class="pilcrow">¶</a></p>
+              <p id="section-3.5.2-1.6.1">A Subscription Filter type or Fetch Type was received that is not defined
+by this specification.<a href="#section-3.5.2-1.6.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-3.5.2-1.7">DUPLICATE_GOAWAY (0x33):</dt>
             <dd style="margin-left: 1.5em" id="section-3.5.2-1.8">
               <p id="section-3.5.2-1.8.1">More than one GOAWAY was received on the control stream or on a single
 request stream.<a href="#section-3.5.2-1.8.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.5.2-1.9">INVALID_FETCH_RANGE (0x34):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.2-1.10">
+              <p id="section-3.5.2-1.10.1">The End Location in a FETCH was smaller than the Start Location.<a href="#section-3.5.2-1.10.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.5.2-1.11">MISPLACED_TRACK_PROPERTIES (0x35):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.2-1.12">
+              <p id="section-3.5.2-1.12.1">Track Properties were present in a message where they must be empty
+(PUBLISH_OK, REQUEST_UPDATE_OK, SUBSCRIBE_NAMESPACE_OK, or
+PUBLISH_NAMESPACE_OK).<a href="#section-3.5.2-1.12.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.5.2-1.13">UNEXPECTED_RESPONSE_MESSAGE (0x36):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.2-1.14">
+              <p id="section-3.5.2-1.14.1">The first message on the response half of a request stream was not
+REQUEST_OK or REQUEST_ERROR.<a href="#section-3.5.2-1.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -3433,119 +3472,133 @@ Delta Type or Group ID in a Subscription Filter.<a href="#section-3.5.4-1.6.1" c
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-3.5.4-2">When closing a session with any of the above error codes, implementations
-<span class="bcp14">SHOULD</span> include a reason phrase (see <a href="#reason-phrase" class="auto internal xref">Section 1.4.4</a>) that identifies the
-specific condition. Implementations <span class="bcp14">SHOULD</span> format the reason phrase as:<a href="#section-3.5.4-2" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.5.4-3">
-<pre>
-&lt;section-number&gt;: &lt;short description&gt;
-</pre><a href="#section-3.5.4-3" class="pilcrow">¶</a>
+</section>
 </div>
-<p id="section-3.5.4-4">For example, "4.2.1: Object ID overflow" or "3.3: unknown parameter 0x42".
-The section number refers to the relevant section of this specification.
-Including a reason phrase is <span class="bcp14">OPTIONAL</span>; an endpoint concerned about
-information disclosure <span class="bcp14">MAY</span> omit it.<a href="#section-3.5.4-4" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-3.5.4-5">
-            <dt id="section-3.5.4-5.1">INVALID_REQUEST_ID (0x4):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.2">
-              <p id="section-3.5.4-5.2.1">The endpoint received a Request ID with an incorrect least significant
-bit for the sender, or a duplicate Request ID. See <a href="#request-id" class="auto internal xref">Section 10.1</a>.<a href="#section-3.5.4-5.2.1" class="pilcrow">¶</a></p>
+<div id="other-session-termination-codes">
+<section id="section-3.5.5">
+          <h4 id="name-other-session-termination-c">
+<a href="#section-3.5.5" class="section-number selfRef">3.5.5. </a><a href="#name-other-session-termination-c" class="section-name selfRef">Other Session Termination Codes</a>
+          </h4>
+<span class="break"></span><dl class="dlParallel" id="section-3.5.5-1">
+            <dt id="section-3.5.5-1.1">INVALID_REQUEST_ID (0x4):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.2">
+              <p id="section-3.5.5-1.2.1">The endpoint received a Request ID with an incorrect least significant
+bit for the sender, or a duplicate Request ID. See <a href="#request-id" class="auto internal xref">Section 10.1</a>.<a href="#section-3.5.5-1.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.3">DUPLICATE_TRACK_ALIAS (0x5):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.4">
-              <p id="section-3.5.4-5.4.1">The endpoint attempted to use a Track Alias that was already in use.<a href="#section-3.5.4-5.4.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.3">DUPLICATE_TRACK_ALIAS (0x5):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.4">
+              <p id="section-3.5.5-1.4.1">The endpoint attempted to use a Track Alias that was already in use.<a href="#section-3.5.5-1.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.5">KEY_VALUE_FORMATTING_ERROR (0x6):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.6">
-              <p id="section-3.5.4-5.6.1">The key-value pair has a formatting error.<a href="#section-3.5.4-5.6.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.5">KEY_VALUE_FORMATTING_ERROR (0x6):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.6">
+              <p id="section-3.5.5-1.6.1">The key-value pair has a formatting error.<a href="#section-3.5.5-1.6.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.7">INVALID_PATH (0x8):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.8">
-              <p id="section-3.5.4-5.8.1">The PATH parameter was used by a server, on a WebTransport session, or the
-server does not support the path.<a href="#section-3.5.4-5.8.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.7">INVALID_PATH (0x8):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.8">
+              <p id="section-3.5.5-1.8.1">The PATH parameter was used by a server, on a WebTransport session, or the
+server does not support the path.<a href="#section-3.5.5-1.8.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.9">MALFORMED_PATH (0x9):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.10">
-              <p id="section-3.5.4-5.10.1">The PATH parameter does not conform to the rules in <a href="#path" class="auto internal xref">Section 10.3.1.2</a>.<a href="#section-3.5.4-5.10.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.9">MALFORMED_PATH (0x9):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.10">
+              <p id="section-3.5.5-1.10.1">The PATH parameter does not conform to the rules in <a href="#path" class="auto internal xref">Section 10.3.1.2</a>.<a href="#section-3.5.5-1.10.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.11">GOAWAY_TIMEOUT (0x10):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.12">
-              <p id="section-3.5.4-5.12.1">The session was closed because the peer took too long to close the session
+<dt id="section-3.5.5-1.11">GOAWAY_TIMEOUT (0x10):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.12">
+              <p id="section-3.5.5-1.12.1">The session was closed because the peer took too long to close the session
 in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 10.4</a>) message. See session migration
-(<a href="#session-migration" class="auto internal xref">Section 3.6</a>).<a href="#section-3.5.4-5.12.1" class="pilcrow">¶</a></p>
+(<a href="#session-migration" class="auto internal xref">Section 3.6</a>).<a href="#section-3.5.5-1.12.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.13">CONTROL_MESSAGE_TIMEOUT (0x11):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.14">
-              <p id="section-3.5.4-5.14.1">The session was closed because the peer took too long to respond to a
-control message.<a href="#section-3.5.4-5.14.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.13">CONTROL_MESSAGE_TIMEOUT (0x11):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.14">
+              <p id="section-3.5.5-1.14.1">The session was closed because the peer took too long to respond to a
+control message.<a href="#section-3.5.5-1.14.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.15">DATA_STREAM_TIMEOUT (0x12):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.16">
-              <p id="section-3.5.4-5.16.1">The session was closed because the peer took too long to send data expected
+<dt id="section-3.5.5-1.15">DATA_STREAM_TIMEOUT (0x12):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.16">
+              <p id="section-3.5.5-1.16.1">The session was closed because the peer took too long to send data expected
 on an open Data Stream (see <a href="#data-streams" class="auto internal xref">Section 11</a>). This includes fields of a
 stream header or an object header within a data stream. If an endpoint
 times out waiting for a new object header on an open subgroup stream, it
-<span class="bcp14">MAY</span> send a STOP_SENDING on that stream or terminate the subscription.<a href="#section-3.5.4-5.16.1" class="pilcrow">¶</a></p>
+<span class="bcp14">MAY</span> send a STOP_SENDING on that stream or terminate the subscription.<a href="#section-3.5.5-1.16.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.17">AUTH_TOKEN_CACHE_OVERFLOW (0x13):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.18">
-              <p id="section-3.5.4-5.18.1">The Session limit <a href="#max-auth-token-cache-size" class="auto internal xref">Section 10.3.1.3</a> of the size of all
-registered Authorization tokens has been exceeded.<a href="#section-3.5.4-5.18.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.17">AUTH_TOKEN_CACHE_OVERFLOW (0x13):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.18">
+              <p id="section-3.5.5-1.18.1">The Session limit <a href="#max-auth-token-cache-size" class="auto internal xref">Section 10.3.1.3</a> of the size of all
+registered Authorization tokens has been exceeded.<a href="#section-3.5.5-1.18.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.19">DUPLICATE_AUTH_TOKEN_ALIAS (0x14):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.20">
-              <p id="section-3.5.4-5.20.1">Authorization Token attempted to register an Alias that was in use (see
-<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5.4-5.20.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.19">DUPLICATE_AUTH_TOKEN_ALIAS (0x14):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.20">
+              <p id="section-3.5.5-1.20.1">Authorization Token attempted to register an Alias that was in use (see
+<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5.5-1.20.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.21">VERSION_NEGOTIATION_FAILED (0x15):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.22">
-              <p id="section-3.5.4-5.22.1">The client didn't offer a version supported by the server.<a href="#section-3.5.4-5.22.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.21">VERSION_NEGOTIATION_FAILED (0x15):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.22">
+              <p id="section-3.5.5-1.22.1">The client didn't offer a version supported by the server.<a href="#section-3.5.5-1.22.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.23">MALFORMED_AUTH_TOKEN (0x16):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.24">
-              <p id="section-3.5.4-5.24.1">Invalid Auth Token serialization during registration (see
-<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5.4-5.24.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.23">MALFORMED_AUTH_TOKEN (0x16):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.24">
+              <p id="section-3.5.5-1.24.1">Invalid Auth Token serialization during registration (see
+<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5.5-1.24.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.25">UNKNOWN_AUTH_TOKEN_ALIAS (0x17):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.26">
-              <p id="section-3.5.4-5.26.1">No registered token found for the provided Alias (see
-<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5.4-5.26.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.25">UNKNOWN_AUTH_TOKEN_ALIAS (0x17):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.26">
+              <p id="section-3.5.5-1.26.1">No registered token found for the provided Alias (see
+<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5.5-1.26.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.27">EXPIRED_AUTH_TOKEN (0x18):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.28">
-              <p id="section-3.5.4-5.28.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5.4-5.28.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.27">EXPIRED_AUTH_TOKEN (0x18):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.28">
+              <p id="section-3.5.5-1.28.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5.5-1.28.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.29">INVALID_AUTHORITY (0x19):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.30">
-              <p id="section-3.5.4-5.30.1">The specified AUTHORITY does not correspond to this server or cannot be
-used in this context.<a href="#section-3.5.4-5.30.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.29">INVALID_AUTHORITY (0x19):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.30">
+              <p id="section-3.5.5-1.30.1">The specified AUTHORITY does not correspond to this server or cannot be
+used in this context.<a href="#section-3.5.5-1.30.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.5.4-5.31">MALFORMED_AUTHORITY (0x1A):</dt>
-            <dd style="margin-left: 1.5em" id="section-3.5.4-5.32">
-              <p id="section-3.5.4-5.32.1">The AUTHORITY value is syntactically invalid.<a href="#section-3.5.4-5.32.1" class="pilcrow">¶</a></p>
+<dt id="section-3.5.5-1.31">MALFORMED_AUTHORITY (0x1A):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.5.5-1.32">
+              <p id="section-3.5.5-1.32.1">The AUTHORITY value is syntactically invalid.<a href="#section-3.5.5-1.32.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-3.5.4-6">An endpoint <span class="bcp14">MAY</span> choose to treat a subscription or request specific error as a
+</section>
+</div>
+<div id="reason-phrase-in-session-termination">
+<section id="section-3.5.6">
+          <h4 id="name-reason-phrase-in-session-te">
+<a href="#section-3.5.6" class="section-number selfRef">3.5.6. </a><a href="#name-reason-phrase-in-session-te" class="section-name selfRef">Reason Phrase in Session Termination</a>
+          </h4>
+<p id="section-3.5.6-1">When closing a session with any error code, implementations <span class="bcp14">SHOULD</span> include a
+reason phrase (see <a href="#reason-phrase" class="auto internal xref">Section 1.4.4</a>) that identifies the specific condition.
+Implementations <span class="bcp14">SHOULD</span> format the reason phrase as:<a href="#section-3.5.6-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.5.6-2">
+<pre>
+&lt;section-number&gt;: &lt;short description&gt;
+</pre><a href="#section-3.5.6-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.5.6-3">For example, "4.2.1: Object ID overflow" or "3.3: unknown parameter 0x42".
+The section number refers to the relevant section of this specification.
+Including a reason phrase is <span class="bcp14">OPTIONAL</span>; an endpoint concerned about
+information disclosure <span class="bcp14">MAY</span> omit it.<a href="#section-3.5.6-3" class="pilcrow">¶</a></p>
+<p id="section-3.5.6-4">An endpoint <span class="bcp14">MAY</span> choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
 response to a condition with a single subscription or message. Implementations
 need to consider the impact on other outstanding subscriptions before making
-this choice.<a href="#section-3.5.4-6" class="pilcrow">¶</a></p>
+this choice.<a href="#section-3.5.6-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3832,7 +3885,7 @@ delivered will be the Group ID in <code>Start Location</code> plus the <code>End
 If the resulting Group ID would be greater than 2^64 - 1, the endpoint <span class="bcp14">MUST</span>
 close the session with a <code>FIELD_VALUE_OVERFLOW</code>.<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-11">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> close the
-session with <code>INVALID_REQUEST_FIELD</code>.<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
+session with <code>INVALID_REQUEST_TYPE</code>.<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-12">If the publisher cannot satisfy the requested Subscription Filter (see
 <a href="#subscription-filter" class="auto internal xref">Section 10.2.9</a>) or if the entire End Group has already been published
 it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR with code <code>INVALID_RANGE</code>.  A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range.<a href="#section-5.1.2-12" class="pilcrow">¶</a></p>
@@ -5403,7 +5456,7 @@ after parsing all previous fields. Track Properties are populated in
 TRACK_STATUS_OK; they are empty in PUBLISH_OK, REQUEST_UPDATE_OK,
 SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
 receives Track Properties in one of these messages it <span class="bcp14">MUST</span> close the
-session with an <code>INVALID_REQUEST_FIELD</code>.<a href="#section-10.5-4.2.1" class="pilcrow">¶</a></p>
+session with a <code>MISPLACED_TRACK_PROPERTIES</code>.<a href="#section-10.5-4.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -6049,7 +6102,7 @@ publisher to request a range of already published objects within a track.<a href
           </tbody>
         </table>
 <p id="section-10.12-4">An endpoint that receives a Fetch Type other than 0x1, 0x2 or 0x3 <span class="bcp14">MUST</span> close
-the session with an <code>INVALID_REQUEST_FIELD</code>.<a href="#section-10.12-4" class="pilcrow">¶</a></p>
+the session with an <code>INVALID_REQUEST_TYPE</code>.<a href="#section-10.12-4" class="pilcrow">¶</a></p>
 <div id="standalone-fetch">
 <section id="section-10.12.1">
           <h4 id="name-standalone-fetch">
@@ -6296,7 +6349,7 @@ End Location described in <a href="#joining-fetch-range-calculation" class="auto
             </ul>
 <p id="section-10.13-3.2.3">
 If End Location is smaller than the Start Location in the corresponding FETCH
-the receiver <span class="bcp14">MUST</span> close the session with an <code>INVALID_REQUEST_FIELD</code>.<a href="#section-10.13-3.2.3" class="pilcrow">¶</a></p>
+the receiver <span class="bcp14">MUST</span> close the session with an <code>INVALID_FETCH_RANGE</code>.<a href="#section-10.13-3.2.3" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.13-3.3">
             <p id="section-10.13-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.13-3.3.1" class="pilcrow">¶</a></p>
@@ -6489,7 +6542,7 @@ Fields, it <span class="bcp14">MUST</span> close the session with an <code>INVAL
 <p id="section-10.18-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream. If the subscriber receives any message other than a REQUEST_OK or a
 REQUEST_ERROR as the first message on the response half of the stream, then it <span class="bcp14">MUST</span>
-close the session with an <code>INVALID_REQUEST_FIELD</code>. If the SUBSCRIBE_NAMESPACE is
+close the session with an <code>UNEXPECTED_RESPONSE_MESSAGE</code>. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
 stream. If it is an error, the stream will be immediately closed via FIN. When
 there are changes to the namespaces being published and the subscriber is
@@ -6558,7 +6611,7 @@ Namespace Fields, it <span class="bcp14">MUST</span> close the session with an <
 <p id="section-10.19-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream. If the subscriber receives any message other than a REQUEST_OK or a
 REQUEST_ERROR as the first message on the response half of the stream, then it <span class="bcp14">MUST</span>
-close the session with an <code>INVALID_REQUEST_FIELD</code>. If the SUBSCRIBE_TRACKS is
+close the session with an <code>UNEXPECTED_RESPONSE_MESSAGE</code>. If the SUBSCRIBE_TRACKS is
 successful, the publisher will send PUBLISH messages on new bidirectional streams
 for tracks within matching namespaces. If it is an error, the stream will be
 closed via FIN after REQUEST_ERROR is sent.<a href="#section-10.19-4" class="pilcrow">¶</a></p>
@@ -6737,7 +6790,7 @@ not exist.<a href="#section-11.2.1.1-1" class="pilcrow">¶</a></p>
 Subgroup is signaled by closing its stream with a FIN
 (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.4.3</a>).<a href="#section-11.2.1.1-5" class="pilcrow">¶</a></p>
 <p id="section-11.2.1.1-6">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and the session <span class="bcp14">SHOULD</span>
-be closed with an <code>INVALID_OBJECT_FORMAT</code> (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).
+be closed with an <code>INVALID_OBJECT_STATUS</code> (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).
 Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-11.2.1.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -6748,7 +6801,7 @@ Any object with a status code other than zero <span class="bcp14">MUST</span> ha
             </h5>
 <p id="section-11.2.1.2-1">Any Object with status Normal can have properties (<a href="#properties" class="auto internal xref">Section 2.5</a>).
 If an endpoint receives properties on an Object with status that is
-not Normal, it <span class="bcp14">MUST</span> close the session with an <code>INVALID_OBJECT_FORMAT</code>.<a href="#section-11.2.1.2-1" class="pilcrow">¶</a></p>
+not Normal, it <span class="bcp14">MUST</span> close the session with an <code>INVALID_OBJECT_PROPERTIES</code>.<a href="#section-11.2.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-11.2.1.2-2">Object Properties are visible to relays and are intended to be relevant
 to MOQT Object distribution. Any Object metadata never intended to be accessed
 by the transport or Relays <span class="bcp14">SHOULD</span> be serialized as part of the Object payload
@@ -6830,7 +6883,7 @@ present. When set to 1, the Object Properties structure defined in
 <a href="#object-properties" class="auto internal xref">Section 11.2.1.2</a> is present. When set to 0, the field is absent.
 If an endpoint receives a datagram with the PROPERTIES bit set and an
 Properties Length of 0, it <span class="bcp14">MUST</span> close the session with an
-<code>INVALID_OBJECT_FORMAT</code>.<a href="#section-11.3.1-4.1.1" class="pilcrow">¶</a></p>
+<code>INVALID_OBJECT_PROPERTIES</code>.<a href="#section-11.3.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-11.3.1-4.2">
               <p id="section-11.3.1-4.2.1">The <strong>END_OF_GROUP</strong> bit (0x02) indicates End of Group. When set to 1, this
@@ -6858,7 +6911,7 @@ Object header contains the payload.<a href="#section-11.3.1-4.5.1" class="pilcro
 </li>
           </ul>
 <p id="section-11.3.1-5">The following Type values are invalid. If an endpoint receives a datagram with
-any of these Type values, it <span class="bcp14">MUST</span> close the session with an <code>INVALID_OBJECT_FORMAT</code>:<a href="#section-11.3.1-5" class="pilcrow">¶</a></p>
+any of these Type values, it <span class="bcp14">MUST</span> close the session with an <code>INVALID_HEADER_TYPE</code>:<a href="#section-11.3.1-5" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11.3.1-6.1">
               <p id="section-11.3.1-6.1.1">Type values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set: 0x22,
@@ -6872,7 +6925,7 @@ ranges 0x00..0x0F and 0x20..0x2F).<a href="#section-11.3.1-6.2.1" class="pilcrow
           </ul>
 <p id="section-11.3.1-7">If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
 Object Status is not Normal (0x0), the endpoint <span class="bcp14">MUST</span> close the session with an
-<code>INVALID_OBJECT_FORMAT</code>, because only Normal Objects can have Properties.<a href="#section-11.3.1-7" class="pilcrow">¶</a></p>
+<code>INVALID_OBJECT_PROPERTIES</code>, because only Normal Objects can have Properties.<a href="#section-11.3.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -6993,7 +7046,7 @@ subgroup stream is the first object published in the subgroup by the original pu
           </ul>
 <p id="section-11.4.2-7">The following Type values are invalid. If an endpoint receives a stream header
 with any of these Type values, it <span class="bcp14">MUST</span> close the session with an
-<code>INVALID_OBJECT_FORMAT</code>:<a href="#section-11.4.2-7" class="pilcrow">¶</a></p>
+<code>INVALID_HEADER_TYPE</code>:<a href="#section-11.4.2-7" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11.4.2-8.1">
               <p id="section-11.4.2-8.1.1">Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36,
@@ -7212,7 +7265,7 @@ below.  The following additional values are defined:<a href="#section-11.4.4-5" 
               </tr>
             </tbody>
           </table>
-<p id="section-11.4.4-7">Any other value is an <code>INVALID_FETCH_OBJECT</code>.<a href="#section-11.4.4-7" class="pilcrow">¶</a></p>
+<p id="section-11.4.4-7">Any other value is an <code>INVALID_SERIALIZATION_FLAGS</code>.<a href="#section-11.4.4-7" class="pilcrow">¶</a></p>
 <div id="flags">
 <section id="section-11.4.4.1">
             <h5 id="name-flags">
@@ -7291,7 +7344,7 @@ the corresponding condition is true.<a href="#section-11.4.4.1-3" class="pilcrow
 <p id="section-11.4.4.1-5">The first Object <span class="bcp14">MUST</span> include a Group ID Delta and Object ID Delta, and
 these values are the absolute Group ID and Object ID. If the first Object in
 the FETCH response uses a flag that references fields in the prior Object,
-the Subscriber <span class="bcp14">MUST</span> close the session with an <code>INVALID_FETCH_OBJECT</code>.<a href="#section-11.4.4.1-5" class="pilcrow">¶</a></p>
+the Subscriber <span class="bcp14">MUST</span> close the session with a <code>MISSING_PRIOR_OBJECT</code>.<a href="#section-11.4.4.1-5" class="pilcrow">¶</a></p>
 <p id="section-11.4.4.1-6">If the Group ID Delta field is present on an Object other than the first, the
 Group ID is computed from the Group ID Delta and the prior Object's Group ID.
 If the Group Order is Ascending, the Group ID is the prior Object's Group ID
@@ -7333,12 +7386,12 @@ the "prior Object", the prior Object fields are determined as follows:<a href="#
               <li class="normal" id="section-11.4.4.2-3.2">
                 <p id="section-11.4.4.2-3.2.1">Prior Subgroup ID: The Subgroup ID from the last actual Object before the
 End of Range indicator. If there was no prior Object, using a flag that
-references the prior Subgroup ID is an <code>INVALID_FETCH_OBJECT</code>.<a href="#section-11.4.4.2-3.2.1" class="pilcrow">¶</a></p>
+references the prior Subgroup ID is a <code>MISSING_PRIOR_OBJECT</code>.<a href="#section-11.4.4.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-11.4.4.2-3.3">
                 <p id="section-11.4.4.2-3.3.1">Prior Priority: The Priority from the last actual Object before the End of
 Range indicator. If there was no prior Object, using a flag that references
-the prior Priority is an <code>INVALID_FETCH_OBJECT</code>.<a href="#section-11.4.4.2-3.3.1" class="pilcrow">¶</a></p>
+the prior Priority is a <code>MISSING_PRIOR_OBJECT</code>.<a href="#section-11.4.4.2-3.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </section>
@@ -8762,7 +8815,7 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 </td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">INVALID_OBJECT_FORMAT</td>
+                <td class="text-left" rowspan="1" colspan="1">INVALID_HEADER_TYPE</td>
                 <td class="text-center" rowspan="1" colspan="1">0x20</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#data-stream-errors" class="auto internal xref">Section 3.5.1</a>
@@ -8783,7 +8836,7 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 </td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">INVALID_FETCH_OBJECT</td>
+                <td class="text-left" rowspan="1" colspan="1">INVALID_OBJECT_STATUS</td>
                 <td class="text-center" rowspan="1" colspan="1">0x23</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#data-stream-errors" class="auto internal xref">Section 3.5.1</a>
@@ -8792,6 +8845,27 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">STREAM_COUNT_EXCEEDED</td>
                 <td class="text-center" rowspan="1" colspan="1">0x24</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#data-stream-errors" class="auto internal xref">Section 3.5.1</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">INVALID_OBJECT_PROPERTIES</td>
+                <td class="text-center" rowspan="1" colspan="1">0x25</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#data-stream-errors" class="auto internal xref">Section 3.5.1</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">MISSING_PRIOR_OBJECT</td>
+                <td class="text-center" rowspan="1" colspan="1">0x26</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#data-stream-errors" class="auto internal xref">Section 3.5.1</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">INVALID_SERIALIZATION_FLAGS</td>
+                <td class="text-center" rowspan="1" colspan="1">0x27</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#data-stream-errors" class="auto internal xref">Section 3.5.1</a>
 </td>
@@ -8811,7 +8885,7 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 </td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">INVALID_REQUEST_FIELD</td>
+                <td class="text-left" rowspan="1" colspan="1">INVALID_REQUEST_TYPE</td>
                 <td class="text-center" rowspan="1" colspan="1">0x32</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#control-message-errors" class="auto internal xref">Section 3.5.2</a>
@@ -8820,6 +8894,27 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">DUPLICATE_GOAWAY</td>
                 <td class="text-center" rowspan="1" colspan="1">0x33</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#control-message-errors" class="auto internal xref">Section 3.5.2</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">INVALID_FETCH_RANGE</td>
+                <td class="text-center" rowspan="1" colspan="1">0x34</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#control-message-errors" class="auto internal xref">Section 3.5.2</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">MISPLACED_TRACK_PROPERTIES</td>
+                <td class="text-center" rowspan="1" colspan="1">0x35</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#control-message-errors" class="auto internal xref">Section 3.5.2</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">UNEXPECTED_RESPONSE_MESSAGE</td>
+                <td class="text-center" rowspan="1" colspan="1">0x36</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#control-message-errors" class="auto internal xref">Section 3.5.2</a>
 </td>
