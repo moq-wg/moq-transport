@@ -407,9 +407,10 @@ Reason Phrase {
   close the session with a `PROTOCOL_VIOLATION`
 
 * Reason Phrase Value: Additional diagnostic information about the error condition.
-  The reason phrase value is encoded as UTF-8 string and does not carry information,
-  such as language tags, that would aid comprehension by any entity other than
-  the one that created the text.
+  The reason phrase value contains only printable ASCII characters, in the range
+  0x20 to 0x7E inclusive, and does not carry information, such as language tags,
+  that would aid comprehension by any entity other than the one that created the
+  text.
 
 ## Representing Namespace and Track Names {#namespace-name-format}
 
@@ -674,9 +675,10 @@ In this specification, both the Track Namespace Fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace Fields or Track Names is done by
 exact comparison of the bytes. Specifications that use MOQT may constrain the
-information in these fields, for example by restricting them to UTF-8. Any such
-specification needs to specify the canonicalization into the bytes in the Track
-Namespace Fields or Track Name such that exact comparison works.
+information in these fields, for example by restricting them to a particular
+character encoding. Any such specification needs to specify the canonicalization
+into the bytes in the Track Namespace Fields or Track Name such that exact
+comparison works.
 
 ### Malformed Tracks
 
@@ -2746,10 +2748,10 @@ peer's MAX_AUTH_TOKEN_CACHE_SIZE option in SETUP (or the default value of 0).
 #### MOQT IMPLEMENTATION {#moqt-implementation}
 
 The MOQT_IMPLEMENTATION option (Option Type 0x07) identifies the name and
-version of the sender's MOQT implementation.  This SHOULD be a UTF-8 encoded
-string {{!RFC3629}}, though the message does not carry information, such as
-language tags, that would aid comprehension by any entity other than the one
-that created the text.
+version of the sender's MOQT implementation.  This value contains only printable
+ASCII characters, in the range 0x20 to 0x7E inclusive, and does not carry
+information, such as language tags, that would aid comprehension by any entity
+other than the one that created the text.
 
 An endpoint SHOULD send a MOQT_IMPLEMENTATION option unless specifically
 configured not to do so. This option helps identify the scope of interoperability
