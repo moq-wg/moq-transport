@@ -6459,15 +6459,9 @@ Tracks simultaneously in the same session. If a subscriber receives a
 PUBLISH or SUBSCRIBE_OK that uses the same Track Alias as a different Track
 with an <code>Established</code> subscription, it <span class="bcp14">MUST</span> close the session with error
 <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-11.1-2" class="pilcrow">¶</a></p>
-<p id="section-11.1-3">When there are multiple subscriptions to the same Track, the publisher <span class="bcp14">MAY</span>
-use the same Track Alias or different Track Aliases for each subscription.
-Using the same Track Alias is more efficient on the wire but prevents the
-subscriber from associating Objects with a specific subscription. Using
-different Track Aliases allows the subscriber to identify which subscription
-each Object belongs to.<a href="#section-11.1-3" class="pilcrow">¶</a></p>
-<p id="section-11.1-4">Objects can arrive after a subscription has been cancelled.  Subscribers <span class="bcp14">SHOULD</span>
+<p id="section-11.1-3">Objects can arrive after a subscription has been cancelled.  Subscribers <span class="bcp14">SHOULD</span>
 retain sufficient state to quickly discard these unwanted Objects, rather than
-treating them as belonging to an unknown Track Alias.<a href="#section-11.1-4" class="pilcrow">¶</a></p>
+treating them as belonging to an unknown Track Alias.<a href="#section-11.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-object">
