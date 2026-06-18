@@ -393,8 +393,12 @@ Table of Contents
    Congestion:  Packet loss and queuing caused by degraded or overloaded
       networks.
 
-   Group:  A temporal sequence of objects.  A group represents a join
-      point in a track.  See (Section 2.3).
+   Group:  A collection of objects within a track.  A group represents a
+      join point in a track.  See (Section 2.3).
+
+   Subgroup:  A sequence of one or more objects from the same group,
+      sent on a single transport stream whenever possible.  See
+      (Section 2.2).
 
    Object:  An object is an addressable unit whose payload is a sequence
       of bytes.  Objects form the base element in the MOQT data model.
@@ -681,8 +685,6 @@ Table of Contents
    object payload.  This includes the underlying encoding, compression,
    any end-to-end encryption, or authentication.
 
-   Objects within a Group are in ascending order by Object ID.
-
    From the perspective of a subscriber or a cache, an Object can be in
    three possible states:
 
@@ -694,6 +696,12 @@ Table of Contents
 
    3.  The state of the Object is unknown, either because it has not yet
        been received, or it has not been produced yet.
+
+   A gap in the observed Object IDs does not by itself convey any
+   information about the skipped Objects.  Skipped Objects remain in the
+   unknown state until they are received or their non-existence is
+   signalled, for example in a FETCH stream (see Section 11.4.4) or via
+   a Prior Object ID Gap (see Section 12.9).
 
    Since Objects can be delivered out of order, an endpoint can receive
    an Object after it has already recorded that the Object does not
