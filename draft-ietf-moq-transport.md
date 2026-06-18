@@ -1643,6 +1643,11 @@ by the subscriber.
 Either message with zero Track Namespace fields indicates the sender is
 interested in all namespaces or all tracks from the receiver, respectively.
 
+By sending SUBSCRIBE_NAMESPACE, the subscriber indicates that it trusts the
+relay to be authoritative for namespaces matching the requested prefix.
+NAMESPACE messages received on the SUBSCRIBE_NAMESPACE response stream inherit
+this trust and do not independently carry authorization.
+
 The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
 bidirectional stream and the publisher MUST send a single REQUEST_OK or
 REQUEST_ERROR as the first message on the bidirectional stream in response.
@@ -1676,6 +1681,14 @@ received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
 publisher, it MUST send a NAMESPACE message to any subscriber that has
 sent SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
+
+A subscriber can receive a PUBLISH_NAMESPACE on a request stream for a
+namespace that falls within an active SUBSCRIBE_NAMESPACE prefix. This
+occurs when SUBSCRIBE_NAMESPACE or its response is in flight at the same time
+as a PUBLISH_NAMESPACE, or when an original publisher sends PUBLISH_NAMESPACE
+to advertise namespaces within the prefix being discovered. Such a
+PUBLISH_NAMESPACE is valid and MAY carry an AUTHORIZATION TOKEN parameter.
+Its lifetime is independent of the SUBSCRIBE_NAMESPACE stream.
 
 An endpoint SHOULD report the reception of a REQUEST_OK or
 REQUEST_ERROR to the application to inform the search for additional
@@ -2787,7 +2800,6 @@ GOAWAY Message {
   New Session URI Length (vi64),
   New Session URI (..),
   Timeout (vi64),
-  [Request ID (vi64)],
 }
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
@@ -2811,17 +2823,6 @@ GOAWAY Message {
   specific timeout, but the recipient SHOULD migrate as quickly as
   possible. This is a hint; the sender of the GOAWAY MAY close the session or
   reset the request stream before the indicated timeout has elapsed.
-
-* Request ID: Present only when sent on the control stream.  The smallest peer
-  Request ID that was not or might not have been processed prior to sending the
-  GOAWAY. If no requests have been processed, this is 0 (at a server) or 1 (at a
-  client). If the parity of the Request ID does not match the receiver's parity,
-  the endpoint MUST close the session with `INVALID_REQUEST_ID`. Requests with a
-  Request ID equal to or greater than the indicated value, as well as any
-  requests that arrive after the GOAWAY, MUST be rejected with REQUEST_ERROR
-  using error code GOING_AWAY. Requests with a Request ID less than the indicated
-  value were or might have been processed; their status can be determined from
-  the response on each request stream.
 
 ## REQUEST_OK {#message-request-ok}
 
