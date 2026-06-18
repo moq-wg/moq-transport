@@ -4640,10 +4640,10 @@ An Object MUST NOT contain more than one instance of this property.
 MOQT is a protocol used hop-by-hop between original
 publishers to relay, (possibly) relay to relay, and relay to end
 subscribers. Thus, the security considerations need to consider first
-what happens between two nodes, but also consider the impacts end to
+what happens between two Endpoints, but also consider the impacts end to
 end over several hops of MOQT.
 
-MOQT uses a trust model where on each hop the nodes need to be
+MOQT uses a trust model where on each hop the Endpoints need to be
 securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
@@ -4686,14 +4686,14 @@ to identify media content, user patterns and media stream origin.
 
 ## Authorization {#sec-authorization}
 
-MOQT supports authorization via mutual TLS for node-level identification
+MOQT supports authorization via mutual TLS for Endpoint-level identification
 and token-based schemes for fine-grained access control.
 
-Mutual TLS is expected to be widely used for node level identification
+Mutual TLS is expected to be widely used for Endpoint level identification
 between relays, especially within one organization. However, in some
 deployments mutual TLS can also be used for end subscribers or
-original publishers. However, as only node level authentication is
-provided, what a particular identified node is allowed to do is not
+original publishers. However, as only Endpoint level authentication is
+provided, what a particular identified Endpoint is allowed to do is not
 provided at TLS level.
 
 MOQT has functionality to carry Authorization tokens as message
