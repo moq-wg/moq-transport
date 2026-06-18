@@ -1958,11 +1958,18 @@ that specify otherwise.
 
 ## Forward Handling
 
-Relays SHOULD set the `Forward` flag to 1 when a new subscription needs to be
-sent upstream, regardless of the value of the `Forward` field from the
-downstream subscription. Subscriptions that are not forwarded consume resources
-from the publisher, so a publisher might deprioritize, reject, or close those
-subscriptions to ensure other subscriptions can be delivered.
+If one or more downstream subscribers to a track have Forward=1, the relay
+MUST set Forward=1 upstream in order to receive and forward the requested
+Objects. When no downstream subscriber has Forward=1, the relay chooses the
+upstream Forward value at its discretion, considering the following
+tradeoffs:
+
+  - Setting Forward=1 upstream starts object delivery and pre-warms the
+    relay's cache, so objects are available when a downstream subscriber
+    sets Forward=1. This reduces latency but consumes upstream and publisher
+    resources for content no downstream subscriber is currently receiving.
+  - Setting Forward=0 upstream avoids that work, at the cost of higher
+    latency when forwarding is later enabled.
 
 ## Multiple Publishers
 
