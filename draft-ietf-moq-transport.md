@@ -1210,10 +1210,9 @@ SHOULD treat it as a protocol violation in the corresponding area.
 
 ### Data Stream Errors (0x20-0x2F) {#data-stream-errors}
 
-INVALID_OBJECT_FORMAT (0x20):
-: An Object contained an invalid status value, invalid datagram or stream
-  header type bits, properties on a non-Normal status Object, or a PROPERTIES
-  bit set with a Properties Length of zero.
+INVALID_HEADER_TYPE (0x20):
+: An Object Datagram or Subgroup stream header Type field contained an
+  invalid bit combination.
 
 TRUNCATED_STREAM (0x21):
 : A data stream ended gracefully (FIN) in the middle of a serialized Object.
@@ -1221,14 +1220,26 @@ TRUNCATED_STREAM (0x21):
 DATA_ID_OVERFLOW (0x22):
 : A computed Object ID or Group ID would be less than 0 or exceed 2^64-1.
 
-INVALID_FETCH_OBJECT (0x23):
-: The first Object in a FETCH response referenced fields from a prior Object,
-  a Serialization Flags value was not recognized, or a flag referenced a prior
-  Object's Subgroup ID or Priority when no prior Object exists.
+INVALID_OBJECT_STATUS (0x23):
+: An Object Status value was received that is not defined by this
+  specification.
 
 STREAM_COUNT_EXCEEDED (0x24):
 : More data streams were opened for a subscription than declared in
   Stream Count.
+
+INVALID_OBJECT_PROPERTIES (0x25):
+: An Object with a non-Normal status included properties, or the PROPERTIES
+  bit was set with a Properties Length of zero.
+
+MISSING_PRIOR_OBJECT (0x26):
+: A field referenced a prior Object that does not exist, such as the first
+  Object in a FETCH response using a flag that references prior Object fields,
+  or using a flag that references a prior Subgroup ID or Priority after an
+  End of Range indicator with no preceding Object.
+
+INVALID_SERIALIZATION_FLAGS (0x27):
+: A Serialization Flags value in a FETCH response was not recognized.
 
 ### Control Message Errors (0x30-0x3F) {#control-message-errors}
 
@@ -1241,15 +1252,25 @@ INVALID_PARAMETER (0x31):
   where it is not permitted, had a computed Type exceeding 2^64-1, or had
   a value outside its defined allowed set.
 
-INVALID_REQUEST_FIELD (0x32):
-: A control message contained an invalid field value, including: an
-  unrecognized Subscription Filter type or Fetch Type, a Fetch End Location
-  smaller than its Start Location, Track Properties in a message where they
-  must be empty, or an unexpected first message on a response stream.
+INVALID_REQUEST_TYPE (0x32):
+: A Subscription Filter type or Fetch Type was received that is not defined
+  by this specification.
 
 DUPLICATE_GOAWAY (0x33):
 : More than one GOAWAY was received on the control stream or on a single
   request stream.
+
+INVALID_FETCH_RANGE (0x34):
+: The End Location in a FETCH was smaller than the Start Location.
+
+MISPLACED_TRACK_PROPERTIES (0x35):
+: Track Properties were present in a message where they must be empty
+  (PUBLISH_OK, REQUEST_UPDATE_OK, SUBSCRIBE_NAMESPACE_OK, or
+  PUBLISH_NAMESPACE_OK).
+
+UNEXPECTED_RESPONSE_MESSAGE (0x36):
+: The first message on the response half of a request stream was not
+  REQUEST_OK or REQUEST_ERROR.
 
 ### Session and Setup Errors (0x40-0x4F) {#session-setup-errors}
 
@@ -1283,16 +1304,7 @@ FIELD_VALUE_OVERFLOW (0x52):
 : A computed delta value would exceed 2^64-1, including Key-Value Pair
   Delta Type or Group ID in a Subscription Filter.
 
-When closing a session with any of the above error codes, implementations
-SHOULD include a reason phrase (see {{reason-phrase}}) that identifies the
-specific condition. Implementations SHOULD format the reason phrase as:
-
-    <section-number>: <short description>
-
-For example, "4.2.1: Object ID overflow" or "3.3: unknown parameter 0x42".
-The section number refers to the relevant section of this specification.
-Including a reason phrase is OPTIONAL; an endpoint concerned about
-information disclosure MAY omit it.
+### Other Session Termination Codes
 
 INVALID_REQUEST_ID (0x4):
 : The endpoint received a Request ID with an incorrect least significant
@@ -1355,6 +1367,19 @@ INVALID_AUTHORITY (0x19):
 
 MALFORMED_AUTHORITY (0x1A):
 : The AUTHORITY value is syntactically invalid.
+
+### Reason Phrase in Session Termination
+
+When closing a session with any error code, implementations SHOULD include a
+reason phrase (see {{reason-phrase}}) that identifies the specific condition.
+Implementations SHOULD format the reason phrase as:
+
+    <section-number>: <short description>
+
+For example, "4.2.1: Object ID overflow" or "3.3: unknown parameter 0x42".
+The section number refers to the relevant section of this specification.
+Including a reason phrase is OPTIONAL; an endpoint concerned about
+information disclosure MAY omit it.
 
 An endpoint MAY choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
@@ -1631,7 +1656,7 @@ If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
 close the session with a `FIELD_VALUE_OVERFLOW`.
 
 An endpoint that receives a filter type other than the above MUST close the
-session with `INVALID_REQUEST_FIELD`.
+session with `INVALID_REQUEST_TYPE`.
 
 If the publisher cannot satisfy the requested Subscription Filter (see
 {{subscription-filter}}) or if the entire End Group has already been published
@@ -2935,7 +2960,7 @@ REQUEST_OK Message {
   TRACK_STATUS_OK; they are empty in PUBLISH_OK, REQUEST_UPDATE_OK,
   SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
   receives Track Properties in one of these messages it MUST close the
-  session with an `INVALID_REQUEST_FIELD`.
+  session with a `MISPLACED_TRACK_PROPERTIES`.
 
 ## REQUEST_ERROR {#message-request-error}
 
@@ -3402,7 +3427,7 @@ Code | Fetch Type
 0x3 | Absolute Joining Fetch
 
 An endpoint that receives a Fetch Type other than 0x1, 0x2 or 0x3 MUST close
-the session with an `INVALID_REQUEST_FIELD`.
+the session with an `INVALID_REQUEST_TYPE`.
 
 ### Standalone Fetch
 
@@ -3612,7 +3637,7 @@ FETCH_OK Message {
   End Location described in {{joining-fetch-range-calculation}}.
 
   If End Location is smaller than the Start Location in the corresponding FETCH
-  the receiver MUST close the session with an `INVALID_REQUEST_FIELD`.
+  the receiver MUST close the session with an `INVALID_FETCH_RANGE`.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -3745,7 +3770,7 @@ SUBSCRIBE_NAMESPACE Message {
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream. If the subscriber receives any message other than a REQUEST_OK or a
 REQUEST_ERROR as the first message on the response half of the stream, then it MUST
-close the session with an `INVALID_REQUEST_FIELD`. If the SUBSCRIBE_NAMESPACE is
+close the session with an `UNEXPECTED_RESPONSE_MESSAGE`. If the SUBSCRIBE_NAMESPACE is
 successful, the publisher will send matching NAMESPACE messages on the response
 stream. If it is an error, the stream will be immediately closed via FIN. When
 there are changes to the namespaces being published and the subscriber is
@@ -3804,7 +3829,7 @@ SUBSCRIBE_TRACKS Message {
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream. If the subscriber receives any message other than a REQUEST_OK or a
 REQUEST_ERROR as the first message on the response half of the stream, then it MUST
-close the session with an `INVALID_REQUEST_FIELD`. If the SUBSCRIBE_TRACKS is
+close the session with an `UNEXPECTED_RESPONSE_MESSAGE`. If the SUBSCRIBE_TRACKS is
 successful, the publisher will send PUBLISH messages on new bidirectional streams
 for tracks within matching namespaces. If it is an error, the stream will be
 closed via FIN after REQUEST_ERROR is sent.
@@ -3954,14 +3979,14 @@ Subgroup is signaled by closing its stream with a FIN
 (see {{closing-subgroup-streams}}).
 
 Any other value SHOULD be treated as a protocol error and the session SHOULD
-be closed with an `INVALID_OBJECT_FORMAT` ({{session-termination}}).
+be closed with an `INVALID_OBJECT_STATUS` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
 #### Object Properties {#object-properties}
 
 Any Object with status Normal can have properties ({{properties}}).
 If an endpoint receives properties on an Object with status that is
-not Normal, it MUST close the session with an `INVALID_OBJECT_FORMAT`.
+not Normal, it MUST close the session with an `INVALID_OBJECT_PROPERTIES`.
 
 Object Properties are visible to relays and are intended to be relevant
 to MOQT Object distribution. Any Object metadata never intended to be accessed
@@ -4033,7 +4058,7 @@ which fields are present in the datagram:
   {{object-properties}} is present. When set to 0, the field is absent.
   If an endpoint receives a datagram with the PROPERTIES bit set and an
   Properties Length of 0, it MUST close the session with an
-  `INVALID_OBJECT_FORMAT`.
+  `INVALID_OBJECT_PROPERTIES`.
 
 * The **END_OF_GROUP** bit (0x02) indicates End of Group. When set to 1, this
   indicates that no Object with the same Group ID and an Object ID greater than
@@ -4056,7 +4081,7 @@ which fields are present in the datagram:
   Object header contains the payload.
 
 The following Type values are invalid. If an endpoint receives a datagram with
-any of these Type values, it MUST close the session with an `INVALID_OBJECT_FORMAT`:
+any of these Type values, it MUST close the session with an `INVALID_HEADER_TYPE`:
 
 * Type values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set: 0x22,
   0x23, 0x26, 0x27, 0x2A, 0x2B, 0x2E, 0x2F. An object status message cannot signal
@@ -4067,7 +4092,7 @@ any of these Type values, it MUST close the session with an `INVALID_OBJECT_FORM
 
 If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
 Object Status is not Normal (0x0), the endpoint MUST close the session with an
-`INVALID_OBJECT_FORMAT`, because only Normal Objects can have Properties.
+`INVALID_OBJECT_PROPERTIES`, because only Normal Objects can have Properties.
 
 ## Streams
 
@@ -4159,7 +4184,7 @@ subgroup stream is the first object published in the subgroup by the original pu
 
 The following Type values are invalid. If an endpoint receives a stream header
 with any of these Type values, it MUST close the session with an
-`INVALID_OBJECT_FORMAT`:
+`INVALID_HEADER_TYPE`:
 
 * Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36,
   0x37, 0x3E, 0x3F, 0x56, 0x57, 0x5E, 0x5F, 0x76, 0x77, 0x7E, 0x7F. This mode
@@ -4338,7 +4363,7 @@ Value | Meaning
 0x8C | End of Non-Existent Range
 0x10C | End of Unknown Range
 
-Any other value is an `INVALID_FETCH_OBJECT`.
+Any other value is an `INVALID_SERIALIZATION_FLAGS`.
 
 #### Flags
 
@@ -4367,7 +4392,7 @@ Bitmask | Condition if set | Condition if not set (0)
 The first Object MUST include a Group ID Delta and Object ID Delta, and
 these values are the absolute Group ID and Object ID. If the first Object in
 the FETCH response uses a flag that references fields in the prior Object,
-the Subscriber MUST close the session with an `INVALID_FETCH_OBJECT`.
+the Subscriber MUST close the session with a `MISSING_PRIOR_OBJECT`.
 
 If the Group ID Delta field is present on an Object other than the first, the
 Group ID is computed from the Group ID Delta and the prior Object's Group ID.
@@ -4408,10 +4433,10 @@ the "prior Object", the prior Object fields are determined as follows:
 * Prior Group ID and prior Object ID: The values from the End of Range indicator.
 * Prior Subgroup ID: The Subgroup ID from the last actual Object before the
   End of Range indicator. If there was no prior Object, using a flag that
-  references the prior Subgroup ID is an `INVALID_FETCH_OBJECT`.
+  references the prior Subgroup ID is a `MISSING_PRIOR_OBJECT`.
 * Prior Priority: The Priority from the last actual Object before the End of
   Range indicator. If there was no prior Object, using a flag that references
-  the prior Priority is an `INVALID_FETCH_OBJECT`.
+  the prior Priority is a `MISSING_PRIOR_OBJECT`.
 
 ## Padding {#padding}
 
@@ -5194,16 +5219,22 @@ This document does not define any initial entries.
 | UNKNOWN_AUTH_TOKEN_ALIAS   | 0x17 | {{session-termination}} |
 | EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
 | INVALID_AUTHORITY          | 0x19 | {{session-termination}} |
-| MALFORMED_AUTHORITY        | 0x1A | {{session-termination}}    |
-| INVALID_OBJECT_FORMAT      | 0x20 | {{data-stream-errors}}     |
-| TRUNCATED_STREAM           | 0x21 | {{data-stream-errors}}     |
-| DATA_ID_OVERFLOW           | 0x22 | {{data-stream-errors}}     |
-| INVALID_FETCH_OBJECT       | 0x23 | {{data-stream-errors}}     |
-| STREAM_COUNT_EXCEEDED      | 0x24 | {{data-stream-errors}}     |
-| MALFORMED_MESSAGE          | 0x30 | {{control-message-errors}} |
-| INVALID_PARAMETER          | 0x31 | {{control-message-errors}} |
-| INVALID_REQUEST_FIELD      | 0x32 | {{control-message-errors}} |
-| DUPLICATE_GOAWAY           | 0x33 | {{control-message-errors}} |
+| MALFORMED_AUTHORITY            | 0x1A | {{session-termination}}    |
+| INVALID_HEADER_TYPE            | 0x20 | {{data-stream-errors}}     |
+| TRUNCATED_STREAM               | 0x21 | {{data-stream-errors}}     |
+| DATA_ID_OVERFLOW               | 0x22 | {{data-stream-errors}}     |
+| INVALID_OBJECT_STATUS          | 0x23 | {{data-stream-errors}}     |
+| STREAM_COUNT_EXCEEDED          | 0x24 | {{data-stream-errors}}     |
+| INVALID_OBJECT_PROPERTIES      | 0x25 | {{data-stream-errors}}     |
+| MISSING_PRIOR_OBJECT           | 0x26 | {{data-stream-errors}}     |
+| INVALID_SERIALIZATION_FLAGS    | 0x27 | {{data-stream-errors}}     |
+| MALFORMED_MESSAGE              | 0x30 | {{control-message-errors}} |
+| INVALID_PARAMETER              | 0x31 | {{control-message-errors}} |
+| INVALID_REQUEST_TYPE           | 0x32 | {{control-message-errors}} |
+| DUPLICATE_GOAWAY               | 0x33 | {{control-message-errors}} |
+| INVALID_FETCH_RANGE            | 0x34 | {{control-message-errors}} |
+| MISPLACED_TRACK_PROPERTIES     | 0x35 | {{control-message-errors}} |
+| UNEXPECTED_RESPONSE_MESSAGE    | 0x36 | {{control-message-errors}} |
 | INVALID_STREAM_STATE       | 0x40 | {{session-setup-errors}}   |
 | ROLE_VIOLATION             | 0x41 | {{session-setup-errors}}   |
 | MESSAGE_ORDERING           | 0x42 | {{session-setup-errors}}   |
