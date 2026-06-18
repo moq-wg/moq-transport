@@ -5298,6 +5298,9 @@ receives a non-empty Track Name in a Redirect for a namespace-scoped request
 <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.6.1-3.2.2" class="pilcrow">¶</a></p>
 </li>
           </ul>
+<p id="section-10.6.1-4">A Redirect with a zero-length Connect URI, Track Namespace, and Track Name does
+not change the URI or Full Track Name for the retry, making it equivalent to any
+other REQUEST_ERROR carrying a Retry Interval.<a href="#section-10.6.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="requesterror-message-format">
