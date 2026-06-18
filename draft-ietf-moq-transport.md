@@ -3778,13 +3778,6 @@ PUBLISH or SUBSCRIBE_OK that uses the same Track Alias as a different Track
 with an `Established` subscription, it MUST close the session with error
 `DUPLICATE_TRACK_ALIAS`.
 
-When there are multiple subscriptions to the same Track, the publisher MAY
-use the same Track Alias or different Track Aliases for each subscription.
-Using the same Track Alias is more efficient on the wire but prevents the
-subscriber from associating Objects with a specific subscription. Using
-different Track Aliases allows the subscriber to identify which subscription
-each Object belongs to.
-
 Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
 retain sufficient state to quickly discard these unwanted Objects, rather than
 treating them as belonging to an unknown Track Alias.
