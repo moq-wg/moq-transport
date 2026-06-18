@@ -7569,9 +7569,9 @@ removed otherwise.<a href="#section-12.9-5" class="pilcrow">¶</a></p>
 <p id="section-13-1">MOQT is a protocol used hop-by-hop between original
 publishers to relay, (possibly) relay to relay, and relay to end
 subscribers. Thus, the security considerations need to consider first
-what happens between two nodes, but also consider the impacts end to
+what happens between two Endpoints, but also consider the impacts end to
 end over several hops of MOQT.<a href="#section-13-1" class="pilcrow">¶</a></p>
-<p id="section-13-2">MOQT uses a trust model where on each hop the nodes need to be
+<p id="section-13-2">MOQT uses a trust model where on each hop the Endpoints need to be
 securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
@@ -7621,13 +7621,13 @@ to identify media content, user patterns and media stream origin.<a href="#secti
         <h3 id="name-authorization">
 <a href="#section-13.3" class="section-number selfRef">13.3. </a><a href="#name-authorization" class="section-name selfRef">Authorization</a>
         </h3>
-<p id="section-13.3-1">MOQT supports authorization via mutual TLS for node-level identification
+<p id="section-13.3-1">MOQT supports authorization via mutual TLS for Endpoint-level identification
 and token-based schemes for fine-grained access control.<a href="#section-13.3-1" class="pilcrow">¶</a></p>
-<p id="section-13.3-2">Mutual TLS is expected to be widely used for node level identification
+<p id="section-13.3-2">Mutual TLS is expected to be widely used for Endpoint level identification
 between relays, especially within one organization. However, in some
 deployments mutual TLS can also be used for end subscribers or
-original publishers. However, as only node level authentication is
-provided, what a particular identified node is allowed to do is not
+original publishers. However, as only Endpoint level authentication is
+provided, what a particular identified Endpoint is allowed to do is not
 provided at TLS level.<a href="#section-13.3-2" class="pilcrow">¶</a></p>
 <p id="section-13.3-3">MOQT has functionality to carry Authorization tokens as message
 parameters. These tokens can vary based on the application
