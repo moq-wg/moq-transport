@@ -223,8 +223,13 @@ Congestion:
 
 Group:
 
-: A temporal sequence of objects. A group represents a join point in a
-  track. See ({{model-group}}).
+: A collection of objects within a track. A group represents a join point
+  in a track. See ({{model-group}}).
+
+Subgroup:
+
+: A sequence of one or more objects from the same group, sent on a single
+  transport stream whenever possible. See ({{model-subgroup}}).
 
 Object:
 
@@ -498,8 +503,6 @@ responsible for the content of the object payload. This includes the
 underlying encoding, compression, any end-to-end encryption, or
 authentication.
 
-Objects within a Group are in ascending order by Object ID.
-
 From the perspective of a subscriber or a cache, an Object can be in three
 possible states:
 
@@ -509,6 +512,11 @@ possible states:
    existing, but not vice versa.
 3. The state of the Object is unknown, either because it has not yet been
    received, or it has not been produced yet.
+
+A gap in the observed Object IDs does not by itself convey any information about
+the skipped Objects. Skipped Objects remain in the unknown state until they are
+received or their non-existence is signalled, for example in a FETCH stream (see
+{{fetch-header}}) or via a Prior Object ID Gap (see {{prior-object-id-gap}}).
 
 Since Objects can be delivered out of order, an endpoint can receive an Object
 after it has already recorded that the Object does not exist (e.g., via a FETCH
@@ -910,6 +918,8 @@ that registers the fragment type.
 Fragment type identifiers are registered in the "MOQT URI Fragment
 Types" registry ({{iana-fragment-types}}).
 
+### Dereferencing a MOQT URI
+
 The default operation for dereferencing a `moqt` URI is to establish a
 MOQT session to the identified server.
 
@@ -1029,7 +1039,9 @@ close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectiona
 streams.
 
 As such, a client can initiate a MOQT session, subscribe, and
-start publishing Objects all in parallel.
+start publishing Objects all in parallel. When this is done before the
+handshake completes using 0-RTT, the security implications described in
+{{zero-rtt}} apply.
 
 Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
@@ -1049,7 +1061,7 @@ requires the extension or the endpoint knows the peer supports the
 extension. If an unsupported Message Parameter is used, the peer will be
 unable to process it and the session will be terminated. See {{message-params}}.
 
-### 0-RTT
+### 0-RTT {#zero-rtt}
 
 QUIC supports 0-RTT ({{Section 2.3 of ?RFC8446}}), but WebTransport over QUIC
 is not expected to use 0-RTT, because initializing a WebTransport session
@@ -1631,6 +1643,11 @@ by the subscriber.
 Either message with zero Track Namespace fields indicates the sender is
 interested in all namespaces or all tracks from the receiver, respectively.
 
+By sending SUBSCRIBE_NAMESPACE, the subscriber indicates that it trusts the
+relay to be authoritative for namespaces matching the requested prefix.
+NAMESPACE messages received on the SUBSCRIBE_NAMESPACE response stream inherit
+this trust and do not independently carry authorization.
+
 The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
 bidirectional stream and the publisher MUST send a single REQUEST_OK or
 REQUEST_ERROR as the first message on the bidirectional stream in response.
@@ -1664,6 +1681,14 @@ received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
 publisher, it MUST send a NAMESPACE message to any subscriber that has
 sent SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
+
+A subscriber can receive a PUBLISH_NAMESPACE on a request stream for a
+namespace that falls within an active SUBSCRIBE_NAMESPACE prefix. This
+occurs when SUBSCRIBE_NAMESPACE or its response is in flight at the same time
+as a PUBLISH_NAMESPACE, or when an original publisher sends PUBLISH_NAMESPACE
+to advertise namespaces within the prefix being discovered. Such a
+PUBLISH_NAMESPACE is valid and MAY carry an AUTHORIZATION TOKEN parameter.
+Its lifetime is independent of the SUBSCRIBE_NAMESPACE stream.
 
 An endpoint SHOULD report the reception of a REQUEST_OK or
 REQUEST_ERROR to the application to inform the search for additional
@@ -2775,7 +2800,6 @@ GOAWAY Message {
   New Session URI Length (vi64),
   New Session URI (..),
   Timeout (vi64),
-  [Request ID (vi64)],
 }
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
@@ -2799,17 +2823,6 @@ GOAWAY Message {
   specific timeout, but the recipient SHOULD migrate as quickly as
   possible. This is a hint; the sender of the GOAWAY MAY close the session or
   reset the request stream before the indicated timeout has elapsed.
-
-* Request ID: Present only when sent on the control stream.  The smallest peer
-  Request ID that was not or might not have been processed prior to sending the
-  GOAWAY. If no requests have been processed, this is 0 (at a server) or 1 (at a
-  client). If the parity of the Request ID does not match the receiver's parity,
-  the endpoint MUST close the session with `INVALID_REQUEST_ID`. Requests with a
-  Request ID equal to or greater than the indicated value, as well as any
-  requests that arrive after the GOAWAY, MUST be rejected with REQUEST_ERROR
-  using error code GOING_AWAY. Requests with a Request ID less than the indicated
-  value were or might have been processed; their status can be determined from
-  the response on each request stream.
 
 ## REQUEST_OK {#message-request-ok}
 
@@ -4628,10 +4641,10 @@ An Object MUST NOT contain more than one instance of this property.
 MOQT is a protocol used hop-by-hop between original
 publishers to relay, (possibly) relay to relay, and relay to end
 subscribers. Thus, the security considerations need to consider first
-what happens between two nodes, but also consider the impacts end to
+what happens between two Endpoints, but also consider the impacts end to
 end over several hops of MOQT.
 
-MOQT uses a trust model where on each hop the nodes need to be
+MOQT uses a trust model where on each hop the Endpoints need to be
 securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
@@ -4674,12 +4687,12 @@ to identify media content, user patterns and media stream origin.
 
 ## Authorization {#sec-authorization}
 
-MOQT supports authorization via mutual TLS for node-level identification
+MOQT supports authorization via mutual TLS for Endpoint-level identification
 and token-based schemes for fine-grained access control.
 
-Mutual TLS provides node-level identification and can be used between
+Mutual TLS provides Endpoint level identification and can be used between
 relays as well as for end subscribers or original publishers. As only
-node-level authentication is provided, what a particular identified node
+Endpoint level authentication is provided, what a particular identified node
 is allowed to do is not provided at the TLS level.
 
 MOQT has functionality to carry Authorization tokens as message
