@@ -1037,7 +1037,9 @@ close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectiona
 streams.
 
 As such, a client can initiate a MOQT session, subscribe, and
-start publishing Objects all in parallel.
+start publishing Objects all in parallel. When this is done before the
+handshake completes using 0-RTT, the security implications described in
+{{zero-rtt}} apply.
 
 Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
@@ -1057,7 +1059,7 @@ requires the extension or the endpoint knows the peer supports the
 extension. If an unsupported Message Parameter is used, the peer will be
 unable to process it and the session will be terminated. See {{message-params}}.
 
-### 0-RTT
+### 0-RTT {#zero-rtt}
 
 QUIC supports 0-RTT ({{Section 2.3 of ?RFC8446}}), but WebTransport over QUIC
 is not expected to use 0-RTT, because initializing a WebTransport session
