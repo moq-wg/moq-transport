@@ -2511,8 +2511,7 @@ The DEFAULT_PUBLISHER_PRIORITY parameter (Parameter Type 0x0E)
 is a uint8. It MAY appear in a PUBLISH, SUBSCRIBE_OK, FETCH_OK, or
 REQUEST_UPDATE message. It is the default Publisher Priority (see
 {{priorities}}) for Subgroups and Datagrams of the subscription that
-do not carry an explicit Publisher Priority. Lower numbers get higher
-priority.
+do not carry an explicit Publisher Priority.
 
 If omitted, the default Publisher Priority is 128.
 
@@ -3084,7 +3083,7 @@ The sender of a request (SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS) can later send a REQUEST_UPDATE on the
 same bidi stream as the request to modify it.  A subscriber can also send
 REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.
-The publisher can also send REQUEST_UPDATEto modify parameters set
+The publisher can also send REQUEST_UPDATE to modify parameters set
 using SUBSCRIBE_OK.
 
 The receiver of a REQUEST_UPDATE MUST respond with exactly one REQUEST_OK
@@ -5227,8 +5226,6 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Exclude your own tracks from SUBSCRIBE_NAMESPACE (#1596)
 * Add Session-Level Tracks reserved namespace (#1562)
 * Allow coalescing REQUEST_UPDATE processing (#1540)
-* Make Default Publisher Priority an updatable parameter; stop malforming on
-  priority change (#1270)
 * SUBSCRIBE takes precedence over SUBSCRIBE_NAMESPACE at relay (#1533)
 * Don't close the Session for unknown errors (#1561)
 * Clarify REQUEST_UPDATE failure behavior for all request types (#1539)
