@@ -4334,7 +4334,7 @@ formatted as follows:<a href="#section-10-1" class="pilcrow">¶</a></p>
 MOQT Control Message {
   Message Type (vi64),
   Message Length (16),
-  Message Payload (..),
+  Message Body (..),
 }
 </pre>
 </div>
@@ -4481,9 +4481,9 @@ new request stream.<a href="#section-10-3" class="pilcrow">¶</a></p>
       </table>
 <p id="section-10-5">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.
 Control messages have a length to make parsing easier, but no control messages
-are intended to be ignored. The length is set to the number of bytes in Message
-Payload, which is defined by each message type.  If the length does not match
-the length of the Message Payload, the receiver <span class="bcp14">MUST</span> close the session with a
+are intended to be ignored. The length is set to the number of bytes in the
+Message Body, which is defined by each message type.  If the length does not
+match the length of the Message Body, the receiver <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-10-5" class="pilcrow">¶</a></p>
 <div id="request-id">
 <section id="section-10.1">
@@ -5394,8 +5394,9 @@ with the same role as an existing subscription.<a href="#section-10.6.2-5.20.1" 
 location specified in the Redirect structure. The requester <span class="bcp14">SHOULD</span> establish a
 new session to the provided URI (if present) and retry the request using the
 Full Track Name from the Redirect (if present). This error code can appear in
-response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH_NAMESPACE and
-SUBSCRIBE_NAMESPACE. Relays are not required to follow redirects from upstream
+response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
+SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
+redirects from upstream
 and <span class="bcp14">MAY</span> forward a REDIRECT response to matching downstream requests. A relay
 <span class="bcp14">MAY</span> cache a REDIRECT response for a Full Track Name for up to Retry Interval
 milliseconds and use it to respond to subsequent matching requests without
