@@ -1056,7 +1056,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 20 December 2026</td>
+<td class="center">Expires 21 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-18" class="published">18 June 2026</time>
+<time datetime="2026-06-19" class="published">19 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-20">20 December 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-21">21 December 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 20 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 21 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -7654,11 +7654,10 @@ the procedures in <span>[<a href="#RFC9525" class="cite xref">RFC9525</a>]</span
 client certificate identities; a deployment that authenticates clients via
 mTLS needs to specify how a client certificate is validated and how its
 identity is matched against the identities the endpoint trusts.<a href="#section-13.3.1-2" class="pilcrow">¶</a></p>
-<p id="section-13.3.1-3">mTLS can be used between relays, for example within a single administrative
-domain, and between a relay and an end subscriber or original publisher.
-Once a peer is authenticated, a deployment <span class="bcp14">MAY</span> use the authenticated
-identity, or attributes carried in the peer's certificate, as an input to
-authorization decisions, for example by mapping an identity to the
+<p id="section-13.3.1-3">mTLS can be used between relays and between a relay and an end subscriber or
+original publisher. Once a peer is authenticated, a deployment <span class="bcp14">MAY</span> use the
+authenticated identity, or attributes carried in the peer's certificate, as an
+input to authorization decisions, for example by mapping an identity to the
 namespaces or tracks it is permitted to publish or subscribe to. The
 granularity and policy of such authorization is determined by the deployment
 and is out of scope for this document.<a href="#section-13.3.1-3" class="pilcrow">¶</a></p>
@@ -7669,8 +7668,8 @@ and is out of scope for this document.<a href="#section-13.3.1-3" class="pilcrow
 transport peer; it does not authenticate endpoints reached through
 intervening relays. A relay that accepts a request from an authenticated
 peer trusts that peer's own authorization decisions for any endpoints
-behind it. Authorization that must survive relaying is better carried in
-tokens (see <a href="#sec-tokens" class="auto internal xref">Section 13.3.2</a>) or bound to the objects themselves.<a href="#section-13.3.1-5.1.1" class="pilcrow">¶</a></p>
+behind it. Authorization that needs to survive relaying is better carried
+in tokens (see <a href="#sec-tokens" class="auto internal xref">Section 13.3.2</a>).<a href="#section-13.3.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-13.3.1-5.2">
               <p id="section-13.3.1-5.2.1">Client authentication occurs at connection establishment. Neither native
@@ -7682,7 +7681,7 @@ established at connection time.<a href="#section-13.3.1-5.2.1" class="pilcrow">�
             <li class="normal" id="section-13.3.1-5.3">
               <p id="section-13.3.1-5.3.1">mTLS provides confidentiality, integrity, and peer authentication for the
 connection, but does not by itself constrain which actions an
-authenticated peer may perform. Deployments needing per-action or
+authenticated peer can perform. Deployments needing per-action or
 per-resource authorization combine mTLS with a token scheme or with a
 local authorization policy keyed on the authenticated identity.<a href="#section-13.3.1-5.3.1" class="pilcrow">¶</a></p>
 </li>

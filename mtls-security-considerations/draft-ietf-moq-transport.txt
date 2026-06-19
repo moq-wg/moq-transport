@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 20 December 2026                                  I. Swett, Ed.
+Expires: 21 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            18 June 2026
+                                                            19 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 December 2026.
+   This Internet-Draft will expire on 21 December 2026.
 
 Copyright Notice
 
@@ -5183,15 +5183,14 @@ EXT 1 and EXT N can be modified or removed by Relays
    certificate is validated and how its identity is matched against the
    identities the endpoint trusts.
 
-   mTLS can be used between relays, for example within a single
-   administrative domain, and between a relay and an end subscriber or
-   original publisher.  Once a peer is authenticated, a deployment MAY
-   use the authenticated identity, or attributes carried in the peer's
-   certificate, as an input to authorization decisions, for example by
-   mapping an identity to the namespaces or tracks it is permitted to
-   publish or subscribe to.  The granularity and policy of such
-   authorization is determined by the deployment and is out of scope for
-   this document.
+   mTLS can be used between relays and between a relay and an end
+   subscriber or original publisher.  Once a peer is authenticated, a
+   deployment MAY use the authenticated identity, or attributes carried
+   in the peer's certificate, as an input to authorization decisions,
+   for example by mapping an identity to the namespaces or tracks it is
+   permitted to publish or subscribe to.  The granularity and policy of
+   such authorization is determined by the deployment and is out of
+   scope for this document.
 
    Implementations using mTLS need to account for the following
    properties:
@@ -5201,8 +5200,8 @@ EXT 1 and EXT N can be modified or removed by Relays
       reached through intervening relays.  A relay that accepts a
       request from an authenticated peer trusts that peer's own
       authorization decisions for any endpoints behind it.
-      Authorization that must survive relaying is better carried in
-      tokens (see Section 13.3.2) or bound to the objects themselves.
+      Authorization that needs to survive relaying is better carried in
+      tokens (see Section 13.3.2).
 
    *  Client authentication occurs at connection establishment.  Neither
       native QUIC nor WebTransport supports requesting a client
@@ -5212,7 +5211,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  mTLS provides confidentiality, integrity, and peer authentication
       for the connection, but does not by itself constrain which actions
-      an authenticated peer may perform.  Deployments needing per-action
+      an authenticated peer can perform.  Deployments needing per-action
       or per-resource authorization combine mTLS with a token scheme or
       with a local authorization policy keyed on the authenticated
       identity.
