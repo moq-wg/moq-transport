@@ -1273,12 +1273,16 @@ response to a condition with a single subscription or message. Implementations
 need to consider the impact on other outstanding subscriptions before making
 this choice.
 
-## Migration {#session-migration}
+## Session Migration {#session-migration}
 
 MOQT requires a long-lived and stateful session. However, a service
 provider needs the ability to shutdown/restart a server without waiting for all
 sessions to drain naturally, as that can take days for long-form media.
 MOQT enables proactively draining sessions via the GOAWAY message ({{message-goaway}}).
+
+A GOAWAY on the control stream migrates the entire session, as described in
+this section. A GOAWAY on a single request stream instead migrates only that
+request, leaving the rest of the session in place; see {{message-goaway}}.
 
 The server sends a GOAWAY message, signaling the client to establish a new
 session and migrate any `Established` subscriptions. The GOAWAY message optionally
@@ -2774,6 +2778,8 @@ that individual request.  Upon receiving a GOAWAY on a request stream, the
 endpoint SHOULD re-issue that specific request on a session at the specified
 URI (or the current session if no URI is provided), and close the old request
 stream using the appropriate mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).
+This allows, for example, moving the publishers and subscribers of a common set
+of tracks to a common relay without draining their entire session.
 
 The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually UNSUBSCRIBE for each existing subscription, while a
@@ -4481,8 +4487,8 @@ relay MUST NOT start forwarding any individual Object received through this
 subscription or fetch after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier in a
 multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes unknown, and a relay that
-handles a downstream request that includes those Objects re-requests them.
+Objects have expired from cache, their state becomes unknown (see
+{{model-object}}).
 
 If MAX_CACHE_DURATION is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
