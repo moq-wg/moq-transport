@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 20 December 2026                                  I. Swett, Ed.
+Expires: 24 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            18 June 2026
+                                                            22 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 December 2026.
+   This Internet-Draft will expire on 24 December 2026.
 
 Copyright Notice
 
@@ -118,7 +118,7 @@ Table of Contents
        3.3.3.  Stream Reset Error Codes
      3.4.  Unidirectional Stream Types
      3.5.  Termination
-     3.6.  Migration
+     3.6.  Session Migration
      3.7.  Congestion Control
        3.7.1.  Bufferbloat
        3.7.2.  Application-Limited
@@ -1501,13 +1501,18 @@ Table of Contents
    or message.  Implementations need to consider the impact on other
    outstanding subscriptions before making this choice.
 
-3.6.  Migration
+3.6.  Session Migration
 
    MOQT requires a long-lived and stateful session.  However, a service
    provider needs the ability to shutdown/restart a server without
    waiting for all sessions to drain naturally, as that can take days
    for long-form media.  MOQT enables proactively draining sessions via
    the GOAWAY message (Section 10.4).
+
+   A GOAWAY on the control stream migrates the entire session, as
+   described in this section.  A GOAWAY on a single request stream
+   instead migrates only that request, leaving the rest of the session
+   in place; see Section 10.4.
 
    The server sends a GOAWAY message, signaling the client to establish
    a new session and migrate any Established subscriptions.  The GOAWAY
@@ -3127,7 +3132,9 @@ Table of Contents
    stream, the endpoint SHOULD re-issue that specific request on a
    session at the specified URI (or the current session if no URI is
    provided), and close the old request stream using the appropriate
-   mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).
+   mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).  This allows,
+   for example, moving the publishers and subscribers of a common set of
+   tracks to a common relay without draining their entire session.
 
    The GOAWAY message does not impact subscription state.  A subscriber
    SHOULD individually UNSUBSCRIBE for each existing subscription, while
@@ -4944,8 +4951,7 @@ Table of Contents
    the beginning of the Object was received.  This means Objects earlier
    in a multi-object stream will expire earlier than Objects later in
    the stream.  Once Objects have expired from cache, their state
-   becomes unknown, and a relay that handles a downstream request that
-   includes those Objects re-requests them.
+   becomes unknown (see Section 2.1).
 
    If MAX_CACHE_DURATION is not sent by the publisher, the Objects can
    be cached until implementation constraints cause them to be evicted.
