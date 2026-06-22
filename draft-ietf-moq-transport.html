@@ -1056,7 +1056,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 20 December 2026</td>
+<td class="center">Expires 24 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-18" class="published">18 June 2026</time>
+<time datetime="2026-06-22" class="published">22 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-20">20 December 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-24">24 December 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 20 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 24 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1324,7 +1324,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.3.2.5.1"><a href="#section-3.5" class="auto internal xref">3.5</a>.  <a href="#name-termination" class="internal xref">Termination</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.6">
-                <p id="section-toc.1-1.3.2.6.1"><a href="#section-3.6" class="auto internal xref">3.6</a>.  <a href="#name-migration" class="internal xref">Migration</a></p>
+                <p id="section-toc.1-1.3.2.6.1"><a href="#section-3.6" class="auto internal xref">3.6</a>.  <a href="#name-session-migration" class="internal xref">Session Migration</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.7">
                 <p id="section-toc.1-1.3.2.7.1"><a href="#section-3.7" class="auto internal xref">3.7</a>.  <a href="#name-congestion-control" class="internal xref">Congestion Control</a></p>
@@ -3391,30 +3391,33 @@ this choice.<a href="#section-3.5-4" class="pilcrow">¶</a></p>
 </div>
 <div id="session-migration">
 <section id="section-3.6">
-        <h3 id="name-migration">
-<a href="#section-3.6" class="section-number selfRef">3.6. </a><a href="#name-migration" class="section-name selfRef">Migration</a>
+        <h3 id="name-session-migration">
+<a href="#section-3.6" class="section-number selfRef">3.6. </a><a href="#name-session-migration" class="section-name selfRef">Session Migration</a>
         </h3>
 <p id="section-3.6-1">MOQT requires a long-lived and stateful session. However, a service
 provider needs the ability to shutdown/restart a server without waiting for all
 sessions to drain naturally, as that can take days for long-form media.
 MOQT enables proactively draining sessions via the GOAWAY message (<a href="#message-goaway" class="auto internal xref">Section 10.4</a>).<a href="#section-3.6-1" class="pilcrow">¶</a></p>
-<p id="section-3.6-2">The server sends a GOAWAY message, signaling the client to establish a new
+<p id="section-3.6-2">A GOAWAY on the control stream migrates the entire session, as described in
+this section. A GOAWAY on a single request stream instead migrates only that
+request, leaving the rest of the session in place; see <a href="#message-goaway" class="auto internal xref">Section 10.4</a>.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
+<p id="section-3.6-3">The server sends a GOAWAY message, signaling the client to establish a new
 session and migrate any <code>Established</code> subscriptions. The GOAWAY message optionally
 contains a new URI for the new session, otherwise the current URI is
 reused. The GOAWAY message contains a Timeout indicating how long, in
 milliseconds, the sender intends to wait before closing the session. The sender
 <span class="bcp14">SHOULD</span> close the session with <code>GOAWAY_TIMEOUT</code> after the indicated timeout if
-there are still open subscriptions or fetches on a connection.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
-<p id="section-3.6-3">When the server is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message to downstream
-subscribers prior to unsubscribing from upstream publishers.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
-<p id="section-3.6-4">After the client receives a GOAWAY, it's <span class="bcp14">RECOMMENDED</span> that the client waits until
+there are still open subscriptions or fetches on a connection.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
+<p id="section-3.6-4">When the server is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message to downstream
+subscribers prior to unsubscribing from upstream publishers.<a href="#section-3.6-4" class="pilcrow">¶</a></p>
+<p id="section-3.6-5">After the client receives a GOAWAY, it's <span class="bcp14">RECOMMENDED</span> that the client waits until
 there are no more <code>Established</code> subscriptions before closing the session with NO_ERROR.
 Ideally this is transparent to the application using MOQT, which involves
 establishing a new session in the background and migrating <code>Established</code> subscriptions
 and published namespaces. The client can choose to delay closing the session if
 it expects more OBJECTs to be delivered. The sender closes the session with a
 <code>GOAWAY_TIMEOUT</code> if the peer doesn't close the session within the
-indicated Timeout.<a href="#section-3.6-4" class="pilcrow">¶</a></p>
+indicated Timeout.<a href="#section-3.6-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="congestion-control">
@@ -5150,7 +5153,9 @@ servers to initiate connections.<a href="#section-10.4-1" class="pilcrow">¶</a>
 that individual request.  Upon receiving a GOAWAY on a request stream, the
 endpoint <span class="bcp14">SHOULD</span> re-issue that specific request on a session at the specified
 URI (or the current session if no URI is provided), and close the old request
-stream using the appropriate mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).<a href="#section-10.4-2" class="pilcrow">¶</a></p>
+stream using the appropriate mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).
+This allows, for example, moving the publishers and subscribers of a common set
+of tracks to a common relay without draining their entire session.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
 <p id="section-10.4-3">The GOAWAY message does not impact subscription state. A subscriber
 <span class="bcp14">SHOULD</span> individually UNSUBSCRIBE for each existing subscription, while a
 publisher <span class="bcp14">MAY</span> reject new requests after sending a GOAWAY.<a href="#section-10.4-3" class="pilcrow">¶</a></p>
