@@ -1572,7 +1572,7 @@ All filter parameters with the same Set value are combined using logical
 where each Set=i is the AND of filters with Set=i.
 
 These parameters MAY appear multiple times in a FETCH, SUBSCRIBE,
-SUBSCRIBE_TRACKS, PUBLISH_OK, or REQUEST_UPDATE (from a subscriber)
+SUBSCRIBE_TRACKS, PUBLISH_OK, or REQUEST_UPDATE (on a subscription, from the subscriber only)
 message.  If the same combination of Parameter Type, Property Type
 (only in the Property Filter), and Set repeat in any message,
 an endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
