@@ -1656,7 +1656,10 @@ If a Subscription cannot be created because there are no available bidirectional
 streams or any other reason, the Publisher sends a PUBLISH_SKIPPED message on the
 SUBSCRIBE_TRACKS response stream to indicate the Full Track Name of the
 Subscription that was not created. The Publisher MUST NOT send a PUBLISH for a
-Track for a given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent.
+Track for a given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent,
+scoped to a single PUBLISH event.  If, for example, the publisher disconnects from
+a relay and later reconnects and sends a new PUBLISH, the relay MAY send the new
+PUBLISH downstream.
 If desired, the subscriber can issue a SUBSCRIBE to establish a subscription to
 that track.
 
