@@ -1657,7 +1657,7 @@ streams or any other reason, the Publisher sends a PUBLISH_SKIPPED message on th
 SUBSCRIBE_TRACKS response stream to indicate the Full Track Name of the
 Subscription that was not created. The Publisher MUST NOT send a PUBLISH for a
 Track for a given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent,
-scoped to a single PUBLISH event.  If, for example, the publisher disconnects from
+scoped to a single PUBLISH.  If, for example, the publisher disconnects from
 a relay and later reconnects and sends a new PUBLISH, the relay MAY send the new
 PUBLISH downstream.
 If desired, the subscriber can issue a SUBSCRIBE to establish a subscription to
