@@ -1616,7 +1616,8 @@ results in error.
 # Namespace Discovery {#track-discovery}
 
 Discovery of MOQT servers is always done out-of-band. Namespace discovery can be
-done in the context of an established MOQT session.
+done in the context of an established MOQT session using SUBSCRIBE_NAMESPACE
+(see {{subscribing-to-namespaces}}).
 
 Given sufficient out of band information, it is valid for a subscriber to send a
 SUBSCRIBE or FETCH message to a publisher (including a relay) without any
@@ -1627,7 +1628,7 @@ for a namespace.
 The syntax of these messages is described in {{message}}.
 
 
-## Subscribing to Namespaces
+## Subscribing to Namespaces {#subscribing-to-namespaces}
 
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS to publishers/relays it has established
@@ -1684,11 +1685,11 @@ PUBLISH_NAMESPACE indicates to the subscriber that the publisher has tracks
 available in that namespace. A subscriber MAY send SUBSCRIBE or FETCH for tracks
 in a namespace without having received a PUBLISH_NAMESPACE for it.
 
-If a publisher is authoritative for a given namespace, or is a relay that has
-received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
-publisher, it MUST send a NAMESPACE message to any subscriber that has
-sent SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
-namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
+If a publisher is the Original Publisher for one or more tracks in a given
+namespace, or is a relay that has received an authorized PUBLISH_NAMESPACE for
+that namespace from an upstream publisher, it MUST send a NAMESPACE message
+that includes this namespace to any subscriber that has sent a
+SUBSCRIBE_NAMESPACE whose prefix matches this namespace.
 
 A subscriber can receive a PUBLISH_NAMESPACE on a request stream for a
 namespace that falls within an active SUBSCRIBE_NAMESPACE prefix. This
