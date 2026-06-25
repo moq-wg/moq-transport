@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 20 December 2026                                  I. Swett, Ed.
+Expires: 27 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            18 June 2026
+                                                            25 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 December 2026.
+   This Internet-Draft will expire on 27 December 2026.
 
 Copyright Notice
 
@@ -1905,9 +1905,11 @@ Table of Contents
    PUBLISH_SKIPPED message on the SUBSCRIBE_TRACKS response stream to
    indicate the Full Track Name of the Subscription that was not
    created.  The Publisher MUST NOT send a PUBLISH for a Track for a
-   given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent.  If
-   desired, the subscriber can issue a SUBSCRIBE to establish a
-   subscription to that track.
+   given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent, scoped to
+   a single PUBLISH.  If, for example, the publisher disconnects from a
+   relay and later reconnects and sends a new PUBLISH, the relay MAY
+   send the new PUBLISH downstream.  If desired, the subscriber can
+   issue a SUBSCRIBE to establish a subscription to that track.
 
    The receiver of a REQUEST_OK or REQUEST_ERROR ought to forward the
    result to the application, so the application can decide which other
