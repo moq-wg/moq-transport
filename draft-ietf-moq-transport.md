@@ -4779,7 +4779,45 @@ priority, after reaching a resource limit.
 
 Implementations are advised to use timeouts to prevent resource
 exhaustion attacks by a peer that does not send expected data within
-an expected time.  Each implementation is expected to set its own timeouts.
+an expected time.  Each implementation is expected to set its own timeouts
+and SHOULD make them configurable to accommodate different deployment
+scenarios (e.g., interactive conferencing vs. file delivery).
+
+The following scenarios require missing-data timeouts:
+
+Control Message Response:
+: After sending a control message that expects a response (e.g.,
+  SUBSCRIBE expects SUBSCRIBE_OK or SUBSCRIBE_ERROR), the sender SHOULD
+  start a timer. If the response is not received within the timeout, the
+  sender SHOULD close the session with `CONTROL_MESSAGE_TIMEOUT`. This
+  timeout SHOULD be at least 30 seconds to account for relay fan-out and
+  upstream latency.
+
+Data Stream Header:
+: When an endpoint receives a new data stream, it SHOULD start a timer
+  for receiving the stream header (SUBGROUP_HEADER). If the header is not
+  received within the timeout, the endpoint SHOULD close the session with
+  `DATA_STREAM_TIMEOUT`. A timeout of at least 5 seconds is RECOMMENDED,
+  as stream headers are small and should arrive promptly.
+
+Object Data on Open Subgroup:
+: When an endpoint is waiting for the next object header or a FIN on an
+  open subgroup stream, it SHOULD apply a timeout. If the timeout fires,
+  the endpoint MAY send STOP_SENDING on that stream or terminate the
+  subscription, rather than closing the entire session. This timeout
+  SHOULD be at least as large as any negotiated delivery timeout for the
+  track. In the absence of a negotiated delivery timeout, a value of at
+  least 30 seconds is RECOMMENDED for live media; applications with known
+  cadence (e.g., fixed frame rate video) MAY use shorter values.
+
+GOAWAY Response:
+: After sending a GOAWAY, the sender SHOULD close the session with
+  `GOAWAY_TIMEOUT` if the peer does not close the session within the
+  timeout indicated in the GOAWAY message.
+
+When a negotiated delivery timeout ({{delivery-timeouts}}) is in effect
+for a subscription, implementation-level missing-data timeouts for that
+subscription SHOULD NOT be shorter than the delivery timeout.
 
 ### Idle Connection Handling
 
