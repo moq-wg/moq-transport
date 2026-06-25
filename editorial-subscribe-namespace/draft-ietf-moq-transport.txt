@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 December 2026                                  I. Swett, Ed.
+Expires: 27 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            14 June 2026
+                                                            25 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 December 2026.
+   This Internet-Draft will expire on 27 December 2026.
 
 Copyright Notice
 
@@ -1910,8 +1910,7 @@ Table of Contents
    PUBLISH_NAMESPACE for that namespace from an upstream publisher, it
    MUST send a NAMESPACE message that includes this namespace to any
    subscriber that has sent a SUBSCRIBE_NAMESPACE whose prefix matches
-   this namespace.  A publisher MAY send the PUBLISH_NAMESPACE to any
-   other subscriber.
+   this namespace.
 
    An endpoint SHOULD report the reception of a REQUEST_OK or
    REQUEST_ERROR to the application to inform the search for additional
@@ -5922,11 +5921,11 @@ Normative References
 Informative References
 
    [CAT]      Law, W., Lemmons, C., Simon, G., and S. Nandakumar,
-              "Authentication scheme for MOQT using Common Access
+              "Authorization scheme for MOQT using Common Access
               Tokens", Work in Progress, Internet-Draft, draft-ietf-moq-
-              c4m-00, 19 September 2025,
+              c4m-01, 18 June 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-
-              00>.
+              01>.
 
    [I-D.draft-jennings-moq-quicr-proto]
               Jennings, C. F., Nandakumar, S., and C. Huitema, "QuicR -
