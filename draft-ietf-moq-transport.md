@@ -4694,46 +4694,30 @@ application-defined access control. The two mechanisms can be used together.
 ### Mutual TLS {#sec-mtls}
 
 In mutual TLS, both peers present an X.509 certificate during the TLS 1.3
-handshake ({{?RFC8446}}) carried within the underlying transport: directly
-for native QUIC ({{?RFC9001}}), or within the HTTP connection underlying
-WebTransport. An endpoint authenticates its peer by validating the presented
-certificate chain to a configured trust anchor, following the certificate
-path validation rules of {{?RFC5280}}.
-
-An endpoint that verifies a server certificate's identity does so following
-the procedures in {{?RFC9525}}. {{?RFC9525}} does not define verification of
-client certificate identities; a deployment that authenticates clients via
-mTLS needs to specify how a client certificate is validated and how its
-identity is matched against the identities the endpoint trusts.
+handshake ({{?RFC8446}}), carried in the underlying transport (native QUIC
+{{?RFC9001}} or the HTTP connection underlying WebTransport). An endpoint that
+verifies a server certificate's identity does so following {{?RFC9525}};
+{{?RFC9525}} does not define verification of client certificate identities, so
+an application that authenticates clients via mTLS defines how a client
+certificate is validated and matched against the identities it trusts.
 
 mTLS can be used between relays and between a relay and an end subscriber or
-original publisher. Once a peer is authenticated, a deployment MAY use the
-authenticated identity, or attributes carried in the peer's certificate, as an
-input to authorization decisions, for example by mapping an identity to the
-namespaces or tracks it is permitted to publish or subscribe to. The
-granularity and policy of such authorization is determined by the deployment
-and is out of scope for this document.
+original publisher. Once a peer is authenticated, an application MAY use the
+authenticated identity, or attributes in the peer's certificate, as an input
+to authorization decisions; the granularity and policy of such authorization
+is out of scope for this document.
 
-Implementations using mTLS need to account for the following properties:
+Two properties of mTLS are significant for MOQT:
 
-- TLS authentication is hop-by-hop. mTLS authenticates only the immediate
-  transport peer; it does not authenticate endpoints reached through
-  intervening relays. A relay that accepts a request from an authenticated
-  peer trusts that peer's own authorization decisions for any endpoints
-  behind it. Authorization that needs to survive relaying is better carried
-  in tokens (see {{sec-tokens}}).
+- TLS authentication is hop-by-hop: it authenticates only the immediate
+  transport peer, not endpoints reached through intervening relays.
+  Authorization that needs to survive relaying is better carried in tokens
+  (see {{sec-tokens}}).
 
 - Client authentication occurs at connection establishment. Neither native
-  QUIC nor WebTransport supports requesting a client certificate after the
-  handshake completes, so mTLS cannot authenticate individual requests
-  within a session; all requests on a session share the identity
-  established at connection time.
-
-- mTLS provides confidentiality, integrity, and peer authentication for the
-  connection, but does not by itself constrain which actions an
-  authenticated peer can perform. Deployments needing per-action or
-  per-resource authorization combine mTLS with a token scheme or with a
-  local authorization policy keyed on the authenticated identity.
+  QUIC nor WebTransport can request a client certificate after the handshake,
+  so all requests on a session share the identity established at connection
+  time.
 
 ### Authorization Tokens {#sec-tokens}
 
