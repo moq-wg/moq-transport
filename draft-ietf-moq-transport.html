@@ -6608,18 +6608,21 @@ not Normal, it <span class="bcp14">MUST</span> close the session with a <code>PR
 to MOQT Object distribution. Any Object metadata never intended to be accessed
 by the transport or Relays <span class="bcp14">SHOULD</span> be serialized as part of the Object payload
 and not as an Object Property.<a href="#section-11.2.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-11.2.1.2-3">Object Properties are serialized as a length in bytes followed by
-Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-11.2.1.2-3" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-11.2.1.2-4">
+<p id="section-11.2.1.2-3">Object Properties set by the Original Publisher that are intended to be visible
+to relays, but not modified by them, <span class="bcp14">SHOULD</span> be placed in Immutable Properties
+(<a href="#immutable-properties" class="auto internal xref">Section 12.7</a>), which enables end-to-end authentication schemes.<a href="#section-11.2.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-11.2.1.2-4">Object Properties are serialized as a length in bytes followed by
+Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-11.2.1.2-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-11.2.1.2-5">
 <pre>
 Object Properties {
   Properties Length (vi64),
   Properties (..),
 }
-</pre><a href="#section-11.2.1.2-4" class="pilcrow">¶</a>
+</pre><a href="#section-11.2.1.2-5" class="pilcrow">¶</a>
 </div>
-<p id="section-11.2.1.2-5">Object Property types are registered in the IANA table
-'MOQ Properties'. See <a href="#iana" class="auto internal xref">Section 15</a>.<a href="#section-11.2.1.2-5" class="pilcrow">¶</a></p>
+<p id="section-11.2.1.2-6">Object Property types are registered in the IANA table
+'MOQ Properties'. See <a href="#iana" class="auto internal xref">Section 15</a>.<a href="#section-11.2.1.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
