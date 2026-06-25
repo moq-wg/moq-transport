@@ -3450,6 +3450,9 @@ Table of Contents
    modify it.  A subscriber can also send REQUEST_UPDATE to modify
    parameters of a subscription established with PUBLISH.
 
+   An endpoint that receives a REQUEST_UPDATE other than in the two
+   cases above MUST close the session with a PROTOCOL_VIOLATION.
+
    The receiver of a REQUEST_UPDATE MUST respond with exactly one
    REQUEST_OK or REQUEST_ERROR message indicating if the update was
    successful, unless it is coalescing failed updates to produce just

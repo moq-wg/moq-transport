@@ -5591,17 +5591,19 @@ SUBSCRIBE_OK Message {
 SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS) can later send a REQUEST_UPDATE on the
 same bidi stream as the request to modify it.  A subscriber can also send
 REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.<a href="#section-10.9-1" class="pilcrow">¶</a></p>
-<p id="section-10.9-2">The receiver of a REQUEST_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_OK
+<p id="section-10.9-2">An endpoint that receives a REQUEST_UPDATE other than in the two cases above
+<span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.9-2" class="pilcrow">¶</a></p>
+<p id="section-10.9-3">The receiver of a REQUEST_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful, unless it
 is coalescing failed updates to produce just one REQUEST_ERROR for multiple
-REQUEST_UPDATE messages.<a href="#section-10.9-2" class="pilcrow">¶</a></p>
-<p id="section-10.9-3">If a parameter previously set on the request is not present in
-<code>REQUEST_UPDATE</code>, its value remains unchanged.<a href="#section-10.9-3" class="pilcrow">¶</a></p>
-<p id="section-10.9-4">There is no mechanism to remove a parameter from a request.<a href="#section-10.9-4" class="pilcrow">¶</a></p>
-<p id="section-10.9-5">The format of REQUEST_UPDATE is as follows:<a href="#section-10.9-5" class="pilcrow">¶</a></p>
+REQUEST_UPDATE messages.<a href="#section-10.9-3" class="pilcrow">¶</a></p>
+<p id="section-10.9-4">If a parameter previously set on the request is not present in
+<code>REQUEST_UPDATE</code>, its value remains unchanged.<a href="#section-10.9-4" class="pilcrow">¶</a></p>
+<p id="section-10.9-5">There is no mechanism to remove a parameter from a request.<a href="#section-10.9-5" class="pilcrow">¶</a></p>
+<p id="section-10.9-6">The format of REQUEST_UPDATE is as follows:<a href="#section-10.9-6" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_update-message"></span><div id="moq-transport-request-update-format">
 <figure id="figure-12">
-          <div class="alignLeft art-text artwork" id="section-10.9-6.1">
+          <div class="alignLeft art-text artwork" id="section-10.9-7.1">
 <pre>
 REQUEST_UPDATE Message {
   Type (vi64) = 0x2,
@@ -5617,11 +5619,11 @@ REQUEST_UPDATE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-10.9-7.1">
-            <p id="section-10.9-7.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 10.1</a>.<a href="#section-10.9-7.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-10.9-8.1">
+            <p id="section-10.9-8.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 10.1</a>.<a href="#section-10.9-8.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-10.9-7.2">
-            <p id="section-10.9-7.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.9-7.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-10.9-8.2">
+            <p id="section-10.9-8.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.9-8.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <div id="updating-subscriptions">
