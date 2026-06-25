@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 24 December 2026                                  I. Swett, Ed.
+Expires: 27 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            22 June 2026
+                                                            25 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 December 2026.
+   This Internet-Draft will expire on 27 December 2026.
 
 Copyright Notice
 
@@ -190,7 +190,7 @@ Table of Contents
      10.17. NAMESPACE_DONE
      10.18. SUBSCRIBE_NAMESPACE
      10.19. SUBSCRIBE_TRACKS
-     10.20. PUBLISH_BLOCKED
+     10.20. PUBLISH_SKIPPED
    11. Data Streams and Datagrams
      11.1.  Track Alias
      11.2.  Objects
@@ -1906,12 +1906,15 @@ Table of Contents
    response.
 
    If a Subscription cannot be created because there are no available
-   bidirectional streams, the Publisher sends a PUBLISH_BLOCKED message
-   on the SUBSCRIBE_TRACKS response stream to indicate the Full Track
-   Name of the Subscription that could not be established.  The
-   Publisher MUST NOT send a PUBLISH for a Track after PUBLISH_BLOCKED
-   has been sent.  The subscriber can instead issue a SUBSCRIBE to
-   establish a subscription to that track.
+   bidirectional streams or any other reason, the Publisher sends a
+   PUBLISH_SKIPPED message on the SUBSCRIBE_TRACKS response stream to
+   indicate the Full Track Name of the Subscription that was not
+   created.  The Publisher MUST NOT send a PUBLISH for a Track for a
+   given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent, scoped to
+   a single PUBLISH.  If, for example, the publisher disconnects from a
+   relay and later reconnects and sends a new PUBLISH, the relay MAY
+   send the new PUBLISH downstream.  If desired, the subscriber can
+   issue a SUBSCRIBE to establish a subscription to that track.
 
    The receiver of a REQUEST_OK or REQUEST_ERROR ought to forward the
    result to the application, so the application can decide which other
@@ -2529,7 +2532,7 @@ Table of Contents
     +--------+-------------------------------------+------------------+
     |    0xE | NAMESPACE_DONE (Section 10.17)      | Request          |
     +--------+-------------------------------------+------------------+
-    |    0xF | PUBLISH_BLOCKED (Section 10.20)     | Request          |
+    |    0xF | PUBLISH_SKIPPED (Section 10.20)     | Request          |
     +--------+-------------------------------------+------------------+
     |    0x2 | REQUEST_UPDATE (Section 10.9)       | Request          |
     +--------+-------------------------------------+------------------+
@@ -4142,16 +4145,16 @@ Table of Contents
    from this SUBSCRIBE_TRACKS will set the FORWARD parameter to 1, or
    indicate that value by omitting the parameter (see Section 5.1).
 
-10.20.  PUBLISH_BLOCKED
+10.20.  PUBLISH_SKIPPED
 
-   The publisher sends the PUBLISH_BLOCKED control message to indicate
-   it cannot send a PUBLISH message to initiate a new Subscription for a
-   Track in the SUBSCRIBE_TRACKS's Track Namespace.  All PUBLISH_BLOCKED
-   messages are in response to a SUBSCRIBE_TRACKS, so only the namespace
-   tuples after the 'Track Namespace Prefix' are included in the 'Track
-   Namespace Suffix'.
+   The publisher sends the PUBLISH_SKIPPED control message to indicate
+   it will not send a PUBLISH message to initiate a new Subscription for
+   a Track in the SUBSCRIBE_TRACKS's Track Namespace.  All
+   PUBLISH_SKIPPED messages are in response to a SUBSCRIBE_TRACKS, so
+   only the namespace tuples after the 'Track Namespace Prefix' are
+   included in the 'Track Namespace Suffix'.
 
-   PUBLISH_BLOCKED Message {
+   PUBLISH_SKIPPED Message {
      Type (vi64) = 0xF,
      Length (16),
      Track Namespace Suffix (..),
@@ -4159,7 +4162,7 @@ Table of Contents
      Track Name (..),
    }
 
-                  Figure 22: MOQT PUBLISH_BLOCKED Message
+                  Figure 22: MOQT PUBLISH_SKIPPED Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 2.4.1.  The namespace begins with
