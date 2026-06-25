@@ -1659,8 +1659,7 @@ If a publisher is the Original Publisher for one or more tracks in a given
 namespace, or is a relay that has received an authorized PUBLISH_NAMESPACE for
 that namespace from an upstream publisher, it MUST send a NAMESPACE message
 that includes this namespace to any subscriber that has sent a
-SUBSCRIBE_NAMESPACE whose prefix matches this namespace. A
-publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
+SUBSCRIBE_NAMESPACE whose prefix matches this namespace.
 
 An endpoint SHOULD report the reception of a REQUEST_OK or
 REQUEST_ERROR to the application to inform the search for additional
