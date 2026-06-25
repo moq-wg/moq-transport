@@ -2312,8 +2312,7 @@ Table of Contents
    Section 7) and delivery timeout (see Section 8).
 
    A relay MUST NOT reorder or drop objects received on a multi-object
-   stream when forwarding to subscribers, unless it has application
-   specific information.
+   stream when forwarding to subscribers.
 
    Relays MAY aggregate authorized subscriptions for a given Track when
    multiple subscribers request the same Track.  Subscription
