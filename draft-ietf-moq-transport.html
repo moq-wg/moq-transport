@@ -2757,8 +2757,11 @@ arrives with a different set of unknown properties than previously cached,
 the most recent set <span class="bcp14">SHOULD</span> replace any cached values, removing any unknown
 values not present in the new set.  Relays <span class="bcp14">MUST NOT</span> attempt to merge sets
 of unknown properties received in different messages.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
-<p id="section-2.5-4">If a Relay supports a Property, it <span class="bcp14">MAY</span> be modified, added, removed, and/or
-cached, subject to the processing rules specified in the definition.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
+<p id="section-2.5-4">If a Relay supports a Property, it <span class="bcp14">MUST</span> follow the processing rules in the
+Property's definition.  Unless those rules permit otherwise, a Relay <span class="bcp14">MUST NOT</span>
+modify, add, or remove the Property; it <span class="bcp14">MUST</span> forward the Property to downstream
+subscribers and <span class="bcp14">MUST</span> cache it with the Track or Object if the Track or Object is
+cached.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
 <p id="section-2.5-5">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).
 Track Properties always appear as the final field in the messages that
 carry them; their length is the remaining bytes of the message after all
