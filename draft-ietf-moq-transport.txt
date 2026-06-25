@@ -2466,8 +2466,9 @@ Table of Contents
    forwarding, except for Object Properties as specified in Section 2.5.
 
    A relay MUST treat the object payload as opaque.  A relay MUST NOT
-   combine, split, or otherwise modify object payloads.  A relay SHOULD
-   prioritize sending Objects based on Section 7.
+   combine, split, or otherwise modify object payloads.
+
+   Relays prioritize forwarded Objects as described in Section 7.
 
 10.  Control Messages
 
