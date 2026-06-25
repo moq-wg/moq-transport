@@ -1862,7 +1862,8 @@ Table of Contents
 6.  Namespace Discovery
 
    Discovery of MOQT servers is always done out-of-band.  Namespace
-   discovery can be done in the context of an established MOQT session.
+   discovery can be done in the context of an established MOQT session
+   using SUBSCRIBE_NAMESPACE (see Section 6.1).
 
    Given sufficient out of band information, it is valid for a
    subscriber to send a SUBSCRIBE or FETCH message to a publisher
@@ -1935,12 +1936,12 @@ Table of Contents
    or FETCH for tracks in a namespace without having received a
    PUBLISH_NAMESPACE for it.
 
-   If a publisher is authoritative for a given namespace, or is a relay
-   that has received an authorized PUBLISH_NAMESPACE for that namespace
-   from an upstream publisher, it MUST send a NAMESPACE message to any
-   subscriber that has sent SUBSCRIBE_NAMESPACE for that namespace, or a
-   prefix of that namespace.  A publisher MAY send the PUBLISH_NAMESPACE
-   to any other subscriber.
+   If a publisher is the Original Publisher for one or more tracks in a
+   given namespace, or is a relay that has received an authorized
+   PUBLISH_NAMESPACE for that namespace from an upstream publisher, it
+   MUST send a NAMESPACE message that includes this namespace to any
+   subscriber that has sent a SUBSCRIBE_NAMESPACE whose prefix matches
+   this namespace.
 
    A subscriber can receive a PUBLISH_NAMESPACE on a request stream for
    a namespace that falls within an active SUBSCRIBE_NAMESPACE prefix.
