@@ -1656,12 +1656,16 @@ The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
 bidirectional stream and the publisher MUST send a single REQUEST_OK or
 REQUEST_ERROR as the first message on the bidirectional stream in response.
 
-If a Subscription cannot be created because there are no available bidirectional streams,
-the Publisher sends a PUBLISH_BLOCKED message on the SUBSCRIBE_TRACKS response
-stream to indicate the Full Track Name of the Subscription that could not be
-established. The Publisher MUST NOT send a PUBLISH for a Track after
-PUBLISH_BLOCKED has been sent.  The subscriber can instead issue a SUBSCRIBE
-to establish a subscription to that track.
+If a Subscription cannot be created because there are no available bidirectional
+streams or any other reason, the Publisher sends a PUBLISH_SKIPPED message on the
+SUBSCRIBE_TRACKS response stream to indicate the Full Track Name of the
+Subscription that was not created. The Publisher MUST NOT send a PUBLISH for a
+Track for a given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent,
+scoped to a single PUBLISH.  If, for example, the publisher disconnects from
+a relay and later reconnects and sends a new PUBLISH, the relay MAY send the new
+PUBLISH downstream.
+If desired, the subscriber can issue a SUBSCRIBE to establish a subscription to
+that track.
 
 The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
@@ -2220,7 +2224,7 @@ new request stream.
 |--------|------------------------------------------------|------------------|
 | 0xE    | NAMESPACE_DONE ({{message-namespace-done}})    | Request          |
 |--------|------------------------------------------------|------------------|
-| 0xF    | PUBLISH_BLOCKED ({{message-publish-blocked}})  | Request          |
+| 0xF    | PUBLISH_SKIPPED ({{message-publish-skipped}})  | Request          |
 |--------|------------------------------------------------|------------------|
 | 0x2    | REQUEST_UPDATE ({{message-request-update}})    | Request          |
 |--------|------------------------------------------------|------------------|
@@ -3755,16 +3759,16 @@ from this message, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
 set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 (see {{subscriptions}}).
 
-## PUBLISH_BLOCKED {#message-publish-blocked}
+## PUBLISH_SKIPPED {#message-publish-skipped}
 
-The publisher sends the `PUBLISH_BLOCKED` control message to indicate it cannot
-send a PUBLISH message to initiate a new Subscription for a Track in the
-SUBSCRIBE_TRACKS's Track Namespace. All PUBLISH_BLOCKED messages are in
+The publisher sends the `PUBLISH_SKIPPED` control message to indicate it will
+not send a PUBLISH message to initiate a new Subscription for a Track in the
+SUBSCRIBE_TRACKS's Track Namespace. All PUBLISH_SKIPPED messages are in
 response to a SUBSCRIBE_TRACKS, so only the namespace tuples after the
 'Track Namespace Prefix' are included in the 'Track Namespace Suffix'.
 
 ~~~
-PUBLISH_BLOCKED Message {
+PUBLISH_SKIPPED Message {
   Type (vi64) = 0xF,
   Length (16),
   Track Namespace Suffix (..),
@@ -3772,7 +3776,7 @@ PUBLISH_BLOCKED Message {
   Track Name (..),
 }
 ~~~
-{: #moq-transport-publish-blocked-format title="MOQT PUBLISH_BLOCKED Message"}
+{: #moq-transport-publish-blocked-format title="MOQT PUBLISH_SKIPPED Message"}
 
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}}. The namespace begins with the
