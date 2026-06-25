@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 21 December 2026                                  I. Swett, Ed.
+Expires: 27 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            19 June 2026
+                                                            25 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 December 2026.
+   This Internet-Draft will expire on 27 December 2026.
 
 Copyright Notice
 
@@ -5170,51 +5170,32 @@ EXT 1 and EXT N can be modified or removed by Relays
 13.3.1.  Mutual TLS
 
    In mutual TLS, both peers present an X.509 certificate during the TLS
-   1.3 handshake ([RFC8446]) carried within the underlying transport:
-   directly for native QUIC ([RFC9001]), or within the HTTP connection
-   underlying WebTransport.  An endpoint authenticates its peer by
-   validating the presented certificate chain to a configured trust
-   anchor, following the certificate path validation rules of [RFC5280].
-
-   An endpoint that verifies a server certificate's identity does so
-   following the procedures in [RFC9525].  [RFC9525] does not define
-   verification of client certificate identities; a deployment that
-   authenticates clients via mTLS needs to specify how a client
-   certificate is validated and how its identity is matched against the
-   identities the endpoint trusts.
+   1.3 handshake ([RFC8446]), carried in the underlying transport
+   (native QUIC [RFC9001] or the HTTP connection underlying
+   WebTransport).  An endpoint that verifies a server certificate's
+   identity does so following [RFC9525]; [RFC9525] does not define
+   verification of client certificate identities, so an application that
+   authenticates clients via mTLS defines how a client certificate is
+   validated and matched against the identities it trusts.
 
    mTLS can be used between relays and between a relay and an end
-   subscriber or original publisher.  Once a peer is authenticated, a
-   deployment MAY use the authenticated identity, or attributes carried
-   in the peer's certificate, as an input to authorization decisions,
-   for example by mapping an identity to the namespaces or tracks it is
-   permitted to publish or subscribe to.  The granularity and policy of
-   such authorization is determined by the deployment and is out of
-   scope for this document.
+   subscriber or original publisher.  Once a peer is authenticated, an
+   application MAY use the authenticated identity, or attributes in the
+   peer's certificate, as an input to authorization decisions; the
+   granularity and policy of such authorization is out of scope for this
+   document.
 
-   Implementations using mTLS need to account for the following
-   properties:
+   Two properties of mTLS are significant for MOQT:
 
-   *  TLS authentication is hop-by-hop. mTLS authenticates only the
-      immediate transport peer; it does not authenticate endpoints
-      reached through intervening relays.  A relay that accepts a
-      request from an authenticated peer trusts that peer's own
-      authorization decisions for any endpoints behind it.
-      Authorization that needs to survive relaying is better carried in
-      tokens (see Section 13.3.2).
+   *  TLS authentication is hop-by-hop: it authenticates only the
+      immediate transport peer, not endpoints reached through
+      intervening relays.  Authorization that needs to survive relaying
+      is better carried in tokens (see Section 13.3.2).
 
    *  Client authentication occurs at connection establishment.  Neither
-      native QUIC nor WebTransport supports requesting a client
-      certificate after the handshake completes, so mTLS cannot
-      authenticate individual requests within a session; all requests on
-      a session share the identity established at connection time.
-
-   *  mTLS provides confidentiality, integrity, and peer authentication
-      for the connection, but does not by itself constrain which actions
-      an authenticated peer can perform.  Deployments needing per-action
-      or per-resource authorization combine mTLS with a token scheme or
-      with a local authorization policy keyed on the authenticated
-      identity.
+      native QUIC nor WebTransport can request a client certificate
+      after the handshake, so all requests on a session share the
+      identity established at connection time.
 
 13.3.2.  Authorization Tokens
 
@@ -6041,12 +6022,6 @@ Informative References
               auth-02, 2 March 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
               privacy-pass-auth-02>.
-
-   [RFC5280]  Cooper, D., Santesson, S., Farrell, S., Boeyen, S.,
-              Housley, R., and W. Polk, "Internet X.509 Public Key
-              Infrastructure Certificate and Certificate Revocation List
-              (CRL) Profile", RFC 5280, DOI 10.17487/RFC5280, May 2008,
-              <https://www.rfc-editor.org/rfc/rfc5280>.
 
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
