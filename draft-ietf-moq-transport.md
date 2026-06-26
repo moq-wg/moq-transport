@@ -2025,7 +2025,8 @@ multiple subscribers request the same Track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 Track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
-Because MOQT restricts widening a subscription, relays that
+Because changing the range of an established subscription is not retroactive
+and can create gaps that require FETCH requests to fill, relays that
 aggregate upstream subscriptions can subscribe using the Largest Object
 filter to avoid churn as downstream subscribers with disparate filters
 subscribe and unsubscribe from a Track.
