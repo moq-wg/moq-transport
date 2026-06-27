@@ -4923,7 +4923,8 @@ integrity and endpoint authentication between subscriber and
 publisher. Implementations use QUIC or WebTransport to fulfill
 the basic communication security requirements and these
 implementations SHOULD follow best practices for TLS 1.3 and QUIC.
-Relays MUST use authentication to prevent impersonation.
+Relays MUST use authentication to prevent impersonation
+({{preventing-impersonation}}).
 
 Note that the basic security protection offered by QUIC or TCP/TLS
 does not prevent traffic pattern analysis. Object sizes, sizes of
@@ -4962,7 +4963,7 @@ the specific token scheme used. Token schemes such as {{CAT}} and
 {{PPA}} include requirements for relays when processing tokens and
 requests.
 
-### Preventing Impersonation
+### Preventing Impersonation {#preventing-impersonation}
 
 A relay MUST ensure that a client cannot publish to namespaces or
 tracks belonging to another identity. Impersonation occurs when a
@@ -4978,7 +4979,7 @@ client certificate, establishing the client's identity or
 authorization scope.
 
 2. Proof of possession: When using token-based authentication
-(e.g., {{CAT}}), the token SHOULD be bound to a client-held key via
+(e.g., {{CAT}}), the token MUST be bound to a client-held key via
 a confirmation claim. The client demonstrates possession of that
 key on each operation, ensuring a stolen or leaked token cannot be
 used by a different party.
