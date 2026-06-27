@@ -3737,7 +3737,9 @@ SUBSCRIBE_TRACKS Message {
   receives a Track Namespace Prefix consisting of greater than 32 Track
   Namespace Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}, though they
+  are handled differently from the same Parameters on Subscriptions, as outlined
+  below.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream. If the subscriber receives any message other than a REQUEST_OK or a
@@ -3760,12 +3762,21 @@ SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
 a subscriber.  It is useful for subscribers that are
 only interested in or authorized to access a subset of available tracks.
 
-If the FORWARD parameter ({{forward-parameter}}) is present in this message and
-equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
-the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
-from this message, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
-set the FORWARD parameter to 1, or indicate that value by omitting the parameter
-(see {{subscriptions}}).
+### Parameters on SUBSCRIBE_TRACKS
+
+Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
+in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are copied
+over as the default Subscription parameters when a PUBLISH is sent as a result of
+SUBSCRIBE_TRACKS. The Parmeters MUST still be included with the resulting PUBLISHes
+to ensure there is no ambiguity about the state of the Subscription.
+
+For example, if the FORWARD parameter ({{forward-parameter}}) is present on
+SUBSCRIBE_TRACKS and equal to 0, PUBLISH messages resulting from this
+SUBSCRIBE_TRACKS will set the FORWARD parameter to 0. If the FORWARD parameter
+is equal to 1, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
+set the FORWARD parameter to 1. And if FORWARD is omitted from this message,
+the parameter will be omitted from the PUBLISH.
+
 
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
