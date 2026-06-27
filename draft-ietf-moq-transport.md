@@ -1427,8 +1427,8 @@ if it receives more than one.
 All `Established` subscriptions have a Forward State which is either 0 or 1.
 The publisher does not send Objects if the Forward State is 0, and does send them
 if the Forward State is 1.  The initiator of the subscription sets the initial
-Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_OK
-or REQUEST_UPDATE to update the Forward State. Control messages, such as
+Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send
+REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
 
 A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
@@ -1469,7 +1469,7 @@ incurring additional latency.
 Publishers MAY start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with REQUEST_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
+with REQUEST_ERROR. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 {{datagrams}} and {{subgroup-header}}).
 
@@ -1563,7 +1563,7 @@ is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
-To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE or
 REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
 {{joining-fetches}}) for the intended start Group, which can be relative.
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
@@ -2055,10 +2055,10 @@ to the old relay can be cancelled (see {{request-cancellation}}).
 There are two ways to publish through a relay:
 
 1. Send a PUBLISH message for a specific Track to the relay. The relay MAY
-respond with PUBLISH_OK in Forward State=0 until there are known subscribers for
-new Tracks.
+update the Subscription with REQUEST_UPDATE in Forward State=0 until there are
+known subscribers for new Tracks.
 
-2. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
+3. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
 enables the relay to send SUBSCRIBE or FETCH messages to publishers for Tracks
 in this Namespace in response to requests received from subscribers.
 
@@ -2460,7 +2460,7 @@ that alias has not received a response.
 ### SUBGROUP_DELIVERY_TIMEOUT Parameter {#subgroup-delivery-timeout}
 
 The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a varint. It
-MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.  Its
+MAY appear in a PUBLISH, SUBSCRIBE, or REQUEST_UPDATE message.  Its
 semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
@@ -2470,7 +2470,7 @@ for the same track.
 ### OBJECT_DELIVERY_TIMEOUT Parameter {#object-delivery-timeout}
 
 The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a varint. It
-MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.  Its
+MAY appear in a PUBLISH, SUBSCRIBE, or REQUEST_UPDATE message.  Its
 semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
@@ -2530,17 +2530,17 @@ If RENDEZVOUS_TIMEOUT is absent, the default is 0.
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It MAY
 appear in a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
-or PUBLISH_OK message. It is an integer expressing the priority of a
+or PUBLISH message. It is an integer expressing the priority of a
 subscription relative to other subscriptions and fetch responses in the same
 session. Lower numbers get higher priority. See {{priorities}}.
 
-If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
+If omitted from SUBSCRIBE, PUBLISH or FETCH, the publisher uses
 the value 128.
 
 ### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8. It MAY appear in a
-SUBSCRIBE, PUBLISH_OK, or FETCH.
+SUBSCRIBE, PUBLISH, or FETCH.
 
 Its value indicates how to prioritize Objects from different groups within
 the same subscription (see {{priorities}}), or how to order Groups in a Fetch
@@ -2554,10 +2554,10 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 ### SUBSCRIPTION FILTER Parameter {#subscription-filter}
 
 The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It MAY appear in a SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a
+encoding. It MAY appear in a SUBSCRIBE, PUBLISH or REQUEST_UPDATE (for a
 subscription) message. It is a Subscription Filter (see {{subscription-filters}}).
 
-If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
+If omitted from SUBSCRIBE or PUBLISH, the subscription is
 unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
 ### EXPIRES Parameter {#expires}
@@ -2601,7 +2601,7 @@ PUBLISH, or REQUEST_UPDATE_OK
 ### FORWARD Parameter {#forward-parameter}
 
 The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
-SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
+SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH and
 SUBSCRIBE_TRACKS. It specifies the Forwarding State on affected subscriptions
 (see {{subscriptions}}). The allowed values are 0 (don't forward) or 1 (forward).
 If an endpoint receives a value outside this range, it MUST close the session
@@ -2614,10 +2614,10 @@ message, the default value is 1.
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
 The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint. It MAY appear
-in PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
+in SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
-this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
+this parameter in REQUEST_UPDATE if the Track did not
 include the DYNAMIC_GROUPS Property with value 1.  A subscriber MAY
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
@@ -4530,7 +4530,7 @@ If omitted, the publisher's preference is Ascending (0x1).
 DYNAMIC_GROUPS (Property Type 0x30) is a Track Property.
 The allowed values are 0 or 1. When the value is 1, it indicates
 that the subscriber can request the Original Publisher to start a new Group
-by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
+by including the NEW_GROUP_REQUEST parameter in REQUEST_UPDATE
 for this Track. If an endpoint receives a value larger than 1, it MUST close
 the session with `PROTOCOL_VIOLATION`.
 
