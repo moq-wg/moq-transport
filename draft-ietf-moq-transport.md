@@ -1107,20 +1107,42 @@ Subscriptions on the replaying client's behalf.
 Relays MAY defer initiating upstream subscriptions until the handshake is complete
 or reject 0-RTT entirely to mitigate resource exhaustion from replayed packets.
 
+### Graceful Request Stream Closure {#graceful-request-closure}
+
+A request stream is bidirectional and each direction is closed independently,
+either gracefully with a FIN or abruptly with RESET_STREAM.
+
+A FIN only indicates that an endpoint will send no further messages in that
+direction; it is not a request cancellation. An endpoint MUST NOT send a FIN on
+a direction of a request stream until it has sent all required messages on that
+direction for its request type. In particular, an endpoint sending a response to
+a request MUST send the corresponding response message, and the publisher of an
+`Established` subscription MUST send PUBLISH_DONE, before sending a FIN. A FIN
+sent by the responder after its response and any subsequent messages for the
+request signals that the request is complete; if it has not already done so, the
+requester SHOULD then send a FIN on its direction, gracefully closing the stream.
+An endpoint that receives a FIN before all required messages have arrived treats
+the request as failed.
+
+An endpoint SHOULD send a FIN immediately after a message when it has nothing
+further to send on that direction and will not need to respond to a future
+REQUEST_UPDATE. A requester, with the exception of the sender of PUBLISH,
+MAY FIN immediately after sending a message if it will not send a
+REQUEST_UPDATE.
+
 ### Request Cancellation and Rejection {#request-cancellation}
 
 Once a request stream has been opened, the request MAY be cancelled by either
 endpoint. Senders cancel requests if the response is no longer of interest;
 Receivers cancel requests if they are unable to or choose not to respond.
+Implementations cancel a request by abruptly terminating any directions of the
+stream that are still open, using RESET_STREAM for a direction they are sending
+and STOP_SENDING for a direction they are receiving. An endpoint that has
+already sent a FIN on its sending direction and subsequently wishes to cancel
+sends STOP_SENDING on the receiving direction.
 
-Implementations SHOULD cancel requests by abruptly terminating any directions of
-a stream that are still open by resetting or sending STOP_SENDING.
-
-When an endpoint rejects a request without performing any application processing,
-it SHOULD send a REQUEST_ERROR and FIN the stream.
-
-The application SHOULD use a relevant error code when resetting or sending
-STOP_SENDING on a request stream, as defined in {{stream-reset-codes}}.
+When an endpoint rejects a request without performing any application
+processing, it SHOULD send a REQUEST_ERROR and FIN the stream.
 
 ### Stream Reset Error Codes {#stream-reset-codes}
 
@@ -1675,8 +1697,9 @@ The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
-A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS can be cancelled by closing the
-stream with either a FIN or RESET_STREAM. Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
+A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS is cancelled as described in
+{{request-cancellation}}, by resetting or sending STOP_SENDING on the stream.
+Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
 from sending further PUBLISH messages, but relays MUST NOT
 send any further PUBLISH messages to a client without knowing the client is
 interested in and authorized to receive the content.
@@ -3148,8 +3171,8 @@ When a REQUEST_UPDATE is unsuccessful, the publisher MUST also terminate
 the subscription by sending a
 PUBLISH_DONE with error code `UPDATE_FAILED`. When a REQUEST_UPDATE fails for
 a FETCH, the publisher MUST reset the FETCH data stream. When a REQUEST_UPDATE
-fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder MUST close
-the bidi stream.
+fails for a SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS or PUBLISH_NAMESPACE, the
+responder MUST close the bidi stream (see {{graceful-request-closure}}).
 
 A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
 coalesce their processing by applying only the cumulative result.
@@ -3245,8 +3268,7 @@ subscription state to enforce the subgroup delivery timeout.
 
 A sender MUST NOT destroy subscription state until it sends PUBLISH_DONE, though
 it can choose to stop sending objects (and thus send PUBLISH_DONE) for any
-reason. A sender SHOULD send FIN on the subscription's bidi stream immediately
-after sending PUBLISH_DONE.
+reason.
 
 A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least the
 larger of SUBGROUP_DELIVERY_TIMEOUT or OBJECT_DELIVERY_TIMEOUT in case some
@@ -4030,10 +4052,8 @@ Header field values.
 Streams aside from the control streams MAY be canceled due to congestion
 or other reasons by either the publisher or subscriber. Early termination of a
 unidirectional stream does not affect the MOQT application state, and therefore has
-no effect on outstanding subscriptions. Termination of a bidi request stream
-terminates the Subscription, Fetch, Track Status, Publish Namespace, or Subscribe Namespace
-request. When possible, Publishers SHOULD send a PUBLISH_DONE when terminating a
-subscription instead of abruptly terminating the associated control stream.
+no effect on outstanding subscriptions. Closing a bidirectional request stream is
+governed by {{request-cancellation}}.
 
 ### Subgroup Header
 
