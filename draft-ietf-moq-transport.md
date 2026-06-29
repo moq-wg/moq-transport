@@ -2910,9 +2910,9 @@ Redirect {
   Track Name are the literal values for the redirected request.
 
   Track Name is not meaningful for namespace-scoped requests
-  (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE) and MUST be empty; an endpoint that
-  receives a non-empty Track Name in a Redirect for a namespace-scoped request
-  MUST close the session with a `PROTOCOL_VIOLATION`.
+  (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and MUST be empty;
+  an endpoint that receives a non-empty Track Name in a Redirect for a
+  namespace-scoped request MUST close the session with a `PROTOCOL_VIOLATION`.
 
 ### REQUEST_ERROR Message Format
 
