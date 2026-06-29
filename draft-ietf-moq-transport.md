@@ -2907,6 +2907,10 @@ Redirect {
   receives a non-empty Track Name in a Redirect for a namespace-scoped request
   MUST close the session with a `PROTOCOL_VIOLATION`.
 
+A Redirect with a zero-length Connect URI, Track Namespace, and Track Name does
+not change the URI or Full Track Name for the retry, making it equivalent to any
+other REQUEST_ERROR carrying a Retry Interval.
+
 ### REQUEST_ERROR Message Format
 
 ~~~
@@ -2984,7 +2988,10 @@ REDIRECT:
 : The request cannot be fulfilled by this endpoint, but could succeed at the
 location specified in the Redirect structure. The requester SHOULD establish a
 new session to the provided URI (if present) and retry the request using the
-Full Track Name from the Redirect (if present). This error code can appear in
+Full Track Name from the Redirect (if present). A Retry Interval of 0 indicates
+the original request SHOULD NOT be retried at the current URI and Full Track
+Name; it does not prevent the requester from following a Redirect to a different
+URI or Full Track Name. This error code can appear in
 response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
 redirects from upstream
