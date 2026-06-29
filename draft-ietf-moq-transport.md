@@ -2635,9 +2635,9 @@ The sender MUST NOT have more than MAX_REQUEST_UPDATES outstanding
 REQUEST_UPDATEs on any single request stream at a time. Each REQUEST_OK
 or REQUEST_ERROR response restores one unit of capacity on that stream.
 
-The value is encoded as a variable-length integer. If not present, the default
-value is 2^64 - 1. A value of 0 means the endpoint will not accept any
-REQUEST_UPDATEs.
+The value is encoded as a variable-length integer. A value of 0 means the
+endpoint does not limit REQUEST_UPDATE concurrency. If not present, the default
+value is 0.
 
 If an endpoint receives a REQUEST_UPDATE on a stream that already has
 MAX_REQUEST_UPDATES outstanding REQUEST_UPDATEs, it MUST close the session
