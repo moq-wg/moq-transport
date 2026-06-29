@@ -934,7 +934,7 @@ TODO: Add internationalization statement per RFC 7595 Section 3.6.
 If the port is omitted in the URI, a default port of 443 is used.
 
 The client MAY use either native QUIC or WebTransport. On a QUIC connection,
-the client offers any combination of MOQT ALPNs (e.g. `moqt/1`, `moqt/2`)
+the client offers any combination of MOQT ALPNs (e.g. `moqt-1`, `moqt-2`)
 and `h3` that it supports in its TLS ClientHello, in preference order. If the
 server selects an MOQT ALPN, the session proceeds as described in
 {{native-quic}}. If the server selects `h3`, the client establishes a
