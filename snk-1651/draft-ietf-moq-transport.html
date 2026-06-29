@@ -17,22 +17,23 @@ reliability. MOQT operates both point-to-point and through intermediate relays,
 enabling scalable low-latency delivery. Despite its name, MOQT is media
 agnostic and can be used for a wide range of use cases. 
     " name="description">
-<meta content="xml2rfc 3.33.0" name="generator">
+<meta content="xml2rfc 3.34.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.33.0
-    Python 3.12.13
-    ConfigArgParse 1.7
+  xml2rfc 3.34.0
+    Python 3.14.5
+    ConfigArgParse 1.7.5
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
-    lxml 6.0.2
-    platformdirs 4.9.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.10.0
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.7.0
+    wcwidth 0.8.1
 -->
 <link href="draft-ietf-moq-transport.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1055,7 +1056,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 20 December 2026</td>
+<td class="center">Expires 31 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1069,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-18" class="published">18 June 2026</time>
+<time datetime="2026-06-29" class="published">29 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-20">20 December 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-31">31 December 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1143,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 20 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 31 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1278,13 +1279,16 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                     <p id="section-toc.1-1.3.2.1.2.2.1"><a href="#section-3.1.2" class="auto internal xref">3.1.2</a>.  <a href="#name-fragment-identifiers" class="internal xref">Fragment Identifiers</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.3">
-                    <p id="section-toc.1-1.3.2.1.2.3.1"><a href="#section-3.1.3" class="auto internal xref">3.1.3</a>.  <a href="#name-webtransport" class="internal xref">WebTransport</a></p>
+                    <p id="section-toc.1-1.3.2.1.2.3.1"><a href="#section-3.1.3" class="auto internal xref">3.1.3</a>.  <a href="#name-dereferencing-a-moqt-uri" class="internal xref">Dereferencing a MOQT URI</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.4">
-                    <p id="section-toc.1-1.3.2.1.2.4.1"><a href="#section-3.1.4" class="auto internal xref">3.1.4</a>.  <a href="#name-native-quic" class="internal xref">Native QUIC</a></p>
+                    <p id="section-toc.1-1.3.2.1.2.4.1"><a href="#section-3.1.4" class="auto internal xref">3.1.4</a>.  <a href="#name-webtransport" class="internal xref">WebTransport</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.5">
-                    <p id="section-toc.1-1.3.2.1.2.5.1"><a href="#section-3.1.5" class="auto internal xref">3.1.5</a>.  <a href="#name-connection-url" class="internal xref">Connection URL</a></p>
+                    <p id="section-toc.1-1.3.2.1.2.5.1"><a href="#section-3.1.5" class="auto internal xref">3.1.5</a>.  <a href="#name-native-quic" class="internal xref">Native QUIC</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.6">
+                    <p id="section-toc.1-1.3.2.1.2.6.1"><a href="#section-3.1.6" class="auto internal xref">3.1.6</a>.  <a href="#name-connection-url" class="internal xref">Connection URL</a></p>
 </li>
                 </ul>
 </li>
@@ -1320,7 +1324,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.3.2.5.1"><a href="#section-3.5" class="auto internal xref">3.5</a>.  <a href="#name-termination" class="internal xref">Termination</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.6">
-                <p id="section-toc.1-1.3.2.6.1"><a href="#section-3.6" class="auto internal xref">3.6</a>.  <a href="#name-migration" class="internal xref">Migration</a></p>
+                <p id="section-toc.1-1.3.2.6.1"><a href="#section-3.6" class="auto internal xref">3.6</a>.  <a href="#name-session-migration" class="internal xref">Session Migration</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.7">
                 <p id="section-toc.1-1.3.2.7.1"><a href="#section-3.7" class="auto internal xref">3.7</a>.  <a href="#name-congestion-control" class="internal xref">Congestion Control</a></p>
@@ -1564,7 +1568,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.10.2.19.1"><a href="#section-10.19" class="auto internal xref">10.19</a>. <a href="#name-subscribe_tracks" class="internal xref">SUBSCRIBE_TRACKS</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.20">
-                <p id="section-toc.1-1.10.2.20.1"><a href="#section-10.20" class="auto internal xref">10.20</a>. <a href="#name-publish_blocked" class="internal xref">PUBLISH_BLOCKED</a></p>
+                <p id="section-toc.1-1.10.2.20.1"><a href="#section-10.20" class="auto internal xref">10.20</a>. <a href="#name-publish_skipped" class="internal xref">PUBLISH_SKIPPED</a></p>
 </li>
             </ul>
 </li>
@@ -1738,22 +1742,25 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.15.2.8.1"><a href="#section-15.8" class="auto internal xref">15.8</a>.  <a href="#name-properties-2" class="internal xref">Properties</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.9">
-                <p id="section-toc.1-1.15.2.9.1"><a href="#section-15.9" class="auto internal xref">15.9</a>.  <a href="#name-session-level-track-names" class="internal xref">Session-Level Track Names</a></p>
+                <p id="section-toc.1-1.15.2.9.1"><a href="#section-15.9" class="auto internal xref">15.9</a>.  <a href="#name-object-status-2" class="internal xref">Object Status</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.10">
-                <p id="section-toc.1-1.15.2.10.1"><a href="#section-15.10" class="auto internal xref">15.10</a>. <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
+                <p id="section-toc.1-1.15.2.10.1"><a href="#section-15.10" class="auto internal xref">15.10</a>. <a href="#name-session-level-track-names" class="internal xref">Session-Level Track Names</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.11">
+                <p id="section-toc.1-1.15.2.11.1"><a href="#section-15.11" class="auto internal xref">15.11</a>. <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.10.2.1">
-                    <p id="section-toc.1-1.15.2.10.2.1.1"><a href="#section-15.10.1" class="auto internal xref">15.10.1</a>.  <a href="#name-session-termination-error-c" class="internal xref">Session Termination Error Codes</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.11.2.1">
+                    <p id="section-toc.1-1.15.2.11.2.1.1"><a href="#section-15.11.1" class="auto internal xref">15.11.1</a>.  <a href="#name-session-termination-error-c" class="internal xref">Session Termination Error Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.10.2.2">
-                    <p id="section-toc.1-1.15.2.10.2.2.1"><a href="#section-15.10.2" class="auto internal xref">15.10.2</a>.  <a href="#name-request_error-codes" class="internal xref">REQUEST_ERROR Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.11.2.2">
+                    <p id="section-toc.1-1.15.2.11.2.2.1"><a href="#section-15.11.2" class="auto internal xref">15.11.2</a>.  <a href="#name-request_error-codes" class="internal xref">REQUEST_ERROR Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.10.2.3">
-                    <p id="section-toc.1-1.15.2.10.2.3.1"><a href="#section-15.10.3" class="auto internal xref">15.10.3</a>.  <a href="#name-publish_done-codes" class="internal xref">PUBLISH_DONE Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.11.2.3">
+                    <p id="section-toc.1-1.15.2.11.2.3.1"><a href="#section-15.11.3" class="auto internal xref">15.11.3</a>.  <a href="#name-publish_done-codes" class="internal xref">PUBLISH_DONE Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.10.2.4">
-                    <p id="section-toc.1-1.15.2.10.2.4.1"><a href="#section-15.10.4" class="auto internal xref">15.10.4</a>.  <a href="#name-stream-reset-error-codes-2" class="internal xref">Stream Reset Error Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.11.2.4">
+                    <p id="section-toc.1-1.15.2.11.2.4.1"><a href="#section-15.11.4" class="auto internal xref">15.11.4</a>.  <a href="#name-stream-reset-error-codes-2" class="internal xref">Stream Reset Error Codes</a></p>
 </li>
                 </ul>
 </li>
@@ -2012,20 +2019,26 @@ QUIC transport or WebTransport.<a href="#section-1.2-3.28.1" class="pilcrow">¶<
           <dd class="break"></dd>
 <dt id="section-1.2-3.31">Group:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.32">
-            <p id="section-1.2-3.32.1">A temporal sequence of objects. A group represents a join point in a
-track. See (<a href="#model-group" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-3.32.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.32.1">A collection of objects within a track. A group represents a join point
+in a track. See (<a href="#model-group" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-3.32.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.33">Object:</dt>
+<dt id="section-1.2-3.33">Subgroup:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.34">
-            <p id="section-1.2-3.34.1">An object is an addressable unit whose payload is a sequence of
-bytes. Objects form the base element in the MOQT data model. See
-(<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-3.34.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.34.1">A sequence of one or more objects from the same group, sent on a single
+transport stream whenever possible. See (<a href="#model-subgroup" class="auto internal xref">Section 2.2</a>).<a href="#section-1.2-3.34.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.35">Track:</dt>
+<dt id="section-1.2-3.35">Object:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.36">
-            <p id="section-1.2-3.36.1">A track is a collection of groups. See (<a href="#model-track" class="auto internal xref">Section 2.4</a>).<a href="#section-1.2-3.36.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.36.1">An object is an addressable unit whose payload is a sequence of
+bytes. Objects form the base element in the MOQT data model. See
+(<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-3.36.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-3.37">Track:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-3.38">
+            <p id="section-1.2-3.38.1">A track is a collection of groups. See (<a href="#model-track" class="auto internal xref">Section 2.4</a>).<a href="#section-1.2-3.38.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -2324,7 +2337,7 @@ the one that created the text.<a href="#section-1.4.4-3.2.1" class="pilcrow">¶<
 </div>
 </section>
 </div>
-<div id="representing-namespace-and-track-names">
+<div id="namespace-name-format">
 <section id="section-1.5">
         <h3 id="name-representing-namespace-and-">
 <a href="#section-1.5" class="section-number selfRef">1.5. </a><a href="#name-representing-namespace-and-" class="section-name selfRef">Representing Namespace and Track Names</a>
@@ -2432,25 +2445,27 @@ payload portion may be encrypted, in which case it is only visible to the
 Original Publisher and End Subscribers. The Original Publisher is solely
 responsible for the content of the object payload. This includes the
 underlying encoding, compression, any end-to-end encryption, or
-authentication. A relay <span class="bcp14">MUST NOT</span> combine, split, or otherwise modify object
-payloads.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
-<p id="section-2.1-3">Objects within a Group are in ascending order by Object ID.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
-<p id="section-2.1-4">From the perspective of a subscriber or a cache, an Object can be in three
-possible states:<a href="#section-2.1-4" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-2.1-5">
-<li id="section-2.1-5.1">
-            <p id="section-2.1-5.1.1">The Object is known to not exist. This state is permanent.  All signals
-that an Object does not exist are authoritative.<a href="#section-2.1-5.1.1" class="pilcrow">¶</a></p>
+authentication.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
+<p id="section-2.1-3">From the perspective of a subscriber or a cache, an Object can be in three
+possible states:<a href="#section-2.1-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-2.1-4">
+<li id="section-2.1-4.1">
+            <p id="section-2.1-4.1.1">The Object is known to not exist. This state is permanent.  All signals
+that an Object does not exist are authoritative.<a href="#section-2.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-2.1-5.2">
-            <p id="section-2.1-5.2.1">The Object is known to exist. From this state, it can transition to not
-existing, but not vice versa.<a href="#section-2.1-5.2.1" class="pilcrow">¶</a></p>
+          <li id="section-2.1-4.2">
+            <p id="section-2.1-4.2.1">The Object is known to exist. From this state, it can transition to not
+existing, but not vice versa.<a href="#section-2.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-2.1-5.3">
-            <p id="section-2.1-5.3.1">The state of the Object is unknown, either because it has not yet been
-received, or it has not been produced yet.<a href="#section-2.1-5.3.1" class="pilcrow">¶</a></p>
+          <li id="section-2.1-4.3">
+            <p id="section-2.1-4.3.1">The state of the Object is unknown, either because it has not yet been
+received, or it has not been produced yet.<a href="#section-2.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
+<p id="section-2.1-5">A gap in the observed Object IDs does not by itself convey any information about
+the skipped Objects. Skipped Objects remain in the unknown state until they are
+received or their non-existence is signalled, for example in a FETCH stream (see
+<a href="#fetch-header" class="auto internal xref">Section 11.4.4</a>) or via a Prior Object ID Gap (see <a href="#prior-object-id-gap" class="auto internal xref">Section 12.9</a>).<a href="#section-2.1-5" class="pilcrow">¶</a></p>
 <p id="section-2.1-6">Since Objects can be delivered out of order, an endpoint can receive an Object
 after it has already recorded that the Object does not exist (e.g., via a FETCH
 gap from one source and later delivery via a subscription).  This is not a
@@ -2745,8 +2760,11 @@ arrives with a different set of unknown properties than previously cached,
 the most recent set <span class="bcp14">SHOULD</span> replace any cached values, removing any unknown
 values not present in the new set.  Relays <span class="bcp14">MUST NOT</span> attempt to merge sets
 of unknown properties received in different messages.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
-<p id="section-2.5-4">If a Relay supports a Property, it <span class="bcp14">MAY</span> be modified, added, removed, and/or
-cached, subject to the processing rules specified in the definition.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
+<p id="section-2.5-4">If a Relay supports a Property, it <span class="bcp14">MUST</span> follow the processing rules in the
+Property's definition.  Unless those rules permit otherwise, a Relay <span class="bcp14">MUST NOT</span>
+modify, add, or remove the Property; it <span class="bcp14">MUST</span> forward the Property to downstream
+subscribers and <span class="bcp14">MUST</span> cache it with the Track or Object if the Track or Object is
+cached.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
 <p id="section-2.5-5">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).
 Track Properties always appear as the final field in the messages that
 carry them; their length is the remaining bytes of the message after all
@@ -2758,7 +2776,7 @@ See <a href="#iana" class="auto internal xref">Section 15</a>.<a href="#section-
 use and will never be allocated by IANA in future MOQT specifications:<a href="#section-2.5-7" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-2.5-8.1">
-            <p id="section-2.5-8.1.1">0x38 to 0x3F (1-byte encoding): 8 code points for applications with
+            <p id="section-2.5-8.1.1">0x78 to 0x7F (1-byte encoding): 8 code points for applications with
 tight space constraints<a href="#section-2.5-8.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.5-8.2">
@@ -2875,7 +2893,7 @@ The <code>moqt</code> URI scheme supports the <code>/.well-known/</code> path pr
 the <code>authority</code>, <code>path-abempty</code>, and <code>query</code> components, including the
 use of reserved characters and percent-encoding defined therein.  A <code>moqt</code>
 URI can be converted to an <code>https</code> URI by replacing the scheme (see
-<a href="#webtransport" class="auto internal xref">Section 3.1.3</a>), so the <code>path-abempty</code> and <code>query</code> components use the same
+<a href="#webtransport" class="auto internal xref">Section 3.1.4</a>), so the <code>path-abempty</code> and <code>query</code> components use the same
 syntax as <code>https</code> URIs.<a href="#section-3.1.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2902,56 +2920,63 @@ semantics of the value after the colon are defined by the specification
 that registers the fragment type.<a href="#section-3.1.2-5" class="pilcrow">¶</a></p>
 <p id="section-3.1.2-6">Fragment type identifiers are registered in the "MOQT URI Fragment
 Types" registry (<a href="#iana-fragment-types" class="auto internal xref">Section 15.3</a>).<a href="#section-3.1.2-6" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-7">The default operation for dereferencing a <code>moqt</code> URI is to establish a
-MOQT session to the identified server.<a href="#section-3.1.2-7" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-8">TODO: Add URI scheme security considerations per RFC 7595 Section 3.7
-(e.g., authority in SNI, path/query exposure).<a href="#section-3.1.2-8" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-9">TODO: Add internationalization statement per RFC 7595 Section 3.6.<a href="#section-3.1.2-9" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-10">If the port is omitted in the URI, a default port of 443 is used.<a href="#section-3.1.2-10" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-11">The client <span class="bcp14">MAY</span> use either native QUIC or WebTransport. On a QUIC connection,
+</section>
+</div>
+<div id="dereferencing-a-moqt-uri">
+<section id="section-3.1.3">
+          <h4 id="name-dereferencing-a-moqt-uri">
+<a href="#section-3.1.3" class="section-number selfRef">3.1.3. </a><a href="#name-dereferencing-a-moqt-uri" class="section-name selfRef">Dereferencing a MOQT URI</a>
+          </h4>
+<p id="section-3.1.3-1">The default operation for dereferencing a <code>moqt</code> URI is to establish a
+MOQT session to the identified server.<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-2">TODO: Add URI scheme security considerations per RFC 7595 Section 3.7
+(e.g., authority in SNI, path/query exposure).<a href="#section-3.1.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-3">TODO: Add internationalization statement per RFC 7595 Section 3.6.<a href="#section-3.1.3-3" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-4">If the port is omitted in the URI, a default port of 443 is used.<a href="#section-3.1.3-4" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-5">The client <span class="bcp14">MAY</span> use either native QUIC or WebTransport. On a QUIC connection,
 the client offers any combination of MOQT ALPNs (e.g. <code>moqt/1</code>, <code>moqt/2</code>)
 and <code>h3</code> that it supports in its TLS ClientHello, in preference order. If the
 server selects an MOQT ALPN, the session proceeds as described in
-<a href="#native-quic" class="auto internal xref">Section 3.1.4</a>. If the server selects <code>h3</code>, the client establishes a
-WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.3</a>. On a TCP+TLS
+<a href="#native-quic" class="auto internal xref">Section 3.1.5</a>. If the server selects <code>h3</code>, the client establishes a
+WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a>. On a TCP+TLS
 connection, the client offers <code>h2</code> in its TLS ClientHello and establishes a
-WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.3</a>.<a href="#section-3.1.2-11" class="pilcrow">¶</a></p>
+WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a>.<a href="#section-3.1.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="webtransport">
-<section id="section-3.1.3">
+<section id="section-3.1.4">
           <h4 id="name-webtransport">
-<a href="#section-3.1.3" class="section-number selfRef">3.1.3. </a><a href="#name-webtransport" class="section-name selfRef">WebTransport</a>
+<a href="#section-3.1.4" class="section-number selfRef">3.1.4. </a><a href="#name-webtransport" class="section-name selfRef">WebTransport</a>
           </h4>
-<p id="section-3.1.3-1">When the client uses WebTransport, it constructs an <code>https</code> URI from the <code>moqt</code>
+<p id="section-3.1.4-1">When the client uses WebTransport, it constructs an <code>https</code> URI from the <code>moqt</code>
 URI by replacing the scheme with <code>https</code>.
 For example, <code>moqt://example.com/path</code> becomes
 <code>https://example.com/path</code>. The client sends an extended CONNECT request to this
 URI to establish a WebTransport session, as described in
 (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-3" class="relref">Section 3</a></span>). The client includes MOQT protocol identifiers in
-the WT-Available-Protocols header (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-3.3" class="relref">Section 3.3</a></span>).<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
+the WT-Available-Protocols header (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-3.3" class="relref">Section 3.3</a></span>).<a href="#section-3.1.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="native-quic">
-<section id="section-3.1.4">
+<section id="section-3.1.5">
           <h4 id="name-native-quic">
-<a href="#section-3.1.4" class="section-number selfRef">3.1.4. </a><a href="#name-native-quic" class="section-name selfRef">Native QUIC</a>
+<a href="#section-3.1.5" class="section-number selfRef">3.1.5. </a><a href="#name-native-quic" class="section-name selfRef">Native QUIC</a>
           </h4>
-<p id="section-3.1.4-1">The client establishes a QUIC connection to the host and port identified by the
+<p id="section-3.1.5-1">The client establishes a QUIC connection to the host and port identified by the
 <code>authority</code> section of the URI.
 When the client uses native QUIC, the <code>authority</code>, <code>path-abempty</code> and <code>query</code>
-portions of the URI are transmitted in Setup Options (see <a href="#setup-options" class="auto internal xref">Section 10.3.1</a>).<a href="#section-3.1.4-1" class="pilcrow">¶</a></p>
+portions of the URI are transmitted in Setup Options (see <a href="#setup-options" class="auto internal xref">Section 10.3.1</a>).<a href="#section-3.1.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="connection-url">
-<section id="section-3.1.5">
+<section id="section-3.1.6">
           <h4 id="name-connection-url">
-<a href="#section-3.1.5" class="section-number selfRef">3.1.5. </a><a href="#name-connection-url" class="section-name selfRef">Connection URL</a>
+<a href="#section-3.1.6" class="section-number selfRef">3.1.6. </a><a href="#name-connection-url" class="section-name selfRef">Connection URL</a>
           </h4>
-<p id="section-3.1.5-1">Each track <span class="bcp14">MAY</span> have one or more associated connection URLs specifying
+<p id="section-3.1.6-1">Each track <span class="bcp14">MAY</span> have one or more associated connection URLs specifying
 network hosts through which a track may be accessed. The syntax of the
 Connection URL and the associated connection setup procedures are
-specific to the underlying transport protocol usage (see <a href="#session" class="auto internal xref">Section 3</a>).<a href="#section-3.1.5-1" class="pilcrow">¶</a></p>
+specific to the underlying transport protocol usage (see <a href="#session" class="auto internal xref">Section 3</a>).<a href="#section-3.1.6-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3013,7 +3038,7 @@ or namespace <span class="bcp14">MUST</span> reject it with REQUEST_ERROR using 
 DOES_NOT_EXIST rather than passing it to the Application.<a href="#section-3.2.2-4" class="pilcrow">¶</a></p>
 <p id="section-3.2.2-5">The track names and namespaces available under the <code>.session</code> namespace are
 defined by extensions to this specification and registered with IANA (see
-<a href="#iana-session-level-tracks" class="auto internal xref">Section 15.9</a>).<a href="#section-3.2.2-5" class="pilcrow">¶</a></p>
+<a href="#iana-session-level-tracks" class="auto internal xref">Section 15.10</a>).<a href="#section-3.2.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3037,7 +3062,9 @@ begin with any other message type unless negotiated. If they do, the peer <span 
 close the Session with a <code>PROTOCOL_VIOLATION</code>. Objects are sent on unidirectional
 streams.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">As such, a client can initiate a MOQT session, subscribe, and
-start publishing Objects all in parallel.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+start publishing Objects all in parallel. When this is done before the
+handshake completes using 0-RTT, the security implications described in
+<a href="#zero-rtt" class="auto internal xref">Section 3.3.1</a> apply.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 <p id="section-3.3-4">Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
 the data <span class="bcp14">SHOULD</span> be buffered until both control streams arrive and setup is
@@ -3053,7 +3080,7 @@ be used prior to receiving the peer's SETUP message unless the application
 requires the extension or the endpoint knows the peer supports the
 extension. If an unsupported Message Parameter is used, the peer will be
 unable to process it and the session will be terminated. See <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-3.3-6" class="pilcrow">¶</a></p>
-<div id="rtt">
+<div id="zero-rtt">
 <section id="section-3.3.1">
           <h4 id="name-0-rtt">
 <a href="#section-3.3.1" class="section-number selfRef">3.3.1. </a><a href="#name-0-rtt" class="section-name selfRef">0-RTT</a>
@@ -3370,30 +3397,33 @@ this choice.<a href="#section-3.5-4" class="pilcrow">¶</a></p>
 </div>
 <div id="session-migration">
 <section id="section-3.6">
-        <h3 id="name-migration">
-<a href="#section-3.6" class="section-number selfRef">3.6. </a><a href="#name-migration" class="section-name selfRef">Migration</a>
+        <h3 id="name-session-migration">
+<a href="#section-3.6" class="section-number selfRef">3.6. </a><a href="#name-session-migration" class="section-name selfRef">Session Migration</a>
         </h3>
 <p id="section-3.6-1">MOQT requires a long-lived and stateful session. However, a service
 provider needs the ability to shutdown/restart a server without waiting for all
 sessions to drain naturally, as that can take days for long-form media.
 MOQT enables proactively draining sessions via the GOAWAY message (<a href="#message-goaway" class="auto internal xref">Section 10.4</a>).<a href="#section-3.6-1" class="pilcrow">¶</a></p>
-<p id="section-3.6-2">The server sends a GOAWAY message, signaling the client to establish a new
+<p id="section-3.6-2">A GOAWAY on the control stream migrates the entire session, as described in
+this section. A GOAWAY on a single request stream instead migrates only that
+request, leaving the rest of the session in place; see <a href="#message-goaway" class="auto internal xref">Section 10.4</a>.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
+<p id="section-3.6-3">The server sends a GOAWAY message, signaling the client to establish a new
 session and migrate any <code>Established</code> subscriptions. The GOAWAY message optionally
 contains a new URI for the new session, otherwise the current URI is
 reused. The GOAWAY message contains a Timeout indicating how long, in
 milliseconds, the sender intends to wait before closing the session. The sender
 <span class="bcp14">SHOULD</span> close the session with <code>GOAWAY_TIMEOUT</code> after the indicated timeout if
-there are still open subscriptions or fetches on a connection.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
-<p id="section-3.6-3">When the server is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message to downstream
-subscribers prior to unsubscribing from upstream publishers.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
-<p id="section-3.6-4">After the client receives a GOAWAY, it's <span class="bcp14">RECOMMENDED</span> that the client waits until
+there are still open subscriptions or fetches on a connection.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
+<p id="section-3.6-4">When the server is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message to downstream
+subscribers prior to unsubscribing from upstream publishers.<a href="#section-3.6-4" class="pilcrow">¶</a></p>
+<p id="section-3.6-5">After the client receives a GOAWAY, it's <span class="bcp14">RECOMMENDED</span> that the client waits until
 there are no more <code>Established</code> subscriptions before closing the session with NO_ERROR.
 Ideally this is transparent to the application using MOQT, which involves
 establishing a new session in the background and migrating <code>Established</code> subscriptions
 and published namespaces. The client can choose to delay closing the session if
 it expects more OBJECTs to be delivered. The sender closes the session with a
 <code>GOAWAY_TIMEOUT</code> if the peer doesn't close the session within the
-indicated Timeout.<a href="#section-3.6-4" class="pilcrow">¶</a></p>
+indicated Timeout.<a href="#section-3.6-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="congestion-control">
@@ -3730,7 +3760,8 @@ results in error.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-namespace-discovery" class="section-name selfRef">Namespace Discovery</a>
       </h2>
 <p id="section-6-1">Discovery of MOQT servers is always done out-of-band. Namespace discovery can be
-done in the context of an established MOQT session.<a href="#section-6-1" class="pilcrow">¶</a></p>
+done in the context of an established MOQT session using SUBSCRIBE_NAMESPACE
+(see <a href="#subscribing-to-namespaces" class="auto internal xref">Section 6.1</a>).<a href="#section-6-1" class="pilcrow">¶</a></p>
 <p id="section-6-2">Given sufficient out of band information, it is valid for a subscriber to send a
 SUBSCRIBE or FETCH message to a publisher (including a relay) without any
 previous MOQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH and
@@ -3744,7 +3775,9 @@ for a namespace.<a href="#section-6-2" class="pilcrow">¶</a></p>
         </h3>
 <p id="section-6.1-1">If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS to publishers/relays it has established
-a session with.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+a session with. The Track Namespace Prefix carried in these messages is
+compared against the namespaces known to the receiver using Namespace Prefix
+Matching (<a href="#namespace-prefix-matching" class="auto internal xref">Section 9.5, Paragraph 6</a>).<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.1-2">SUBSCRIBE_NAMESPACE requests namespace discovery: the publisher sends relevant
 NAMESPACE and NAMESPACE_DONE messages for namespaces matching the prefix,
 including echoing back Track Namespaces under the prefix that have been published
@@ -3754,23 +3787,31 @@ messages for tracks within matching namespaces, excluding tracks published
 by the subscriber.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 <p id="section-6.1-4">Either message with zero Track Namespace fields indicates the sender is
 interested in all namespaces or all tracks from the receiver, respectively.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
-<p id="section-6.1-5">The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
+<p id="section-6.1-5">By sending SUBSCRIBE_NAMESPACE, the subscriber indicates that it trusts the
+relay to be authoritative for namespaces matching the requested prefix.
+NAMESPACE messages received on the SUBSCRIBE_NAMESPACE response stream inherit
+this trust and do not independently carry authorization.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
+<p id="section-6.1-6">The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
 bidirectional stream and the publisher <span class="bcp14">MUST</span> send a single REQUEST_OK or
-REQUEST_ERROR as the first message on the bidirectional stream in response.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
-<p id="section-6.1-6">If a Subscription cannot be created because there are no available bidirectional streams,
-the Publisher sends a PUBLISH_BLOCKED message on the SUBSCRIBE_TRACKS response
-stream to indicate the Full Track Name of the Subscription that could not be
-established. The Publisher <span class="bcp14">MUST NOT</span> send a PUBLISH for a Track after
-PUBLISH_BLOCKED has been sent.  The subscriber can instead issue a SUBSCRIBE
-to establish a subscription to that track.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
-<p id="section-6.1-7">The receiver of a REQUEST_OK or REQUEST_ERROR ought to
+REQUEST_ERROR as the first message on the bidirectional stream in response.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
+<p id="section-6.1-7">If a Subscription cannot be created because there are no available bidirectional
+streams or any other reason, the Publisher sends a PUBLISH_SKIPPED message on the
+SUBSCRIBE_TRACKS response stream to indicate the Full Track Name of the
+Subscription that was not created. The Publisher <span class="bcp14">MUST NOT</span> send a PUBLISH for a
+Track for a given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent,
+scoped to a single PUBLISH.  If, for example, the publisher disconnects from
+a relay and later reconnects and sends a new PUBLISH, the relay <span class="bcp14">MAY</span> send the new
+PUBLISH downstream.
+If desired, the subscriber can issue a SUBSCRIBE to establish a subscription to
+that track.<a href="#section-6.1-7" class="pilcrow">¶</a></p>
+<p id="section-6.1-8">The receiver of a REQUEST_OK or REQUEST_ERROR ought to
 forward the result to the application, so the application can decide which other
-publishers to contact, if any.<a href="#section-6.1-7" class="pilcrow">¶</a></p>
-<p id="section-6.1-8">A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS can be cancelled by closing the
+publishers to contact, if any.<a href="#section-6.1-8" class="pilcrow">¶</a></p>
+<p id="section-6.1-9">A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS can be cancelled by closing the
 stream with either a FIN or RESET_STREAM. Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
 from sending further PUBLISH messages, but relays <span class="bcp14">MUST NOT</span>
 send any further PUBLISH messages to a client without knowing the client is
-interested in and authorized to receive the content.<a href="#section-6.1-8" class="pilcrow">¶</a></p>
+interested in and authorized to receive the content.<a href="#section-6.1-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="publishing-namespaces">
@@ -3782,35 +3823,42 @@ interested in and authorized to receive the content.<a href="#section-6.1-8" cla
 PUBLISH_NAMESPACE indicates to the subscriber that the publisher has tracks
 available in that namespace. A subscriber <span class="bcp14">MAY</span> send SUBSCRIBE or FETCH for tracks
 in a namespace without having received a PUBLISH_NAMESPACE for it.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.2-2">If a publisher is authoritative for a given namespace, or is a relay that has
-received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
-publisher, it <span class="bcp14">MUST</span> send a NAMESPACE message to any subscriber that has
-sent SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
-namespace. A publisher <span class="bcp14">MAY</span> send the PUBLISH_NAMESPACE to any other subscriber.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
-<p id="section-6.2-3">An endpoint <span class="bcp14">SHOULD</span> report the reception of a REQUEST_OK or
+<p id="section-6.2-2">If a publisher is the Original Publisher for one or more tracks in a given
+namespace, or is a relay that has received an authorized PUBLISH_NAMESPACE for
+that namespace from an upstream publisher, it <span class="bcp14">MUST</span> send a NAMESPACE message
+that includes this namespace to any subscriber that has sent a
+SUBSCRIBE_NAMESPACE whose prefix matches this namespace.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+<p id="section-6.2-3">A subscriber can receive a PUBLISH_NAMESPACE on a request stream for a
+namespace that falls within an active SUBSCRIBE_NAMESPACE prefix. This
+occurs when SUBSCRIBE_NAMESPACE or its response is in flight at the same time
+as a PUBLISH_NAMESPACE, or when an original publisher sends PUBLISH_NAMESPACE
+to advertise namespaces within the prefix being discovered. Such a
+PUBLISH_NAMESPACE is valid and <span class="bcp14">MAY</span> carry an AUTHORIZATION TOKEN parameter.
+Its lifetime is independent of the SUBSCRIBE_NAMESPACE stream.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.2-4">An endpoint <span class="bcp14">SHOULD</span> report the reception of a REQUEST_OK or
 REQUEST_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
 namespace. A
 subscriber <span class="bcp14">MUST</span> send exactly one REQUEST_OK or REQUEST_ERROR as the first
 message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
-<span class="bcp14">SHOULD</span> close the session with a protocol error if it receives more than one.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
-<p id="section-6.2-4">A PUBLISH_NAMESPACE is withdrawn by cancelling the request
+<span class="bcp14">SHOULD</span> close the session with a protocol error if it receives more than one.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2-5">A PUBLISH_NAMESPACE is withdrawn by cancelling the request
 (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>), although it is not a protocol error for
 the subscriber to send a SUBSCRIBE or FETCH message for a track in a
-namespace after the namespace is withdrawn.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2-5">A subscriber can cancel the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>) to revoke
+namespace after the namespace is withdrawn.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.2-6">A subscriber can cancel the request (see <a href="#request-cancellation" class="auto internal xref">Section 3.3.2</a>) to revoke
 acceptance of a PUBLISH_NAMESPACE. If the reason for cancellation is expiration
 of authorization credentials, the publisher can send PUBLISH_NAMESPACE again
 on a new bidi stream with refreshed authorization, or close the stream and
-discard associated state.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
-<p id="section-6.2-6">While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
+discard associated state.<a href="#section-6.2-6" class="pilcrow">¶</a></p>
+<p id="section-6.2-7">While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
 subscribers, it is not a full-fledged routing protocol and does not protect
 against loops and other phenomena. In particular, PUBLISH_NAMESPACE <span class="bcp14">SHOULD NOT</span>
-be used to find paths through richly connected networks of relays.<a href="#section-6.2-6" class="pilcrow">¶</a></p>
-<p id="section-6.2-7">A subscriber <span class="bcp14">MAY</span> send a SUBSCRIBE or FETCH for a track to any publisher. If it
+be used to find paths through richly connected networks of relays.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
+<p id="section-6.2-8">A subscriber <span class="bcp14">MAY</span> send a SUBSCRIBE or FETCH for a track to any publisher. If it
 has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
 namespace for that track, it <span class="bcp14">SHOULD</span> only request it from the senders of those
-PUBLISH_NAMESPACE messages.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
+PUBLISH_NAMESPACE messages.<a href="#section-6.2-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3852,24 +3900,27 @@ priorities.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
 <p id="section-7.1-5">A <code>priority number</code>is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.<a href="#section-7.1-5" class="pilcrow">¶</a></p>
 <p id="section-7.1-6"><code>Subscriber Priority</code> is a priority number associated with an individual
-request.  It is specified in the SUBSCRIBE or FETCH message, and can be
-updated via REQUEST_UPDATE message.  The subscriber priority of an individual
-schedulable object is the subscriber priority of the request that caused that
-object to be sent. When subscriber priority is changed, a best effort <span class="bcp14">SHOULD</span> be
+request.  It is carried in the SUBSCRIBER_PRIORITY parameter
+(<a href="#subscriber-priority" class="auto internal xref">Section 10.2.7</a>), and can be updated.  The subscriber priority of an
+individual schedulable object is the subscriber priority of the request that
+caused that object to be sent. When subscriber priority is changed, a best
+effort <span class="bcp14">SHOULD</span> be
 made to apply the change to all objects that have not been scheduled, but it is
 implementation dependent what happens to objects that have already been
 scheduled.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
 <p id="section-7.1-7"><code>Publisher Priority</code> is a priority number associated with an individual
-schedulable object.  A default can be specified in the parameters of PUBLISH, or
-SUBSCRIBE_OK. Publisher priority can also be specified in a subgroup header or
-datagram (see <a href="#data-streams" class="auto internal xref">Section 11</a>).<a href="#section-7.1-7" class="pilcrow">¶</a></p>
+schedulable object.  A default for the subscription is specified in the
+DEFAULT_PUBLISHER_PRIORITY Track Property (<a href="#publisher-priority" class="auto internal xref">Section 12.4</a>). Publisher
+priority can also be set per subgroup or datagram in the subgroup header or
+datagram (see <a href="#data-streams" class="auto internal xref">Section 11</a>), which overrides the default.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
 <p id="section-7.1-8"><code>Group Order</code> is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE or SUBSCRIBE_TRACKS
-message; the publisher's preference is used if the subscriber did not express
-one (by omitting the Group Order parameter).  The group order of an existing
-subscription cannot be changed.<a href="#section-7.1-8" class="pilcrow">¶</a></p>
+message; the publisher's preference, carried in the
+DEFAULT_PUBLISHER_GROUP_ORDER Track Property (<a href="#group-order-pref" class="auto internal xref">Section 12.5</a>), is used if
+the subscriber did not express one (by omitting the Group Order parameter). The
+group order of an existing subscription cannot be changed.<a href="#section-7.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="scheduling-algorithm">
@@ -4158,7 +4209,7 @@ subscription's filter (see <a href="#message-subscribe-req" class="auto internal
 to the priority (see <a href="#priorities" class="auto internal xref">Section 7</a>) and delivery timeout (see
 <a href="#delivery-timeouts" class="auto internal xref">Section 8</a>).<a href="#section-9.4-3" class="pilcrow">¶</a></p>
 <p id="section-9.4-4">A relay <span class="bcp14">MUST NOT</span> reorder or drop objects received on a multi-object stream when
-forwarding to subscribers, unless it has application specific information.<a href="#section-9.4-4" class="pilcrow">¶</a></p>
+forwarding to subscribers.<a href="#section-9.4-4" class="pilcrow">¶</a></p>
 <p id="section-9.4-5">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given Track when
 multiple subscribers request the same Track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
@@ -4225,11 +4276,13 @@ PUBLISH_NAMESPACE request.<a href="#section-9.5-4" class="pilcrow">¶</a></p>
 <p id="section-9.5-5">A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
 Track Name is matched exactly against existing upstream subscriptions.<a href="#section-9.5-5" class="pilcrow">¶</a></p>
+<div id="namespace-prefix-matching">
 <p id="section-9.5-6">Namespace Prefix Matching is further used to decide which publishers receive a
 SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the fields
 in the Track Namespace are matched sequentially, requiring an exact match for
 each field. If the published or subscribed Track Namespace has the same or fewer
 fields than the Track Namespace in the message, it qualifies as a match.<a href="#section-9.5-6" class="pilcrow">¶</a></p>
+</div>
 <p id="section-9.5-7">For example:
 A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
 that sent PUBLISH_NAMESPACE messages with namespace=(foo) or namespace=(foo,
@@ -4306,8 +4359,8 @@ allowed by the property's specification (see <a href="#properties" class="auto i
 A relay <span class="bcp14">MUST NOT</span> modify Object fields when forwarding, except for
 Object Properties as specified in <a href="#properties" class="auto internal xref">Section 2.5</a>.<a href="#section-9.7-1" class="pilcrow">¶</a></p>
 <p id="section-9.7-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
-combine, split, or otherwise modify object payloads.  A relay <span class="bcp14">SHOULD</span>
-prioritize sending Objects based on <a href="#priorities" class="auto internal xref">Section 7</a>.<a href="#section-9.7-2" class="pilcrow">¶</a></p>
+combine, split, or otherwise modify object payloads.<a href="#section-9.7-2" class="pilcrow">¶</a></p>
+<p id="section-9.7-3">Relays prioritize forwarded Objects as described in <a href="#priorities" class="auto internal xref">Section 7</a>.<a href="#section-9.7-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4327,7 +4380,7 @@ formatted as follows:<a href="#section-10-1" class="pilcrow">¶</a></p>
 MOQT Control Message {
   Message Type (vi64),
   Message Length (16),
-  Message Payload (..),
+  Message Body (..),
 }
 </pre>
 </div>
@@ -4452,7 +4505,7 @@ new request stream.<a href="#section-10-3" class="pilcrow">¶</a></p>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xF</td>
-            <td class="text-left" rowspan="1" colspan="1">PUBLISH_BLOCKED (<a href="#message-publish-blocked" class="auto internal xref">Section 10.20</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">PUBLISH_SKIPPED (<a href="#message-publish-skipped" class="auto internal xref">Section 10.20</a>)</td>
             <td class="text-left" rowspan="1" colspan="1">Request</td>
           </tr>
           <tr>
@@ -4474,9 +4527,9 @@ new request stream.<a href="#section-10-3" class="pilcrow">¶</a></p>
       </table>
 <p id="section-10-5">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.
 Control messages have a length to make parsing easier, but no control messages
-are intended to be ignored. The length is set to the number of bytes in Message
-Payload, which is defined by each message type.  If the length does not match
-the length of the Message Payload, the receiver <span class="bcp14">MUST</span> close the session with a
+are intended to be ignored. The length is set to the number of bytes in the
+Message Body, which is defined by each message type.  If the length does not
+match the length of the Message Body, the receiver <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-10-5" class="pilcrow">¶</a></p>
 <div id="request-id">
 <section id="section-10.1">
@@ -4554,7 +4607,8 @@ Parameter <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_
 has to understand every Message Parameter, there is no need for a mechanism to
 skip unknown parameters. Because unknown parameters cannot be skipped, the block
 is bounded by a parameter count rather than a length.<a href="#section-10.2-6" class="pilcrow">¶</a></p>
-<p id="section-10.2-7">The Message Parameter types defined in this version of MOQT are listed below.<a href="#section-10.2-7" class="pilcrow">¶</a></p>
+<p id="section-10.2-7">The Message Parameter types defined in this version of MOQT are defined in
+the following subsections.<a href="#section-10.2-7" class="pilcrow">¶</a></p>
 <p id="section-10.2-8">Senders <span class="bcp14">MUST NOT</span> repeat the same Parameter Type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers <span class="bcp14">SHOULD</span> check that there are no
@@ -5007,7 +5061,7 @@ allow duplicates of unknown Setup Options.<a href="#section-10.3-5" class="pilcr
 <a href="#section-10.3.1.1" class="section-number selfRef">10.3.1.1. </a><a href="#name-authority" class="section-name selfRef">AUTHORITY</a>
             </h5>
 <p id="section-10.3.1.1-1">The AUTHORITY option (Option Type 0x05) allows the client to specify the
-authority component of the MoQ URI when using native QUIC (<a href="#native-quic" class="auto internal xref">Section 3.1.4</a>).  It <span class="bcp14">MUST NOT</span> be used by the server, or when WebTransport is used.  When an AUTHORITY
+authority component of the MoQ URI when using native QUIC (<a href="#native-quic" class="auto internal xref">Section 3.1.5</a>).  It <span class="bcp14">MUST NOT</span> be used by the server, or when WebTransport is used.  When an AUTHORITY
 option is received from a server, or when an AUTHORITY option is received
 while WebTransport is used, or when an AUTHORITY option is received by a
 server but the server does not support the specified authority, the session <span class="bcp14">MUST</span>
@@ -5025,7 +5079,7 @@ these rules, the session <span class="bcp14">MUST</span> be closed with <code>MA
 <a href="#section-10.3.1.2" class="section-number selfRef">10.3.1.2. </a><a href="#name-path" class="section-name selfRef">PATH</a>
             </h5>
 <p id="section-10.3.1.2-1">The PATH option (Option Type 0x01) allows the client to specify the path
-of the MoQ URI when using native QUIC (<a href="#native-quic" class="auto internal xref">Section 3.1.4</a>).  It <span class="bcp14">MUST NOT</span> be used by
+of the MoQ URI when using native QUIC (<a href="#native-quic" class="auto internal xref">Section 3.1.5</a>).  It <span class="bcp14">MUST NOT</span> be used by
 the server, or when WebTransport is used.  When a PATH parameter is received
 from a server, or when a PATH parameter is received while WebTransport is used,
 or when a PATH parameter is received by a server but the server does not
@@ -5110,7 +5164,9 @@ servers to initiate connections.<a href="#section-10.4-1" class="pilcrow">¶</a>
 that individual request.  Upon receiving a GOAWAY on a request stream, the
 endpoint <span class="bcp14">SHOULD</span> re-issue that specific request on a session at the specified
 URI (or the current session if no URI is provided), and close the old request
-stream using the appropriate mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).<a href="#section-10.4-2" class="pilcrow">¶</a></p>
+stream using the appropriate mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).
+This allows, for example, moving the publishers and subscribers of a common set
+of tracks to a common relay without draining their entire session.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
 <p id="section-10.4-3">The GOAWAY message does not impact subscription state. A subscriber
 <span class="bcp14">SHOULD</span> individually UNSUBSCRIBE for each existing subscription, while a
 publisher <span class="bcp14">MAY</span> reject new requests after sending a GOAWAY.<a href="#section-10.4-3" class="pilcrow">¶</a></p>
@@ -5135,7 +5191,6 @@ GOAWAY Message {
   New Session URI Length (vi64),
   New Session URI (..),
   Timeout (vi64),
-  [Request ID (vi64)],
 }
 </pre>
 </div>
@@ -5165,18 +5220,6 @@ When sent on a request stream, the sender <span class="bcp14">SHOULD</span> rese
 specific timeout, but the recipient <span class="bcp14">SHOULD</span> migrate as quickly as
 possible. This is a hint; the sender of the GOAWAY <span class="bcp14">MAY</span> close the session or
 reset the request stream before the indicated timeout has elapsed.<a href="#section-10.4-8.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-10.4-8.3">
-            <p id="section-10.4-8.3.1">Request ID: Present only when sent on the control stream.  The smallest peer
-Request ID that was not or might not have been processed prior to sending the
-GOAWAY. If no requests have been processed, this is 0 (at a server) or 1 (at a
-client). If the parity of the Request ID does not match the receiver's parity,
-the endpoint <span class="bcp14">MUST</span> close the session with <code>INVALID_REQUEST_ID</code>. Requests with a
-Request ID equal to or greater than the indicated value, as well as any
-requests that arrive after the GOAWAY, <span class="bcp14">MUST</span> be rejected with REQUEST_ERROR
-using error code GOING_AWAY. Requests with a Request ID less than the indicated
-value were or might have been processed; their status can be determined from
-the response on each request stream.<a href="#section-10.4-8.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5314,7 +5357,7 @@ sent again, plus one. If the value is 0, the request <span class="bcp14">SHOULD 
 </li>
           </ul>
 <p id="section-10.6.2-3">The application <span class="bcp14">SHOULD</span> use a relevant error code in REQUEST_ERROR,
-as defined below and assigned in <a href="#iana-request-error" class="auto internal xref">Section 15.10.2</a>. Most codepoints have
+as defined below and assigned in <a href="#iana-request-error" class="auto internal xref">Section 15.11.2</a>. Most codepoints have
 identical meanings for various request types, but some have request-specific
 meanings.<a href="#section-10.6.2-3" class="pilcrow">¶</a></p>
 <p id="section-10.6.2-4">If a request is retryable with the same parameters at a later time, the sender
@@ -5386,8 +5429,9 @@ with the same role as an existing subscription.<a href="#section-10.6.2-5.20.1" 
 location specified in the Redirect structure. The requester <span class="bcp14">SHOULD</span> establish a
 new session to the provided URI (if present) and retry the request using the
 Full Track Name from the Redirect (if present). This error code can appear in
-response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH_NAMESPACE and
-SUBSCRIBE_NAMESPACE. Relays are not required to follow redirects from upstream
+response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
+SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
+redirects from upstream
 and <span class="bcp14">MAY</span> forward a REDIRECT response to matching downstream requests. A relay
 <span class="bcp14">MAY</span> cache a REDIRECT response for a Full Track Name for up to Retry Interval
 milliseconds and use it to respond to subsequent matching requests without
@@ -5550,17 +5594,19 @@ SUBSCRIBE_OK Message {
 SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS) can later send a REQUEST_UPDATE on the
 same bidi stream as the request to modify it.  A subscriber can also send
 REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.<a href="#section-10.9-1" class="pilcrow">¶</a></p>
-<p id="section-10.9-2">The receiver of a REQUEST_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_OK
+<p id="section-10.9-2">An endpoint that receives a REQUEST_UPDATE other than in the two cases above
+<span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.9-2" class="pilcrow">¶</a></p>
+<p id="section-10.9-3">The receiver of a REQUEST_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_OK
 or REQUEST_ERROR message indicating if the update was successful, unless it
 is coalescing failed updates to produce just one REQUEST_ERROR for multiple
-REQUEST_UPDATE messages.<a href="#section-10.9-2" class="pilcrow">¶</a></p>
-<p id="section-10.9-3">If a parameter previously set on the request is not present in
-<code>REQUEST_UPDATE</code>, its value remains unchanged.<a href="#section-10.9-3" class="pilcrow">¶</a></p>
-<p id="section-10.9-4">There is no mechanism to remove a parameter from a request.<a href="#section-10.9-4" class="pilcrow">¶</a></p>
-<p id="section-10.9-5">The format of REQUEST_UPDATE is as follows:<a href="#section-10.9-5" class="pilcrow">¶</a></p>
+REQUEST_UPDATE messages.<a href="#section-10.9-3" class="pilcrow">¶</a></p>
+<p id="section-10.9-4">If a parameter previously set on the request is not present in
+<code>REQUEST_UPDATE</code>, its value remains unchanged.<a href="#section-10.9-4" class="pilcrow">¶</a></p>
+<p id="section-10.9-5">There is no mechanism to remove a parameter from a request.<a href="#section-10.9-5" class="pilcrow">¶</a></p>
+<p id="section-10.9-6">The format of REQUEST_UPDATE is as follows:<a href="#section-10.9-6" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_update-message"></span><div id="moq-transport-request-update-format">
 <figure id="figure-12">
-          <div class="alignLeft art-text artwork" id="section-10.9-6.1">
+          <div class="alignLeft art-text artwork" id="section-10.9-7.1">
 <pre>
 REQUEST_UPDATE Message {
   Type (vi64) = 0x2,
@@ -5576,11 +5622,11 @@ REQUEST_UPDATE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-10.9-7.1">
-            <p id="section-10.9-7.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 10.1</a>.<a href="#section-10.9-7.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-10.9-8.1">
+            <p id="section-10.9-8.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 10.1</a>.<a href="#section-10.9-8.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-10.9-7.2">
-            <p id="section-10.9-7.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.9-7.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-10.9-8.2">
+            <p id="section-10.9-8.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.9-8.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <div id="updating-subscriptions">
@@ -6292,11 +6338,11 @@ SUBSCRIBE_NAMESPACE Message {
           <li class="normal" id="section-10.18-3.2">
             <p id="section-10.18-3.2.1">Track Namespace Prefix: A Track Namespace structure as described in
 <a href="#track-name" class="auto internal xref">Section 2.4.1</a> with between 0 and 32 Track Namespace Fields.  This prefix is
-matched against track namespaces known to the publisher.  For example, if the
-publisher is a relay that has received PUBLISH_NAMESPACE messages for
-namespaces ("example.com", "meeting=123", "participant=100") and
-("example.com", "meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for
-("example.com", "meeting=123") would match both.  If an endpoint receives a
+matched against track namespaces known to the publisher.  For example, using
+the serialized format from <a href="#namespace-name-format" class="auto internal xref">Section 1.5</a>, if the publisher is a
+relay that has received PUBLISH_NAMESPACE messages for namespaces
+<code>example.2ecom-123-100</code> and <code>example.2ecom-123-200</code>, a SUBSCRIBE_NAMESPACE for
+<code>example.2ecom-123</code> would match both.  If an endpoint receives a
 Track Namespace Prefix consisting of greater than 32 Track Namespace
 Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.18-3.2.1" class="pilcrow">¶</a></p>
 </li>
@@ -6404,21 +6450,21 @@ SUBSCRIBE_TRACKS will use the publisher's default group order preference
 (see <a href="#group-order-pref" class="auto internal xref">Section 12.5</a>).<a href="#section-10.19-9" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="message-publish-blocked">
+<div id="message-publish-skipped">
 <section id="section-10.20">
-        <h3 id="name-publish_blocked">
-<a href="#section-10.20" class="section-number selfRef">10.20. </a><a href="#name-publish_blocked" class="section-name selfRef">PUBLISH_BLOCKED</a>
+        <h3 id="name-publish_skipped">
+<a href="#section-10.20" class="section-number selfRef">10.20. </a><a href="#name-publish_skipped" class="section-name selfRef">PUBLISH_SKIPPED</a>
         </h3>
-<p id="section-10.20-1">The publisher sends the <code>PUBLISH_BLOCKED</code> control message to indicate it cannot
-send a PUBLISH message to initiate a new Subscription for a Track in the
-SUBSCRIBE_TRACKS's Track Namespace. All PUBLISH_BLOCKED messages are in
+<p id="section-10.20-1">The publisher sends the <code>PUBLISH_SKIPPED</code> control message to indicate it will
+not send a PUBLISH message to initiate a new Subscription for a Track in the
+SUBSCRIBE_TRACKS's Track Namespace. All PUBLISH_SKIPPED messages are in
 response to a SUBSCRIBE_TRACKS, so only the namespace tuples after the
 'Track Namespace Prefix' are included in the 'Track Namespace Suffix'.<a href="#section-10.20-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-publish_blocked-messag"></span><div id="moq-transport-publish-blocked-format">
+<span id="name-moqt-publish_skipped-messag"></span><div id="moq-transport-publish-blocked-format">
 <figure id="figure-22">
           <div class="alignLeft art-text artwork" id="section-10.20-2.1">
 <pre>
-PUBLISH_BLOCKED Message {
+PUBLISH_SKIPPED Message {
   Type (vi64) = 0xF,
   Length (16),
   Track Namespace Suffix (..),
@@ -6428,7 +6474,7 @@ PUBLISH_BLOCKED Message {
 </pre>
 </div>
 <figcaption><a href="#figure-22" class="selfRef">Figure 22</a>:
-<a href="#name-moqt-publish_blocked-messag" class="selfRef">MOQT PUBLISH_BLOCKED Message</a>
+<a href="#name-moqt-publish_skipped-messag" class="selfRef">MOQT PUBLISH_SKIPPED Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
@@ -6562,7 +6608,10 @@ Subgroup is signaled by closing its stream with a FIN
 (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.4.3</a>).<a href="#section-11.2.1.1-5" class="pilcrow">¶</a></p>
 <p id="section-11.2.1.1-6">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and the session <span class="bcp14">SHOULD</span>
 be closed with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).
-Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-11.2.1.1-6" class="pilcrow">¶</a></p>
+An Object <span class="bcp14">MUST</span> have an empty payload unless its Object Status value is
+registered as permitting a payload in the Object Status registry
+(<a href="#iana-object-status" class="auto internal xref">Section 15.9</a>). Of the values defined in this document, only Normal
+(0x0) permits a payload.<a href="#section-11.2.1.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="object-properties">
@@ -6577,18 +6626,21 @@ not Normal, it <span class="bcp14">MUST</span> close the session with a <code>PR
 to MOQT Object distribution. Any Object metadata never intended to be accessed
 by the transport or Relays <span class="bcp14">SHOULD</span> be serialized as part of the Object payload
 and not as an Object Property.<a href="#section-11.2.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-11.2.1.2-3">Object Properties are serialized as a length in bytes followed by
-Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-11.2.1.2-3" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-11.2.1.2-4">
+<p id="section-11.2.1.2-3">Object Properties set by the Original Publisher that are intended to be visible
+to relays, but not modified by them, <span class="bcp14">SHOULD</span> be placed in Immutable Properties
+(<a href="#immutable-properties" class="auto internal xref">Section 12.7</a>), which enables end-to-end authentication schemes.<a href="#section-11.2.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-11.2.1.2-4">Object Properties are serialized as a length in bytes followed by
+Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-11.2.1.2-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-11.2.1.2-5">
 <pre>
 Object Properties {
   Properties Length (vi64),
   Properties (..),
 }
-</pre><a href="#section-11.2.1.2-4" class="pilcrow">¶</a>
+</pre><a href="#section-11.2.1.2-5" class="pilcrow">¶</a>
 </div>
-<p id="section-11.2.1.2-5">Object Property types are registered in the IANA table
-'MOQ Properties'. See <a href="#iana" class="auto internal xref">Section 15</a>.<a href="#section-11.2.1.2-5" class="pilcrow">¶</a></p>
+<p id="section-11.2.1.2-6">Object Property types are registered in the IANA table
+'MOQ Properties'. See <a href="#iana" class="auto internal xref">Section 15</a>.<a href="#section-11.2.1.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -7314,7 +7366,7 @@ SUBGROUP_HEADER {
 <p id="section-12-1">The following Properties are defined in MOQT. Each Property
 specifies whether it can be used with Tracks, Objects, or both.<a href="#section-12-1" class="pilcrow">¶</a></p>
 <p id="section-12-2">Property types in ranges reserved for application-specific use
-(0x38-0x3F, 0x3800-0x3FFF) are not defined by MOQT.
+(0x78-0x7F, 0x3800-0x3FFF) are not defined by MOQT.
 See <a href="#properties" class="auto internal xref">Section 2.5</a> for usage guidance.<a href="#section-12-2" class="pilcrow">¶</a></p>
 <div id="subgroup-delivery-timeout-ext">
 <section id="section-12.1">
@@ -7350,8 +7402,8 @@ relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object
 subscription or fetch after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier in a
 multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes unknown, and a relay that
-handles a downstream request that includes those Objects re-requests them.<a href="#section-12.3-2" class="pilcrow">¶</a></p>
+Objects have expired from cache, their state becomes unknown (see
+<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-12.3-2" class="pilcrow">¶</a></p>
 <p id="section-12.3-3">If MAX_CACHE_DURATION is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.<a href="#section-12.3-3" class="pilcrow">¶</a></p>
 </section>
@@ -7555,9 +7607,9 @@ removed otherwise.<a href="#section-12.9-5" class="pilcrow">¶</a></p>
 <p id="section-13-1">MOQT is a protocol used hop-by-hop between original
 publishers to relay, (possibly) relay to relay, and relay to end
 subscribers. Thus, the security considerations need to consider first
-what happens between two nodes, but also consider the impacts end to
+what happens between two Endpoints, but also consider the impacts end to
 end over several hops of MOQT.<a href="#section-13-1" class="pilcrow">¶</a></p>
-<p id="section-13-2">MOQT uses a trust model where on each hop the nodes need to be
+<p id="section-13-2">MOQT uses a trust model where on each hop the Endpoints need to be
 securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
@@ -7607,13 +7659,13 @@ to identify media content, user patterns and media stream origin.<a href="#secti
         <h3 id="name-authorization">
 <a href="#section-13.3" class="section-number selfRef">13.3. </a><a href="#name-authorization" class="section-name selfRef">Authorization</a>
         </h3>
-<p id="section-13.3-1">MOQT supports authorization via mutual TLS for node-level identification
+<p id="section-13.3-1">MOQT supports authorization via mutual TLS for Endpoint-level identification
 and token-based schemes for fine-grained access control.<a href="#section-13.3-1" class="pilcrow">¶</a></p>
-<p id="section-13.3-2">Mutual TLS is expected to be widely used for node level identification
+<p id="section-13.3-2">Mutual TLS is expected to be widely used for Endpoint level identification
 between relays, especially within one organization. However, in some
 deployments mutual TLS can also be used for end subscribers or
-original publishers. However, as only node level authentication is
-provided, what a particular identified node is allowed to do is not
+original publishers. However, as only Endpoint level authentication is
+provided, what a particular identified Endpoint is allowed to do is not
 provided at TLS level.<a href="#section-13.3-2" class="pilcrow">¶</a></p>
 <p id="section-13.3-3">MOQT has functionality to carry Authorization tokens as message
 parameters. These tokens can vary based on the application
@@ -7821,16 +7873,16 @@ integer values of N (that is, 0x9D, 0x11C, ..., 0x3fffffffffffffde).<a href="#se
           <p id="section-14-4.2.1">Properties (<a href="#iana-properties" class="auto internal xref">Section 15.8</a>)<a href="#section-14-4.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-14-4.3">
-          <p id="section-14-4.3.1">Session Termination Error Codes (<a href="#iana-session-termination" class="auto internal xref">Section 15.10.1</a>)<a href="#section-14-4.3.1" class="pilcrow">¶</a></p>
+          <p id="section-14-4.3.1">Session Termination Error Codes (<a href="#iana-session-termination" class="auto internal xref">Section 15.11.1</a>)<a href="#section-14-4.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-14-4.4">
-          <p id="section-14-4.4.1">REQUEST_ERROR Codes (<a href="#iana-request-error" class="auto internal xref">Section 15.10.2</a>)<a href="#section-14-4.4.1" class="pilcrow">¶</a></p>
+          <p id="section-14-4.4.1">REQUEST_ERROR Codes (<a href="#iana-request-error" class="auto internal xref">Section 15.11.2</a>)<a href="#section-14-4.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-14-4.5">
-          <p id="section-14-4.5.1">PUBLISH_DONE Codes (<a href="#iana-publish-done" class="auto internal xref">Section 15.10.3</a>)<a href="#section-14-4.5.1" class="pilcrow">¶</a></p>
+          <p id="section-14-4.5.1">PUBLISH_DONE Codes (<a href="#iana-publish-done" class="auto internal xref">Section 15.11.3</a>)<a href="#section-14-4.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-14-4.6">
-          <p id="section-14-4.6.1">Stream Reset Error Codes (<a href="#iana-reset-stream" class="auto internal xref">Section 15.10.4</a>)<a href="#section-14-4.6.1" class="pilcrow">¶</a></p>
+          <p id="section-14-4.6.1">Stream Reset Error Codes (<a href="#iana-reset-stream" class="auto internal xref">Section 15.11.4</a>)<a href="#section-14-4.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-14-4.7">
           <p id="section-14-4.7.1">MOQT Auth Token Type<a href="#section-14-4.7.1" class="pilcrow">¶</a></p>
@@ -8382,17 +8434,67 @@ collision risks.<a href="#section-15.8-5.1.3" class="pilcrow">¶</a></p>
         </ul>
 </section>
 </div>
-<div id="iana-session-level-tracks">
+<div id="iana-object-status">
 <section id="section-15.9">
-        <h3 id="name-session-level-track-names">
-<a href="#section-15.9" class="section-number selfRef">15.9. </a><a href="#name-session-level-track-names" class="section-name selfRef">Session-Level Track Names</a>
+        <h3 id="name-object-status-2">
+<a href="#section-15.9" class="section-number selfRef">15.9. </a><a href="#name-object-status-2" class="section-name selfRef">Object Status</a>
         </h3>
-<p id="section-15.9-1">This document establishes a registry for session-level track names
-under the <code>.session</code> namespace (see <a href="#session-level-tracks" class="auto internal xref">Section 3.2.2</a>). The
-registration policy is Specification Required (per <span>[<a href="#RFC8126" class="cite xref">RFC8126</a>], <a href="https://rfc-editor.org/rfc/rfc8126#section-4.6" class="relref">Section 4.6</a></span>).<a href="#section-15.9-1" class="pilcrow">¶</a></p>
-<p id="section-15.9-2">Each registration must include:<a href="#section-15.9-2" class="pilcrow">¶</a></p>
+<p id="section-15.9-1">This document establishes a registry for Object Status values (see
+<a href="#object-status" class="auto internal xref">Section 11.2.1.1</a>). The "Payload" column indicates whether an Object with that
+status is permitted to carry a non-empty payload.<a href="#section-15.9-1" class="pilcrow">¶</a></p>
 <table class="center" id="table-16">
           <caption><a href="#table-16" class="selfRef">Table 16</a></caption>
+<thead>
+            <tr>
+              <th class="text-right" rowspan="1" colspan="1">Code</th>
+              <th class="text-left" rowspan="1" colspan="1">Name</th>
+              <th class="text-left" rowspan="1" colspan="1">Payload</th>
+              <th class="text-left" rowspan="1" colspan="1">Specification</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x0</td>
+              <td class="text-left" rowspan="1" colspan="1">Normal</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#object-status" class="auto internal xref">Section 11.2.1.1</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-left" rowspan="1" colspan="1">End of Group</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#object-status" class="auto internal xref">Section 11.2.1.1</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x4</td>
+              <td class="text-left" rowspan="1" colspan="1">End of Track</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#object-status" class="auto internal xref">Section 11.2.1.1</a>
+</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-15.9-3">New Object Status values are registered using the Specification Required
+policy (<span>[<a href="#RFC8126" class="cite xref">RFC8126</a>], <a href="https://rfc-editor.org/rfc/rfc8126#section-4.6" class="relref">Section 4.6</a></span>). Each registration <span class="bcp14">MUST</span> indicate whether the
+status permits a payload.<a href="#section-15.9-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-session-level-tracks">
+<section id="section-15.10">
+        <h3 id="name-session-level-track-names">
+<a href="#section-15.10" class="section-number selfRef">15.10. </a><a href="#name-session-level-track-names" class="section-name selfRef">Session-Level Track Names</a>
+        </h3>
+<p id="section-15.10-1">This document establishes a registry for session-level track names
+under the <code>.session</code> namespace (see <a href="#session-level-tracks" class="auto internal xref">Section 3.2.2</a>). The
+registration policy is Specification Required (per <span>[<a href="#RFC8126" class="cite xref">RFC8126</a>], <a href="https://rfc-editor.org/rfc/rfc8126#section-4.6" class="relref">Section 4.6</a></span>).<a href="#section-15.10-1" class="pilcrow">¶</a></p>
+<p id="section-15.10-2">Each registration must include:<a href="#section-15.10-2" class="pilcrow">¶</a></p>
+<table class="center" id="table-17">
+          <caption><a href="#table-17" class="selfRef">Table 17</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Field</th>
@@ -8422,21 +8524,21 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
             </tr>
           </tbody>
         </table>
-<p id="section-15.9-4">This document does not define any initial entries.<a href="#section-15.9-4" class="pilcrow">¶</a></p>
+<p id="section-15.10-4">This document does not define any initial entries.<a href="#section-15.10-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-error-codes">
-<section id="section-15.10">
+<section id="section-15.11">
         <h3 id="name-error-codes">
-<a href="#section-15.10" class="section-number selfRef">15.10. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
+<a href="#section-15.11" class="section-number selfRef">15.11. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
         </h3>
 <div id="iana-session-termination">
-<section id="section-15.10.1">
+<section id="section-15.11.1">
           <h4 id="name-session-termination-error-c">
-<a href="#section-15.10.1" class="section-number selfRef">15.10.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
+<a href="#section-15.11.1" class="section-number selfRef">15.11.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
           </h4>
-<table class="center" id="table-17">
-            <caption><a href="#table-17" class="selfRef">Table 17</a></caption>
+<table class="center" id="table-18">
+            <caption><a href="#table-18" class="selfRef">Table 18</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -8597,12 +8699,12 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 </section>
 </div>
 <div id="iana-request-error">
-<section id="section-15.10.2">
+<section id="section-15.11.2">
           <h4 id="name-request_error-codes">
-<a href="#section-15.10.2" class="section-number selfRef">15.10.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
+<a href="#section-15.11.2" class="section-number selfRef">15.11.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
           </h4>
-<table class="center" id="table-18">
-            <caption><a href="#table-18" class="selfRef">Table 18</a></caption>
+<table class="center" id="table-19">
+            <caption><a href="#table-19" class="selfRef">Table 19</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -8749,12 +8851,12 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 </section>
 </div>
 <div id="iana-publish-done">
-<section id="section-15.10.3">
+<section id="section-15.11.3">
           <h4 id="name-publish_done-codes">
-<a href="#section-15.10.3" class="section-number selfRef">15.10.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
+<a href="#section-15.11.3" class="section-number selfRef">15.11.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
           </h4>
-<table class="center" id="table-19">
-            <caption><a href="#table-19" class="selfRef">Table 19</a></caption>
+<table class="center" id="table-20">
+            <caption><a href="#table-20" class="selfRef">Table 20</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -8845,12 +8947,12 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 </section>
 </div>
 <div id="iana-reset-stream">
-<section id="section-15.10.4">
+<section id="section-15.11.4">
           <h4 id="name-stream-reset-error-codes-2">
-<a href="#section-15.10.4" class="section-number selfRef">15.10.4. </a><a href="#name-stream-reset-error-codes-2" class="section-name selfRef">Stream Reset Error Codes</a>
+<a href="#section-15.11.4" class="section-number selfRef">15.11.4. </a><a href="#name-stream-reset-error-codes-2" class="section-name selfRef">Stream Reset Error Codes</a>
           </h4>
-<table class="center" id="table-20">
-            <caption><a href="#table-20" class="selfRef">Table 20</a></caption>
+<table class="center" id="table-21">
+            <caption><a href="#table-21" class="selfRef">Table 21</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -9020,7 +9122,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dl class="references">
 <dt id="I-D.draft-ietf-quic-reliable-stream-reset">[I-D.draft-ietf-quic-reliable-stream-reset]</dt>
         <dd>
-<span class="refAuthor">Seemann, M.</span> and <span class="refAuthor">K. Oku</span>, <span class="refTitle">"QUIC Stream Resets with Partial Delivery"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-quic-reliable-stream-reset-07</span>, <time datetime="2025-06-14" class="refDate">14 June 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-07">https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-07</a>&gt;</span>. </dd>
+<span class="refAuthor">Seemann, M.</span> and <span class="refAuthor">K. Oku</span>, <span class="refTitle">"QUIC Stream Resets with Partial Delivery"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-quic-reliable-stream-reset-08</span>, <time datetime="2026-06-26" class="refDate">26 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-08">https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-08</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
@@ -9085,7 +9187,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dl class="references">
 <dt id="CAT">[CAT]</dt>
         <dd>
-<span class="refAuthor">Law, W.</span>, <span class="refAuthor">Lemmons, C.</span>, <span class="refAuthor">Simon, G.</span>, and <span class="refAuthor">S. Nandakumar</span>, <span class="refTitle">"Authentication scheme for MOQT using Common Access Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-c4m-00</span>, <time datetime="2025-09-19" class="refDate">19 September 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-00">https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-00</a>&gt;</span>. </dd>
+<span class="refAuthor">Law, W.</span>, <span class="refAuthor">Lemmons, C.</span>, <span class="refAuthor">Simon, G.</span>, and <span class="refAuthor">S. Nandakumar</span>, <span class="refTitle">"Authorization scheme for MOQT using Common Access Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-c4m-01</span>, <time datetime="2026-06-18" class="refDate">18 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-01">https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.draft-jennings-moq-quicr-proto">[I-D.draft-jennings-moq-quicr-proto]</dt>
         <dd>
