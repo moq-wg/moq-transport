@@ -5087,8 +5087,9 @@ These entries share the same Property Type space as the table above.
 | 0x0C | AUDIO_LEVEL | Object | draft-ietf-moq-loc |
 | 0x0D | VIDEO_CONFIG | Object | draft-ietf-moq-loc |
 
-Endpoints MUST ignore unknown Property types, skipping them using
-the length field.
+Endpoints MUST ignore unknown Property types, skipping them according
+to the Key-Value-Pair encoding; odd types use their length field, even
+types are skipped by parsing a varint value.
 
 * MOQ Properties - we wish to define the following registration policies:
   - 0x00 to 0x77: Standards Action or IESG Approval (1-byte encoding)
