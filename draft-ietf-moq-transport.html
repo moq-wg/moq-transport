@@ -4158,11 +4158,23 @@ that specify otherwise.<a href="#section-9.1-7" class="pilcrow">¶</a></p>
         <h3 id="name-forward-handling">
 <a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-forward-handling" class="section-name selfRef">Forward Handling</a>
         </h3>
-<p id="section-9.2-1">Relays <span class="bcp14">SHOULD</span> set the <code>Forward</code> flag to 1 when a new subscription needs to be
-sent upstream, regardless of the value of the <code>Forward</code> field from the
-downstream subscription. Subscriptions that are not forwarded consume resources
-from the publisher, so a publisher might deprioritize, reject, or close those
-subscriptions to ensure other subscriptions can be delivered.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.2-1">If one or more downstream subscribers to a track have Forward=1, the relay
+<span class="bcp14">MUST</span> set Forward=1 upstream in order to receive and forward the requested
+Objects. When no downstream subscriber has Forward=1, the relay chooses the
+upstream Forward value at its discretion, considering the following
+tradeoffs and deployment considerations:<a href="#section-9.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-9.2-2.1">
+            <p id="section-9.2-2.1.1">Setting Forward=1 upstream starts object delivery and pre-warms the
+relay's cache, so objects are available when a downstream subscriber
+sets Forward=1. This reduces latency but consumes upstream and publisher
+resources for content no downstream subscriber is currently receiving.<a href="#section-9.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.2-2.2">
+            <p id="section-9.2-2.2.1">Setting Forward=0 upstream avoids that work, at the cost of higher
+latency when forwarding is later enabled.<a href="#section-9.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 <div id="multiple-publishers">
