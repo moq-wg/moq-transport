@@ -4917,9 +4917,9 @@ sender receives the corresponding REQUEST_OK or REQUEST_ERROR response.
 The sender <span class="bcp14">MUST NOT</span> have more than MAX_REQUEST_UPDATES outstanding
 REQUEST_UPDATEs on any single request stream at a time. Each REQUEST_OK
 or REQUEST_ERROR response restores one unit of capacity on that stream.<a href="#section-9.4.1.6-2" class="pilcrow">¶</a></p>
-<p id="section-9.4.1.6-3">The value is encoded as a variable-length integer. If not present, the default
-value is 2^64 - 1. A value of 0 means the endpoint will not accept any
-REQUEST_UPDATEs.<a href="#section-9.4.1.6-3" class="pilcrow">¶</a></p>
+<p id="section-9.4.1.6-3">The value is encoded as a variable-length integer. A value of 0 means the
+endpoint does not limit REQUEST_UPDATE concurrency. If not present, the default
+value is 0.<a href="#section-9.4.1.6-3" class="pilcrow">¶</a></p>
 <p id="section-9.4.1.6-4">If an endpoint receives a REQUEST_UPDATE on a stream that already has
 MAX_REQUEST_UPDATES outstanding REQUEST_UPDATEs, it <span class="bcp14">MUST</span> close the session
 with <code>TOO_MANY_REQUEST_UPDATES</code>.<a href="#section-9.4.1.6-4" class="pilcrow">¶</a></p>
