@@ -1962,7 +1962,7 @@ If one or more downstream subscribers to a track have Forward=1, the relay
 MUST set Forward=1 upstream in order to receive and forward the requested
 Objects. When no downstream subscriber has Forward=1, the relay chooses the
 upstream Forward value at its discretion, considering the following
-tradeoffs:
+tradeoffs and deployment considerations:
 
   - Setting Forward=1 upstream starts object delivery and pre-warms the
     relay's cache, so objects are available when a downstream subscriber
