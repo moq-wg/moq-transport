@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 20 December 2026                                  I. Swett, Ed.
+Expires: 31 December 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            18 June 2026
+                                                            29 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 December 2026.
+   This Internet-Draft will expire on 31 December 2026.
 
 Copyright Notice
 
@@ -2254,7 +2254,7 @@ Table of Contents
    relay MUST set Forward=1 upstream in order to receive and forward the
    requested Objects.  When no downstream subscriber has Forward=1, the
    relay chooses the upstream Forward value at its discretion,
-   considering the following tradeoffs:
+   considering the following tradeoffs and deployment considerations:
 
    *  Setting Forward=1 upstream starts object delivery and pre-warms
       the relay's cache, so objects are available when a downstream
@@ -5880,9 +5880,9 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-07, 14 June 2025,
+              quic-reliable-stream-reset-08, 26 June 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-07>.
+              reliable-stream-reset-08>.
 
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
