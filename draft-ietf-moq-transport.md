@@ -1779,10 +1779,10 @@ datagram (see {{data-streams}}), which overrides the default.
 `Group Order` is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
-communicates its group order preference in the GROUP_ORDER parameter
-({{group-order}}); the publisher's preference, carried in the
+communicates its group order preference in the SUBSCRIBE or SUBSCRIBE_TRACKS
+message; the publisher's preference, carried in the
 DEFAULT_PUBLISHER_GROUP_ORDER Track Property ({{group-order-pref}}), is used if
-the subscriber did not express one (by omitting the GROUP_ORDER parameter).  The
+the subscriber did not express one (by omitting the Group Order parameter). The
 group order of an existing subscription cannot be changed.
 
 ## Scheduling Algorithm
@@ -2540,7 +2540,7 @@ the value 128.
 ### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8. It MAY appear in a
-SUBSCRIBE, PUBLISH_OK, or FETCH.
+SUBSCRIBE, SUBSCRIBE_TRACKS, or FETCH.
 
 Its value indicates how to prioritize Objects from different groups within
 the same subscription (see {{priorities}}), or how to order Groups in a Fetch
@@ -2548,7 +2548,7 @@ response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
 Descending (0x2). If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE, the publisher's preference from
+If omitted from SUBSCRIBE or SUBSCRIBE_TRACKS, the publisher's preference from
 the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 
 ### SUBSCRIPTION FILTER Parameter {#subscription-filter}
@@ -3766,6 +3766,13 @@ the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
 from this message, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
 set the FORWARD parameter to 1, or indicate that value by omitting the parameter
 (see {{subscriptions}}).
+
+If the GROUP_ORDER parameter ({{group-order}}) is present in this message,
+PUBLISH messages resulting from this SUBSCRIBE_TRACKS will include the
+GROUP_ORDER parameter with the same value. If the GROUP_ORDER parameter is
+omitted from this message, PUBLISH messages resulting from this
+SUBSCRIBE_TRACKS will use the publisher's default group order preference
+(see {{group-order-pref}}).
 
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
