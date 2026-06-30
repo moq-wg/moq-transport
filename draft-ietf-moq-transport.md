@@ -4717,7 +4717,8 @@ integrity and endpoint authentication between subscriber and
 publisher. Implementations use QUIC or WebTransport to fulfill
 the basic communication security requirements and these
 implementations SHOULD follow best practices for TLS 1.3 and QUIC.
-Relays MUST use authentication to prevent impersonation.
+Relays MUST use authentication to prevent impersonation
+({{preventing-impersonation}}).
 
 Note that the basic security protection offered by QUIC or TCP/TLS
 does not prevent traffic pattern analysis. Object sizes, sizes of
@@ -4755,6 +4756,46 @@ Replay protection for authorization tokens is the responsibility of
 the specific token scheme used. Token schemes such as {{CAT}} and
 {{PPA}} include requirements for relays when processing tokens and
 requests.
+
+### Preventing Impersonation {#preventing-impersonation}
+
+A relay MUST ensure that a client cannot publish to namespaces or
+tracks belonging to another identity. Impersonation occurs when a
+client sends objects that appear to originate from a different user
+— for example, publishing to a namespace containing another user's
+identifier.
+
+Relays prevent impersonation through the combination of:
+
+1. Authenticated identity binding: Mutual TLS authenticates the
+client at the transport level during the TLS handshake via a
+client certificate, establishing the client's identity or
+authorization scope.
+
+2. Proof of possession: When using token-based authentication
+(e.g., {{CAT}}), the token MUST be bound to a client-held key via
+a confirmation claim. The client demonstrates possession of that
+key on each operation, ensuring a stolen or leaked token cannot be
+used by a different party.
+
+3. Namespace scope enforcement: The relay MUST verify that the
+authenticated identity or token scope permits the specific
+namespace being published to. A client authenticated as
+"alice@example.com" MUST NOT be permitted to publish to namespaces
+assigned to "bob@example.com". The mapping from identity to
+permitted namespaces is determined by the authorization framework
+in use.
+
+4. Anonymous authorization: When unlinkable access is used (e.g.,
+{{PPA}}), the token's public metadata or scope extensions determine
+which namespaces the bearer may access. The relay enforces these
+scopes without knowing the client's identity, but impersonation is
+still prevented because the token does not grant access to another
+user's publish namespace.
+
+A relay that does not enforce these checks allows any connected
+client to inject content into arbitrary namespaces, breaking the
+integrity of the content delivery.
 
 ## Media Security  {#sec-media}
 
