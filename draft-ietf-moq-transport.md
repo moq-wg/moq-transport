@@ -1533,8 +1533,7 @@ already-published objects (see {{fill-semantics}}).
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
 
-A publisher MUST NOT send objects from outside the requested range. Every
-subscription filter type yields a satisfiable range (see {{fill-semantics}}).
+A publisher MUST NOT send objects from outside the requested range.
 
 ### Fill Semantics {#fill-semantics}
 
@@ -1583,7 +1582,7 @@ fill filter type) while Forward State is 1.
   not open one either.
 - A REQUEST_UPDATE that does not specify a fill filter type, or that specifies
   one whose Start Location does not add objects beyond an earlier fill (for
-  example, one that only changes the End Group), does not open a new fill fetch
+  example, one that only decreases the End Group), does not open a new fill fetch
   stream.
 - When Forward State transitions to 0, or the subscription is cancelled with
   STOP_SENDING on the bidi stream, the publisher MUST reset any open fill fetch
@@ -1820,17 +1819,16 @@ the objects SHOULD be selected as follows:
 
 1. If two objects have different subscriber priorities associated with them,
    the one with **the highest subscriber priority** is scheduled to be sent first.
-1. If two objects have the same subscriber priority, but different publisher
+2. If two objects have the same subscriber priority, but different publisher
    priorities, the one with **the highest publisher priority** is scheduled to be
    sent first.
-
-2. If two objects in the same subscription have the same subscriber and
+3. If two objects in the same subscription have the same subscriber and
    publisher priority, but belong to two different groups of the same track,
    **the group order** of the subscription is used to decide the one that is
    scheduled to be sent first. When a subscription fill's Group Order differs
    from the subscription's Group Order, the live-delivered object is scheduled
    first.
-3. If two objects in the same subscription have the same subscriber
+4. If two objects in the same subscription have the same subscriber
    and publisher priority and belong to the same group of the same track, and
    one is delivered by the fill fetch stream while the other is delivered by the
    live subscription, the fill-delivered object is scheduled first. Otherwise,
@@ -1840,7 +1838,7 @@ the objects SHOULD be selected as follows:
    different Forwarding Preferences the order is implementation dependent.
 
 Within the same group, fill-delivered objects win the tie-break over
-live-delivered objects (rule 3) because objects before the fill boundary are
+live-delivered objects (rule 4) because objects before the fill boundary are
 assumed to be needed before those after it.
 
 The definition of "scheduled to be sent first" in the algorithm is implementation
