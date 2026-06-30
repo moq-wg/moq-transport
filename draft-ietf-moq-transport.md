@@ -2065,7 +2065,7 @@ There are two ways to publish through a relay:
 update the Subscription with REQUEST_UPDATE in Forward State=0 until there are
 known subscribers for new Tracks.
 
-3. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
+2. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
 enables the relay to send SUBSCRIBE or FETCH messages to publishers for Tracks
 in this Namespace in response to requests received from subscribers.
 
