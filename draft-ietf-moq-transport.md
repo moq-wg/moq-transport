@@ -1669,59 +1669,61 @@ results in error.
 
 ## Track Switching {#track-switching}
 
-A subscriber can atomically stop delivery on one subscription (the suspend
-subscription) and start delivery on another (the resume subscription) by
+A subscriber can atomically stop delivery on one subscription (the suspending
+subscription) and start delivery on another (the activating subscription) by
 including the SWITCH_FROM parameter ({{switch-from}}) in a SUBSCRIBE or
-REQUEST_UPDATE on the resume subscription's request stream.  This enables track
-switching (e.g., ABR quality changes, alternate camera angles, or meeting
+REQUEST_UPDATE on the activating subscription's request stream.  This enables
+track switching (e.g., ABR quality changes, alternate camera angles, or meeting
 participants) without tearing down subscriptions or issuing standalone fetches.
 
 On receiving a message containing SWITCH_FROM, the publisher:
 
 1. Validates that Switch From Request ID identifies an existing subscription
-   and is not the same as the resume subscription's Request ID. If not,
-   responds with REQUEST_ERROR `INVALID_SWITCH`. The resume subscription
-   MUST be transitioning from Forward State 0 to 1 as part of the switch; if
-   it already has Forward State 1, or the message carrying SWITCH_FROM has
-   FORWARD = 0, the publisher responds with REQUEST_ERROR `INVALID_SWITCH`.
+   and is not the same as the activating subscription's Request ID. If not,
+   responds with REQUEST_ERROR `INVALID_SWITCH`. The activating subscription
+   handles Forward State transitions as part of the switch; if the message
+   carrying SWITCH_FROM has a FORWARD parameter, the publisher responds with
+   REQUEST_ERROR `INVALID_SWITCH`.  Note it is not an error if the pausing
+   subscription is in Forward State 0.
 
-2. Sets resume to Forward State 1 and applies the SUBSCRIPTION_FILTER. This
-   ensures objects after the Current Group are not missed.
+2. Sets the activating subscription to Forward State 1 and applies the
+   SUBSCRIPTION_FILTER. This ensures objects after the Current Group are not
+   missed.
 
 3. Waits until it is ready to publish an object from the SUBSCRIPTION_FILTER's
    Start Location's Group (the Start Group; see {{subscription-filters}}),
-   computed from the resume track at the time the request is received, while
-   continuing to deliver objects on the suspend subscription.  When GROUP_ORDER
+   computed from the activating track at the time the request is received, while
+   continuing to deliver objects on the suspending subscription.  When GROUP_ORDER
    is Descending and Start Group is before the Current Group, the publisher
    waits for the first object in the largest fill group instead.
 
-4. Stops delivery on the suspend subscription:
+4. Stops delivery on the suspending subscription:
 
-   * Mode Hard (0x0): sets Forward State 0 on the suspend subscription. If
-     Publish Done is 1, the publisher also sends PUBLISH_DONE.
+   * Mode Hard (0x0): sets Forward State 0 on the suspending subscription. If
+     Publish Done is 1, the publisher also sends PUBLISH_DONE with code
+     SUBSCRIPTION_ENDED.
 
-   In all modes, the publisher also resets any outstanding suspend data for
-   groups greater than or equal to the Start Group; objects already in flight
-   can still be received by the subscriber.
+   In all modes, the publisher also resets any outstanding streams on the suspending
+   subscription; objects already in flight can still be received by the subscriber.
 
-   If Publish Done is 0, the suspend subscription remains established.
+   If Publish Done is 0, the suspending subscription remains established.
 
-5. Begins delivery of resume subscription from Start Group. If the
+5. Begins delivery of activating subscription from Start Group. If the
    SUBSCRIPTION_FILTER is a fill filter type, opens a fill fetch stream using
-   the resume subscription's Request ID (see {{fill-semantics}}), if necessary.
+   the resuming subscription's Request ID (see {{fill-semantics}}), if necessary.
 
 6. Responds with SUBSCRIBE_OK or REQUEST_OK as appropriate, including
    LARGEST_OBJECT if the SUBSCRIPTION_FILTER is a fill filter type.
 
-If the publisher times out waiting to be ready to publish an object from the
-Start Group on the resume track, it MUST respond with REQUEST_ERROR `TIMEOUT`.
+If the publisher times out waiting to publish an object from the
+Start Group on the activating track, it MUST respond with REQUEST_ERROR `TIMEOUT`.
 
 ### Relay Handling of SWITCH_FROM {#relay-switch-from}
 
 When a relay receives a message containing SWITCH_FROM, it MUST NOT forward the
 SWITCH_FROM parameter upstream. The relay handles the switch locally, applying
 the start group computation from {{track-switching}} using its locally observed
-state for the resume track and servicing any fill fetch stream from its cache
+state for the activating track and servicing any fill fetch stream from its cache
 and upstream sources as described in {{fill-semantics}}.
 
 # Namespace Discovery {#track-discovery}
@@ -2663,13 +2665,13 @@ SWITCH_FROM {
   Switch From Request ID (vi64),
   Mode (vi64),
   Publish Done (1),
-  Reserved (7),
+  Reserved Bits (7),
 }
 ~~~
 
 * Switch From Request ID: The Request ID of the subscription to suspend.
 
-* Mode: A vi64 enum selecting how the suspend subscription is stopped. The
+* Mode: A vi64 enum selecting how the suspending subscription is stopped. The
   following mode is defined: Hard (0x0). An endpoint that receives a Mode value
   that is not defined MUST close the session with `PROTOCOL_VIOLATION`. See
   {{track-switching}}.
@@ -2677,7 +2679,7 @@ SWITCH_FROM {
 * Publish Done: If 1, the publisher sends PUBLISH_DONE on the suspend
   subscription as described in {{track-switching}}.
 
-* Reserved: MUST be 0. An endpoint that receives a non-zero value MUST
+* Reserved Bits: MUST be 0. An endpoint that receives a non-zero value MUST
   close the session with `PROTOCOL_VIOLATION`.
 
 When present, the enclosing SUBSCRIBE or REQUEST_UPDATE initiates a track
@@ -3187,9 +3189,8 @@ malformed (see {{malformed-tracks}}).
 INVALID_SWITCH:
 : In response to a SUBSCRIBE or REQUEST_UPDATE carrying SWITCH_FROM, the track
 switch cannot be performed: the Switch From Request ID does not identify an
-existing subscription, is the same as the resume subscription's Request ID, the
-resume subscription is not transitioning from Forward State 0 to 1, or the
-message carrying SWITCH_FROM has FORWARD = 0 (see {{track-switching}}).
+existing subscription, is the same as the activating subscription's Request ID, or the
+request contained the FORWARD parameter (see {{track-switching}}).
 
 The following are errors for use by the subscriber. They can appear in response
 to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
