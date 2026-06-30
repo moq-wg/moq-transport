@@ -934,7 +934,7 @@ TODO: Add internationalization statement per RFC 7595 Section 3.6.
 If the port is omitted in the URI, a default port of 443 is used.
 
 The client MAY use either native QUIC or WebTransport. On a QUIC connection,
-the client offers any combination of MOQT ALPNs (e.g. `moqt/1`, `moqt/2`)
+the client offers any combination of MOQT ALPNs (e.g. `moqt-1`, `moqt-2`)
 and `h3` that it supports in its TLS ClientHello, in preference order. If the
 server selects an MOQT ALPN, the session proceeds as described in
 {{native-quic}}. If the server selects `h3`, the client establishes a
@@ -2911,9 +2911,9 @@ Redirect {
   Track Name are the literal values for the redirected request.
 
   Track Name is not meaningful for namespace-scoped requests
-  (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE) and MUST be empty; an endpoint that
-  receives a non-empty Track Name in a Redirect for a namespace-scoped request
-  MUST close the session with a `PROTOCOL_VIOLATION`.
+  (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and MUST be empty;
+  an endpoint that receives a non-empty Track Name in a Redirect for a
+  namespace-scoped request MUST close the session with a `PROTOCOL_VIOLATION`.
 
 ### REQUEST_ERROR Message Format
 
@@ -5088,8 +5088,9 @@ These entries share the same Property Type space as the table above.
 | 0x0C | AUDIO_LEVEL | Object | draft-ietf-moq-loc |
 | 0x0D | VIDEO_CONFIG | Object | draft-ietf-moq-loc |
 
-Endpoints MUST ignore unknown Property types, skipping them using
-the length field.
+Endpoints MUST ignore unknown Property types, skipping them according
+to the Key-Value-Pair encoding; odd types use their length field, even
+types are skipped by parsing a varint value.
 
 * MOQ Properties - we wish to define the following registration policies:
   - 0x00 to 0x77: Standards Action or IESG Approval (1-byte encoding)
