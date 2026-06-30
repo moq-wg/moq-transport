@@ -4326,7 +4326,8 @@ send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
 matching subscription.  When it receives an authorized PUBLISH message for a
 Track that has <code>Established</code> downstream subscriptions, it <span class="bcp14">MUST</span> respond with
 PUBLISH_OK.  If at least one downstream subscriber for the Track has
-Forward State=1, the Relay <span class="bcp14">MUST</span> use Forward State=1 in the reply.<a href="#section-9.5-12" class="pilcrow">¶</a></p>
+Forward State=1, the Relay <span class="bcp14">MUST</span> change the Forward State to 1 with
+REQUEST_UPDATE.<a href="#section-9.5-12" class="pilcrow">¶</a></p>
 <p id="section-9.5-13">If a Session is closed due to an unknown or invalid control message or Object,
 the Relay <span class="bcp14">MUST NOT</span> propagate that message or Object to another Session, because
 it would enable a single Session error to force an unrelated Session, which
