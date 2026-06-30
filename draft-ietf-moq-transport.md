@@ -2633,7 +2633,11 @@ A REQUEST_UPDATE is considered outstanding from when it is sent until the
 sender receives the corresponding REQUEST_OK or REQUEST_ERROR response.
 The sender MUST NOT have more than MAX_REQUEST_UPDATES outstanding
 REQUEST_UPDATEs on any single request stream at a time. Each REQUEST_OK
-or REQUEST_ERROR response restores one unit of capacity on that stream.
+or REQUEST_ERROR response restores one credit on that stream. An
+implementation that processes and responds to a REQUEST_UPDATE immediately
+might not detect when a peer has pipelined messages exceeding its limit;
+coalescing REQUEST_UPDATE processing (see {{message-request-update}}) can be
+more effective at enforcing MAX_REQUEST_UPDATES.
 
 The value is encoded as a variable-length integer. A value of 0 means the
 endpoint does not limit REQUEST_UPDATE concurrency. If not present, the default
