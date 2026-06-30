@@ -5321,9 +5321,9 @@ uses the same values as the original request. Otherwise, Track Namespace and
 Track Name are the literal values for the redirected request.<a href="#section-10.6.1-3.2.1" class="pilcrow">¶</a></p>
 <p id="section-10.6.1-3.2.2">
 Track Name is not meaningful for namespace-scoped requests
-(SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE) and <span class="bcp14">MUST</span> be empty; an endpoint that
-receives a non-empty Track Name in a Redirect for a namespace-scoped request
-<span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.6.1-3.2.2" class="pilcrow">¶</a></p>
+(SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and <span class="bcp14">MUST</span> be empty;
+an endpoint that receives a non-empty Track Name in a Redirect for a
+namespace-scoped request <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.6.1-3.2.2" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
