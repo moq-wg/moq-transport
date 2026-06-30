@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 December 2026                                  I. Swett, Ed.
+Expires: 1 January 2027                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            14 June 2026
+                                                            30 June 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 December 2026.
+   This Internet-Draft will expire on 1 January 2027.
 
 Copyright Notice
 
@@ -1927,59 +1927,61 @@ Table of Contents
 5.3.  Track Switching
 
    A subscriber can atomically stop delivery on one subscription (the
-   suspend subscription) and start delivery on another (the resume
-   subscription) by including the SWITCH_FROM parameter (Section 10.2.9)
-   in a SUBSCRIBE or REQUEST_UPDATE on the resume subscription's request
-   stream.  This enables track switching (e.g., ABR quality changes,
-   alternate camera angles, or meeting participants) without tearing
-   down subscriptions or issuing standalone fetches.
+   suspending subscription) and start delivery on another (the
+   activating subscription) by including the SWITCH_FROM parameter
+   (Section 10.2.9) in a SUBSCRIBE or REQUEST_UPDATE on the activating
+   subscription's request stream.  This enables track switching (e.g.,
+   ABR quality changes, alternate camera angles, or meeting
+   participants) without tearing down subscriptions or issuing
+   standalone fetches.
 
    On receiving a message containing SWITCH_FROM, the publisher:
 
    1.  Validates that Switch From Request ID identifies an existing
-       subscription and is not the same as the resume subscription's
+       subscription and is not the same as the activating subscription's
        Request ID.  If not, responds with REQUEST_ERROR INVALID_SWITCH.
-       The resume subscription MUST be transitioning from Forward State
-       0 to 1 as part of the switch; if it already has Forward State 1,
-       or the message carrying SWITCH_FROM has FORWARD = 0, the
-       publisher responds with REQUEST_ERROR INVALID_SWITCH.
+       The activating subscription handles Forward State transitions as
+       part of the switch; if the message carrying SWITCH_FROM has a
+       FORWARD parameter, the publisher responds with REQUEST_ERROR
+       INVALID_SWITCH.  Note it is not an error if the pausing
+       subscription is in Forward State 0.
 
-   2.  Sets resume to Forward State 1 and applies the
-       SUBSCRIPTION_FILTER.  This ensures objects after the Current
+   2.  Sets the activating subscription to Forward State 1 and applies
+       the SUBSCRIPTION_FILTER.  This ensures objects after the Current
        Group are not missed.
 
    3.  Waits until it is ready to publish an object from the
        SUBSCRIPTION_FILTER's Start Location's Group (the Start Group;
-       see Section 5.1.2), computed from the resume track at the time
-       the request is received, while continuing to deliver objects on
-       the suspend subscription.  When GROUP_ORDER is Descending and
-       Start Group is before the Current Group, the publisher waits for
-       the first object in the largest fill group instead.
+       see Section 5.1.2), computed from the activating track at the
+       time the request is received, while continuing to deliver objects
+       on the suspending subscription.  When GROUP_ORDER is Descending
+       and Start Group is before the Current Group, the publisher waits
+       for the first object in the largest fill group instead.
 
-   4.  Stops delivery on the suspend subscription:
+   4.  Stops delivery on the suspending subscription:
 
-       *  Mode Hard (0x0): sets Forward State 0 on the suspend
+       *  Mode Hard (0x0): sets Forward State 0 on the suspending
           subscription.  If Publish Done is 1, the publisher also sends
-          PUBLISH_DONE.
+          PUBLISH_DONE with code SUBSCRIPTION_ENDED.
 
-       In all modes, the publisher also resets any outstanding suspend
-       data for groups greater than or equal to the Start Group; objects
-       already in flight can still be received by the subscriber.
+       In all modes, the publisher also resets any outstanding streams
+       on the suspending subscription; objects already in flight can
+       still be received by the subscriber.
 
-       If Publish Done is 0, the suspend subscription remains
+       If Publish Done is 0, the suspending subscription remains
        established.
 
-   5.  Begins delivery of resume subscription from Start Group.  If the
-       SUBSCRIPTION_FILTER is a fill filter type, opens a fill fetch
-       stream using the resume subscription's Request ID (see
+   5.  Begins delivery of activating subscription from Start Group.  If
+       the SUBSCRIPTION_FILTER is a fill filter type, opens a fill fetch
+       stream using the resuming subscription's Request ID (see
        Section 5.1.3), if necessary.
 
    6.  Responds with SUBSCRIBE_OK or REQUEST_OK as appropriate,
        including LARGEST_OBJECT if the SUBSCRIPTION_FILTER is a fill
        filter type.
 
-   If the publisher times out waiting to be ready to publish an object
-   from the Start Group on the resume track, it MUST respond with
+   If the publisher times out waiting to publish an object from the
+   Start Group on the activating track, it MUST respond with
    REQUEST_ERROR TIMEOUT.
 
 5.3.1.  Relay Handling of SWITCH_FROM
@@ -1987,9 +1989,9 @@ Table of Contents
    When a relay receives a message containing SWITCH_FROM, it MUST NOT
    forward the SWITCH_FROM parameter upstream.  The relay handles the
    switch locally, applying the start group computation from Section 5.3
-   using its locally observed state for the resume track and servicing
-   any fill fetch stream from its cache and upstream sources as
-   described in Section 5.1.3.
+   using its locally observed state for the activating track and
+   servicing any fill fetch stream from its cache and upstream sources
+   as described in Section 5.1.3.
 
 6.  Namespace Discovery
 
@@ -3015,13 +3017,13 @@ Table of Contents
      Switch From Request ID (vi64),
      Mode (vi64),
      Publish Done (1),
-     Reserved (7),
+     Reserved Bits (7),
    }
 
    *  Switch From Request ID: The Request ID of the subscription to
       suspend.
 
-   *  Mode: A vi64 enum selecting how the suspend subscription is
+   *  Mode: A vi64 enum selecting how the suspending subscription is
       stopped.  The following mode is defined: Hard (0x0).  An endpoint
       that receives a Mode value that is not defined MUST close the
       session with PROTOCOL_VIOLATION.  See Section 5.3.
@@ -3029,8 +3031,8 @@ Table of Contents
    *  Publish Done: If 1, the publisher sends PUBLISH_DONE on the
       suspend subscription as described in Section 5.3.
 
-   *  Reserved: MUST be 0.  An endpoint that receives a non-zero value
-      MUST close the session with PROTOCOL_VIOLATION.
+   *  Reserved Bits: MUST be 0.  An endpoint that receives a non-zero
+      value MUST close the session with PROTOCOL_VIOLATION.
 
    When present, the enclosing SUBSCRIBE or REQUEST_UPDATE initiates a
    track switch as described in Section 5.3.
@@ -3575,10 +3577,8 @@ Table of Contents
    INVALID_SWITCH:  In response to a SUBSCRIBE or REQUEST_UPDATE
       carrying SWITCH_FROM, the track switch cannot be performed: the
       Switch From Request ID does not identify an existing subscription,
-      is the same as the resume subscription's Request ID, the resume
-      subscription is not transitioning from Forward State 0 to 1, or
-      the message carrying SWITCH_FROM has FORWARD = 0 (see
-      Section 5.3).
+      is the same as the activating subscription's Request ID, or the
+      request contained the FORWARD parameter (see Section 5.3).
 
    The following are errors for use by the subscriber.  They can appear
    in response to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
@@ -5993,9 +5993,9 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-07, 14 June 2025,
+              quic-reliable-stream-reset-08, 26 June 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-07>.
+              reliable-stream-reset-08>.
 
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
@@ -6066,11 +6066,11 @@ Normative References
 Informative References
 
    [CAT]      Law, W., Lemmons, C., Simon, G., and S. Nandakumar,
-              "Authentication scheme for MOQT using Common Access
+              "Authorization scheme for MOQT using Common Access
               Tokens", Work in Progress, Internet-Draft, draft-ietf-moq-
-              c4m-00, 19 September 2025,
+              c4m-01, 18 June 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-
-              00>.
+              01>.
 
    [I-D.draft-jennings-moq-quicr-proto]
               Jennings, C. F., Nandakumar, S., and C. Huitema, "QuicR -

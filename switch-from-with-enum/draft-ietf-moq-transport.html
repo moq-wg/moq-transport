@@ -17,22 +17,23 @@ reliability. MOQT operates both point-to-point and through intermediate relays,
 enabling scalable low-latency delivery. Despite its name, MOQT is media
 agnostic and can be used for a wide range of use cases. 
     " name="description">
-<meta content="xml2rfc 3.33.0" name="generator">
+<meta content="xml2rfc 3.34.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.33.0
-    Python 3.12.13
-    ConfigArgParse 1.7
+  xml2rfc 3.34.0
+    Python 3.14.5
+    ConfigArgParse 1.7.5
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
-    lxml 6.0.2
-    platformdirs 4.9.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.10.0
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.7.0
+    wcwidth 0.8.1
 -->
 <link href="draft-ietf-moq-transport.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1055,7 +1056,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 16 December 2026</td>
+<td class="center">Expires 1 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1069,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-14" class="published">14 June 2026</time>
+<time datetime="2026-06-30" class="published">30 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-16">16 December 2026</time></dd>
+<dd class="expires"><time datetime="2027-01-01">1 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1143,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 16 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 1 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3811,61 +3812,63 @@ results in error.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
         <h3 id="name-track-switching">
 <a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-track-switching" class="section-name selfRef">Track Switching</a>
         </h3>
-<p id="section-5.3-1">A subscriber can atomically stop delivery on one subscription (the suspend
-subscription) and start delivery on another (the resume subscription) by
+<p id="section-5.3-1">A subscriber can atomically stop delivery on one subscription (the suspending
+subscription) and start delivery on another (the activating subscription) by
 including the SWITCH_FROM parameter (<a href="#switch-from" class="auto internal xref">Section 10.2.9</a>) in a SUBSCRIBE or
-REQUEST_UPDATE on the resume subscription's request stream.  This enables track
-switching (e.g., ABR quality changes, alternate camera angles, or meeting
+REQUEST_UPDATE on the activating subscription's request stream.  This enables
+track switching (e.g., ABR quality changes, alternate camera angles, or meeting
 participants) without tearing down subscriptions or issuing standalone fetches.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
 <p id="section-5.3-2">On receiving a message containing SWITCH_FROM, the publisher:<a href="#section-5.3-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-5.3-3">
 <li id="section-5.3-3.1">
             <p id="section-5.3-3.1.1">Validates that Switch From Request ID identifies an existing subscription
-and is not the same as the resume subscription's Request ID. If not,
-responds with REQUEST_ERROR <code>INVALID_SWITCH</code>. The resume subscription
-<span class="bcp14">MUST</span> be transitioning from Forward State 0 to 1 as part of the switch; if
-it already has Forward State 1, or the message carrying SWITCH_FROM has
-FORWARD = 0, the publisher responds with REQUEST_ERROR <code>INVALID_SWITCH</code>.<a href="#section-5.3-3.1.1" class="pilcrow">¶</a></p>
+and is not the same as the activating subscription's Request ID. If not,
+responds with REQUEST_ERROR <code>INVALID_SWITCH</code>. The activating subscription
+handles Forward State transitions as part of the switch; if the message
+carrying SWITCH_FROM has a FORWARD parameter, the publisher responds with
+REQUEST_ERROR <code>INVALID_SWITCH</code>.  Note it is not an error if the pausing
+subscription is in Forward State 0.<a href="#section-5.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.3-3.2">
-            <p id="section-5.3-3.2.1">Sets resume to Forward State 1 and applies the SUBSCRIPTION_FILTER. This
-ensures objects after the Current Group are not missed.<a href="#section-5.3-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-5.3-3.2.1">Sets the activating subscription to Forward State 1 and applies the
+SUBSCRIPTION_FILTER. This ensures objects after the Current Group are not
+missed.<a href="#section-5.3-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.3-3.3">
             <p id="section-5.3-3.3.1">Waits until it is ready to publish an object from the SUBSCRIPTION_FILTER's
 Start Location's Group (the Start Group; see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>),
-computed from the resume track at the time the request is received, while
-continuing to deliver objects on the suspend subscription.  When GROUP_ORDER
+computed from the activating track at the time the request is received, while
+continuing to deliver objects on the suspending subscription.  When GROUP_ORDER
 is Descending and Start Group is before the Current Group, the publisher
 waits for the first object in the largest fill group instead.<a href="#section-5.3-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.3-3.4">
-            <p id="section-5.3-3.4.1">Stops delivery on the suspend subscription:<a href="#section-5.3-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-5.3-3.4.1">Stops delivery on the suspending subscription:<a href="#section-5.3-3.4.1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-5.3-3.4.2.1">
-                <p id="section-5.3-3.4.2.1.1">Mode Hard (0x0): sets Forward State 0 on the suspend subscription. If
-Publish Done is 1, the publisher also sends PUBLISH_DONE.<a href="#section-5.3-3.4.2.1.1" class="pilcrow">¶</a></p>
+                <p id="section-5.3-3.4.2.1.1">Mode Hard (0x0): sets Forward State 0 on the suspending subscription. If
+Publish Done is 1, the publisher also sends PUBLISH_DONE with code
+SUBSCRIPTION_ENDED.<a href="#section-5.3-3.4.2.1.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-5.3-3.4.3">
-In all modes, the publisher also resets any outstanding suspend data for
-groups greater than or equal to the Start Group; objects already in flight
-can still be received by the subscriber.<a href="#section-5.3-3.4.3" class="pilcrow">¶</a></p>
+In all modes, the publisher also resets any outstanding streams on the suspending
+subscription; objects already in flight can still be received by the subscriber.<a href="#section-5.3-3.4.3" class="pilcrow">¶</a></p>
 <p id="section-5.3-3.4.4">
-If Publish Done is 0, the suspend subscription remains established.<a href="#section-5.3-3.4.4" class="pilcrow">¶</a></p>
+If Publish Done is 0, the suspending subscription remains established.<a href="#section-5.3-3.4.4" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.3-3.5">
-            <p id="section-5.3-3.5.1">Begins delivery of resume subscription from Start Group. If the
+            <p id="section-5.3-3.5.1">Begins delivery of activating subscription from Start Group. If the
 SUBSCRIPTION_FILTER is a fill filter type, opens a fill fetch stream using
-the resume subscription's Request ID (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>), if necessary.<a href="#section-5.3-3.5.1" class="pilcrow">¶</a></p>
+the resuming subscription's Request ID (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>), if necessary.<a href="#section-5.3-3.5.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.3-3.6">
             <p id="section-5.3-3.6.1">Responds with SUBSCRIBE_OK or REQUEST_OK as appropriate, including
 LARGEST_OBJECT if the SUBSCRIPTION_FILTER is a fill filter type.<a href="#section-5.3-3.6.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-5.3-4">If the publisher times out waiting to be ready to publish an object from the
-Start Group on the resume track, it <span class="bcp14">MUST</span> respond with REQUEST_ERROR <code>TIMEOUT</code>.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
+<p id="section-5.3-4">If the publisher times out waiting to publish an object from the
+Start Group on the activating track, it <span class="bcp14">MUST</span> respond with REQUEST_ERROR <code>TIMEOUT</code>.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
 <div id="relay-switch-from">
 <section id="section-5.3.1">
           <h4 id="name-relay-handling-of-switch_fr">
@@ -3874,7 +3877,7 @@ Start Group on the resume track, it <span class="bcp14">MUST</span> respond with
 <p id="section-5.3.1-1">When a relay receives a message containing SWITCH_FROM, it <span class="bcp14">MUST NOT</span> forward the
 SWITCH_FROM parameter upstream. The relay handles the switch locally, applying
 the start group computation from <a href="#track-switching" class="auto internal xref">Section 5.3</a> using its locally observed
-state for the resume track and servicing any fill fetch stream from its cache
+state for the activating track and servicing any fill fetch stream from its cache
 and upstream sources as described in <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>.<a href="#section-5.3.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -5014,7 +5017,7 @@ SWITCH_FROM {
   Switch From Request ID (vi64),
   Mode (vi64),
   Publish Done (1),
-  Reserved (7),
+  Reserved Bits (7),
 }
 </pre><a href="#section-10.2.9-2" class="pilcrow">¶</a>
 </div>
@@ -5023,7 +5026,7 @@ SWITCH_FROM {
               <p id="section-10.2.9-3.1.1">Switch From Request ID: The Request ID of the subscription to suspend.<a href="#section-10.2.9-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.2.9-3.2">
-              <p id="section-10.2.9-3.2.1">Mode: A vi64 enum selecting how the suspend subscription is stopped. The
+              <p id="section-10.2.9-3.2.1">Mode: A vi64 enum selecting how the suspending subscription is stopped. The
 following mode is defined: Hard (0x0). An endpoint that receives a Mode value
 that is not defined <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>. See
 <a href="#track-switching" class="auto internal xref">Section 5.3</a>.<a href="#section-10.2.9-3.2.1" class="pilcrow">¶</a></p>
@@ -5033,7 +5036,7 @@ that is not defined <span class="bcp14">MUST</span> close the session with <code
 subscription as described in <a href="#track-switching" class="auto internal xref">Section 5.3</a>.<a href="#section-10.2.9-3.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.2.9-3.4">
-              <p id="section-10.2.9-3.4.1">Reserved: <span class="bcp14">MUST</span> be 0. An endpoint that receives a non-zero value <span class="bcp14">MUST</span>
+              <p id="section-10.2.9-3.4.1">Reserved Bits: <span class="bcp14">MUST</span> be 0. An endpoint that receives a non-zero value <span class="bcp14">MUST</span>
 close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.9-3.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
@@ -5697,9 +5700,8 @@ malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.
             <dd style="margin-left: 1.5em" id="section-10.6.2-7.8">
               <p id="section-10.6.2-7.8.1">In response to a SUBSCRIBE or REQUEST_UPDATE carrying SWITCH_FROM, the track
 switch cannot be performed: the Switch From Request ID does not identify an
-existing subscription, is the same as the resume subscription's Request ID, the
-resume subscription is not transitioning from Forward State 0 to 1, or the
-message carrying SWITCH_FROM has FORWARD = 0 (see <a href="#track-switching" class="auto internal xref">Section 5.3</a>).<a href="#section-10.6.2-7.8.1" class="pilcrow">¶</a></p>
+existing subscription, is the same as the activating subscription's Request ID, or the
+request contained the FORWARD parameter (see <a href="#track-switching" class="auto internal xref">Section 5.3</a>).<a href="#section-10.6.2-7.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -9173,7 +9175,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dl class="references">
 <dt id="I-D.draft-ietf-quic-reliable-stream-reset">[I-D.draft-ietf-quic-reliable-stream-reset]</dt>
         <dd>
-<span class="refAuthor">Seemann, M.</span> and <span class="refAuthor">K. Oku</span>, <span class="refTitle">"QUIC Stream Resets with Partial Delivery"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-quic-reliable-stream-reset-07</span>, <time datetime="2025-06-14" class="refDate">14 June 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-07">https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-07</a>&gt;</span>. </dd>
+<span class="refAuthor">Seemann, M.</span> and <span class="refAuthor">K. Oku</span>, <span class="refTitle">"QUIC Stream Resets with Partial Delivery"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-quic-reliable-stream-reset-08</span>, <time datetime="2026-06-26" class="refDate">26 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-08">https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-08</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
@@ -9238,7 +9240,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dl class="references">
 <dt id="CAT">[CAT]</dt>
         <dd>
-<span class="refAuthor">Law, W.</span>, <span class="refAuthor">Lemmons, C.</span>, <span class="refAuthor">Simon, G.</span>, and <span class="refAuthor">S. Nandakumar</span>, <span class="refTitle">"Authentication scheme for MOQT using Common Access Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-c4m-00</span>, <time datetime="2025-09-19" class="refDate">19 September 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-00">https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-00</a>&gt;</span>. </dd>
+<span class="refAuthor">Law, W.</span>, <span class="refAuthor">Lemmons, C.</span>, <span class="refAuthor">Simon, G.</span>, and <span class="refAuthor">S. Nandakumar</span>, <span class="refTitle">"Authorization scheme for MOQT using Common Access Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-c4m-01</span>, <time datetime="2026-06-18" class="refDate">18 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-01">https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.draft-jennings-moq-quicr-proto">[I-D.draft-jennings-moq-quicr-proto]</dt>
         <dd>
