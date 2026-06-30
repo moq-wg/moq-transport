@@ -1477,6 +1477,9 @@ published or received via a subscription having Locations greater than or
 equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.
 
+An object published or received in a subgroup or datagram is
+**subscription-delivered**.
+
 Some filters are defined to be relative to the `Largest Object`. The `Largest
 Object` is the Object with the largest Location ({{location-structure}}) in the
 Track from the perspective of the publisher processing the message. Largest
@@ -1513,7 +1516,7 @@ filter instead.
 
 AbsoluteStartFill (0x3): The filter Start Location is specified explicitly.
 There is no End Group - the subscription is open ended. The subscription opens a
-fill fetch stream for already-published objects (see {{fill-semantics}}).
+fill fetch stream for the fill range (see {{fill-semantics}}).
 
 AbsoluteRangeFill (0x4): The filter Start Location and End Group Delta are
 specified explicitly. If the specified `End Group Delta` is zero, the remainder
@@ -1521,14 +1524,14 @@ of the Start Location's Group passes the filter. Otherwise, the last Group ID to
 be delivered is the Group ID in `Start Location` plus the `End Group Delta`. If
 the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST close
 the session with a `PROTOCOL_VIOLATION`. The subscription opens a fill fetch
-stream for already-published objects (see {{fill-semantics}}).
+stream for the fill range (see {{fill-semantics}}).
 
 RelativeStartFill (0x5): Relative Previous is present. The value N in
 Relative Previous determines the Start Location: `{Largest Object.Group - N, 0}`
 (N = 0 starts at Largest Object.Group). If N is greater than Largest
 Object.Group, the Start Location is `{0, 0}`. There is no End Group - the
-subscription is open ended. The subscription opens a fill fetch stream for
-already-published objects (see {{fill-semantics}}).
+subscription is open ended. The subscription opens a fill fetch stream for the
+fill range (see {{fill-semantics}}).
 
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
@@ -1539,18 +1542,18 @@ A publisher MUST NOT send objects from outside the requested range.
 
 Fill filter types (AbsoluteStartFill, AbsoluteRangeFill, and
 RelativeStartFill) cause the publisher to open a unidirectional stream beginning
-with a FETCH_HEADER (see {{fetch-header}}) to deliver already-published objects.
-This is called a fill fetch stream.
+with a FETCH_HEADER (see {{fetch-header}}). This is called a fill fetch stream.
 
-The fill fetch stream carries objects from the fill Start Location up to and
-including the fill boundary. The fill boundary is the Largest Object, or the End
-Group if one is specified and it precedes the Largest Object. The subscriber
+The fill fetch stream carries the fill range: the objects from the fill Start
+Location up to and including the fill boundary. The fill boundary
+is the Largest Object, or the End Group when one is specified with a Location
+less than the Largest Object. The subscriber
 learns the Largest Object from the `LARGEST_OBJECT` parameter in SUBSCRIBE_OK or
 REQUEST_UPDATE_OK. For RelativeStartFill, both sides compute the fill Start
 Location as `{Largest Object.Group - N, 0}`. For any fill filter type, if the
-Start Location is after the Largest Object the fill range is empty, the
-publisher does not open a fill fetch stream, and the subscription proceeds
-live-only. If the End Group precedes the Largest Object, only the fill fetch
+Start Location is greater than the Largest Object the fill range is empty, the
+publisher does not open a fill fetch stream. If the End Group has a Location
+less than the Largest Object, only the fill fetch
 stream delivers objects and the subscription remains open (for example, for a
 later REQUEST_UPDATE).
 
@@ -1567,9 +1570,9 @@ multiple fill fetch streams open at once, each identified by its Request ID;
 opening a new fill fetch stream does not implicitly cancel any previously opened
 fill fetch stream.
 
-Because the subscription filter necessarily overlaps the fill fetch range, an
-object can be delivered both on the fill fetch stream and via subgroups or
-datagrams.
+An object delivered on the fill fetch stream is **fill-delivered**. Because the
+subscription filter necessarily overlaps the fill range, an object can be both
+fill-delivered and subscription-delivered.
 
 #### Opening and Closing Fill Fetch Streams
 
@@ -1614,8 +1617,8 @@ current Group from its start.
 
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a fill
 filter type (AbsoluteStartFill, AbsoluteRangeFill, or RelativeStartFill). The
-publisher fills already-published objects and delivers newer objects live (see
-{{fill-semantics}}).
+publisher delivers the fill range, and objects with larger Locations in a
+subgroup or datagram (see {{fill-semantics}}).
 
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
 Filter Type `Next Group Start`.
@@ -1826,20 +1829,20 @@ the objects SHOULD be selected as follows:
    publisher priority, but belong to two different groups of the same track,
    **the group order** of the subscription is used to decide the one that is
    scheduled to be sent first. When a subscription fill's Group Order differs
-   from the subscription's Group Order, the live-delivered object is scheduled
+   from the subscription's Group Order, the subscription-delivered object is scheduled
    first.
 4. If two objects in the same subscription have the same subscriber
    and publisher priority and belong to the same group of the same track, and
-   one is delivered by the fill fetch stream while the other is delivered by the
-   live subscription, the fill-delivered object is scheduled first. Otherwise,
+   one is delivered by the fill fetch stream while the other is
+   subscription-delivered, the fill-delivered object is scheduled first. Otherwise,
    the one with **the lowest Subgroup ID** (for objects with forwarding preference
    Subgroup), or **the lowest Object ID** (for objects with forwarding preference
    Datagram) is scheduled to be sent first.  If the two objects have
    different Forwarding Preferences the order is implementation dependent.
 
 Within the same group, fill-delivered objects win the tie-break over
-live-delivered objects (rule 4) because objects before the fill boundary are
-assumed to be needed before those after it.
+subscription-delivered objects (rule 4) because objects with smaller Locations
+are assumed to be needed before those with larger Locations.
 
 The definition of "scheduled to be sent first" in the algorithm is implementation
 dependent and is constrained by the prioritization interface of the underlying
@@ -2585,8 +2588,8 @@ SUBSCRIBE, PUBLISH_OK, or FETCH, or inside a FILL_PARAMETERS parameter (see
 Its value indicates how to prioritize Objects from different groups within
 the same subscription (see {{priorities}}), or how to order Groups in a Fetch
 response (see {{message-fetch}}). When it appears inside FILL_PARAMETERS, it
-governs the fill fetch stream and its ordering relative to the live subscription
-(see {{priorities}}). The allowed values are Ascending (0x1) or Descending
+governs the fill fetch stream and its ordering relative to subscription-delivered
+Objects (see {{priorities}}). The allowed values are Ascending (0x1) or Descending
 (0x2). If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
 
@@ -2631,7 +2634,7 @@ The following parameters MAY appear inside FILL_PARAMETERS:
 | 0x22 | GROUP_ORDER | {{group-order}} |
 
 A parameter that is omitted from FILL_PARAMETERS takes the value it has for the
-live subscription; FILL_PARAMETERS therefore carries only the settings that
+subscription; FILL_PARAMETERS therefore carries only the settings that
 differ. An endpoint that receives a parameter inside FILL_PARAMETERS that is not
 permitted above MUST close the session with `PROTOCOL_VIOLATION`.
 
@@ -3117,7 +3120,7 @@ matches more publishers than the relay is willing to enumerate.
 SUBSCRIBE initiates a subscription to a track.  The associated parameters
 determine the range and mechanism of object delivery; the Subscription Filter
 (see {{subscription-filters}}) selects which Objects are sent, and a fill filter
-type additionally retrieves already-published Objects on a fill fetch stream
+type additionally retrieves the fill range on a fill fetch stream
 (see {{fill-semantics}}).
 
 The format of SUBSCRIBE is as follows:
