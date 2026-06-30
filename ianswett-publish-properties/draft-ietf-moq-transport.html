@@ -2934,7 +2934,7 @@ MOQT session to the identified server.<a href="#section-3.1.3-1" class="pilcrow"
 <p id="section-3.1.3-3">TODO: Add internationalization statement per RFC 7595 Section 3.6.<a href="#section-3.1.3-3" class="pilcrow">¶</a></p>
 <p id="section-3.1.3-4">If the port is omitted in the URI, a default port of 443 is used.<a href="#section-3.1.3-4" class="pilcrow">¶</a></p>
 <p id="section-3.1.3-5">The client <span class="bcp14">MAY</span> use either native QUIC or WebTransport. On a QUIC connection,
-the client offers any combination of MOQT ALPNs (e.g. <code>moqt/1</code>, <code>moqt/2</code>)
+the client offers any combination of MOQT ALPNs (e.g. <code>moqt-1</code>, <code>moqt-2</code>)
 and <code>h3</code> that it supports in its TLS ClientHello, in preference order. If the
 server selects an MOQT ALPN, the session proceeds as described in
 <a href="#native-quic" class="auto internal xref">Section 3.1.5</a>. If the server selects <code>h3</code>, the client establishes a
@@ -5322,9 +5322,9 @@ uses the same values as the original request. Otherwise, Track Namespace and
 Track Name are the literal values for the redirected request.<a href="#section-10.6.1-3.2.1" class="pilcrow">¶</a></p>
 <p id="section-10.6.1-3.2.2">
 Track Name is not meaningful for namespace-scoped requests
-(SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE) and <span class="bcp14">MUST</span> be empty; an endpoint that
-receives a non-empty Track Name in a Redirect for a namespace-scoped request
-<span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.6.1-3.2.2" class="pilcrow">¶</a></p>
+(SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and <span class="bcp14">MUST</span> be empty;
+an endpoint that receives a non-empty Track Name in a Redirect for a
+namespace-scoped request <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.6.1-3.2.2" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -8407,8 +8407,9 @@ These entries share the same Property Type space as the table above.<a href="#se
             </tr>
           </tbody>
         </table>
-<p id="section-15.8-4">Endpoints <span class="bcp14">MUST</span> ignore unknown Property types, skipping them using
-the length field.<a href="#section-15.8-4" class="pilcrow">¶</a></p>
+<p id="section-15.8-4">Endpoints <span class="bcp14">MUST</span> ignore unknown Property types, skipping them according
+to the Key-Value-Pair encoding; odd types use their length field, even
+types are skipped by parsing a varint value.<a href="#section-15.8-4" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-15.8-5.1">
             <p id="section-15.8-5.1.1">MOQ Properties - we wish to define the following registration policies:<a href="#section-15.8-5.1.1" class="pilcrow">¶</a></p>

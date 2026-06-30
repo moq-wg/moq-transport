@@ -1154,7 +1154,7 @@ Table of Contents
 
    The client MAY use either native QUIC or WebTransport.  On a QUIC
    connection, the client offers any combination of MOQT ALPNs (e.g.
-   moqt/1, moqt/2) and h3 that it supports in its TLS ClientHello, in
+   moqt-1, moqt-2) and h3 that it supports in its TLS ClientHello, in
    preference order.  If the server selects an MOQT ALPN, the session
    proceeds as described in Section 3.1.5.  If the server selects h3,
    the client establishes a WebTransport session as described in
@@ -3267,10 +3267,10 @@ Table of Contents
       for the redirected request.
 
       Track Name is not meaningful for namespace-scoped requests
-      (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE) and MUST be empty; an
-      endpoint that receives a non-empty Track Name in a Redirect for a
-      namespace-scoped request MUST close the session with a
-      PROTOCOL_VIOLATION.
+      (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and
+      MUST be empty; an endpoint that receives a non-empty Track Name in
+      a Redirect for a namespace-scoped request MUST close the session
+      with a PROTOCOL_VIOLATION.
 
 10.6.2.  REQUEST_ERROR Message Format
 
@@ -5641,8 +5641,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 15
 
-   Endpoints MUST ignore unknown Property types, skipping them using the
-   length field.
+   Endpoints MUST ignore unknown Property types, skipping them according
+   to the Key-Value-Pair encoding; odd types use their length field,
+   even types are skipped by parsing a varint value.
 
    *  MOQ Properties - we wish to define the following registration
       policies:
