@@ -1450,18 +1450,19 @@ subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
 rules.
 
-For a given Track, an endpoint can have at most one subscription to a Track
-acting as the publisher and at most one acting as a subscriber.  If an endpoint
-receives a message attempting to establish a second subscription to a Track
-with the same role, it MUST fail that request with a `DUPLICATE_SUBSCRIPTION`
-error.
+An endpoint MAY have multiple concurrent subscriptions to the same Track,
+each identified by a unique Request ID. The publisher assigns their Track
+Aliases according to the TRACK_ALIAS_ASSIGNMENT_POLICY (see
+{{track-alias-assignment-policy}}); by default each subscription gets a unique
+Track Alias, letting the subscriber associate Objects with a specific
+subscription.
 
-If a publisher receives a SUBSCRIBE request for a Track with an existing
-subscription in `Pending (publisher)` state, it MUST fail that request with
-a `DUPLICATE_SUBSCRIPTION` error. If a subscriber receives a PUBLISH for a Track
-with a subscription in the `Pending (Subscriber)` state, it MUST ensure the
-subscription it initiated transitions to the `Terminated` state before sending
-PUBLISH_OK.
+When an Object matches the filters of multiple subscriptions to the same Track,
+the publisher MUST send it exactly once per distinct Track Alias among them.
+Subscribers SHOULD avoid overlapping filters across subscriptions to the same
+Track. When subscriptions share a Track Alias, the subscriber must re-apply each
+subscription's filter to determine which subscriptions a received Object belongs
+to.
 
 A publisher SHOULD begin sending incomplete objects when available to avoid
 incurring additional latency.
@@ -2780,6 +2781,17 @@ advertising or other nonessential information. Implementations SHOULD NOT use
 the identifiers of other implementations to declare compatibility, as this
 undermines the usefulness of implementation identification for debugging.
 
+#### TRACK ALIAS ASSIGNMENT POLICY {#track-alias-assignment-policy}
+
+A subscriber sends the TRACK_ALIAS_ASSIGNMENT_POLICY option (Option Type 0x09),
+a variable-length integer, to control how the publisher assigns Track Aliases
+(see {{track-alias}}) to its subscriptions to a Track. With the default value of
+0, the publisher MUST assign a unique Track Alias to each subscription. With
+value 1, the publisher MAY assign one Track Alias to multiple subscriptions to
+the same Track. A publisher MUST treat any other value as the default. When
+sending a PUBLISH before receiving the peer's SETUP, a publisher uses the
+default value.
+
 
 ## GOAWAY {#message-goaway}
 
@@ -2982,10 +2994,6 @@ sender SHOULD use the Retry Interval to indicate when the request can be retried
 UNSUPPORTED_EXTENSION:
 : The track contains a Mandatory Track Property
 (see {{mandatory-track-properties}}) that the endpoint does not understand.
-
-DUPLICATE_SUBSCRIPTION (0x19):
-: The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
-with the same role as an existing subscription.
 
 REDIRECT:
 : The request cannot be fulfilled by this endpoint, but could succeed at the
@@ -3827,8 +3835,9 @@ MAY use both Subgroups and Datagrams within a Group or Track.
 
 To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
-the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}) or PUBLISH
-({{message-publish}}).
+the publisher according to the TRACK_ALIAS_ASSIGNMENT_POLICY (see
+{{track-alias-assignment-policy}}) and included in SUBSCRIBE_OK
+({{message-subscribe-ok}}) or PUBLISH ({{message-publish}}).
 
 The same Track Alias MUST NOT be used by a publisher to refer to two different
 Tracks simultaneously in the same session. If a subscriber receives a
@@ -5013,6 +5022,7 @@ This registry is initially empty.
 | 0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | {{max-auth-token-cache-size}} |
 | 0x05 | AUTHORITY | {{authority}} |
 | 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
+| 0x09 | TRACK_ALIAS_ASSIGNMENT_POLICY | {{track-alias-assignment-policy}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 Endpoints MUST ignore unknown Setup Options as specified in
@@ -5188,7 +5198,6 @@ This document does not define any initial entries.
 | DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
 | INVALID_RANGE              | 0x11 | {{message-request-error}} |
 | MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
-| DUPLICATE_SUBSCRIPTION     | 0x19 | {{message-request-error}} |
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
