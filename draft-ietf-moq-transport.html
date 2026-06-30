@@ -8406,8 +8406,9 @@ These entries share the same Property Type space as the table above.<a href="#se
             </tr>
           </tbody>
         </table>
-<p id="section-15.8-4">Endpoints <span class="bcp14">MUST</span> ignore unknown Property types, skipping them using
-the length field.<a href="#section-15.8-4" class="pilcrow">¶</a></p>
+<p id="section-15.8-4">Endpoints <span class="bcp14">MUST</span> ignore unknown Property types, skipping them according
+to the Key-Value-Pair encoding; odd types use their length field, even
+types are skipped by parsing a varint value.<a href="#section-15.8-4" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-15.8-5.1">
             <p id="section-15.8-5.1.1">MOQ Properties - we wish to define the following registration policies:<a href="#section-15.8-5.1.1" class="pilcrow">¶</a></p>

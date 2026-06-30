@@ -5643,8 +5643,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 15
 
-   Endpoints MUST ignore unknown Property types, skipping them using the
-   length field.
+   Endpoints MUST ignore unknown Property types, skipping them according
+   to the Key-Value-Pair encoding; odd types use their length field,
+   even types are skipped by parsing a varint value.
 
    *  MOQ Properties - we wish to define the following registration
       policies:
