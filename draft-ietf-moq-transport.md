@@ -5090,6 +5090,7 @@ This registry is initially empty.
 | 0x03 | AUTHORIZATION_TOKEN | {{setup-auth-token}} |
 | 0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | {{max-auth-token-cache-size}} |
 | 0x05 | AUTHORITY | {{authority}} |
+| 0x06 | MAX_FILTER_RANGES | {{max-filter-ranges}} |
 | 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
