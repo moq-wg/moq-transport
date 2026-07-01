@@ -1542,7 +1542,8 @@ A publisher MUST NOT send objects from outside the requested range.
 
 Fill filter types (AbsoluteStartFill, AbsoluteRangeFill, and
 RelativeStartFill) cause the publisher to open a unidirectional stream beginning
-with a FETCH_HEADER (see {{fetch-header}}). This is called a fill fetch stream.
+with a FETCH_HEADER (see {{fetch-header}}) and delivered as a FETCH response (see
+{{message-fetch}}). This is called a fill fetch stream.
 
 The fill fetch stream carries the fill range: the objects from the fill Start
 Location up to and including the fill boundary. The fill boundary
@@ -1572,7 +1573,9 @@ fill fetch stream.
 
 An object delivered on the fill fetch stream is **fill-delivered**. Because the
 subscription filter necessarily overlaps the fill range, an object can be both
-fill-delivered and subscription-delivered.
+fill-delivered and subscription-delivered. A subscriber can avoid duplicate
+delivery by setting FILL_TIMEOUT to 0 in FILL_PARAMETERS (see {{fill-timeout}}):
+the fill fetch stream then carries only objects that are immediately available.
 
 #### Opening and Closing Fill Fetch Streams
 
@@ -2636,10 +2639,11 @@ The following parameters MAY appear inside FILL_PARAMETERS:
 A parameter that is omitted from FILL_PARAMETERS takes the value it has for the
 subscription; FILL_PARAMETERS therefore carries only the settings that
 differ. An endpoint that receives a parameter inside FILL_PARAMETERS that is not
-permitted above MUST close the session with `PROTOCOL_VIOLATION`.
+listed above MUST close the session with `PROTOCOL_VIOLATION`.
 
-FILL_PARAMETERS is meaningful only with a fill filter type. If it is present
-without a fill filter type, it is ignored.
+FILL_PARAMETERS is meaningful only with a fill filter type. An endpoint that
+receives FILL_PARAMETERS in a message that specifies a non-fill filter type MUST
+close the session with `PROTOCOL_VIOLATION`.
 
 ### EXPIRES Parameter {#expires}
 
