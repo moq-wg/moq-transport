@@ -934,7 +934,7 @@ TODO: Add internationalization statement per RFC 7595 Section 3.6.
 If the port is omitted in the URI, a default port of 443 is used.
 
 The client MAY use either native QUIC or WebTransport. On a QUIC connection,
-the client offers any combination of MOQT ALPNs (e.g. `moqt/1`, `moqt/2`)
+the client offers any combination of MOQT ALPNs (e.g. `moqt-1`, `moqt-2`)
 and `h3` that it supports in its TLS ClientHello, in preference order. If the
 server selects an MOQT ALPN, the session proceeds as described in
 {{native-quic}}. If the server selects `h3`, the client establishes a
@@ -1779,10 +1779,10 @@ datagram (see {{data-streams}}), which overrides the default.
 `Group Order` is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
-communicates its group order preference in the GROUP_ORDER parameter
-({{group-order}}); the publisher's preference, carried in the
+communicates its group order preference in the SUBSCRIBE or SUBSCRIBE_TRACKS
+message; the publisher's preference, carried in the
 DEFAULT_PUBLISHER_GROUP_ORDER Track Property ({{group-order-pref}}), is used if
-the subscriber did not express one (by omitting the GROUP_ORDER parameter).  The
+the subscriber did not express one (by omitting the Group Order parameter). The
 group order of an existing subscription cannot be changed.
 
 ## Scheduling Algorithm
@@ -1804,7 +1804,7 @@ the objects SHOULD be selected as follows:
    one with **the lowest Subgroup ID** (for objects with forwarding preference
    Subgroup), or **the lowest Object ID** (for objects with forwarding preference
    Datagram) is scheduled to be sent first.  If the two objects have
-   different Forwarding Preferences the order is implementation dependent.
+   different Forwarding Preferences the datagram is sent first.
 
 The definition of "scheduled to be sent first" in the algorithm is implementation
 dependent and is constrained by the prioritization interface of the underlying
@@ -1970,11 +1970,18 @@ that specify otherwise.
 
 ## Forward Handling
 
-Relays SHOULD set the `Forward` flag to 1 when a new subscription needs to be
-sent upstream, regardless of the value of the `Forward` field from the
-downstream subscription. Subscriptions that are not forwarded consume resources
-from the publisher, so a publisher might deprioritize, reject, or close those
-subscriptions to ensure other subscriptions can be delivered.
+If one or more downstream subscribers to a track have Forward=1, the relay
+MUST set Forward=1 upstream in order to receive and forward the requested
+Objects. When no downstream subscriber has Forward=1, the relay chooses the
+upstream Forward value at its discretion, considering the following
+tradeoffs and deployment considerations:
+
+  - Setting Forward=1 upstream starts object delivery and pre-warms the
+    relay's cache, so objects are available when a downstream subscriber
+    sets Forward=1. This reduces latency but consumes upstream and publisher
+    resources for content no downstream subscriber is currently receiving.
+  - Setting Forward=0 upstream avoids that work, at the cost of higher
+    latency when forwarding is later enabled.
 
 ## Multiple Publishers
 
@@ -2540,7 +2547,7 @@ the value 128.
 ### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8. It MAY appear in a
-SUBSCRIBE, PUBLISH_OK, or FETCH.
+SUBSCRIBE, SUBSCRIBE_TRACKS, or FETCH.
 
 Its value indicates how to prioritize Objects from different groups within
 the same subscription (see {{priorities}}), or how to order Groups in a Fetch
@@ -2548,7 +2555,7 @@ response (see {{fetch-handling}}). The allowed values are Ascending (0x1) or
 Descending (0x2). If an endpoint receives a value outside this range, it MUST
 close the session with `PROTOCOL_VIOLATION`.
 
-If omitted from SUBSCRIBE, the publisher's preference from
+If omitted from SUBSCRIBE or SUBSCRIBE_TRACKS, the publisher's preference from
 the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 
 ### SUBSCRIPTION FILTER Parameter {#subscription-filter}
@@ -2903,9 +2910,9 @@ Redirect {
   Track Name are the literal values for the redirected request.
 
   Track Name is not meaningful for namespace-scoped requests
-  (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE) and MUST be empty; an endpoint that
-  receives a non-empty Track Name in a Redirect for a namespace-scoped request
-  MUST close the session with a `PROTOCOL_VIOLATION`.
+  (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and MUST be empty;
+  an endpoint that receives a non-empty Track Name in a Redirect for a
+  namespace-scoped request MUST close the session with a `PROTOCOL_VIOLATION`.
 
 ### REQUEST_ERROR Message Format
 
@@ -3778,6 +3785,13 @@ set the FORWARD parameter to 1. And if FORWARD is omitted from this message,
 the parameter will be omitted from the PUBLISH.
 
 
+If the GROUP_ORDER parameter ({{group-order}}) is present in this message,
+PUBLISH messages resulting from this SUBSCRIBE_TRACKS will include the
+GROUP_ORDER parameter with the same value. If the GROUP_ORDER parameter is
+omitted from this message, PUBLISH messages resulting from this
+SUBSCRIBE_TRACKS will use the publisher's default group order preference
+(see {{group-order-pref}}).
+
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
 The publisher sends the `PUBLISH_SKIPPED` control message to indicate it will
@@ -3904,7 +3918,10 @@ Subgroup is signaled by closing its stream with a FIN
 
 Any other value SHOULD be treated as a protocol error and the session SHOULD
 be closed with a `PROTOCOL_VIOLATION` ({{session-termination}}).
-Any object with a status code other than zero MUST have an empty payload.
+An Object MUST have an empty payload unless its Object Status value is
+registered as permitting a payload in the Object Status registry
+({{iana-object-status}}). Of the values defined in this document, only Normal
+(0x0) permits a payload.
 
 #### Object Properties {#object-properties}
 
@@ -5081,8 +5098,9 @@ These entries share the same Property Type space as the table above.
 | 0x0C | AUDIO_LEVEL | Object | draft-ietf-moq-loc |
 | 0x0D | VIDEO_CONFIG | Object | draft-ietf-moq-loc |
 
-Endpoints MUST ignore unknown Property types, skipping them using
-the length field.
+Endpoints MUST ignore unknown Property types, skipping them according
+to the Key-Value-Pair encoding; odd types use their length field, even
+types are skipped by parsing a varint value.
 
 * MOQ Properties - we wish to define the following registration policies:
   - 0x00 to 0x77: Standards Action or IESG Approval (1-byte encoding)
@@ -5102,6 +5120,22 @@ the length field.
   IANA.  Note that applications consuming tracks from uncoordinated sources may
   encounter different semantics for the same code points, creating potential
   collision risks.
+
+## Object Status {#iana-object-status}
+
+This document establishes a registry for Object Status values (see
+{{object-status}}). The "Payload" column indicates whether an Object with that
+status is permitted to carry a non-empty payload.
+
+| Code | Name | Payload | Specification |
+|-----:|:-----|:--------|:--------------|
+| 0x0 | Normal | Yes | {{object-status}} |
+| 0x3 | End of Group | No | {{object-status}} |
+| 0x4 | End of Track | No | {{object-status}} |
+
+New Object Status values are registered using the Specification Required
+policy ({{!RFC8126, Section 4.6}}). Each registration MUST indicate whether the
+status permits a payload.
 
 ## Session-Level Track Names {#iana-session-level-tracks}
 
