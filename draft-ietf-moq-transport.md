@@ -2113,22 +2113,28 @@ A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
 prioritize sending Objects based on {{priorities}}.
 
-## Dynamic Track Switching {#dynamic-track-switching}
+## Sender Side Track Switching {#sender-side-track-switching}
 
-Dynamic Track Switching (DTS) is a subscriber-initiated and controlled behavior in which
+Sender Side Track Switching (SSTS) is a subscriber-initiated and controlled behavior in which
 relays dynamically select which track to forward from a switching set based on
-available downstream bandwidth.
+various algorithms. Each algorithm defines a set of attributes which are passed in the
+SWITCHING-SET-ASSIGNMENT parameter {{TBD}} along with a complimentary set of rules for subscriber
+operations and relay behavior.
 
-The subscriber is responsible for grouping tracks into switching sets based on
-application-level knowledge. A switching set is a collection of tracks representing
-the same content encoded at different throughput levels, typically from a single source.
-Tracks within a switching set are time-aligned at group boundaries, allowing the relay
-to switch between tracks at group boundaries without initiating reception errors at
-the client. The relay selects exactly one track per switching set to forward at any
-given time.
+This specification defines a default algorithm - type 0. Other algorithms are referenced in the
+"MOQT SSTS Algorithms" registry {{iana-ssts-algorithms}}.
 
+During SETUP, a relay communicates which SSTS algorithms it supports by passing the
+SSTS_ALGORITHMS option {{ssts-algorithms}}.
 
-### Switching set establishment
+### General behaviors for all SSTS algorithms {#ssts-general-requirements}
+
+The subscriber is responsible for grouping tracks into switching sets based on application-level
+knowledge. A switching set is a collection of tracks representing the same content encoded at
+different throughput levels, typically from a single source. Tracks within a switching set are
+time-aligned at certain group boundaries, allowing the relay to switch between tracks at these
+boundaries without initiating reception errors at the client. The relay selects exactly one track
+per switching set to forward at any given time.
 
 Subscribers can create switching sets through two methods. Both support single or multiple
 switching sets and result in identical relay behavior:
@@ -2141,22 +2147,66 @@ switching sets and result in identical relay behavior:
   by appending the SWITCHING-SET-ASSIGNMENT parameter to the PUBLISH_OK message.
 
 In both cases, tracks are grouped into a switching set by specifying the same switching set ID.
+
+### Default switching algorithm
+
+This specification defines a default SSTS algorithm and adds it to the "MOQT SSTS Algorithms"
+registry {{iana-ssts-algorithms}} with a type of 0.
+
+#### SWITCHING-SET-ASSIGNMENT fields
+This algorithm extends the base definition of the SWITCHING-SET-ASSIGNMENT parameter
+{{switching-set-assignment-param}} to add the following fields:
+
+SWITCHING-SET-ASSIGNMENT {
+  Switching set ID (vi64),
+  Algorithm ID (vi64),
+  Throughput threshold (vi64),
+  Set throughput fraction (vi64),
+  Activate switching (vi64),
+  [Set rank (8)]
+}
+
+* Throughput threshold: Minimum throughput (kbps) required to select this track.
+
+* Set throughput fraction: Relative weight for bandwidth allocation, expressed as an
+  integer 1 <= N <= 10. Each set receives bandwidth proportional to its fraction:
+  `target = B_total × fraction / sum_F`. Fractions are relative weights, not absolute
+  percentages; for example, fractions of 6, 4, 3 (sum_F=13) allocate 46%, 31%, 23%
+  respectively. This allows sets to be added or removed without requiring other sets to
+  update their fractions. When multiple subscriptions in the same switching set specify
+  different fraction values, the relay MUST use the value from the most recently received
+  message for that set.
+
+* Activate switching: Integer, when set to 0, pauses DTS switching for this set. When set
+  to N, the relay activates or resumes switching as soon as the number of tracks assigned to
+  the switching set is >= N.  Activation takes effect at the next group boundary.
+
+* Set rank (optional): Degradation priority when bandwidth is constrained, expressed as
+  an 8-bit unsigned integer (1-255). Default is 1. Values outside this range MUST result in
+  a protocol error. Lower values indicate higher priority (protected from degradation).
+  When bandwidth is sufficient, all sets receive their fraction-based allocation. When
+  bandwidth is constrained, lower-ranked sets (higher numeric value) degrade first: they
+  select lower-throughput tracks or receive no bandwidth, while higher-ranked sets maintain
+  their target allocation. See {{allocation-algorithm}} for details.
+
+#### Subscriber behavior
+
+The subscriber follows the general rules {#ssts-general-requirements} for switching set establishment.
+
 The subscriber sets activate = N, where N is the number of tracks that will be assigned to that
 switching set.
-
-### Subscriber operations
 
 To modify an established switching set, the subscriber can
 
 * Add a track to an existing set: send SUBSCRIBE or PUBLISH_OK with a SWITCHING-SET-ASSIGNMENT parameter
   referencing an existing set.
 * Remove a track from a set: unsubscribe from that track.
-* Pause DTS: Send REQUEST_UPDATE for any track assigned to that set with a SWITCHING-SET-ASSIGNMENT
+* Pause SSTS: Send REQUEST_UPDATE for any track assigned to that set with a SWITCHING-SET-ASSIGNMENT
   parameter defining activate = 0.
-* Resume DTS: Send REQUEST_UPDATE for any track assigned to that set with a SWITCHING-SET-ASSIGNMENT
+* Resume SSTS: Send REQUEST_UPDATE for any track assigned to that set with a SWITCHING-SET-ASSIGNMENT
   parameter defining activate = N, where N is the number of tracks assigned to that switching set.
 
-### Relay behavior
+#### Relay behavior
 
 When the relay receives a subscription with SWITCHING-SET-ASSIGNMENT:
 
@@ -2175,7 +2225,10 @@ and continue to process the switching across the remaining subscriptions within 
 If all tracks are removed from a previously established switching set, then that set is
 considered deleted and is removed from the bandwidth allocation algorithm.
 
-### Bandwidth Allocation {#allocation-algorithm}
+Relays SHOULD maintain a forward=1 upstream state on all tracks within a switching set, irrespective
+of their downstream forwarding state.
+
+#### Bandwidth Allocation {#allocation-algorithm}
 
 The relay maintains:
 
@@ -2199,8 +2252,8 @@ B_remaining  = B_total
 for each set in ascending rank order:
   set.target = B_remaining × set.fraction / sum_F
   set.allocated = min(set.target, B_remaining)
-  set.selected = track in set with highest throughput where track.throughput <= set.allocated
-  B_remaining -= set.selected.throughput
+  set.selected = track in set with highest throughput_threshold where track.throughput_threshold <= set.allocated
+  B_remaining -= set.selected.throughput_threshold
 for each track in a switching set:
   set forward state = track.selected
 ~~~
@@ -2705,50 +2758,22 @@ MUST respond with REQUEST_ERROR with error code `PREFIX_OVERLAP`.
 ### SWITCHING_SET_ASSIGNMENT Parameter {#switching-set-assignment-param}
 
 The SWITCHING-SET-ASSIGNMENT parameter (Parameter Type 0x41) MAY appear in a SUBSCRIBE,
-REQUEST_UPDATE, or PUBLISH_OK message. This parameter assigns a subscription to a DTS
-switching set and specifies bandwidth allocation and optional ranking values.
+REQUEST_UPDATE, or PUBLISH_OK message. This parameter assigns a subscription to a SSTS
+switching set and specifies the algorithm to be used for switching. Each algorithm MAY
+extend the serialization to pass additional fields.
 
 ~~~
 SWITCHING-SET-ASSIGNMENT {
   Switching set ID (vi64),
-  Throughput threshold (vi64),
-  Set throughput fraction (vi64),
-  Activate switching (vi64),
-  [Set rank (8)]
+  Algorithm (vi64)
 }
 ~~~
 
 * Switching set ID: Integer identifying the switching set. A track MUST only be assigned
   to one switching set at a time. If a subscription attempts to assign a track that is
   already assigned to a different switching set, the relay MUST reject the subscription
-  with a Parameter Error. If a subscription attempts to assign a track, when the number of
-  tracks already assigned to switching sets within the session is
-  >= MAX_DTS_CONCURRENT_TRACKS {{max-dts-concurrent-tracks}}, then the relay MUST reject
-  the subscription with a Parameter Error.
-
-* Throughput threshold: Minimum throughput (kbps) required to select this track.
-
-* Set throughput fraction: Relative weight for bandwidth allocation, expressed as an
-  integer 1 <= N <= 10. Each set receives bandwidth proportional to its fraction:
-  `target = B_total × fraction / sum_F`. Fractions are relative weights, not absolute
-  percentages; for example, fractions of 6, 4, 3 (sum_F=13) allocate 46%, 31%, 23%
-  respectively. This allows sets to be added or removed without requiring other sets to
-  update their fractions. When multiple subscriptions in the same switching set specify
-  different fraction values, the relay MUST use the value from the most recently received
-  message for that set.
-
-* Activate switching: Integer, when set to 0, pauses DTS switching for this set. When set
-  to N, the relay activates or resumes switching as soon as the number of tracks assigned to
-  the switching set is >= N.  Activation takes effect at the next group boundary.
-
-* Set rank (optional): Degradation priority when bandwidth is constrained, expressed as
-  an 8-bit unsigned integer (1-255). Default is 1. Values outside this range MUST result in
-  a protocol error. Lower values indicate higher priority (protected from degradation).
-  When bandwidth is sufficient, all sets receive their fraction-based allocation. When
-  bandwidth is constrained, lower-ranked sets (higher numeric value) degrade first: they
-  select lower-throughput tracks or receive no bandwidth, while higher-ranked sets maintain
-  their target allocation. See {{allocation-algorithm}} for details.
-
+  with a Parameter Error.
+* Algorithm: integer identifying the SSTS algorithm to be used.
 
 ## SETUP {#message-setup}
 
@@ -2864,14 +2889,16 @@ advertising or other nonessential information. Implementations SHOULD NOT use
 the identifiers of other implementations to declare compatibility, as this
 undermines the usefulness of implementation identification for debugging.
 
-#### MAX_DTS_CONCURRENT_TRACKS {#max-dts-concurrent-tracks}
+#### SSTS_ALGORITHMS {#ssts-algorithms}
 
-The MAX_DTS_CONCURRENT_TRACKS option (Option Type 0x08) communicates the
-maximum number of tracks that can be allocated to Dynamic Track Switching (DTS)
-switching sets within a MOQT session. This maximum is the sum of all tracks
-across all switching sets within the session. This option is optional. The
-default value is 0 which prohibits the use of Dynamic Track Switching.
+The SSTS_ALGORITHMS option (Option Type 0x09) communicates the list of SSTS
+algorithms which the relay supports. Supported algorithms are serialized as
+a sequence of varints. Returning an empty sequence is acceptable and indicates
+that SSTS is not supported. Algorithms are registered in the SSTS-Algorithms
+{{iana-ssts-algorithms}} registry.
 
+This option is optional. The default value is any empty list which prohibits
+the use of SSTS.
 
 ## GOAWAY {#message-goaway}
 
@@ -5285,6 +5312,19 @@ This document does not define any initial entries.
 | EXCESSIVE_LOAD        | 0x9  | {{stream-reset-codes}}   |
 | MALFORMED_TRACK       | 0x12 | {{stream-reset-codes}}   |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
+
+### SSTS-Algorithms {#iana-ssts-algorithms}
+
+This document establishes a registry for SSTS algorithms. The
+registration policy is Specification Required (per {{!RFC8126,
+Section 4.6}}).
+
+| Type | Name       | Specification |
+|-----:|:-----------|:--------------|
+| 0x0  | Default  | {{authorization-token}} |
+| 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
+
+
 
 # Contributors
 {:numbered="false"}
