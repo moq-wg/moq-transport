@@ -2118,8 +2118,8 @@ prioritize sending Objects based on {{priorities}}.
 Sender Side Track Switching (SSTS) is a subscriber-initiated and controlled behavior in which
 relays dynamically select which track to forward from a switching set based on
 various algorithms. Each algorithm defines a set of attributes which are passed in the
-SWITCHING-SET-ASSIGNMENT parameter {{TBD}} along with a complimentary set of rules for subscriber
-operations and relay behavior.
+SWITCHING-SET-ASSIGNMENT parameter {{switching-set-assignment-param}} along with a
+complimentary set of rules for subscriber behavior and relay behavior.
 
 This specification defines a default algorithm - type 0. Other algorithms are referenced in the
 "MOQT SSTS Algorithms" registry {{iana-ssts-algorithms}}.
@@ -2177,7 +2177,7 @@ SWITCHING-SET-ASSIGNMENT {
   different fraction values, the relay MUST use the value from the most recently received
   message for that set.
 
-* Activate switching: Integer, when set to 0, pauses DTS switching for this set. When set
+* Activate switching: Integer, when set to 0, pauses SSTS switching for this set. When set
   to N, the relay activates or resumes switching as soon as the number of tracks assigned to
   the switching set is >= N.  Activation takes effect at the next group boundary.
 
@@ -5112,7 +5112,7 @@ This registry is initially empty.
 | 0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | {{max-auth-token-cache-size}} |
 | 0x05 | AUTHORITY | {{authority}} |
 | 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
-| 0x08 | MAX_DTS_CONCURRENT_TRACKS| {{max-dts-concurrent-tracks}} |
+| 0x09 | SSTS_ALGORITHMS | {{ssts-algorithms}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 Endpoints MUST ignore unknown Setup Options as specified in
