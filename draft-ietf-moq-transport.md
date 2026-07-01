@@ -1544,19 +1544,20 @@ Range Filters are parameters in subscriptions or fetches that tell a publisher
 to filter tracks and objects according to subscriber criteria which are
 allowed ranges of integer values in Track and Object Properties and other
 object header fields (Subgroup ID, Object ID, and Publisher Priority).
-There are four Range Filter parameter types, 0x25-0x28, as shown below.
+There are five Range Filter parameter types, 0x25-0x29, as shown below.
 
 ~~~
-SUBGROUP_FILTER { Type=0x25, Length, Set, Range... }
-OBJECTID_FILTER { Type=0x26, Length, Set, Range... }
-PRIORITY_FILTER { Type=0x27, Length, Set, Range... }
-PROPERTY_FILTER { Type=0x28, Length, Set, Property Type, Range... }
-          Range { Start, End }
+SUBGROUP_FILTER { Type=0x25, Length, [Set], [Range...] }
+OBJECTID_FILTER { Type=0x26, Length, [Set], [Range...] }
+PRIORITY_FILTER { Type=0x27, Length, [Set], [Range...] }
+OBJECT_PROPERTY_FILTER { Type=0x28, Length, [Set], [Property Type], [Range...] }
+TRACK_PROPERTY_FILTER  { Type=0x29, Length, [Set], [Property Type], [Range...] }
+          Range { Start, [End] }
 ~~~
 
 Each Range Filter is a sequence of Start/End (vi64) inclusive Range pairs
-prefixed with a Length (vi64) in bytes and a Set (8 bits).
-The Property Filter includes an additional prefix for Property Type (vi64).
+prefixed with a Length (vi64) in bytes and a Set identifier (8 bits).
+The Track and Object Property Filters include an additional prefix for Property Type (vi64).
 The final End in a sequence of Ranges can be omitted to indicate no end.
 
 Start is delta encoded from the prior Range's End or from 0
@@ -1571,29 +1572,33 @@ All filter parameters with the same Set value are combined using logical
 "OR" operations.  The final result is Set=0 OR Set=1 OR ... Set=255,
 where each Set=i is the AND of filters with Set=i.
 
-These parameters MAY appear multiple times in a FETCH, SUBSCRIBE,
+The Track Property filter parameter MAY appear multiple times in a
+SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
+All other filter parameters MAY appear multiple times in a FETCH, SUBSCRIBE,
 SUBSCRIBE_TRACKS, PUBLISH_OK, or REQUEST_UPDATE (on a subscription, from the subscriber only)
-message.  If the same combination of Parameter Type, Property Type
-(only in the Property Filter), and Set repeat in any message,
+message.  If the same combination of Parameter Type, Set, and Property Type
+(only in the Track and Object Property Filters) repeat in any message,
 an endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
-Length can be 0 or 1 in REQUEST_UPDATE to remove a filter parameter
-for all Sets or a specified Set, respectively.  If a filter parameter
-is omitted from REQUEST_UPDATE, the value is unchanged.  If omitted
-from other messages, the default is no filter.
+In REQUEST_UPDATE, Length can be 0 to remove a filter parameter or non-zero
+to replace that entire filter parameter including all Sets and Property Types.
+If a filter parameter is omitted from REQUEST_UPDATE, the value is unchanged.
+If omitted from other messages, the default is no filter.
 
 Range Filters are only allowed if the setup option MAX_FILTER_RANGES
-is non-zero, which limits the total number of Ranges allowed concurrently
+is non-zero, which limits the total number of Ranges allowed
 in all Range Filter parameters for a given subscription or fetch.
 If this limit is exceeded, an endpoint MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
-The Property Filter evaluates both Track and Object Properties.
-If a track has a Track Property of the specified Property Type,
-its value is used for filtering both the PUBLISH message (when used with
-SUBSCRIBE_TRACKS) and any Objects from that track that lack their own
-value for that Property Type.  If the Track Property value
-does not pass the filter, no Objects from that track are delivered.
+The Track Property Filter can be used in SUBSCRIBE_TRACKS to filter PUBLISH
+messages with required Track Property types and values.  PUBLISH messages
+which pass the filter will be forwarded while those which do not pass it
+will not be forwarded nor will any Objects.
+
+The Object Property Filter can be used to filter Objects with required
+Object Property types and values.  Track Properties are not evaluated
+by the Object Property Filter.
 
 ### Combining Filters
 
@@ -1601,7 +1606,8 @@ All filter types are combined using logical "AND" operations
 to further restrict which tracks and objects pass all filter criteria.
 This includes all Range Filters {{range-filters}} and Subscription Location
 Filters {{subscription-filters}}, which can be evaluated in any order.
-The Forward parameter is also a type of filter.
+The Forward parameter is also a type of filter.  Objects MUST pass all
+filters to be sent.
 
 ~~~
 Pass = Forward AND Location Filter AND Range Filters
@@ -2617,10 +2623,18 @@ Ranges of Publisher Priority.  See {{range-filters}}.
 If a decoded value exceeds 255, the endpoint MUST close the session with a
 `PROTOCOL_VIOLATION` since Publisher Priority is an 8-bit field.
 
-### PROPERTY FILTER
+### OBJECT PROPERTY FILTER
 
-The PROPERTY_FILTER parameter (Type 0x28) selects tracks or objects with
-specified Ranges of Property Value for a specified Track or Object Property
+The OBJECT_PROPERTY_FILTER parameter (Type 0x28) selects objects with
+required Ranges of Property Value for a required Object Property
+Type which MUST be even, i.e. a single integer value
+(see {{moq-key-value-pair}}), otherwise the endpoint MUST close the
+session with a `PROTOCOL_VIOLATION`. See {{range-filters}}.
+
+### TRACK PROPERTY FILTER
+
+The TRACK_PROPERTY_FILTER parameter (Type 0x29) selects tracks with
+required Ranges of Property Value for a required Track Property
 Type which MUST be even, i.e. a single integer value
 (see {{moq-key-value-pair}}), otherwise the endpoint MUST close the
 session with a `PROTOCOL_VIOLATION`. See {{range-filters}}.
@@ -5123,7 +5137,8 @@ Setup Options SHOULD request a provisional registration.
 | 0x25 | SUBGROUP_FILTER | {{subgroup-filter}} |
 | 0x26 | OBJECTID_FILTER | {{objectid-filter}} |
 | 0x27 | PRIORITY_FILTER | {{priority-filter}} |
-| 0x28 | PROPERTY_FILTER | {{property-filter}} |
+| 0x28 | OBJECT_PROPERTY_FILTER | {{object-property-filter}} |
+| 0x29 | TRACK_PROPERTY_FILTER | {{track-property-filter}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 
