@@ -17,22 +17,23 @@ reliability. MOQT operates both point-to-point and through intermediate relays,
 enabling scalable low-latency delivery. Despite its name, MOQT is media
 agnostic and can be used for a wide range of use cases. 
     " name="description">
-<meta content="xml2rfc 3.33.0" name="generator">
+<meta content="xml2rfc 3.34.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.33.0
-    Python 3.12.13
-    ConfigArgParse 1.7
+  xml2rfc 3.34.0
+    Python 3.14.5
+    ConfigArgParse 1.7.5
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
-    lxml 6.0.2
-    platformdirs 4.9.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.10.0
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.7.0
+    wcwidth 0.8.1
 -->
 <link href="draft-ietf-moq-transport.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1051,11 +1052,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">June 2026</td>
+<td class="right">July 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 16 December 2026</td>
+<td class="center">Expires 2 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1069,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-14" class="published">14 June 2026</time>
+<time datetime="2026-07-01" class="published">1 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-16">16 December 2026</time></dd>
+<dd class="expires"><time datetime="2027-01-02">2 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1143,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 16 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 2 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3598,13 +3599,15 @@ published or received via upstream subscriptions.<a href="#section-5.1.2-1" clas
 published or received via a subscription having Locations greater than or
 equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.<a href="#section-5.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-3">Some filters are defined to be relative to the <code>Largest Object</code>. The <code>Largest
+<p id="section-5.1.2-3">An object published or received in a subgroup or datagram is
+<strong>subscription-delivered</strong>.<a href="#section-5.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-4">Some filters are defined to be relative to the <code>Largest Object</code>. The <code>Largest
 Object</code> is the Object with the largest Location (<a href="#location-structure" class="auto internal xref">Section 1.4.2</a>) in the
 Track from the perspective of the publisher processing the message. Largest
 Object updates when the first byte of an Object with a Location larger than the
-previous value is published or received through a subscription.<a href="#section-5.1.2-3" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-4">A Subscription Filter has the following structure:<a href="#section-5.1.2-4" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-5.1.2-5">
+previous value is published or received through a subscription.<a href="#section-5.1.2-4" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-5">A Subscription Filter has the following structure:<a href="#section-5.1.2-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.1.2-6">
 <pre>
 Subscription Filter {
   Filter Type (vi64),
@@ -3612,42 +3615,41 @@ Subscription Filter {
   [End Group Delta (vi64),]
   [Relative Previous (vi64),]
 }
-</pre><a href="#section-5.1.2-5" class="pilcrow">¶</a>
+</pre><a href="#section-5.1.2-6" class="pilcrow">¶</a>
 </div>
-<p id="section-5.1.2-6">Filter Type can have one of the following values:<a href="#section-5.1.2-6" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-7">Largest Object (0x2): The filter Start Location is <code>{Largest Object.Group,
+<p id="section-5.1.2-7">Filter Type can have one of the following values:<a href="#section-5.1.2-7" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-8">Largest Object (0x2): The filter Start Location is <code>{Largest Object.Group,
 Largest Object.Object + 1}</code> and <code>Largest Object</code> is communicated in
 SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
 {0, 0}. There is no End Group - the subscription is open ended.  Note that due
 to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  <code>Largest Object</code> after the SUBSCRIBE is processed, but
-these Objects do not pass the Largest Object filter.<a href="#section-5.1.2-7" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-8">Next Group Start (0x1): The filter Start Location is <code>{Largest Object.Group + 1,
+these Objects do not pass the Largest Object filter.<a href="#section-5.1.2-8" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-9">Next Group Start (0x1): The filter Start Location is <code>{Largest Object.Group + 1,
 0}</code> and <code>Largest Object</code> is communicated in SUBSCRIBE_OK. If no content has been
 delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
 the subscription is open ended. For scenarios where the subscriber intends to
 start from more than one group in the future, it can use an AbsoluteStartFill
-filter instead.<a href="#section-5.1.2-8" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-9">AbsoluteStartFill (0x3): The filter Start Location is specified explicitly.
+filter instead.<a href="#section-5.1.2-9" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-10">AbsoluteStartFill (0x3): The filter Start Location is specified explicitly.
 There is no End Group - the subscription is open ended. The subscription opens a
-fill fetch stream for already-published objects (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-5.1.2-9" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-10">AbsoluteRangeFill (0x4): The filter Start Location and End Group Delta are
+fill fetch stream for the fill range (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-11">AbsoluteRangeFill (0x4): The filter Start Location and End Group Delta are
 specified explicitly. If the specified <code>End Group Delta</code> is zero, the remainder
 of the Start Location's Group passes the filter. Otherwise, the last Group ID to
 be delivered is the Group ID in <code>Start Location</code> plus the <code>End Group Delta</code>. If
 the resulting Group ID would be greater than 2^64 - 1, the endpoint <span class="bcp14">MUST</span> close
 the session with a <code>PROTOCOL_VIOLATION</code>. The subscription opens a fill fetch
-stream for already-published objects (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-11">RelativeStartFill (0x5): Relative Previous is present. The value N in
+stream for the fill range (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-12">RelativeStartFill (0x5): Relative Previous is present. The value N in
 Relative Previous determines the Start Location: <code>{Largest Object.Group - N, 0}</code>
 (N = 0 starts at Largest Object.Group). If N is greater than Largest
 Object.Group, the Start Location is <code>{0, 0}</code>. There is no End Group - the
-subscription is open ended. The subscription opens a fill fetch stream for
-already-published objects (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-12">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> close the
-session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-12" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-13">A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range. Every
-subscription filter type yields a satisfiable range (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-5.1.2-13" class="pilcrow">¶</a></p>
+subscription is open ended. The subscription opens a fill fetch stream for the
+fill range (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-5.1.2-12" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-13">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> close the
+session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-13" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-14">A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range.<a href="#section-5.1.2-14" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="fill-semantics">
@@ -3657,17 +3659,18 @@ subscription filter type yields a satisfiable range (see <a href="#fill-semantic
           </h4>
 <p id="section-5.1.3-1">Fill filter types (AbsoluteStartFill, AbsoluteRangeFill, and
 RelativeStartFill) cause the publisher to open a unidirectional stream beginning
-with a FETCH_HEADER (see <a href="#fetch-header" class="auto internal xref">Section 11.4.4</a>) to deliver already-published objects.
-This is called a fill fetch stream.<a href="#section-5.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-5.1.3-2">The fill fetch stream carries objects from the fill Start Location up to and
-including the fill boundary. The fill boundary is the Largest Object, or the End
-Group if one is specified and it precedes the Largest Object. The subscriber
+with a FETCH_HEADER (see <a href="#fetch-header" class="auto internal xref">Section 11.4.4</a>) and delivered as a FETCH response (see
+<a href="#message-fetch" class="auto internal xref">Section 10.12</a>). This is called a fill fetch stream.<a href="#section-5.1.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.3-2">The fill fetch stream carries the fill range: the objects from the fill Start
+Location up to and including the fill boundary. The fill boundary
+is the Largest Object, or the End Group when one is specified with a Location
+less than the Largest Object. The subscriber
 learns the Largest Object from the <code>LARGEST_OBJECT</code> parameter in SUBSCRIBE_OK or
 REQUEST_UPDATE_OK. For RelativeStartFill, both sides compute the fill Start
 Location as <code>{Largest Object.Group - N, 0}</code>. For any fill filter type, if the
-Start Location is after the Largest Object the fill range is empty, the
-publisher does not open a fill fetch stream, and the subscription proceeds
-live-only. If the End Group precedes the Largest Object, only the fill fetch
+Start Location is greater than the Largest Object the fill range is empty, the
+publisher does not open a fill fetch stream. If the End Group has a Location
+less than the Largest Object, only the fill fetch
 stream delivers objects and the subscription remains open (for example, for a
 later REQUEST_UPDATE).<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
 <p id="section-5.1.3-3">The fill fetch stream inherits the subscription's parameters, including
@@ -3681,9 +3684,11 @@ REQUEST_UPDATE Request ID for a subsequent fill. A subscription can have
 multiple fill fetch streams open at once, each identified by its Request ID;
 opening a new fill fetch stream does not implicitly cancel any previously opened
 fill fetch stream.<a href="#section-5.1.3-4" class="pilcrow">¶</a></p>
-<p id="section-5.1.3-5">Because the subscription filter necessarily overlaps the fill fetch range, an
-object can be delivered both on the fill fetch stream and via subgroups or
-datagrams.<a href="#section-5.1.3-5" class="pilcrow">¶</a></p>
+<p id="section-5.1.3-5">An object delivered on the fill fetch stream is <strong>fill-delivered</strong>. Because the
+subscription filter necessarily overlaps the fill range, an object can be both
+fill-delivered and subscription-delivered. A subscriber can avoid duplicate
+delivery by setting FILL_TIMEOUT to 0 in FILL_PARAMETERS (see <a href="#fill-timeout" class="auto internal xref">Section 10.2.5</a>):
+the fill fetch stream then carries only objects that are immediately available.<a href="#section-5.1.3-5" class="pilcrow">¶</a></p>
 <div id="opening-and-closing-fill-fetch-streams">
 <section id="section-5.1.3.1">
             <h5 id="name-opening-and-closing-fill-fe">
@@ -3701,7 +3706,7 @@ not open one either.<a href="#section-5.1.3.1-2.1.1" class="pilcrow">¶</a></p>
               <li class="normal" id="section-5.1.3.1-2.2">
                 <p id="section-5.1.3.1-2.2.1">A REQUEST_UPDATE that does not specify a fill filter type, or that specifies
 one whose Start Location does not add objects beyond an earlier fill (for
-example, one that only changes the End Group), does not open a new fill fetch
+example, one that only decreases the End Group), does not open a new fill fetch
 stream.<a href="#section-5.1.3.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-5.1.3.1-2.3">
@@ -3739,8 +3744,8 @@ Filter Type <code>RelativeStartFill</code> and Relative Previous N = 0, which fi
 current Group from its start.<a href="#section-5.1.4-3" class="pilcrow">¶</a></p>
 <p id="section-5.1.4-4">To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a fill
 filter type (AbsoluteStartFill, AbsoluteRangeFill, or RelativeStartFill). The
-publisher fills already-published objects and delivers newer objects live (see
-<a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-5.1.4-4" class="pilcrow">¶</a></p>
+publisher delivers the fill range, and objects with larger Locations in a
+subgroup or datagram (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-5.1.4-4" class="pilcrow">¶</a></p>
 <p id="section-5.1.4-5">To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
 Filter Type <code>Next Group Start</code>.<a href="#section-5.1.4-5" class="pilcrow">¶</a></p>
 <div id="dynamically-starting-new-groups">
@@ -3967,14 +3972,14 @@ sent first.<a href="#section-7.2-2.2.1" class="pilcrow">¶</a></p>
 publisher priority, but belong to two different groups of the same track,
 <strong>the group order</strong> of the subscription is used to decide the one that is
 scheduled to be sent first. When a subscription fill's Group Order differs
-from the subscription's Group Order, the live-delivered object is scheduled
+from the subscription's Group Order, the subscription-delivered object is scheduled
 first.<a href="#section-7.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-7.2-2.4">
             <p id="section-7.2-2.4.1">If two objects in the same subscription have the same subscriber
 and publisher priority and belong to the same group of the same track, and
-one is delivered by the fill fetch stream while the other is delivered by the
-live subscription, the fill-delivered object is scheduled first. Otherwise,
+one is delivered by the fill fetch stream while the other is
+subscription-delivered, the fill-delivered object is scheduled first. Otherwise,
 the one with <strong>the lowest Subgroup ID</strong> (for objects with forwarding preference
 Subgroup), or <strong>the lowest Object ID</strong> (for objects with forwarding preference
 Datagram) is scheduled to be sent first.  If the two objects have
@@ -3982,8 +3987,8 @@ different Forwarding Preferences the order is implementation dependent.<a href="
 </li>
         </ol>
 <p id="section-7.2-3">Within the same group, fill-delivered objects win the tie-break over
-live-delivered objects (rule 3) because objects before the fill boundary are
-assumed to be needed before those after it.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
+subscription-delivered objects (rule 4) because objects with smaller Locations
+are assumed to be needed before those with larger Locations.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
 <p id="section-7.2-4">The definition of "scheduled to be sent first" in the algorithm is implementation
 dependent and is constrained by the prioritization interface of the underlying
 transport. For some implementations, it could mean that the object is serialized
@@ -4907,8 +4912,8 @@ SUBSCRIBE, PUBLISH_OK, or FETCH, or inside a FILL_PARAMETERS parameter (see
 <p id="section-10.2.8-2">Its value indicates how to prioritize Objects from different groups within
 the same subscription (see <a href="#priorities" class="auto internal xref">Section 7</a>), or how to order Groups in a Fetch
 response (see <a href="#message-fetch" class="auto internal xref">Section 10.12</a>). When it appears inside FILL_PARAMETERS, it
-governs the fill fetch stream and its ordering relative to the live subscription
-(see <a href="#priorities" class="auto internal xref">Section 7</a>). The allowed values are Ascending (0x1) or Descending
+governs the fill fetch stream and its ordering relative to subscription-delivered
+Objects (see <a href="#priorities" class="auto internal xref">Section 7</a>). The allowed values are Ascending (0x1) or Descending
 (0x2). If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span>
 close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.8-2" class="pilcrow">¶</a></p>
 <p id="section-10.2.8-3">If omitted from SUBSCRIBE, the publisher's preference from
@@ -4983,11 +4988,12 @@ that apply to the fill fetch stream of a subscription using a fill filter type
             </tbody>
           </table>
 <p id="section-10.2.10-4">A parameter that is omitted from FILL_PARAMETERS takes the value it has for the
-live subscription; FILL_PARAMETERS therefore carries only the settings that
+subscription; FILL_PARAMETERS therefore carries only the settings that
 differ. An endpoint that receives a parameter inside FILL_PARAMETERS that is not
-permitted above <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.10-4" class="pilcrow">¶</a></p>
-<p id="section-10.2.10-5">FILL_PARAMETERS is meaningful only with a fill filter type. If it is present
-without a fill filter type, it is ignored.<a href="#section-10.2.10-5" class="pilcrow">¶</a></p>
+listed above <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.10-4" class="pilcrow">¶</a></p>
+<p id="section-10.2.10-5">FILL_PARAMETERS is meaningful only with a fill filter type. An endpoint that
+receives FILL_PARAMETERS in a message that specifies a non-fill filter type <span class="bcp14">MUST</span>
+close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.10-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="expires">
@@ -5606,7 +5612,7 @@ matches more publishers than the relay is willing to enumerate.<a href="#section
 <p id="section-10.7-1">SUBSCRIBE initiates a subscription to a track.  The associated parameters
 determine the range and mechanism of object delivery; the Subscription Filter
 (see <a href="#subscription-filters" class="auto internal xref">Section 5.1.2</a>) selects which Objects are sent, and a fill filter
-type additionally retrieves already-published Objects on a fill fetch stream
+type additionally retrieves the fill range on a fill fetch stream
 (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-10.7-1" class="pilcrow">¶</a></p>
 <p id="section-10.7-2">The format of SUBSCRIBE is as follows:<a href="#section-10.7-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-message"></span><div id="moq-transport-subscribe-format">
@@ -9024,7 +9030,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dl class="references">
 <dt id="I-D.draft-ietf-quic-reliable-stream-reset">[I-D.draft-ietf-quic-reliable-stream-reset]</dt>
         <dd>
-<span class="refAuthor">Seemann, M.</span> and <span class="refAuthor">K. Oku</span>, <span class="refTitle">"QUIC Stream Resets with Partial Delivery"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-quic-reliable-stream-reset-07</span>, <time datetime="2025-06-14" class="refDate">14 June 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-07">https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-07</a>&gt;</span>. </dd>
+<span class="refAuthor">Seemann, M.</span> and <span class="refAuthor">K. Oku</span>, <span class="refTitle">"QUIC Stream Resets with Partial Delivery"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-quic-reliable-stream-reset-08</span>, <time datetime="2026-06-26" class="refDate">26 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-08">https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-08</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
@@ -9089,7 +9095,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dl class="references">
 <dt id="CAT">[CAT]</dt>
         <dd>
-<span class="refAuthor">Law, W.</span>, <span class="refAuthor">Lemmons, C.</span>, <span class="refAuthor">Simon, G.</span>, and <span class="refAuthor">S. Nandakumar</span>, <span class="refTitle">"Authentication scheme for MOQT using Common Access Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-c4m-00</span>, <time datetime="2025-09-19" class="refDate">19 September 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-00">https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-00</a>&gt;</span>. </dd>
+<span class="refAuthor">Law, W.</span>, <span class="refAuthor">Lemmons, C.</span>, <span class="refAuthor">Simon, G.</span>, and <span class="refAuthor">S. Nandakumar</span>, <span class="refTitle">"Authorization scheme for MOQT using Common Access Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-c4m-01</span>, <time datetime="2026-06-18" class="refDate">18 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-01">https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.draft-jennings-moq-quicr-proto">[I-D.draft-jennings-moq-quicr-proto]</dt>
         <dd>
