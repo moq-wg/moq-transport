@@ -601,7 +601,7 @@ by doing a Fetch upstream, if necessary.
 
 Applications that cannot produce Group IDs that increase with time are limited
 to the subset of MOQT that does not compare group IDs. Subscribers to these
-Tracks SHOULD NOT use range filters which span multiple Groups in FETCH or
+Tracks SHOULD NOT use Location filters which span multiple Groups in FETCH or
 SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so they could have
 an unexpected delivery order if Group IDs do not increase with time.
 
@@ -1490,27 +1490,27 @@ A REQUEST_ERROR indicates no objects will be delivered, and both endpoints can
 immediately destroy relevant state. Objects MUST NOT be sent for requests that
 end with an error.
 
-### Subscription Filters {#subscription-filters}
+### Location Filters {#location-filters}
 
-Subscribers can specify a filter on a subscription indicating to the publisher
+Subscribers can specify a Location filter on a subscription indicating to the publisher
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.
 
-All filters have a Start Location and an optional End Group Delta.  Only objects
+All Location filters have a Start Location and an optional End Group Delta.  Only objects
 published or received via a subscription having Locations greater than or
 equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.
 
-Some filters are defined to be relative to the `Largest Object`. The `Largest
+Some Location filters are defined to be relative to the `Largest Object`. The `Largest
 Object` is the Object with the largest Location ({{location-structure}}) in the
 Track from the perspective of the publisher processing the message. Largest
 Object updates when the first byte of an Object with a Location larger than the
 previous value is published or received through a subscription.
 
-A Subscription Filter has the following structure:
+A Location Filter has the following structure:
 
 ~~~
-Subscription Filter {
+Location Filter {
   Filter Type (vi64),
   [Start Location (Location),]
   [End Group Delta (vi64),]
@@ -1551,10 +1551,87 @@ close the session with a `PROTOCOL_VIOLATION`.
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
 
-If the publisher cannot satisfy the requested Subscription Filter (see
-{{subscription-filter}}) or if the entire End Group has already been published
+If the publisher cannot satisfy the requested Location Filter (see
+{{location-filter}}) or if the entire End Group has already been published
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
+
+### Range Filters
+
+Range Filters are parameters in subscriptions or fetches that tell a publisher
+to filter tracks (for SUBSCRIBE_TRACKS) and objects according to
+subscriber-provided criteria which are
+allowed ranges of integer values in Track and Object Properties and other
+object header fields (Subgroup ID, Object ID, and Publisher Priority).
+There are five Range Filter parameter types, 0x25-0x29, as shown below.
+
+~~~
+SUBGROUP_FILTER { Type=0x25, Length, [SetID], Range... }
+OBJECTID_FILTER { Type=0x26, Length, [SetID], Range... }
+PRIORITY_FILTER { Type=0x27, Length, [SetID], Range... }
+OBJECT_PROPERTY_FILTER { Type=0x28, Length, [SetID], [Property Type], Range... }
+TRACK_PROPERTY_FILTER  { Type=0x29, Length, [SetID], [Property Type], Range... }
+Range { Start, [End] }
+~~~
+
+Each Range Filter is a sequence of Start/End (vi64) inclusive Range pairs
+prefixed with a Length (vi64) in bytes and a SetID (8 bits).
+The Track and Object Property Filters include an additional prefix for Property Type (vi64).
+The final End in a sequence of Ranges can be omitted to indicate no end.
+
+Start is delta encoded from the prior Range's End or from 0
+for the first Range, and End is delta encoded from the current Range's Start.
+Any delta encoding that results in a value that exceeds 2^64-1
+MUST be rejected with REQUEST_ERROR with error code INVALID_FILTER.
+For example, to express ranges 3-5 and 10-15: the first Start is 3
+(delta from 0), the first End is 2 (5 minus 3), the second Start is 5
+(10 minus 5), and the second End is 5 (15 minus 10).
+
+All filter parameters with the same SetID value are combined using logical
+"AND" operations, then all the resulting sets are combined using logical
+"OR" operations.  The final result is SetID=0 OR SetID=1 OR ... SetID=255,
+where each SetID=i is the AND of filters with SetID=i.
+
+The Track Property filter parameter MAY appear multiple times in a
+SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
+All other filter parameters MAY appear multiple times in a FETCH, SUBSCRIBE,
+SUBSCRIBE_TRACKS, PUBLISH_OK, or REQUEST_UPDATE (on a subscription, from the subscriber only)
+message.  If the same combination of Parameter Type, SetID, and Property Type
+(only in the Track and Object Property Filters) repeat in any message,
+an endpoint MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
+
+In REQUEST_UPDATE, Length can be 0 to remove a filter parameter or non-zero
+to replace that entire filter parameter including all sets and Property Types.
+If a filter parameter is omitted from REQUEST_UPDATE, the value is unchanged.
+If omitted from other messages, the default is no filter.
+
+Range Filters are only allowed if the setup option MAX_FILTER_RANGES
+is non-zero, which limits the total number of Ranges allowed
+in all Range Filter parameters for a given subscription or fetch.
+If this limit is exceeded, an endpoint MUST reject this with REQUEST_ERROR
+with error code INVALID_FILTER.
+
+The Track Property Filter can be used in SUBSCRIBE_TRACKS to filter PUBLISH
+messages with required Track Property types and values.  PUBLISH messages
+which pass the filter will be forwarded while those which do not pass it
+will not be forwarded nor will any Objects.
+
+The Object Property Filter can be used to filter Objects with required
+Object Property types and values.  Track Properties are not evaluated
+by the Object Property Filter.
+
+### Combining Filters
+
+All filter types are combined using logical "AND" operations
+to further restrict which tracks and objects pass all filter criteria.
+This includes all Range Filters {{range-filters}} and Location
+Filters {{location-filters}}, which can be evaluated in any order.
+The Forward parameter is also a type of filter.  Objects MUST pass all
+filters to be sent.
+
+~~~
+Pass = Forward AND Location Filters AND Range Filters
+~~~
 
 ### Joining an Ongoing Track
 
@@ -1731,6 +1808,24 @@ has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
 namespace for that track, it SHOULD only request it from the senders of those
 PUBLISH_NAMESPACE messages.
 
+## Filtering SUBSCRIBE_TRACKS
+
+Range Filters {{range-filters}} can be used in SUBSCRIBE_TRACKS (or
+REQUEST_UPDATE for it) to filter tracks in a namesapce using the
+Track Property Filter, and filter objects published in those tracks
+using all other Range Filters which get applied to the resulting
+subscriptions established by SUBSCRIBE_TRACKS.
+
+### Relay Resource Protection in Large Namespaces
+
+Relays SHOULD aggregate and propagate filters upstream on subscriptions,
+especially namespace subscriptions,
+to conserve and protect their resources from excessive load.  They MAY
+also impose limits on the number of publishers in a namespace, by rejecting
+or closing namespace subscriptions with the error NAMESPACE_TOO_LARGE, or
+CONFLICTING_FILTERS if too many disjoint filters are requested on downstream
+subscriptions across a large number of subscribers, or PREFIX_OVERLAP if different
+subscribers force an aggregated upstream subscription to overlap.
 
 # Priorities {#priorities}
 
@@ -2558,14 +2653,48 @@ close the session with `PROTOCOL_VIOLATION`.
 If omitted from SUBSCRIBE or SUBSCRIBE_TRACKS, the publisher's preference from
 the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 
-### SUBSCRIPTION FILTER Parameter {#subscription-filter}
+### LOCATION FILTER Parameter {#location-filter}
 
-The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
+The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
 encoding. It MAY appear in a SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a
-subscription) message. It is a Subscription Filter (see {{subscription-filters}}).
+subscription) message. It is a Location Filter (see {{location-filters}}).
 
 If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
+
+### SUBGROUP FILTER
+
+The SUBGROUP_FILTER parameter (Type 0x25) selects objects with specified
+Ranges of Subgroup ID.  See {{range-filters}}.
+
+### OBJECTID FILTER
+
+The OBJECTID_FILTER parameter (Type 0x26) selects objects with specified
+Ranges of Object ID.  See {{range-filters}}.
+
+### PRIORITY FILTER
+
+The PRIORITY_FILTER parameter (Type 0x27) selects objects with specified
+Ranges of Publisher Priority.  See {{range-filters}}.
+If a decoded value exceeds 255, the endpoint MUST reject this with
+REQUEST_ERROR with error code INVALID_FILTER since Publisher Priority
+is an 8-bit field.
+
+### OBJECT PROPERTY FILTER
+
+The OBJECT_PROPERTY_FILTER parameter (Type 0x28) selects objects with
+required Ranges of Property Value for a required Object Property
+Type which MUST be even, i.e. a single integer value
+(see {{moq-key-value-pair}}), otherwise the endpoint MUST reject this with
+REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
+
+### TRACK PROPERTY FILTER
+
+The TRACK_PROPERTY_FILTER parameter (Type 0x29) selects tracks with
+required Ranges of Property Value for a required Track Property
+Type which MUST be even, i.e. a single integer value
+(see {{moq-key-value-pair}}), otherwise the endpoint MUST reject this with
+REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
 
 ### EXPIRES Parameter {#expires}
 
@@ -2593,7 +2722,7 @@ does not expire or expires at an unknown time.
 The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
 in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, or TRACK_STATUS_OK.
 It contains the largest Location (see {{location-structure}}) in the
-Track observed by the sending endpoint (see {{subscription-filters}}). If Objects
+Track observed by the sending endpoint (see {{location-filters}}). If Objects
 have been published on this Track the Publisher MUST include this parameter.
 
 If omitted from a message, the sending endpoint has not published or received
@@ -2780,6 +2909,13 @@ advertising or other nonessential information. Implementations SHOULD NOT use
 the identifiers of other implementations to declare compatibility, as this
 undermines the usefulness of implementation identification for debugging.
 
+#### MAX FILTER RANGES
+
+The MAX_FILTER_RANGES option (Type 0x06) limits the peer's total number of Ranges
+(Start/End pairs) allowed concurrently in all Range filter {{range-filters}}
+parameters for a given subscription or fetch.  The default value is 0, so if not
+specified, the peer MUST NOT send any such filter parameters.  If this limit is
+exceeded, an endpoint MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
 
 ## GOAWAY {#message-goaway}
 
@@ -3011,6 +3147,9 @@ INVALID_RANGE:
 : In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
 cannot be satisfied.
 
+INVALID_FILTER:
+: A filter parameter is invalid.
+
 MALFORMED_TRACK:
 : In response to a FETCH, a relay publisher detected the track was
 malformed (see {{malformed-tracks}}).
@@ -3036,6 +3175,11 @@ matches more publishers than the relay is willing to enumerate.
 INVALID_JOINING_REQUEST_ID:
 : In response to a Joining FETCH, the referenced Request ID is not an
 `Established` Subscription.
+
+CONFLICTING_FILTERS:
+: In response to SUBSCRIBE_TRACKS, the filter parameters conflict among
+too many subscribers to aggregate the subscription upstream or otherwise
+efficiently service it.
 
 ## SUBSCRIBE {#message-subscribe-req}
 
@@ -3136,8 +3280,8 @@ REQUEST_UPDATE Message {
 
 ### Updating Subscriptions
 
-When a subscriber decreases the Start Location of the Subscription Filter
-(see {{subscription-filters}}), the Start Location can be smaller than the Track's
+When a subscriber decreases the Start Location of the Location Filter
+(see {{location-filters}}), the Start Location can be smaller than the Track's
 Largest Location, similar to a new Subscription. FETCH can be used to retrieve
 any necessary Objects smaller than the current Largest Location.
 
@@ -3311,7 +3455,7 @@ TRACK_ENDED (0x2):
 : The track is no longer being published.
 
 SUBSCRIPTION_ENDED (0x3):
-: The publisher reached the end of an associated subscription filter.
+: The publisher reached the end of an associated location filter.
 
 GOING_AWAY (0x4):
 : The subscriber or publisher issued a GOAWAY message.
@@ -3483,7 +3627,7 @@ The publisher responding to a FETCH is
 responsible for delivering all available Objects in the requested range in the
 requested order (see {{group-order}}). The Objects in the response are delivered on a single
 unidirectional stream. Any gaps in the Group and Object IDs in the response
-stream indicate objects that do not exist.  For Ascending Group Order this
+stream indicate objects that do not exist unless filters were requested.  For Ascending Group Order this
 includes ranges between the first requested object and the first object in the
 stream; between objects in the stream; and between the last object in the
 stream and the Largest Group/Object indicated in FETCH_OK, so long as the fetch
@@ -4206,9 +4350,11 @@ Object in the Subgroup if at least one of the following is true:
    stream.
  * The Object was received on the same upstream Subgroup stream as the
    previously sent Object on the downstream Subgroup stream, with no other
-   Objects in between.
+   Objects in between, unless the intervening Objects did not pass the
+   subscriber's filters.
  * It determined all Object IDs between the current and previous Object IDs
-   on the Subgroup stream belong to different Subgroups or do not exist.
+   on the Subgroup stream belong to different Subgroups or do not exist,
+   or do not pass the subscriber's filters.
 
 If the relay does not know if an Object is the next Object, it MUST reset the
 Subgroup stream and open a new one to forward it.
@@ -5012,6 +5158,7 @@ This registry is initially empty.
 | 0x03 | AUTHORIZATION_TOKEN | {{setup-auth-token}} |
 | 0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | {{max-auth-token-cache-size}} |
 | 0x05 | AUTHORITY | {{authority}} |
+| 0x06 | MAX_FILTER_RANGES | {{max-filter-ranges}} |
 | 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
@@ -5054,8 +5201,13 @@ Setup Options SHOULD request a provisional registration.
 | 0x0A | FILL_TIMEOUT | {{fill-timeout}} |
 | 0x10 | FORWARD | {{forward-parameter}} |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
-| 0x21 | SUBSCRIPTION_FILTER | {{subscription-filter}} |
+| 0x21 | LOCATION_FILTER | {{location-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
+| 0x25 | SUBGROUP_FILTER | {{subgroup-filter}} |
+| 0x26 | OBJECTID_FILTER | {{objectid-filter}} |
+| 0x27 | PRIORITY_FILTER | {{priority-filter}} |
+| 0x28 | OBJECT_PROPERTY_FILTER | {{object-property-filter}} |
+| 0x29 | TRACK_PROPERTY_FILTER | {{track-property-filter}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 
@@ -5195,6 +5347,8 @@ This document does not define any initial entries.
 | INVALID_JOINING_REQUEST_ID | 0x32 | {{message-request-error}} |
 | UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
 | REDIRECT                   | 0x34 | {{message-request-error}} |
+| CONFLICTING_FILTERS        | 0x35 | {{message-request-error}} |
+| INVALID_FILTER             | 0x36 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
