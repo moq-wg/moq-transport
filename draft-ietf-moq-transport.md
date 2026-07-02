@@ -2634,16 +2634,16 @@ is an 8-bit field.
 The OBJECT_PROPERTY_FILTER parameter (Type 0x28) selects objects with
 required Ranges of Property Value for a required Object Property
 Type which MUST be even, i.e. a single integer value
-(see {{moq-key-value-pair}}), otherwise the endpoint MUST close the
-session with a `PROTOCOL_VIOLATION`. See {{range-filters}}.
+(see {{moq-key-value-pair}}), otherwise the endpoint MUST reject this with
+REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
 
 ### TRACK PROPERTY FILTER
 
 The TRACK_PROPERTY_FILTER parameter (Type 0x29) selects tracks with
 required Ranges of Property Value for a required Track Property
 Type which MUST be even, i.e. a single integer value
-(see {{moq-key-value-pair}}), otherwise the endpoint MUST close the
-session with a `PROTOCOL_VIOLATION`. See {{range-filters}}.
+(see {{moq-key-value-pair}}), otherwise the endpoint MUST reject this with
+REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
 
 ### EXPIRES Parameter {#expires}
 
@@ -2864,7 +2864,7 @@ The MAX_FILTER_RANGES option (Type 0x06) limits the peer's total number of Range
 (Start/End pairs) allowed concurrently in all Range filter {{range-filters}}
 parameters for a given subscription or fetch.  The default value is 0, so if not
 specified, the peer MUST NOT send any such filter parameters.  If this limit is
-exceeded, an endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
+exceeded, an endpoint MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
 
 ## GOAWAY {#message-goaway}
 
@@ -5272,7 +5272,7 @@ This document does not define any initial entries.
 | UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
 | REDIRECT                   | 0x34 | {{message-request-error}} |
 | CONFLICTING_FILTERS        | 0x35 | {{message-request-error}} |
-| INVALID_FILTER             | 0x16 | {{message-request-error}} |
+| INVALID_FILTER             | 0x36 | {{message-request-error}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
