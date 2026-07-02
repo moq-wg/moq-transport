@@ -1534,7 +1534,7 @@ An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
 
 If the publisher cannot satisfy the requested Location Filter (see
-{{subscription-filter}}) or if the entire End Group has already been published
+{{location-filter}}) or if the entire End Group has already been published
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
 
@@ -1563,7 +1563,7 @@ The final End in a sequence of Ranges can be omitted to indicate no end.
 
 Start is delta encoded from the prior Range's End or from 0
 for the first Range, and End is delta encoded from the current Range's Start.
-Any delta encoding that results in a value that exceeds 2^64-1 
+Any delta encoding that results in a value that exceeds 2^64-1
 MUST be rejected with REQUEST_ERROR with error code INVALID_FILTER.
 For example, to express ranges 3-5 and 10-15: the first Start is 3
 (delta from 0), the first End is 2 (5 minus 3), the second Start is 5
@@ -2671,7 +2671,7 @@ does not expire or expires at an unknown time.
 The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
 in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, or TRACK_STATUS_OK.
 It contains the largest Location (see {{location-structure}}) in the
-Track observed by the sending endpoint (see {{subscription-filters}}). If Objects
+Track observed by the sending endpoint (see {{location-filters}}). If Objects
 have been published on this Track the Publisher MUST include this parameter.
 
 If omitted from a message, the sending endpoint has not published or received
