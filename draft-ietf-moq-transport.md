@@ -1583,13 +1583,13 @@ If the publisher cannot satisfy the requested Location Filter (see
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
 
-### Range Filters
+### Range Filters {#range-filters}
 
-Range Filters are parameters in subscriptions or fetches that tell a publisher
-to filter tracks (for SUBSCRIBE_TRACKS) and objects according to
-subscriber-provided criteria which are
-allowed ranges of integer values in Track and Object Properties and other
-object header fields (Subgroup ID, Object ID, and Publisher Priority).
+Range Filters are parameters in SUBSCRIBE, FETCH, or SUBSCRIBE_TRACKS that
+tell a publisher to filter tracks (via TRACK PROPERTY FILTER) and objects
+according to subscriber-provided criteria.  Range filters are specified as
+ranges of integer values in Track and Object Properties and other
+Object header fields (Subgroup ID, Object ID, and Publisher Priority).
 There are five Range Filter parameter types, 0x25-0x29, as shown below.
 
 ~~~
