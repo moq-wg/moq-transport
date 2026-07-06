@@ -128,12 +128,16 @@ Table of Contents
    5.  Publishing and Retrieving Tracks
      5.1.  Subscriptions
        5.1.1.  Subscription State Management
-       5.1.2.  Subscription Filters
-       5.1.3.  Joining an Ongoing Track
+       5.1.2.  Location Filters
+       5.1.3.  Range Filters
+       5.1.4.  Combining Filters
+       5.1.5.  Joining an Ongoing Track
      5.2.  Fetch State Management
    6.  Namespace Discovery
      6.1.  Subscribing to Namespaces
      6.2.  Publishing Namespaces
+     6.3.  Filtering SUBSCRIBE_TRACKS
+       6.3.1.  Relay Resource Protection in Large Namespaces
    7.  Priorities
      7.1.  Definitions
      7.2.  Scheduling Algorithm
@@ -160,12 +164,17 @@ Table of Contents
        10.2.6.  RENDEZVOUS TIMEOUT Parameter
        10.2.7.  SUBSCRIBER PRIORITY Parameter
        10.2.8.  GROUP ORDER Parameter
-       10.2.9.  SUBSCRIPTION FILTER Parameter
-       10.2.10. EXPIRES Parameter
-       10.2.11. LARGEST OBJECT Parameter
-       10.2.12. FORWARD Parameter
-       10.2.13. NEW GROUP REQUEST Parameter
-       10.2.14. TRACK_NAMESPACE_PREFIX Parameter
+       10.2.9.  LOCATION FILTER Parameter
+       10.2.10. SUBGROUP FILTER Parameter
+       10.2.11. OBJECTID FILTER Parameter
+       10.2.12. PRIORITY FILTER Parameter
+       10.2.13. OBJECT PROPERTY FILTER Parameter
+       10.2.14. TRACK PROPERTY FILTER Parameter
+       10.2.15. EXPIRES Parameter
+       10.2.16. LARGEST OBJECT Parameter
+       10.2.17. FORWARD Parameter
+       10.2.18. NEW GROUP REQUEST Parameter
+       10.2.19. TRACK_NAMESPACE_PREFIX Parameter
      10.3.  SETUP
        10.3.1.  Setup Options
      10.4.  GOAWAY
@@ -191,6 +200,7 @@ Table of Contents
      10.17. NAMESPACE_DONE
      10.18. SUBSCRIBE_NAMESPACE
      10.19. SUBSCRIBE_TRACKS
+       10.19.1.  Parameters on SUBSCRIBE_TRACKS
      10.20. PUBLISH_SKIPPED
    11. Data Streams and Datagrams
      11.1.  Track Alias
@@ -797,10 +807,10 @@ Table of Contents
 
    Applications that cannot produce Group IDs that increase with time
    are limited to the subset of MOQT that does not compare group IDs.
-   Subscribers to these Tracks SHOULD NOT use range filters which span
-   multiple Groups in FETCH or SUBSCRIBE.  SUBSCRIBE and FETCH delivery
-   use Group Order, so they could have an unexpected delivery order if
-   Group IDs do not increase with time.
+   Subscribers to these Tracks SHOULD NOT use Location filters which
+   span multiple Groups in FETCH or SUBSCRIBE.  SUBSCRIBE and FETCH
+   delivery use Group Order, so they could have an unexpected delivery
+   order if Group IDs do not increase with time.
 
    The amount of time elapsed between publishing an Object in Group ID N
    and in a Group ID > N, or even which will be published first, is not
@@ -1525,7 +1535,7 @@ Table of Contents
 
    TOO_MANY_REQUEST_UPDATES (0x1B):  The endpoint received a
       REQUEST_UPDATE that exceeded the per-stream limit communicated via
-      the MAX_REQUEST_UPDATES Setup Option (Section 10.3.1.6).
+      the MAX_REQUEST_UPDATES Setup Option (Section 10.3.1.7).
 
    An endpoint MAY choose to treat a subscription or request specific
    error as a session error under certain circumstances, closing the
@@ -1717,18 +1727,18 @@ Table of Contents
    endpoints, and all published Objects will be forwarded back to the
    endpoint, subject to priority and congestion response rules.
 
-   For a given Track, an endpoint can have at most one subscription to a
-   Track acting as the publisher and at most one acting as a subscriber.
-   If an endpoint receives a message attempting to establish a second
-   subscription to a Track with the same role, it MUST fail that request
-   with a DUPLICATE_SUBSCRIPTION error.
+   An endpoint MAY have multiple concurrent subscriptions to the same
+   Track, each identified by a unique Request ID.  A publisher MAY
+   assign the same or different Track Aliases to these subscriptions.
 
-   If a publisher receives a SUBSCRIBE request for a Track with an
-   existing subscription in Pending (publisher) state, it MUST fail that
-   request with a DUPLICATE_SUBSCRIPTION error.  If a subscriber
-   receives a PUBLISH for a Track with a subscription in the Pending
-   (Subscriber) state, it MUST ensure the subscription it initiated
-   transitions to the Terminated state before sending PUBLISH_OK.
+   When an Object matches the filters of multiple subscriptions to the
+   same Track, the publisher MUST send the Object once for each matching
+   subscription, even when those subscriptions share the same Track
+   Alias.  Because subscriptions can share a Track Alias, the subscriber
+   re-applies each subscription's filter to determine which subscription
+   a received Object belongs to.  Subscribers SHOULD avoid overlapping
+   filters across subscriptions to the same Track, as they are
+   responsible for deduplicating any resulting duplicate Objects.
 
    A publisher SHOULD begin sending incomplete objects when available to
    avoid incurring additional latency.
@@ -1760,27 +1770,28 @@ Table of Contents
    endpoints can immediately destroy relevant state.  Objects MUST NOT
    be sent for requests that end with an error.
 
-5.1.2.  Subscription Filters
+5.1.2.  Location Filters
 
-   Subscribers can specify a filter on a subscription indicating to the
-   publisher which Objects to send.  Subscriptions without a filter pass
-   all Objects published or received via upstream subscriptions.
+   Subscribers can specify a Location filter on a subscription
+   indicating to the publisher which Objects to send.  Subscriptions
+   without a filter pass all Objects published or received via upstream
+   subscriptions.
 
-   All filters have a Start Location and an optional End Group Delta.
-   Only objects published or received via a subscription having
+   All Location filters have a Start Location and an optional End Group
+   Delta.  Only objects published or received via a subscription having
    Locations greater than or equal to Start Location and strictly less
    than or equal to the End Group (when present) pass the filter.
 
-   Some filters are defined to be relative to the Largest Object.  The
-   Largest Object is the Object with the largest Location
+   Some Location filters are defined to be relative to the Largest
+   Object.  The Largest Object is the Object with the largest Location
    (Section 1.4.2) in the Track from the perspective of the publisher
    processing the message.  Largest Object updates when the first byte
    of an Object with a Location larger than the previous value is
    published or received through a subscription.
 
-   A Subscription Filter has the following structure:
+   A Location Filter has the following structure:
 
-   Subscription Filter {
+   Location Filter {
      Filter Type (vi64),
      [Start Location (Location),]
      [End Group Delta (vi64),]
@@ -1823,12 +1834,91 @@ Table of Contents
    An endpoint that receives a filter type other than the above MUST
    close the session with PROTOCOL_VIOLATION.
 
-   If the publisher cannot satisfy the requested Subscription Filter
-   (see Section 10.2.9) or if the entire End Group has already been
-   published it SHOULD send a REQUEST_ERROR with code INVALID_RANGE.  A
-   publisher MUST NOT send objects from outside the requested range.
+   If the publisher cannot satisfy the requested Location Filter (see
+   Section 10.2.9) or if the entire End Group has already been published
+   it SHOULD send a REQUEST_ERROR with code INVALID_RANGE.  A publisher
+   MUST NOT send objects from outside the requested range.
 
-5.1.3.  Joining an Ongoing Track
+5.1.3.  Range Filters
+
+   Range Filters are parameters in SUBSCRIBE, FETCH, or SUBSCRIBE_TRACKS
+   that tell a publisher to filter tracks (via TRACK PROPERTY FILTER)
+   and objects according to subscriber-provided criteria.  Range filters
+   are specified as ranges of integer values in Track and Object
+   Properties and other Object header fields (Subgroup ID, Object ID,
+   and Publisher Priority).  There are five Range Filter parameter
+   types, 0x25-0x29, as shown below.
+
+SUBGROUP_FILTER { Type=0x25, Length, [SetID], Range... }
+OBJECTID_FILTER { Type=0x26, Length, [SetID], Range... }
+PRIORITY_FILTER { Type=0x27, Length, [SetID], Range... }
+OBJECT_PROPERTY_FILTER { Type=0x28, Length, [SetID], [Property Type], Range... }
+TRACK_PROPERTY_FILTER  { Type=0x29, Length, [SetID], [Property Type], Range... }
+Range { Start, [End] }
+
+   Each Range Filter is a sequence of Start/End (vi64) inclusive Range
+   pairs prefixed with a Length (vi64) in bytes and a SetID (8 bits).
+   The Track and Object Property Filters include an additional prefix
+   for Property Type (vi64).  The final End in a sequence of Ranges can
+   be omitted to indicate no end.
+
+   Start is delta encoded from the prior Range's End or from 0 for the
+   first Range, and End is delta encoded from the current Range's Start.
+   Any delta encoding that results in a value that exceeds 2^64-1 MUST
+   be rejected with REQUEST_ERROR with error code INVALID_FILTER.  For
+   example, to express ranges 3-5 and 10-15: the first Start is 3 (delta
+   from 0), the first End is 2 (5 minus 3), the second Start is 5 (10
+   minus 5), and the second End is 5 (15 minus 10).
+
+   All filter parameters with the same SetID value are combined using
+   logical "AND" operations, then all the resulting sets are combined
+   using logical "OR" operations.  The final result is SetID=0 OR
+   SetID=1 OR ... SetID=255, where each SetID=i is the AND of filters
+   with SetID=i.
+
+   The Track Property filter parameter MAY appear multiple times in a
+   SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.  All other filter
+   parameters MAY appear multiple times in a FETCH, SUBSCRIBE,
+   SUBSCRIBE_TRACKS, PUBLISH_OK, or REQUEST_UPDATE (on a subscription,
+   from the subscriber only) message.  If the same combination of
+   Parameter Type, SetID, and Property Type (only in the Track and
+   Object Property Filters) repeat in any message, an endpoint MUST
+   reject this with REQUEST_ERROR with error code INVALID_FILTER.
+
+   In REQUEST_UPDATE, Length can be 0 to remove a filter parameter or
+   non-zero to replace that entire filter parameter including all sets
+   and Property Types.  If a filter parameter is omitted from
+   REQUEST_UPDATE, the value is unchanged.  If omitted from other
+   messages, the default is no filter.
+
+   Range Filters are only allowed if the setup option MAX_FILTER_RANGES
+   is non-zero, which limits the total number of Ranges allowed in all
+   Range Filter parameters for a given subscription or fetch.  If this
+   limit is exceeded, an endpoint MUST reject this with REQUEST_ERROR
+   with error code INVALID_FILTER.
+
+   The Track Property Filter can be used in SUBSCRIBE_TRACKS to filter
+   PUBLISH messages with required Track Property types and values.
+   PUBLISH messages which pass the filter will be forwarded while those
+   which do not pass it will not be forwarded nor will any Objects.
+
+   The Object Property Filter can be used to filter Objects with
+   required Object Property types and values.  It only filters Object
+   Properties in the Object header, and does not evaluate Track
+   Properties in PUBLISH messages.
+
+5.1.4.  Combining Filters
+
+   All filter types are combined using logical "AND" operations to
+   further restrict which tracks and objects pass all filter criteria.
+   This includes all Range Filters Section 5.1.3 and Location Filters
+   Section 5.1.2, which can be evaluated in any order.  The Forward
+   parameter is also a type of filter.  The publisher MUST forward only
+   objects that pass all filters.
+
+   Pass = Forward AND Location Filters AND Range Filters
+
+5.1.5.  Joining an Ongoing Track
 
    The MOQT Object model is designed with the concept that the beginning
    of a Group is a join point, so in order for a subscriber to join a
@@ -1842,7 +1932,7 @@ Table of Contents
    which can be relative.  To join a Track at the next Group, the
    subscriber sends a SUBSCRIBE with Filter Type Next Group Start.
 
-5.1.3.1.  Dynamically Starting New Groups
+5.1.5.1.  Dynamically Starting New Groups
 
    While some publishers will deterministically create new Groups, other
    applications might want to only begin a new Group when needed.  A
@@ -1858,7 +1948,7 @@ Table of Contents
    Object ID is above the threshold and the Track supports dynamic
    groups, the subscriber sends a REQUEST_UPDATE message with the
    NEW_GROUP_REQUEST parameter equal to the Largest Location's Group,
-   plus one (see Section 10.2.13).
+   plus one (see Section 10.2.18).
 
    Another possible subscriber pattern is to send a SUBSCRIBE with
    Filter Type Next Group Start and NEW_GROUP_REQUEST equal to 0.  The
@@ -2013,6 +2103,25 @@ Table of Contents
    publisher.  If it has accepted a PUBLISH_NAMESPACE with a namespace
    that exactly matches the namespace for that track, it SHOULD only
    request it from the senders of those PUBLISH_NAMESPACE messages.
+
+6.3.  Filtering SUBSCRIBE_TRACKS
+
+   Range Filters Section 5.1.3 can be used in SUBSCRIBE_TRACKS to filter
+   Tracks in a namespace using the Track Property Filter.  Objects
+   published in the resulting Subscriptions can be filtered by any Range
+   Filter.
+
+6.3.1.  Relay Resource Protection in Large Namespaces
+
+   Relays SHOULD aggregate and propagate filters upstream on
+   subscriptions, especially namespace subscriptions, to conserve and
+   protect their resources from excessive load.  They MAY also impose
+   limits on the number of publishers in a namespace, by rejecting or
+   closing namespace subscriptions with the error NAMESPACE_TOO_LARGE,
+   or CONFLICTING_FILTERS if too many disjoint filters are requested on
+   downstream subscriptions across a large number of subscribers, or
+   PREFIX_OVERLAP if different subscribers force an aggregated upstream
+   subscription to overlap.
 
 7.  Priorities
 
@@ -2341,7 +2450,7 @@ Table of Contents
    relay does not have sufficient information to send a FETCH_OK
    immediately in response to a FETCH, it MUST withhold sending FETCH_OK
    until it does.  Relays MUST follow the constraints on LARGEST_OBJECT
-   defined in Section 10.2.11.
+   defined in Section 10.2.16.
 
    Publishers maintain a list of Established downstream subscriptions
    for each Track.  Relays use the Track Alias (Section 11.1) of an
@@ -2361,8 +2470,11 @@ Table of Contents
    subscription request is cached and shared among the pending
    subscribers.  Because MOQT restricts widening a subscription, relays
    that aggregate upstream subscriptions can subscribe using the Largest
-   Object filter to avoid churn as downstream subscribers with disparate
-   filters subscribe and unsubscribe from a Track.
+   Object Location filter to avoid churn as downstream subscribers with
+   disparate filters subscribe and unsubscribe from a Track.
+   Aggregating subscriptions can also help relays conserve resources
+   especially with disparate filters or SUBSCRIBE_TRACKS in a namespace
+   with a large number of Tracks (see Section 6.3.1).
 
    A subscriber remains subscribed to a Track at a Relay until it
    unsubscribes, the upstream publisher terminates the subscription, or
@@ -2918,17 +3030,51 @@ Table of Contents
    preference from the Track is used.  If omitted from FETCH, the
    receiver uses Ascending (0x1).
 
-10.2.9.  SUBSCRIPTION FILTER Parameter
+10.2.9.  LOCATION FILTER Parameter
 
-   The SUBSCRIPTION_FILTER parameter (Parameter Type 0x21) uses length-
+   The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-
    prefixed encoding.  It MAY appear in a SUBSCRIBE, PUBLISH_OK or
-   REQUEST_UPDATE (for a subscription) message.  It is a Subscription
-   Filter (see Section 5.1.2).
+   REQUEST_UPDATE (for a subscription) message.  It is a Location Filter
+   (see Section 5.1.2).
 
    If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
    unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
-10.2.10.  EXPIRES Parameter
+10.2.10.  SUBGROUP FILTER Parameter
+
+   The SUBGROUP_FILTER parameter (Type 0x25) selects objects with
+   specified Ranges of Subgroup ID.  See Section 5.1.3.
+
+10.2.11.  OBJECTID FILTER Parameter
+
+   The OBJECTID_FILTER parameter (Type 0x26) selects objects with
+   specified Ranges of Object ID.  See Section 5.1.3.
+
+10.2.12.  PRIORITY FILTER Parameter
+
+   The PRIORITY_FILTER parameter (Type 0x27) selects objects with
+   specified Ranges of Publisher Priority.  See Section 5.1.3.  If a
+   decoded value exceeds 255, the endpoint MUST reject this with
+   REQUEST_ERROR with error code INVALID_FILTER since Publisher Priority
+   is an 8-bit field.
+
+10.2.13.  OBJECT PROPERTY FILTER Parameter
+
+   The OBJECT_PROPERTY_FILTER parameter (Type 0x28) selects objects with
+   required Ranges of Property Value for a required Object Property Type
+   which MUST be even, i.e. a single integer value (see Figure 2),
+   otherwise the endpoint MUST reject this with REQUEST_ERROR with error
+   code INVALID_FILTER.  See Section 5.1.3.
+
+10.2.14.  TRACK PROPERTY FILTER Parameter
+
+   The TRACK_PROPERTY_FILTER parameter (Type 0x29) selects tracks with
+   required Ranges of Property Value for a required Track Property Type
+   which MUST be even, i.e. a single integer value (see Figure 2),
+   otherwise the endpoint MUST reject this with REQUEST_ERROR with error
+   code INVALID_FILTER.  See Section 5.1.3.
+
+10.2.15.  EXPIRES Parameter
 
    The EXPIRES parameter (Parameter Type 0x8) is a varint.  It MAY
    appear in SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE_NAMESPACE_OK,
@@ -2951,7 +3097,7 @@ Table of Contents
    If the EXPIRES parameter is 0 or is not present in a message, the
    subscription does not expire or expires at an unknown time.
 
-10.2.11.  LARGEST OBJECT Parameter
+10.2.16.  LARGEST OBJECT Parameter
 
    The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location.  It
    MAY appear in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, or
@@ -2971,7 +3117,7 @@ Table of Contents
    2.  The largest Location of an Object received on an upstream
        subscription
 
-10.2.12.  FORWARD Parameter
+10.2.17.  FORWARD Parameter
 
    The FORWARD parameter (Parameter Type 0x10) is a uint8.  It MAY
    appear in SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH,
@@ -2985,7 +3131,7 @@ Table of Contents
    subscription remains unchanged.  If the parameter is omitted from any
    other message, the default value is 1.
 
-10.2.13.  NEW GROUP REQUEST Parameter
+10.2.18.  NEW GROUP REQUEST Parameter
 
    The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint.
    It MAY appear in PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a
@@ -3030,7 +3176,7 @@ Table of Contents
    After sending a NEW_GROUP_REQUEST upstream, the request is considered
    outstanding until the Largest Group increases.
 
-10.2.14.  TRACK_NAMESPACE_PREFIX Parameter
+10.2.19.  TRACK_NAMESPACE_PREFIX Parameter
 
    The TRACK_NAMESPACE_PREFIX parameter (Parameter Type 0x34) uses the
    Track Namespace encoding described in Section 2.4.1.  It MAY appear
@@ -3163,7 +3309,16 @@ Table of Contents
    implementations to declare compatibility, as this undermines the
    usefulness of implementation identification for debugging.
 
-10.3.1.6.  MAX_REQUEST_UPDATES
+10.3.1.6.  MAX FILTER RANGES
+
+   The MAX_FILTER_RANGES option (Type 0x06) limits the peer's total
+   number of Ranges (Start/End pairs) allowed concurrently in all Range
+   filter Section 5.1.3 parameters for a given subscription or fetch.
+   The default value is 0, so if not specified, the peer MUST NOT send
+   any such filter parameters.  If this limit is exceeded, an endpoint
+   MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
+
+10.3.1.7.  MAX_REQUEST_UPDATES
 
    The MAX_REQUEST_UPDATES option (Option Type 0x08) communicates the
    maximum number of unacknowledged REQUEST_UPDATE messages per request
@@ -3394,10 +3549,6 @@ Table of Contents
    UNSUPPORTED_EXTENSION:  The track contains a Mandatory Track Property
       (see Section 2.5.1) that the endpoint does not understand.
 
-   DUPLICATE_SUBSCRIPTION (0x19):  The PUBLISH or SUBSCRIBE request
-      attempted to create a subscription to a Track with the same role
-      as an existing subscription.
-
    REDIRECT:  The request cannot be fulfilled by this endpoint, but
       could succeed at the location specified in the Redirect structure.
       The requester SHOULD establish a new session to the provided URI
@@ -3420,6 +3571,8 @@ Table of Contents
 
    INVALID_RANGE:  In response to SUBSCRIBE or FETCH, specified Filter
       or range of Locations cannot be satisfied.
+
+   INVALID_FILTER:  A filter parameter is invalid.
 
    MALFORMED_TRACK:  In response to a FETCH, a relay publisher detected
       the track was malformed (see Section 2.4.2).
@@ -3445,6 +3598,10 @@ Table of Contents
 
    INVALID_JOINING_REQUEST_ID:  In response to a Joining FETCH, the
       referenced Request ID is not an Established Subscription.
+
+   CONFLICTING_FILTERS:  In response to SUBSCRIBE_TRACKS, the filter
+      parameters conflict among too many subscribers to aggregate the
+      subscription upstream or otherwise efficiently service it.
 
 10.7.  SUBSCRIBE
 
@@ -3524,7 +3681,7 @@ Table of Contents
 
    The number of outstanding REQUEST_UPDATEs on a single request stream
    is limited by the MAX_REQUEST_UPDATES Setup Option
-   (Section 10.3.1.6).
+   (Section 10.3.1.7).
 
    If a parameter previously set on the request is not present in
    REQUEST_UPDATE, its value remains unchanged.
@@ -3549,11 +3706,11 @@ Table of Contents
 
 10.9.1.  Updating Subscriptions
 
-   When a subscriber decreases the Start Location of the Subscription
-   Filter (see Section 5.1.2), the Start Location can be smaller than
-   the Track's Largest Location, similar to a new Subscription.  FETCH
-   can be used to retrieve any necessary Objects smaller than the
-   current Largest Location.
+   When a subscriber decreases the Start Location of the Location Filter
+   (see Section 5.1.2), the Start Location can be smaller than the
+   Track's Largest Location, similar to a new Subscription.  FETCH can
+   be used to retrieve any necessary Objects smaller than the current
+   Largest Location.
 
    When a subscriber increases the End Location, the Largest Object at
    the publisher might already be larger than the previous End Location.
@@ -3588,7 +3745,7 @@ Table of Contents
 
    A subscriber can update the Track Namespace Prefix of an established
    SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS by including the
-   TRACK_NAMESPACE_PREFIX parameter (Section 10.2.14) in a
+   TRACK_NAMESPACE_PREFIX parameter (Section 10.2.19) in a
    REQUEST_UPDATE.  The overlap restriction applies independently per
    type: the new prefix MUST NOT share a common prefix with any other
    active SUBSCRIBE_NAMESPACE (for a SUBSCRIBE_NAMESPACE update) or
@@ -3641,7 +3798,7 @@ Table of Contents
    abandon reading any publisher initiated streams associated with that
    subscription using a STOP_SENDING frame.
 
-   A publisher that sends the FORWARD parameter (Section 10.2.12) equal
+   A publisher that sends the FORWARD parameter (Section 10.2.17) equal
    to 0 indicates that it will not transmit any objects until the
    subscriber sets the Forward State to 1.  If the FORWARD parameter is
    omitted or equal to 1, the publisher will start transmitting objects
@@ -3734,7 +3891,7 @@ Table of Contents
    TRACK_ENDED (0x2):  The track is no longer being published.
 
    SUBSCRIPTION_ENDED (0x3):  The publisher reached the end of an
-      associated subscription filter.
+      associated location filter.
 
    GOING_AWAY (0x4):  The subscriber or publisher issued a GOAWAY
       message.
@@ -3913,14 +4070,15 @@ Table of Contents
    available Objects in the requested range in the requested order (see
    Section 10.2.8).  The Objects in the response are delivered on a
    single unidirectional stream.  Any gaps in the Group and Object IDs
-   in the response stream indicate objects that do not exist.  For
-   Ascending Group Order this includes ranges between the first
-   requested object and the first object in the stream; between objects
-   in the stream; and between the last object in the stream and the
-   Largest Group/Object indicated in FETCH_OK, so long as the fetch
-   stream is terminated by a FIN.  If no Objects exist in the requested
-   range, the publisher opens the unidirectional stream, sends the
-   FETCH_HEADER (see Section 11.4.4) and closes the stream with a FIN.
+   in the response stream indicate objects that do not exist unless
+   filters were requested.  For Ascending Group Order this includes
+   ranges between the first requested object and the first object in the
+   stream; between objects in the stream; and between the last object in
+   the stream and the Largest Group/Object indicated in FETCH_OK, so
+   long as the fetch stream is terminated by a FIN.  If no Objects exist
+   in the requested range, the publisher opens the unidirectional
+   stream, sends the FETCH_HEADER (see Section 11.4.4) and closes the
+   stream with a FIN.
 
    A relay that has cached objects from the beginning of the range MAY
    start sending objects immediately in response to a FETCH.  If it
@@ -4188,7 +4346,9 @@ Table of Contents
       consisting of greater than 32 Track Namespace Fields, it MUST
       close the session with a PROTOCOL_VIOLATION.
 
-   *  Parameters: The parameters are defined in Section 10.2.
+   *  Parameters: The parameters are defined in Section 10.2, though
+      they are handled differently from the same Parameters on
+      Subscriptions, as outlined below.
 
    The publisher will respond with REQUEST_OK or REQUEST_ERROR on the
    response half of the stream.  If the subscriber receives any message
@@ -4212,7 +4372,16 @@ Table of Contents
    messages to a subscriber.  It is useful for subscribers that are only
    interested in or authorized to access a subset of available tracks.
 
-   If the FORWARD parameter (Section 10.2.12) is present in this message
+10.19.1.  Parameters on SUBSCRIBE_TRACKS
+
+   Any Parameter that can be specified on a Subscription (ie: in
+   SUBSCRIBE) is valid in SUBSCRIBE_TRACKS, unless otherwise specified.
+   These parameters are copied over as the default Subscription
+   parameters when a PUBLISH is sent as a result of SUBSCRIBE_TRACKS.
+   The Parameters are not explicitly communicated, with the exception of
+   FORWARD and GROUP_ORDER as described below.
+
+   If the FORWARD parameter (Section 10.2.17) is present in this message
    and equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS
    will set the FORWARD parameter to 0.  If the FORWARD parameter is
    equal to 1 or omitted from this message, PUBLISH messages resulting
@@ -4679,11 +4848,12 @@ Table of Contents
 
    *  The Object was received on the same upstream Subgroup stream as
       the previously sent Object on the downstream Subgroup stream, with
-      no other Objects in between.
+      no other Objects in between, unless the intervening Objects did
+      not pass the subscriber's filters.
 
    *  It determined all Object IDs between the current and previous
       Object IDs on the Subgroup stream belong to different Subgroups or
-      do not exist.
+      do not exist, or do not pass the subscriber's filters.
 
    If the relay does not know if an Object is the next Object, it MUST
    reset the Subgroup stream and open a new one to forward it.
@@ -5563,9 +5733,11 @@ EXT 1 and EXT N can be modified or removed by Relays
     +-----------------+---------------------------+------------------+
     |            0x05 | AUTHORITY                 | Section 10.3.1.1 |
     +-----------------+---------------------------+------------------+
+    |            0x06 | MAX_FILTER_RANGES         | Section 10.3.1.6 |
+    +-----------------+---------------------------+------------------+
     |            0x07 | MOQT_IMPLEMENTATION       | Section 10.3.1.5 |
     +-----------------+---------------------------+------------------+
-    |            0x08 | MAX_REQUEST_UPDATES       | Section 10.3.1.6 |
+    |            0x08 | MAX_REQUEST_UPDATES       | Section 10.3.1.7 |
     +-----------------+---------------------------+------------------+
     | 0x7f * N + 0x9D | Reserved for greasing     | Section 14       |
     +-----------------+---------------------------+------------------+
@@ -5623,23 +5795,33 @@ EXT 1 and EXT N can be modified or removed by Relays
      +----------------+---------------------------+-----------------+
      | 0x06           | SUBGROUP_DELIVERY_TIMEOUT | Section 10.2.3  |
      +----------------+---------------------------+-----------------+
-     | 0x08           | EXPIRES                   | Section 10.2.10 |
+     | 0x08           | EXPIRES                   | Section 10.2.15 |
      +----------------+---------------------------+-----------------+
-     | 0x09           | LARGEST_OBJECT            | Section 10.2.11 |
+     | 0x09           | LARGEST_OBJECT            | Section 10.2.16 |
      +----------------+---------------------------+-----------------+
      | 0x0A           | FILL_TIMEOUT              | Section 10.2.5  |
      +----------------+---------------------------+-----------------+
-     | 0x10           | FORWARD                   | Section 10.2.12 |
+     | 0x10           | FORWARD                   | Section 10.2.17 |
      +----------------+---------------------------+-----------------+
      | 0x20           | SUBSCRIBER_PRIORITY       | Section 10.2.7  |
      +----------------+---------------------------+-----------------+
-     | 0x21           | SUBSCRIPTION_FILTER       | Section 10.2.9  |
+     | 0x21           | LOCATION_FILTER           | Section 10.2.9  |
      +----------------+---------------------------+-----------------+
      | 0x22           | GROUP_ORDER               | Section 10.2.8  |
      +----------------+---------------------------+-----------------+
-     | 0x32           | NEW_GROUP_REQUEST         | Section 10.2.13 |
+     | 0x25           | SUBGROUP_FILTER           | Section 10.2.10 |
      +----------------+---------------------------+-----------------+
-     | 0x34           | TRACK_NAMESPACE_PREFIX    | Section 10.2.14 |
+     | 0x26           | OBJECTID_FILTER           | Section 10.2.11 |
+     +----------------+---------------------------+-----------------+
+     | 0x27           | PRIORITY_FILTER           | Section 10.2.12 |
+     +----------------+---------------------------+-----------------+
+     | 0x28           | OBJECT_PROPERTY_FILTER    | Section 10.2.13 |
+     +----------------+---------------------------+-----------------+
+     | 0x29           | TRACK_PROPERTY_FILTER     | Section 10.2.14 |
+     +----------------+---------------------------+-----------------+
+     | 0x32           | NEW_GROUP_REQUEST         | Section 10.2.18 |
+     +----------------+---------------------------+-----------------+
+     | 0x34           | TRACK_NAMESPACE_PREFIX    | Section 10.2.19 |
      +----------------+---------------------------+-----------------+
 
                                  Table 13
@@ -5865,8 +6047,6 @@ EXT 1 and EXT N can be modified or removed by Relays
      +----------------------------+-----------------+---------------+
      | MALFORMED_TRACK            |       0x12      | Section 10.6  |
      +----------------------------+-----------------+---------------+
-     | DUPLICATE_SUBSCRIPTION     |       0x19      | Section 10.6  |
-     +----------------------------+-----------------+---------------+
      | UNINTERESTED               |       0x20      | Section 10.6  |
      +----------------------------+-----------------+---------------+
      | PREFIX_OVERLAP             |       0x30      | Section 10.6  |
@@ -5878,6 +6058,10 @@ EXT 1 and EXT N can be modified or removed by Relays
      | UNSUPPORTED_EXTENSION      |       0x33      | Section 10.6  |
      +----------------------------+-----------------+---------------+
      | REDIRECT                   |       0x34      | Section 10.6  |
+     +----------------------------+-----------------+---------------+
+     | CONFLICTING_FILTERS        |       0x35      | Section 10.6  |
+     +----------------------------+-----------------+---------------+
+     | INVALID_FILTER             |       0x36      | Section 10.6  |
      +----------------------------+-----------------+---------------+
      | Reserved for greasing      | 0x7f * N + 0x9D | Section 14    |
      +----------------------------+-----------------+---------------+
@@ -6001,9 +6185,9 @@ Normative References
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
               Framework", Work in Progress, Internet-Draft, draft-ietf-
-              webtrans-overview-12, 2 March 2026,
+              webtrans-overview-13, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-12>.
+              webtrans-overview-13>.
 
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
@@ -6060,9 +6244,9 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-15, 2 March 2026,
+              ietf-webtrans-http3-16, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-15>.
+              webtrans-http3-16>.
 
 Informative References
 
@@ -6099,8 +6283,8 @@ Informative References
               Jennings, C. F., Nandakumar, S., and R. Barnes, "End-to-
               End Secure Objects for Media over QUIC Transport", Work in
               Progress, Internet-Draft, draft-ietf-moq-secure-objects-
-              00, 2 March 2026, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-moq-secure-objects-00>.
+              01, 6 July 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-moq-secure-objects-01>.
 
    [I-D.ietf-scone-protocol]
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
