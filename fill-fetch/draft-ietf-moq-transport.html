@@ -3672,7 +3672,8 @@ published or received via a subscription having Locations greater than or
 equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.<a href="#section-5.1.2-2" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-3">An object published or received in a subgroup or datagram is
-<strong>subscription-delivered</strong>.<a href="#section-5.1.2-3" class="pilcrow">¶</a></p>
+<strong>subscription-delivered</strong>. Objects delivered via a fill-fetch stream
+{fill-semantics} are <strong>fill-delivered</strong>.<a href="#section-5.1.2-3" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-4">Some filters are defined to be relative to the <code>Largest Object</code>. The <code>Largest
 Object</code> is the Object with the largest Location (<a href="#location-structure" class="auto internal xref">Section 1.4.2</a>) in the
 Track from the perspective of the publisher processing the message. Largest
