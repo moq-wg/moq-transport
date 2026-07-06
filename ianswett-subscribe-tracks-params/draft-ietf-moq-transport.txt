@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 2 January 2027                                    I. Swett, Ed.
+Expires: 7 January 2027                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             1 July 2026
+                                                             6 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 January 2027.
+   This Internet-Draft will expire on 7 January 2027.
 
 Copyright Notice
 
@@ -1498,6 +1498,10 @@ Table of Contents
 
    MALFORMED_AUTHORITY (0x1A):  The AUTHORITY value is syntactically
       invalid.
+
+   TOO_MANY_REQUEST_UPDATES (0x1B):  The endpoint received a
+      REQUEST_UPDATE that exceeded the per-stream limit communicated via
+      the MAX_REQUEST_UPDATES Setup Option (Section 10.3.1.6).
 
    An endpoint MAY choose to treat a subscription or request specific
    error as a session error under certain circumstances, closing the
@@ -3135,6 +3139,31 @@ Table of Contents
    implementations to declare compatibility, as this undermines the
    usefulness of implementation identification for debugging.
 
+10.3.1.6.  MAX_REQUEST_UPDATES
+
+   The MAX_REQUEST_UPDATES option (Option Type 0x08) communicates the
+   maximum number of unacknowledged REQUEST_UPDATE messages per request
+   stream that the endpoint is willing to receive.
+
+   A REQUEST_UPDATE is considered outstanding from when it is sent until
+   the sender receives the corresponding REQUEST_OK or REQUEST_ERROR
+   response.  The sender MUST NOT have more than MAX_REQUEST_UPDATES
+   outstanding REQUEST_UPDATEs on any single request stream at a time.
+   Each REQUEST_OK or REQUEST_ERROR response restores one credit on that
+   stream.  An implementation that processes and responds to a
+   REQUEST_UPDATE immediately might not detect when a peer has pipelined
+   messages exceeding its limit; coalescing REQUEST_UPDATE processing
+   (see Section 10.9) can be more effective at enforcing
+   MAX_REQUEST_UPDATES.
+
+   The value is encoded as a variable-length integer.  A value of 0
+   means the endpoint does not limit REQUEST_UPDATE concurrency.  If not
+   present, the default value is 0.
+
+   If an endpoint receives a REQUEST_UPDATE on a stream that already has
+   MAX_REQUEST_UPDATES outstanding REQUEST_UPDATEs, it MUST close the
+   session with TOO_MANY_REQUEST_UPDATES.
+
 10.4.  GOAWAY
 
    An endpoint sends a GOAWAY message on its control stream to inform
@@ -3468,6 +3497,10 @@ Table of Contents
    REQUEST_OK or REQUEST_ERROR message indicating if the update was
    successful, unless it is coalescing failed updates to produce just
    one REQUEST_ERROR for multiple REQUEST_UPDATE messages.
+
+   The number of outstanding REQUEST_UPDATEs on a single request stream
+   is limited by the MAX_REQUEST_UPDATES Setup Option
+   (Section 10.3.1.6).
 
    If a parameter previously set on the request is not present in
    REQUEST_UPDATE, its value remains unchanged.
@@ -5523,6 +5556,8 @@ EXT 1 and EXT N can be modified or removed by Relays
     +-----------------+---------------------------+------------------+
     |            0x07 | MOQT_IMPLEMENTATION       | Section 10.3.1.5 |
     +-----------------+---------------------------+------------------+
+    |            0x08 | MAX_REQUEST_UPDATES       | Section 10.3.1.6 |
+    +-----------------+---------------------------+------------------+
     | 0x7f * N + 0x9D | Reserved for greasing     | Section 14       |
     +-----------------+---------------------------+------------------+
 
@@ -5787,6 +5822,8 @@ EXT 1 and EXT N can be modified or removed by Relays
      +----------------------------+-----------------+---------------+
      | MALFORMED_AUTHORITY        |       0x1A      | Section 3.5   |
      +----------------------------+-----------------+---------------+
+     | TOO_MANY_REQUEST_UPDATES   |       0x1B      | Section 3.5   |
+     +----------------------------+-----------------+---------------+
      | Reserved for greasing      | 0x7f * N + 0x9D | Section 14    |
      +----------------------------+-----------------+---------------+
 
@@ -5948,9 +5985,9 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-08, 26 June 2026,
+              quic-reliable-stream-reset-09, 4 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-08>.
+              reliable-stream-reset-09>.
 
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
