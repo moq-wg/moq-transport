@@ -1644,8 +1644,9 @@ which pass the filter will be forwarded while those which do not pass it
 will not be forwarded nor will any Objects.
 
 The Object Property Filter can be used to filter Objects with required
-Object Property types and values.  Track Properties are not evaluated
-by the Object Property Filter.
+Object Property types and values.  It only filters Object Properties in
+the Object header, and does not evaluate Track Properties in PUBLISH
+messages.
 
 ### Combining Filters
 
@@ -1653,8 +1654,8 @@ All filter types are combined using logical "AND" operations
 to further restrict which tracks and objects pass all filter criteria.
 This includes all Range Filters {{range-filters}} and Location
 Filters {{location-filters}}, which can be evaluated in any order.
-The Forward parameter is also a type of filter.  Objects MUST pass all
-filters to be sent.
+The Forward parameter is also a type of filter.  The publisher MUST
+forward only objects that pass all filters.
 
 ~~~
 Pass = Forward AND Location Filters AND Range Filters
@@ -1839,7 +1840,7 @@ PUBLISH_NAMESPACE messages.
 ## Filtering SUBSCRIBE_TRACKS
 
 Range Filters {{range-filters}} can be used in SUBSCRIBE_TRACKS (or
-REQUEST_UPDATE for it) to filter tracks in a namesapce using the
+REQUEST_UPDATE for it) to filter tracks in a namespace using the
 Track Property Filter, and filter objects published in those tracks
 using all other Range Filters which get applied to the resulting
 subscriptions established by SUBSCRIBE_TRACKS.
