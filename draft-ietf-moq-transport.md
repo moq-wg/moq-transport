@@ -2671,10 +2671,11 @@ SWITCH_FROM {
 
 * Switch From Request ID: The Request ID of the subscription to suspend.
 
-* Mode: A vi64 enum selecting how the suspending subscription is stopped. The
-  following mode is defined: Hard (0x0). An endpoint that receives a Mode value
-  that is not defined MUST close the session with `PROTOCOL_VIOLATION`. See
-  {{track-switching}}.
+* Mode: A vi64 enum selecting how the suspending subscription is stopped. Modes
+  are registered in the IANA table "MOQT SWITCH_FROM Modes"
+  ({{iana-switch-from-modes}}); the following mode is defined: Hard (0x0). An
+  endpoint that receives a Mode value that is not defined MUST close the session
+  with `PROTOCOL_VIOLATION`. See {{track-switching}}.
 
 * Publish Done: If 1, the publisher sends PUBLISH_DONE on the suspend
   subscription as described in {{track-switching}}.
@@ -5115,6 +5116,16 @@ Setup Options SHOULD request a provisional registration.
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 
 * Message Parameters - List which params can be repeated in the table.
+
+## SWITCH_FROM Modes {#iana-switch-from-modes}
+
+This document establishes the "MOQT SWITCH_FROM Modes" registry, governing the
+Mode field of the SWITCH_FROM parameter (see {{switch-from}}). The registration
+policy is First Come First Served (per {{!RFC8126, Section 4.4}}).
+
+| Mode | Name     | Specification |
+|-----:|:---------|:--------------|
+| 0x0  | Hard     | {{switch-from}} |
 
 ## Properties {#iana-properties}
 
