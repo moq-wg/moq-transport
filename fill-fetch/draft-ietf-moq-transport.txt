@@ -1713,18 +1713,18 @@ Table of Contents
    endpoints, and all published Objects will be forwarded back to the
    endpoint, subject to priority and congestion response rules.
 
-   For a given Track, an endpoint can have at most one subscription to a
-   Track acting as the publisher and at most one acting as a subscriber.
-   If an endpoint receives a message attempting to establish a second
-   subscription to a Track with the same role, it MUST fail that request
-   with a DUPLICATE_SUBSCRIPTION error.
+   An endpoint MAY have multiple concurrent subscriptions to the same
+   Track, each identified by a unique Request ID.  A publisher MAY
+   assign the same or different Track Aliases to these subscriptions.
 
-   If a publisher receives a SUBSCRIBE request for a Track with an
-   existing subscription in Pending (publisher) state, it MUST fail that
-   request with a DUPLICATE_SUBSCRIPTION error.  If a subscriber
-   receives a PUBLISH for a Track with a subscription in the Pending
-   (Subscriber) state, it MUST ensure the subscription it initiated
-   transitions to the Terminated state before sending PUBLISH_OK.
+   When an Object matches the filters of multiple subscriptions to the
+   same Track, the publisher MUST send the Object once for each matching
+   subscription, even when those subscriptions share the same Track
+   Alias.  Because subscriptions can share a Track Alias, the subscriber
+   re-applies each subscription's filter to determine which subscription
+   a received Object belongs to.  Subscribers SHOULD avoid overlapping
+   filters across subscriptions to the same Track, as they are
+   responsible for deduplicating any resulting duplicate Objects.
 
    A publisher SHOULD begin sending incomplete objects when available to
    avoid incurring additional latency.
@@ -3543,10 +3543,6 @@ Table of Contents
 
    UNSUPPORTED_EXTENSION:  The track contains a Mandatory Track Property
       (see Section 2.5.1) that the endpoint does not understand.
-
-   DUPLICATE_SUBSCRIPTION (0x19):  The PUBLISH or SUBSCRIBE request
-      attempted to create a subscription to a Track with the same role
-      as an existing subscription.
 
    REDIRECT:  The request cannot be fulfilled by this endpoint, but
       could succeed at the location specified in the Redirect structure.
@@ -5882,47 +5878,45 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 15.11.2.  REQUEST_ERROR Codes
 
-       +========================+=================+===============+
-       | Name                   |       Code      | Specification |
-       +========================+=================+===============+
-       | INTERNAL_ERROR         |       0x0       | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | UNAUTHORIZED           |       0x1       | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | TIMEOUT                |       0x2       | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | NOT_SUPPORTED          |       0x3       | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | MALFORMED_AUTH_TOKEN   |       0x4       | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | EXPIRED_AUTH_TOKEN     |       0x5       | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | GOING_AWAY             |       0x6       | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | EXCESSIVE_LOAD         |       0x9       | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | DOES_NOT_EXIST         |       0x10      | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | INVALID_RANGE          |       0x11      | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | MALFORMED_TRACK        |       0x12      | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | DUPLICATE_SUBSCRIPTION |       0x19      | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | UNINTERESTED           |       0x20      | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | PREFIX_OVERLAP         |       0x30      | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | NAMESPACE_TOO_LARGE    |       0x31      | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | UNSUPPORTED_EXTENSION  |       0x33      | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | REDIRECT               |       0x34      | Section 10.6  |
-       +------------------------+-----------------+---------------+
-       | Reserved for greasing  | 0x7f * N + 0x9D | Section 14    |
-       +------------------------+-----------------+---------------+
+        +=======================+=================+===============+
+        | Name                  |       Code      | Specification |
+        +=======================+=================+===============+
+        | INTERNAL_ERROR        |       0x0       | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | UNAUTHORIZED          |       0x1       | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | TIMEOUT               |       0x2       | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | NOT_SUPPORTED         |       0x3       | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | MALFORMED_AUTH_TOKEN  |       0x4       | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | EXPIRED_AUTH_TOKEN    |       0x5       | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | GOING_AWAY            |       0x6       | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | EXCESSIVE_LOAD        |       0x9       | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | DOES_NOT_EXIST        |       0x10      | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | INVALID_RANGE         |       0x11      | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | MALFORMED_TRACK       |       0x12      | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | UNINTERESTED          |       0x20      | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | PREFIX_OVERLAP        |       0x30      | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | NAMESPACE_TOO_LARGE   |       0x31      | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | UNSUPPORTED_EXTENSION |       0x33      | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | REDIRECT              |       0x34      | Section 10.6  |
+        +-----------------------+-----------------+---------------+
+        | Reserved for greasing | 0x7f * N + 0x9D | Section 14    |
+        +-----------------------+-----------------+---------------+
 
-                                 Table 19
+                                  Table 19
 
 15.11.3.  PUBLISH_DONE Codes
 
@@ -6139,8 +6133,8 @@ Informative References
               Jennings, C. F., Nandakumar, S., and R. Barnes, "End-to-
               End Secure Objects for Media over QUIC Transport", Work in
               Progress, Internet-Draft, draft-ietf-moq-secure-objects-
-              00, 2 March 2026, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-moq-secure-objects-00>.
+              01, 6 July 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-moq-secure-objects-01>.
 
    [I-D.ietf-scone-protocol]
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
