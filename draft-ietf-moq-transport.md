@@ -5321,6 +5321,8 @@ Issue and pull request numbers are listed with a leading octothorp.
 
 **Session and Control Plane**
 
+* Add Range Filters that can filter Objects from Subscriptions and
+  SUBSCRIBE_TRACKS (#1765)
 * Add MAX_REQUEST_UPDATES Setup Option and TOO_MANY_REQUEST_UPDATES error
   (#1613)
 * Allow multiple concurrent subscriptions per Track (#1775)
