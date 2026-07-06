@@ -1593,7 +1593,7 @@ RelativeStartFill) cause the publisher to open a unidirectional stream beginning
 with a FETCH_HEADER (see {{fetch-header}}) and delivered as a FETCH response (see
 {{message-fetch}}). This is called a fill fetch stream.
 
-The fill fetch stream carries the fill range: the objects from the fill Start
+The fill fetch stream carries the objects from the fill Start
 Location up to and including the fill boundary. The fill boundary
 is the Largest Object, or the End Group when one is specified with a Location
 less than the Largest Object. The subscriber
