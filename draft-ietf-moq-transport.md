@@ -3828,16 +3828,15 @@ only interested in or authorized to access a subset of available tracks.
 Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
 in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are copied
 over as the default Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS. The Parmeters MUST still be included with the resulting PUBLISHes
-to ensure there is no ambiguity about the state of the Subscription.
+SUBSCRIBE_TRACKS. The Parameters are not explicitly communicated, with the
+exception of FORWARD and GROUP_ORDER as described below.
 
-For example, if the FORWARD parameter ({{forward-parameter}}) is present on
-SUBSCRIBE_TRACKS and equal to 0, PUBLISH messages resulting from this
-SUBSCRIBE_TRACKS will set the FORWARD parameter to 0. If the FORWARD parameter
-is equal to 1, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
-set the FORWARD parameter to 1. And if FORWARD is omitted from this message,
-the parameter will be omitted from the PUBLISH.
-
+If the FORWARD parameter ({{forward-parameter}}) is present in this message and
+equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
+the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
+from this message, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
+set the FORWARD parameter to 1, or indicate that value by omitting the parameter
+(see {{subscriptions}}).
 
 If the GROUP_ORDER parameter ({{group-order}}) is present in this message,
 PUBLISH messages resulting from this SUBSCRIBE_TRACKS will include the
