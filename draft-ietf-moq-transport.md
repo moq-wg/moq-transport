@@ -1687,8 +1687,8 @@ On receiving a message containing SWITCH_FROM, the publisher:
    subscription is in Forward State 0.
 
 2. Sets the activating subscription to Forward State 1 and applies the
-   SUBSCRIPTION_FILTER. This ensures objects after the Current Group are not
-   missed.
+   current SUBSCRIPTION_FILTER. This ensures objects after the Current Group
+   are not missed.
 
 3. Waits until it is ready to publish an object from the SUBSCRIPTION_FILTER's
    Start Location's Group (the Start Group; see {{subscription-filters}}),
@@ -1720,7 +1720,7 @@ Start Group on the activating track, it MUST respond with REQUEST_ERROR `TIMEOUT
 
 ### Relay Handling of SWITCH_FROM {#relay-switch-from}
 
-When a relay receives a message containing SWITCH_FROM, it MUST NOT forward the
+When a relay receives a message containing SWITCH_FROM, it SHOULD NOT forward the
 SWITCH_FROM parameter upstream. The relay handles the switch locally, applying
 the start group computation from {{track-switching}} using its locally observed
 state for the activating track and servicing any fill fetch stream from its cache
