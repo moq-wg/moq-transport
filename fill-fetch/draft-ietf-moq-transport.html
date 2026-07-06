@@ -1564,6 +1564,11 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.19">
                 <p id="section-toc.1-1.10.2.19.1"><a href="#section-10.19" class="auto internal xref">10.19</a>. <a href="#name-subscribe_tracks" class="internal xref">SUBSCRIBE_TRACKS</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.19.2.1">
+                    <p id="section-toc.1-1.10.2.19.2.1.1"><a href="#section-10.19.1" class="auto internal xref">10.19.1</a>.  <a href="#name-parameters-on-subscribe_tra" class="internal xref">Parameters on SUBSCRIBE_TRACKS</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.20">
                 <p id="section-toc.1-1.10.2.20.1"><a href="#section-10.20" class="auto internal xref">10.20</a>. <a href="#name-publish_skipped" class="internal xref">PUBLISH_SKIPPED</a></p>
@@ -6507,7 +6512,9 @@ receives a Track Namespace Prefix consisting of greater than 32 Track
 Namespace Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.19-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.19-3.3">
-            <p id="section-10.19-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.19-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-10.19-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>, though they
+are handled differently from the same Parameters on Subscriptions, as outlined
+below.<a href="#section-10.19-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-10.19-4">The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
@@ -6527,18 +6534,30 @@ namespace subscription.<a href="#section-10.19-6" class="pilcrow">¶</a></p>
 <p id="section-10.19-7">SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
 a subscriber.  It is useful for subscribers that are
 only interested in or authorized to access a subset of available tracks.<a href="#section-10.19-7" class="pilcrow">¶</a></p>
-<p id="section-10.19-8">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 10.2.13</a>) is present in this message and
+<div id="parameters-on-subscribetracks">
+<section id="section-10.19.1">
+          <h4 id="name-parameters-on-subscribe_tra">
+<a href="#section-10.19.1" class="section-number selfRef">10.19.1. </a><a href="#name-parameters-on-subscribe_tra" class="section-name selfRef">Parameters on SUBSCRIBE_TRACKS</a>
+          </h4>
+<p id="section-10.19.1-1">Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
+in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are copied
+over as the default Subscription parameters when a PUBLISH is sent as a result of
+SUBSCRIBE_TRACKS. The Parameters are not explicitly communicated, with the
+exception of FORWARD and GROUP_ORDER as described below.<a href="#section-10.19.1-1" class="pilcrow">¶</a></p>
+<p id="section-10.19.1-2">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 10.2.13</a>) is present in this message and
 equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
 the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
 from this message, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
 set the FORWARD parameter to 1, or indicate that value by omitting the parameter
-(see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).<a href="#section-10.19-8" class="pilcrow">¶</a></p>
-<p id="section-10.19-9">If the GROUP_ORDER parameter (<a href="#group-order" class="auto internal xref">Section 10.2.8</a>) is present in this message,
+(see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).<a href="#section-10.19.1-2" class="pilcrow">¶</a></p>
+<p id="section-10.19.1-3">If the GROUP_ORDER parameter (<a href="#group-order" class="auto internal xref">Section 10.2.8</a>) is present in this message,
 PUBLISH messages resulting from this SUBSCRIBE_TRACKS will include the
 GROUP_ORDER parameter with the same value. If the GROUP_ORDER parameter is
 omitted from this message, PUBLISH messages resulting from this
 SUBSCRIBE_TRACKS will use the publisher's default group order preference
-(see <a href="#group-order-pref" class="auto internal xref">Section 12.5</a>).<a href="#section-10.19-9" class="pilcrow">¶</a></p>
+(see <a href="#group-order-pref" class="auto internal xref">Section 12.5</a>).<a href="#section-10.19.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="message-publish-skipped">
