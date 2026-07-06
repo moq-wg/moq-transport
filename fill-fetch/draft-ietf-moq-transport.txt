@@ -1841,19 +1841,18 @@ Table of Contents
    delivered as a FETCH response (see Section 10.12).  This is called a
    fill fetch stream.
 
-   The fill fetch stream carries the fill range: the objects from the
-   fill Start Location up to and including the fill boundary.  The fill
-   boundary is the Largest Object, or the End Group when one is
-   specified with a Location less than the Largest Object.  The
-   subscriber learns the Largest Object from the LARGEST_OBJECT
-   parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.  For
-   RelativeStartFill, both sides compute the fill Start Location as
-   {Largest Object.Group - N, 0}. For any fill filter type, if the Start
-   Location is greater than the Largest Object the fill range is empty,
-   the publisher does not open a fill fetch stream.  If the End Group
-   has a Location less than the Largest Object, only the fill fetch
-   stream delivers objects and the subscription remains open (for
-   example, for a later REQUEST_UPDATE).
+   The fill fetch stream carries the objects from the fill Start
+   Location up to and including the fill boundary.  The fill boundary is
+   the Largest Object, or the End Group when one is specified with a
+   Location less than the Largest Object.  The subscriber learns the
+   Largest Object from the LARGEST_OBJECT parameter in SUBSCRIBE_OK or
+   REQUEST_UPDATE_OK.  For RelativeStartFill, both sides compute the
+   fill Start Location as {Largest Object.Group - N, 0}. For any fill
+   filter type, if the Start Location is greater than the Largest Object
+   the fill range is empty, the publisher does not open a fill fetch
+   stream.  If the End Group has a Location less than the Largest
+   Object, only the fill fetch stream delivers objects and the
+   subscription remains open (for example, for a later REQUEST_UPDATE).
 
    The fill fetch stream inherits the subscription's parameters,
    including subscriber priority and authorization; a FILL_PARAMETERS
