@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 1 January 2027                                    I. Swett, Ed.
+Expires: 7 January 2027                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            30 June 2026
+                                                             6 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 January 2027.
+   This Internet-Draft will expire on 7 January 2027.
 
 Copyright Notice
 
@@ -1947,8 +1947,8 @@ Table of Contents
        subscription is in Forward State 0.
 
    2.  Sets the activating subscription to Forward State 1 and applies
-       the SUBSCRIPTION_FILTER.  This ensures objects after the Current
-       Group are not missed.
+       the current SUBSCRIPTION_FILTER.  This ensures objects after the
+       Current Group are not missed.
 
    3.  Waits until it is ready to publish an object from the
        SUBSCRIPTION_FILTER's Start Location's Group (the Start Group;
@@ -1986,7 +1986,7 @@ Table of Contents
 
 5.3.1.  Relay Handling of SWITCH_FROM
 
-   When a relay receives a message containing SWITCH_FROM, it MUST NOT
+   When a relay receives a message containing SWITCH_FROM, it SHOULD NOT
    forward the SWITCH_FROM parameter upstream.  The relay handles the
    switch locally, applying the start group computation from Section 5.3
    using its locally observed state for the activating track and
@@ -5993,9 +5993,9 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-08, 26 June 2026,
+              quic-reliable-stream-reset-09, 4 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-08>.
+              reliable-stream-reset-09>.
 
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
