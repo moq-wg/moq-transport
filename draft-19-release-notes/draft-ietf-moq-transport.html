@@ -2862,7 +2862,7 @@ relay has already forwarded data on a fetch stream, it <span class="bcp14">MUST<
 <p id="section-3.1-1">This document defines a protocol that can be used interchangeably both
 over a QUIC connection directly <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>, and over WebTransport
 <span>[<a href="#WebTransport" class="cite xref">WebTransport</a>]</span>.  Both provide streams and datagrams with similar
-semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12#section-4" class="relref">Section 4</a></span>); thus, the
+semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13#section-4" class="relref">Section 4</a></span>); thus, the
 main difference lies in how the servers are identified and how the
 connection is established. The QUIC DATAGRAM extension (<span>[<a href="#RFC9221" class="cite xref">RFC9221</a>]</span>)
 <span class="bcp14">MUST</span> be supported and negotiated in the QUIC connection used for MOQT,
@@ -2871,7 +2871,7 @@ which is already a requirement for WebTransport over HTTP/3.<a href="#section-3.
 such as TCP, and applications using MOQT might need to fallback to
 another protocol when QUIC or WebTransport aren't available.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.1-3">MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-3.3" class="relref">Section 3.3</a></span>) to perform version negotiation.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-3.3" class="relref">Section 3.3</a></span>) to perform version negotiation.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
 <p id="section-3.1-4">The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> for the final version of this specification
 is <code>moqt</code>.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
 <p id="section-3.1-5">[[RFC editor: please remove the remainder of this section before publication.]]<a href="#section-3.1-5" class="pilcrow">¶</a></p>
@@ -2959,8 +2959,8 @@ URI by replacing the scheme with <code>https</code>.
 For example, <code>moqt://example.com/path</code> becomes
 <code>https://example.com/path</code>. The client sends an extended CONNECT request to this
 URI to establish a WebTransport session, as described in
-(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-3" class="relref">Section 3</a></span>). The client includes MOQT protocol identifiers in
-the WT-Available-Protocols header (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-3.3" class="relref">Section 3.3</a></span>).<a href="#section-3.1.4-1" class="pilcrow">¶</a></p>
+(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-3" class="relref">Section 3</a></span>). The client includes MOQT protocol identifiers in
+the WT-Available-Protocols header (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-3.3" class="relref">Section 3.3</a></span>).<a href="#section-3.1.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="native-quic">
@@ -3300,7 +3300,7 @@ Padding streams are described in <a href="#padding" class="auto internal xref">S
 <p id="section-3.5-1">The Transport Session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION_CLOSE frame
 (<span>[<a href="#QUIC" class="cite xref">QUIC</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-19.19" class="relref">Section 19.19</a></span>).  When WebTransport is used, the session is
-closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-6" class="relref">Section 6</a></span>).<a href="#section-3.5-1" class="pilcrow">¶</a></p>
+closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-6" class="relref">Section 6</a></span>).<a href="#section-3.5-1" class="pilcrow">¶</a></p>
 <p id="section-3.5-2">When terminating the Session, the application <span class="bcp14">MAY</span> use any error message
 and <span class="bcp14">SHOULD</span> use a relevant code, as defined below:<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-3.5-3">
@@ -4094,7 +4094,7 @@ aware that all of the objects on the subgroup have been published
 of the original publisher, through being notified of this fact by the
 application).  If the timer expires before the underlying transport
 stream reaches "all data committed" state
-(<span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12#section-4.3" class="relref">Section 4.3</a></span>), the implementation
+(<span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13#section-4.3" class="relref">Section 4.3</a></span>), the implementation
 <span class="bcp14">MUST</span> reset the stream.  This ensures that MOQT can time out subgroups
 where all of the data has been sent but not yet fully delivered due to
 packet loss.<a href="#section-8-5" class="pilcrow">¶</a></p>
@@ -9203,7 +9203,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
-<span class="refAuthor">Kinnear, E.</span> and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-12</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12</a>&gt;</span>. </dd>
+<span class="refAuthor">Kinnear, E.</span> and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-13</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="QUIC">[QUIC]</dt>
         <dd>
@@ -9251,7 +9251,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="WebTransport">[WebTransport]</dt>
       <dd>
-<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"WebTransport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http3-15</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15</a>&gt;</span>. </dd>
+<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"WebTransport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http3-16</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -9334,38 +9334,42 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <p id="appendix-A.1-1"><strong>Session and Control Plane</strong><a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-A.1-2.1">
-            <p id="appendix-A.1-2.1.1">Add MAX_REQUEST_UPDATES Setup Option and TOO_MANY_REQUEST_UPDATES error
-(#1613)<a href="#appendix-A.1-2.1.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.1.1">Add Range Filters that can filter Objects from Subscriptions and
+SUBSCRIBE_TRACKS (#1765)<a href="#appendix-A.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.2">
-            <p id="appendix-A.1-2.2.1">Allow multiple concurrent subscriptions per Track (#1775)<a href="#appendix-A.1-2.2.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.2.1">Add MAX_REQUEST_UPDATES Setup Option and TOO_MANY_REQUEST_UPDATES error
+(#1613)<a href="#appendix-A.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.3">
-            <p id="appendix-A.1-2.3.1">Move GROUP_ORDER from PUBLISH_OK to SUBSCRIBE_TRACKS (#1777)<a href="#appendix-A.1-2.3.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.3.1">Allow multiple concurrent subscriptions per Track (#1775)<a href="#appendix-A.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.4">
-            <p id="appendix-A.1-2.4.1">Rename PUBLISH_BLOCKED to PUBLISH_SKIPPED (#1779)<a href="#appendix-A.1-2.4.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.4.1">Move GROUP_ORDER from PUBLISH_OK to SUBSCRIBE_TRACKS (#1777)<a href="#appendix-A.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.5">
-            <p id="appendix-A.1-2.5.1">Remove Request ID from GOAWAY (#1623)<a href="#appendix-A.1-2.5.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.5.1">Rename PUBLISH_BLOCKED to PUBLISH_SKIPPED (#1779)<a href="#appendix-A.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.6">
-            <p id="appendix-A.1-2.6.1">Clarify session vs. per-request GOAWAY migration (#1787)<a href="#appendix-A.1-2.6.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.6.1">Remove Request ID from GOAWAY (#1623)<a href="#appendix-A.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.7">
-            <p id="appendix-A.1-2.7.1">Define FIN vs. RST/STOP_SENDING semantics on request streams (#1698)<a href="#appendix-A.1-2.7.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.7.1">Clarify session vs. per-request GOAWAY migration (#1787)<a href="#appendix-A.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.8">
-            <p id="appendix-A.1-2.8.1">Unexpected REQUEST_UPDATE is a session error (#1784)<a href="#appendix-A.1-2.8.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.8.1">Define FIN vs. RST/STOP_SENDING semantics on request streams (#1698)<a href="#appendix-A.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.9">
-            <p id="appendix-A.1-2.9.1">Update Forward State handling for relays (#1782)<a href="#appendix-A.1-2.9.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.9.1">Unexpected REQUEST_UPDATE is a session error (#1784)<a href="#appendix-A.1-2.9.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.10">
-            <p id="appendix-A.1-2.10.1">Clarify authorization trust model for namespace subscriptions (#1656)<a href="#appendix-A.1-2.10.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.10.1">Update Forward State handling for relays (#1782)<a href="#appendix-A.1-2.10.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.1-2.11">
-            <p id="appendix-A.1-2.11.1">Clarify namespace discovery and NAMESPACE sending (#1710)<a href="#appendix-A.1-2.11.1" class="pilcrow">¶</a></p>
+            <p id="appendix-A.1-2.11.1">Clarify authorization trust model for namespace subscriptions (#1656)<a href="#appendix-A.1-2.11.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.1-2.12">
+            <p id="appendix-A.1-2.12.1">Clarify namespace discovery and NAMESPACE sending (#1710)<a href="#appendix-A.1-2.12.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="appendix-A.1-3"><strong>Data Plane Wire Format and Handling</strong><a href="#appendix-A.1-3" class="pilcrow">¶</a></p>

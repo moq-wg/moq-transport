@@ -5995,9 +5995,9 @@ Normative References
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
               Framework", Work in Progress, Internet-Draft, draft-ietf-
-              webtrans-overview-12, 2 March 2026,
+              webtrans-overview-13, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-12>.
+              webtrans-overview-13>.
 
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
@@ -6054,9 +6054,9 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-15, 2 March 2026,
+              ietf-webtrans-http3-16, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-15>.
+              webtrans-http3-16>.
 
 Informative References
 
@@ -6148,6 +6148,9 @@ Appendix A.  Change Log
 A.1.  Since draft-ietf-moq-transport-18
 
    *Session and Control Plane*
+
+   *  Add Range Filters that can filter Objects from Subscriptions and
+      SUBSCRIBE_TRACKS (#1765)
 
    *  Add MAX_REQUEST_UPDATES Setup Option and TOO_MANY_REQUEST_UPDATES
       error (#1613)
