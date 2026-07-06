@@ -1121,7 +1121,7 @@ requester SHOULD then send a FIN on its direction, gracefully closing the stream
 An endpoint that receives a FIN before all required messages have arrived treats
 the request as failed.
 
-An endpoint SHOULD send a FIN immediately after a message when it has nothing
+An endpoint SHOULD send a FIN promptly after a message when it has nothing
 further to send on that direction and will not need to respond to a future
 REQUEST_UPDATE. A requester, with the exception of the sender of PUBLISH,
 MAY FIN immediately after sending a message if it will not send a
