@@ -1526,7 +1526,8 @@ equal to Start Location and strictly less than or equal to the End Group (when
 present) pass the filter.
 
 An object published or received in a subgroup or datagram is
-**subscription-delivered**.
+**subscription-delivered**. Objects delivered via a fill-fetch stream
+{fill-semantics} are **fill-delivered**.
 
 Some filters are defined to be relative to the `Largest Object`. The `Largest
 Object` is the Object with the largest Location ({{location-structure}}) in the
