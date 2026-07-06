@@ -114,8 +114,9 @@ Table of Contents
        3.2.2.  Session-Level Tracks and Namespaces
      3.3.  Session initialization
        3.3.1.  0-RTT
-       3.3.2.  Request Cancellation and Rejection
-       3.3.3.  Stream Reset Error Codes
+       3.3.2.  Graceful Request Stream Closure
+       3.3.3.  Request Cancellation and Rejection
+       3.3.4.  Stream Reset Error Codes
      3.4.  Unidirectional Stream Types
      3.5.  Termination
      3.6.  Session Migration
@@ -916,7 +917,7 @@ Table of Contents
 
    When a subscriber detects a Malformed Track, it MUST cancel any
    corresponding subscription or fetches for that Track from that
-   publisher (see Section 3.3.2), and SHOULD deliver an error to the
+   publisher (see Section 3.3.3), and SHOULD deliver an error to the
    application.  If a relay detects a Malformed Track, it MUST
    immediately terminate downstream subscriptions with PUBLISH_DONE and
    reset any fetch streams with Status Code MALFORMED_TRACK.  Object(s)
@@ -1042,13 +1043,13 @@ Table of Contents
       REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
 
    *  For SUBSCRIBE_OK messages: the subscriber MUST cancel the
-      subscription (see Section 3.3.2).  If the subscriber is a relay
+      subscription (see Section 3.3.3).  If the subscriber is a relay
       with pending downstream subscribers, it MUST send REQUEST_ERROR
       with error code UNSUPPORTED_EXTENSION to the downstream
       subscribers.
 
    *  For FETCH_OK messages: the subscriber MUST cancel the fetch (see
-      Section 3.3.2).  If the subscriber is a relay and has not yet sent
+      Section 3.3.3).  If the subscriber is a relay and has not yet sent
       a FETCH_OK or REQUEST_ERROR downstream, it MUST send REQUEST_ERROR
       with error code UNSUPPORTED_EXTENSION to the downstream fetch
       requester.  If the relay has already forwarded data on a fetch
@@ -1342,25 +1343,48 @@ Table of Contents
    handshake is complete or reject 0-RTT entirely to mitigate resource
    exhaustion from replayed packets.
 
-3.3.2.  Request Cancellation and Rejection
+3.3.2.  Graceful Request Stream Closure
+
+   A request stream is bidirectional and each direction is closed
+   independently, either gracefully with a FIN or abruptly with
+   RESET_STREAM.
+
+   A FIN only indicates that an endpoint will send no further messages
+   in that direction; it is not a request cancellation.  An endpoint
+   MUST NOT send a FIN on a direction of a request stream until it has
+   sent all required messages on that direction for its request type.
+   In particular, an endpoint sending a response to a request MUST send
+   the corresponding response message, and the publisher of an
+   Established subscription MUST send PUBLISH_DONE, before sending a
+   FIN.  A FIN sent by the responder after its response and any
+   subsequent messages for the request signals that the request is
+   complete; if it has not already done so, the requester SHOULD then
+   send a FIN on its direction, gracefully closing the stream.  An
+   endpoint that receives a FIN before all required messages have
+   arrived treats the request as failed.
+
+   An endpoint SHOULD send a FIN promptly after a message when it has
+   nothing further to send on that direction and will not need to
+   respond to a future REQUEST_UPDATE.  A requester, with the exception
+   of the sender of PUBLISH, MAY FIN immediately after sending a message
+   if it will not send a REQUEST_UPDATE.
+
+3.3.3.  Request Cancellation and Rejection
 
    Once a request stream has been opened, the request MAY be cancelled
    by either endpoint.  Senders cancel requests if the response is no
    longer of interest; Receivers cancel requests if they are unable to
-   or choose not to respond.
-
-   Implementations SHOULD cancel requests by abruptly terminating any
-   directions of a stream that are still open by resetting or sending
-   STOP_SENDING.
+   or choose not to respond.  Implementations cancel a request by
+   abruptly terminating any directions of the stream that are still
+   open, using RESET_STREAM for a direction they are sending and
+   STOP_SENDING for a direction they are receiving.  An endpoint that
+   has already sent a FIN on its sending direction and subsequently
+   wishes to cancel sends STOP_SENDING on the receiving direction.
 
    When an endpoint rejects a request without performing any application
    processing, it SHOULD send a REQUEST_ERROR and FIN the stream.
 
-   The application SHOULD use a relevant error code when resetting or
-   sending STOP_SENDING on a request stream, as defined in
-   Section 3.3.3.
-
-3.3.3.  Stream Reset Error Codes
+3.3.4.  Stream Reset Error Codes
 
    The application SHOULD use a relevant error code when resetting or
    sending STOP_SENDING on any stream.
@@ -1719,7 +1743,7 @@ Table of Contents
 5.1.1.  Subscription State Management
 
    A subscriber keeps subscription state until it cancels the request
-   (see Section 3.3.2), or after receipt of a PUBLISH_DONE or
+   (see Section 3.3.3), or after receipt of a PUBLISH_DONE or
    REQUEST_ERROR.  Note that PUBLISH_DONE does not usually indicate that
    state can immediately be destroyed, see Section 10.11.
 
@@ -1847,7 +1871,7 @@ Table of Contents
    response to a FETCH.
 
    A subscriber keeps FETCH state until it cancels the request (see
-   Section 3.3.2), receives REQUEST_ERROR, or the FETCH data stream
+   Section 3.3.3), receives REQUEST_ERROR, or the FETCH data stream
    receives a FIN or is reset.  If the data stream is already open, the
    subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
    data stream as well as the bidi request stream.  It MUST send
@@ -1928,12 +1952,12 @@ Table of Contents
    result to the application, so the application can decide which other
    publishers to contact, if any.
 
-   A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS can be cancelled by closing
-   the stream with either a FIN or RESET_STREAM.  Cancelling
-   SUBSCRIBE_TRACKS does not prohibit original publishers from sending
-   further PUBLISH messages, but relays MUST NOT send any further
-   PUBLISH messages to a client without knowing the client is interested
-   in and authorized to receive the content.
+   A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS is cancelled as described
+   in Section 3.3.3, by resetting or sending STOP_SENDING on the stream.
+   Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
+   from sending further PUBLISH messages, but relays MUST NOT send any
+   further PUBLISH messages to a client without knowing the client is
+   interested in and authorized to receive the content.
 
 6.2.  Publishing Namespaces
 
@@ -1968,11 +1992,11 @@ Table of Contents
    a protocol error if it receives more than one.
 
    A PUBLISH_NAMESPACE is withdrawn by cancelling the request (see
-   Section 3.3.2), although it is not a protocol error for the
+   Section 3.3.3), although it is not a protocol error for the
    subscriber to send a SUBSCRIBE or FETCH message for a track in a
    namespace after the namespace is withdrawn.
 
-   A subscriber can cancel the request (see Section 3.3.2) to revoke
+   A subscriber can cancel the request (see Section 3.3.3) to revoke
    acceptance of a PUBLISH_NAMESPACE.  If the reason for cancellation is
    expiration of authorization credentials, the publisher can send
    PUBLISH_NAMESPACE again on a new bidi stream with refreshed
@@ -2290,7 +2314,7 @@ Table of Contents
 
    There is no specified limit to the number of publishers of a Track
    Namespace or Track.  An implementation can use mechanisms such as
-   REQUEST_ERROR or unsubscribing (see Section 3.3.2) if it cannot
+   REQUEST_ERROR or unsubscribing (see Section 3.3.3) if it cannot
    accept an additional publisher due to implementation constraints.
    Implementations can consider the establishment or idle time of the
    session or subscription to determine which publisher to reject or
@@ -2358,7 +2382,7 @@ Table of Contents
    of connecting to a new relay and sending the SUBSCRIBE requests for
    all Established subscriptions to the new relay.  The new relay will
    send a response to the subscribes and if they are successful, the
-   subscriptions to the old relay can be cancelled (see Section 3.3.2).
+   subscriptions to the old relay can be cancelled (see Section 3.3.3).
 
 9.5.  Publisher Interactions
 
@@ -2384,7 +2408,7 @@ Table of Contents
    the relay is managed and is application specific.
 
    When a publisher wants to stop new subscriptions for a published
-   namespace, it cancels the request (see Section 3.3.2) to withdraw the
+   namespace, it cancels the request (see Section 3.3.3) to withdraw the
    PUBLISH_NAMESPACE.  A subscriber indicates it will no longer
    subscribe to Tracks in a namespace it previously responded
    PUBLISH_NAMESPACE_OK to by cancelling the PUBLISH_NAMESPACE request.
@@ -2911,7 +2935,7 @@ Table of Contents
    encodes the time in milliseconds after which the sender of the
    parameter will terminate the subscription.  The sender will terminate
    the subscription using PUBLISH_DONE or by cancelling the request (see
-   Section 3.3.2).  This value is advisory and the sender can terminate
+   Section 3.3.3).  This value is advisory and the sender can terminate
    the subscription prior to or after the expiry time.
 
    The receiver of the parameter can attempt to extend the subscription
@@ -3545,8 +3569,9 @@ Table of Contents
    terminate the subscription by sending a PUBLISH_DONE with error code
    UPDATE_FAILED.  When a REQUEST_UPDATE fails for a FETCH, the
    publisher MUST reset the FETCH data stream.  When a REQUEST_UPDATE
-   fails for a SUBSCRIBE_NAMESPACE or PUBLISH_NAMESPACE, the responder
-   MUST close the bidi stream.
+   fails for a SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS or
+   PUBLISH_NAMESPACE, the responder MUST close the bidi stream (see
+   Section 3.3.2).
 
    A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
    coalesce their processing by applying only the cumulative result.
@@ -3646,8 +3671,7 @@ Table of Contents
 
    A sender MUST NOT destroy subscription state until it sends
    PUBLISH_DONE, though it can choose to stop sending objects (and thus
-   send PUBLISH_DONE) for any reason.  A sender SHOULD send FIN on the
-   subscription's bidi stream immediately after sending PUBLISH_DONE.
+   send PUBLISH_DONE) for any reason.
 
    A subscriber that receives PUBLISH_DONE SHOULD set a timer of at
    least the larger of SUBGROUP_DELIVERY_TIMEOUT or
@@ -3931,7 +3955,7 @@ Table of Contents
    more Objects with unknown status (e.g. a Relay has temporarily lost
    contact with the Original Publisher and does not have the Object in
    cache), it can choose to reset the FETCH data stream with
-   UNKNOWN_OBJECT_STATUS (Section 3.3.3), or indicate the range of
+   UNKNOWN_OBJECT_STATUS (Section 3.3.4), or indicate the range of
    unknown Objects and continue serving other known Objects.
 
 10.13.  FETCH_OK
@@ -4478,11 +4502,8 @@ Table of Contents
    congestion or other reasons by either the publisher or subscriber.
    Early termination of a unidirectional stream does not affect the MOQT
    application state, and therefore has no effect on outstanding
-   subscriptions.  Termination of a bidi request stream terminates the
-   Subscription, Fetch, Track Status, Publish Namespace, or Subscribe
-   Namespace request.  When possible, Publishers SHOULD send a
-   PUBLISH_DONE when terminating a subscription instead of abruptly
-   terminating the associated control stream.
+   subscriptions.  Closing a bidirectional request stream is governed by
+   Section 3.3.3.
 
 11.4.2.  Subgroup Header
 
@@ -4713,7 +4734,7 @@ Table of Contents
    indicates the subscriber has renewed interest in forwarded Objects.
 
    The application SHOULD use a relevant error code when resetting a
-   stream, as defined in Section 3.3.3.
+   stream, as defined in Section 3.3.4.
 
 11.4.4.  Fetch Header
 
@@ -5897,25 +5918,25 @@ EXT 1 and EXT N can be modified or removed by Relays
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
         +=======================+=================+===============+
-        | INTERNAL_ERROR        |       0x0       | Section 3.3.3 |
+        | INTERNAL_ERROR        |       0x0       | Section 3.3.4 |
         +-----------------------+-----------------+---------------+
-        | CANCELLED             |       0x1       | Section 3.3.3 |
+        | CANCELLED             |       0x1       | Section 3.3.4 |
         +-----------------------+-----------------+---------------+
-        | DELIVERY_TIMEOUT      |       0x2       | Section 3.3.3 |
+        | DELIVERY_TIMEOUT      |       0x2       | Section 3.3.4 |
         +-----------------------+-----------------+---------------+
-        | SESSION_CLOSED        |       0x3       | Section 3.3.3 |
+        | SESSION_CLOSED        |       0x3       | Section 3.3.4 |
         +-----------------------+-----------------+---------------+
-        | GOING_AWAY            |       0x4       | Section 3.3.3 |
+        | GOING_AWAY            |       0x4       | Section 3.3.4 |
         +-----------------------+-----------------+---------------+
-        | TOO_FAR_BEHIND        |       0x5       | Section 3.3.3 |
+        | TOO_FAR_BEHIND        |       0x5       | Section 3.3.4 |
         +-----------------------+-----------------+---------------+
-        | UNKNOWN_OBJECT_STATUS |       0x6       | Section 3.3.3 |
+        | UNKNOWN_OBJECT_STATUS |       0x6       | Section 3.3.4 |
         +-----------------------+-----------------+---------------+
-        | EXPIRED_AUTH_TOKEN    |       0x7       | Section 3.3.3 |
+        | EXPIRED_AUTH_TOKEN    |       0x7       | Section 3.3.4 |
         +-----------------------+-----------------+---------------+
-        | EXCESSIVE_LOAD        |       0x9       | Section 3.3.3 |
+        | EXCESSIVE_LOAD        |       0x9       | Section 3.3.4 |
         +-----------------------+-----------------+---------------+
-        | MALFORMED_TRACK       |       0x12      | Section 3.3.3 |
+        | MALFORMED_TRACK       |       0x12      | Section 3.3.4 |
         +-----------------------+-----------------+---------------+
         | Reserved for greasing | 0x7f * N + 0x9D | Section 14    |
         +-----------------------+-----------------+---------------+
