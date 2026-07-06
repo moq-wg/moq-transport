@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 20 December 2026                                  I. Swett, Ed.
+Expires: 7 January 2027                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            18 June 2026
+                                                             6 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 December 2026.
+   This Internet-Draft will expire on 7 January 2027.
 
 Copyright Notice
 
@@ -1360,7 +1360,7 @@ Table of Contents
    endpoint that receives a FIN before all required messages have
    arrived treats the request as failed.
 
-   An endpoint SHOULD send a FIN immediately after a message when it has
+   An endpoint SHOULD send a FIN promptly after a message when it has
    nothing further to send on that direction and will not need to
    respond to a future REQUEST_UPDATE.  A requester, with the exception
    of the sender of PUBLISH, MAY FIN immediately after sending a message
@@ -5893,9 +5893,9 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-07, 14 June 2025,
+              quic-reliable-stream-reset-09, 4 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-07>.
+              reliable-stream-reset-09>.
 
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
