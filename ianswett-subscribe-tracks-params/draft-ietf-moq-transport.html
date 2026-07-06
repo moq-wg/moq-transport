@@ -3630,17 +3630,16 @@ required to handle such a SUBSCRIBE.  Such self-subscriptions are identical to
 subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
 rules.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
-<p id="section-5.1-9">For a given Track, an endpoint can have at most one subscription to a Track
-acting as the publisher and at most one acting as a subscriber.  If an endpoint
-receives a message attempting to establish a second subscription to a Track
-with the same role, it <span class="bcp14">MUST</span> fail that request with a <code>DUPLICATE_SUBSCRIPTION</code>
-error.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
-<p id="section-5.1-10">If a publisher receives a SUBSCRIBE request for a Track with an existing
-subscription in <code>Pending (publisher)</code> state, it <span class="bcp14">MUST</span> fail that request with
-a <code>DUPLICATE_SUBSCRIPTION</code> error. If a subscriber receives a PUBLISH for a Track
-with a subscription in the <code>Pending (Subscriber)</code> state, it <span class="bcp14">MUST</span> ensure the
-subscription it initiated transitions to the <code>Terminated</code> state before sending
-PUBLISH_OK.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+<p id="section-5.1-9">An endpoint <span class="bcp14">MAY</span> have multiple concurrent subscriptions to the same Track,
+each identified by a unique Request ID. A publisher <span class="bcp14">MAY</span> assign the same or
+different Track Aliases to these subscriptions.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<p id="section-5.1-10">When an Object matches the filters of multiple subscriptions to the same Track,
+the publisher <span class="bcp14">MUST</span> send the Object once for each matching subscription, even
+when those subscriptions share the same Track Alias. Because subscriptions can
+share a Track Alias, the subscriber re-applies each subscription's filter to
+determine which subscription a received Object belongs to. Subscribers <span class="bcp14">SHOULD</span>
+avoid overlapping filters across subscriptions to the same Track, as they are
+responsible for deduplicating any resulting duplicate Objects.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
 <p id="section-5.1-11">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to avoid
 incurring additional latency.<a href="#section-5.1-11" class="pilcrow">¶</a></p>
 <p id="section-5.1-12">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
@@ -5496,15 +5495,9 @@ sender <span class="bcp14">SHOULD</span> use the Retry Interval to indicate when
 (see <a href="#mandatory-track-properties" class="auto internal xref">Section 2.5.1</a>) that the endpoint does not understand.<a href="#section-10.6.2-5.18.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.6.2-5.19">DUPLICATE_SUBSCRIPTION (0x19):</dt>
+<dt id="section-10.6.2-5.19">REDIRECT:</dt>
             <dd style="margin-left: 1.5em" id="section-10.6.2-5.20">
-              <p id="section-10.6.2-5.20.1">The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
-with the same role as an existing subscription.<a href="#section-10.6.2-5.20.1" class="pilcrow">¶</a></p>
-</dd>
-            <dd class="break"></dd>
-<dt id="section-10.6.2-5.21">REDIRECT:</dt>
-            <dd style="margin-left: 1.5em" id="section-10.6.2-5.22">
-              <p id="section-10.6.2-5.22.1">The request cannot be fulfilled by this endpoint, but could succeed at the
+              <p id="section-10.6.2-5.20.1">The request cannot be fulfilled by this endpoint, but could succeed at the
 location specified in the Redirect structure. The requester <span class="bcp14">SHOULD</span> establish a
 new session to the provided URI (if present) and retry the request using the
 Full Track Name from the Redirect (if present). This error code can appear in
@@ -5514,7 +5507,7 @@ redirects from upstream
 and <span class="bcp14">MAY</span> forward a REDIRECT response to matching downstream requests. A relay
 <span class="bcp14">MAY</span> cache a REDIRECT response for a Full Track Name for up to Retry Interval
 milliseconds and use it to respond to subsequent matching requests without
-forwarding them upstream.<a href="#section-10.6.2-5.22.1" class="pilcrow">¶</a></p>
+forwarding them upstream.<a href="#section-10.6.2-5.20.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -8898,13 +8891,6 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 </td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">DUPLICATE_SUBSCRIPTION</td>
-                <td class="text-center" rowspan="1" colspan="1">0x19</td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#message-request-error" class="auto internal xref">Section 10.6</a>
-</td>
-              </tr>
-              <tr>
                 <td class="text-left" rowspan="1" colspan="1">UNINTERESTED</td>
                 <td class="text-center" rowspan="1" colspan="1">0x20</td>
                 <td class="text-left" rowspan="1" colspan="1">
@@ -9310,7 +9296,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-moq-secure-objects">[I-D.ietf-moq-secure-objects]</dt>
         <dd>
-<span class="refAuthor">Jennings, C. F.</span>, <span class="refAuthor">Nandakumar, S.</span>, and <span class="refAuthor">R. Barnes</span>, <span class="refTitle">"End-to-End Secure Objects for Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-secure-objects-00</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-secure-objects-00">https://datatracker.ietf.org/doc/html/draft-ietf-moq-secure-objects-00</a>&gt;</span>. </dd>
+<span class="refAuthor">Jennings, C. F.</span>, <span class="refAuthor">Nandakumar, S.</span>, and <span class="refAuthor">R. Barnes</span>, <span class="refTitle">"End-to-End Secure Objects for Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-secure-objects-01</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-secure-objects-01">https://datatracker.ietf.org/doc/html/draft-ietf-moq-secure-objects-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
         <dd>
