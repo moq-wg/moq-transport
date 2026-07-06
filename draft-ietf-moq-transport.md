@@ -1839,11 +1839,9 @@ PUBLISH_NAMESPACE messages.
 
 ## Filtering SUBSCRIBE_TRACKS
 
-Range Filters {{range-filters}} can be used in SUBSCRIBE_TRACKS (or
-REQUEST_UPDATE for it) to filter tracks in a namespace using the
-Track Property Filter, and filter objects published in those tracks
-using all other Range Filters which get applied to the resulting
-subscriptions established by SUBSCRIBE_TRACKS.
+Range Filters {{range-filters}} can be used in SUBSCRIBE_TRACKS to filter
+Tracks in a namespace using the Track Property Filter. Objects published in
+the resulting Subscriptions can be filtered by any Range Filter.
 
 ### Relay Resource Protection in Large Namespaces {#large-namespaces}
 
@@ -2694,17 +2692,17 @@ subscription) message. It is a Location Filter (see {{location-filters}}).
 If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
-### SUBGROUP FILTER
+### SUBGROUP FILTER Parameter {#subgroup-filter}
 
 The SUBGROUP_FILTER parameter (Type 0x25) selects objects with specified
 Ranges of Subgroup ID.  See {{range-filters}}.
 
-### OBJECTID FILTER
+### OBJECTID FILTER Parameter {#objectid-filter}
 
 The OBJECTID_FILTER parameter (Type 0x26) selects objects with specified
 Ranges of Object ID.  See {{range-filters}}.
 
-### PRIORITY FILTER
+### PRIORITY FILTER Parameter {#priority-filter}
 
 The PRIORITY_FILTER parameter (Type 0x27) selects objects with specified
 Ranges of Publisher Priority.  See {{range-filters}}.
@@ -2712,7 +2710,7 @@ If a decoded value exceeds 255, the endpoint MUST reject this with
 REQUEST_ERROR with error code INVALID_FILTER since Publisher Priority
 is an 8-bit field.
 
-### OBJECT PROPERTY FILTER
+### OBJECT PROPERTY FILTER Parameter {#object-property-filter}
 
 The OBJECT_PROPERTY_FILTER parameter (Type 0x28) selects objects with
 required Ranges of Property Value for a required Object Property
@@ -2720,7 +2718,7 @@ Type which MUST be even, i.e. a single integer value
 (see {{moq-key-value-pair}}), otherwise the endpoint MUST reject this with
 REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
 
-### TRACK PROPERTY FILTER
+### TRACK PROPERTY FILTER Parameter {#track-property-filter}
 
 The TRACK_PROPERTY_FILTER parameter (Type 0x29) selects tracks with
 required Ranges of Property Value for a required Track Property
@@ -3723,8 +3721,8 @@ subgroup ID is not used for ordering.
 If a Publisher receives a FETCH with a range that includes one or more Objects with
 unknown status (e.g. a Relay has temporarily lost contact with the Original
 Publisher and does not have the Object in cache), it can choose to reset the
-FETCH data stream with UNKNOWN_OBJECT_STATUS ({{stream-reset-codes}}), or indicate the range of unknown
-Objects and continue serving other known Objects.
+FETCH data stream with UNKNOWN_OBJECT_STATUS ({{stream-reset-codes}}), or indicate
+the range of unknown Objects and continue serving other known Objects.
 
 ## FETCH_OK {#message-fetch-ok}
 
