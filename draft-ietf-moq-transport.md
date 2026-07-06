@@ -1477,18 +1477,17 @@ subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
 rules.
 
-For a given Track, an endpoint can have at most one subscription to a Track
-acting as the publisher and at most one acting as a subscriber.  If an endpoint
-receives a message attempting to establish a second subscription to a Track
-with the same role, it MUST fail that request with a `DUPLICATE_SUBSCRIPTION`
-error.
+An endpoint MAY have multiple concurrent subscriptions to the same Track,
+each identified by a unique Request ID. A publisher MAY assign the same or
+different Track Aliases to these subscriptions.
 
-If a publisher receives a SUBSCRIBE request for a Track with an existing
-subscription in `Pending (publisher)` state, it MUST fail that request with
-a `DUPLICATE_SUBSCRIPTION` error. If a subscriber receives a PUBLISH for a Track
-with a subscription in the `Pending (Subscriber)` state, it MUST ensure the
-subscription it initiated transitions to the `Terminated` state before sending
-PUBLISH_OK.
+When an Object matches the filters of multiple subscriptions to the same Track,
+the publisher MUST send the Object once for each matching subscription, even
+when those subscriptions share the same Track Alias. Because subscriptions can
+share a Track Alias, the subscriber re-applies each subscription's filter to
+determine which subscription a received Object belongs to. Subscribers SHOULD
+avoid overlapping filters across subscriptions to the same Track, as they are
+responsible for deduplicating any resulting duplicate Objects.
 
 A publisher SHOULD begin sending incomplete objects when available to avoid
 incurring additional latency.
@@ -3174,10 +3173,6 @@ UNSUPPORTED_EXTENSION:
 : The track contains a Mandatory Track Property
 (see {{mandatory-track-properties}}) that the endpoint does not understand.
 
-DUPLICATE_SUBSCRIPTION (0x19):
-: The PUBLISH or SUBSCRIBE request attempted to create a subscription to a Track
-with the same role as an existing subscription.
-
 REDIRECT:
 : The request cannot be fulfilled by this endpoint, but could succeed at the
 location specified in the Redirect structure. The requester SHOULD establish a
@@ -3945,7 +3940,9 @@ SUBSCRIBE_TRACKS Message {
   receives a Track Namespace Prefix consisting of greater than 32 Track
   Namespace Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}, though they
+  are handled differently from the same Parameters on Subscriptions, as outlined
+  below.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream. If the subscriber receives any message other than a REQUEST_OK or a
@@ -3967,6 +3964,14 @@ namespace subscription.
 SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
 a subscriber.  It is useful for subscribers that are
 only interested in or authorized to access a subset of available tracks.
+
+### Parameters on SUBSCRIBE_TRACKS
+
+Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
+in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are copied
+over as the default Subscription parameters when a PUBLISH is sent as a result of
+SUBSCRIBE_TRACKS. The Parameters are not explicitly communicated, with the
+exception of FORWARD and GROUP_ORDER as described below.
 
 If the FORWARD parameter ({{forward-parameter}}) is present in this message and
 equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
@@ -5397,7 +5402,6 @@ This document does not define any initial entries.
 | DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
 | INVALID_RANGE              | 0x11 | {{message-request-error}} |
 | MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
-| DUPLICATE_SUBSCRIPTION     | 0x19 | {{message-request-error}} |
 | UNINTERESTED               | 0x20 | {{message-request-error}} |
 | PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
 | NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
