@@ -3824,7 +3824,9 @@ SUBSCRIBE_TRACKS Message {
   receives a Track Namespace Prefix consisting of greater than 32 Track
   Namespace Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}, though they
+  are handled differently from the same Parameters on Subscriptions, as outlined
+  below.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream. If the subscriber receives any message other than a REQUEST_OK or a
@@ -3846,6 +3848,14 @@ namespace subscription.
 SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
 a subscriber.  It is useful for subscribers that are
 only interested in or authorized to access a subset of available tracks.
+
+### Parameters on SUBSCRIBE_TRACKS
+
+Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
+in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are copied
+over as the default Subscription parameters when a PUBLISH is sent as a result of
+SUBSCRIBE_TRACKS. The Parameters are not explicitly communicated, with the
+exception of FORWARD and GROUP_ORDER as described below.
 
 If the FORWARD parameter ({{forward-parameter}}) is present in this message and
 equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
