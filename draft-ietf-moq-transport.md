@@ -1845,7 +1845,7 @@ Track Property Filter, and filter objects published in those tracks
 using all other Range Filters which get applied to the resulting
 subscriptions established by SUBSCRIBE_TRACKS.
 
-### Relay Resource Protection in Large Namespaces
+### Relay Resource Protection in Large Namespaces {#large-namespaces}
 
 Relays SHOULD aggregate and propagate filters upstream on subscriptions,
 especially namespace subscriptions,
@@ -2158,8 +2158,11 @@ Track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
 Because MOQT restricts widening a subscription, relays that
 aggregate upstream subscriptions can subscribe using the Largest Object
-filter to avoid churn as downstream subscribers with disparate filters
-subscribe and unsubscribe from a Track.
+Location filter to avoid churn as downstream subscribers with disparate filters
+subscribe and unsubscribe from a Track. Aggregating subscriptions can also
+help relays conserve resources especially with disparate filters or
+SUBSCRIBE_TRACKS in a namespace with a large number of Tracks
+(see {{large-namespaces}}).
 
 A subscriber remains subscribed to a Track at a Relay until it unsubscribes, the
 upstream publisher terminates the subscription, or the subscription expires (see
