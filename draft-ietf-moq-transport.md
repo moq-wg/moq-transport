@@ -1639,9 +1639,8 @@ fill filter type) while Forward State is 1.
   one whose Start Location does not add objects beyond an earlier fill (for
   example, one that only decreases the End Group), does not open a new fill fetch
   stream.
-- When Forward State transitions to 0, or the subscription is cancelled with
-  STOP_SENDING on the bidi stream, the publisher MUST reset any open fill fetch
-  streams.
+- When the subscription is cancelled with STOP_SENDING on the bidi stream, the
+  publisher MUST reset any open fill fetch streams.
 
 The publisher signals that the fill is complete by closing the stream with a FIN
 once all objects up to and including the fill boundary have been
@@ -3322,8 +3321,9 @@ REQUEST_UPDATE Message {
 
 When a subscriber decreases the Start Location of the Subscription Filter
 (see {{subscription-filters}}), the Start Location can be smaller than the Track's
-Largest Location, similar to a new Subscription. The publisher delivers the new
-fill range by opening a new fill fetch stream (see {{fill-semantics}}).
+Largest Location, similar to a new Subscription. If a fill filter is specified,
+the publisher delivers the new fill range by opening a new fill fetch stream
+(see {{fill-semantics}}).
 
 When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
