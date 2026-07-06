@@ -5484,6 +5484,40 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 
 Issue and pull request numbers are listed with a leading octothorp.
 
+## Since draft-ietf-moq-transport-18
+
+**Session and Control Plane**
+
+* Add Range Filters that can filter Objects from Subscriptions and
+  SUBSCRIBE_TRACKS (#1765)
+* Add MAX_REQUEST_UPDATES Setup Option and TOO_MANY_REQUEST_UPDATES error
+  (#1613)
+* Allow multiple concurrent subscriptions per Track (#1775)
+* Move GROUP_ORDER from PUBLISH_OK to SUBSCRIBE_TRACKS (#1777)
+* Rename PUBLISH_BLOCKED to PUBLISH_SKIPPED (#1779)
+* Remove Request ID from GOAWAY (#1623)
+* Clarify session vs. per-request GOAWAY migration (#1787)
+* Define FIN vs. RST/STOP_SENDING semantics on request streams (#1698)
+* Unexpected REQUEST_UPDATE is a session error (#1784)
+* Update Forward State handling for relays (#1782)
+* Clarify authorization trust model for namespace subscriptions (#1656)
+* Clarify namespace discovery and NAMESPACE sending (#1710)
+
+**Data Plane Wire Format and Handling**
+
+* Delivery timeouts are both Track and Object Properties (#1476)
+* Make the Object Status payload rule extensible via IANA registry (#1760)
+* Datagrams take precedence in cross-forwarding-preference scheduling ties
+  (#1780)
+* Remove relay exception for reordering or dropping objects (#1762)
+* Specify relay processing rules for known Track Properties (#1771)
+* Recommend Immutable Properties for relay-visible, unmodifiable data (#1759)
+
+**Notable Editorial Changes**
+
+* Rename control Message Payload field to Message Body (#1756)
+* Clarify Group and Subgroup terminology and object model (#1708)
+
 ## Since draft-ietf-moq-transport-17
 
 **Session and Control Plane**
