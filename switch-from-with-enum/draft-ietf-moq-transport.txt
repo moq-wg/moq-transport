@@ -241,13 +241,14 @@ Table of Contents
      15.5.  Authorization Token Alias Type
      15.6.  MOQT Auth Token Type
      15.7.  Message Parameters
-     15.8.  Properties
-     15.9.  Session-Level Track Names
-     15.10. Error Codes
-       15.10.1.  Session Termination Error Codes
-       15.10.2.  REQUEST_ERROR Codes
-       15.10.3.  PUBLISH_DONE Codes
-       15.10.4.  Stream Reset Error Codes
+     15.8.  SWITCH_FROM Modes
+     15.9.  Properties
+     15.10. Session-Level Track Names
+     15.11. Error Codes
+       15.11.1.  Session Termination Error Codes
+       15.11.2.  REQUEST_ERROR Codes
+       15.11.3.  PUBLISH_DONE Codes
+       15.11.4.  Stream Reset Error Codes
    Contributors
    Use of Generative AI
    References
@@ -1229,7 +1230,7 @@ Table of Contents
 
    The track names and namespaces available under the .session namespace
    are defined by extensions to this specification and registered with
-   IANA (see Section 15.9).
+   IANA (see Section 15.10).
 
 3.3.  Session initialization
 
@@ -3024,9 +3025,10 @@ Table of Contents
       suspend.
 
    *  Mode: A vi64 enum selecting how the suspending subscription is
-      stopped.  The following mode is defined: Hard (0x0).  An endpoint
-      that receives a Mode value that is not defined MUST close the
-      session with PROTOCOL_VIOLATION.  See Section 5.3.
+      stopped.  Modes are registered in the IANA table "MOQT SWITCH_FROM
+      Modes" (Section 15.8); the following mode is defined: Hard (0x0).
+      An endpoint that receives a Mode value that is not defined MUST
+      close the session with PROTOCOL_VIOLATION.  See Section 5.3.
 
    *  Publish Done: If 1, the publisher sends PUBLISH_DONE on the
       suspend subscription as described in Section 5.3.
@@ -3504,7 +3506,7 @@ Table of Contents
       Section 10.6.1.
 
    The application SHOULD use a relevant error code in REQUEST_ERROR, as
-   defined below and assigned in Section 15.10.2.  Most codepoints have
+   defined below and assigned in Section 15.11.2.  Most codepoints have
    identical meanings for various request types, but some have request-
    specific meanings.
 
@@ -5458,15 +5460,15 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  Setup Options (Section 15.4)
 
-   *  Properties (Section 15.8)
+   *  Properties (Section 15.9)
 
-   *  Session Termination Error Codes (Section 15.10.1)
+   *  Session Termination Error Codes (Section 15.11.1)
 
-   *  REQUEST_ERROR Codes (Section 15.10.2)
+   *  REQUEST_ERROR Codes (Section 15.11.2)
 
-   *  PUBLISH_DONE Codes (Section 15.10.3)
+   *  PUBLISH_DONE Codes (Section 15.11.3)
 
-   *  Stream Reset Error Codes (Section 15.10.4)
+   *  Stream Reset Error Codes (Section 15.11.4)
 
    *  MOQT Auth Token Type
 
@@ -5671,7 +5673,22 @@ EXT 1 and EXT N can be modified or removed by Relays
    *  Message Parameters - List which params can be repeated in the
       table.
 
-15.8.  Properties
+15.8.  SWITCH_FROM Modes
+
+   This document establishes the "MOQT SWITCH_FROM Modes" registry,
+   governing the Mode field of the SWITCH_FROM parameter (see
+   Section 10.2.9).  The registration policy is First Come First Served
+   (per [RFC8126], Section 4.4).
+
+                     +======+======+================+
+                     | Mode | Name | Specification  |
+                     +======+======+================+
+                     |  0x0 | Hard | Section 10.2.9 |
+                     +------+------+----------------+
+
+                                 Table 14
+
+15.9.  Properties
 
    +==========+===============================+========+===============+
    |     Type | Name                          | Scope  | Specification |
@@ -5702,7 +5719,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    |     0x9D |                               |        |               |
    +----------+-------------------------------+--------+---------------+
 
-                                  Table 14
+                                  Table 15
 
    The following table contains provisional registrations for other
    active drafts in the moq wg.  These entries share the same Property
@@ -5722,7 +5739,7 @@ EXT 1 and EXT N can be modified or removed by Relays
     | 0x0D | VIDEO_CONFIG        | Object        | draft-ietf-moq-loc |
     +------+---------------------+---------------+--------------------+
 
-                                  Table 15
+                                  Table 16
 
    Endpoints MUST ignore unknown Property types, skipping them using the
    length field.
@@ -5754,7 +5771,7 @@ EXT 1 and EXT N can be modified or removed by Relays
       from uncoordinated sources may encounter different semantics for
       the same code points, creating potential collision risks.
 
-15.9.  Session-Level Track Names
+15.10.  Session-Level Track Names
 
    This document establishes a registry for session-level track names
    under the .session namespace (see Section 3.2.2).  The registration
@@ -5781,13 +5798,13 @@ EXT 1 and EXT N can be modified or removed by Relays
           |                 | specification                    |
           +-----------------+----------------------------------+
 
-                                 Table 16
+                                 Table 17
 
    This document does not define any initial entries.
 
-15.10.  Error Codes
+15.11.  Error Codes
 
-15.10.1.  Session Termination Error Codes
+15.11.1.  Session Termination Error Codes
 
      +============================+=================+===============+
      | Name                       |       Code      | Specification |
@@ -5835,9 +5852,9 @@ EXT 1 and EXT N can be modified or removed by Relays
      | Reserved for greasing      | 0x7f * N + 0x9D | Section 14    |
      +----------------------------+-----------------+---------------+
 
-                                 Table 17
+                                 Table 18
 
-15.10.2.  REQUEST_ERROR Codes
+15.11.2.  REQUEST_ERROR Codes
 
        +========================+=================+===============+
        | Name                   |       Code      | Specification |
@@ -5881,9 +5898,9 @@ EXT 1 and EXT N can be modified or removed by Relays
        | Reserved for greasing  | 0x7f * N + 0x9D | Section 14    |
        +------------------------+-----------------+---------------+
 
-                                 Table 18
+                                 Table 19
 
-15.10.3.  PUBLISH_DONE Codes
+15.11.3.  PUBLISH_DONE Codes
 
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
@@ -5911,9 +5928,9 @@ EXT 1 and EXT N can be modified or removed by Relays
         | Reserved for greasing | 0x7f * N + 0x9D | Section 14    |
         +-----------------------+-----------------+---------------+
 
-                                  Table 19
+                                  Table 20
 
-15.10.4.  Stream Reset Error Codes
+15.11.4.  Stream Reset Error Codes
 
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
@@ -5941,7 +5958,7 @@ EXT 1 and EXT N can be modified or removed by Relays
         | Reserved for greasing | 0x7f * N + 0x9D | Section 14    |
         +-----------------------+-----------------+---------------+
 
-                                  Table 20
+                                  Table 21
 
 Contributors
 
