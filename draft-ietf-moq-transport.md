@@ -1433,18 +1433,16 @@ forwarded back to the endpoint, subject to priority and congestion response
 rules.
 
 An endpoint MAY have multiple concurrent subscriptions to the same Track,
-each identified by a unique Request ID. The publisher assigns their Track
-Aliases according to the TRACK_ALIAS_ASSIGNMENT_POLICY (see
-{{track-alias-assignment-policy}}); by default each subscription gets a unique
-Track Alias, letting the subscriber associate Objects with a specific
-subscription.
+each identified by a unique Request ID. A publisher MAY assign the same or
+different Track Aliases to these subscriptions.
 
 When an Object matches the filters of multiple subscriptions to the same Track,
-the publisher MUST send it exactly once per distinct Track Alias among them.
-Subscribers SHOULD avoid overlapping filters across subscriptions to the same
-Track. When subscriptions share a Track Alias, the subscriber must re-apply each
-subscription's filter to determine which subscriptions a received Object belongs
-to.
+the publisher MUST send the Object once for each matching subscription, even
+when those subscriptions share the same Track Alias. Because subscriptions can
+share a Track Alias, the subscriber re-applies each subscription's filter to
+determine which subscription a received Object belongs to. Subscribers SHOULD
+avoid overlapping filters across subscriptions to the same Track, as they are
+responsible for deduplicating any resulting duplicate Objects.
 
 A publisher SHOULD begin sending incomplete objects when available to avoid
 incurring additional latency.
@@ -2730,18 +2728,6 @@ advertising or other nonessential information. Implementations SHOULD NOT use
 the identifiers of other implementations to declare compatibility, as this
 undermines the usefulness of implementation identification for debugging.
 
-#### TRACK ALIAS ASSIGNMENT POLICY {#track-alias-assignment-policy}
-
-A subscriber sends the TRACK_ALIAS_ASSIGNMENT_POLICY option (Option Type 0x09),
-a variable-length integer, to control how the publisher assigns Track Aliases
-(see {{track-alias}}) to its subscriptions to a Track. With the default value of
-0, the publisher MUST assign a unique Track Alias to each subscription. With
-value 1, the publisher MAY assign one Track Alias to multiple subscriptions to
-the same Track. A publisher MUST treat any other value as the default. When
-sending a PUBLISH before receiving the peer's SETUP, a publisher uses the
-default value.
-
-
 ## GOAWAY {#message-goaway}
 
 An endpoint sends a `GOAWAY` message on its control stream to inform the peer
@@ -3783,9 +3769,8 @@ MAY use both Subgroups and Datagrams within a Group or Track.
 
 To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
-the publisher according to the TRACK_ALIAS_ASSIGNMENT_POLICY (see
-{{track-alias-assignment-policy}}) and included in SUBSCRIBE_OK
-({{message-subscribe-ok}}) or PUBLISH ({{message-publish}}).
+the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}) or PUBLISH
+({{message-publish}}).
 
 The same Track Alias MUST NOT be used by a publisher to refer to two different
 Tracks simultaneously in the same session. If a subscriber receives a
@@ -4963,7 +4948,6 @@ This registry is initially empty.
 | 0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | {{max-auth-token-cache-size}} |
 | 0x05 | AUTHORITY | {{authority}} |
 | 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
-| 0x09 | TRACK_ALIAS_ASSIGNMENT_POLICY | {{track-alias-assignment-policy}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 Endpoints MUST ignore unknown Setup Options as specified in
