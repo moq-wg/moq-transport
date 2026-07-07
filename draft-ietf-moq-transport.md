@@ -2688,7 +2688,7 @@ The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
 encoding. It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a
 subscription) message. It is a Location Filter (see {{location-filters}}).
 
-If omitted from SUBSCRIBE or PUBLISH, the subscription is
+If omitted from SUBSCRIBE, the subscription is
 unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
 ### SUBGROUP FILTER Parameter {#subgroup-filter}
