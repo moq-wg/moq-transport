@@ -4975,7 +4975,7 @@ that alias has not received a response.<a href="#section-10.2.2-18" class="pilcr
 <a href="#section-10.2.3" class="section-number selfRef">10.2.3. </a><a href="#name-subgroup_delivery_timeout-p" class="section-name selfRef">SUBGROUP_DELIVERY_TIMEOUT Parameter</a>
           </h4>
 <p id="section-10.2.3-1">The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a varint. It
-<span class="bcp14">MAY</span> appear in a PUBLISH, SUBSCRIBE, or REQUEST_UPDATE message.  Its
+<span class="bcp14">MAY</span> appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
 semantics are defined in <a href="#delivery-timeouts" class="auto internal xref">Section 8</a>.<a href="#section-10.2.3-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.3-2">This parameter is intended to be specific to a subscription, so it <span class="bcp14">SHOULD NOT</span>
 be forwarded upstream by a relay that intends to serve multiple subscriptions
@@ -4988,7 +4988,7 @@ for the same track.<a href="#section-10.2.3-2" class="pilcrow">¶</a></p>
 <a href="#section-10.2.4" class="section-number selfRef">10.2.4. </a><a href="#name-object_delivery_timeout-par" class="section-name selfRef">OBJECT_DELIVERY_TIMEOUT Parameter</a>
           </h4>
 <p id="section-10.2.4-1">The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a varint. It
-<span class="bcp14">MAY</span> appear in a PUBLISH, SUBSCRIBE, or REQUEST_UPDATE message.  Its
+<span class="bcp14">MAY</span> appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
 semantics are defined in <a href="#delivery-timeouts" class="auto internal xref">Section 8</a>.<a href="#section-10.2.4-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.4-2">This parameter is intended to be specific to a subscription, so it <span class="bcp14">SHOULD NOT</span>
 be forwarded upstream by a relay that intends to serve multiple subscriptions
@@ -5050,12 +5050,11 @@ code DOES_NOT_EXIST if no publisher is available<a href="#section-10.2.6-5" clas
 <a href="#section-10.2.7" class="section-number selfRef">10.2.7. </a><a href="#name-subscriber-priority-paramet" class="section-name selfRef">SUBSCRIBER PRIORITY Parameter</a>
           </h4>
 <p id="section-10.2.7-1">The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It <span class="bcp14">MAY</span>
-appear in a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
-or PUBLISH message. It is an integer expressing the priority of a
+appear in a SUBSCRIBE, FETCH, or REQUEST_UPDATE (for a subscription or FETCH).
+It is an integer expressing the priority of a
 subscription relative to other subscriptions and fetch responses in the same
 session. Lower numbers get higher priority. See <a href="#priorities" class="auto internal xref">Section 7</a>.<a href="#section-10.2.7-1" class="pilcrow">¶</a></p>
-<p id="section-10.2.7-2">If omitted from SUBSCRIBE, PUBLISH or FETCH, the publisher uses
-the value 128.<a href="#section-10.2.7-2" class="pilcrow">¶</a></p>
+<p id="section-10.2.7-2">If omitted from SUBSCRIBE or FETCH, the publisher uses the value 128.<a href="#section-10.2.7-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="group-order">

@@ -2932,8 +2932,8 @@ Range { Start, [End] }
 10.2.3.  SUBGROUP_DELIVERY_TIMEOUT Parameter
 
    The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a
-   varint.  It MAY appear in a PUBLISH, SUBSCRIBE, or REQUEST_UPDATE
-   message.  Its semantics are defined in Section 8.
+   varint.  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
+   semantics are defined in Section 8.
 
    This parameter is intended to be specific to a subscription, so it
    SHOULD NOT be forwarded upstream by a relay that intends to serve
@@ -2942,8 +2942,8 @@ Range { Start, [End] }
 10.2.4.  OBJECT_DELIVERY_TIMEOUT Parameter
 
    The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a
-   varint.  It MAY appear in a PUBLISH, SUBSCRIBE, or REQUEST_UPDATE
-   message.  Its semantics are defined in Section 8.
+   varint.  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
+   semantics are defined in Section 8.
 
    This parameter is intended to be specific to a subscription, so it
    SHOULD NOT be forwarded upstream by a relay that intends to serve
@@ -3006,14 +3006,12 @@ Range { Start, [End] }
 10.2.7.  SUBSCRIBER PRIORITY Parameter
 
    The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8.
-   It MAY appear in a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a
-   subscription or FETCH), or PUBLISH message.  It is an integer
-   expressing the priority of a subscription relative to other
-   subscriptions and fetch responses in the same session.  Lower numbers
-   get higher priority.  See Section 7.
+   It MAY appear in a SUBSCRIBE, FETCH, or REQUEST_UPDATE (for a
+   subscription or FETCH).  It is an integer expressing the priority of
+   a subscription relative to other subscriptions and fetch responses in
+   the same session.  Lower numbers get higher priority.  See Section 7.
 
-   If omitted from SUBSCRIBE, PUBLISH or FETCH, the publisher uses the
-   value 128.
+   If omitted from SUBSCRIBE or FETCH, the publisher uses the value 128.
 
 10.2.8.  GROUP ORDER Parameter
 
