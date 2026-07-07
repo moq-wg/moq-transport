@@ -2231,7 +2231,7 @@ PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
 
 When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
-one publisher is available, the Relay MAY send the FETCH to any of them.
+one publisher is available, the Relay MUST send the FETCH to at least one of them.
 
 When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 `Established` upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
