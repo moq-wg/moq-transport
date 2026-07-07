@@ -1747,9 +1747,10 @@ Table of Contents
    Publishers MAY start sending Objects on PUBLISH-initiated
    subscriptions before receiving a PUBLISH_OK response to reduce
    latency.  Doing so can consume unnecessary resources in cases where
-   the Subscriber rejects the subscription with REQUEST_ERROR.  It can
-   also result in the Subscriber dropping Objects if its buffering
-   limits are exceeded (see Section 11.3 and Section 11.4.2).
+   the Subscriber rejects the subscription with REQUEST_ERROR or sets
+   Forward=0 in REQUEST_UPDATE.  It can also result in the Subscriber
+   dropping Objects if its buffering limits are exceeded (see
+   Section 11.3 and Section 11.4.2).
 
 5.1.1.  Subscription State Management
 
