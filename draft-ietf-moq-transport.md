@@ -3102,7 +3102,7 @@ Redirect {
 * Track Namespace and Track Name: Only present if the "Change Track Name or
   Namespace" field is present. Holds the Track Namespace and Track Name to use
   for the redirected request.
-  
+
   Track Name is not meaningful for namespace-scoped requests
   (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and MUST be empty;
   an endpoint that receives a non-empty Track Name in a Redirect for a
