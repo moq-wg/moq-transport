@@ -1518,64 +1518,52 @@ end with an error.
 
 ### Location Filters {#location-filters}
 
-Subscribers can specify a Location filter on a subscription indicating to the publisher
+Subscribers can specify a Location filter parameter on a subscription or fetch indicating to the publisher
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.
 
-All Location filters have a Start Location and an optional End Group Delta.  Only objects
-published or received via a subscription having Locations greater than or
-equal to Start Location and strictly less than or equal to the End Group (when
-present) pass the filter.
+A Location filter specifies an inclusive range of Locations.  Only objects
+published or received via a subscription having Locations within the inclusive range
+pass the filter.
 
-Some Location filters are defined to be relative to the `Largest Object`. The `Largest
-Object` is the Object with the largest Location ({{location-structure}}) in the
+Some Location filters are defined to be relative to the `Largest Object` which is
+communicated in SUBSCRIBE_OK.  The `Largest Object` is the Object with the
+largest Location ({{location-structure}}) in the
 Track from the perspective of the publisher processing the message. Largest
 Object updates when the first byte of an Object with a Location larger than the
 previous value is published or received through a subscription.
 
-A Location Filter has the following structure:
+A Location filter parameter has the following structure:
 
 ~~~
-Location Filter {
-  Filter Type (vi64),
-  [Start Location (Location),]
-  [End Group Delta (vi64),]
-}
+LOCATION_FILTER Parameter {
+  Parameter Type (vi64) = 0x21,
+  Length (vi64),
+  [StartGroup (vi64),]
+  [StartObject (vi64),]
+  [EndGroupDelta (vi64),]
+  [EndObject (vi64),]
 ~~~
 
-Filter Type can have one of the following values:
+If Length is zero, the Start Location is `{Largest Object.Group, Largest Object.Object + 1}`,
+or {0,0} if no content has been delivered yet, and the subscription is open-ended.
+Note that due to network reordering or prioritization, relays can receive Objects with
+Locations smaller than `Largest Object` after the SUBSCRIBE is processed, but
+these Objects do not pass this filter.
 
-Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
-Largest Object.Object + 1}` and `Largest Object` is communicated in
-SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
-{0, 0}. There is no End Group - the subscription is open ended.  Note that due
-to network reordering or prioritization, relays can receive Objects with
-Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
-these Objects do not pass the Largest Object filter.
+If only StartGroup is present, it is a relative number of groups prior to the next group,
+hence the Start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
+  * StartGroup=0 will start at the next group
+  * StartGroup=1 will start at the current group
+  * StartGroup=2 will start at 1 group prior to the current group
+  * StartGroup=N will start at N-1 groups prior to the current group
 
-Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
-0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
-delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
-the subscription is open ended. For scenarios where the subscriber intends to
-start from more than one group in the future, it can use an AbsoluteStart filter
-instead.
+EndGroupDelta and EndObject can be omitted for an open-ended subscription or to
+end a fetch at the `Largest Object`.
+EndObject can be omitted to include all objects in the End Group.
 
-AbsoluteStart (0x3): The filter Start Location is specified explicitly. The
-specified `Start Location` MAY be less than the `Largest Object` observed at the
-publisher. There is no End Group - the subscription is open ended.  An
-AbsoluteStart filter with `Start` = {0, 0} is equivalent to an unfiltered
-subscription.
-
-AbsoluteRange (0x4): The filter Start Location and End Group are specified
-explicitly. The specified `Start Location` MAY be less than the `Largest Object`
-observed at the publisher. If the specified `End Group Delta` is zero, the
-remainder of that Group passes the filter. Otherwise, the last Group ID to be
-delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
-If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
+If StartGroup + EndGroupDelta exceeds 2^64 - 1, the endpoint MUST
 close the session with a `PROTOCOL_VIOLATION`.
-
-An endpoint that receives a filter type other than the above MUST close the
-session with `PROTOCOL_VIOLATION`.
 
 If the publisher cannot satisfy the requested Location Filter (see
 {{location-filter}}) or if the entire End Group has already been published
