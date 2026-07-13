@@ -2122,7 +2122,7 @@ SWITCHING-SET-ASSIGNMENT parameter {{switching-set-assignment-param}} along with
 complimentary set of rules for subscriber behavior and relay behavior.
 
 This specification defines a default algorithm - type 0. Other algorithms are referenced in the
-"MOQT SSTS Algorithms" registry {{iana-ssts-algorithms}}.
+"SSTS Algorithms" registry {{iana-ssts-algorithms}}.
 
 During SETUP, a relay communicates which SSTS algorithms it supports by passing the
 SSTS_ALGORITHMS option {{ssts-algorithms}}.
@@ -5321,7 +5321,7 @@ Section 4.6}}).
 
 | Type | Name       | Specification |
 |-----:|:-----------|:--------------|
-| 0x0  | Default  | {{authorization-token}} |
+| 0x0  | Default  | this |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 
