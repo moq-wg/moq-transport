@@ -2163,7 +2163,7 @@ SWITCHING-SET-ASSIGNMENT {
   Throughput threshold (vi64),
   Set throughput fraction (vi64),
   Activate switching (vi64),
-  [Set rank (8)]
+  Set rank (8)
 }
 
 * Throughput threshold: Minimum throughput (kbps) required to select this track.
@@ -2181,7 +2181,7 @@ SWITCHING-SET-ASSIGNMENT {
   to N, the relay activates or resumes switching as soon as the number of tracks assigned to
   the switching set is >= N.  Activation takes effect at the next group boundary.
 
-* Set rank (optional): Degradation priority when bandwidth is constrained, expressed as
+* Set rank: Degradation priority when bandwidth is constrained, expressed as
   an 8-bit unsigned integer (1-255). Default is 1. Values outside this range MUST result in
   a protocol error. Lower values indicate higher priority (protected from degradation).
   When bandwidth is sufficient, all sets receive their fraction-based allocation. When
