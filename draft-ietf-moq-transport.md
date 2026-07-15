@@ -1669,12 +1669,12 @@ results in error.
 
 ## Track Switching {#track-switching}
 
-A subscriber can atomically stop delivery on one subscription (the suspending
-subscription) and start delivery on another (the activating subscription) by
+A subscriber can atomically stop delivery on one subscription (the _suspending
+subscription_) and start delivery on another, possibly new subscription (the _activating subscription_) by
 including the SWITCH_FROM parameter ({{switch-from}}) in a SUBSCRIBE or
 REQUEST_UPDATE on the activating subscription's request stream.  This enables
-track switching (e.g., ABR quality changes, alternate camera angles, or meeting
-participants) without tearing down subscriptions or issuing standalone fetches.
+subscriber track switching (e.g., ABR quality changes, alternate camera angles, or meetings
+participants) without coordinating multiple messages.
 
 On receiving a message containing SWITCH_FROM, the publisher:
 
@@ -1683,12 +1683,14 @@ On receiving a message containing SWITCH_FROM, the publisher:
    responds with REQUEST_ERROR `INVALID_SWITCH`. The activating subscription
    handles Forward State transitions as part of the switch; if the message
    carrying SWITCH_FROM has a FORWARD parameter, the publisher responds with
-   REQUEST_ERROR `INVALID_SWITCH`.  Note it is not an error if the pausing
+   REQUEST_ERROR `INVALID_SWITCH`.  Note it is not an error if the suspending
    subscription is in Forward State 0.
 
 2. Sets the activating subscription to Forward State 1 and applies the
-   current SUBSCRIPTION_FILTER. This ensures objects after the Current Group
-   are not missed.
+   the most recent SUBSCRIPTION_FILTER parameter for this subscription (which
+   can be in the same message carrying SWITCH_FROM). This ensures objects
+   in Groups greater than or equal to the Largest Object's Group
+   are not missed during the transition.
 
 3. Waits until it is ready to publish an object from the SUBSCRIPTION_FILTER's
    Start Location's Group (the Start Group; see {{subscription-filters}}),
@@ -1703,16 +1705,16 @@ On receiving a message containing SWITCH_FROM, the publisher:
      Publish Done is 1, the publisher also sends PUBLISH_DONE with code
      SUBSCRIPTION_ENDED.
 
-   In all modes, the publisher also resets any outstanding streams on the suspending
+   In all modes, the publisher also resets any outstanding streams (including fill-fetch streams) on the suspending
    subscription; objects already in flight can still be received by the subscriber.
 
    If Publish Done is 0, the suspending subscription remains established.
 
 5. Begins delivery of activating subscription from Start Group. If the
    SUBSCRIPTION_FILTER is a fill filter type, opens a fill fetch stream using
-   the resuming subscription's Request ID (see {{fill-semantics}}), if necessary.
+   the activating subscription's Request ID (see {{fill-semantics}}).
 
-6. Responds with SUBSCRIBE_OK or REQUEST_OK as appropriate, including
+6. Responds on the activating subscription's control stream with SUBSCRIBE_OK or REQUEST_OK as appropriate, including
    LARGEST_OBJECT if the SUBSCRIPTION_FILTER is a fill filter type.
 
 If the publisher times out waiting to publish an object from the
@@ -1720,11 +1722,11 @@ Start Group on the activating track, it MUST respond with REQUEST_ERROR `TIMEOUT
 
 ### Relay Handling of SWITCH_FROM {#relay-switch-from}
 
-When a relay receives a message containing SWITCH_FROM, it SHOULD NOT forward the
-SWITCH_FROM parameter upstream. The relay handles the switch locally, applying
-the start group computation from {{track-switching}} using its locally observed
-state for the activating track and servicing any fill fetch stream from its cache
-and upstream sources as described in {{fill-semantics}}.
+Relays ordinarily handle the switch locally, applying
+the start group computation from {{track-switching}} using locally observed
+state for the activating track and servicing any fill fetch stream from cache
+and upstream sources as described in {{fill-semantics}}.  When a relay performs
+the switch operation, it MUST NOT forward the SWITCH_FROM parameter upstream.
 
 # Namespace Discovery {#track-discovery}
 
@@ -3189,9 +3191,7 @@ malformed (see {{malformed-tracks}}).
 
 INVALID_SWITCH:
 : In response to a SUBSCRIBE or REQUEST_UPDATE carrying SWITCH_FROM, the track
-switch cannot be performed: the Switch From Request ID does not identify an
-existing subscription, is the same as the activating subscription's Request ID, or the
-request contained the FORWARD parameter (see {{track-switching}}).
+switch cannot be performed (see {{track-switching}}).
 
 The following are errors for use by the subscriber. They can appear in response
 to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
