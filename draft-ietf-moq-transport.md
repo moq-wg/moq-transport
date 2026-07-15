@@ -1697,7 +1697,7 @@ On receiving a message containing SWITCH_FROM, the publisher:
    computed from the activating track at the time the request is received, while
    continuing to deliver objects on the suspending subscription.  When GROUP_ORDER
    is Descending and Start Group is before the Current Group, the publisher
-   waits for the first object in the largest fill group instead.
+   waits for the first object in the largest group in the fill range instead.
 
 4. Stops delivery on the suspending subscription:
 
