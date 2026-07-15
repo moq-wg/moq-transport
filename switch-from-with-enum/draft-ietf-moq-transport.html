@@ -1056,7 +1056,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 7 January 2027</td>
+<td class="center">Expires 16 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-07-06" class="published">6 July 2026</time>
+<time datetime="2026-07-15" class="published">15 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-01-07">7 January 2027</time></dd>
+<dd class="expires"><time datetime="2027-01-16">16 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 7 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 16 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2845,7 +2845,7 @@ relay has already forwarded data on a fetch stream, it <span class="bcp14">MUST<
 <p id="section-3.1-1">This document defines a protocol that can be used interchangeably both
 over a QUIC connection directly <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>, and over WebTransport
 <span>[<a href="#WebTransport" class="cite xref">WebTransport</a>]</span>.  Both provide streams and datagrams with similar
-semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12#section-4" class="relref">Section 4</a></span>); thus, the
+semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13#section-4" class="relref">Section 4</a></span>); thus, the
 main difference lies in how the servers are identified and how the
 connection is established. The QUIC DATAGRAM extension (<span>[<a href="#RFC9221" class="cite xref">RFC9221</a>]</span>)
 <span class="bcp14">MUST</span> be supported and negotiated in the QUIC connection used for MOQT,
@@ -2854,7 +2854,7 @@ which is already a requirement for WebTransport over HTTP/3.<a href="#section-3.
 such as TCP, and applications using MOQT might need to fallback to
 another protocol when QUIC or WebTransport aren't available.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.1-3">MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-3.3" class="relref">Section 3.3</a></span>) to perform version negotiation.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-3.3" class="relref">Section 3.3</a></span>) to perform version negotiation.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
 <p id="section-3.1-4">[[RFC editor: please remove the remainder of this section before publication.]]<a href="#section-3.1-4" class="pilcrow">¶</a></p>
 <p id="section-3.1-5">The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> for the final version of this specification
 is <code>moqt</code>.  ALPNs used to identify IETF drafts are created by appending
@@ -2934,8 +2934,8 @@ URI by replacing the scheme with <code>https</code>.
 For example, <code>moqt://example.com/path</code> becomes
 <code>https://example.com/path</code>. The client sends an extended CONNECT request to this
 URI to establish a WebTransport session, as described in
-(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-3" class="relref">Section 3</a></span>). The client includes MOQT protocol identifiers in
-the WT-Available-Protocols header (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-3.3" class="relref">Section 3.3</a></span>).<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
+(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-3" class="relref">Section 3</a></span>). The client includes MOQT protocol identifiers in
+the WT-Available-Protocols header (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-3.3" class="relref">Section 3.3</a></span>).<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="native-quic">
@@ -3248,7 +3248,7 @@ Padding streams are described in <a href="#padding" class="auto internal xref">S
 <p id="section-3.5-1">The Transport Session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION_CLOSE frame
 (<span>[<a href="#QUIC" class="cite xref">QUIC</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-19.19" class="relref">Section 19.19</a></span>).  When WebTransport is used, the session is
-closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15#section-6" class="relref">Section 6</a></span>).<a href="#section-3.5-1" class="pilcrow">¶</a></p>
+closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-6" class="relref">Section 6</a></span>).<a href="#section-3.5-1" class="pilcrow">¶</a></p>
 <p id="section-3.5-2">When terminating the Session, the application <span class="bcp14">MAY</span> use any error message
 and <span class="bcp14">SHOULD</span> use a relevant code, as defined below:<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-3.5-3">
@@ -3815,12 +3815,12 @@ results in error.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
         <h3 id="name-track-switching">
 <a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-track-switching" class="section-name selfRef">Track Switching</a>
         </h3>
-<p id="section-5.3-1">A subscriber can atomically stop delivery on one subscription (the suspending
-subscription) and start delivery on another (the activating subscription) by
+<p id="section-5.3-1">A subscriber can atomically stop delivery on one subscription (the <em>suspending
+subscription</em>) and start delivery on another, possibly new subscription (the <em>activating subscription</em>) by
 including the SWITCH_FROM parameter (<a href="#switch-from" class="auto internal xref">Section 10.2.9</a>) in a SUBSCRIBE or
 REQUEST_UPDATE on the activating subscription's request stream.  This enables
-track switching (e.g., ABR quality changes, alternate camera angles, or meeting
-participants) without tearing down subscriptions or issuing standalone fetches.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+subscriber track switching (e.g., ABR quality changes, alternate camera angles, or meetings
+participants) without coordinating multiple messages.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
 <p id="section-5.3-2">On receiving a message containing SWITCH_FROM, the publisher:<a href="#section-5.3-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-5.3-3">
 <li id="section-5.3-3.1">
@@ -3829,13 +3829,15 @@ and is not the same as the activating subscription's Request ID. If not,
 responds with REQUEST_ERROR <code>INVALID_SWITCH</code>. The activating subscription
 handles Forward State transitions as part of the switch; if the message
 carrying SWITCH_FROM has a FORWARD parameter, the publisher responds with
-REQUEST_ERROR <code>INVALID_SWITCH</code>.  Note it is not an error if the pausing
+REQUEST_ERROR <code>INVALID_SWITCH</code>.  Note it is not an error if the suspending
 subscription is in Forward State 0.<a href="#section-5.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.3-3.2">
             <p id="section-5.3-3.2.1">Sets the activating subscription to Forward State 1 and applies the
-current SUBSCRIPTION_FILTER. This ensures objects after the Current Group
-are not missed.<a href="#section-5.3-3.2.1" class="pilcrow">¶</a></p>
+the most recent SUBSCRIPTION_FILTER parameter for this subscription (which
+can be in the same message carrying SWITCH_FROM). This ensures objects
+in Groups greater than or equal to the Largest Object's Group
+are not missed during the transition.<a href="#section-5.3-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.3-3.3">
             <p id="section-5.3-3.3.1">Waits until it is ready to publish an object from the SUBSCRIPTION_FILTER's
@@ -3843,7 +3845,7 @@ Start Location's Group (the Start Group; see <a href="#subscription-filters" cla
 computed from the activating track at the time the request is received, while
 continuing to deliver objects on the suspending subscription.  When GROUP_ORDER
 is Descending and Start Group is before the Current Group, the publisher
-waits for the first object in the largest fill group instead.<a href="#section-5.3-3.3.1" class="pilcrow">¶</a></p>
+waits for the first object in the largest group in the fill range instead.<a href="#section-5.3-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.3-3.4">
             <p id="section-5.3-3.4.1">Stops delivery on the suspending subscription:<a href="#section-5.3-3.4.1" class="pilcrow">¶</a></p>
@@ -3855,7 +3857,7 @@ SUBSCRIPTION_ENDED.<a href="#section-5.3-3.4.2.1.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-5.3-3.4.3">
-In all modes, the publisher also resets any outstanding streams on the suspending
+In all modes, the publisher also resets any outstanding streams (including fill-fetch streams) on the suspending
 subscription; objects already in flight can still be received by the subscriber.<a href="#section-5.3-3.4.3" class="pilcrow">¶</a></p>
 <p id="section-5.3-3.4.4">
 If Publish Done is 0, the suspending subscription remains established.<a href="#section-5.3-3.4.4" class="pilcrow">¶</a></p>
@@ -3863,10 +3865,10 @@ If Publish Done is 0, the suspending subscription remains established.<a href="#
           <li id="section-5.3-3.5">
             <p id="section-5.3-3.5.1">Begins delivery of activating subscription from Start Group. If the
 SUBSCRIPTION_FILTER is a fill filter type, opens a fill fetch stream using
-the resuming subscription's Request ID (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>), if necessary.<a href="#section-5.3-3.5.1" class="pilcrow">¶</a></p>
+the activating subscription's Request ID (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-5.3-3.5.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.3-3.6">
-            <p id="section-5.3-3.6.1">Responds with SUBSCRIBE_OK or REQUEST_OK as appropriate, including
+            <p id="section-5.3-3.6.1">Responds on the activating subscription's control stream with SUBSCRIBE_OK or REQUEST_OK as appropriate, including
 LARGEST_OBJECT if the SUBSCRIPTION_FILTER is a fill filter type.<a href="#section-5.3-3.6.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
@@ -3877,11 +3879,11 @@ Start Group on the activating track, it <span class="bcp14">MUST</span> respond 
           <h4 id="name-relay-handling-of-switch_fr">
 <a href="#section-5.3.1" class="section-number selfRef">5.3.1. </a><a href="#name-relay-handling-of-switch_fr" class="section-name selfRef">Relay Handling of SWITCH_FROM</a>
           </h4>
-<p id="section-5.3.1-1">When a relay receives a message containing SWITCH_FROM, it <span class="bcp14">SHOULD NOT</span> forward the
-SWITCH_FROM parameter upstream. The relay handles the switch locally, applying
-the start group computation from <a href="#track-switching" class="auto internal xref">Section 5.3</a> using its locally observed
-state for the activating track and servicing any fill fetch stream from its cache
-and upstream sources as described in <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>.<a href="#section-5.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.3.1-1">Relays ordinarily handle the switch locally, applying
+the start group computation from <a href="#track-switching" class="auto internal xref">Section 5.3</a> using locally observed
+state for the activating track and servicing any fill fetch stream from cache
+and upstream sources as described in <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>.  When a relay performs
+the switch operation, it <span class="bcp14">MUST NOT</span> forward the SWITCH_FROM parameter upstream.<a href="#section-5.3.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4175,7 +4177,7 @@ aware that all of the objects on the subgroup have been published
 of the original publisher, through being notified of this fact by the
 application).  If the timer expires before the underlying transport
 stream reaches "all data committed" state
-(<span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12#section-4.3" class="relref">Section 4.3</a></span>), the implementation
+(<span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13#section-4.3" class="relref">Section 4.3</a></span>), the implementation
 <span class="bcp14">MUST</span> reset the stream.  This ensures that MOQT can time out subgroups
 where all of the data has been sent but not yet fully delivered due to
 packet loss.<a href="#section-8-5" class="pilcrow">¶</a></p>
@@ -5703,9 +5705,7 @@ malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.
 <dt id="section-10.6.2-7.7">INVALID_SWITCH:</dt>
             <dd style="margin-left: 1.5em" id="section-10.6.2-7.8">
               <p id="section-10.6.2-7.8.1">In response to a SUBSCRIBE or REQUEST_UPDATE carrying SWITCH_FROM, the track
-switch cannot be performed: the Switch From Request ID does not identify an
-existing subscription, is the same as the activating subscription's Request ID, or the
-request contained the FORWARD parameter (see <a href="#track-switching" class="auto internal xref">Section 5.3</a>).<a href="#section-10.6.2-7.8.1" class="pilcrow">¶</a></p>
+switch cannot be performed (see <a href="#track-switching" class="auto internal xref">Section 5.3</a>).<a href="#section-10.6.2-7.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -9212,7 +9212,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
-<span class="refAuthor">Kinnear, E.</span> and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-12</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-12</a>&gt;</span>. </dd>
+<span class="refAuthor">Kinnear, E.</span> and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-13</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="QUIC">[QUIC]</dt>
         <dd>
@@ -9260,7 +9260,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="WebTransport">[WebTransport]</dt>
       <dd>
-<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"WebTransport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http3-15</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-15</a>&gt;</span>. </dd>
+<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"WebTransport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http3-16</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -9289,15 +9289,15 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-moq-secure-objects">[I-D.ietf-moq-secure-objects]</dt>
         <dd>
-<span class="refAuthor">Jennings, C. F.</span>, <span class="refAuthor">Nandakumar, S.</span>, and <span class="refAuthor">R. Barnes</span>, <span class="refTitle">"End-to-End Secure Objects for Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-secure-objects-00</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-secure-objects-00">https://datatracker.ietf.org/doc/html/draft-ietf-moq-secure-objects-00</a>&gt;</span>. </dd>
+<span class="refAuthor">Jennings, C. F.</span>, <span class="refAuthor">Nandakumar, S.</span>, and <span class="refAuthor">R. Barnes</span>, <span class="refTitle">"End-to-End Secure Objects for Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-secure-objects-01</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-secure-objects-01">https://datatracker.ietf.org/doc/html/draft-ietf-moq-secure-objects-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
         <dd>
-<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-04</span>, <time datetime="2025-12-14" class="refDate">14 December 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-04">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-04</a>&gt;</span>. </dd>
+<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-05</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-05">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-05</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PPA">[PPA]</dt>
         <dd>
-<span class="refAuthor">Nandakumar, S.</span>, <span class="refAuthor">Jennings, C. F.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Privacy Pass Authentication for Media over QUIC (MoQ)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-privacy-pass-auth-02</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-privacy-pass-auth-02">https://datatracker.ietf.org/doc/html/draft-ietf-moq-privacy-pass-auth-02</a>&gt;</span>. </dd>
+<span class="refAuthor">Nandakumar, S.</span>, <span class="refAuthor">Jennings, C. F.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Privacy Pass Authentication for Media over QUIC (MoQ)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-privacy-pass-auth-03</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-privacy-pass-auth-03">https://datatracker.ietf.org/doc/html/draft-ietf-moq-privacy-pass-auth-03</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC6582">[RFC6582]</dt>
         <dd>
