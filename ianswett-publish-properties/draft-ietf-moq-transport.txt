@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 8 January 2027                                    I. Swett, Ed.
+Expires: 16 January 2027                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             7 July 2026
+                                                            15 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 January 2027.
+   This Internet-Draft will expire on 16 January 2027.
 
 Copyright Notice
 
@@ -5867,15 +5867,17 @@ EXT 1 and EXT N can be modified or removed by Relays
     +======+=====================+===============+====================+
     | Type | Name                | Scope         | Specification      |
     +======+=====================+===============+====================+
-    | 0x06 | TIMESTAMP           | Object        | draft-ietf-moq-loc |
+    | 0x0A | TIMESTAMP           | Object        | draft-ietf-moq-loc |
     +------+---------------------+---------------+--------------------+
     | 0x08 | TIMESCALE           | Track, Object | draft-ietf-moq-loc |
     +------+---------------------+---------------+--------------------+
-    | 0x0A | VIDEO_FRAME_MARKING | Object        | draft-ietf-moq-loc |
+    | 0x09 | VIDEO_FRAME_MARKING | Object        | draft-ietf-moq-loc |
     +------+---------------------+---------------+--------------------+
     | 0x0C | AUDIO_LEVEL         | Object        | draft-ietf-moq-loc |
     +------+---------------------+---------------+--------------------+
-    | 0x0D | VIDEO_CONFIG        | Object        | draft-ietf-moq-loc |
+    | 0x0D | VIDEO_CONFIG        | Track, Object | draft-ietf-moq-loc |
+    +------+---------------------+---------------+--------------------+
+    | 0x0F | AUIDO_CONFIG        | Track, Object | draft-ietf-moq-loc |
     +------+---------------------+---------------+--------------------+
 
                                   Table 15
