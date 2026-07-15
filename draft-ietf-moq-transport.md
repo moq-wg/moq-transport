@@ -2824,6 +2824,16 @@ Namespace Prefix for that subscription.  If the new prefix would share a common 
 another active subscription of the same type in the same session, the receiver
 MUST respond with REQUEST_ERROR with error code `PREFIX_OVERLAP`.
 
+### INCLUDE_PROPERTIES Parameter {#include-properties-param}
+
+The INCLUDE_PROPERTIES parameter (Parameter Type 0x35) is a uint8. It MAY appear
+in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS. It specifies whether the
+OK message sent in response includes Track Properties or whether the resulting PUBLISH
+messages include Track Properties in the case of SUBSCRIBE_TRACKS. The allowed
+values are 0 (do not send Properties) or 1 (send Properties), and the default is 1.
+If an endpoint receives a value outside this range, it MUST close the session
+with `PROTOCOL_VIOLATION`.
+
 ## SETUP {#message-setup}
 
 The `SETUP` message is the first message each endpoint sends on its control
