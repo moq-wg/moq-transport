@@ -3968,8 +3968,8 @@ only interested in or authorized to access a subset of available tracks.
 ### Parameters on SUBSCRIBE_TRACKS
 
 Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
-in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are copied
-over as the default Subscription parameters when a PUBLISH is sent as a result of
+in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
+publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
 SUBSCRIBE_TRACKS. The Parameters are not explicitly communicated, with the
 exception of FORWARD and GROUP_ORDER as described below.
 
