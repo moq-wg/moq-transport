@@ -1523,7 +1523,7 @@ published or received via upstream subscriptions.
 All filters have a Start Location and an optional End Group Delta.  Only objects
 published or received via a subscription having Locations greater than or
 equal to Start Location and strictly less than or equal to the End Group (when
-present) pass the filter.
+present) pass the filter.  A publisher MUST NOT send objects from outside the requested range.
 
 An object published or received in a subgroup or datagram is
 **subscription-delivered**. Objects delivered via a fill-fetch stream
@@ -1565,7 +1565,7 @@ filter instead.
 
 AbsoluteStartFill (0x3): The filter Start Location is specified explicitly.
 There is no End Group - the subscription is open ended. The subscription opens a
-fill fetch stream for the fill range (see {{fill-semantics}}).
+fill fetch stream for the fill range, if any (see {{fill-semantics}}).
 
 AbsoluteRangeFill (0x4): The filter Start Location and End Group Delta are
 specified explicitly. If the specified `End Group Delta` is zero, the remainder
@@ -1573,7 +1573,7 @@ of the Start Location's Group passes the filter. Otherwise, the last Group ID to
 be delivered is the Group ID in `Start Location` plus the `End Group Delta`. If
 the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST close
 the session with a `PROTOCOL_VIOLATION`. The subscription opens a fill fetch
-stream for the fill range (see {{fill-semantics}}).
+stream for the fill range, if any (see {{fill-semantics}}).
 
 RelativeStartFill (0x5): Relative Previous is present. The value N in
 Relative Previous determines the Start Location: `{Largest Object.Group - N, 0}`
@@ -1585,8 +1585,6 @@ fill range (see {{fill-semantics}}).
 An endpoint that receives a filter type other than the above MUST close the
 session with `PROTOCOL_VIOLATION`.
 
-A publisher MUST NOT send objects from outside the requested range.
-
 ### Fill Semantics {#fill-semantics}
 
 Fill filter types (AbsoluteStartFill, AbsoluteRangeFill, and
@@ -1596,7 +1594,7 @@ with a FETCH_HEADER (see {{fetch-header}}) and delivered as a FETCH response (se
 
 The fill fetch stream carries the objects from the fill Start
 Location up to and including the fill boundary. The fill boundary
-is the Largest Object, or the End Group when one is specified with a Location
+is the Largest Object at the time the Location Filter is received, or the End Group when one is specified with a Location
 less than the Largest Object. The subscriber
 learns the Largest Object from the `LARGEST_OBJECT` parameter in SUBSCRIBE_OK or
 REQUEST_UPDATE_OK. For RelativeStartFill, both sides compute the fill Start
@@ -1618,7 +1616,7 @@ that initiated it: the SUBSCRIBE Request ID for the initial fill, or the
 REQUEST_UPDATE Request ID for a subsequent fill. A subscription can have
 multiple fill fetch streams open at once, each identified by its Request ID;
 opening a new fill fetch stream does not implicitly cancel any previously opened
-fill fetch stream.
+fill fetch streams.
 
 An object delivered on the fill fetch stream is **fill-delivered**. Because the
 subscription filter necessarily overlaps the fill range, an object can be both
@@ -1668,7 +1666,7 @@ current Group from its start.
 
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a fill
 filter type (AbsoluteStartFill, AbsoluteRangeFill, or RelativeStartFill). The
-publisher delivers the fill range, and objects with larger Locations in a
+publisher delivers the fill range via a fill-fetch stream, and newly published or received objects in a
 subgroup or datagram (see {{fill-semantics}}).
 
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
