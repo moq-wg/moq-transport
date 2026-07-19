@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 January 2027                                    I. Swett, Ed.
+Expires: 20 January 2027                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             6 July 2026
+                                                            19 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 January 2027.
+   This Internet-Draft will expire on 20 January 2027.
 
 Copyright Notice
 
@@ -1766,7 +1766,8 @@ Table of Contents
    All filters have a Start Location and an optional End Group Delta.
    Only objects published or received via a subscription having
    Locations greater than or equal to Start Location and strictly less
-   than or equal to the End Group (when present) pass the filter.
+   than or equal to the End Group (when present) pass the filter.  A
+   publisher MUST NOT send objects from outside the requested range.
 
    An object published or received in a subgroup or datagram is
    *subscription-delivered*. Objects delivered via a fill-fetch stream
@@ -1809,8 +1810,8 @@ Table of Contents
 
    AbsoluteStartFill (0x3): The filter Start Location is specified
    explicitly.  There is no End Group - the subscription is open ended.
-   The subscription opens a fill fetch stream for the fill range (see
-   Section 5.1.3).
+   The subscription opens a fill fetch stream for the fill range, if any
+   (see Section 5.1.3).
 
    AbsoluteRangeFill (0x4): The filter Start Location and End Group
    Delta are specified explicitly.  If the specified End Group Delta is
@@ -1819,7 +1820,7 @@ Table of Contents
    Location plus the End Group Delta.  If the resulting Group ID would
    be greater than 2^64 - 1, the endpoint MUST close the session with a
    PROTOCOL_VIOLATION.  The subscription opens a fill fetch stream for
-   the fill range (see Section 5.1.3).
+   the fill range, if any (see Section 5.1.3).
 
    RelativeStartFill (0x5): Relative Previous is present.  The value N
    in Relative Previous determines the Start Location: {Largest
@@ -1832,8 +1833,6 @@ Table of Contents
    An endpoint that receives a filter type other than the above MUST
    close the session with PROTOCOL_VIOLATION.
 
-   A publisher MUST NOT send objects from outside the requested range.
-
 5.1.3.  Fill Semantics
 
    Fill filter types (AbsoluteStartFill, AbsoluteRangeFill, and
@@ -1844,16 +1843,17 @@ Table of Contents
 
    The fill fetch stream carries the objects from the fill Start
    Location up to and including the fill boundary.  The fill boundary is
-   the Largest Object, or the End Group when one is specified with a
-   Location less than the Largest Object.  The subscriber learns the
-   Largest Object from the LARGEST_OBJECT parameter in SUBSCRIBE_OK or
-   REQUEST_UPDATE_OK.  For RelativeStartFill, both sides compute the
-   fill Start Location as {Largest Object.Group - N, 0}. For any fill
-   filter type, if the Start Location is greater than the Largest Object
-   the fill range is empty, the publisher does not open a fill fetch
-   stream.  If the End Group has a Location less than the Largest
-   Object, only the fill fetch stream delivers objects and the
-   subscription remains open (for example, for a later REQUEST_UPDATE).
+   the Largest Object at the time the Location Filter is received, or
+   the End Group when one is specified with a Location less than the
+   Largest Object.  The subscriber learns the Largest Object from the
+   LARGEST_OBJECT parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.  For
+   RelativeStartFill, both sides compute the fill Start Location as
+   {Largest Object.Group - N, 0}. For any fill filter type, if the Start
+   Location is greater than the Largest Object the fill range is empty,
+   the publisher does not open a fill fetch stream.  If the End Group
+   has a Location less than the Largest Object, only the fill fetch
+   stream delivers objects and the subscription remains open (for
+   example, for a later REQUEST_UPDATE).
 
    The fill fetch stream inherits the subscription's parameters,
    including subscriber priority and authorization; a FILL_PARAMETERS
@@ -1866,7 +1866,7 @@ Table of Contents
    initial fill, or the REQUEST_UPDATE Request ID for a subsequent fill.
    A subscription can have multiple fill fetch streams open at once,
    each identified by its Request ID; opening a new fill fetch stream
-   does not implicitly cancel any previously opened fill fetch stream.
+   does not implicitly cancel any previously opened fill fetch streams.
 
    An object delivered on the fill fetch stream is *fill-delivered*.
    Because the subscription filter necessarily overlaps the fill range,
@@ -1923,9 +1923,9 @@ Table of Contents
 
    To join a Track at a past Group, the subscriber sends a SUBSCRIBE
    with a fill filter type (AbsoluteStartFill, AbsoluteRangeFill, or
-   RelativeStartFill).  The publisher delivers the fill range, and
-   objects with larger Locations in a subgroup or datagram (see
-   Section 5.1.3).
+   RelativeStartFill).  The publisher delivers the fill range via a
+   fill-fetch stream, and newly published or received objects in a
+   subgroup or datagram (see Section 5.1.3).
 
    To join a Track at the next Group, the subscriber sends a SUBSCRIBE
    with Filter Type Next Group Start.
@@ -6047,9 +6047,9 @@ Normative References
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
               Framework", Work in Progress, Internet-Draft, draft-ietf-
-              webtrans-overview-12, 2 March 2026,
+              webtrans-overview-13, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-12>.
+              webtrans-overview-13>.
 
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
@@ -6106,9 +6106,9 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-15, 2 March 2026,
+              ietf-webtrans-http3-16, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-15>.
+              webtrans-http3-16>.
 
 Informative References
 
@@ -6152,16 +6152,16 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-04, 14 December 2025,
+              draft-ietf-scone-protocol-05, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-04>.
+              protocol-05>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
               Progress, Internet-Draft, draft-ietf-moq-privacy-pass-
-              auth-02, 2 March 2026,
+              auth-03, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
-              privacy-pass-auth-02>.
+              privacy-pass-auth-03>.
 
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
