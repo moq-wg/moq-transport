@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 January 2027                                   I. Swett, Ed.
+Expires: 21 January 2027                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            15 July 2026
+                                                            20 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 January 2027.
+   This Internet-Draft will expire on 21 January 2027.
 
 Copyright Notice
 
@@ -2552,8 +2552,8 @@ Range { Start, [End] }
 
    When a Relay needs to make an upstream FETCH request, it determines
    the available publishers using the same matching rules as SUBSCRIBE.
-   When more than one publisher is available, the Relay MAY send the
-   FETCH to any of them.
+   When more than one publisher is available, the Relay MUST send the
+   FETCH to at least one of them.
 
    When a Relay receives an authorized SUBSCRIBE for a Track with one or
    more Established upstream subscriptions, it MUST reply with
@@ -4374,10 +4374,10 @@ Range { Start, [End] }
 
    Any Parameter that can be specified on a Subscription (ie: in
    SUBSCRIBE) is valid in SUBSCRIBE_TRACKS, unless otherwise specified.
-   These parameters are copied over as the default Subscription
-   parameters when a PUBLISH is sent as a result of SUBSCRIBE_TRACKS.
-   The Parameters are not explicitly communicated, with the exception of
-   FORWARD and GROUP_ORDER as described below.
+   These parameters are used by the publisher as the initial
+   Subscription parameters when a PUBLISH is sent as a result of
+   SUBSCRIBE_TRACKS.  The Parameters are not explicitly communicated,
+   with the exception of FORWARD and GROUP_ORDER as described below.
 
    If the FORWARD parameter (Section 10.2.17) is present in this message
    and equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS
@@ -5864,21 +5864,28 @@ EXT 1 and EXT N can be modified or removed by Relays
    active drafts in the moq wg.  These entries share the same Property
    Type space as the table above.
 
-    +======+=====================+===============+====================+
-    | Type | Name                | Scope         | Specification      |
-    +======+=====================+===============+====================+
-    | 0x0A | TIMESTAMP           | Object        | draft-ietf-moq-loc |
-    +------+---------------------+---------------+--------------------+
-    | 0x08 | TIMESCALE           | Track, Object | draft-ietf-moq-loc |
-    +------+---------------------+---------------+--------------------+
-    | 0x09 | VIDEO_FRAME_MARKING | Object        | draft-ietf-moq-loc |
-    +------+---------------------+---------------+--------------------+
-    | 0x0C | AUDIO_LEVEL         | Object        | draft-ietf-moq-loc |
-    +------+---------------------+---------------+--------------------+
-    | 0x0D | VIDEO_CONFIG        | Track, Object | draft-ietf-moq-loc |
-    +------+---------------------+---------------+--------------------+
-    | 0x0F | AUIDO_CONFIG        | Track, Object | draft-ietf-moq-loc |
-    +------+---------------------+---------------+--------------------+
+    +====+=====================+======+===============================+
+    |Type| Name                |Scope | Specification                 |
+    +====+=====================+======+===============================+
+    |0x10| TIMESTAMP           |Object| draft-ietf-moq-loc            |
+    +----+---------------------+------+-------------------------------+
+    |0x08| TIMESCALE           |Track,| draft-ietf-moq-loc            |
+    |    |                     |Object|                               |
+    +----+---------------------+------+-------------------------------+
+    |0x09| VIDEO_FRAME_MARKING |Object| draft-ietf-moq-loc            |
+    +----+---------------------+------+-------------------------------+
+    |0x0C| AUDIO_LEVEL         |Object| draft-ietf-moq-loc            |
+    +----+---------------------+------+-------------------------------+
+    |0x0D| VIDEO_CONFIG        |Track,| draft-ietf-moq-loc            |
+    |    |                     |Object|                               |
+    +----+---------------------+------+-------------------------------+
+    |0x0F| AUIDO_CONFIG        |Track,| draft-ietf-moq-loc            |
+    |    |                     |Object|                               |
+    +----+---------------------+------+-------------------------------+
+    |0x0A| ENCRYPTED_LIST      |Object| draft-ietf-moq-secure-objects |
+    +----+---------------------+------+-------------------------------+
+    |0x32| PADDING             |Object| draft-ietf-moq-secure-objects |
+    +----+---------------------+------+-------------------------------+
 
                                   Table 15
 
