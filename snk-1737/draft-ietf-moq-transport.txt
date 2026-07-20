@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 29 December 2026                                  I. Swett, Ed.
+Expires: 21 January 2027                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            27 June 2026
+                                                            20 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 December 2026.
+   This Internet-Draft will expire on 21 January 2027.
 
 Copyright Notice
 
@@ -5215,41 +5215,27 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    A relay MUST ensure that a client cannot publish to namespaces or
    tracks belonging to another identity.  Impersonation occurs when a
-   client sends objects that appear to originate from a different user —
-   for example, publishing to a namespace containing another user's
-   identifier.
+   client publishes objects that appear to originate from a different
+   publisher — for example, by targeting a namespace containing another
+   user's identifier.
 
-   Relays prevent impersonation through the combination of:
+   To prevent impersonation, a relay MUST verify that the authenticated
+   identity or token scope permits publishing to the specific namespace.
+   The mapping from authenticated identity to permitted namespaces is
+   determined by the authorization framework in use.
 
-   1.  Authenticated identity binding: Mutual TLS authenticates the
-       client at the transport level during the TLS handshake via a
-       client certificate, establishing the client's identity or
-       authorization scope.
+   When using token-based authentication (e.g., [CAT]), the token MUST
+   be bound to a client-held key via a confirmation claim so that a
+   stolen or replayed token cannot be used by a different party.
 
-   2.  Proof of possession: When using token-based authentication (e.g.,
-       [CAT]), the token MUST be bound to a client-held key via a
-       confirmation claim.  The client demonstrates possession of that
-       key on each operation, ensuring a stolen or leaked token cannot
-       be used by a different party.
-
-   3.  Namespace scope enforcement: The relay MUST verify that the
-       authenticated identity or token scope permits the specific
-       namespace being published to.  A client authenticated as
-       "alice@example.com" MUST NOT be permitted to publish to
-       namespaces assigned to "bob@example.com".  The mapping from
-       identity to permitted namespaces is determined by the
-       authorization framework in use.
-
-   4.  Anonymous authorization: When unlinkable access is used (e.g.,
-       [PPA]), the token's public metadata or scope extensions determine
-       which namespaces the bearer may access.  The relay enforces these
-       scopes without knowing the client's identity, but impersonation
-       is still prevented because the token does not grant access to
-       another user's publish namespace.
+   When unlinkable access is used (e.g., [PPA]), the token's scope
+   extensions determine which namespaces the bearer may publish to.
+   Impersonation is still prevented because the token does not grant
+   access beyond its defined scope.
 
    A relay that does not enforce these checks allows any connected
    client to inject content into arbitrary namespaces, breaking the
-   integrity of the content delivery.
+   integrity of content delivery.
 
 13.4.  Media Security
 
@@ -5933,16 +5919,16 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-08, 26 June 2026,
+              quic-reliable-stream-reset-09, 4 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-08>.
+              reliable-stream-reset-09>.
 
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
               Framework", Work in Progress, Internet-Draft, draft-ietf-
-              webtrans-overview-12, 2 March 2026,
+              webtrans-overview-13, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-12>.
+              webtrans-overview-13>.
 
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
@@ -5999,9 +5985,9 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-15, 2 March 2026,
+              ietf-webtrans-http3-16, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-15>.
+              webtrans-http3-16>.
 
 Informative References
 
@@ -6038,23 +6024,23 @@ Informative References
               Jennings, C. F., Nandakumar, S., and R. Barnes, "End-to-
               End Secure Objects for Media over QUIC Transport", Work in
               Progress, Internet-Draft, draft-ietf-moq-secure-objects-
-              00, 2 March 2026, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-moq-secure-objects-00>.
+              01, 6 July 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-moq-secure-objects-01>.
 
    [I-D.ietf-scone-protocol]
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-04, 14 December 2025,
+              draft-ietf-scone-protocol-05, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-04>.
+              protocol-05>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
               Progress, Internet-Draft, draft-ietf-moq-privacy-pass-
-              auth-02, 2 March 2026,
+              auth-03, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
-              privacy-pass-auth-02>.
+              privacy-pass-auth-03>.
 
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
