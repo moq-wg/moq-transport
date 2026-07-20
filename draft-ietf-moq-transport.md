@@ -2231,7 +2231,7 @@ PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
 
 When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
-one publisher is available, the Relay MAY send the FETCH to any of them.
+one publisher is available, the Relay MUST send the FETCH to at least one of them.
 
 When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 `Established` upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
@@ -3968,8 +3968,8 @@ only interested in or authorized to access a subset of available tracks.
 ### Parameters on SUBSCRIBE_TRACKS
 
 Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
-in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are copied
-over as the default Subscription parameters when a PUBLISH is sent as a result of
+in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
+publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
 SUBSCRIBE_TRACKS. The Parameters are not explicitly communicated, with the
 exception of FORWARD and GROUP_ORDER as described below.
 
@@ -5294,12 +5294,14 @@ These entries share the same Property Type space as the table above.
 
 | Type | Name | Scope | Specification |
 |-----:|:-----|:------|:--------------|
-| 0x0A | TIMESTAMP | Object | draft-ietf-moq-loc |
+| 0x10 | TIMESTAMP | Object | draft-ietf-moq-loc |
 | 0x08 | TIMESCALE | Track, Object | draft-ietf-moq-loc |
 | 0x09 | VIDEO_FRAME_MARKING | Object | draft-ietf-moq-loc |
 | 0x0C | AUDIO_LEVEL | Object | draft-ietf-moq-loc |
 | 0x0D | VIDEO_CONFIG | Track, Object | draft-ietf-moq-loc |
 | 0x0F | AUIDO_CONFIG | Track, Object | draft-ietf-moq-loc |
+| 0x0A | ENCRYPTED_LIST | Object | draft-ietf-moq-secure-objects |
+| 0x32 | PADDING | Object | draft-ietf-moq-secure-objects |
 
 Endpoints MUST ignore unknown Property types, skipping them according
 to the Key-Value-Pair encoding; odd types use their length field, even
