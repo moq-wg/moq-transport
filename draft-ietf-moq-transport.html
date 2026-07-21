@@ -5198,14 +5198,17 @@ PUBLISH, or REQUEST_UPDATE_OK<a href="#section-10.2.16-4.1.1" class="pilcrow">¶
 <a href="#section-10.2.17" class="section-number selfRef">10.2.17. </a><a href="#name-forward-parameter" class="section-name selfRef">FORWARD Parameter</a>
           </h4>
 <p id="section-10.2.17-1">The FORWARD parameter (Parameter Type 0x10) is a uint8. It <span class="bcp14">MAY</span> appear in
-SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
-SUBSCRIBE_TRACKS. It specifies the Forwarding State on affected subscriptions
-(see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>). The allowed values are 0 (don't forward) or 1 (forward).
-If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span> close the session
-with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.17-1" class="pilcrow">¶</a></p>
-<p id="section-10.2.17-2">If the parameter is omitted from REQUEST_UPDATE, the value for the
+SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
+PUBLISH, PUBLISH_OK and SUBSCRIBE_TRACKS. It specifies the Forwarding State on
+affected subscriptions (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>). The allowed values are 0 (don't
+forward) or 1 (forward). If an endpoint receives a value outside this range, it
+<span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.17-1" class="pilcrow">¶</a></p>
+<p id="section-10.2.17-2">In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies the
+Forwarding State on future subscriptions that match the prefix. Existing
+subscriptions are unaffected.<a href="#section-10.2.17-2" class="pilcrow">¶</a></p>
+<p id="section-10.2.17-3">If the parameter is omitted from REQUEST_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
-message, the default value is 1.<a href="#section-10.2.17-2" class="pilcrow">¶</a></p>
+message, the default value is 1.<a href="#section-10.2.17-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="new-group-request">
