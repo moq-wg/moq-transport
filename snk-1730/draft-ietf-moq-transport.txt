@@ -4609,8 +4609,9 @@ Range { Start, [End] }
    The Type Flags field in the OBJECT_DATAGRAM is a variable-length
    integer that encodes a set of flags.  All values defined in this
    specification fit in a single-byte encoding (values less than 128).
-   If a received value has bit 4 set, or has a value of 64 or greater,
-   the endpoint MUST close the session with a PROTOCOL_VIOLATION.
+   If a received value has bit 4 set, or has a bit set whose meaning is
+   not specified, the endpoint MUST close the session with a
+   PROTOCOL_VIOLATION.
 
    The four low-order bits and bit 5 of the Type Flags field determine
    which fields are present in the datagram:
@@ -4649,8 +4650,7 @@ Range { Start, [End] }
    PROTOCOL_VIOLATION:
 
    *  Values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02)
-      set: 0x22, 0x23, 0x26, 0x27, 0x2A, 0x2B, 0x2E, 0x2F.  An object
-      status message cannot signal end of group.
+      set. end of group.
 
    *  Values with bit 4 (0x10) set.  This bit is reserved and MUST be
       zero.
