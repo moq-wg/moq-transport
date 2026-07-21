@@ -4188,7 +4188,7 @@ OBJECT_DATAGRAM {
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
 The Type Flags field in the OBJECT_DATAGRAM is a variable-length integer that
-encodes a set of flags. All valid values fit in a single-byte encoding (values
+encodes a set of flags. All values defined in this specification fit in a single-byte encoding (values
 less than 128). If a received value has bit 4 set, or has a
 value of 64 or greater, the endpoint MUST close the session with a
 `PROTOCOL_VIOLATION`.
