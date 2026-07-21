@@ -2231,7 +2231,7 @@ PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
 
 When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
-one publisher is available, the Relay MAY send the FETCH to any of them.
+one publisher is available, the Relay MUST send the FETCH to at least one of them.
 
 When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 `Established` upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
@@ -2766,11 +2766,15 @@ PUBLISH, or REQUEST_UPDATE_OK
 ### FORWARD Parameter {#forward-parameter}
 
 The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
-SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
-SUBSCRIBE_TRACKS. It specifies the Forwarding State on affected subscriptions
-(see {{subscriptions}}). The allowed values are 0 (don't forward) or 1 (forward).
-If an endpoint receives a value outside this range, it MUST close the session
-with `PROTOCOL_VIOLATION`.
+SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
+PUBLISH, PUBLISH_OK and SUBSCRIBE_TRACKS. It specifies the Forwarding State on
+affected subscriptions (see {{subscriptions}}). The allowed values are 0 (don't
+forward) or 1 (forward). If an endpoint receives a value outside this range, it
+MUST close the session with `PROTOCOL_VIOLATION`.
+
+In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies the
+Forwarding State on future subscriptions that match the prefix. Existing
+subscriptions are unaffected.
 
 If the parameter is omitted from REQUEST_UPDATE, the value for the
 subscription remains unchanged.  If the parameter is omitted from any other
@@ -3978,8 +3982,8 @@ only interested in or authorized to access a subset of available tracks.
 ### Parameters on SUBSCRIBE_TRACKS
 
 Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
-in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are copied
-over as the default Subscription parameters when a PUBLISH is sent as a result of
+in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
+publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
 SUBSCRIBE_TRACKS. The Parameters are not explicitly communicated, with the
 exception of FORWARD and GROUP_ORDER as described below.
 
@@ -4185,8 +4189,7 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (vi64) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
-             0x28..0x29 / 0x2C..0x2D,
+  Type Flags (vi64),
   Track Alias (vi64),
   Group ID (vi64),
   [Object ID (vi64),]
@@ -4198,10 +4201,14 @@ OBJECT_DATAGRAM {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
-The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or the set of
-values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
-range are valid. The four low-order bits and bit 5 of the Type field determine
-which fields are present in the datagram:
+The Type Flags field in the OBJECT_DATAGRAM is a variable-length integer that
+encodes a set of flags. All values defined in this specification fit in a
+single-byte encoding (values less than 128). If a received value has bit 4 set,
+or has a bit set whose meaning is not specified, the endpoint MUST close the
+session with a `PROTOCOL_VIOLATION`.
+
+The four low-order bits and bit 5 of the Type Flags field determine which fields
+are present in the datagram:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is
   present. When set to 1, the Object Properties structure defined in
@@ -4230,15 +4237,14 @@ which fields are present in the datagram:
   the Object Payload; the entirety of the transport datagram following the
   Object header contains the payload.
 
-The following Type values are invalid. If an endpoint receives a datagram with
-any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
+The following Type Flags values are invalid. If an endpoint receives a datagram
+with any of these values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 
-* Type values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set: 0x22,
-  0x23, 0x26, 0x27, 0x2A, 0x2B, 0x2E, 0x2F. An object status message cannot signal
-  end of group.
+* Values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set.
 
-* Type values that do not match the form 0b00X0XXXX (i.e., Type values outside the
-  ranges 0x00..0x0F and 0x20..0x2F).
+* Values with bit 4 (0x10) set. This bit is reserved and MUST be zero.
+
+* Values with a bit set whose meaning is not specified.
 
 If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
 Object Status is not Normal (0x0), the endpoint MUST close the session with a
@@ -4280,8 +4286,7 @@ flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (vi64) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D /
-             0x50..0x55 / 0x58..0x5D / 0x70..0x75 / 0x78..0x7D,
+  Type Flags (vi64),
   Track Alias (vi64),
   Group ID (vi64),
   [Subgroup ID (vi64),]
@@ -4293,11 +4298,12 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-The Type field in the SUBGROUP_HEADER takes the form 0b0XX1XXXX (or the set of
-values from 0x10 to 0x1F, 0x30 to 0x3F, 0x50 to 0x5F, 0x70 to 0x7F), where
-bit 4 is always set to 1. However, not all Type values in this range are
-valid. The four low-order bits and bits 5-6 determine which fields are present
-in the header:
+The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
+encodes a set of flags. All values defined in this specification fit in a
+single-byte encoding (values less than 128).
+
+Bit 4 is always set to 1. The four low-order bits and bits 5-6 determine which
+fields are present in the header:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is present
   in all Objects in this Subgroup. When set to 1, the Object Properties structure
@@ -4330,17 +4336,17 @@ in the header:
 * The **FIRST_OBJECT** bit (0x40) indicates that the first object in this
 subgroup stream is the first object published in the subgroup by the original publisher.
 
-The following Type values are invalid. If an endpoint receives a stream header
-with any of these Type values, it MUST close the session with a
+The following Type Flags values are invalid. If an endpoint receives a stream
+header with any of these values, it MUST close the session with a
 `PROTOCOL_VIOLATION`:
 
-* Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36,
-  0x37, 0x3E, 0x3F, 0x56, 0x57, 0x5E, 0x5F, 0x76, 0x77, 0x7E, 0x7F. This mode
+* Values with SUBGROUP_ID_MODE set to 0b11. This mode
   is reserved for future use.
 
-* Type values that do not match the form 0b0XX1XXXX (i.e., Type values outside
-  the ranges 0x10..0x1F, 0x30..0x3F, 0x50..0x5F, and 0x70..0x7F, or values
-  where bit 4 is not set).
+* Values where bit 4 is not set. Bit 4 MUST be 1 for SUBGROUP_HEADER.
+
+* Values of 128 or greater (i.e., any value that requires more than a two-byte
+  variable-length integer encoding).
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
@@ -4642,7 +4648,7 @@ Sending a subgroup on one stream:
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 0x14
+  Type Flags = 0x14
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
@@ -4667,7 +4673,7 @@ Properties.
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 0x35
+  Type Flags = 0x35
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
@@ -4933,7 +4939,8 @@ integrity and endpoint authentication between subscriber and
 publisher. Implementations use QUIC or WebTransport to fulfill
 the basic communication security requirements and these
 implementations SHOULD follow best practices for TLS 1.3 and QUIC.
-Relays MUST use authentication to prevent impersonation.
+Relays MUST use authentication to prevent impersonation
+({{preventing-impersonation}}).
 
 Note that the basic security protection offered by QUIC or TCP/TLS
 does not prevent traffic pattern analysis. Object sizes, sizes of
@@ -4942,15 +4949,22 @@ to identify media content, user patterns and media stream origin.
 
 ## Authorization {#sec-authorization}
 
-MOQT supports authorization via mutual TLS for Endpoint-level identification
-and token-based schemes for fine-grained access control.
+MOQT supports authorization via mutual TLS (mTLS) for endpoint
+identification and via token-based schemes for fine-grained,
+application-defined access control. The two mechanisms can be used together.
 
-Mutual TLS is expected to be widely used for Endpoint level identification
-between relays, especially within one organization. However, in some
-deployments mutual TLS can also be used for end subscribers or
-original publishers. However, as only Endpoint level authentication is
-provided, what a particular identified Endpoint is allowed to do is not
-provided at TLS level.
+### Mutual TLS {#sec-mtls}
+
+In mutual TLS, both peers present an X.509 certificate during the TLS 1.3
+handshake ({{?RFC8446}}), carried in the underlying transport. An endpoint that
+verifies a server certificate does so following {{?RFC9525}}.  An application
+that authenticates clients via mTLS defines how a client certificate maps to
+identity.
+
+Once a peer is authenticated, an application MAY use attributes in the peer's
+certificate as an input to authorization decisions; the granularity and policy
+of such authorization is out of scope for this document.
+### Authorization Tokens {#sec-tokens}
 
 MOQT has functionality to carry Authorization tokens as message
 parameters. These tokens can vary based on the application
@@ -4971,6 +4985,34 @@ Replay protection for authorization tokens is the responsibility of
 the specific token scheme used. Token schemes such as {{CAT}} and
 {{PPA}} include requirements for relays when processing tokens and
 requests.
+
+### Preventing Impersonation {#preventing-impersonation}
+
+A relay MUST ensure that a client cannot publish to namespaces or
+tracks belonging to another identity. Impersonation occurs when a
+client publishes objects that appear to originate from a different
+publisher — for example, by targeting a namespace containing another
+user's identifier.
+
+To prevent impersonation, a relay MUST verify that the
+authenticated identity or token scope permits publishing to the
+specific namespace. The mapping from authenticated identity to
+permitted namespaces is determined by the authorization framework
+in use.
+
+When using bearer token-based authentication (e.g., {{CAT}}), a token
+that is bound to a client-held key via a confirmation claim prevents
+a stolen token from being replayed by a different party.
+party.
+
+When unlinkable access is used (e.g., {{PPA}}), the token's scope
+extensions determine which namespaces the bearer can publish to.
+Impersonation is still prevented because the token does not grant
+access beyond its defined scope.
+
+A relay that does not enforce these checks allows any connected
+client to inject content into arbitrary namespaces, breaking the
+integrity of content delivery.
 
 ## Media Security  {#sec-media}
 
@@ -5304,12 +5346,14 @@ These entries share the same Property Type space as the table above.
 
 | Type | Name | Scope | Specification |
 |-----:|:-----|:------|:--------------|
-| 0x0A | TIMESTAMP | Object | draft-ietf-moq-loc |
+| 0x10 | TIMESTAMP | Object | draft-ietf-moq-loc |
 | 0x08 | TIMESCALE | Track, Object | draft-ietf-moq-loc |
 | 0x09 | VIDEO_FRAME_MARKING | Object | draft-ietf-moq-loc |
 | 0x0C | AUDIO_LEVEL | Object | draft-ietf-moq-loc |
 | 0x0D | VIDEO_CONFIG | Track, Object | draft-ietf-moq-loc |
 | 0x0F | AUIDO_CONFIG | Track, Object | draft-ietf-moq-loc |
+| 0x0A | ENCRYPTED_LIST | Object | draft-ietf-moq-secure-objects |
+| 0x32 | PADDING | Object | draft-ietf-moq-secure-objects |
 
 Endpoints MUST ignore unknown Property types, skipping them according
 to the Key-Value-Pair encoding; odd types use their length field, even
