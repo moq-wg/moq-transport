@@ -2975,18 +2975,29 @@ Types" registry (<a href="#iana-fragment-types" class="auto internal xref">Secti
           </h4>
 <p id="section-3.1.3-1">The default operation for dereferencing a <code>moqt</code> URI is to establish a
 MOQT session to the identified server.<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.1.3-2">TODO: Add URI scheme security considerations per RFC 7595 Section 3.7
-(e.g., authority in SNI, path/query exposure).<a href="#section-3.1.3-2" class="pilcrow">¶</a></p>
-<p id="section-3.1.3-3">TODO: Add internationalization statement per RFC 7595 Section 3.6.<a href="#section-3.1.3-3" class="pilcrow">¶</a></p>
-<p id="section-3.1.3-4">If the port is omitted in the URI, a default port of 443 is used.<a href="#section-3.1.3-4" class="pilcrow">¶</a></p>
-<p id="section-3.1.3-5">The client <span class="bcp14">MAY</span> use either native QUIC or WebTransport. On a QUIC connection,
+<p id="section-3.1.3-2">The <code>moqt</code> URI scheme has the following security considerations:<a href="#section-3.1.3-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.1.3-3.1">
+              <p id="section-3.1.3-3.1.1">The <code>authority</code> component is sent in the TLS SNI extension during
+connection establishment, exposing the target server identity to
+on-path observers. Encrypted Client Hello (ECH) <span>[<a href="#RFC9580" class="cite xref">RFC9580</a>]</span> can
+mitigate this exposure.<a href="#section-3.1.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.1.3-3.2">
+              <p id="section-3.1.3-3.2.1">The <code>path-abempty</code> and <code>query</code> components are visible to the relay
+that terminates the client's connection.<a href="#section-3.1.3-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-3.1.3-4">TODO: Add internationalization statement per RFC 7595 Section 3.6.<a href="#section-3.1.3-4" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-5">If the port is omitted in the URI, a default port of 443 is used.<a href="#section-3.1.3-5" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-6">The client <span class="bcp14">MAY</span> use either native QUIC or WebTransport. On a QUIC connection,
 the client offers any combination of MOQT ALPNs (e.g. <code>moqt-1</code>, <code>moqt-2</code>)
 and <code>h3</code> that it supports in its TLS ClientHello, in preference order. If the
 server selects an MOQT ALPN, the session proceeds as described in
 <a href="#native-quic" class="auto internal xref">Section 3.1.5</a>. If the server selects <code>h3</code>, the client establishes a
 WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a>. On a TCP+TLS
 connection, the client offers <code>h2</code> in its TLS ClientHello and establishes a
-WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a>.<a href="#section-3.1.3-5" class="pilcrow">¶</a></p>
+WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a>.<a href="#section-3.1.3-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="webtransport">
@@ -9679,8 +9690,12 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <span class="refAuthor">Xu, L.</span>, <span class="refAuthor">Ha, S.</span>, <span class="refAuthor">Rhee, I.</span>, <span class="refAuthor">Goel, V.</span>, and <span class="refAuthor">L. Eggert, Ed.</span>, <span class="refTitle">"CUBIC for Fast and Long-Distance Networks"</span>, <span class="seriesInfo">RFC 9438</span>, <span class="seriesInfo">DOI 10.17487/RFC9438</span>, <time datetime="2023-08" class="refDate">August 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9438">https://www.rfc-editor.org/rfc/rfc9438</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9525">[RFC9525]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Saint-Andre, P.</span> and <span class="refAuthor">R. Salz</span>, <span class="refTitle">"Service Identity in TLS"</span>, <span class="seriesInfo">RFC 9525</span>, <span class="seriesInfo">DOI 10.17487/RFC9525</span>, <time datetime="2023-11" class="refDate">November 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9525">https://www.rfc-editor.org/rfc/rfc9525</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9580">[RFC9580]</dt>
+      <dd>
+<span class="refAuthor">Wouters, P., Ed.</span>, <span class="refAuthor">Huigens, D.</span>, <span class="refAuthor">Winter, J.</span>, and <span class="refAuthor">Y. Niibe</span>, <span class="refTitle">"OpenPGP"</span>, <span class="seriesInfo">RFC 9580</span>, <span class="seriesInfo">DOI 10.17487/RFC9580</span>, <time datetime="2024-07" class="refDate">July 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9580">https://www.rfc-editor.org/rfc/rfc9580</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
