@@ -7645,29 +7645,13 @@ application-defined access control. The two mechanisms can be used together.<a h
           </h4>
 <p id="section-13.3.1-1">In mutual TLS, both peers present an X.509 certificate during the TLS 1.3
 handshake (<span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>), carried in the underlying transport. An endpoint that
-verifies a server certificate does so following <span>[<a href="#RFC9525" class="cite xref">RFC9525</a>]</span>;
-an application that authenticates clients via mTLS defines how a client
+verifies a server certificate does so following <span>[<a href="#RFC9525" class="cite xref">RFC9525</a>]</span>.
+An application that authenticates clients via mTLS defines how a client
 certificate maps to identity.<a href="#section-13.3.1-1" class="pilcrow">¶</a></p>
-<p id="section-13.3.1-2">mTLS can be used between relays and between a relay and an end subscriber or
-original publisher. Once a peer is authenticated, an application <span class="bcp14">MAY</span> use the
-authenticated identity, or attributes in the peer's certificate, as an input
+<p id="section-13.3.1-2">Once a peer is authenticated, an application <span class="bcp14">MAY</span> use
+attributes in the peer's certificate as an input
 to authorization decisions; the granularity and policy of such authorization
 is out of scope for this document.<a href="#section-13.3.1-2" class="pilcrow">¶</a></p>
-<p id="section-13.3.1-3">Two properties of mTLS are significant for MOQT:<a href="#section-13.3.1-3" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-13.3.1-4.1">
-              <p id="section-13.3.1-4.1.1">TLS authentication is hop-by-hop: it authenticates only the immediate
-transport peer, not endpoints reached through intervening relays.
-Authorization that needs to survive relaying is better carried in tokens
-(see <a href="#sec-tokens" class="auto internal xref">Section 13.3.2</a>).<a href="#section-13.3.1-4.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-13.3.1-4.2">
-              <p id="section-13.3.1-4.2.1">Client authentication occurs at connection establishment. Neither native
-QUIC nor WebTransport can request a client certificate after the handshake,
-so all requests on a session share the identity established at connection
-time.<a href="#section-13.3.1-4.2.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
 </section>
 </div>
 <div id="sec-tokens">
