@@ -4718,9 +4718,7 @@ Range { Start, [End] }
    by the variable-length integer encoding; however, bit 6 also carries
    the FIRST_OBJECT flag.  Since a value with bit 6 set requires a two-
    byte varint encoding, implementations MUST use the two-byte form when
-   FIRST_OBJECT is set.  If a received value has bit 7 set (i.e., uses a
-   four-byte or eight-byte varint encoding), the endpoint MUST close the
-   session with a PROTOCOL_VIOLATION.
+   FIRST_OBJECT is set.
 
    Bit 4 is always set to 1.  The four low-order bits and bits 5-6
    determine which fields are present in the header:
@@ -4767,17 +4765,14 @@ Range { Start, [End] }
    a stream header with any of these values, it MUST close the session
    with a PROTOCOL_VIOLATION:
 
-   *  Values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F,
-      0x36, 0x37, 0x3E, 0x3F, 0x56, 0x57, 0x5E, 0x5F, 0x76, 0x77, 0x7E,
-      0x7F.  This mode is reserved for future use.
+   *  Values with SUBGROUP_ID_MODE set to 0b11.  This mode is reserved
+      for future use.
 
    *  Values where bit 4 is not set.  Bit 4 MUST be 1 for
       SUBGROUP_HEADER.
 
    *  Values of 128 or greater (i.e., any value that requires more than
-      a two-byte variable-length integer encoding).  Bit 7 is used by
-      the variable-length integer encoding and MUST be zero for
-      SUBGROUP_HEADER.
+      a two-byte variable-length integer encoding).
 
    To send an Object with Object Forwarding Preference = Subgroup, find
    the open stream that is associated with the subscription, Group ID

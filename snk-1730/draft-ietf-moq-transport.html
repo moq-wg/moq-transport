@@ -7130,9 +7130,7 @@ encodes a set of flags. All valid values fit in a single-byte encoding (values
 less than 128). Bits 7 and 6 are used by the variable-length integer encoding;
 however, bit 6 also carries the FIRST_OBJECT flag. Since a value with bit 6 set
 requires a two-byte varint encoding, implementations <span class="bcp14">MUST</span> use the two-byte form
-when FIRST_OBJECT is set. If a received value has bit 7 set (i.e., uses a
-four-byte or eight-byte varint encoding), the endpoint <span class="bcp14">MUST</span> close the session
-with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.4.2-5" class="pilcrow">¶</a></p>
+when FIRST_OBJECT is set.<a href="#section-11.4.2-5" class="pilcrow">¶</a></p>
 <p id="section-11.4.2-6">Bit 4 is always set to 1. The four low-order bits and bits 5-6 determine which
 fields are present in the header:<a href="#section-11.4.2-6" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -7187,8 +7185,7 @@ header with any of these values, it <span class="bcp14">MUST</span> close the se
 <code>PROTOCOL_VIOLATION</code>:<a href="#section-11.4.2-8" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11.4.2-9.1">
-              <p id="section-11.4.2-9.1.1">Values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36,
-0x37, 0x3E, 0x3F, 0x56, 0x57, 0x5E, 0x5F, 0x76, 0x77, 0x7E, 0x7F. This mode
+              <p id="section-11.4.2-9.1.1">Values with SUBGROUP_ID_MODE set to 0b11. This mode
 is reserved for future use.<a href="#section-11.4.2-9.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-11.4.2-9.2">
@@ -7196,8 +7193,7 @@ is reserved for future use.<a href="#section-11.4.2-9.1.1" class="pilcrow">¶</a
 </li>
             <li class="normal" id="section-11.4.2-9.3">
               <p id="section-11.4.2-9.3.1">Values of 128 or greater (i.e., any value that requires more than a two-byte
-variable-length integer encoding). Bit 7 is used by the variable-length
-integer encoding and <span class="bcp14">MUST</span> be zero for SUBGROUP_HEADER.<a href="#section-11.4.2-9.3.1" class="pilcrow">¶</a></p>
+variable-length integer encoding).<a href="#section-11.4.2-9.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-11.4.2-10">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
