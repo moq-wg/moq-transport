@@ -933,14 +933,13 @@ The `moqt` URI scheme has the following security considerations:
   on-path observers. Encrypted Client Hello (ECH) {{?RFC9580}} can
   mitigate this exposure.
 
-- Since MOQT connections terminate at each relay (unlike HTTPS, where
-  TLS extends end-to-end to the origin server), the `path-abempty` and
-  `query` components are visible to every relay in the chain.
+- The `path-abempty` and `query` components are visible to the relay
+  that terminates the client's connection, unlike HTTPS where TLS
+  protects the full URI from intermediaries.
 
 - Applications SHOULD NOT embed credentials, session tokens, or
   privacy-sensitive identifiers in `path` or `query` components, as
-  relays MAY log these values and track scope matching could allow
-  correlation across subscribers.
+  relays can log these values.
 
 TODO: Add internationalization statement per RFC 7595 Section 3.6.
 
