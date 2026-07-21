@@ -4285,11 +4285,8 @@ All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
 The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
-encodes a set of flags. All valid values fit in a single-byte encoding (values
-less than 128). Bits 7 and 6 are used by the variable-length integer encoding;
-however, bit 6 also carries the FIRST_OBJECT flag. Since a value with bit 6 set
-requires a two-byte varint encoding, implementations MUST use the two-byte form
-when FIRST_OBJECT is set.
+encodes a set of flags. All values defined in this specification fit in a single-byte encoding (values
+less than 128).
 
 Bit 4 is always set to 1. The four low-order bits and bits 5-6 determine which
 fields are present in the header:
