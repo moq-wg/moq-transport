@@ -2898,10 +2898,6 @@ Redirect {
   receives a non-empty Track Name in a Redirect for a namespace-scoped request
   MUST close the session with a `PROTOCOL_VIOLATION`.
 
-A Redirect with a zero-length Connect URI, Track Namespace, and Track Name does
-not change the URI or Full Track Name for the retry, making it equivalent to any
-other REQUEST_ERROR carrying a Retry Interval.
-
 ### REQUEST_ERROR Message Format
 
 ~~~
