@@ -2338,6 +2338,8 @@ new request stream.
 |--------|------------------------------------------------|------------------|
 | 0x4    | SUBSCRIBE_OK ({{message-subscribe-ok}})        | Request          |
 |--------|------------------------------------------------|------------------|
+| 0x22   | SUBSCRIPTION_STATE_UPDATE ({{ss-update}})      | Request          |
+|--------|------------------------------------------------|------------------|
 | 0x1D   | PUBLISH ({{message-publish}})                  | Request, First   |
 |--------|------------------------------------------------|------------------|
 | 0x1E   | RESERVED (PUBLISH_OK in <= 17)                 | Request          |
@@ -2685,11 +2687,14 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 ### LOCATION FILTER Parameter {#location-filter}
 
 The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It MAY appear in a SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a
-subscription) message. It is a Location Filter (see {{location-filters}}).
+encoding. It MAY appear in a SUBSCRIBE, PUBLISH_OK, REQUEST_UPDATE (for a
+subscription) or SUBSCRIPTION_STATE_UPDATE message. It is a Location Filter (see
+{{location-filters}}).
 
 If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
-unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
+unfiltered.  If omitted from REQUEST_UPDATE or SUBSCRIPTION_STATE_UPDATE, the
+value is unchanged.  When sent in SUBSCRIPTION_STATE_UPDATE, it reports the
+Location Filter now in effect at the publisher.
 
 ### SUBGROUP FILTER Parameter {#subgroup-filter}
 
@@ -2766,15 +2771,18 @@ PUBLISH, or REQUEST_UPDATE_OK
 ### FORWARD Parameter {#forward-parameter}
 
 The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
-SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK and
-SUBSCRIBE_TRACKS. It specifies the Forwarding State on affected subscriptions
+SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK,
+SUBSCRIBE_TRACKS and SUBSCRIPTION_STATE_UPDATE. It specifies the Forwarding
+State on affected subscriptions
 (see {{subscriptions}}). The allowed values are 0 (don't forward) or 1 (forward).
 If an endpoint receives a value outside this range, it MUST close the session
 with `PROTOCOL_VIOLATION`.
 
-If the parameter is omitted from REQUEST_UPDATE, the value for the
-subscription remains unchanged.  If the parameter is omitted from any other
-message, the default value is 1.
+If the parameter is omitted from REQUEST_UPDATE or SUBSCRIPTION_STATE_UPDATE,
+the value for the subscription remains unchanged.  If the parameter is omitted
+from any other message, the default value is 1.  When sent in
+SUBSCRIPTION_STATE_UPDATE, it reports the Forwarding State now in effect at the
+publisher.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
@@ -3379,6 +3387,39 @@ REQUEST_OK will contain Track Namespace suffixes relative to the
 updated prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
 no effect on existing subscriptions.  If the subscriber is no longer
 interested it can cancel the corresponding bidirectional stream.
+
+## SUBSCRIPTION_STATE_UPDATE {#ss-update}
+
+A publisher sends SUBSCRIPTION_STATE_UPDATE on a subscription's bidirectional
+stream to notify the subscriber the state of the subscription has changed for a
+reason other than a subscriber sent REQUEST_UPDATE.  Unlike REQUEST_UPDATE
+({{message-request-update}}), it is a unilateral notification: the receiver
+does not respond with REQUEST_OK or REQUEST_ERROR, and the message is not
+subject to the MAX_REQUEST_UPDATES limit ({{max-request-updates}}).
+
+SUBSCRIPTION_STATE_UPDATE applies only to subscriptions, and is sent only by
+the publisher.  An endpoint that receives a SUBSCRIPTION_STATE_UPDATE for any
+other request type, or from the subscriber, MUST close the session with a
+`PROTOCOL_VIOLATION`.
+
+A SUBSCRIPTION_STATE_UPDATE carries the parameters whose values have changed.
+If a parameter is not present, its value is unchanged.  The semantics of each
+parameter, including whether it may appear in SUBSCRIPTION_STATE_UPDATE, are
+defined by the parameter.
+
+The format of SUBSCRIPTION_STATE_UPDATE is as follows:
+
+~~~
+SUBSCRIPTION_STATE_UPDATE Message {
+  Type (vi64) = 0x22,
+  Length (16),
+  Number of Parameters (vi64),
+  Parameters (..) ...
+}
+~~~
+{: #moq-transport-ss-update-format title="MOQT SUBSCRIPTION_STATE_UPDATE Message"}
+
+* Parameters: The parameters are defined in {{message-params}}.
 
 ## PUBLISH {#message-publish}
 
