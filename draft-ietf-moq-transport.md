@@ -4175,8 +4175,7 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (vi64) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
-             0x28..0x29 / 0x2C..0x2D,
+  Type Flags (vi64),
   Track Alias (vi64),
   Group ID (vi64),
   [Object ID (vi64),]
@@ -4188,10 +4187,14 @@ OBJECT_DATAGRAM {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
-The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or the set of
-values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
-range are valid. The four low-order bits and bit 5 of the Type field determine
-which fields are present in the datagram:
+The Type Flags field in the OBJECT_DATAGRAM is a variable-length integer that
+encodes a set of flags. All values defined in this specification fit in a
+single-byte encoding (values less than 128). If a received value has bit 4 set,
+or has a bit set whose meaning is not specified, the endpoint MUST close the
+session with a `PROTOCOL_VIOLATION`.
+
+The four low-order bits and bit 5 of the Type Flags field determine which fields
+are present in the datagram:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is
   present. When set to 1, the Object Properties structure defined in
@@ -4220,15 +4223,14 @@ which fields are present in the datagram:
   the Object Payload; the entirety of the transport datagram following the
   Object header contains the payload.
 
-The following Type values are invalid. If an endpoint receives a datagram with
-any of these Type values, it MUST close the session with a `PROTOCOL_VIOLATION`:
+The following Type Flags values are invalid. If an endpoint receives a datagram
+with any of these values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 
-* Type values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set: 0x22,
-  0x23, 0x26, 0x27, 0x2A, 0x2B, 0x2E, 0x2F. An object status message cannot signal
-  end of group.
+* Values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set.
 
-* Type values that do not match the form 0b00X0XXXX (i.e., Type values outside the
-  ranges 0x00..0x0F and 0x20..0x2F).
+* Values with bit 4 (0x10) set. This bit is reserved and MUST be zero.
+
+* Values with a bit set whose meaning is not specified.
 
 If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
 Object Status is not Normal (0x0), the endpoint MUST close the session with a
@@ -4270,8 +4272,7 @@ flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (vi64) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D /
-             0x50..0x55 / 0x58..0x5D / 0x70..0x75 / 0x78..0x7D,
+  Type Flags (vi64),
   Track Alias (vi64),
   Group ID (vi64),
   [Subgroup ID (vi64),]
@@ -4283,11 +4284,12 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-The Type field in the SUBGROUP_HEADER takes the form 0b0XX1XXXX (or the set of
-values from 0x10 to 0x1F, 0x30 to 0x3F, 0x50 to 0x5F, 0x70 to 0x7F), where
-bit 4 is always set to 1. However, not all Type values in this range are
-valid. The four low-order bits and bits 5-6 determine which fields are present
-in the header:
+The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
+encodes a set of flags. All values defined in this specification fit in a
+single-byte encoding (values less than 128).
+
+Bit 4 is always set to 1. The four low-order bits and bits 5-6 determine which
+fields are present in the header:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is present
   in all Objects in this Subgroup. When set to 1, the Object Properties structure
@@ -4320,17 +4322,17 @@ in the header:
 * The **FIRST_OBJECT** bit (0x40) indicates that the first object in this
 subgroup stream is the first object published in the subgroup by the original publisher.
 
-The following Type values are invalid. If an endpoint receives a stream header
-with any of these Type values, it MUST close the session with a
+The following Type Flags values are invalid. If an endpoint receives a stream
+header with any of these values, it MUST close the session with a
 `PROTOCOL_VIOLATION`:
 
-* Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36,
-  0x37, 0x3E, 0x3F, 0x56, 0x57, 0x5E, 0x5F, 0x76, 0x77, 0x7E, 0x7F. This mode
+* Values with SUBGROUP_ID_MODE set to 0b11. This mode
   is reserved for future use.
 
-* Type values that do not match the form 0b0XX1XXXX (i.e., Type values outside
-  the ranges 0x10..0x1F, 0x30..0x3F, 0x50..0x5F, and 0x70..0x7F, or values
-  where bit 4 is not set).
+* Values where bit 4 is not set. Bit 4 MUST be 1 for SUBGROUP_HEADER.
+
+* Values of 128 or greater (i.e., any value that requires more than a two-byte
+  variable-length integer encoding).
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
@@ -4632,7 +4634,7 @@ Sending a subgroup on one stream:
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 0x14
+  Type Flags = 0x14
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
@@ -4657,7 +4659,7 @@ Properties.
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 0x35
+  Type Flags = 0x35
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
