@@ -4289,9 +4289,7 @@ encodes a set of flags. All valid values fit in a single-byte encoding (values
 less than 128). Bits 7 and 6 are used by the variable-length integer encoding;
 however, bit 6 also carries the FIRST_OBJECT flag. Since a value with bit 6 set
 requires a two-byte varint encoding, implementations MUST use the two-byte form
-when FIRST_OBJECT is set. If a received value has bit 7 set (i.e., uses a
-four-byte or eight-byte varint encoding), the endpoint MUST close the session
-with a `PROTOCOL_VIOLATION`.
+when FIRST_OBJECT is set.
 
 Bit 4 is always set to 1. The four low-order bits and bits 5-6 determine which
 fields are present in the header:
