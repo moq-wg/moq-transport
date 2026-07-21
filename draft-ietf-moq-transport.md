@@ -4329,8 +4329,7 @@ The following Type Flags values are invalid. If an endpoint receives a stream
 header with any of these values, it MUST close the session with a
 `PROTOCOL_VIOLATION`:
 
-* Values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36,
-  0x37, 0x3E, 0x3F, 0x56, 0x57, 0x5E, 0x5F, 0x76, 0x77, 0x7E, 0x7F. This mode
+* Values with SUBGROUP_ID_MODE set to 0b11. This mode
   is reserved for future use.
 
 * Values where bit 4 is not set. Bit 4 MUST be 1 for SUBGROUP_HEADER.
