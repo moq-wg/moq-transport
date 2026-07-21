@@ -4335,8 +4335,7 @@ header with any of these values, it MUST close the session with a
 * Values where bit 4 is not set. Bit 4 MUST be 1 for SUBGROUP_HEADER.
 
 * Values of 128 or greater (i.e., any value that requires more than a two-byte
-  variable-length integer encoding). Bit 7 is used by the variable-length
-  integer encoding and MUST be zero for SUBGROUP_HEADER.
+  variable-length integer encoding).
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
