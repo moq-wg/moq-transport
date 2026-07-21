@@ -4189,8 +4189,7 @@ OBJECT_DATAGRAM {
 
 The Type Flags field in the OBJECT_DATAGRAM is a variable-length integer that
 encodes a set of flags. All valid values fit in a single-byte encoding (values
-less than 64). Bits 7 and 6 are used by the variable-length integer encoding;
-the flags occupy bits 5 through 0. If a received value has bit 4 set, or has a
+less than 128). If a received value has bit 4 set, or has a
 value of 64 or greater, the endpoint MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
