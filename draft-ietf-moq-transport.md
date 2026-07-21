@@ -4983,7 +4983,7 @@ a stolen token from being replayed by a different party.
 party.
 
 When unlinkable access is used (e.g., {{PPA}}), the token's scope
-extensions determine which namespaces the bearer may publish to.
+extensions determine which namespaces the bearer can publish to.
 Impersonation is still prevented because the token does not grant
 access beyond its defined scope.
 
