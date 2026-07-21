@@ -4188,13 +4188,13 @@ OBJECT_DATAGRAM {
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
 The Type Flags field in the OBJECT_DATAGRAM is a variable-length integer that
-encodes a set of flags. All values defined in this specification fit in a single-byte encoding (values
-less than 128). If a received value has bit 4 set, or has a
-bit set whose meaning is not specified, the endpoint MUST close the session with a
-`PROTOCOL_VIOLATION`.
+encodes a set of flags. All values defined in this specification fit in a
+single-byte encoding (values less than 128). If a received value has bit 4 set,
+or has a bit set whose meaning is not specified, the endpoint MUST close the
+session with a `PROTOCOL_VIOLATION`.
 
-The four low-order bits and bit 5
-of the Type Flags field determine which fields are present in the datagram:
+The four low-order bits and bit 5 of the Type Flags field determine which fields
+are present in the datagram:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is
   present. When set to 1, the Object Properties structure defined in
@@ -4285,8 +4285,8 @@ All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
 The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
-encodes a set of flags. All values defined in this specification fit in a single-byte encoding (values
-less than 128).
+encodes a set of flags. All values defined in this specification fit in a
+single-byte encoding (values less than 128).
 
 Bit 4 is always set to 1. The four low-order bits and bits 5-6 determine which
 fields are present in the header:
