@@ -4694,12 +4694,10 @@ application-defined access control. The two mechanisms can be used together.
 ### Mutual TLS {#sec-mtls}
 
 In mutual TLS, both peers present an X.509 certificate during the TLS 1.3
-handshake ({{?RFC8446}}), carried in the underlying transport (native QUIC
-{{?RFC9001}} or the HTTP connection underlying WebTransport). An endpoint that
-verifies a server certificate's identity does so following {{?RFC9525}};
-{{?RFC9525}} does not define verification of client certificate identities, so
+handshake ({{?RFC8446}}), carried in the underlying transport. An endpoint that
+verifies a server certificate does so following {{?RFC9525}};
 an application that authenticates clients via mTLS defines how a client
-certificate is validated and matched against the identities it trusts.
+certificate maps to identity.
 
 mTLS can be used between relays and between a relay and an end subscriber or
 original publisher. Once a peer is authenticated, an application MAY use the
