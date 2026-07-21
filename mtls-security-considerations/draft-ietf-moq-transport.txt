@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 December 2026                                  I. Swett, Ed.
+Expires: 22 January 2027                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            25 June 2026
+                                                            21 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 December 2026.
+   This Internet-Draft will expire on 22 January 2027.
 
 Copyright Notice
 
@@ -5170,13 +5170,10 @@ EXT 1 and EXT N can be modified or removed by Relays
 13.3.1.  Mutual TLS
 
    In mutual TLS, both peers present an X.509 certificate during the TLS
-   1.3 handshake ([RFC8446]), carried in the underlying transport
-   (native QUIC [RFC9001] or the HTTP connection underlying
-   WebTransport).  An endpoint that verifies a server certificate's
-   identity does so following [RFC9525]; [RFC9525] does not define
-   verification of client certificate identities, so an application that
-   authenticates clients via mTLS defines how a client certificate is
-   validated and matched against the identities it trusts.
+   1.3 handshake ([RFC8446]), carried in the underlying transport.  An
+   endpoint that verifies a server certificate does so following
+   [RFC9525]; an application that authenticates clients via mTLS defines
+   how a client certificate maps to identity.
 
    mTLS can be used between relays and between a relay and an end
    subscriber or original publisher.  Once a peer is authenticated, an
@@ -5900,16 +5897,16 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-07, 14 June 2025,
+              quic-reliable-stream-reset-09, 4 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-07>.
+              reliable-stream-reset-09>.
 
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
               Framework", Work in Progress, Internet-Draft, draft-ietf-
-              webtrans-overview-12, 2 March 2026,
+              webtrans-overview-13, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-12>.
+              webtrans-overview-13>.
 
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
@@ -5966,9 +5963,9 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-15, 2 March 2026,
+              ietf-webtrans-http3-16, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-15>.
+              webtrans-http3-16>.
 
 Informative References
 
@@ -6005,23 +6002,23 @@ Informative References
               Jennings, C. F., Nandakumar, S., and R. Barnes, "End-to-
               End Secure Objects for Media over QUIC Transport", Work in
               Progress, Internet-Draft, draft-ietf-moq-secure-objects-
-              00, 2 March 2026, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-moq-secure-objects-00>.
+              01, 6 July 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-moq-secure-objects-01>.
 
    [I-D.ietf-scone-protocol]
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-04, 14 December 2025,
+              draft-ietf-scone-protocol-05, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-04>.
+              protocol-05>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
               Progress, Internet-Draft, draft-ietf-moq-privacy-pass-
-              auth-02, 2 March 2026,
+              auth-03, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
-              privacy-pass-auth-02>.
+              privacy-pass-auth-03>.
 
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
@@ -6040,10 +6037,6 @@ Informative References
               Multiplexed and Secure Transport", RFC 9000,
               DOI 10.17487/RFC9000, May 2021,
               <https://www.rfc-editor.org/rfc/rfc9000>.
-
-   [RFC9001]  Thomson, M., Ed. and S. Turner, Ed., "Using TLS to Secure
-              QUIC", RFC 9001, DOI 10.17487/RFC9001, May 2021,
-              <https://www.rfc-editor.org/rfc/rfc9001>.
 
    [RFC9170]  Thomson, M. and T. Pauly, "Long-Term Viability of Protocol
               Extension Mechanisms", RFC 9170, DOI 10.17487/RFC9170,
