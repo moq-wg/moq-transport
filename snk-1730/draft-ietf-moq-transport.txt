@@ -4658,9 +4658,7 @@ Range { Start, [End] }
       zero.
 
    *  Values of 64 or greater (i.e., any value that requires more than a
-      single-byte variable-length integer encoding).  Bits 7 and 6 are
-      used by the variable-length integer encoding and MUST be zero for
-      OBJECT_DATAGRAM.
+      single-byte variable-length integer encoding).
 
    If an Object Datagram includes both the STATUS bit and PROPERTIES
    bit, and the Object Status is not Normal (0x0), the endpoint MUST
