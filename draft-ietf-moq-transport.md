@@ -4230,8 +4230,7 @@ with any of these values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 
 * Values with bit 4 (0x10) set. This bit is reserved and MUST be zero.
 
-* Values of 64 or greater (i.e., any value that requires more than a single-byte
-  variable-length integer encoding).
+* Values with a bit set whose meaning is not specified.
 
 If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
 Object Status is not Normal (0x0), the endpoint MUST close the session with a
