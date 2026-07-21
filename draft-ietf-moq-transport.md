@@ -4227,7 +4227,6 @@ The following Type Flags values are invalid. If an endpoint receives a datagram
 with any of these values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 
 * Values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set.
-  end of group.
 
 * Values with bit 4 (0x10) set. This bit is reserved and MUST be zero.
 
