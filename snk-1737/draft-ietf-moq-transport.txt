@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 21 January 2027                                   I. Swett, Ed.
+Expires: 22 January 2027                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            20 July 2026
+                                                            21 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 January 2027.
+   This Internet-Draft will expire on 22 January 2027.
 
 Copyright Notice
 
@@ -5470,12 +5470,12 @@ EXT 1 and EXT N can be modified or removed by Relays
    The mapping from authenticated identity to permitted namespaces is
    determined by the authorization framework in use.
 
-   When using token-based authentication (e.g., [CAT]), the token MUST
-   be bound to a client-held key via a confirmation claim so that a
-   stolen or replayed token cannot be used by a different party.
+   When using bearer token-based authentication (e.g., [CAT]), a token
+   that is bound to a client-held key via a confirmation claim prevents
+   a stolen token from being replayed by a different party. party.
 
    When unlinkable access is used (e.g., [PPA]), the token's scope
-   extensions determine which namespaces the bearer may publish to.
+   extensions determine which namespaces the bearer can publish to.
    Impersonation is still prevented because the token does not grant
    access beyond its defined scope.
 
