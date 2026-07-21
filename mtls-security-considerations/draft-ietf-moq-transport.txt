@@ -221,8 +221,7 @@ Table of Contents
      13.2.  Communication Security
      13.3.  Authorization
        13.3.1.  Mutual TLS
-       13.3.2.  Authorization Tokens
-       13.3.3.  Replay Attacks
+       13.3.2.  Replay Attacks
      13.4.  Media Security
      13.5.  Resource Exhaustion
      13.6.  Timeouts
@@ -5178,9 +5177,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    Once a peer is authenticated, an application MAY use attributes in
    the peer's certificate as an input to authorization decisions; the
    granularity and policy of such authorization is out of scope for this
-   document.
-
-13.3.2.  Authorization Tokens
+   document. ### Authorization Tokens {#sec-tokens}
 
    MOQT has functionality to carry Authorization tokens as message
    parameters.  These tokens can vary based on the application
@@ -5194,7 +5191,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    perform and access.  Relays will verify the token to ensure that the
    request is authorized.
 
-13.3.3.  Replay Attacks
+13.3.2.  Replay Attacks
 
    Replay protection for authorization tokens is the responsibility of
    the specific token scheme used.  Token schemes such as [CAT] and

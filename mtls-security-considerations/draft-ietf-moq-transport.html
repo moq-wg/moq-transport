@@ -1675,10 +1675,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                     <p id="section-toc.1-1.13.2.3.2.1.1"><a href="#section-13.3.1" class="auto internal xref">13.3.1</a>.  <a href="#name-mutual-tls" class="internal xref">Mutual TLS</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3.2.2">
-                    <p id="section-toc.1-1.13.2.3.2.2.1"><a href="#section-13.3.2" class="auto internal xref">13.3.2</a>.  <a href="#name-authorization-tokens" class="internal xref">Authorization Tokens</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3.2.3">
-                    <p id="section-toc.1-1.13.2.3.2.3.1"><a href="#section-13.3.3" class="auto internal xref">13.3.3</a>.  <a href="#name-replay-attacks" class="internal xref">Replay Attacks</a></p>
+                    <p id="section-toc.1-1.13.2.3.2.2.1"><a href="#section-13.3.2" class="auto internal xref">13.3.2</a>.  <a href="#name-replay-attacks" class="internal xref">Replay Attacks</a></p>
 </li>
                 </ul>
 </li>
@@ -7645,42 +7642,35 @@ application-defined access control. The two mechanisms can be used together.<a h
           </h4>
 <p id="section-13.3.1-1">In mutual TLS, both peers present an X.509 certificate during the TLS 1.3
 handshake (<span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>), carried in the underlying transport. An endpoint that
-verifies a server certificate does so following <span>[<a href="#RFC9525" class="cite xref">RFC9525</a>]</span>.
-An application that authenticates clients via mTLS defines how a client
-certificate maps to identity.<a href="#section-13.3.1-1" class="pilcrow">¶</a></p>
-<p id="section-13.3.1-2">Once a peer is authenticated, an application <span class="bcp14">MAY</span> use
-attributes in the peer's certificate as an input
-to authorization decisions; the granularity and policy of such authorization
-is out of scope for this document.<a href="#section-13.3.1-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="sec-tokens">
-<section id="section-13.3.2">
-          <h4 id="name-authorization-tokens">
-<a href="#section-13.3.2" class="section-number selfRef">13.3.2. </a><a href="#name-authorization-tokens" class="section-name selfRef">Authorization Tokens</a>
-          </h4>
-<p id="section-13.3.2-1">MOQT has functionality to carry Authorization tokens as message
+verifies a server certificate does so following <span>[<a href="#RFC9525" class="cite xref">RFC9525</a>]</span>.  An application
+that authenticates clients via mTLS defines how a client certificate maps to
+identity.<a href="#section-13.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-13.3.1-2">Once a peer is authenticated, an application <span class="bcp14">MAY</span> use attributes in the peer's
+certificate as an input to authorization decisions; the granularity and policy
+of such authorization is out of scope for this document.
+### Authorization Tokens {#sec-tokens}<a href="#section-13.3.1-2" class="pilcrow">¶</a></p>
+<p id="section-13.3.1-3">MOQT has functionality to carry Authorization tokens as message
 parameters. These tokens can vary based on the application
 requirements. Two variants of authorization tokens have already
 been defined for MOQT, and more are expected in the future. The
 current tokens are Privacy Pass Authentication for Media over QUIC
 <span>[<a href="#PPA" class="cite xref">PPA</a>]</span> and Authentication scheme for MOQT using Common Access Tokens
-<span>[<a href="#CAT" class="cite xref">CAT</a>]</span>.<a href="#section-13.3.2-1" class="pilcrow">¶</a></p>
-<p id="section-13.3.2-2">Tokens are expected to contain information about which actions and
+<span>[<a href="#CAT" class="cite xref">CAT</a>]</span>.<a href="#section-13.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-13.3.1-4">Tokens are expected to contain information about which actions and
 which resources the endpoint providing the token is authorized to
 perform and access. Relays will verify the
-token to ensure that the request is authorized.<a href="#section-13.3.2-2" class="pilcrow">¶</a></p>
+token to ensure that the request is authorized.<a href="#section-13.3.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="replay-attacks">
-<section id="section-13.3.3">
+<section id="section-13.3.2">
           <h4 id="name-replay-attacks">
-<a href="#section-13.3.3" class="section-number selfRef">13.3.3. </a><a href="#name-replay-attacks" class="section-name selfRef">Replay Attacks</a>
+<a href="#section-13.3.2" class="section-number selfRef">13.3.2. </a><a href="#name-replay-attacks" class="section-name selfRef">Replay Attacks</a>
           </h4>
-<p id="section-13.3.3-1">Replay protection for authorization tokens is the responsibility of
+<p id="section-13.3.2-1">Replay protection for authorization tokens is the responsibility of
 the specific token scheme used. Token schemes such as <span>[<a href="#CAT" class="cite xref">CAT</a>]</span> and
 <span>[<a href="#PPA" class="cite xref">PPA</a>]</span> include requirements for relays when processing tokens and
-requests.<a href="#section-13.3.3-1" class="pilcrow">¶</a></p>
+requests.<a href="#section-13.3.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
