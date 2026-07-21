@@ -934,12 +934,7 @@ The `moqt` URI scheme has the following security considerations:
   mitigate this exposure.
 
 - The `path-abempty` and `query` components are visible to the relay
-  that terminates the client's connection, unlike HTTPS where TLS
-  protects the full URI from intermediaries.
-
-- Applications SHOULD NOT embed credentials, session tokens, or
-  privacy-sensitive identifiers in `path` or `query` components, as
-  relays can log these values.
+  that terminates the client's connection.
 
 TODO: Add internationalization statement per RFC 7595 Section 3.6.
 
