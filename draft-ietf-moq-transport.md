@@ -4695,15 +4695,13 @@ application-defined access control. The two mechanisms can be used together.
 
 In mutual TLS, both peers present an X.509 certificate during the TLS 1.3
 handshake ({{?RFC8446}}), carried in the underlying transport. An endpoint that
-verifies a server certificate does so following {{?RFC9525}}.
-An application that authenticates clients via mTLS defines how a client
-certificate maps to identity.
+verifies a server certificate does so following {{?RFC9525}}.  An application
+that authenticates clients via mTLS defines how a client certificate maps to
+identity.
 
-Once a peer is authenticated, an application MAY use
-attributes in the peer's certificate as an input
-to authorization decisions; the granularity and policy of such authorization
-is out of scope for this document.
-
+Once a peer is authenticated, an application MAY use attributes in the peer's
+certificate as an input to authorization decisions; the granularity and policy
+of such authorization is out of scope for this document.
 ### Authorization Tokens {#sec-tokens}
 
 MOQT has functionality to carry Authorization tokens as message
