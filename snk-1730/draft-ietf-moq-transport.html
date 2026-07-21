@@ -7007,8 +7007,7 @@ OBJECT_DATAGRAM {
 </div>
 <p id="section-11.3.1-3">The Type Flags field in the OBJECT_DATAGRAM is a variable-length integer that
 encodes a set of flags. All valid values fit in a single-byte encoding (values
-less than 64). Bits 7 and 6 are used by the variable-length integer encoding;
-the flags occupy bits 5 through 0. If a received value has bit 4 set, or has a
+less than 128). If a received value has bit 4 set, or has a
 value of 64 or greater, the endpoint <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.3.1-3" class="pilcrow">¶</a></p>
 <p id="section-11.3.1-4">The four low-order bits and bit 5

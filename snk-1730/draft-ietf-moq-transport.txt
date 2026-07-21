@@ -4608,11 +4608,9 @@ Range { Start, [End] }
 
    The Type Flags field in the OBJECT_DATAGRAM is a variable-length
    integer that encodes a set of flags.  All valid values fit in a
-   single-byte encoding (values less than 64).  Bits 7 and 6 are used by
-   the variable-length integer encoding; the flags occupy bits 5 through
-   0.  If a received value has bit 4 set, or has a value of 64 or
-   greater, the endpoint MUST close the session with a
-   PROTOCOL_VIOLATION.
+   single-byte encoding (values less than 128).  If a received value has
+   bit 4 set, or has a value of 64 or greater, the endpoint MUST close
+   the session with a PROTOCOL_VIOLATION.
 
    The four low-order bits and bit 5 of the Type Flags field determine
    which fields are present in the datagram:
