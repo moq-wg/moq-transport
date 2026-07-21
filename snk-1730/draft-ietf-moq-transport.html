@@ -7050,15 +7050,13 @@ Object header contains the payload.<a href="#section-11.3.1-5.5.1" class="pilcro
 with any of these values, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>:<a href="#section-11.3.1-6" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11.3.1-7.1">
-              <p id="section-11.3.1-7.1.1">Values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set.
-end of group.<a href="#section-11.3.1-7.1.1" class="pilcrow">¶</a></p>
+              <p id="section-11.3.1-7.1.1">Values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set.<a href="#section-11.3.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-11.3.1-7.2">
               <p id="section-11.3.1-7.2.1">Values with bit 4 (0x10) set. This bit is reserved and <span class="bcp14">MUST</span> be zero.<a href="#section-11.3.1-7.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-11.3.1-7.3">
-              <p id="section-11.3.1-7.3.1">Values of 64 or greater (i.e., any value that requires more than a single-byte
-variable-length integer encoding).<a href="#section-11.3.1-7.3.1" class="pilcrow">¶</a></p>
+              <p id="section-11.3.1-7.3.1">Values with a bit set whose meaning is not specified.<a href="#section-11.3.1-7.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-11.3.1-8">If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
