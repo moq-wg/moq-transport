@@ -2222,7 +2222,7 @@ one publisher is available, the Relay MAY send the FETCH to any of them.
 
 When a Relay receives a SUBSCRIBE with a fill filter type, it serves the fill
 portion from its cache and retrieves any missing objects upstream using
-SUBSCRIBE or FETCHes (see {{fill-semantics}}).
+a SUBSCRIBE with fill or FETCHes (see {{fill-semantics}}).
 
 When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 `Established` upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
