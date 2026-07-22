@@ -2509,7 +2509,7 @@ the value 128.
 
 The DEFAULT_PUBLISHER_PRIORITY parameter (Parameter Type 0x0E)
 is a uint8. It MAY appear in a PUBLISH, SUBSCRIBE_OK, FETCH_OK, or
-REQUEST_UPDATE message. It is the default Publisher Priority (see
+REQUEST_UPDATE message sent by the publisher on a subscription. It is the default Publisher Priority (see
 {{priorities}}) for Subgroups and Datagrams of the subscription that
 do not carry an explicit Publisher Priority.
 
