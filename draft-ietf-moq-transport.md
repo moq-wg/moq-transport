@@ -938,6 +938,15 @@ The `moqt` URI scheme has the following security considerations:
 
 TODO: Add internationalization statement per RFC 7595 Section 3.6.
 
+The client resolves the `host` subcomponent of the `authority` to one or
+more network addresses, most commonly using DNS A and AAAA records.
+
+When SVCB-compatible records {{?RFC9460}} are published for the `authority`,
+a client MAY use them to learn the server's endpoints and supported ALPN
+protocols before connecting. A client using WebTransport resolves the
+`https` URI derived in {{webtransport}} using HTTPS resource records as for
+any `https` origin.
+
 If the port is omitted in the URI, a default port of 443 is used.
 
 The client MAY use either native QUIC or WebTransport. On a QUIC connection,
