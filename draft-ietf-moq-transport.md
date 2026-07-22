@@ -3094,9 +3094,10 @@ request at a different URI and/or for a different Full Track Name.
 Redirect {
   Connect URI Length (vi64),
   Connect URI (..),
-  Track Namespace (..),
-  Track Name Length (vi64),
-  Track Name (..),
+  Change Track Name or Namespace (8),
+  [Track Namespace (..)],
+  [Track Name Length (vi64)],
+  [Track Name (..)],
 }
 ~~~
 
@@ -3105,10 +3106,13 @@ Redirect {
   receives a Redirect with a non-zero Connect URI Length it MUST close the
   session with a `PROTOCOL_VIOLATION`.
 
-* Track Namespace and Track Name: The Track Namespace and Track Name to use
-  for the redirected request. If both have zero length, the redirected request
-  uses the same values as the original request. Otherwise, Track Namespace and
-  Track Name are the literal values for the redirected request.
+* Change Track Name or Namespace: Set to 1 if the redirect request should
+  go to a different track namespace or name from the original one. Otherwise,
+  it is set to 0.
+
+* Track Namespace and Track Name: Only present if the "Change Track Name or
+  Namespace" field is present. Holds the Track Namespace and Track Name to use
+  for the redirected request.
 
   Track Name is not meaningful for namespace-scoped requests
   (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and MUST be empty;
