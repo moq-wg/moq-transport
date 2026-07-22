@@ -2299,7 +2299,7 @@ Relays prioritize forwarded Objects as described in {{priorities}}.
 ## Sender Side Track Switching {#sender-side-track-switching}
 
 Sender Side Track Switching (SSTS) is a subscriber-initiated and controlled behavior in which
-relays dynamically select which track to forward from a switching set based on
+a publisher dynamically selects which track to forward from a switching set based on
 various algorithms. Each algorithm defines a set of attributes which are passed in the
 SWITCHING-SET-ASSIGNMENT parameter {{switching-set-assignment-param}} along with a
 complimentary set of rules for subscriber behavior and relay behavior.
@@ -2308,7 +2308,7 @@ This specification defines a default algorithm - type 0. Other algorithms are re
 "SSTS Algorithms" registry {{iana-ssts-algorithms}}.
 
 During SETUP, a relay communicates which SSTS algorithms it supports by passing the
-SSTS_ALGORITHMS option {{ssts-algorithms}}.
+SSTS_ALGORITHMS Setup Option {{ssts-algorithms}}.
 
 ### General behaviors for all SSTS algorithms {#ssts-general-requirements}
 
@@ -2316,10 +2316,10 @@ The subscriber is responsible for grouping tracks into switching sets based on a
 knowledge. A switching set is a collection of tracks representing the same content encoded at
 different throughput levels, typically from a single source. Tracks within a switching set are
 time-aligned at certain group boundaries, allowing the relay to switch between tracks at these
-boundaries without initiating reception errors at the client. The relay selects exactly one track
-per switching set to forward at any given time.
+boundaries while ensuring the subscriber receives uninterrupted content from the set. The relay
+selects exactly one track per switching set to forward at any given time.
 
-Subscribers can create switching sets through two methods. Both support single or multiple
+Subscribers can create switching sets through three methods. All support single or multiple
 switching sets and result in identical relay behavior:
 
 * Individual SUBSCRIBE: - the subscriber sends a separate SUBSCRIBE message for each track,
@@ -2329,12 +2329,14 @@ switching sets and result in identical relay behavior:
   track, the relay will issue a PUBLISH message. The subscriber assigns tracks to switching sets
   by appending the SWITCHING-SET-ASSIGNMENT parameter to the PUBLISH_OK message.
 
-In both cases, tracks are grouped into a switching set by specifying the same switching set ID.
+* PUBLISH: - the publisher sends a PUBLISH message. The subscriber assigns tracks to switching sets
+  by appending the SWITCHING-SET-ASSIGNMENT parameter to the PUBLISH_OK message.
+
+In all cases, tracks are grouped into a switching set by specifying the same switching set ID.
 
 ### Default switching algorithm
 
-This specification defines a default SSTS algorithm and adds it to the "MOQT SSTS Algorithms"
-registry {{iana-ssts-algorithms}} with a type of 0.
+This specification defines a default SSTS algorithm with a type of 0.
 
 #### SWITCHING-SET-ASSIGNMENT fields
 This algorithm extends the base definition of the SWITCHING-SET-ASSIGNMENT parameter
@@ -2344,39 +2346,40 @@ SWITCHING-SET-ASSIGNMENT {
   Switching set ID (vi64),
   Algorithm ID (vi64),
   Throughput threshold (vi64),
-  Set throughput fraction (vi64),
+  Set throughput weight (vi64),
   Activate switching (vi64),
   Set rank (8)
 }
 
 * Throughput threshold: Minimum throughput (kbps) required to select this track.
 
-* Set throughput fraction: Relative weight for bandwidth allocation, expressed as an
-  integer 1 <= N <= 10. Each set receives bandwidth proportional to its fraction:
-  `target = B_total × fraction / sum_F`. Fractions are relative weights, not absolute
-  percentages; for example, fractions of 6, 4, 3 (sum_F=13) allocate 46%, 31%, 23%
+* Set throughput weight: Relative weight for bandwidth allocation, expressed as an
+  integer 1 <= N <= 10. Each set receives bandwidth proportional to its weight:
+  `target = B_total × weight / sum_F`. These are relative weights, not absolute
+  percentages; for example, weights of 6, 4, 3 (sum = 13) allocate 46%, 31%, 23%
   respectively. This allows sets to be added or removed without requiring other sets to
-  update their fractions. When multiple subscriptions in the same switching set specify
-  different fraction values, the relay MUST use the value from the most recently received
+  update their weights. When multiple subscriptions in the same switching set specify
+  different weight values, the publisher MUST use the value from the most recently received
   message for that set.
 
 * Activate switching: Integer, when set to 0, pauses SSTS switching for this set. When set
   to N, the relay activates or resumes switching as soon as the number of tracks assigned to
-  the switching set is >= N.  Activation takes effect at the next group boundary.
+  the switching set is >= N.  Activation takes effect when an Object is received or published
+  on a Group larger than previously largest Group. When multiple subscriptions in the same
+  switching set specify different activate values, the publisher MUST use the value from the
+  most recently received message for that set.
 
-* Set rank: Degradation priority when bandwidth is constrained, expressed as
-  an 8-bit unsigned integer (1-255). Default is 1. Values outside this range MUST result in
-  a protocol error. Lower values indicate higher priority (protected from degradation).
-  When bandwidth is sufficient, all sets receive their fraction-based allocation. When
-  bandwidth is constrained, lower-ranked sets (higher numeric value) degrade first: they
-  select lower-throughput tracks or receive no bandwidth, while higher-ranked sets maintain
-  their target allocation. See {{allocation-algorithm}} for details.
+* Set rank: Degradation priority when bandwidth is constrained, expressed as an 8-bit unsigned
+  integer (0-255). Default is 0. Lower values indicate higher priority (protected from degradation).
+  See {{allocation-algorithm}} for details. When multiple subscriptions in the same switching set
+  specify different rank values, the publisher MUST use the value from the most recently received
+  message for that set.
 
 #### Subscriber behavior
 
 The subscriber follows the general rules {#ssts-general-requirements} for switching set establishment.
 
-The subscriber sets activate = N, where N is the number of tracks that will be assigned to that
+The subscriber sets activate switching = N, where N is the number of tracks that will be assigned to that
 switching set.
 
 To modify an established switching set, the subscriber can
@@ -2387,58 +2390,61 @@ To modify an established switching set, the subscriber can
 * Pause SSTS: Send REQUEST_UPDATE for any track assigned to that set with a SWITCHING-SET-ASSIGNMENT
   parameter defining activate = 0.
 * Resume SSTS: Send REQUEST_UPDATE for any track assigned to that set with a SWITCHING-SET-ASSIGNMENT
-  parameter defining activate = N, where N is the number of tracks assigned to that switching set.
+  parameter defining activate switching = N, where N is the number of tracks assigned to that switching set.
 
-#### Relay behavior
+#### Publisher behavior
 
-When the relay receives a subscription with SWITCHING-SET-ASSIGNMENT:
+When the publisher receives a subscription with SWITCHING-SET-ASSIGNMENT:
 
 1. Add the subscription to the specified switching set, creating the set if needed.
-2. Set Forward state to 0 for the new subscription.
-3. Store 'throughput' as a property of the subscription.
-4. Store 'fraction', 'rank' and 'activate' as properties of the set.
-5. If the number of tracks assigned to the set is >= the activate switching value, then begin
-   active track selection by applying the bandwidth allocation algorithm {{allocation-algorithm}} at the
-   next group boundary.
+2. Set Forward state to 0 for the new subscription, irrespective of the forward state received from the
+   SUBSCRIBE or PUBLISH_OK.
+4. Store 'throughput threshold' as a property of the subscription.
+5. Store 'Set throughput weight', 'Set rank' and 'Activate switching' as properties of the set.
+6. If the number of tracks assigned to the set with active subscriptions >= the activate switching value,
+   then begin active track selection by applying the bandwidth allocation algorithm {{allocation-algorithm}}
+   when an Object is received or published on a Group larger than previously largest Group.
 
-If the relay receives a PUBLISH_DONE message, or an UNSUBSCRIBE for a subscription that was
+If the publisher receives a PUBLISH_DONE message, or an UNSUBSCRIBE for a subscription that was
 previously added to a switching set, then it must remove that subscription from the switching set
-and continue to process the switching across the remaining subscriptions within that set.
+and continue to process the switching across the remaining subscriptions within that set. The value of
+'activate switching' MUST be decremented by one to enable the swictching to remain active. 
 
 If all tracks are removed from a previously established switching set, then that set is
 considered deleted and is removed from the bandwidth allocation algorithm.
 
-Relays SHOULD maintain a forward=1 upstream state on all tracks within a switching set, irrespective
-of their downstream forwarding state.
+Publishers SHOULD maintain a forward=1 upstream state (if any) on all tracks within a switching set,
+irrespective of their downstream forwarding state.
 
 #### Bandwidth Allocation {#allocation-algorithm}
 
-The relay maintains:
+The publisher maintains:
 
 - `B_total`: Estimated downstream bandwidth capacity for the subscriber connection. The
-  relay MUST maintain a bandwidth estimate for each downstream subscriber. The timebase of this
-  estimate SHOULD be at least the Group duration of the track. The estimate is obtained
-  periodically from the QUIC stack (e.g., congestion window pacing rate, smoothed RTT)
+  publisher maintains a bandwidth estimate for each downstream subscriber. The timebase of this
+  estimate SHOULD be at least the Group duration of the track, if that is known or can be estimated
+  by the publisher, or several seconds if it is unknown. The estimate is obtained
+  periodically from the transport stack (e.g., congestion window pacing rate, smoothed RTT)
   and MAY be supplemented by external sources or application-level feedback. The exact mechanism
-  is not defined by this specification and MAY vary between implementations.
-- `sum_F`: Sum of all set fractions, updated incrementally as subscriptions are added or removed
-- 'set.fraction': for each switching set, the switching set fraction, as defined by the set
-  throughput fraction of the SWITCHING-SET-ASSIGNMENT {{switching-set-assignment-param}} parameter.
-- 'set.rank': for each switching set, the switching set rank, as defined by the optional set
+  is not defined by this algorithm and might vary between implementations.
+- `sum_W`: Sum of all set weights updated incrementally as subscriptions are added or removed
+- 'set.weight': for each switching set, the switching set weight, as defined by the set
+  throughput weight of the SWITCHING-SET-ASSIGNMENT {{switching-set-assignment-param}} parameter.
+- 'set.rank': for each switching set, the switching set rank, as defined by the set
   rank field of the SWITCHING-SET-ASSIGNMENT {{switching-set-assignment-param}} parameter.
 
-On a periodic update interval or at a minimum of a new Group boundary, the relay executes the
-following algorithm:
+On a periodic update interval or at a minimum when an object is received/published on a group
+larger than previously largest group, the relay executes the following algorithm:
 
 ~~~
 B_remaining  = B_total
-for each set in ascending rank order:
-  set.target = B_remaining × set.fraction / sum_F
+for each set in ascending set.rank order:
+  set.target = B_remaining × set.weight / sum_W
   set.allocated = min(set.target, B_remaining)
   set.selected = track in set with highest throughput_threshold where track.throughput_threshold <= set.allocated
   B_remaining -= set.selected.throughput_threshold
 for each track in a switching set:
-  set forward state = track.selected
+  set forward state = (track == set.selected)
 ~~~
 
 The rank ordering ensures higher-priority sets receive their target allocation first; lower-priority sets
@@ -3116,8 +3122,7 @@ a sequence of varints. Returning an empty sequence is acceptable and indicates
 that SSTS is not supported. Algorithms are registered in the SSTS-Algorithms
 {{iana-ssts-algorithms}} registry.
 
-This option is optional. The default value is any empty list which prohibits
-the use of SSTS.
+The default value is any empty list which prohibits the use of SSTS.
 
 #### MAX FILTER RANGES
 
