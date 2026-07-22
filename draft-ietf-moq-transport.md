@@ -2408,7 +2408,7 @@ When the publisher receives a subscription with SWITCHING-SET-ASSIGNMENT:
 If the publisher receives a PUBLISH_DONE message, or an UNSUBSCRIBE for a subscription that was
 previously added to a switching set, then it must remove that subscription from the switching set
 and continue to process the switching across the remaining subscriptions within that set. The value of
-'activate switching' MUST be decremented by one to enable the swictching to remain active. 
+'activate switching' MUST be decremented by one to enable the swictching to remain active.
 
 If all tracks are removed from a previously established switching set, then that set is
 considered deleted and is removed from the bandwidth allocation algorithm.
