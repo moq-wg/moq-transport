@@ -1548,7 +1548,7 @@ LOCATION_FILTER Parameter {
 Length (in bytes) determines how many optional vi64 fields are present, 0 to 4.
 Length can be 0 for no filter, e.g. to remove the filter in REQUEST_UPDATE.
 Optional fields can be omitted consecutively from the end.  The options are:
-  * 1 vi64: StartGroup is present 
+  * 1 vi64: StartGroup is present
   * 2 vi64: StartGroup, StartObject are present
   * 3 vi64: StartGroup, StartObject, EndGroupDelta are present
   * 4 vi64: StartGroup, StartObject, EndGroupDelta, EndObject are present
