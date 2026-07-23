@@ -1518,9 +1518,9 @@ end with an error.
 
 ### Location Filters {#location-filters}
 
-Subscribers can specify a Location filter parameter on a subscription or fetch indicating to the publisher
-which Objects to send.  Subscriptions without a filter pass all Objects
-published or received via upstream subscriptions.
+Subscribers can specify a Location filter parameter on a subscription or fetch
+indicating to the publisher which Objects to send.  Subscriptions without a
+filter pass all Objects published or received via upstream subscriptions.
 
 A Location filter specifies an inclusive range of Locations.  Only objects
 published or received via a subscription having Locations within the inclusive range
@@ -1529,11 +1529,11 @@ pass the filter.
 Some Location filters are defined to be relative to the `Largest Object` which is
 communicated in SUBSCRIBE_OK.  The `Largest Object` is the Object with the
 largest Location ({{location-structure}}) in the
-Track from the perspective of the publisher processing the message. Largest
-Object updates when the first byte of an Object with a Location larger than the
+Track from the perspective of the publisher processing the message.  `Largest
+Object` updates when the first byte of an Object with a Location larger than the
 previous value is published or received through a subscription.
 
-A Location filter parameter has the following structure:
+A Location filter parameter has the following length-prefixed structure:
 
 ~~~
 LOCATION_FILTER Parameter {
@@ -1545,25 +1545,36 @@ LOCATION_FILTER Parameter {
   [EndObject (vi64),]
 ~~~
 
-If Length is zero, the Start Location is `{Largest Object.Group, Largest Object.Object + 1}`,
-or {0,0} if no content has been delivered yet, and the subscription is open-ended.
-Note that due to network reordering or prioritization, relays can receive Objects with
-Locations smaller than `Largest Object` after the SUBSCRIBE is processed, but
-these Objects do not pass this filter.
+Length (in bytes) determines how many optional vi64 fields are present, 0 to 4.
+Length can be 0 for no filter, e.g. to remove the filter in REQUEST_UPDATE.
+Optional fields can be omitted consecutively from the end.  The options are:
+  * 1 vi64: StartGroup is present 
+  * 2 vi64: StartGroup, StartObject are present
+  * 3 vi64: StartGroup, StartObject, EndGroupDelta are present
+  * 4 vi64: StartGroup, StartObject, EndGroupDelta, EndObject are present
 
 If only StartGroup is present, it is a relative number of groups prior to the next group,
-hence the Start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
+hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
   * StartGroup=0 will start at the next group
   * StartGroup=1 will start at the current group
   * StartGroup=2 will start at 1 group prior to the current group
   * StartGroup=N will start at N-1 groups prior to the current group
 
-EndGroupDelta and EndObject can be omitted for an open-ended subscription or to
-end a fetch at the `Largest Object`.
-EndObject can be omitted to include all objects in the End Group.
+If only StartGroup and StartObject are present and both 0, the start Location
+is the Next Object which is `{Largest Object.Group, Largest Object.Object + 1}`,
+or {0,0} if no content has been delivered yet.
+Note that due to network reordering or prioritization, relays can receive Objects with
+Locations smaller than `Largest Object` after the SUBSCRIBE is processed, but
+these Objects do not pass this filter.
 
-If StartGroup + EndGroupDelta exceeds 2^64 - 1, the endpoint MUST
-close the session with a `PROTOCOL_VIOLATION`.
+Otherwise, all start/end group/object fields are absolute.  EndGroupDelta is delta
+encoded from StartGroup, but both the start and end groups are absolute, not
+relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
+the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
+
+EndGroupDelta and EndObject can be omitted for an open-ended subscription
+or to end a fetch at the `Largest Object`.
+EndObject can be omitted to include all objects in the End Group.
 
 If the publisher cannot satisfy the requested Location Filter (see
 {{location-filter}}) or if the entire End Group has already been published
