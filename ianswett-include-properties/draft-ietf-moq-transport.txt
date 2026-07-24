@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 22 January 2027                                   I. Swett, Ed.
+Expires: 25 January 2027                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            21 July 2026
+                                                            24 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 January 2027.
+   This Internet-Draft will expire on 25 January 2027.
 
 Copyright Notice
 
@@ -3201,10 +3201,11 @@ Range { Start, [End] }
    It MAY appear in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS.
    It specifies whether the OK message sent in response includes Track
    Properties or whether the resulting PUBLISH messages include Track
-   Properties in the case of SUBSCRIBE_TRACKS.  The allowed values are 0
-   (do not send Properties) or 1 (send Properties), and the default is
-   1.  If an endpoint receives a value outside this range, it MUST close
-   the session with PROTOCOL_VIOLATION.
+   Properties in the case of SUBSCRIBE_TRACKS.  The Track Properties are
+   still present in the message, but they SHOULD be empty.  The allowed
+   values are 0 (do not send Properties) or 1 (send Properties), and the
+   default is 1.  If an endpoint receives a value outside this range, it
+   MUST close the session with PROTOCOL_VIOLATION.
 
 10.3.  SETUP
 
