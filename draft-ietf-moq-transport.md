@@ -3068,7 +3068,7 @@ exceeded, an endpoint MUST reject this with REQUEST_ERROR with error code INVALI
 
 #### MAX TOP TRACKS
 
-The MAX_TOP_TRACKS option (Type 0x08) limits the peer's value of
+The MAX_TOP_TRACKS option (Type 0x09) limits the peer's value of
 MaxTopTracks in the TOP_TRACKS_FILTER {{top-tracks-filter}} parameter.
 The default value is 0, so if not specified, the peer MUST NOT send any
 TOP_TRACKS_FILTER parameter.  If this limit is exceeded, an endpoint MUST
@@ -5395,6 +5395,7 @@ This registry is initially empty.
 | 0x06 | MAX_FILTER_RANGES | {{max-filter-ranges}} |
 | 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
 | 0x08 | MAX_REQUEST_UPDATES | {{max-request-updates}} |
+| 0x09 | MAX_TOP_TRACKS | {{max-top-tracks}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 Endpoints MUST ignore unknown Setup Options as specified in
