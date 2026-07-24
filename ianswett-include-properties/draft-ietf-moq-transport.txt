@@ -1160,8 +1160,15 @@ Table of Contents
    The default operation for dereferencing a moqt URI is to establish a
    MOQT session to the identified server.
 
-   TODO: Add URI scheme security considerations per RFC 7595 Section 3.7
-   (e.g., authority in SNI, path/query exposure).
+   The moqt URI scheme has the following security considerations:
+
+   *  The authority component is sent in the TLS SNI extension during
+      connection establishment, exposing the target server identity to
+      on-path observers.  Encrypted Client Hello (ECH) [RFC9580] can
+      mitigate this exposure.
+
+   *  The path-abempty and query components are visible to the relay
+      that terminates the client's connection.
 
    TODO: Add internationalization statement per RFC 7595 Section 3.6.
 
@@ -3573,14 +3580,17 @@ Range { Start, [End] }
       could succeed at the location specified in the Redirect structure.
       The requester SHOULD establish a new session to the provided URI
       (if present) and retry the request using the Full Track Name from
-      the Redirect (if present).  This error code can appear in response
-      to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
-      SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS.  Relays are not
-      required to follow redirects from upstream and MAY forward a
-      REDIRECT response to matching downstream requests.  A relay MAY
-      cache a REDIRECT response for a Full Track Name for up to Retry
-      Interval milliseconds and use it to respond to subsequent matching
-      requests without forwarding them upstream.
+      the Redirect (if present).  A Retry Interval of 0 indicates the
+      original request SHOULD NOT be retried at the current URI and Full
+      Track Name; it does not prevent the requester from following a
+      Redirect to a different URI or Full Track Name.  This error code
+      can appear in response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH,
+      PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS.
+      Relays are not required to follow redirects from upstream and MAY
+      forward a REDIRECT response to matching downstream requests.  A
+      relay MAY cache a REDIRECT response for a Full Track Name for up
+      to Retry Interval milliseconds and use it to respond to subsequent
+      matching requests without forwarding them upstream.
 
    Below are errors for use by the publisher.  They can appear in
    response to SUBSCRIBE, FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and
@@ -6398,6 +6408,10 @@ Informative References
    [RFC9525]  Saint-Andre, P. and R. Salz, "Service Identity in TLS",
               RFC 9525, DOI 10.17487/RFC9525, November 2023,
               <https://www.rfc-editor.org/rfc/rfc9525>.
+
+   [RFC9580]  Wouters, P., Ed., Huigens, D., Winter, J., and Y. Niibe,
+              "OpenPGP", RFC 9580, DOI 10.17487/RFC9580, July 2024,
+              <https://www.rfc-editor.org/rfc/rfc9580>.
 
 Appendix A.  Change Log
 
