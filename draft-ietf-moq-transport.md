@@ -1658,13 +1658,15 @@ messages.
 
 All filter types are combined using logical "AND" operations
 to further restrict which tracks and objects pass all filter criteria.
-This includes all Range Filters {{range-filters}} and Location
-Filters {{location-filters}}, which can be evaluated in any order.
+This includes all Range Filters {{range-filters}}, Location Filters
+{{location-filters}}, and Top Tracks Filters {{top-tracks-filters}}.
+Top Tracks Filters always evaluate first before all other filters
+which can be evaluated in any order.
 The Forward parameter is also a type of filter.  The publisher MUST
 forward only objects that pass all filters.
 
 ~~~
-Pass = Forward AND Location Filters AND Range Filters
+Pass = Top Tracks Filter AND Forward AND Location Filter AND Range Filters
 ~~~
 
 ### Joining an Ongoing Track
@@ -1845,14 +1847,111 @@ PUBLISH_NAMESPACE messages.
 
 ## Filtering SUBSCRIBE_TRACKS
 
+The Top Tracks Filter {{top-tracks-filters}} can be used in SUBSCRIBE_TRACKS
+to filter Tracks in a namespace using a specified Track or Object Property.
 Range Filters {{range-filters}} can be used in SUBSCRIBE_TRACKS to filter
 Tracks in a namespace using the Track Property Filter. Objects published in
 the resulting Subscriptions can be filtered by any Range Filter.
 
+### Top Tracks Filters
+
+The TOP_TRACKS_FILTER parameter {{top-tracks-filter}} selects a specified
+number (N) of tracks within a namespace with the highest Property Values
+for a specified Track or Object Property Type which MUST be even, i.e.
+a single integer value (see {{moq-key-value-pair}}).
+
+It is encoded with a Length prefix in bytes which MAY be 0 to indicate
+no filter, which can be used to remove the filter in REQUEST_UPDATE.
+
+~~~
+TOP_TRACKS_FILTER Parameter {
+  Type (vi64) = 0x29,
+  Length (vi64),
+  Property Type (vi64),
+  MaxTopTracks (vi64),
+}
+~~~
+
+MaxTopTracks limits the number of tracks selected concurrently,
+which MUST NOT be 0 and MUST NOT exceed the MAX_TOP_TRACKS setup option
+value sent by the peer, either of which is a `PROTOCOL_VIOLATION`.
+
+TopTracksTimeout {{top-tracks-timeout}} is a Track Property
+that limits the number of milliseconds a selected track can remain
+selected without publishing an object with Property Type.
+Timeout in the next section refers to this Track Property.
+
+#### Track Selection
+
+Tracks are promoted to the selected state, demoted to the
+deselected state, or purged back to the unknown state as
+shown in the following diagram. Objects only pass the filter
+for tracks in the selected state, as shown below.
+
+~~~
+        +--------------+
+        +   UNKNOWN    |
+        +  name/alias  |
+        +--------------+
+             ^    |
+             |    |     Newly Selected    +------------+
+PUBLISH_DONE |    +---> PUBLISH FWD=1 --->|  SELECTED  |
+as needed to |             Promoted       |  in Top N  |
+limit state  |    +---> REQ UPD FWD=1 --->|   Tracks   |
+             |    |       Reselected      +------------+
+             |    |                             |
+        +--------------+                        |
+        |  DESELECTED  |<---- REQ UPD FWD=0 <---+
+        | out of Top N |     Demoted/Timeout
+        +--------------+
+
+          Objects FAIL                     Objects PASS
+           the filter                       the filter
+~~~
+
+A track is selected if it publishes an object with the top N highest
+value for Property Type, where N = MaxTopTracks.  The publisher
+MUST send a PUBLISH message for each newly selected track.  For tracks
+with the same value, the track with the earlier delivered object wins
+the tie breaker, so a selected track remains selected until another track
+publishes a higher value that demotes it out of the top N, or Timeout
+elapses before the track delivers an object that remains in the top N,
+either of which deselect the track.  The publisher MUST send a
+REQUEST_UPDATE message with Forward=0 when a track is deselected.
+The publisher MUST send a REQUEST_UPDATE message with Forward=1 when a
+deselected track is reselected, which also updates the Joining Location
+as described in {{joining-fetch-range-calculation}}.
+
+Recently deselected tracks SHOULD be kept in a list to avoid more PUBLISH
+messages in case a deselected track is reselected.  A relay SHOULD limit
+this list size to protect its resources by sending PUBLISH_DONE
+messages to purge state for the oldest deselected tracks, putting them
+back in the unknown state.  If a track is reselected after this, it is
+considered newly selected so the publisher MUST send a PUBLISH message
+again.  Relays SHOULD keep a list size large enough to avoid excessive
+control messages but small enough to avoid excessive old subscription state.
+
+If the TOP_TRACKS_FILTER parameter is updated, the publisher evaluates the
+new filter to determine the new list of top N selected tracks and follows
+the same rules above for newly selected tracks in the top N (send PUBLISH),
+reselected tracks in the top N (send REQUEST_UPDATE with Forward=1), and
+newly deselected tracks demoted out of the top N (send REQUEST_UPDATE
+with Forward=0).  It can also purge excessive old deselected tracks as
+needed (send PUBLISH_DONE).
+
+If a Top Tracks Filter for a namespace overlaps with a direct subscription
+to a track name in the same namespace, it is considered to pass the Top Tracks
+Filter whether or not it is counted in the top N list, and MUST NOT
+be subject to filter state changes or actions.
+
+Objects received with a location lower than the largest received in that track
+are ignored for Top Tracks Filter state updates; however, if the track is already
+selected, they pass the filter.
+
 ### Relay Resource Protection in Large Namespaces {#large-namespaces}
 
 Relays SHOULD aggregate and propagate filters upstream on subscriptions,
-especially namespace subscriptions,
+especially namespace subscriptions including Top Tracks Filters,
 to conserve and protect their resources from excessive load.  They MAY
 also impose limits on the number of publishers in a namespace, by rejecting
 or closing namespace subscriptions with the error NAMESPACE_TOO_LARGE, or
@@ -2732,6 +2831,16 @@ Type which MUST be even, i.e. a single integer value
 (see {{moq-key-value-pair}}), otherwise the endpoint MUST reject this with
 REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
 
+### TOP TRACKS FILTER Parameter {#top-tracks-filter}
+
+The TOP_TRACKS_FILTER parameter (Type=0x30) MAY appear in a SUBSCRIBE_TRACKS
+message or REQUEST_UPDATE for it.  It selects a specified
+number of tracks within a namespace with the highest Property Values for a
+specified Track or Object Property Type which MUST be even, i.e. a single
+integer value (see {{moq-key-value-pair}}), otherwise the endpoint MUST
+close the session with a `PROTOCOL_VIOLATION`.
+See {{top-tracks-filters}} and {{max-top-tracks}}.
+
 ### EXPIRES Parameter {#expires}
 
 The EXPIRES parameter (Parameter Type 0x8) is a varint. It MAY appear in
@@ -2956,6 +3065,14 @@ The MAX_FILTER_RANGES option (Type 0x06) limits the peer's total number of Range
 parameters for a given subscription or fetch.  The default value is 0, so if not
 specified, the peer MUST NOT send any such filter parameters.  If this limit is
 exceeded, an endpoint MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
+
+#### MAX TOP TRACKS
+
+The MAX_TOP_TRACKS option (Type 0x08) limits the peer's value of
+MaxTopTracks in the TOP_TRACKS_FILTER {{top-tracks-filter}} parameter.
+The default value is 0, so if not specified, the peer MUST NOT send any
+TOP_TRACKS_FILTER parameter.  If this limit is exceeded, an endpoint MUST
+close the session with a `PROTOCOL_VIOLATION`.
 
 #### MAX_REQUEST_UPDATES {#max-request-updates}
 
@@ -4775,6 +4892,11 @@ the session with `PROTOCOL_VIOLATION`.
 
 If omitted, the value is 0.
 
+## TOP TRACKS TIMEOUT {#top-tracks-timeout}
+
+TOP_TRACKS_TIMEOUT (Property Type 0x32) is a Track Property.
+See {{top-tracks-filter}}. If omitted, the value is 1000 milliseconds.
+
 ## Immutable Properties
 
 Immutable Properties (Property Type 0xB) is a Track or Object Property that
@@ -5321,6 +5443,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x27 | PRIORITY_FILTER | {{priority-filter}} |
 | 0x28 | OBJECT_PROPERTY_FILTER | {{object-property-filter}} |
 | 0x29 | TRACK_PROPERTY_FILTER | {{track-property-filter}} |
+| 0x30 | TOP_TRACKS_FILTER | {{top-tracks-filter}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 
@@ -5337,6 +5460,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | {{publisher-priority}} |
 | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track | {{group-order-pref}} |
 | 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
+| 0x32 | TOP_TRACKS_TIMEOUT | Track | {{top-tracks-timeout}} |
 | 0x3C | PRIOR_GROUP_ID_GAP | Object | {{prior-group-id-gap}} |
 | 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
 | 0x7f * N + 0x9D | Reserved for greasing | Any | {{grease}} |
