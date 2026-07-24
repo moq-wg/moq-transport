@@ -926,8 +926,15 @@ Types" registry ({{iana-fragment-types}}).
 The default operation for dereferencing a `moqt` URI is to establish a
 MOQT session to the identified server.
 
-TODO: Add URI scheme security considerations per RFC 7595 Section 3.7
-(e.g., authority in SNI, path/query exposure).
+The `moqt` URI scheme has the following security considerations:
+
+- The `authority` component is sent in the TLS SNI extension during
+  connection establishment, exposing the target server identity to
+  on-path observers. Encrypted Client Hello (ECH) {{?RFC9580}} can
+  mitigate this exposure.
+
+- The `path-abempty` and `query` components are visible to the relay
+  that terminates the client's connection.
 
 TODO: Add internationalization statement per RFC 7595 Section 3.6.
 
@@ -3192,7 +3199,10 @@ REDIRECT:
 : The request cannot be fulfilled by this endpoint, but could succeed at the
 location specified in the Redirect structure. The requester SHOULD establish a
 new session to the provided URI (if present) and retry the request using the
-Full Track Name from the Redirect (if present). This error code can appear in
+Full Track Name from the Redirect (if present). A Retry Interval of 0 indicates
+the original request SHOULD NOT be retried at the current URI and Full Track
+Name; it does not prevent the requester from following a Redirect to a different
+URI or Full Track Name. This error code can appear in
 response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
 redirects from upstream
