@@ -3520,9 +3520,6 @@ UNAUTHORIZED (0x1):
 TRACK_ENDED (0x2):
 : The track is no longer being published.
 
-SUBSCRIPTION_ENDED (0x3):
-: The publisher reached the end of an associated location filter.
-
 GOING_AWAY (0x4):
 : The subscriber or publisher issued a GOAWAY message.
 
