@@ -2598,7 +2598,7 @@ that alias has not received a response.
 ### SUBGROUP_DELIVERY_TIMEOUT Parameter {#subgroup-delivery-timeout}
 
 The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a varint. It
-MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.  Its
+MAY appear in a PUBLISH_OK, SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
 semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
@@ -2608,7 +2608,7 @@ for the same track.
 ### OBJECT_DELIVERY_TIMEOUT Parameter {#object-delivery-timeout}
 
 The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a varint. It
-MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.  Its
+MAY appear in a PUBLISH_OK, SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
 semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
@@ -2667,7 +2667,7 @@ If RENDEZVOUS_TIMEOUT is absent, the default is 0.
 ### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It MAY
-appear in a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
+appear in a SUBSCRIBE, PUBLISH, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
 or PUBLISH_OK message. It is an integer expressing the priority of a
 subscription relative to other subscriptions and fetch responses in the same
 session. Lower numbers get higher priority. See {{priorities}}.
@@ -2678,7 +2678,7 @@ the value 128.
 ### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8. It MAY appear in a
-SUBSCRIBE, SUBSCRIBE_TRACKS, or FETCH.
+SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, or FETCH.
 
 Its value indicates how to prioritize Objects from different groups within
 the same subscription (see {{priorities}}), or how to order Groups in a Fetch
@@ -2692,10 +2692,10 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 ### LOCATION FILTER Parameter {#location-filter}
 
 The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It MAY appear in a SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE (for a
-subscription) message. It is a Location Filter (see {{location-filters}}).
+encoding. It MAY appear in a SUBSCRIBE, PUBLISH, PUBLISH_OK or REQUEST_UPDATE
+(for a subscription) message. It is a Location Filter (see {{location-filters}}).
 
-If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
+If omitted from SUBSCRIBE, PUBLISH, or PUBLISH_OK, the subscription is
 unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
 ### SUBGROUP FILTER Parameter {#subgroup-filter}
@@ -3425,7 +3425,10 @@ PUBLISH Message {
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
   {{track-alias}}).
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}. Parameters such
+  as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY, SUBGROUP_TIMEOUT, and OBJECT_TIMEOUT
+  appear in the Parameters of a PUBLISH to inform the Subscriber of the initial
+  Subscription parameters.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
