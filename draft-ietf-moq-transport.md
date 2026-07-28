@@ -3428,8 +3428,8 @@ PUBLISH Message {
 
 * Parameters: The parameters are defined in {{message-params}}. Parameters such
   as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY, SUBGROUP_DELIVERY_TIMEOUT,
-  OBJECT_DELIVERY_TIMEOUT appear in the Parameters of a PUBLISH to inform the
-  Subscriber of the initial Subscription parameters.
+  OBJECT_DELIVERY_TIMEOUT, and LOCATION FILTER can appear in the Parameters
+  of a PUBLISH to inform the Subscriber of the initial Subscription parameters.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
