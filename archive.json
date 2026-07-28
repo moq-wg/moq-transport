@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-26T03:18:41.543435+00:00",
+  "timestamp": "2026-07-28T02:45:17.411421+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -52427,6 +52427,30 @@
       "updatedAt": "2026-07-24T14:19:04Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 1832,
+      "id": "I_kwDOG2Ho4M8AAAABKZ2c2g",
+      "title": "Publish Done should not depend on subscriber location filter",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1832",
+      "state": "OPEN",
+      "author": "mzanaty",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Publish Done defines a reason:\nSUBSCRIPTION_ENDED (0x3): The publisher reached the end of an associated location filter. \n\nThis seems wrong, especially since filters can be updated. Only the original publisher should be able to permanently end a track regardless of subscriber filters.",
+      "createdAt": "2026-07-27T23:14:14Z",
+      "updatedAt": "2026-07-28T01:44:07Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Thanks for bringing this to attention @mzanaty  .. PublishDone was not scoped to indicate when a filter ended and glad this was caught.",
+          "createdAt": "2026-07-28T01:44:07Z",
+          "updatedAt": "2026-07-28T01:44:07Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -210942,7 +210966,7 @@
       ],
       "body": "Empty Track Namespace and Track Name in a Redirect were overloaded to mean \"reuse the original request's values,\" which collides with a legitimately empty Full Track Name. Remove the reuse rule so the fields are always the literal values for the redirected request, and refer to them collectively as the Redirect target.\r\n\r\nAlternative to #1805\r\n\r\nFixes: #1793",
       "createdAt": "2026-07-22T07:38:08Z",
-      "updatedAt": "2026-07-22T19:59:17Z",
+      "updatedAt": "2026-07-26T15:16:50Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
@@ -210967,6 +210991,19 @@
           "createdAt": "2026-07-22T19:59:17Z",
           "updatedAt": "2026-07-22T19:59:17Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHQgKJQ",
+          "commit": {
+            "abbreviatedOid": "f9eb47a"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-26T15:16:50Z",
+          "updatedAt": "2026-07-26T15:16:50Z",
+          "comments": []
         }
       ]
     },
@@ -210984,7 +211021,7 @@
       ],
       "body": "Fixes #1352 ",
       "createdAt": "2026-07-22T08:25:26Z",
-      "updatedAt": "2026-07-24T06:36:58Z",
+      "updatedAt": "2026-07-26T11:15:00Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
@@ -210995,7 +211032,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Reading the Top-N filter PR, I think it's actually quite important we land this change, because it prevents us from being lazy when we pause a Track and saying we'll flip forward to 0.  Instead, we should typically should be specifying an End Location Filter or something similar to indicate the last Object the peer will receive.",
+          "createdAt": "2026-07-26T11:15:00Z",
+          "updatedAt": "2026-07-26T11:15:00Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M8AAAABG0Zn_g",
@@ -211098,16 +211143,18 @@
       "author": "mzanaty",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Filters"
+      ],
       "body": "Added Top Tracks Filter (was Track Filter in PR#1508 / PR#1401).",
       "createdAt": "2026-07-24T17:47:02Z",
-      "updatedAt": "2026-07-26T01:45:26Z",
+      "updatedAt": "2026-07-28T00:34:32Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
       "headRepository": "mzanaty/moq-transport",
       "headRefName": "patch-6",
-      "headRefOid": "3f7f058b01052d7070e0d07d75e3edb565dc41de",
+      "headRefOid": "b3c837de2674c7f1343b04a4285aab8b39a83ab6",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -211154,9 +211201,282 @@
           "body": "Publish Notify will indeed help to toggle Forward 1/0 when Selected/Deselected, cutting control traffic in half. ",
           "createdAt": "2026-07-25T14:01:17Z",
           "updatedAt": "2026-07-25T14:01:17Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "One thing I have recently realized is that for top-N to work, the relay most likely has to subscribe to all the original publishers without pausing or filtering (otherwise it risks getting incorrect view of top-N).  The PR should explain that, if it doesn't already.",
+          "createdAt": "2026-07-27T20:14:29Z",
+          "updatedAt": "2026-07-27T20:14:29Z"
+        },
+        {
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "1. For naming, do people prefer MaxSelectedTracks over MaxTopTracks? I'm agnostic, but included top since it's used in similar features of other protocols/tools. The setup option should match this, so if we change one we should sync both.\r\n2. For group boundaries, many apps would often update the property only on a new group, but there is no restriction. If the receiver gets an object mid-group and wants to start from 0, it can fetch. If zero latency joining fetch is needed, I suppose we could allow Fill in Sub Tracks to always ask for Current Group. But I'm not sure allowing Fill (or Location Filters) in Sub Tracks is a good idea.",
+          "createdAt": "2026-07-28T00:25:57Z",
+          "updatedAt": "2026-07-28T00:25:57Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHNvnLA",
+          "commit": {
+            "abbreviatedOid": "3f7f058"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "A few overall comments I didn't fix:\n1) The filter is now Top Tracks, which seems like a good name, but the PR talks about Top N still a lot.  It'd be clearer to say 'Top Tracks' for the filter and 'MaxSelectedTracks' for the field name.  If 'MaxSelectedTracks' is too long, I'd be fine with calling it 'MaxTracks' or something shorter.\n2) There's no mention of Group boundaries here, but in order to consume a Track, presumably you need to start at the beginning of a Group?  If Object 2 in a Group puts the Track in the Top Tracks, wouldn't you want to start at the beginning of the Group, not Object 2?",
+          "createdAt": "2026-07-25T10:53:50Z",
+          "updatedAt": "2026-07-26T11:47:27Z",
+          "comments": [
+            {
+              "originalPosition": 32,
+              "body": "We have a number of examples where we say we want the lowest or even 'top 5' and 'bottom 5' Tracks.  How about adding a way to do lowest N as well?  It seems like a tiny increase in implementation complexity and avoids people having to publish the same property in two different ways, which I think is the current solution to that problem?",
+              "createdAt": "2026-07-25T10:53:50Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 2,
+              "body": "Please separate out the Object filters from Track filters in this paragraph, because the only overlap is property filters and the way it's written now is confusing.",
+              "createdAt": "2026-07-26T01:30:58Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 15,
+              "body": "This line is particularly confusing and I think incorrect, because the previous sentence talks about Objects and the Top Tracks filter applies to Tracks, not Objects.",
+              "createdAt": "2026-07-26T01:36:00Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 33,
+              "body": "If a Property is both a Track and Object Property, the Object Property value overrides the Track Property value.\n\nUsing 'or' here is a bit confusing, because it could be that you're looking at both.  Please add a specific sentence about the case when you're looking at both.",
+              "createdAt": "2026-07-26T01:40:07Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 37,
+              "body": "```suggestion\nIt is encoded with a Length prefix in bytes. A length of 0 indicates\nno filter, which can be used to remove the filter in REQUEST_UPDATE.\n```",
+              "createdAt": "2026-07-26T01:42:57Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 52,
+              "body": "I would have expected this to be a part of the Top Tracks Filter, not a Track Property.  Is the reason to make it a Track Property just because you expect the Publisher to know better than the Subscriber?",
+              "createdAt": "2026-07-26T01:47:03Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 62,
+              "body": "```suggestion\nshown in the following diagram. Only Objects from selected\nTracks are published.\n```",
+              "createdAt": "2026-07-26T01:50:33Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 82,
+              "body": "```suggestion\n```",
+              "createdAt": "2026-07-26T01:51:31Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 93,
+              "body": "Presumably this will need updating once #1820 lands?  Also, wouldn't it commonly make more sense to add/set an End Location on the Location Filter, rather than setting Forward, so the subscriber knows when the Subscription was paused?",
+              "createdAt": "2026-07-26T11:04:54Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 86,
+              "body": "```suggestion\nA track is selected if it has published an object with one of the top\nMaxTopTracks highest values for Property Type.  The publisher\n```",
+              "createdAt": "2026-07-26T11:06:41Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 100,
+              "body": "If the Track is already paused and there's no need to ensure all the data arrived, then you can also reset the stream for the Subscription.",
+              "createdAt": "2026-07-26T11:20:57Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "I assumed you could update the MaxTopTracks, but can you update the Parameter as well?",
+              "createdAt": "2026-07-26T11:24:03Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 115,
+              "body": "```suggestion\nIf a Top Tracks Filter for a namespace overlaps with a SUBSCRIBE\n```",
+              "createdAt": "2026-07-26T11:26:09Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 118,
+              "body": "```suggestion\nto a track name in the same namespace, its state MUST NOT be modified\nby the Top Tracks Filter and it does not change the Top N computation.\nFor example, if the Track is not in the Top N, then the Subscriber will receive a total of\nN+1 Subscriptions from that Track Namespace.\n```",
+              "createdAt": "2026-07-26T11:29:21Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 122,
+              "body": "I don't know what this is saying?  Are you trying to be specific about which Objects will be received from a Subscription?  If so, I'd suggest specifying the Location Filter Start and End when a Track is selected/deselected.",
+              "createdAt": "2026-07-26T11:35:49Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 141,
+              "body": "```suggestion\nspecified Track or Object Property Type. This Property Type MUST be even, i.e. a single\n```",
+              "createdAt": "2026-07-26T11:38:54Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 144,
+              "body": "This paragraph doesn't say anything about the MAX TOP TRACKs Setup Option, so I wouldn't reference it here.\n\n```suggestion\nSee {{top-tracks-filters}}.\n```",
+              "createdAt": "2026-07-26T11:40:28Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 157,
+              "body": "```suggestion\nThe default value is 0, so if not specified, the peer MUST NOT send the\n```",
+              "createdAt": "2026-07-26T11:41:25Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            },
+            {
+              "originalPosition": 171,
+              "body": "1000ms seems like a short default timeout.  I'm not sure what the right default value is, but I'd expect is similar to the Group length?",
+              "createdAt": "2026-07-26T11:43:59Z",
+              "updatedAt": "2026-07-26T11:47:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHYop6w",
+          "commit": {
+            "abbreviatedOid": "3f7f058"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-27T19:07:13Z",
+          "updatedAt": "2026-07-27T19:07:13Z",
+          "comments": [
+            {
+              "originalPosition": 32,
+              "body": "I think it complicates upstream especially when subscribers need different views. My preference is to avoid it unless there is a strong use-case. \r\n",
+              "createdAt": "2026-07-27T19:07:13Z",
+              "updatedAt": "2026-07-27T19:07:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHapMtw",
+          "commit": {
+            "abbreviatedOid": "3f7f058"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-28T00:32:41Z",
+          "updatedAt": "2026-07-28T00:32:41Z",
+          "comments": [
+            {
+              "originalPosition": 32,
+              "body": "We can add Bottom N as an option in a later PR if people want it. I haven't heard strong demand for this, but we can ask.",
+              "createdAt": "2026-07-28T00:32:41Z",
+              "updatedAt": "2026-07-28T00:32:41Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 1831,
+      "id": "PR_kwDOG2Ho4M73FBLD",
+      "title": "Change the maximum Stream Count bound in PUBLISH_DONE to 2^64 - 1",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1831",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial & Minor Design"
+      ],
+      "body": "The current value (2^62-1) is a leftover from when we used QUIC varints.",
+      "createdAt": "2026-07-27T19:03:28Z",
+      "updatedAt": "2026-07-28T01:29:39Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
+      "headRepository": "vasilvv/warp-draft",
+      "headRefName": "fix-stream-count-bound",
+      "headRefOid": "8136c073381e710a09e33fdf46f3ab43f743ceaf",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "There actually can\u2019t be a stream count higher than 2^60 - 1, because you are fundamentally limited by the number of uni QUIC streams the peer can open, which is 2^62 / 4.\r\n\r\nI\u2019m going to assert that if the number is in excess of 2^60, or even 2^40, it\u2019s almost certainly a bug or an attack, and everyone\u2019s stack will wait for the timer and deliver pub done. 60 streams per second will get you 2^31 per year.\r\n\r\nThat said, if we want to remove ceiling entirely, I don\u2019t see any harm.",
+          "createdAt": "2026-07-28T01:29:39Z",
+          "updatedAt": "2026-07-28T01:29:39Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHYm1zQ",
+          "commit": {
+            "abbreviatedOid": "8136c07"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-27T19:04:24Z",
+          "updatedAt": "2026-07-27T19:04:24Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1833,
+      "id": "PR_kwDOG2Ho4M73Likb",
+      "title": "Remove PUBLISH_DONE reason SUBSCRIPTION_ENDED",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1833",
+      "state": "OPEN",
+      "author": "mzanaty",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #1832",
+      "createdAt": "2026-07-27T23:55:12Z",
+      "updatedAt": "2026-07-27T23:57:10Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
+      "headRepository": "mzanaty/moq-transport",
+      "headRefName": "patch-7",
+      "headRefOid": "c3db83c74d37e3f037b7ac872537fd36c683c8b5",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHaeI6A",
+          "commit": {
+            "abbreviatedOid": "f390f7c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-27T23:56:07Z",
+          "updatedAt": "2026-07-27T23:56:07Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
