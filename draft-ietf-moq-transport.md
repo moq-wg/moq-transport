@@ -1860,7 +1860,7 @@ number (N) of tracks within a namespace with the highest Property Values
 for a specified Track or Object Property Type which MUST be even, i.e.
 a single integer value (see {{moq-key-value-pair}}).
 
-It is encoded with a Length prefix in bytes which MAY be 0 to indicate
+It is encoded with a Length prefix in bytes. A length of 0 indicates
 no filter, which can be used to remove the filter in REQUEST_UPDATE.
 
 ~~~
