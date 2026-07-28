@@ -2476,7 +2476,8 @@ The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) uses Length-prefixed
 encoding. It MAY appear in a PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
 SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
 parameter conveys information to authorize the sender to perform the operation
-carrying the parameter.
+carrying the parameter. This Parameter MUST NOT be copied from a SUBSCRIBE_TRACKS
+to the resulting PUBLISH message Parameters.
 
 The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
@@ -3426,9 +3427,9 @@ PUBLISH Message {
   {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}. Parameters such
-  as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY, SUBGROUP_TIMEOUT, and OBJECT_TIMEOUT
-  appear in the Parameters of a PUBLISH to inform the Subscriber of the initial
-  Subscription parameters.
+  as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY, SUBGROUP_DELIVERY_TIMEOUT,
+  OBJECT_DELIVERY_TIMEOUT appear in the Parameters of a PUBLISH to inform the
+  Subscriber of the initial Subscription parameters.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
