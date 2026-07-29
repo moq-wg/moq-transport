@@ -2840,11 +2840,11 @@ MUST respond with REQUEST_ERROR with error code `PREFIX_OVERLAP`.
 The INCLUDE_PROPERTIES parameter (Parameter Type 0x35) is a uint8. It MAY appear
 in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS. It specifies whether the
 OK message sent in response includes Track Properties or whether the resulting PUBLISH
-messages include Track Properties in the case of SUBSCRIBE_TRACKS. The Track Properties
-are still present in the message, but they SHOULD be empty. The allowed
-values are 0 (do not send Properties) or 1 (send Properties), and the default is 1.
-If an endpoint receives a value outside this range, it MUST close the session
-with `PROTOCOL_VIOLATION`.
+messages include Track Properties in the case of SUBSCRIBE_TRACKS. If INCLUDE_PROPERTIES
+is 0, the Track Properties are still present in the message, but they SHOULD be empty.
+The allowed values are 0 (do not send Properties) or 1 (send Properties), and the
+default is 1. If an endpoint receives a value outside this range, it MUST close the
+session with `PROTOCOL_VIOLATION`.
 
 ## SETUP {#message-setup}
 
