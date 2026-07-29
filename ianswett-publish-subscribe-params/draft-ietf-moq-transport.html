@@ -69,7 +69,6 @@ agnostic and can be used for a wide range of use cases.
   src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: italic;
@@ -118,7 +117,6 @@ agnostic and can be used for a wide range of use cases.
   src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: normal;
@@ -183,7 +181,6 @@ agnostic and can be used for a wide range of use cases.
   font-display: swap;
   src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
 }
 
 @font-face {
@@ -1056,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 29 January 2027</td>
+<td class="center">Expires 30 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-07-28" class="published">28 July 2026</time>
+<time datetime="2026-07-29" class="published">29 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-01-29">29 January 2027</time></dd>
+<dd class="expires"><time datetime="2027-01-30">30 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 29 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 30 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1513,6 +1510,9 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2.2.19">
                     <p id="section-toc.1-1.10.2.2.2.19.1"><a href="#section-10.2.19" class="auto internal xref">10.2.19</a>. <a href="#name-track_namespace_prefix-para" class="internal xref">TRACK_NAMESPACE_PREFIX Parameter</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2.2.20">
+                    <p id="section-toc.1-1.10.2.2.2.20.1"><a href="#section-10.2.20" class="auto internal xref">10.2.20</a>. <a href="#name-include_properties-paramete" class="internal xref">INCLUDE_PROPERTIES Parameter</a></p>
 </li>
                 </ul>
 </li>
@@ -3660,8 +3660,8 @@ if it receives more than one.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
 <p id="section-5.1-5">All <code>Established</code> subscriptions have a Forward State which is either 0 or 1.
 The publisher does not send Objects if the Forward State is 0, and does send them
 if the Forward State is 1.  The initiator of the subscription sets the initial
-Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_OK
-or REQUEST_UPDATE to update the Forward State. Control messages, such as
+Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send
+REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 10.11</a>) are sent regardless of the forward state.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
 <p id="section-5.1-6">A publisher <span class="bcp14">MUST</span> save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
 or REQUEST_UPDATE_OK that changes the Forward State
@@ -3694,7 +3694,7 @@ incurring additional latency.<a href="#section-5.1-11" class="pilcrow">¶</a></p
 <p id="section-5.1-12">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with REQUEST_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
+with REQUEST_ERROR or sets Forward=0 in REQUEST_UPDATE. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 <a href="#datagrams" class="auto internal xref">Section 11.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 11.4.2</a>).<a href="#section-5.1-12" class="pilcrow">¶</a></p>
 <div id="subscription-state-management">
@@ -3814,7 +3814,7 @@ where each SetID=i is the AND of filters with SetID=i.<a href="#section-5.1.3-5"
 <p id="section-5.1.3-6">The Track Property filter parameter <span class="bcp14">MAY</span> appear multiple times in a
 SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
 All other filter parameters <span class="bcp14">MAY</span> appear multiple times in a FETCH, SUBSCRIBE,
-SUBSCRIBE_TRACKS, PUBLISH_OK, or REQUEST_UPDATE (on a subscription, from the subscriber only)
+SUBSCRIBE_TRACKS, or REQUEST_UPDATE (on a subscription, from the subscriber only)
 message.  If the same combination of Parameter Type, SetID, and Property Type
 (only in the Track and Object Property Filters) repeat in any message,
 an endpoint <span class="bcp14">MUST</span> reject this with REQUEST_ERROR with error code INVALID_FILTER.<a href="#section-5.1.3-6" class="pilcrow">¶</a></p>
@@ -3864,7 +3864,7 @@ Pass = Forward AND Location Filters AND Range Filters
 is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.<a href="#section-5.1.5-1" class="pilcrow">¶</a></p>
-<p id="section-5.1.5-2">To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
+<p id="section-5.1.5-2">To join a Track at a past Group, the subscriber sends a SUBSCRIBE or
 REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
 <a href="#joining-fetches" class="auto internal xref">Section 10.12.2</a>) for the intended start Group, which can be relative.
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
@@ -4461,8 +4461,8 @@ to the old relay can be cancelled (see <a href="#request-cancellation" class="au
 <ol start="1" type="1" class="normal type-1" id="section-9.5-2">
 <li id="section-9.5-2.1">
             <p id="section-9.5-2.1.1">Send a PUBLISH message for a specific Track to the relay. The relay <span class="bcp14">MAY</span>
-respond with PUBLISH_OK in Forward State=0 until there are known subscribers for
-new Tracks.<a href="#section-9.5-2.1.1" class="pilcrow">¶</a></p>
+pause the Subscription with REQUEST_UPDATE in Forward State=0 until there are
+known subscribers for new Tracks.<a href="#section-9.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-9.5-2.2">
             <p id="section-9.5-2.2.1">Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
@@ -4524,7 +4524,8 @@ send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
 matching subscription.  When it receives an authorized PUBLISH message for a
 Track that has <code>Established</code> downstream subscriptions, it <span class="bcp14">MUST</span> respond with
 PUBLISH_OK.  If at least one downstream subscriber for the Track has
-Forward State=1, the Relay <span class="bcp14">MUST</span> use Forward State=1 in the reply.<a href="#section-9.5-12" class="pilcrow">¶</a></p>
+Forward State=1, the Relay <span class="bcp14">MUST</span> change the Forward State to 1 with
+REQUEST_UPDATE.<a href="#section-9.5-12" class="pilcrow">¶</a></p>
 <p id="section-9.5-13">If a Session is closed due to an unknown or invalid control message or Object,
 the Relay <span class="bcp14">MUST NOT</span> propagate that message or Object to another Session, because
 it would enable a single Session error to force an unrelated Session, which
@@ -4826,7 +4827,7 @@ unexpected duplicate parameters and close the session with <code>PROTOCOL_VIOLAT
 if found.<a href="#section-10.2-8" class="pilcrow">¶</a></p>
 <p id="section-10.2-9">The number of Message Parameters is not specifically limited, but the total
 length of a control message is limited to 2^16-1 bytes.<a href="#section-10.2-9" class="pilcrow">¶</a></p>
-<p id="section-10.2-10">Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the
+<p id="section-10.2-10">Message Parameters in SUBSCRIBE and FETCH <span class="bcp14">MUST NOT</span> cause the
 publisher to alter the payload of the objects it sends, as that would violate
 the track uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.4.3</a>.<a href="#section-10.2-10" class="pilcrow">¶</a></p>
 <div id="parameter-scope">
@@ -4992,7 +4993,7 @@ that alias has not received a response.<a href="#section-10.2.2-18" class="pilcr
 <a href="#section-10.2.3" class="section-number selfRef">10.2.3. </a><a href="#name-subgroup_delivery_timeout-p" class="section-name selfRef">SUBGROUP_DELIVERY_TIMEOUT Parameter</a>
           </h4>
 <p id="section-10.2.3-1">The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a varint. It
-<span class="bcp14">MAY</span> appear in a PUBLISH_OK, SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
+<span class="bcp14">MAY</span> appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
 semantics are defined in <a href="#delivery-timeouts" class="auto internal xref">Section 8</a>.<a href="#section-10.2.3-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.3-2">This parameter is intended to be specific to a subscription, so it <span class="bcp14">SHOULD NOT</span>
 be forwarded upstream by a relay that intends to serve multiple subscriptions
@@ -5005,7 +5006,7 @@ for the same track.<a href="#section-10.2.3-2" class="pilcrow">¶</a></p>
 <a href="#section-10.2.4" class="section-number selfRef">10.2.4. </a><a href="#name-object_delivery_timeout-par" class="section-name selfRef">OBJECT_DELIVERY_TIMEOUT Parameter</a>
           </h4>
 <p id="section-10.2.4-1">The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a varint. It
-<span class="bcp14">MAY</span> appear in a PUBLISH_OK, SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
+<span class="bcp14">MAY</span> appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
 semantics are defined in <a href="#delivery-timeouts" class="auto internal xref">Section 8</a>.<a href="#section-10.2.4-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.4-2">This parameter is intended to be specific to a subscription, so it <span class="bcp14">SHOULD NOT</span>
 be forwarded upstream by a relay that intends to serve multiple subscriptions
@@ -5067,12 +5068,11 @@ code DOES_NOT_EXIST if no publisher is available<a href="#section-10.2.6-5" clas
 <a href="#section-10.2.7" class="section-number selfRef">10.2.7. </a><a href="#name-subscriber-priority-paramet" class="section-name selfRef">SUBSCRIBER PRIORITY Parameter</a>
           </h4>
 <p id="section-10.2.7-1">The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It <span class="bcp14">MAY</span>
-appear in a SUBSCRIBE, PUBLISH, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
-or PUBLISH_OK message. It is an integer expressing the priority of a
+appear in a SUBSCRIBE, PUBLISH, FETCH, or REQUEST_UPDATE
+(for a subscription or FETCH). It is an integer expressing the priority of a
 subscription relative to other subscriptions and fetch responses in the same
 session. Lower numbers get higher priority. See <a href="#priorities" class="auto internal xref">Section 7</a>.<a href="#section-10.2.7-1" class="pilcrow">¶</a></p>
-<p id="section-10.2.7-2">If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
-the value 128.<a href="#section-10.2.7-2" class="pilcrow">¶</a></p>
+<p id="section-10.2.7-2">If omitted from SUBSCRIBE or FETCH, the publisher uses the value 128.<a href="#section-10.2.7-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="group-order">
@@ -5097,9 +5097,9 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).<a h
 <a href="#section-10.2.9" class="section-number selfRef">10.2.9. </a><a href="#name-location-filter-parameter" class="section-name selfRef">LOCATION FILTER Parameter</a>
           </h4>
 <p id="section-10.2.9-1">The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It <span class="bcp14">MAY</span> appear in a SUBSCRIBE, PUBLISH, PUBLISH_OK or REQUEST_UPDATE
-(for a subscription) message. It is a Location Filter (see <a href="#location-filters" class="auto internal xref">Section 5.1.2</a>).<a href="#section-10.2.9-1" class="pilcrow">¶</a></p>
-<p id="section-10.2.9-2">If omitted from SUBSCRIBE, PUBLISH, or PUBLISH_OK, the subscription is
+encoding. It <span class="bcp14">MAY</span> appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE (for a
+subscription) message. It is a Location Filter (see <a href="#location-filters" class="auto internal xref">Section 5.1.2</a>).<a href="#section-10.2.9-1" class="pilcrow">¶</a></p>
+<p id="section-10.2.9-2">If omitted from SUBSCRIBE, the subscription is
 unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.<a href="#section-10.2.9-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -5211,7 +5211,7 @@ PUBLISH, or REQUEST_UPDATE_OK<a href="#section-10.2.16-4.1.1" class="pilcrow">¶
           </h4>
 <p id="section-10.2.17-1">The FORWARD parameter (Parameter Type 0x10) is a uint8. It <span class="bcp14">MAY</span> appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
-PUBLISH, PUBLISH_OK and SUBSCRIBE_TRACKS. It specifies the Forwarding State on
+PUBLISH and SUBSCRIBE_TRACKS. It specifies the Forwarding State on
 affected subscriptions (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>). The allowed values are 0 (don't
 forward) or 1 (forward). If an endpoint receives a value outside this range, it
 <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.17-1" class="pilcrow">¶</a></p>
@@ -5229,10 +5229,10 @@ message, the default value is 1.<a href="#section-10.2.17-3" class="pilcrow">¶<
 <a href="#section-10.2.18" class="section-number selfRef">10.2.18. </a><a href="#name-new-group-request-parameter" class="section-name selfRef">NEW GROUP REQUEST Parameter</a>
           </h4>
 <p id="section-10.2.18-1">The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint. It <span class="bcp14">MAY</span> appear
-in PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
+in SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber <span class="bcp14">MUST NOT</span> send
-this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
+this parameter in REQUEST_UPDATE if the Track did not
 include the DYNAMIC_GROUPS Property with value 1.  A subscriber <span class="bcp14">MAY</span>
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
@@ -5276,6 +5276,21 @@ for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It updates the Track
 Namespace Prefix for that subscription.  If the new prefix would share a common prefix with
 another active subscription of the same type in the same session, the receiver
 <span class="bcp14">MUST</span> respond with REQUEST_ERROR with error code <code>PREFIX_OVERLAP</code>.<a href="#section-10.2.19-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="include-properties-param">
+<section id="section-10.2.20">
+          <h4 id="name-include_properties-paramete">
+<a href="#section-10.2.20" class="section-number selfRef">10.2.20. </a><a href="#name-include_properties-paramete" class="section-name selfRef">INCLUDE_PROPERTIES Parameter</a>
+          </h4>
+<p id="section-10.2.20-1">The INCLUDE_PROPERTIES parameter (Parameter Type 0x35) is a uint8. It <span class="bcp14">MAY</span> appear
+in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS. It specifies whether the
+OK message sent in response includes Track Properties or whether the resulting PUBLISH
+messages include Track Properties in the case of SUBSCRIBE_TRACKS. If INCLUDE_PROPERTIES
+is 0, the Track Properties are still present in the message, but they <span class="bcp14">SHOULD</span> be empty.
+The allowed values are 0 (do not send Properties) or 1 (send Properties), and the
+default is 1. If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span> close the
+session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.20-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -6129,7 +6144,7 @@ streams received.  The subscriber can immediately remove all subscription state
 once the same number of streams have been processed.  If the publisher did not open any streams
 for this subscription, the publisher <span class="bcp14">MUST</span> set Stream Count to 0.  If
 the publisher is unable to set Stream Count to the exact number of streams
-opened for the subscription, it <span class="bcp14">MUST</span> set Stream Count to 2^62 - 1. Subscribers
+opened for the subscription, it <span class="bcp14">MUST</span> set Stream Count to 2^64 - 1. Subscribers
 <span class="bcp14">SHOULD</span> use a timeout or other mechanism to remove subscription state in case
 the publisher set an incorrect value, reset a stream before the SUBGROUP_HEADER,
 or set the maximum value.  If a subscriber receives more streams for a
@@ -7778,7 +7793,7 @@ close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-12.5-2"
 <p id="section-12.6-1">DYNAMIC_GROUPS (Property Type 0x30) is a Track Property.
 The allowed values are 0 or 1. When the value is 1, it indicates
 that the subscriber can request the Original Publisher to start a new Group
-by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
+by including the NEW_GROUP_REQUEST parameter in REQUEST_UPDATE
 for this Track. If an endpoint receives a value larger than 1, it <span class="bcp14">MUST</span> close
 the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-12.6-1" class="pilcrow">¶</a></p>
 <p id="section-12.6-2">If omitted, the value is 0.<a href="#section-12.6-2" class="pilcrow">¶</a></p>
