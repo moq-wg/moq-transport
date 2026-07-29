@@ -1523,8 +1523,7 @@ indicating to the publisher which Objects to send.  Subscriptions without a
 filter pass all Objects published or received via upstream subscriptions.
 
 A Location filter specifies an inclusive range of Locations.  Only objects
-published or received via a subscription having Locations within the inclusive range
-pass the filter.
+with Locations within the inclusive range pass the filter.
 
 Some Location filters are defined to be relative to the `Largest Object` which is
 communicated in SUBSCRIBE_OK.  The `Largest Object` is the Object with the
