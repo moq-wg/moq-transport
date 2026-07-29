@@ -1511,6 +1511,9 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2.2.19">
                     <p id="section-toc.1-1.10.2.2.2.19.1"><a href="#section-10.2.19" class="auto internal xref">10.2.19</a>. <a href="#name-track_namespace_prefix-para" class="internal xref">TRACK_NAMESPACE_PREFIX Parameter</a></p>
 </li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2.2.20">
+                    <p id="section-toc.1-1.10.2.2.2.20.1"><a href="#section-10.2.20" class="auto internal xref">10.2.20</a>. <a href="#name-include_properties-paramete" class="internal xref">INCLUDE_PROPERTIES Parameter</a></p>
+</li>
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3">
@@ -5272,6 +5275,21 @@ for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It updates the Track
 Namespace Prefix for that subscription.  If the new prefix would share a common prefix with
 another active subscription of the same type in the same session, the receiver
 <span class="bcp14">MUST</span> respond with REQUEST_ERROR with error code <code>PREFIX_OVERLAP</code>.<a href="#section-10.2.19-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="include-properties-param">
+<section id="section-10.2.20">
+          <h4 id="name-include_properties-paramete">
+<a href="#section-10.2.20" class="section-number selfRef">10.2.20. </a><a href="#name-include_properties-paramete" class="section-name selfRef">INCLUDE_PROPERTIES Parameter</a>
+          </h4>
+<p id="section-10.2.20-1">The INCLUDE_PROPERTIES parameter (Parameter Type 0x35) is a uint8. It <span class="bcp14">MAY</span> appear
+in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS. It specifies whether the
+OK message sent in response includes Track Properties or whether the resulting PUBLISH
+messages include Track Properties in the case of SUBSCRIBE_TRACKS. If INCLUDE_PROPERTIES
+is 0, the Track Properties are still present in the message, but they <span class="bcp14">SHOULD</span> be empty.
+The allowed values are 0 (do not send Properties) or 1 (send Properties), and the
+default is 1. If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span> close the
+session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.20-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
