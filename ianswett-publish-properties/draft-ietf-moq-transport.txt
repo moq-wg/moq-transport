@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 23 January 2027                                   I. Swett, Ed.
+Expires: 30 January 2027                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            22 July 2026
+                                                            29 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 January 2027.
+   This Internet-Draft will expire on 30 January 2027.
 
 Copyright Notice
 
@@ -3884,7 +3884,7 @@ Range { Start, [End] }
       did not open any streams for this subscription, the publisher MUST
       set Stream Count to 0.  If the publisher is unable to set Stream
       Count to the exact number of streams opened for the subscription,
-      it MUST set Stream Count to 2^62 - 1.  Subscribers SHOULD use a
+      it MUST set Stream Count to 2^64 - 1.  Subscribers SHOULD use a
       timeout or other mechanism to remove subscription state in case
       the publisher set an incorrect value, reset a stream before the
       SUBGROUP_HEADER, or set the maximum value.  If a subscriber
