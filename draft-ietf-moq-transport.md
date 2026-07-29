@@ -2193,7 +2193,7 @@ to the old relay can be cancelled (see {{request-cancellation}}).
 There are two ways to publish through a relay:
 
 1. Send a PUBLISH message for a specific Track to the relay. The relay MAY
-update the Subscription with REQUEST_UPDATE in Forward State=0 until there are
+pause the Subscription with REQUEST_UPDATE in Forward State=0 until there are
 known subscribers for new Tracks.
 
 2. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
