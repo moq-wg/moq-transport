@@ -1715,8 +1715,8 @@ Table of Contents
    or 1.  The publisher does not send Objects if the Forward State is 0,
    and does send them if the Forward State is 1.  The initiator of the
    subscription sets the initial Forward State in either PUBLISH or
-   SUBSCRIBE.  The subscriber can send PUBLISH_OK or REQUEST_UPDATE to
-   update the Forward State.  Control messages, such as PUBLISH_DONE
+   SUBSCRIBE.  The subscriber can send REQUEST_UPDATE to update the
+   Forward State.  Control messages, such as PUBLISH_DONE
    (Section 10.11) are sent regardless of the forward state.
 
    A publisher MUST save the Largest Location communicated in
@@ -1758,7 +1758,7 @@ Table of Contents
    subscriptions before receiving a PUBLISH_OK response to reduce
    latency.  Doing so can consume unnecessary resources in cases where
    the Subscriber rejects the subscription with REQUEST_ERROR or sets
-   Forward State=0 in PUBLISH_OK.  It can also result in the Subscriber
+   Forward=0 in REQUEST_UPDATE.  It can also result in the Subscriber
    dropping Objects if its buffering limits are exceeded (see
    Section 11.3 and Section 11.4.2).
 
@@ -1890,11 +1890,11 @@ Range { Start, [End] }
    The Track Property filter parameter MAY appear multiple times in a
    SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.  All other filter
    parameters MAY appear multiple times in a FETCH, SUBSCRIBE,
-   SUBSCRIBE_TRACKS, PUBLISH_OK, or REQUEST_UPDATE (on a subscription,
-   from the subscriber only) message.  If the same combination of
-   Parameter Type, SetID, and Property Type (only in the Track and
-   Object Property Filters) repeat in any message, an endpoint MUST
-   reject this with REQUEST_ERROR with error code INVALID_FILTER.
+   SUBSCRIBE_TRACKS, or REQUEST_UPDATE (on a subscription, from the
+   subscriber only) message.  If the same combination of Parameter Type,
+   SetID, and Property Type (only in the Track and Object Property
+   Filters) repeat in any message, an endpoint MUST reject this with
+   REQUEST_ERROR with error code INVALID_FILTER.
 
    In REQUEST_UPDATE, Length can be 0 to remove a filter parameter or
    non-zero to replace that entire filter parameter including all sets
@@ -1937,11 +1937,11 @@ Range { Start, [End] }
    Group.  Different applications will have different approaches for
    when to begin a new Group.
 
-   To join a Track at a past Group, the subscriber sends a SUBSCRIBE,
-   PUBLISH_OK or REQUEST_UPDATE with Forward State 1 followed by a
-   Joining FETCH (see Section 10.12.2) for the intended start Group,
-   which can be relative.  To join a Track at the next Group, the
-   subscriber sends a SUBSCRIBE with Filter Type Next Group Start.
+   To join a Track at a past Group, the subscriber sends a SUBSCRIBE or
+   REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
+   Section 10.12.2) for the intended start Group, which can be relative.
+   To join a Track at the next Group, the subscriber sends a SUBSCRIBE
+   with Filter Type Next Group Start.
 
 5.1.5.1.  Dynamically Starting New Groups
 
@@ -2513,8 +2513,8 @@ Range { Start, [End] }
    There are two ways to publish through a relay:
 
    1.  Send a PUBLISH message for a specific Track to the relay.  The
-       relay MAY respond with PUBLISH_OK in Forward State=0 until there
-       are known subscribers for new Tracks.
+       relay MAY pause the Subscription with REQUEST_UPDATE in Forward
+       State=0 until there are known subscribers for new Tracks.
 
    2.  Send a PUBLISH_NAMESPACE message for a Track Namespace to the
        relay.  This enables the relay to send SUBSCRIBE or FETCH
@@ -2590,7 +2590,7 @@ Range { Start, [End] }
    an authorized PUBLISH message for a Track that has Established
    downstream subscriptions, it MUST respond with PUBLISH_OK.  If at
    least one downstream subscriber for the Track has Forward State=1,
-   the Relay MUST use Forward State=1 in the reply.
+   the Relay MUST change the Forward State to 1 with REQUEST_UPDATE.
 
    If a Session is closed due to an unknown or invalid control message
    or Object, the Relay MUST NOT propagate that message or Object to
@@ -2787,10 +2787,9 @@ Range { Start, [End] }
    The number of Message Parameters is not specifically limited, but the
    total length of a control message is limited to 2^16-1 bytes.
 
-   Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause
-   the publisher to alter the payload of the objects it sends, as that
-   would violate the track uniqueness guarantee described in
-   Section 2.4.3.
+   Message Parameters in SUBSCRIBE and FETCH MUST NOT cause the
+   publisher to alter the payload of the objects it sends, as that would
+   violate the track uniqueness guarantee described in Section 2.4.3.
 
 10.2.1.  Parameter Scope
 
@@ -2942,8 +2941,8 @@ Range { Start, [End] }
 10.2.3.  SUBGROUP_DELIVERY_TIMEOUT Parameter
 
    The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a
-   varint.  It MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE
-   message.  Its semantics are defined in Section 8.
+   varint.  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
+   semantics are defined in Section 8.
 
    This parameter is intended to be specific to a subscription, so it
    SHOULD NOT be forwarded upstream by a relay that intends to serve
@@ -2952,8 +2951,8 @@ Range { Start, [End] }
 10.2.4.  OBJECT_DELIVERY_TIMEOUT Parameter
 
    The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a
-   varint.  It MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE
-   message.  Its semantics are defined in Section 8.
+   varint.  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
+   semantics are defined in Section 8.
 
    This parameter is intended to be specific to a subscription, so it
    SHOULD NOT be forwarded upstream by a relay that intends to serve
@@ -3016,14 +3015,12 @@ Range { Start, [End] }
 10.2.7.  SUBSCRIBER PRIORITY Parameter
 
    The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8.
-   It MAY appear in a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a
-   subscription or FETCH), or PUBLISH_OK message.  It is an integer
-   expressing the priority of a subscription relative to other
-   subscriptions and fetch responses in the same session.  Lower numbers
-   get higher priority.  See Section 7.
+   It MAY appear in a SUBSCRIBE, FETCH, or REQUEST_UPDATE (for a
+   subscription or FETCH).  It is an integer expressing the priority of
+   a subscription relative to other subscriptions and fetch responses in
+   the same session.  Lower numbers get higher priority.  See Section 7.
 
-   If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
-   the value 128.
+   If omitted from SUBSCRIBE or FETCH, the publisher uses the value 128.
 
 10.2.8.  GROUP ORDER Parameter
 
@@ -3044,12 +3041,12 @@ Range { Start, [End] }
 10.2.9.  LOCATION FILTER Parameter
 
    The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-
-   prefixed encoding.  It MAY appear in a SUBSCRIBE, PUBLISH_OK or
-   REQUEST_UPDATE (for a subscription) message.  It is a Location Filter
-   (see Section 5.1.2).
+   prefixed encoding.  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE
+   (for a subscription) message.  It is a Location Filter (see
+   Section 5.1.2).
 
-   If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
-   unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
+   If omitted from SUBSCRIBE, the subscription is unfiltered.  If
+   omitted from REQUEST_UPDATE, the value is unchanged.
 
 10.2.10.  SUBGROUP FILTER Parameter
 
@@ -3132,8 +3129,8 @@ Range { Start, [End] }
 
    The FORWARD parameter (Parameter Type 0x10) is a uint8.  It MAY
    appear in SUBSCRIBE, REQUEST_UPDATE (for a subscription or a
-   SUBSCRIBE_TRACKS request), PUBLISH, PUBLISH_OK and SUBSCRIBE_TRACKS.
-   It specifies the Forwarding State on affected subscriptions (see
+   SUBSCRIBE_TRACKS request), PUBLISH and SUBSCRIBE_TRACKS.  It
+   specifies the Forwarding State on affected subscriptions (see
    Section 5.1).  The allowed values are 0 (don't forward) or 1
    (forward).  If an endpoint receives a value outside this range, it
    MUST close the session with PROTOCOL_VIOLATION.
@@ -3149,15 +3146,15 @@ Range { Start, [End] }
 10.2.18.  NEW GROUP REQUEST Parameter
 
    The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint.
-   It MAY appear in PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a
-   subscription.  It represents the largest Group ID in the Track known
-   by the subscriber, plus 1.  A value of 0 indicates that the
-   subscriber has no Group information for the Track.  A subscriber MUST
-   NOT send this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track
-   did not include the DYNAMIC_GROUPS Property with value 1.  A
-   subscriber MAY include this parameter in SUBSCRIBE without
-   foreknowledge of support.  If the original publisher does not support
-   dynamic Groups, it ignores the parameter in that case.
+   It MAY appear in SUBSCRIBE or REQUEST_UPDATE for a subscription.  It
+   represents the largest Group ID in the Track known by the subscriber,
+   plus 1.  A value of 0 indicates that the subscriber has no Group
+   information for the Track.  A subscriber MUST NOT send this parameter
+   in REQUEST_UPDATE if the Track did not include the DYNAMIC_GROUPS
+   Property with value 1.  A subscriber MAY include this parameter in
+   SUBSCRIBE without foreknowledge of support.  If the original
+   publisher does not support dynamic Groups, it ignores the parameter
+   in that case.
 
    When an Original Publisher that supports dynamic Groups receives a
    NEW_GROUP_REQUEST with a value of 0 or a value larger than the
@@ -3208,11 +3205,12 @@ Range { Start, [End] }
    It MAY appear in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS.
    It specifies whether the OK message sent in response includes Track
    Properties or whether the resulting PUBLISH messages include Track
-   Properties in the case of SUBSCRIBE_TRACKS.  The Track Properties are
-   still present in the message, but they SHOULD be empty.  The allowed
-   values are 0 (do not send Properties) or 1 (send Properties), and the
-   default is 1.  If an endpoint receives a value outside this range, it
-   MUST close the session with PROTOCOL_VIOLATION.
+   Properties in the case of SUBSCRIBE_TRACKS.  If INCLUDE_PROPERTIES is
+   0, the Track Properties are still present in the message, but they
+   SHOULD be empty.  The allowed values are 0 (do not send Properties)
+   or 1 (send Properties), and the default is 1.  If an endpoint
+   receives a value outside this range, it MUST close the session with
+   PROTOCOL_VIOLATION.
 
 10.3.  SETUP
 
@@ -5272,9 +5270,9 @@ Range { Start, [End] }
    DYNAMIC_GROUPS (Property Type 0x30) is a Track Property.  The allowed
    values are 0 or 1.  When the value is 1, it indicates that the
    subscriber can request the Original Publisher to start a new Group by
-   including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or
-   REQUEST_UPDATE for this Track.  If an endpoint receives a value
-   larger than 1, it MUST close the session with PROTOCOL_VIOLATION.
+   including the NEW_GROUP_REQUEST parameter in REQUEST_UPDATE for this
+   Track.  If an endpoint receives a value larger than 1, it MUST close
+   the session with PROTOCOL_VIOLATION.
 
    If omitted, the value is 0.
 
