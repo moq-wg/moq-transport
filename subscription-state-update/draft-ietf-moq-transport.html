@@ -69,7 +69,6 @@ agnostic and can be used for a wide range of use cases.
   src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: italic;
@@ -118,7 +117,6 @@ agnostic and can be used for a wide range of use cases.
   src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: normal;
@@ -183,7 +181,6 @@ agnostic and can be used for a wide range of use cases.
   font-display: swap;
   src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
 }
 
 @font-face {
@@ -1056,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 22 January 2027</td>
+<td class="center">Expires 31 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-07-21" class="published">21 July 2026</time>
+<time datetime="2026-07-30" class="published">30 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-01-22">22 January 2027</time></dd>
+<dd class="expires"><time datetime="2027-01-31">31 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 22 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 31 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1514,6 +1511,9 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2.2.19">
                     <p id="section-toc.1-1.10.2.2.2.19.1"><a href="#section-10.2.19" class="auto internal xref">10.2.19</a>. <a href="#name-track_namespace_prefix-para" class="internal xref">TRACK_NAMESPACE_PREFIX Parameter</a></p>
 </li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2.2.20">
+                    <p id="section-toc.1-1.10.2.2.2.20.1"><a href="#section-10.2.20" class="auto internal xref">10.2.20</a>. <a href="#name-include_properties-paramete" class="internal xref">INCLUDE_PROPERTIES Parameter</a></p>
+</li>
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3">
@@ -1559,7 +1559,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.10">
-                <p id="section-toc.1-1.10.2.10.1"><a href="#section-10.10" class="auto internal xref">10.10</a>. <a href="#name-subscription_state_update" class="internal xref">SUBSCRIPTION_STATE_UPDATE</a></p>
+                <p id="section-toc.1-1.10.2.10.1"><a href="#section-10.10" class="auto internal xref">10.10</a>. <a href="#name-publish_notify" class="internal xref">PUBLISH_NOTIFY</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.11">
                 <p id="section-toc.1-1.10.2.11.1"><a href="#section-10.11" class="auto internal xref">10.11</a>. <a href="#name-publish" class="internal xref">PUBLISH</a></p>
@@ -1712,7 +1712,13 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.13.2.3.1"><a href="#section-13.3" class="auto internal xref">13.3</a>.  <a href="#name-authorization" class="internal xref">Authorization</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3.2.1">
-                    <p id="section-toc.1-1.13.2.3.2.1.1"><a href="#section-13.3.1" class="auto internal xref">13.3.1</a>.  <a href="#name-replay-attacks" class="internal xref">Replay Attacks</a></p>
+                    <p id="section-toc.1-1.13.2.3.2.1.1"><a href="#section-13.3.1" class="auto internal xref">13.3.1</a>.  <a href="#name-mutual-tls" class="internal xref">Mutual TLS</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3.2.2">
+                    <p id="section-toc.1-1.13.2.3.2.2.1"><a href="#section-13.3.2" class="auto internal xref">13.3.2</a>.  <a href="#name-replay-attacks" class="internal xref">Replay Attacks</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3.2.3">
+                    <p id="section-toc.1-1.13.2.3.2.3.1"><a href="#section-13.3.3" class="auto internal xref">13.3.3</a>.  <a href="#name-preventing-impersonation" class="internal xref">Preventing Impersonation</a></p>
 </li>
                 </ul>
 </li>
@@ -1743,6 +1749,9 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.8">
                 <p id="section-toc.1-1.13.2.8.1"><a href="#section-13.8" class="auto internal xref">13.8</a>.  <a href="#name-implementation-identificati" class="internal xref">Implementation Identification Fingerprinting</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.9">
+                <p id="section-toc.1-1.13.2.9.1"><a href="#section-13.9" class="auto internal xref">13.9</a>.  <a href="#name-logging-of-untrusted-string" class="internal xref">Logging of Untrusted String Fields</a></p>
 </li>
             </ul>
 </li>
@@ -2750,7 +2759,7 @@ require the scope to include all of those CDNs.<a href="#section-2.4.3-1" class=
 beginning of the session. Unless the application has additional information,
 two tracks are assumed to belong to the same scope if and only if the authority
 and the path values are equal. The authority and the path values are
-communicated through the CLIENT_SETUP message in case of raw QUIC, and through
+communicated through the SETUP message in case of raw QUIC, and through
 HTTP request header fields in case of WebTransport.<a href="#section-2.4.3-2" class="pilcrow">¶</a></p>
 <p id="section-2.4.3-3">Because each Full Track Name is unique within an MOQT scope, they can be used as
 a cache key for the track. If, at a given moment in time, two tracks within the
@@ -2972,18 +2981,37 @@ Types" registry (<a href="#iana-fragment-types" class="auto internal xref">Secti
           </h4>
 <p id="section-3.1.3-1">The default operation for dereferencing a <code>moqt</code> URI is to establish a
 MOQT session to the identified server.<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.1.3-2">TODO: Add URI scheme security considerations per RFC 7595 Section 3.7
-(e.g., authority in SNI, path/query exposure).<a href="#section-3.1.3-2" class="pilcrow">¶</a></p>
-<p id="section-3.1.3-3">TODO: Add internationalization statement per RFC 7595 Section 3.6.<a href="#section-3.1.3-3" class="pilcrow">¶</a></p>
-<p id="section-3.1.3-4">If the port is omitted in the URI, a default port of 443 is used.<a href="#section-3.1.3-4" class="pilcrow">¶</a></p>
-<p id="section-3.1.3-5">The client <span class="bcp14">MAY</span> use either native QUIC or WebTransport. On a QUIC connection,
+<p id="section-3.1.3-2">The <code>moqt</code> URI scheme has the following security considerations:<a href="#section-3.1.3-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.1.3-3.1">
+              <p id="section-3.1.3-3.1.1">The <code>authority</code> component is sent in the TLS SNI extension during
+connection establishment, exposing the target server identity to
+on-path observers. Encrypted Client Hello (ECH) <span>[<a href="#RFC9580" class="cite xref">RFC9580</a>]</span> can
+mitigate this exposure.<a href="#section-3.1.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.1.3-3.2">
+              <p id="section-3.1.3-3.2.1">The <code>path-abempty</code> and <code>query</code> components are visible to the relay
+that terminates the client's connection.<a href="#section-3.1.3-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-3.1.3-4">TODO: Add internationalization statement per RFC 7595 Section 3.6.<a href="#section-3.1.3-4" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-5">The client resolves the <code>host</code> subcomponent of the <code>authority</code> to one or
+more network addresses, most commonly using DNS A <span>[<a href="#RFC1035" class="cite xref">RFC1035</a>]</span> and AAAA <span>[<a href="#RFC3596" class="cite xref">RFC3596</a>]</span> records.<a href="#section-3.1.3-5" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-6">When SVCB-compatible records <span>[<a href="#RFC9460" class="cite xref">RFC9460</a>]</span> are published for the <code>authority</code>,
+a client <span class="bcp14">MAY</span> use them to learn the server's endpoints and supported ALPN
+protocols before connecting. A client using WebTransport resolves the
+<code>https</code> URI derived in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a> using HTTPS resource records as for
+any <code>https</code> origin.
+TODO: reference moqt SVCB record draft once available.<a href="#section-3.1.3-6" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-7">If the port is omitted in the URI, a default port of 443 is used.<a href="#section-3.1.3-7" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-8">The client <span class="bcp14">MAY</span> use either native QUIC or WebTransport. On a QUIC connection,
 the client offers any combination of MOQT ALPNs (e.g. <code>moqt-1</code>, <code>moqt-2</code>)
 and <code>h3</code> that it supports in its TLS ClientHello, in preference order. If the
 server selects an MOQT ALPN, the session proceeds as described in
 <a href="#native-quic" class="auto internal xref">Section 3.1.5</a>. If the server selects <code>h3</code>, the client establishes a
 WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a>. On a TCP+TLS
 connection, the client offers <code>h2</code> in its TLS ClientHello and establishes a
-WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a>.<a href="#section-3.1.3-5" class="pilcrow">¶</a></p>
+WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a>.<a href="#section-3.1.3-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="webtransport">
@@ -3646,8 +3674,8 @@ if it receives more than one.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
 <p id="section-5.1-5">All <code>Established</code> subscriptions have a Forward State which is either 0 or 1.
 The publisher does not send Objects if the Forward State is 0, and does send them
 if the Forward State is 1.  The initiator of the subscription sets the initial
-Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send PUBLISH_OK
-or REQUEST_UPDATE to update the Forward State. Control messages, such as
+Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send
+REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 10.12</a>) are sent regardless of the forward state.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
 <p id="section-5.1-6">A publisher <span class="bcp14">MUST</span> save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
 or REQUEST_UPDATE_OK that changes the Forward State
@@ -3680,7 +3708,7 @@ incurring additional latency.<a href="#section-5.1-11" class="pilcrow">¶</a></p
 <p id="section-5.1-12">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with REQUEST_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
+with REQUEST_ERROR or sets Forward=0 in REQUEST_UPDATE. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 <a href="#datagrams" class="auto internal xref">Section 11.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 11.4.2</a>).<a href="#section-5.1-12" class="pilcrow">¶</a></p>
 <div id="subscription-state-management">
@@ -3800,7 +3828,7 @@ where each SetID=i is the AND of filters with SetID=i.<a href="#section-5.1.3-5"
 <p id="section-5.1.3-6">The Track Property filter parameter <span class="bcp14">MAY</span> appear multiple times in a
 SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
 All other filter parameters <span class="bcp14">MAY</span> appear multiple times in a FETCH, SUBSCRIBE,
-SUBSCRIBE_TRACKS, PUBLISH_OK, or REQUEST_UPDATE (on a subscription, from the subscriber only)
+SUBSCRIBE_TRACKS, or REQUEST_UPDATE (on a subscription, from the subscriber only)
 message.  If the same combination of Parameter Type, SetID, and Property Type
 (only in the Track and Object Property Filters) repeat in any message,
 an endpoint <span class="bcp14">MUST</span> reject this with REQUEST_ERROR with error code INVALID_FILTER.<a href="#section-5.1.3-6" class="pilcrow">¶</a></p>
@@ -3850,7 +3878,7 @@ Pass = Forward AND Location Filters AND Range Filters
 is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.<a href="#section-5.1.5-1" class="pilcrow">¶</a></p>
-<p id="section-5.1.5-2">To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
+<p id="section-5.1.5-2">To join a Track at a past Group, the subscriber sends a SUBSCRIBE or
 REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
 <a href="#joining-fetches" class="auto internal xref">Section 10.13.2</a>) for the intended start Group, which can be relative.
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
@@ -4447,8 +4475,8 @@ to the old relay can be cancelled (see <a href="#request-cancellation" class="au
 <ol start="1" type="1" class="normal type-1" id="section-9.5-2">
 <li id="section-9.5-2.1">
             <p id="section-9.5-2.1.1">Send a PUBLISH message for a specific Track to the relay. The relay <span class="bcp14">MAY</span>
-respond with PUBLISH_OK in Forward State=0 until there are known subscribers for
-new Tracks.<a href="#section-9.5-2.1.1" class="pilcrow">¶</a></p>
+pause the Subscription with REQUEST_UPDATE in Forward State=0 until there are
+known subscribers for new Tracks.<a href="#section-9.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-9.5-2.2">
             <p id="section-9.5-2.2.1">Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
@@ -4510,7 +4538,8 @@ send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
 matching subscription.  When it receives an authorized PUBLISH message for a
 Track that has <code>Established</code> downstream subscriptions, it <span class="bcp14">MUST</span> respond with
 PUBLISH_OK.  If at least one downstream subscriber for the Track has
-Forward State=1, the Relay <span class="bcp14">MUST</span> use Forward State=1 in the reply.<a href="#section-9.5-12" class="pilcrow">¶</a></p>
+Forward State=1, the Relay <span class="bcp14">MUST</span> change the Forward State to 1 with
+REQUEST_UPDATE.<a href="#section-9.5-12" class="pilcrow">¶</a></p>
 <p id="section-9.5-13">If a Session is closed due to an unknown or invalid control message or Object,
 the Relay <span class="bcp14">MUST NOT</span> propagate that message or Object to another Session, because
 it would enable a single Session error to force an unrelated Session, which
@@ -4646,7 +4675,7 @@ new request stream.<a href="#section-10-3" class="pilcrow">¶</a></p>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x22</td>
-            <td class="text-left" rowspan="1" colspan="1">SUBSCRIPTION_STATE_UPDATE (<a href="#ss-update" class="auto internal xref">Section 10.10</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">PUBLISH_NOTIFY (<a href="#ss-update" class="auto internal xref">Section 10.10</a>)</td>
             <td class="text-left" rowspan="1" colspan="1">Request</td>
           </tr>
           <tr>
@@ -4817,7 +4846,7 @@ unexpected duplicate parameters and close the session with <code>PROTOCOL_VIOLAT
 if found.<a href="#section-10.2-8" class="pilcrow">¶</a></p>
 <p id="section-10.2-9">The number of Message Parameters is not specifically limited, but the total
 length of a control message is limited to 2^16-1 bytes.<a href="#section-10.2-9" class="pilcrow">¶</a></p>
-<p id="section-10.2-10">Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the
+<p id="section-10.2-10">Message Parameters in SUBSCRIBE and FETCH <span class="bcp14">MUST NOT</span> cause the
 publisher to alter the payload of the objects it sends, as that would violate
 the track uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.4.3</a>.<a href="#section-10.2-10" class="pilcrow">¶</a></p>
 <div id="parameter-scope">
@@ -4982,7 +5011,7 @@ that alias has not received a response.<a href="#section-10.2.2-18" class="pilcr
 <a href="#section-10.2.3" class="section-number selfRef">10.2.3. </a><a href="#name-subgroup_delivery_timeout-p" class="section-name selfRef">SUBGROUP_DELIVERY_TIMEOUT Parameter</a>
           </h4>
 <p id="section-10.2.3-1">The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a varint. It
-<span class="bcp14">MAY</span> appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.  Its
+<span class="bcp14">MAY</span> appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
 semantics are defined in <a href="#delivery-timeouts" class="auto internal xref">Section 8</a>.<a href="#section-10.2.3-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.3-2">This parameter is intended to be specific to a subscription, so it <span class="bcp14">SHOULD NOT</span>
 be forwarded upstream by a relay that intends to serve multiple subscriptions
@@ -4995,7 +5024,7 @@ for the same track.<a href="#section-10.2.3-2" class="pilcrow">¶</a></p>
 <a href="#section-10.2.4" class="section-number selfRef">10.2.4. </a><a href="#name-object_delivery_timeout-par" class="section-name selfRef">OBJECT_DELIVERY_TIMEOUT Parameter</a>
           </h4>
 <p id="section-10.2.4-1">The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a varint. It
-<span class="bcp14">MAY</span> appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.  Its
+<span class="bcp14">MAY</span> appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
 semantics are defined in <a href="#delivery-timeouts" class="auto internal xref">Section 8</a>.<a href="#section-10.2.4-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.4-2">This parameter is intended to be specific to a subscription, so it <span class="bcp14">SHOULD NOT</span>
 be forwarded upstream by a relay that intends to serve multiple subscriptions
@@ -5057,12 +5086,11 @@ code DOES_NOT_EXIST if no publisher is available<a href="#section-10.2.6-5" clas
 <a href="#section-10.2.7" class="section-number selfRef">10.2.7. </a><a href="#name-subscriber-priority-paramet" class="section-name selfRef">SUBSCRIBER PRIORITY Parameter</a>
           </h4>
 <p id="section-10.2.7-1">The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It <span class="bcp14">MAY</span>
-appear in a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
-or PUBLISH_OK message. It is an integer expressing the priority of a
+appear in a SUBSCRIBE, FETCH, or REQUEST_UPDATE (for a subscription or FETCH).
+It is an integer expressing the priority of a
 subscription relative to other subscriptions and fetch responses in the same
 session. Lower numbers get higher priority. See <a href="#priorities" class="auto internal xref">Section 7</a>.<a href="#section-10.2.7-1" class="pilcrow">¶</a></p>
-<p id="section-10.2.7-2">If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
-the value 128.<a href="#section-10.2.7-2" class="pilcrow">¶</a></p>
+<p id="section-10.2.7-2">If omitted from SUBSCRIBE or FETCH, the publisher uses the value 128.<a href="#section-10.2.7-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="group-order">
@@ -5088,11 +5116,11 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).<a h
           </h4>
 <p id="section-10.2.9-1">The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
 encoding. It <span class="bcp14">MAY</span> appear in a SUBSCRIBE, PUBLISH_OK, REQUEST_UPDATE (for a
-subscription) or SUBSCRIPTION_STATE_UPDATE message. It is a Location Filter (see
+subscription) or PUBLISH_NOTIFY message. It is a Location Filter (see
 <a href="#location-filters" class="auto internal xref">Section 5.1.2</a>).<a href="#section-10.2.9-1" class="pilcrow">¶</a></p>
-<p id="section-10.2.9-2">If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
-unfiltered.  If omitted from REQUEST_UPDATE or SUBSCRIPTION_STATE_UPDATE, the
-value is unchanged.  When sent in SUBSCRIPTION_STATE_UPDATE, it reports the
+<p id="section-10.2.9-2">If omitted from SUBSCRIBE, the subscription is
+unfiltered.  If omitted from REQUEST_UPDATE or PUBLISH_NOTIFY, the
+value is unchanged.  When sent in PUBLISH_NOTIFY, it reports the
 Location Filter now in effect at the publisher.<a href="#section-10.2.9-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -5179,7 +5207,7 @@ does not expire or expires at an unknown time.<a href="#section-10.2.15-3" class
 <a href="#section-10.2.16" class="section-number selfRef">10.2.16. </a><a href="#name-largest-object-parameter" class="section-name selfRef">LARGEST OBJECT Parameter</a>
           </h4>
 <p id="section-10.2.16-1">The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It <span class="bcp14">MAY</span> appear
-in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, or TRACK_STATUS_OK.
+in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or PUBLISH_NOTIFY.
 It contains the largest Location (see <a href="#location-structure" class="auto internal xref">Section 1.4.2</a>) in the
 Track observed by the sending endpoint (see <a href="#location-filters" class="auto internal xref">Section 5.1.2</a>). If Objects
 have been published on this Track the Publisher <span class="bcp14">MUST</span> include this parameter.<a href="#section-10.2.16-1" class="pilcrow">¶</a></p>
@@ -5203,17 +5231,19 @@ PUBLISH, or REQUEST_UPDATE_OK<a href="#section-10.2.16-4.1.1" class="pilcrow">¶
 <a href="#section-10.2.17" class="section-number selfRef">10.2.17. </a><a href="#name-forward-parameter" class="section-name selfRef">FORWARD Parameter</a>
           </h4>
 <p id="section-10.2.17-1">The FORWARD parameter (Parameter Type 0x10) is a uint8. It <span class="bcp14">MAY</span> appear in
-SUBSCRIBE, REQUEST_UPDATE (for a subscription), PUBLISH, PUBLISH_OK,
-SUBSCRIBE_TRACKS and SUBSCRIPTION_STATE_UPDATE. It specifies the Forwarding
-State on affected subscriptions
-(see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>). The allowed values are 0 (don't forward) or 1 (forward).
-If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span> close the session
-with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.17-1" class="pilcrow">¶</a></p>
-<p id="section-10.2.17-2">If the parameter is omitted from REQUEST_UPDATE or SUBSCRIPTION_STATE_UPDATE,
+SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
+PUBLISH, PUBLISH_OK, SUBSCRIBE_TRACKS and PUBLISH_NOTIFY. It
+specifies the Forwarding State on affected subscriptions (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).
+The allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives
+a value outside this range, it <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.17-1" class="pilcrow">¶</a></p>
+<p id="section-10.2.17-2">In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies the
+Forwarding State on future subscriptions that match the prefix. Existing
+subscriptions are unaffected.<a href="#section-10.2.17-2" class="pilcrow">¶</a></p>
+<p id="section-10.2.17-3">If the parameter is omitted from REQUEST_UPDATE or PUBLISH_NOTIFY,
 the value for the subscription remains unchanged.  If the parameter is omitted
 from any other message, the default value is 1.  When sent in
-SUBSCRIPTION_STATE_UPDATE, it reports the Forwarding State now in effect at the
-publisher.<a href="#section-10.2.17-2" class="pilcrow">¶</a></p>
+PUBLISH_NOTIFY, it reports the Forwarding State now in effect at the
+publisher.<a href="#section-10.2.17-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="new-group-request">
@@ -5222,10 +5252,10 @@ publisher.<a href="#section-10.2.17-2" class="pilcrow">¶</a></p>
 <a href="#section-10.2.18" class="section-number selfRef">10.2.18. </a><a href="#name-new-group-request-parameter" class="section-name selfRef">NEW GROUP REQUEST Parameter</a>
           </h4>
 <p id="section-10.2.18-1">The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint. It <span class="bcp14">MAY</span> appear
-in PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
+in SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber <span class="bcp14">MUST NOT</span> send
-this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
+this parameter in REQUEST_UPDATE if the Track did not
 include the DYNAMIC_GROUPS Property with value 1.  A subscriber <span class="bcp14">MAY</span>
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
@@ -5269,6 +5299,21 @@ for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It updates the Track
 Namespace Prefix for that subscription.  If the new prefix would share a common prefix with
 another active subscription of the same type in the same session, the receiver
 <span class="bcp14">MUST</span> respond with REQUEST_ERROR with error code <code>PREFIX_OVERLAP</code>.<a href="#section-10.2.19-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="include-properties-param">
+<section id="section-10.2.20">
+          <h4 id="name-include_properties-paramete">
+<a href="#section-10.2.20" class="section-number selfRef">10.2.20. </a><a href="#name-include_properties-paramete" class="section-name selfRef">INCLUDE_PROPERTIES Parameter</a>
+          </h4>
+<p id="section-10.2.20-1">The INCLUDE_PROPERTIES parameter (Parameter Type 0x35) is a uint8. It <span class="bcp14">MAY</span> appear
+in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS. It specifies whether the
+OK message sent in response includes Track Properties or whether the resulting PUBLISH
+messages include Track Properties in the case of SUBSCRIBE_TRACKS. If INCLUDE_PROPERTIES
+is 0, the Track Properties are still present in the message, but they <span class="bcp14">SHOULD</span> be empty.
+The allowed values are 0 (do not send Properties) or 1 (send Properties), and the
+default is 1. If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span> close the
+session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.20-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -5595,16 +5640,14 @@ Redirect {
 </div>
 <ul class="normal">
 <li class="normal" id="section-10.6.1-3.1">
-              <p id="section-10.6.1-3.1.1">Connect URI: The URI to connect to for this track. If the length is
+              <p id="section-10.6.1-3.1.1">Connect URI: The URI to connect to for the redirected request. If the length is
 zero, the requester <span class="bcp14">SHOULD</span> use the current session's URI. If a server
 receives a Redirect with a non-zero Connect URI Length it <span class="bcp14">MUST</span> close the
 session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.6.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.6.1-3.2">
               <p id="section-10.6.1-3.2.1">Track Namespace and Track Name: The Track Namespace and Track Name to use
-for the redirected request. If both have zero length, the redirected request
-uses the same values as the original request. Otherwise, Track Namespace and
-Track Name are the literal values for the redirected request.<a href="#section-10.6.1-3.2.1" class="pilcrow">¶</a></p>
+for the redirected request, together referred to as the Redirect target.<a href="#section-10.6.1-3.2.1" class="pilcrow">¶</a></p>
 <p id="section-10.6.1-3.2.2">
 Track Name is not meaningful for namespace-scoped requests
 (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and <span class="bcp14">MUST</span> be empty;
@@ -5720,12 +5763,14 @@ sender <span class="bcp14">SHOULD</span> use the Retry Interval to indicate when
               <p id="section-10.6.2-5.20.1">The request cannot be fulfilled by this endpoint, but could succeed at the
 location specified in the Redirect structure. The requester <span class="bcp14">SHOULD</span> establish a
 new session to the provided URI (if present) and retry the request using the
-Full Track Name from the Redirect (if present). This error code can appear in
+Redirect target. A Retry Interval of 0 indicates the original request <span class="bcp14">SHOULD NOT</span> be retried as sent;
+it does not prevent the requester from following a Redirect to a different
+URI or Redirect target. This error code can appear in
 response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
 redirects from upstream
 and <span class="bcp14">MAY</span> forward a REDIRECT response to matching downstream requests. A relay
-<span class="bcp14">MAY</span> cache a REDIRECT response for a Full Track Name for up to Retry Interval
+<span class="bcp14">MAY</span> cache a REDIRECT response for up to Retry Interval
 milliseconds and use it to respond to subsequent matching requests without
 forwarding them upstream.<a href="#section-10.6.2-5.20.1" class="pilcrow">¶</a></p>
 </dd>
@@ -5992,29 +6037,37 @@ interested it can cancel the corresponding bidirectional stream.<a href="#sectio
 </div>
 <div id="ss-update">
 <section id="section-10.10">
-        <h3 id="name-subscription_state_update">
-<a href="#section-10.10" class="section-number selfRef">10.10. </a><a href="#name-subscription_state_update" class="section-name selfRef">SUBSCRIPTION_STATE_UPDATE</a>
+        <h3 id="name-publish_notify">
+<a href="#section-10.10" class="section-number selfRef">10.10. </a><a href="#name-publish_notify" class="section-name selfRef">PUBLISH_NOTIFY</a>
         </h3>
-<p id="section-10.10-1">A publisher sends SUBSCRIPTION_STATE_UPDATE on a subscription's bidirectional
+<p id="section-10.10-1">A publisher sends PUBLISH_NOTIFY on a subscription's bidirectional
 stream to notify the subscriber the state of the subscription has changed for a
 reason other than a subscriber sent REQUEST_UPDATE.  Unlike REQUEST_UPDATE
 (<a href="#message-request-update" class="auto internal xref">Section 10.9</a>), it is a unilateral notification: the receiver
 does not respond with REQUEST_OK or REQUEST_ERROR, and the message is not
 subject to the MAX_REQUEST_UPDATES limit (<a href="#max-request-updates" class="auto internal xref">Section 10.3.1.7</a>).<a href="#section-10.10-1" class="pilcrow">¶</a></p>
-<p id="section-10.10-2">SUBSCRIPTION_STATE_UPDATE applies only to subscriptions, and is sent only by
-the publisher.  An endpoint that receives a SUBSCRIPTION_STATE_UPDATE for any
+<p id="section-10.10-2">PUBLISH_NOTIFY applies only to subscriptions, and is sent only by
+the publisher.  An endpoint that receives a PUBLISH_NOTIFY for any
 other request type, or from the subscriber, <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.10-2" class="pilcrow">¶</a></p>
-<p id="section-10.10-3">A SUBSCRIPTION_STATE_UPDATE carries the parameters whose values have changed.
+<p id="section-10.10-3">A PUBLISH_NOTIFY carries the parameters whose values have changed.
 If a parameter is not present, its value is unchanged.  The semantics of each
-parameter, including whether it may appear in SUBSCRIPTION_STATE_UPDATE, are
+parameter, including whether it may appear in PUBLISH_NOTIFY, are
 defined by the parameter.<a href="#section-10.10-3" class="pilcrow">¶</a></p>
-<p id="section-10.10-4">The format of SUBSCRIPTION_STATE_UPDATE is as follows:<a href="#section-10.10-4" class="pilcrow">¶</a></p>
-<span id="name-moqt-subscription_state_upd"></span><div id="moq-transport-ss-update-format">
+<p id="section-10.10-4">PUBLISH_NOTIFY reports the current subscription state; it does not modify
+parameters chosen by the subscriber.  A publisher <span class="bcp14">MUST NOT</span> use PUBLISH_NOTIFY to
+change the value of a subscription parameter that is under the subscriber's
+control.  Such parameters can only be changed by the subscriber via
+REQUEST_UPDATE (<a href="#message-request-update" class="auto internal xref">Section 10.9</a>).<a href="#section-10.10-4" class="pilcrow">¶</a></p>
+<p id="section-10.10-5">The publisher <span class="bcp14">MUST</span> include the LARGEST_OBJECT parameter (<a href="#largest-param" class="auto internal xref">Section 10.2.16</a>), if
+known, in PUBLISH_NOTIFY so the subscriber can determine the point in the
+Track at which the change took effect.<a href="#section-10.10-5" class="pilcrow">¶</a></p>
+<p id="section-10.10-6">The format of PUBLISH_NOTIFY is as follows:<a href="#section-10.10-6" class="pilcrow">¶</a></p>
+<span id="name-moqt-publish_notify-message"></span><div id="moq-transport-ss-update-format">
 <figure id="figure-13">
-          <div class="alignLeft art-text artwork" id="section-10.10-5.1">
+          <div class="alignLeft art-text artwork" id="section-10.10-7.1">
 <pre>
-SUBSCRIPTION_STATE_UPDATE Message {
+PUBLISH_NOTIFY Message {
   Type (vi64) = 0x22,
   Length (16),
   Number of Parameters (vi64),
@@ -6023,12 +6076,12 @@ SUBSCRIPTION_STATE_UPDATE Message {
 </pre>
 </div>
 <figcaption><a href="#figure-13" class="selfRef">Figure 13</a>:
-<a href="#name-moqt-subscription_state_upd" class="selfRef">MOQT SUBSCRIPTION_STATE_UPDATE Message</a>
+<a href="#name-moqt-publish_notify-message" class="selfRef">MOQT PUBLISH_NOTIFY Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-10.10-6.1">
-            <p id="section-10.10-6.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.10-6.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-10.10-8.1">
+            <p id="section-10.10-8.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.10-8.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -6159,7 +6212,7 @@ streams received.  The subscriber can immediately remove all subscription state
 once the same number of streams have been processed.  If the publisher did not open any streams
 for this subscription, the publisher <span class="bcp14">MUST</span> set Stream Count to 0.  If
 the publisher is unable to set Stream Count to the exact number of streams
-opened for the subscription, it <span class="bcp14">MUST</span> set Stream Count to 2^62 - 1. Subscribers
+opened for the subscription, it <span class="bcp14">MUST</span> set Stream Count to 2^64 - 1. Subscribers
 <span class="bcp14">SHOULD</span> use a timeout or other mechanism to remove subscription state in case
 the publisher set an incorrect value, reset a stream before the SUBGROUP_HEADER,
 or set the maximum value.  If a subscriber receives more streams for a
@@ -7041,8 +7094,7 @@ will exceed the maximum datagram size of a downstream session and be dropped.<a 
             <div class="alignLeft art-text artwork" id="section-11.3.1-2.1">
 <pre>
 OBJECT_DATAGRAM {
-  Type (vi64) = 0x00..0x0F / 0x20..0x21 / 0x24..0x25 /
-             0x28..0x29 / 0x2C..0x2D,
+  Type Flags (vi64),
   Track Alias (vi64),
   Group ID (vi64),
   [Object ID (vi64),]
@@ -7057,60 +7109,63 @@ OBJECT_DATAGRAM {
 <a href="#name-moqt-object_datagram" class="selfRef">MOQT OBJECT_DATAGRAM</a>
             </figcaption></figure>
 </div>
-<p id="section-11.3.1-3">The Type field in the OBJECT_DATAGRAM takes the form 0b00X0XXXX (or the set of
-values from 0x00 to 0x0F, 0x20 to 0x2F). However, not all Type values in this
-range are valid. The four low-order bits and bit 5 of the Type field determine
-which fields are present in the datagram:<a href="#section-11.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-3">The Type Flags field in the OBJECT_DATAGRAM is a variable-length integer that
+encodes a set of flags. All values defined in this specification fit in a
+single-byte encoding (values less than 128). If a received value has bit 4 set,
+or has a bit set whose meaning is not specified, the endpoint <span class="bcp14">MUST</span> close the
+session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-4">The four low-order bits and bit 5 of the Type Flags field determine which fields
+are present in the datagram:<a href="#section-11.3.1-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.3.1-4.1">
-              <p id="section-11.3.1-4.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is
+<li class="normal" id="section-11.3.1-5.1">
+              <p id="section-11.3.1-5.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is
 present. When set to 1, the Object Properties structure defined in
 <a href="#object-properties" class="auto internal xref">Section 11.2.1.2</a> is present. When set to 0, the field is absent.
 If an endpoint receives a datagram with the PROPERTIES bit set and an
 Properties Length of 0, it <span class="bcp14">MUST</span> close the session with a
-<code>PROTOCOL_VIOLATION</code>.<a href="#section-11.3.1-4.1.1" class="pilcrow">¶</a></p>
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-11.3.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.1-4.2">
-              <p id="section-11.3.1-4.2.1">The <strong>END_OF_GROUP</strong> bit (0x02) indicates End of Group. When set to 1, this
+            <li class="normal" id="section-11.3.1-5.2">
+              <p id="section-11.3.1-5.2.1">The <strong>END_OF_GROUP</strong> bit (0x02) indicates End of Group. When set to 1, this
 indicates that no Object with the same Group ID and an Object ID greater than
-the Object ID in this datagram exists.<a href="#section-11.3.1-4.2.1" class="pilcrow">¶</a></p>
+the Object ID in this datagram exists.<a href="#section-11.3.1-5.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.1-4.3">
-              <p id="section-11.3.1-4.3.1">The <strong>ZERO_OBJECT_ID</strong> bit (0x04) indicates when the Object ID field is
+            <li class="normal" id="section-11.3.1-5.3">
+              <p id="section-11.3.1-5.3.1">The <strong>ZERO_OBJECT_ID</strong> bit (0x04) indicates when the Object ID field is
 present.  When set to 1, the Object ID field is omitted and the Object ID
-is 0. When set to 0, the Object ID field is present.<a href="#section-11.3.1-4.3.1" class="pilcrow">¶</a></p>
+is 0. When set to 0, the Object ID field is present.<a href="#section-11.3.1-5.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.1-4.4">
-              <p id="section-11.3.1-4.4.1">The <strong>DEFAULT_PRIORITY</strong> bit (0x08) indicates when the Priority field is
+            <li class="normal" id="section-11.3.1-5.4">
+              <p id="section-11.3.1-5.4.1">The <strong>DEFAULT_PRIORITY</strong> bit (0x08) indicates when the Priority field is
 present. When set to 1, the Priority field is omitted and this Object inherits
 the Publisher Priority specified in the control message that established the
-subscription. When set to 0, the Priority field is present.<a href="#section-11.3.1-4.4.1" class="pilcrow">¶</a></p>
+subscription. When set to 0, the Priority field is present.<a href="#section-11.3.1-5.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.1-4.5">
-              <p id="section-11.3.1-4.5.1">The <strong>STATUS</strong> bit (0x20) indicates whether the datagram contains an Object
+            <li class="normal" id="section-11.3.1-5.5">
+              <p id="section-11.3.1-5.5.1">The <strong>STATUS</strong> bit (0x20) indicates whether the datagram contains an Object
 Status or Object Payload. When set to 1, the Object Status field is present
 and there is no Object Payload. When set to 0, the Object Payload is present
 and the Object Status field is omitted. There is no explicit length field for
 the Object Payload; the entirety of the transport datagram following the
-Object header contains the payload.<a href="#section-11.3.1-4.5.1" class="pilcrow">¶</a></p>
+Object header contains the payload.<a href="#section-11.3.1-5.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-11.3.1-5">The following Type values are invalid. If an endpoint receives a datagram with
-any of these Type values, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>:<a href="#section-11.3.1-5" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-6">The following Type Flags values are invalid. If an endpoint receives a datagram
+with any of these values, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>:<a href="#section-11.3.1-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.3.1-6.1">
-              <p id="section-11.3.1-6.1.1">Type values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set: 0x22,
-0x23, 0x26, 0x27, 0x2A, 0x2B, 0x2E, 0x2F. An object status message cannot signal
-end of group.<a href="#section-11.3.1-6.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.3.1-7.1">
+              <p id="section-11.3.1-7.1.1">Values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set.<a href="#section-11.3.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.1-6.2">
-              <p id="section-11.3.1-6.2.1">Type values that do not match the form 0b00X0XXXX (i.e., Type values outside the
-ranges 0x00..0x0F and 0x20..0x2F).<a href="#section-11.3.1-6.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.3.1-7.2">
+              <p id="section-11.3.1-7.2.1">Values with bit 4 (0x10) set. This bit is reserved and <span class="bcp14">MUST</span> be zero.<a href="#section-11.3.1-7.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-11.3.1-7.3">
+              <p id="section-11.3.1-7.3.1">Values with a bit set whose meaning is not specified.<a href="#section-11.3.1-7.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-11.3.1-7">If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
+<p id="section-11.3.1-8">If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
 Object Status is not Normal (0x0), the endpoint <span class="bcp14">MUST</span> close the session with a
-<code>PROTOCOL_VIOLATION</code>, because only Normal Objects can have Properties.<a href="#section-11.3.1-7" class="pilcrow">¶</a></p>
+<code>PROTOCOL_VIOLATION</code>, because only Normal Objects can have Properties.<a href="#section-11.3.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -7160,8 +7215,7 @@ flow control, while the sender waits for flow control to send the message.<a hre
             <div class="alignLeft art-text artwork" id="section-11.4.2-3.1">
 <pre>
 SUBGROUP_HEADER {
-  Type (vi64) = 0x10..0x15 / 0x18..0x1D / 0x30..0x35 / 0x38..0x3D /
-             0x50..0x55 / 0x58..0x5D / 0x70..0x75 / 0x78..0x7D,
+  Type Flags (vi64),
   Track Alias (vi64),
   Group ID (vi64),
   [Subgroup ID (vi64),]
@@ -7175,79 +7229,80 @@ SUBGROUP_HEADER {
 </div>
 <p id="section-11.4.2-4">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
 <code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-11.4.2-4" class="pilcrow">¶</a></p>
-<p id="section-11.4.2-5">The Type field in the SUBGROUP_HEADER takes the form 0b0XX1XXXX (or the set of
-values from 0x10 to 0x1F, 0x30 to 0x3F, 0x50 to 0x5F, 0x70 to 0x7F), where
-bit 4 is always set to 1. However, not all Type values in this range are
-valid. The four low-order bits and bits 5-6 determine which fields are present
-in the header:<a href="#section-11.4.2-5" class="pilcrow">¶</a></p>
+<p id="section-11.4.2-5">The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
+encodes a set of flags. All values defined in this specification fit in a
+single-byte encoding (values less than 128).<a href="#section-11.4.2-5" class="pilcrow">¶</a></p>
+<p id="section-11.4.2-6">Bit 4 is always set to 1. The four low-order bits and bits 5-6 determine which
+fields are present in the header:<a href="#section-11.4.2-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.4.2-6.1">
-              <p id="section-11.4.2-6.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is present
+<li class="normal" id="section-11.4.2-7.1">
+              <p id="section-11.4.2-7.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is present
 in all Objects in this Subgroup. When set to 1, the Object Properties structure
 defined in <a href="#object-properties" class="auto internal xref">Section 11.2.1.2</a> is present in all Objects; Objects with no
-properties set Properties Length to 0. When set to 0, the field is never present.<a href="#section-11.4.2-6.1.1" class="pilcrow">¶</a></p>
+properties set Properties Length to 0. When set to 0, the field is never present.<a href="#section-11.4.2-7.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.4.2-6.2">
-              <p id="section-11.4.2-6.2.1">The <strong>SUBGROUP_ID_MODE</strong> field (bits 1-2, mask 0x06) is a two-bit field that
+            <li class="normal" id="section-11.4.2-7.2">
+              <p id="section-11.4.2-7.2.1">The <strong>SUBGROUP_ID_MODE</strong> field (bits 1-2, mask 0x06) is a two-bit field that
 determines the encoding of the Subgroup ID. To extract this value, perform a
-bitwise AND with mask 0x06 and right-shift by 1 bit:<a href="#section-11.4.2-6.2.1" class="pilcrow">¶</a></p>
+bitwise AND with mask 0x06 and right-shift by 1 bit:<a href="#section-11.4.2-7.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.4.2-6.2.2.1">
-                  <p id="section-11.4.2-6.2.2.1.1">0b00: The Subgroup ID field is absent and the Subgroup ID is 0.<a href="#section-11.4.2-6.2.2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.4.2-7.2.2.1">
+                  <p id="section-11.4.2-7.2.2.1.1">0b00: The Subgroup ID field is absent and the Subgroup ID is 0.<a href="#section-11.4.2-7.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-11.4.2-6.2.2.2">
-                  <p id="section-11.4.2-6.2.2.2.1">0b01: The Subgroup ID field is absent and the Subgroup ID is the Object ID
-of the first Object transmitted in this Subgroup.<a href="#section-11.4.2-6.2.2.2.1" class="pilcrow">¶</a></p>
+                <li class="normal" id="section-11.4.2-7.2.2.2">
+                  <p id="section-11.4.2-7.2.2.2.1">0b01: The Subgroup ID field is absent and the Subgroup ID is the Object ID
+of the first Object transmitted in this Subgroup.<a href="#section-11.4.2-7.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-11.4.2-6.2.2.3">
-                  <p id="section-11.4.2-6.2.2.3.1">0b10: The Subgroup ID field is present in the header.<a href="#section-11.4.2-6.2.2.3.1" class="pilcrow">¶</a></p>
+                <li class="normal" id="section-11.4.2-7.2.2.3">
+                  <p id="section-11.4.2-7.2.2.3.1">0b10: The Subgroup ID field is present in the header.<a href="#section-11.4.2-7.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-11.4.2-6.2.2.4">
-                  <p id="section-11.4.2-6.2.2.4.1">0b11: Reserved for future use.<a href="#section-11.4.2-6.2.2.4.1" class="pilcrow">¶</a></p>
+                <li class="normal" id="section-11.4.2-7.2.2.4">
+                  <p id="section-11.4.2-7.2.2.4.1">0b11: Reserved for future use.<a href="#section-11.4.2-7.2.2.4.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </li>
-            <li class="normal" id="section-11.4.2-6.3">
-              <p id="section-11.4.2-6.3.1">The <strong>END_OF_GROUP</strong> bit (0x08) indicates that this subgroup contains the
+            <li class="normal" id="section-11.4.2-7.3">
+              <p id="section-11.4.2-7.3.1">The <strong>END_OF_GROUP</strong> bit (0x08) indicates that this subgroup contains the
 largest Object in the Group. When set to 1, the subscriber can infer the final
 Object in the Group when the data stream is terminated by a FIN. In this case,
 Objects that have the same Group ID and an Object ID larger than the last
 Object received on the stream do not exist. This does not apply when the data
-stream is reset.<a href="#section-11.4.2-6.3.1" class="pilcrow">¶</a></p>
+stream is reset.<a href="#section-11.4.2-7.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.4.2-6.4">
-              <p id="section-11.4.2-6.4.1">The <strong>DEFAULT_PRIORITY</strong> bit (0x20) indicates when the Priority field is
+            <li class="normal" id="section-11.4.2-7.4">
+              <p id="section-11.4.2-7.4.1">The <strong>DEFAULT_PRIORITY</strong> bit (0x20) indicates when the Priority field is
 present. When set to 1, the Priority field is omitted and this Subgroup
 inherits the Publisher Priority specified in the control message that
 established the subscription. When set to 0, the Priority field is present in
-the Subgroup header.<a href="#section-11.4.2-6.4.1" class="pilcrow">¶</a></p>
+the Subgroup header.<a href="#section-11.4.2-7.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.4.2-6.5">
-              <p id="section-11.4.2-6.5.1">The <strong>FIRST_OBJECT</strong> bit (0x40) indicates that the first object in this
-subgroup stream is the first object published in the subgroup by the original publisher.<a href="#section-11.4.2-6.5.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.4.2-7.5">
+              <p id="section-11.4.2-7.5.1">The <strong>FIRST_OBJECT</strong> bit (0x40) indicates that the first object in this
+subgroup stream is the first object published in the subgroup by the original publisher.<a href="#section-11.4.2-7.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-11.4.2-7">The following Type values are invalid. If an endpoint receives a stream header
-with any of these Type values, it <span class="bcp14">MUST</span> close the session with a
-<code>PROTOCOL_VIOLATION</code>:<a href="#section-11.4.2-7" class="pilcrow">¶</a></p>
+<p id="section-11.4.2-8">The following Type Flags values are invalid. If an endpoint receives a stream
+header with any of these values, it <span class="bcp14">MUST</span> close the session with a
+<code>PROTOCOL_VIOLATION</code>:<a href="#section-11.4.2-8" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.4.2-8.1">
-              <p id="section-11.4.2-8.1.1">Type values with SUBGROUP_ID_MODE set to 0b11: 0x16, 0x17, 0x1E, 0x1F, 0x36,
-0x37, 0x3E, 0x3F, 0x56, 0x57, 0x5E, 0x5F, 0x76, 0x77, 0x7E, 0x7F. This mode
-is reserved for future use.<a href="#section-11.4.2-8.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.4.2-9.1">
+              <p id="section-11.4.2-9.1.1">Values with SUBGROUP_ID_MODE set to 0b11. This mode
+is reserved for future use.<a href="#section-11.4.2-9.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.4.2-8.2">
-              <p id="section-11.4.2-8.2.1">Type values that do not match the form 0b0XX1XXXX (i.e., Type values outside
-the ranges 0x10..0x1F, 0x30..0x3F, 0x50..0x5F, and 0x70..0x7F, or values
-where bit 4 is not set).<a href="#section-11.4.2-8.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.4.2-9.2">
+              <p id="section-11.4.2-9.2.1">Values where bit 4 is not set. Bit 4 <span class="bcp14">MUST</span> be 1 for SUBGROUP_HEADER.<a href="#section-11.4.2-9.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-11.4.2-9.3">
+              <p id="section-11.4.2-9.3.1">Values of 128 or greater (i.e., any value that requires more than a two-byte
+variable-length integer encoding).<a href="#section-11.4.2-9.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-11.4.2-9">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
+<p id="section-11.4.2-10">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
 stream that is associated with the subscription, <code>Group ID</code> and <code>Subgroup ID</code>,
 or open a new one and send the <code>SUBGROUP_HEADER</code>. Then serialize the
-following fields.<a href="#section-11.4.2-9" class="pilcrow">¶</a></p>
-<p id="section-11.4.2-10">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-11.4.2-10" class="pilcrow">¶</a></p>
-<p id="section-11.4.2-11">The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
+following fields.<a href="#section-11.4.2-10" class="pilcrow">¶</a></p>
+<p id="section-11.4.2-11">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-11.4.2-11" class="pilcrow">¶</a></p>
+<p id="section-11.4.2-12">The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
 stream if there was one.  The Object ID is the Object ID Delta if it's the first
 Object in the Subgroup stream. If the resulting Object ID would be greater
 than 2^64 - 1, the endpoint <span class="bcp14">MUST</span> close the session with a
@@ -7256,10 +7311,10 @@ starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
 unless there is a Prior Object ID Gap property (see
-<a href="#prior-object-id-gap" class="auto internal xref">Section 12.9</a>).<a href="#section-11.4.2-11" class="pilcrow">¶</a></p>
+<a href="#prior-object-id-gap" class="auto internal xref">Section 12.9</a>).<a href="#section-11.4.2-12" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
 <figure id="figure-26">
-            <div class="alignLeft art-text artwork" id="section-11.4.2-12.1">
+            <div class="alignLeft art-text artwork" id="section-11.4.2-13.1">
 <pre>
 {
   Object ID Delta (vi64),
@@ -7662,7 +7717,7 @@ PADDING DATAGRAM {
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 0x14
+  Type Flags = 0x14
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
@@ -7687,7 +7742,7 @@ Properties.<a href="#section-11.6-3" class="pilcrow">¶</a></p>
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 0x35
+  Type Flags = 0x35
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
@@ -7806,7 +7861,7 @@ close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-12.5-2"
 <p id="section-12.6-1">DYNAMIC_GROUPS (Property Type 0x30) is a Track Property.
 The allowed values are 0 or 1. When the value is 1, it indicates
 that the subscriber can request the Original Publisher to start a new Group
-by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
+by including the NEW_GROUP_REQUEST parameter in REQUEST_UPDATE
 for this Track. If an endpoint receives a value larger than 1, it <span class="bcp14">MUST</span> close
 the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-12.6-1" class="pilcrow">¶</a></p>
 <p id="section-12.6-2">If omitted, the value is 0.<a href="#section-12.6-2" class="pilcrow">¶</a></p>
@@ -8009,7 +8064,8 @@ integrity and endpoint authentication between subscriber and
 publisher. Implementations use QUIC or WebTransport to fulfill
 the basic communication security requirements and these
 implementations <span class="bcp14">SHOULD</span> follow best practices for TLS 1.3 and QUIC.
-Relays <span class="bcp14">MUST</span> use authentication to prevent impersonation.<a href="#section-13.2-1" class="pilcrow">¶</a></p>
+Relays <span class="bcp14">MUST</span> use authentication to prevent impersonation
+(<a href="#preventing-impersonation" class="auto internal xref">Section 13.3.3</a>).<a href="#section-13.2-1" class="pilcrow">¶</a></p>
 <p id="section-13.2-2">Note that the basic security protection offered by QUIC or TCP/TLS
 does not prevent traffic pattern analysis. Object sizes, sizes of
 request messages, etc can make it possible for a third party observer
@@ -8021,34 +8077,73 @@ to identify media content, user patterns and media stream origin.<a href="#secti
         <h3 id="name-authorization">
 <a href="#section-13.3" class="section-number selfRef">13.3. </a><a href="#name-authorization" class="section-name selfRef">Authorization</a>
         </h3>
-<p id="section-13.3-1">MOQT supports authorization via mutual TLS for Endpoint-level identification
-and token-based schemes for fine-grained access control.<a href="#section-13.3-1" class="pilcrow">¶</a></p>
-<p id="section-13.3-2">Mutual TLS is expected to be widely used for Endpoint level identification
-between relays, especially within one organization. However, in some
-deployments mutual TLS can also be used for end subscribers or
-original publishers. However, as only Endpoint level authentication is
-provided, what a particular identified Endpoint is allowed to do is not
-provided at TLS level.<a href="#section-13.3-2" class="pilcrow">¶</a></p>
-<p id="section-13.3-3">MOQT has functionality to carry Authorization tokens as message
+<p id="section-13.3-1">MOQT supports authorization via mutual TLS (mTLS) for endpoint
+identification and via token-based schemes for fine-grained,
+application-defined access control. The two mechanisms can be used together.<a href="#section-13.3-1" class="pilcrow">¶</a></p>
+<div id="sec-mtls">
+<section id="section-13.3.1">
+          <h4 id="name-mutual-tls">
+<a href="#section-13.3.1" class="section-number selfRef">13.3.1. </a><a href="#name-mutual-tls" class="section-name selfRef">Mutual TLS</a>
+          </h4>
+<p id="section-13.3.1-1">In mutual TLS, both peers present an X.509 certificate during the TLS 1.3
+handshake (<span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>), carried in the underlying transport. An endpoint that
+verifies a server certificate does so following <span>[<a href="#RFC9525" class="cite xref">RFC9525</a>]</span>.  An application
+that authenticates clients via mTLS defines how a client certificate maps to
+identity.<a href="#section-13.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-13.3.1-2">Once a peer is authenticated, an application <span class="bcp14">MAY</span> use attributes in the peer's
+certificate as an input to authorization decisions; the granularity and policy
+of such authorization is out of scope for this document.
+### Authorization Tokens {#sec-tokens}<a href="#section-13.3.1-2" class="pilcrow">¶</a></p>
+<p id="section-13.3.1-3">MOQT has functionality to carry Authorization tokens as message
 parameters. These tokens can vary based on the application
 requirements. Two variants of authorization tokens have already
 been defined for MOQT, and more are expected in the future. The
 current tokens are Privacy Pass Authentication for Media over QUIC
 <span>[<a href="#PPA" class="cite xref">PPA</a>]</span> and Authentication scheme for MOQT using Common Access Tokens
-<span>[<a href="#CAT" class="cite xref">CAT</a>]</span>.<a href="#section-13.3-3" class="pilcrow">¶</a></p>
-<p id="section-13.3-4">Tokens are expected to contain information about which actions and
+<span>[<a href="#CAT" class="cite xref">CAT</a>]</span>.<a href="#section-13.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-13.3.1-4">Tokens are expected to contain information about which actions and
 which resources the endpoint providing the token is authorized to
 perform and access. Relays will verify the
-token to ensure that the request is authorized.<a href="#section-13.3-4" class="pilcrow">¶</a></p>
+token to ensure that the request is authorized.<a href="#section-13.3.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
 <div id="replay-attacks">
-<section id="section-13.3.1">
+<section id="section-13.3.2">
           <h4 id="name-replay-attacks">
-<a href="#section-13.3.1" class="section-number selfRef">13.3.1. </a><a href="#name-replay-attacks" class="section-name selfRef">Replay Attacks</a>
+<a href="#section-13.3.2" class="section-number selfRef">13.3.2. </a><a href="#name-replay-attacks" class="section-name selfRef">Replay Attacks</a>
           </h4>
-<p id="section-13.3.1-1">Replay protection for authorization tokens is the responsibility of
+<p id="section-13.3.2-1">Replay protection for authorization tokens is the responsibility of
 the specific token scheme used. Token schemes such as <span>[<a href="#CAT" class="cite xref">CAT</a>]</span> and
 <span>[<a href="#PPA" class="cite xref">PPA</a>]</span> include requirements for relays when processing tokens and
-requests.<a href="#section-13.3.1-1" class="pilcrow">¶</a></p>
+requests.<a href="#section-13.3.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="preventing-impersonation">
+<section id="section-13.3.3">
+          <h4 id="name-preventing-impersonation">
+<a href="#section-13.3.3" class="section-number selfRef">13.3.3. </a><a href="#name-preventing-impersonation" class="section-name selfRef">Preventing Impersonation</a>
+          </h4>
+<p id="section-13.3.3-1">A relay <span class="bcp14">MUST</span> ensure that a client cannot publish to namespaces or
+tracks belonging to another identity. Impersonation occurs when a
+client publishes objects that appear to originate from a different
+publisher — for example, by targeting a namespace containing another
+user's identifier.<a href="#section-13.3.3-1" class="pilcrow">¶</a></p>
+<p id="section-13.3.3-2">To prevent impersonation, a relay <span class="bcp14">MUST</span> verify that the
+authenticated identity or token scope permits publishing to the
+specific namespace. The mapping from authenticated identity to
+permitted namespaces is determined by the authorization framework
+in use.<a href="#section-13.3.3-2" class="pilcrow">¶</a></p>
+<p id="section-13.3.3-3">When using bearer token-based authentication (e.g., <span>[<a href="#CAT" class="cite xref">CAT</a>]</span>), a token
+that is bound to a client-held key via a confirmation claim prevents
+a stolen token from being replayed by a different party.
+party.<a href="#section-13.3.3-3" class="pilcrow">¶</a></p>
+<p id="section-13.3.3-4">When unlinkable access is used (e.g., <span>[<a href="#PPA" class="cite xref">PPA</a>]</span>), the token's scope
+extensions determine which namespaces the bearer can publish to.
+Impersonation is still prevented because the token does not grant
+access beyond its defined scope.<a href="#section-13.3.3-4" class="pilcrow">¶</a></p>
+<p id="section-13.3.3-5">A relay that does not enforce these checks allows any connected
+client to inject content into arbitrary namespaces, breaking the
+integrity of content delivery.<a href="#section-13.3.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -8212,6 +8307,19 @@ the MOQT_IMPLEMENTATION option.<a href="#section-13.8-4.4.1" class="pilcrow">¶<
 <p id="section-13.8-5">Operators are advised that detailed implementation identification
 facilitates the same privacy concerns as persistent identifiers, since it
 enables correlation of sessions across time.<a href="#section-13.8-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="logging-untrusted-strings">
+<section id="section-13.9">
+        <h3 id="name-logging-of-untrusted-string">
+<a href="#section-13.9" class="section-number selfRef">13.9. </a><a href="#name-logging-of-untrusted-string" class="section-name selfRef">Logging of Untrusted String Fields</a>
+        </h3>
+<p id="section-13.9-1">The Reason Phrase (<a href="#reason-phrase" class="auto internal xref">Section 1.4.4</a>) and MOQT_IMPLEMENTATION option
+(<a href="#moqt-implementation" class="auto internal xref">Section 10.3.1.5</a>) carry sender-controlled text that is commonly written
+to logs. Even though these fields are UTF-8 encoded, an endpoint that logs or
+renders them <span class="bcp14">SHOULD</span> sanitize them first (for example, by escaping bytes outside
+the printable ASCII range), since unsanitized values can enable log injection or
+terminal escape sequence injection.<a href="#section-13.9-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -9651,11 +9759,19 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
         <dd>
-<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-05</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-05">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-05</a>&gt;</span>. </dd>
+<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-06</span>, <time datetime="2026-07-29" class="refDate">29 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-06">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-06</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PPA">[PPA]</dt>
         <dd>
 <span class="refAuthor">Nandakumar, S.</span>, <span class="refAuthor">Jennings, C. F.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Privacy Pass Authentication for Media over QUIC (MoQ)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-privacy-pass-auth-03</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-privacy-pass-auth-03">https://datatracker.ietf.org/doc/html/draft-ietf-moq-privacy-pass-auth-03</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC1035">[RFC1035]</dt>
+        <dd>
+<span class="refAuthor">Mockapetris, P.</span>, <span class="refTitle">"Domain names - implementation and specification"</span>, <span class="seriesInfo">STD 13</span>, <span class="seriesInfo">RFC 1035</span>, <span class="seriesInfo">DOI 10.17487/RFC1035</span>, <time datetime="1987-11" class="refDate">November 1987</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1035">https://www.rfc-editor.org/rfc/rfc1035</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC3596">[RFC3596]</dt>
+        <dd>
+<span class="refAuthor">Thomson, S.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Ksinant, V.</span>, and <span class="refAuthor">M. Souissi</span>, <span class="refTitle">"DNS Extensions to Support IP Version 6"</span>, <span class="seriesInfo">STD 88</span>, <span class="seriesInfo">RFC 3596</span>, <span class="seriesInfo">DOI 10.17487/RFC3596</span>, <time datetime="2003-10" class="refDate">October 2003</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3596">https://www.rfc-editor.org/rfc/rfc3596</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC6582">[RFC6582]</dt>
         <dd>
@@ -9678,8 +9794,20 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <span class="refAuthor">Thomson, M.</span> and <span class="refAuthor">T. Pauly</span>, <span class="refTitle">"Long-Term Viability of Protocol Extension Mechanisms"</span>, <span class="seriesInfo">RFC 9170</span>, <span class="seriesInfo">DOI 10.17487/RFC9170</span>, <time datetime="2021-12" class="refDate">December 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9170">https://www.rfc-editor.org/rfc/rfc9170</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9438">[RFC9438]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Xu, L.</span>, <span class="refAuthor">Ha, S.</span>, <span class="refAuthor">Rhee, I.</span>, <span class="refAuthor">Goel, V.</span>, and <span class="refAuthor">L. Eggert, Ed.</span>, <span class="refTitle">"CUBIC for Fast and Long-Distance Networks"</span>, <span class="seriesInfo">RFC 9438</span>, <span class="seriesInfo">DOI 10.17487/RFC9438</span>, <time datetime="2023-08" class="refDate">August 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9438">https://www.rfc-editor.org/rfc/rfc9438</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9460">[RFC9460]</dt>
+        <dd>
+<span class="refAuthor">Schwartz, B.</span>, <span class="refAuthor">Bishop, M.</span>, and <span class="refAuthor">E. Nygren</span>, <span class="refTitle">"Service Binding and Parameter Specification via the DNS (SVCB and HTTPS Resource Records)"</span>, <span class="seriesInfo">RFC 9460</span>, <span class="seriesInfo">DOI 10.17487/RFC9460</span>, <time datetime="2023-11" class="refDate">November 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9460">https://www.rfc-editor.org/rfc/rfc9460</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9525">[RFC9525]</dt>
+        <dd>
+<span class="refAuthor">Saint-Andre, P.</span> and <span class="refAuthor">R. Salz</span>, <span class="refTitle">"Service Identity in TLS"</span>, <span class="seriesInfo">RFC 9525</span>, <span class="seriesInfo">DOI 10.17487/RFC9525</span>, <time datetime="2023-11" class="refDate">November 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9525">https://www.rfc-editor.org/rfc/rfc9525</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9580">[RFC9580]</dt>
+      <dd>
+<span class="refAuthor">Wouters, P., Ed.</span>, <span class="refAuthor">Huigens, D.</span>, <span class="refAuthor">Winter, J.</span>, and <span class="refAuthor">Y. Niibe</span>, <span class="refTitle">"OpenPGP"</span>, <span class="seriesInfo">RFC 9580</span>, <span class="seriesInfo">DOI 10.17487/RFC9580</span>, <time datetime="2024-07" class="refDate">July 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9580">https://www.rfc-editor.org/rfc/rfc9580</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
