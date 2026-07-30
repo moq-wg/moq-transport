@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-28T02:45:17.411421+00:00",
+  "timestamp": "2026-07-30T02:37:23.887085+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -15247,7 +15247,7 @@
       ],
       "body": "Would be nice to add a publisher and subscriber and state machine in the draft.",
       "createdAt": "2024-02-28T17:42:01Z",
-      "updatedAt": "2026-07-23T13:20:41Z",
+      "updatedAt": "2026-07-28T17:17:01Z",
       "closedAt": null,
       "comments": [
         {
@@ -15354,6 +15354,13 @@
           "body": "I think more is still needed ",
           "createdAt": "2026-07-23T13:20:41Z",
           "updatedAt": "2026-07-23T13:20:41Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I think more is still needed\n\nLol, you replied to my comment from 17 months ago",
+          "createdAt": "2026-07-28T17:17:01Z",
+          "updatedAt": "2026-07-28T17:17:01Z"
         }
       ]
     },
@@ -48941,7 +48948,7 @@
       "id": "I_kwDOG2Ho4M8AAAABERPy_g",
       "title": "Duplicate Track Properties on repeated SUBSCRIBE_OK / FETCH_OK",
       "url": "https://github.com/moq-wg/moq-transport/issues/1644",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -48953,8 +48960,8 @@
       ],
       "body": "I don't think this is an issue worth fixing for v1, but I wanted to raise it.\n\nTrack properties are meant to be fixed for the lifetime of a track. They can be cached indefinitely, at least in theory.\n\nHowever, each SUBSCRIBE_OK and FETCH_OK transmits a fresh copy of the Track Properties even if the subscriber already has that information cached. The most egregious example would be a FETCH for each group; we keep transmitting redundant track properties. \n\nThis could get quite inefficient if track properties get large, like for folks using them as a replacement for the catalog. Imagine a FETCH for an audio group and each FETCH_OK contains the full codec/description/timescale/etc information.",
       "createdAt": "2026-06-03T15:55:14Z",
-      "updatedAt": "2026-06-20T22:55:13Z",
-      "closedAt": null,
+      "updatedAt": "2026-07-29T17:16:27Z",
+      "closedAt": "2026-07-29T17:16:27Z",
       "comments": [
         {
           "author": "kixelated",
@@ -51734,13 +51741,15 @@
       "state": "OPEN",
       "author": "sharmafb",
       "authorAssociation": "CONTRIBUTOR",
-      "assignees": [],
+      "assignees": [
+        "ianswett"
+      ],
       "labels": [
-        "Needs Discussion"
+        "Needs PR"
       ],
       "body": "Section 11.1 allows Track Alias reuse when not simultaneous. However, I think we should outright disallow it. A datagram can arrive arbitrarily late and cause ambiguity, so I don't think it's ever safe to reuse.",
       "createdAt": "2026-06-29T19:52:44Z",
-      "updatedAt": "2026-07-23T15:54:21Z",
+      "updatedAt": "2026-07-29T17:22:50Z",
       "closedAt": null,
       "comments": [
         {
@@ -51785,7 +51794,7 @@
       "id": "I_kwDOG2Ho4M8AAAABHGN76g",
       "title": "PUBLISH_OK parameters can have unpredictable results",
       "url": "https://github.com/moq-wg/moq-transport/issues/1796",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -51794,8 +51803,8 @@
       ],
       "body": "When writing a PR to fix #1660 and reviewing #1673, I realized that changing parameters of a Subscription was only safe for some parameters (ie: Priority) and had unpredictable behavior for Forward and Location Filters.  In particular, anything that changes what Objects are sent for a Subscription (ie: Forward or Filters) has a stale Largest Object, as pointed out in #1673, so its unclear what Objects a Subscriber expects to get.\n\nAdditionally, a Subscriber can immediately send a REQUEST_UPDATE after the PUBLISH_OK, so there's no real need to update any Subscription parameters in PUBLISH_OK.  As a result, this doesn't change the functionality of MoQ at all, just the message sequence.\n\nI wrote #1790 with this in mind.",
       "createdAt": "2026-06-29T20:07:14Z",
-      "updatedAt": "2026-07-23T16:06:52Z",
-      "closedAt": null,
+      "updatedAt": "2026-07-29T17:04:45Z",
+      "closedAt": "2026-07-29T17:04:45Z",
       "comments": [
         {
           "author": "afrind",
@@ -51990,7 +51999,9 @@
       "state": "OPEN",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "ianswett"
+      ],
       "labels": [
         "Needs Discussion",
         "Parameters",
@@ -51998,7 +52009,7 @@
       ],
       "body": "Fixing #1660 allows SUBSCRIBE parameters on SUBSCRIBE_TRACKS, but it's also possible to update those parameters.\n\nHow does a Subscriber know what Parameters were used to create the subscription?  There are two cases, FORWARD and GROUP_ORDER where we echo that back in the PUBLISH today.\n\nThere's also the case when a PUBLISH arrives that is not associated with a SUBSCRIBE_TRACKS.  It seems somewhat important to know the effective values for other Parameters, such as SUBSCRIBER_PRIORITY, as well as FORWARD and GROUP_ORDER?\n\nIn the virtual interim on July 6th, some people were concerned about creating another error condition if a Publisher specifies a Parameter that doesn't match one in the original SUBSCRIBE_TRACKS.\n\nIdeas I posted on #1660:\n1) Assume that people can figure out what the initial parameters are, so omit them. (Status quo)\n  - Pro: Easy, Status quo\n  - Con: If you update SUB_TRACKS, then how do you know which params are in use? Doesn't tell you anything about bare PUBLISH\n2) Reference the Request ID of the SUB_TRACKS or subsequent REQUEST_UPDATE to indicate which params are in use\n  - Pro: Only one field, simple validation.\n  - Con: Instead of being racy, now you need to store all params ever sent on a SUB_TRACKS for an unknown time.  Doesn't tell you anything about bare PUBLISH\n3) Repeat all the SUBSCRIBE parameters in the PUBLISH\n  - Pro: No new framing or codepoints. They also don't conflict, so there's no ambiguity.  Could be useful in bare PUBLISH?  Similar to what we do for FORWARD and GROUP_ORDER today.\n  - Con: Some SUBSCRIBE parameters don't make that much sense in the PUBLISH and aren't allowed there today. Could conflict with the SUBSCRIBE_TRACKS, which creates another error condition.\n4) Create a parameter that contains all the parameters the Subscription was initialized with (ie: SUBSCRIBE_PARAMS?)\n  - Pro: Don't have to think about whether a Parameter might have a different meaning depending on which perspective it comes from (it probably shouldn't anyway, though?)\n  - Con: Another nested parameter. Could conflict with the SUBSCRIBE_TRACKS, which creates another error condition.\n5) Use a potential new frame (ie: SUBSCRIPTION_STATE_UPDATE) to communicate the Subscription state\n - Pro: Could re-use a mechanism we (probably) want for DTS and Switch\n - Con: Arrives after the PUBLISH instead of in the PUBLISH. Could conflict with the SUBSCRIBE_TRACKS, which creates another error condition.\n\n",
       "createdAt": "2026-07-07T14:40:08Z",
-      "updatedAt": "2026-07-23T15:53:07Z",
+      "updatedAt": "2026-07-28T15:40:16Z",
       "closedAt": null,
       "comments": [
         {
@@ -52111,11 +52122,12 @@
       "assignees": [],
       "labels": [
         "Editorial",
+        "Needs PR",
         "Filters"
       ],
       "body": "I'm going through the changes in the new draft-19, and the whole section on filters (5.1.3) is very hard to process for me, let alone implement. The exact format of how to serialize each filter is, IMHO, not clear at all (at least to a non-native speaker like I am). The syntax is presented like this:\n\n```\nSUBGROUP_FILTER { Type=0x25, Length, [SetID], Range... }\t\nOBJECTID_FILTER { Type=0x26, Length, [SetID], Range... }\t\nPRIORITY_FILTER { Type=0x27, Length, [SetID], Range... }\t\nOBJECT_PROPERTY_FILTER { Type=0x28, Length, [SetID], [Property Type], Range... }\t\nTRACK_PROPERTY_FILTER  { Type=0x29, Length, [SetID], [Property Type], Range... }\nRange { Start, [End] }\n```\n\nThe text says:\n\n> Each Range Filter is a sequence of Start/End (vi64) inclusive Rang pairs prefixed with a Length (vi64) in bytes and a SetID (8 bits).\n\nbut that doesn't help. Am I writing/parsing Length and SetID once, and then I can have multiple Ranges? Ot is the whole Length+SetID+Range that can be repeated multiple tiimes, over the same filter? Besides, SetID is presented in square brackets, that in the rest of the document usually means \"it's optional\": the text doesn't say what makes it optional, though, it only says it's an 8-bit value, not what rule to follow to add or skip it. Not knowing how many times SetID can appear in each filter parameter, it's also very unclear to me how the OR/AND part is supposed to work.\n\nI'm sure this has been discussed at length, but I haven't followed any interim, so you can consider me a dumb reader that sees this text for the first time (which is what most MoQ implementers will be anyway), so I guess the text should be made clearer than it currently is. Not knowing what the actual meaning is, I can't provide suggestions at this stage on how to improve the text.",
       "createdAt": "2026-07-10T15:26:45Z",
-      "updatedAt": "2026-07-21T16:58:08Z",
+      "updatedAt": "2026-07-29T17:22:21Z",
       "closedAt": null,
       "comments": [
         {
@@ -52449,6 +52461,37 @@
           "body": "Thanks for bringing this to attention @mzanaty  .. PublishDone was not scoped to indicate when a filter ended and glad this was caught.",
           "createdAt": "2026-07-28T01:44:07Z",
           "updatedAt": "2026-07-28T01:44:07Z"
+        }
+      ]
+    },
+    {
+      "number": 1835,
+      "id": "I_kwDOG2Ho4M8AAAABKriTVg",
+      "title": "Is query in URI scoping?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1835",
+      "state": "OPEN",
+      "author": "michalhosna",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Is the draft's Scope section talking about `path` in RFC 3986 sense, or PATH option/HTTP `:path` sense? \n\n### Background:\n- [RFC 3986 | Section 3](https://www.rfc-editor.org/info/rfc3986/#section-3) defines `path` and `query` as two distinct components\n- HTTP/2 and HTTP/3 (and thereof WT) defines: The \":path\" pseudo-header field includes the path and query parts of the target URI\n\n### MOQT Text:\n> **2.4.3 Scope**\n> Unless the application has additional information, two tracks are assumed to belong to the same scope if and only if the authority and the _path_ values are equal. The authority and the path values are communicated through the CLIENT_SETUP message in case of raw QUIC, and through HTTP request header fields in case of WebTransport\n\n> **10.3.1.2. PATH**\n> When connecting to a server using a URI with the \"moqt\" scheme, the client MUST set the PATH option to the path-abempty portion of the URI; if query is present, the client MUST concatenate ?, followed by the query portion of the URI to the option.",
+      "createdAt": "2026-07-29T16:56:24Z",
+      "updatedAt": "2026-07-29T18:43:12Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "michalhosna",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think the query should not be scoping. \n\nI would argue that having query scoping is non-obvious. Furthermore, I would also expect many exceptions in real-world, as we see with HTTP. \nCompared to HTTP we already have more levels (authority, path, track namespace, track name) for identifying content. \n\nThis would allow us to communicate non-scoping information in the connection URI to the server, for which we currently have no options. ",
+          "createdAt": "2026-07-29T16:58:01Z",
+          "updatedAt": "2026-07-29T16:58:01Z"
+        },
+        {
+          "author": "michalhosna",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Note: There seem to be unclear definition in WT itself: https://github.com/ietf-wg-webtrans/draft-ietf-webtrans-http3/issues/287",
+          "createdAt": "2026-07-29T18:43:12Z",
+          "updatedAt": "2026-07-29T18:43:12Z"
         }
       ]
     }
@@ -194410,12 +194453,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Needs Discussion",
+        "Parked",
         "Security/DoS"
       ],
       "body": "Adds MAX_SUB_STREAMS and MAX_SUB_BYTES for flow control and introduces SUBGROUP_RESET.\r\n\r\nI did not add Setup Options to configure defaults for new Subscriptions, but I can if people like this.\r\n\r\nFixes #869.",
       "createdAt": "2026-04-02T03:16:59Z",
-      "updatedAt": "2026-07-23T15:57:15Z",
+      "updatedAt": "2026-07-29T17:17:48Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "0d4e133ebd56d88b938c4ed5ba0b95485e9c3302",
@@ -198731,7 +198774,7 @@
       "id": "PR_kwDOG2Ho4M7h46j6",
       "title": "Replace Joining Fetch with Subscription Fill, add Current Group",
       "url": "https://github.com/moq-wg/moq-transport/pull/1642",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -198741,14 +198784,14 @@
       ],
       "body": "Remove Joining Fetch and instead let SUBSCRIBE specify fill filter types that retrieve past objects.\r\nThe publisher opens a fill fetch stream (FETCH_HEADER with the subscription's Request ID) for objects\r\nbefore the current group, while delivering current and future objects via subscribe subgroups and\r\ndatagrams.\r\n\r\nChanges:\r\n- Remove Joining Fetch types, Joining Fetches section, Joining Fetch Range Calculation, Joining\r\n   Location, and INVALID_JOINING_REQUEST_ID error code\r\n- Inline Standalone Fetch fields directly into the FETCH message wire format\r\n- Add new subscription filter types: AbsoluteStartFill (0x5), AbsoluteRangeFill (0x6), CurrentGroup\r\n  (0x7), RelativeStartFill (0x8)\r\n- Add Current Group Delivery section with publisher subgroup ordering and relay object accounting\r\n  requirements, applicable to any filter covering the current group\r\n- Add Fill Semantics section defining fill fetch stream behavior\r\n- Add FillDescending (0x3) group order: descending for fill, ascending for subscribe\r\n- Update LARGEST_OBJECT to serve as the fill boundary in SUBSCRIBE_OK\r\n- Extend FILL_TIMEOUT to apply in SUBSCRIBE messages with fill filter types\r\n- Add fill fetch stream cancellation semantics and relay guidance\r\n- REQUEST_UPDATE with a fill filter type opens a new fill fetch stream using the REQUEST_UPDATE's\r\n  Request ID\r\n- Disallow fill filter types and CurrentGroup in PUBLISH_OK (stale LARGEST_OBJECT); recommend forward=0\r\n   + REQUEST_UPDATE pattern instead\r\n- Clarify PUBLISH forward=1 starts delivery at Largest Object\r\n\r\nTODO: Resolve AbsoluteRangeFill behavior when end group is before current group.\r\n\r\nFixes #1039\r\nFixes #1313 \r\nFixes #1358\r\nFixes #1614",
       "createdAt": "2026-06-02T17:01:07Z",
-      "updatedAt": "2026-06-29T18:58:47Z",
+      "updatedAt": "2026-07-28T22:58:37Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "cb2e772fd8ca8cbe7550b1765c269be89fb1c886",
       "headRepository": "afrind/moq-transport",
       "headRefName": "subscription-fill",
       "headRefOid": "ca2909b1a78db41643992d3b2c0c13f346ad2282",
-      "closedAt": null,
+      "closedAt": "2026-07-28T22:58:37Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -198801,6 +198844,13 @@
           "body": "This has been superseded by #1673 - please direct any comments there.\r\n\r\nLeaving this open for reference.",
           "createdAt": "2026-06-14T00:19:10Z",
           "updatedAt": "2026-06-14T00:19:10Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think 1673 has been open long enough, and this pr will always be here.  Closing.",
+          "createdAt": "2026-07-28T22:58:37Z",
+          "updatedAt": "2026-07-28T22:58:37Z"
         }
       ],
       "reviews": [
@@ -209409,7 +209459,7 @@
       "id": "PR_kwDOG2Ho4M7rZTnL",
       "title": "Subscription parameters appear in REQUEST_UPDATE, not PUBLISH_OK",
       "url": "https://github.com/moq-wg/moq-transport/pull/1790",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -209418,17 +209468,19 @@
       ],
       "body": "Fixes #1796 \r\n\r\nPUBLISH_OK no longer mutates the state of the Subscription.",
       "createdAt": "2026-06-27T23:46:29Z",
-      "updatedAt": "2026-07-22T13:20:17Z",
+      "updatedAt": "2026-07-29T17:04:48Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
+      "baseRefOid": "5d972500dc14243384e3deb287f678550c14419a",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-publish-properties",
-      "headRefOid": "16d3a1d8934e26074f423e44d88f6e15acd42471",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "8b19a754a953866c59083e699c3e574012d2f689",
+      "closedAt": "2026-07-29T17:04:44Z",
+      "mergedAt": "2026-07-29T17:04:44Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "929d690f37764a926480c25734a5e1f4d4a50a4e"
+      },
       "comments": [
         {
           "author": "sharmafb",
@@ -209457,6 +209509,27 @@
           "body": "> This still removes a number of params from PUBLISH_OK besides forward/location -- timeouts and ngr? Is that an oversight or are you still wanting to remove these?\r\n\r\nYes, my intent is that PUBLISH_OK no longer changes the Subscription and instead one does that with REQUEST_UPDATE. I can imagine there might be exceptions where a Parameter is more informative than anything else, but I don't think that's the case for any existing Parameters?",
           "createdAt": "2026-07-15T01:53:55Z",
           "updatedAt": "2026-07-15T01:53:55Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Am I correctly reading now that no parameters are allowed in PUBLISH_OK?\r\n\r\nI just updated the PR so that's now true.  I updated the PR to not allow PUBLISH_OK to specify filters and not allow it to include 'Expires'.  All other uses of Expires are by the Publisher, so it was a bit odd that we ever allowed that, but let me know if there's a reason we need Expires in PUBLISH_OK.",
+          "createdAt": "2026-07-29T01:33:09Z",
+          "updatedAt": "2026-07-29T01:33:09Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> All other uses of Expires are by the Publisher, so it was a bit odd that we ever allowed that, but let me know if there's a reason we need Expires in PUBLISH_OK.\r\n\r\nI think we need to leave expires. It\u2019s sent by any endpoint to tell the peer that they need to refresh the request to keep it alive.\r\n\r\neg if the client is a publisher, the relay can add EXPIRES to PUBLISH_OK to indicate auth validity \r\n",
+          "createdAt": "2026-07-29T02:27:07Z",
+          "updatedAt": "2026-07-29T02:27:07Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > All other uses of Expires are by the Publisher, so it was a bit odd that we ever allowed that, but let me know if there's a reason we need Expires in PUBLISH_OK.\r\n> \r\n> I think we need to leave expires. It\u2019s sent by any endpoint to tell the peer that they need to refresh the request to keep it alive.\r\n> \r\n> eg if the client is a publisher, the relay can add EXPIRES to PUBLISH_OK to indicate auth validity\r\n\r\nI was thinking that we didn't allow REQUEST_UPDATE to be sent by the publisher, but in that case it looks like we do, so I restored it.",
+          "createdAt": "2026-07-29T15:44:36Z",
+          "updatedAt": "2026-07-29T15:44:36Z"
         }
       ],
       "reviews": [
@@ -209563,6 +209636,72 @@
               "body": "```suggestion\nIf omitted from SUBSCRIBE, the subscription is\n```",
               "createdAt": "2026-07-07T15:20:58Z",
               "updatedAt": "2026-07-07T15:20:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHkFc6g",
+          "commit": {
+            "abbreviatedOid": "f3d61c8"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Am I correctly reading now that no parameters are allowed in PUBLISH_OK?",
+          "createdAt": "2026-07-28T23:08:04Z",
+          "updatedAt": "2026-07-29T01:25:43Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "```suggestion\r\npause the Subscription with REQUEST_UPDATE in Forward State=0 until there are\r\n```",
+              "createdAt": "2026-07-28T23:08:04Z",
+              "updatedAt": "2026-07-28T23:09:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHk586Q",
+          "commit": {
+            "abbreviatedOid": "96b6c70"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-29T02:18:59Z",
+          "updatedAt": "2026-07-29T02:18:59Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHq1WMg",
+          "commit": {
+            "abbreviatedOid": "96b6c70"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-29T14:50:18Z",
+          "updatedAt": "2026-07-29T14:50:18Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHraFHg",
+          "commit": {
+            "abbreviatedOid": "96b6c70"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-29T15:45:13Z",
+          "updatedAt": "2026-07-29T15:45:13Z",
+          "comments": [
+            {
+              "originalPosition": 121,
+              "body": "```suggestion\nSUBSCRIBE_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK,\n```",
+              "createdAt": "2026-07-29T15:45:13Z",
+              "updatedAt": "2026-07-29T15:45:13Z"
             }
           ]
         }
@@ -209909,7 +210048,7 @@
       "id": "PR_kwDOG2Ho4M7u-cuE",
       "title": "Fix Redirect ambiguity with empty name and namespace",
       "url": "https://github.com/moq-wg/moq-transport/pull/1805",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "sharmafb",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -209919,14 +210058,14 @@
       ],
       "body": "Fixes #1793",
       "createdAt": "2026-07-07T19:21:59Z",
-      "updatedAt": "2026-07-22T06:17:10Z",
+      "updatedAt": "2026-07-28T23:00:59Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "cf615feabb411aa52ed23aabce3b165c2ca8f1e8",
       "headRepository": "sharmafb/moq-transport",
       "headRefName": "patch-23",
       "headRefOid": "756cdafa798efa959f22a50cbcc526d7ac74f16e",
-      "closedAt": null,
+      "closedAt": "2026-07-28T23:00:59Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -209937,6 +210076,13 @@
           "body": "We discussed this in an Auth/Ed call and decided we want to remove the optionality of Trackname/Namespace.  I'll make a separate PR.",
           "createdAt": "2026-07-22T06:17:10Z",
           "updatedAt": "2026-07-22T06:17:10Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Closing in favor of 1824",
+          "createdAt": "2026-07-28T23:00:59Z",
+          "updatedAt": "2026-07-28T23:00:59Z"
         }
       ],
       "reviews": [
@@ -210046,13 +210192,13 @@
       ],
       "body": "",
       "createdAt": "2026-07-09T03:42:16Z",
-      "updatedAt": "2026-07-24T14:01:58Z",
+      "updatedAt": "2026-07-29T17:07:02Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9f55601ca5ea789c46786f2a7470bc0b36696398",
       "headRepository": "mzanaty/moq-transport",
       "headRefName": "patch-5",
-      "headRefOid": "fd036f4924b3b94a71eeaa64790184204bfff283",
+      "headRefOid": "94d94cf2797c9958ac8b2da89c92d2b124c71f67",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -210276,12 +210422,6 @@
               "updatedAt": "2026-07-24T11:05:31Z"
             },
             {
-              "originalPosition": 26,
-              "body": "```suggestion\ncommunicated in SUBSCRIBE_OK or FETCH_OK.  The `Largest Object` is the Object with the\n```",
-              "createdAt": "2026-07-24T06:46:56Z",
-              "updatedAt": "2026-07-24T11:05:31Z"
-            },
-            {
               "originalPosition": 99,
               "body": "This works, but it feels overly clever and I can see it leading to programming errors.\n\nI'm trying to think of a safer way to serialize this that isn't overly complex, but nothing is coming to mind right now.",
               "createdAt": "2026-07-24T10:43:46Z",
@@ -210316,6 +210456,136 @@
               "body": "I think you want to keep the old text here.  The goal of a Joining Fetch is to set the End Location to the same as the start of the Subscription being joined.",
               "createdAt": "2026-07-24T11:00:39Z",
               "updatedAt": "2026-07-24T11:05:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHkHV6Q",
+          "commit": {
+            "abbreviatedOid": "fd036f4"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Thanks @mzanaty.  In general I'm ok with the approach, but some updates are needed.",
+          "createdAt": "2026-07-28T23:12:22Z",
+          "updatedAt": "2026-07-28T23:48:48Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "not sure we need to explicitly mention FETCH here, unless we're also going to add it to the next sentence \"...without a filter\"",
+              "createdAt": "2026-07-28T23:12:22Z",
+              "updatedAt": "2026-07-28T23:48:48Z"
+            },
+            {
+              "originalPosition": 23,
+              "body": "+1 - the filter on a subscription has a particular meaning with respect to \"newly published / received\" objects, vs fetch, which isn't defining a \"filter\" so much as the bounds of that request.",
+              "createdAt": "2026-07-28T23:13:58Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 26,
+              "body": "LARGEST_OBJECT is not communicated in FETCH_OK.",
+              "createdAt": "2026-07-28T23:15:26Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 33,
+              "body": "Odd to have this defined here, and not in the parameters section, though I appreciate it's an easier review. I suppose the editors will bat cleanup after this lands.",
+              "createdAt": "2026-07-28T23:16:45Z",
+              "updatedAt": "2026-07-28T23:48:48Z"
+            },
+            {
+              "originalPosition": 47,
+              "body": "I'll not that we at one time _explicitly_ agreed to remove end object filter from subscriptions, and this unified syntax is adding it back.  It's passed multiple consensus calls.  I don't have an objection to it, but it's probably worth noting. I believe @martinduke filed the original issue that lead to its removal.",
+              "createdAt": "2026-07-28T23:18:13Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 86,
+              "body": "I think numbering the options is confusing, because someone might interpret this as the number of bytes.  The length itself can vary fro 0 to 36.",
+              "createdAt": "2026-07-28T23:19:59Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 91,
+              "body": "Should we say 'next group' or 'Largest Object.Group + 1', since the 'next' Group could imply temporality (next to arrive) and/or skip a large range.",
+              "createdAt": "2026-07-28T23:22:16Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 96,
+              "body": "Need to explain what happens when LargestObject.Group == MAXINT or < N.",
+              "createdAt": "2026-07-28T23:22:48Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 99,
+              "body": "Remove \"Next Object\" in favor of just the explicit math, which is unambiguous.  I share Ian's concern about the overly clever encoding, but probably overall simplification outweighs the concern?\r\n\r\nI would add something like \"because a an open-ended range beginning at 0,0 is equivalent to no filter...\"",
+              "createdAt": "2026-07-28T23:27:36Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 103,
+              "body": "I think this text has been around and maybe Mo just moved it?\r\n\r\nIt's not strictly relay specific (except the network reordering bit) - a relay publishing out of order could also hit the condition.  But for now, let's leave it alone.",
+              "createdAt": "2026-07-28T23:29:04Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 105,
+              "body": "Isn't that the inverse of joining fetch?  I want my subscribe to _end_ at live head?  I don't think we need this.",
+              "createdAt": "2026-07-28T23:29:46Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 111,
+              "body": "Largest object or end of track",
+              "createdAt": "2026-07-28T23:30:34Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 126,
+              "body": "Again, not sure referring to fetch without location = unfiltered is the right framing.  Better to say, it includes the entire track from the beginning to end or largest object.",
+              "createdAt": "2026-07-28T23:39:15Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 173,
+              "body": "Why did we lose joining location in this PR?  Isn't it still needed?",
+              "createdAt": "2026-07-28T23:41:13Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 227,
+              "body": "I think I had to write 3 PRs to get the above text to resolve all the issues people had with it.\r\n\r\nIt looks like you are removing a special syntax from FETCH which was `FETCH Start=10,0 End=10,0` => fetch all of group 10.  Now you need `FETCH Location Param={10,0,0,MAXINT}`?  I'm not overly upset but we should run by the wg?",
+              "createdAt": "2026-07-28T23:47:15Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            },
+            {
+              "originalPosition": 232,
+              "body": "Since end is delta encoded, this is no longer possible, though the delta being larger than 2^64 is.  I think it's covered well enough elsewhere though.",
+              "createdAt": "2026-07-28T23:48:11Z",
+              "updatedAt": "2026-07-28T23:48:49Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHsF2dw",
+          "commit": {
+            "abbreviatedOid": "94d94cf"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-29T17:07:01Z",
+          "updatedAt": "2026-07-29T17:07:02Z",
+          "comments": [
+            {
+              "originalPosition": 99,
+              "body": "I also dislike this but nothing simpler and clearer came to mind. Do we really even need this at all? It seems only joining fetch/fill cases need this to start sub and end fetch on head to avoid dupes. Any other use of this filter? If not, maybe we can remove it if joining fetch/fill can be expressed without it. ",
+              "createdAt": "2026-07-29T17:07:01Z",
+              "updatedAt": "2026-07-29T17:07:02Z"
             }
           ]
         }
@@ -210456,7 +210726,7 @@
       "id": "PR_kwDOG2Ho4M7x0WBo",
       "title": "Add an INCLUDE_PROPERTIES Parameter",
       "url": "https://github.com/moq-wg/moq-transport/pull/1813",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -210465,17 +210735,19 @@
       ],
       "body": "Allows Subscribers to indicate whether they want the Track Properties.\r\n\r\nFixes #1644",
       "createdAt": "2026-07-15T01:28:53Z",
-      "updatedAt": "2026-07-24T14:00:56Z",
+      "updatedAt": "2026-07-29T17:16:30Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
+      "baseRefOid": "929d690f37764a926480c25734a5e1f4d4a50a4e",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-include-properties",
-      "headRefOid": "7afa0ebe060e53d9bd40485f257a1ccc159253b2",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "b4b1f3923b9ff0e8222149bd10cc63a1c8e66c50",
+      "closedAt": "2026-07-29T17:16:26Z",
+      "mergedAt": "2026-07-29T17:16:26Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "2231e82b611d80b80ebe0412b93d8891274d7fa5"
+      },
       "comments": [
         {
           "author": "ianswett",
@@ -210598,6 +210870,39 @@
           "createdAt": "2026-07-21T15:21:42Z",
           "updatedAt": "2026-07-21T15:21:42Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHqzvOw",
+          "commit": {
+            "abbreviatedOid": "2bd9c9c"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-29T14:47:48Z",
+          "updatedAt": "2026-07-29T14:47:48Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "> The Track Properties are still present in the message, but they SHOULD be empty.\n\n\"If INCLUDE_PROPERTIES is 0, ....\"",
+              "createdAt": "2026-07-29T14:47:48Z",
+              "updatedAt": "2026-07-29T14:47:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHqz4aw",
+          "commit": {
+            "abbreviatedOid": "2bd9c9c"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "LGTM once the comment is addressed.",
+          "createdAt": "2026-07-29T14:48:01Z",
+          "updatedAt": "2026-07-29T14:48:01Z",
+          "comments": []
         }
       ]
     },
@@ -210659,7 +210964,7 @@
       ],
       "body": "Specify that the host is resolved to network addresses (A/AAAA) and allow optional use of SVCB/HTTPS records to discover endpoints and supported ALPN protocols before connecting.\r\n\r\nFixes: #1696",
       "createdAt": "2026-07-19T20:49:52Z",
-      "updatedAt": "2026-07-22T17:48:33Z",
+      "updatedAt": "2026-07-29T20:04:19Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "17ebc844608c08e8e6a5570bb2cf489006ae0156",
@@ -210691,6 +210996,27 @@
           "body": "This is a bit underspecified, as others have noted.  We should either expand this to encompass all the things that a \"SVCB mapping document\" requires (name structure, default ALPNs, automatically mandatory keys, etc.) or put that in a separate document and reference it here.",
           "createdAt": "2026-07-22T17:48:33Z",
           "updatedAt": "2026-07-22T17:48:33Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> This is a bit underspecified, as others have noted. We should either expand this to encompass all the things that a \"SVCB mapping document\" requires (name structure, default ALPNs, automatically mandatory keys, etc.) or put that in a separate document and reference it here.\r\n\r\n@bemasc - my thought was to define SVCB mapping in another doc, then reference it here.",
+          "createdAt": "2026-07-28T23:59:01Z",
+          "updatedAt": "2026-07-28T23:59:01Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> @bemasc - my thought was to define SVCB mapping in another doc, then reference it here.\r\n\r\n@fluffy  and I have been working on SVCB for moqt. We should have something to share soon for review. @afrind  if you think you can assign this issue/pr to me and I can update ?",
+          "createdAt": "2026-07-29T19:18:53Z",
+          "updatedAt": "2026-07-29T19:19:47Z"
+        },
+        {
+          "author": "bemasc",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "OK.  I also put some text for this in a google doc somewhere so LMK if you want text.",
+          "createdAt": "2026-07-29T20:04:19Z",
+          "updatedAt": "2026-07-29T20:04:19Z"
         }
       ],
       "reviews": [
@@ -210862,7 +211188,7 @@
       ],
       "body": "Report FETCH gaps caused by Fill Timeout expiry as a distinct End of Timed-Out Range (0x20C), separate from End of Unknown Range, so a subscriber can tell Objects the relay stopped waiting for apart from Objects whose status is genuinely unknown.\r\n\r\nFixes: #1720",
       "createdAt": "2026-07-22T06:25:33Z",
-      "updatedAt": "2026-07-22T20:16:57Z",
+      "updatedAt": "2026-07-28T15:28:14Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
@@ -210892,6 +211218,26 @@
               "body": "How about we change this to \"distinguish a known non-existent subrange from adjacent unknown or timed-out subranges\"?",
               "createdAt": "2026-07-22T20:16:50Z",
               "updatedAt": "2026-07-22T20:16:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHgr5xg",
+          "commit": {
+            "abbreviatedOid": "6771adc"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-28T15:28:14Z",
+          "updatedAt": "2026-07-28T15:28:14Z",
+          "comments": [
+            {
+              "originalPosition": 210,
+              "body": "I agee that it seems like we should mention timed-out in this sentence.",
+              "createdAt": "2026-07-28T15:28:14Z",
+              "updatedAt": "2026-07-28T15:28:14Z"
             }
           ]
         }
@@ -210966,7 +211312,7 @@
       ],
       "body": "Empty Track Namespace and Track Name in a Redirect were overloaded to mean \"reuse the original request's values,\" which collides with a legitimately empty Full Track Name. Remove the reuse rule so the fields are always the literal values for the redirected request, and refer to them collectively as the Redirect target.\r\n\r\nAlternative to #1805\r\n\r\nFixes: #1793",
       "createdAt": "2026-07-22T07:38:08Z",
-      "updatedAt": "2026-07-26T15:16:50Z",
+      "updatedAt": "2026-07-29T14:49:03Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
@@ -211003,6 +211349,32 @@
           "body": "",
           "createdAt": "2026-07-26T15:16:50Z",
           "updatedAt": "2026-07-26T15:16:50Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHk5Z4g",
+          "commit": {
+            "abbreviatedOid": "f9eb47a"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-29T02:17:19Z",
+          "updatedAt": "2026-07-29T02:17:19Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHq0irQ",
+          "commit": {
+            "abbreviatedOid": "f9eb47a"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-29T14:49:02Z",
+          "updatedAt": "2026-07-29T14:49:02Z",
           "comments": []
         }
       ]
@@ -211393,26 +211765,28 @@
       "id": "PR_kwDOG2Ho4M73FBLD",
       "title": "Change the maximum Stream Count bound in PUBLISH_DONE to 2^64 - 1",
       "url": "https://github.com/moq-wg/moq-transport/pull/1831",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Editorial & Minor Design"
+        "Editorial"
       ],
       "body": "The current value (2^62-1) is a leftover from when we used QUIC varints.",
       "createdAt": "2026-07-27T19:03:28Z",
-      "updatedAt": "2026-07-28T01:29:39Z",
+      "updatedAt": "2026-07-29T00:04:25Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
       "headRepository": "vasilvv/warp-draft",
       "headRefName": "fix-stream-count-bound",
       "headRefOid": "8136c073381e710a09e33fdf46f3ab43f743ceaf",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-07-29T00:04:07Z",
+      "mergedAt": "2026-07-29T00:04:07Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "5d972500dc14243384e3deb287f678550c14419a"
+      },
       "comments": [
         {
           "author": "afrind",
@@ -211435,6 +211809,19 @@
           "createdAt": "2026-07-27T19:04:24Z",
           "updatedAt": "2026-07-27T19:04:24Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHkYMLg",
+          "commit": {
+            "abbreviatedOid": "8136c07"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-29T00:03:58Z",
+          "updatedAt": "2026-07-29T00:03:58Z",
+          "comments": []
         }
       ]
     },
@@ -211447,10 +211834,12 @@
       "author": "mzanaty",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial & Minor Design"
+      ],
       "body": "Fixes #1832",
       "createdAt": "2026-07-27T23:55:12Z",
-      "updatedAt": "2026-07-27T23:57:10Z",
+      "updatedAt": "2026-07-29T00:08:21Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
@@ -211461,7 +211850,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "PUBLISH_DONE still has utility, but this particular code isn't helpful given that one can update the filter range, and a relay can almost never tell with certainty that a subscriber's filter was fully satisfied.\r\n\r\nI think Top-N and SWITCH_FROM can generate PUBLISH_DONE from a relay other than \"track ended/error\" but they can specify their own codes.",
+          "createdAt": "2026-07-29T00:06:44Z",
+          "updatedAt": "2026-07-29T00:06:44Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M8AAAABHaeI6A",
@@ -211475,6 +211872,82 @@
           "createdAt": "2026-07-27T23:56:07Z",
           "updatedAt": "2026-07-27T23:56:07Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHgzvFA",
+          "commit": {
+            "abbreviatedOid": "c3db83c"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "I think this is good, but it also goes back to what exactly is PUBLISH_DONE good for?  I guess there's the stream tracking to ensure you've received everything?",
+          "createdAt": "2026-07-28T15:39:03Z",
+          "updatedAt": "2026-07-28T15:39:03Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHkZQqA",
+          "commit": {
+            "abbreviatedOid": "c3db83c"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-29T00:08:21Z",
+          "updatedAt": "2026-07-29T00:08:21Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1834,
+      "id": "PR_kwDOG2Ho4M73iyUa",
+      "title": "PUBLISH can contain Subscription Parameters",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1834",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Design",
+        "Publish"
+      ],
+      "body": "Fixes #1803\r\n\r\nI didn't add any normative language that they MUST be specified, otherwise the Subscriber will assume the default value for the Parameter, but maybe I should?",
+      "createdAt": "2026-07-28T16:02:28Z",
+      "updatedAt": "2026-07-29T17:21:20Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "2231e82b611d80b80ebe0412b93d8891274d7fa5",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-publish-subscribe-params",
+      "headRefOid": "a45f6f19f2e5939c376ce78d549f24920dbb4608",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABHhcb1Q",
+          "commit": {
+            "abbreviatedOid": "f1f222b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-28T16:47:44Z",
+          "updatedAt": "2026-07-28T16:47:44Z",
+          "comments": [
+            {
+              "originalPosition": 68,
+              "body": "```suggestion\n  OBJECT_DELIVERY_TIMEOUT, and LOCATION FILTER can appear in the Parameters\n  of a PUBLISH to inform the Subscriber of the initial Subscription parameters.\n```",
+              "createdAt": "2026-07-28T16:47:44Z",
+              "updatedAt": "2026-07-28T16:47:44Z"
+            }
+          ]
         }
       ]
     }
