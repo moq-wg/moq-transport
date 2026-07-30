@@ -732,7 +732,7 @@ A single MOQT transport session is tied to the scope that is negotiated in the
 beginning of the session. Unless the application has additional information,
 two tracks are assumed to belong to the same scope if and only if the authority
 and the path values are equal. The authority and the path values are
-communicated through the CLIENT_SETUP message in case of raw QUIC, and through
+communicated through the SETUP message in case of raw QUIC, and through
 HTTP request header fields in case of WebTransport.
 
 Because each Full Track Name is unique within an MOQT scope, they can be used as
