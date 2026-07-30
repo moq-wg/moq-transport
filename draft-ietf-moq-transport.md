@@ -932,7 +932,7 @@ TODO: Add URI scheme security considerations per RFC 7595 Section 3.7
 TODO: Add internationalization statement per RFC 7595 Section 3.6.
 
 The client resolves the `host` subcomponent of the `authority` to one or
-more network addresses, most commonly using DNS A and AAAA records.
+more network addresses, most commonly using DNS A {{?RFC1035}} and AAAA {{?RFC3596}} records.
 
 When SVCB-compatible records {{?RFC9460}} are published for the `authority`,
 a client MAY use them to learn the server's endpoints and supported ALPN
