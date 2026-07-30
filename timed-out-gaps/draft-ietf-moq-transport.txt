@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 23 January 2027                                   I. Swett, Ed.
+Expires: 31 January 2027                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            22 July 2026
+                                                            30 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 January 2027.
+   This Internet-Draft will expire on 31 January 2027.
 
 Copyright Notice
 
@@ -5051,7 +5051,7 @@ Range { Start, [End] }
    0x8C), are unknown (0x10C), or timed out (0x20C).  A publisher SHOULD
    NOT use End of Non-Existent Range in a FETCH response except to split
    a range of Objects that will not be serialized into those that are
-   known not to exist and those with unknown status.
+   known not to exist and those with unknown or timed out status.
 
    When an Object follows an End of Range indicator and uses flags that
    reference the "prior Object", the prior Object fields are determined
@@ -6296,9 +6296,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-05, 6 July 2026,
+              draft-ietf-scone-protocol-06, 29 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-05>.
+              protocol-06>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
