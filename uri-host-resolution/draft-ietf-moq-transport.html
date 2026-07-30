@@ -69,7 +69,6 @@ agnostic and can be used for a wide range of use cases.
   src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: italic;
@@ -118,7 +117,6 @@ agnostic and can be used for a wide range of use cases.
   src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: normal;
@@ -183,7 +181,6 @@ agnostic and can be used for a wide range of use cases.
   font-display: swap;
   src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
 }
 
 @font-face {
@@ -1056,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 20 January 2027</td>
+<td class="center">Expires 31 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-07-19" class="published">19 July 2026</time>
+<time datetime="2026-07-30" class="published">30 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-01-20">20 January 2027</time></dd>
+<dd class="expires"><time datetime="2027-01-31">31 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 20 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 31 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2973,7 +2970,7 @@ MOQT session to the identified server.<a href="#section-3.1.3-1" class="pilcrow"
 (e.g., authority in SNI, path/query exposure).<a href="#section-3.1.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.1.3-3">TODO: Add internationalization statement per RFC 7595 Section 3.6.<a href="#section-3.1.3-3" class="pilcrow">¶</a></p>
 <p id="section-3.1.3-4">The client resolves the <code>host</code> subcomponent of the <code>authority</code> to one or
-more network addresses, most commonly using DNS A and AAAA records.<a href="#section-3.1.3-4" class="pilcrow">¶</a></p>
+more network addresses, most commonly using DNS A <span>[<a href="#RFC1035" class="cite xref">RFC1035</a>]</span> and AAAA <span>[<a href="#RFC3596" class="cite xref">RFC3596</a>]</span> records.<a href="#section-3.1.3-4" class="pilcrow">¶</a></p>
 <p id="section-3.1.3-5">When SVCB-compatible records <span>[<a href="#RFC9460" class="cite xref">RFC9460</a>]</span> are published for the <code>authority</code>,
 a client <span class="bcp14">MAY</span> use them to learn the server's endpoints and supported ALPN
 protocols before connecting. A client using WebTransport resolves the
@@ -9589,11 +9586,19 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
         <dd>
-<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-05</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-05">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-05</a>&gt;</span>. </dd>
+<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-06</span>, <time datetime="2026-07-29" class="refDate">29 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-06">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-06</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PPA">[PPA]</dt>
         <dd>
 <span class="refAuthor">Nandakumar, S.</span>, <span class="refAuthor">Jennings, C. F.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Privacy Pass Authentication for Media over QUIC (MoQ)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-privacy-pass-auth-03</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-privacy-pass-auth-03">https://datatracker.ietf.org/doc/html/draft-ietf-moq-privacy-pass-auth-03</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC1035">[RFC1035]</dt>
+        <dd>
+<span class="refAuthor">Mockapetris, P.</span>, <span class="refTitle">"Domain names - implementation and specification"</span>, <span class="seriesInfo">STD 13</span>, <span class="seriesInfo">RFC 1035</span>, <span class="seriesInfo">DOI 10.17487/RFC1035</span>, <time datetime="1987-11" class="refDate">November 1987</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1035">https://www.rfc-editor.org/rfc/rfc1035</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC3596">[RFC3596]</dt>
+        <dd>
+<span class="refAuthor">Thomson, S.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Ksinant, V.</span>, and <span class="refAuthor">M. Souissi</span>, <span class="refTitle">"DNS Extensions to Support IP Version 6"</span>, <span class="seriesInfo">STD 88</span>, <span class="seriesInfo">RFC 3596</span>, <span class="seriesInfo">DOI 10.17487/RFC3596</span>, <time datetime="2003-10" class="refDate">October 2003</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3596">https://www.rfc-editor.org/rfc/rfc3596</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC6582">[RFC6582]</dt>
         <dd>

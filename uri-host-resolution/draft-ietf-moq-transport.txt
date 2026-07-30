@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 20 January 2027                                   I. Swett, Ed.
+Expires: 31 January 2027                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            19 July 2026
+                                                            30 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 January 2027.
+   This Internet-Draft will expire on 31 January 2027.
 
 Copyright Notice
 
@@ -1163,7 +1163,8 @@ Table of Contents
    TODO: Add internationalization statement per RFC 7595 Section 3.6.
 
    The client resolves the host subcomponent of the authority to one or
-   more network addresses, most commonly using DNS A and AAAA records.
+   more network addresses, most commonly using DNS A [RFC1035] and AAAA
+   [RFC3596] records.
 
    When SVCB-compatible records [RFC9460] are published for the
    authority, a client MAY use them to learn the server's endpoints and
@@ -6302,9 +6303,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-05, 6 July 2026,
+              draft-ietf-scone-protocol-06, 29 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-05>.
+              protocol-06>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
@@ -6312,6 +6313,15 @@ Informative References
               auth-03, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
               privacy-pass-auth-03>.
+
+   [RFC1035]  Mockapetris, P., "Domain names - implementation and
+              specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
+              November 1987, <https://www.rfc-editor.org/rfc/rfc1035>.
+
+   [RFC3596]  Thomson, S., Huitema, C., Ksinant, V., and M. Souissi,
+              "DNS Extensions to Support IP Version 6", STD 88,
+              RFC 3596, DOI 10.17487/RFC3596, October 2003,
+              <https://www.rfc-editor.org/rfc/rfc3596>.
 
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
