@@ -1747,6 +1747,9 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.8">
                 <p id="section-toc.1-1.13.2.8.1"><a href="#section-13.8" class="auto internal xref">13.8</a>.  <a href="#name-implementation-identificati" class="internal xref">Implementation Identification Fingerprinting</a></p>
 </li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.9">
+                <p id="section-toc.1-1.13.2.9.1"><a href="#section-13.9" class="auto internal xref">13.9</a>.  <a href="#name-logging-of-untrusted-string" class="internal xref">Logging of Untrusted String Fields</a></p>
+</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
@@ -5624,16 +5627,14 @@ Redirect {
 </div>
 <ul class="normal">
 <li class="normal" id="section-10.6.1-3.1">
-              <p id="section-10.6.1-3.1.1">Connect URI: The URI to connect to for this track. If the length is
+              <p id="section-10.6.1-3.1.1">Connect URI: The URI to connect to for the redirected request. If the length is
 zero, the requester <span class="bcp14">SHOULD</span> use the current session's URI. If a server
 receives a Redirect with a non-zero Connect URI Length it <span class="bcp14">MUST</span> close the
 session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.6.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.6.1-3.2">
               <p id="section-10.6.1-3.2.1">Track Namespace and Track Name: The Track Namespace and Track Name to use
-for the redirected request. If both have zero length, the redirected request
-uses the same values as the original request. Otherwise, Track Namespace and
-Track Name are the literal values for the redirected request.<a href="#section-10.6.1-3.2.1" class="pilcrow">¶</a></p>
+for the redirected request, together referred to as the Redirect target.<a href="#section-10.6.1-3.2.1" class="pilcrow">¶</a></p>
 <p id="section-10.6.1-3.2.2">
 Track Name is not meaningful for namespace-scoped requests
 (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and <span class="bcp14">MUST</span> be empty;
@@ -5749,15 +5750,14 @@ sender <span class="bcp14">SHOULD</span> use the Retry Interval to indicate when
               <p id="section-10.6.2-5.20.1">The request cannot be fulfilled by this endpoint, but could succeed at the
 location specified in the Redirect structure. The requester <span class="bcp14">SHOULD</span> establish a
 new session to the provided URI (if present) and retry the request using the
-Full Track Name from the Redirect (if present). A Retry Interval of 0 indicates
-the original request <span class="bcp14">SHOULD NOT</span> be retried at the current URI and Full Track
-Name; it does not prevent the requester from following a Redirect to a different
-URI or Full Track Name. This error code can appear in
+Redirect target. A Retry Interval of 0 indicates the original request <span class="bcp14">SHOULD NOT</span> be retried as sent;
+it does not prevent the requester from following a Redirect to a different
+URI or Redirect target. This error code can appear in
 response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
 redirects from upstream
 and <span class="bcp14">MAY</span> forward a REDIRECT response to matching downstream requests. A relay
-<span class="bcp14">MAY</span> cache a REDIRECT response for a Full Track Name for up to Retry Interval
+<span class="bcp14">MAY</span> cache a REDIRECT response for up to Retry Interval
 milliseconds and use it to respond to subsequent matching requests without
 forwarding them upstream.<a href="#section-10.6.2-5.20.1" class="pilcrow">¶</a></p>
 </dd>
@@ -8243,6 +8243,19 @@ the MOQT_IMPLEMENTATION option.<a href="#section-13.8-4.4.1" class="pilcrow">¶<
 <p id="section-13.8-5">Operators are advised that detailed implementation identification
 facilitates the same privacy concerns as persistent identifiers, since it
 enables correlation of sessions across time.<a href="#section-13.8-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="logging-untrusted-strings">
+<section id="section-13.9">
+        <h3 id="name-logging-of-untrusted-string">
+<a href="#section-13.9" class="section-number selfRef">13.9. </a><a href="#name-logging-of-untrusted-string" class="section-name selfRef">Logging of Untrusted String Fields</a>
+        </h3>
+<p id="section-13.9-1">The Reason Phrase (<a href="#reason-phrase" class="auto internal xref">Section 1.4.4</a>) and MOQT_IMPLEMENTATION option
+(<a href="#moqt-implementation" class="auto internal xref">Section 10.3.1.5</a>) carry sender-controlled text that is commonly written
+to logs. Even though these fields are UTF-8 encoded, an endpoint that logs or
+renders them <span class="bcp14">SHOULD</span> sanitize them first (for example, by escaping bytes outside
+the printable ASCII range), since unsanitized values can enable log injection or
+terminal escape sequence injection.<a href="#section-13.9-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
