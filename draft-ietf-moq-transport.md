@@ -940,6 +940,7 @@ protocols before connecting. A client using WebTransport resolves the
 `https` URI derived in {{webtransport}} using HTTPS resource records as for
 any `https` origin.
 TODO: reference moqt SVCB record draft once available.
+
 If the port is omitted in the URI, a default port of 443 is used.
 
 The client MAY use either native QUIC or WebTransport. On a QUIC connection,
