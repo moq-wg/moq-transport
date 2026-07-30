@@ -732,7 +732,7 @@ A single MOQT transport session is tied to the scope that is negotiated in the
 beginning of the session. Unless the application has additional information,
 two tracks are assumed to belong to the same scope if and only if the authority
 and the path values are equal. The authority and the path values are
-communicated through the CLIENT_SETUP message in case of raw QUIC, and through
+communicated through the SETUP message in case of raw QUIC, and through
 HTTP request header fields in case of WebTransport.
 
 Because each Full Track Name is unique within an MOQT scope, they can be used as
@@ -937,6 +937,16 @@ The `moqt` URI scheme has the following security considerations:
   that terminates the client's connection.
 
 TODO: Add internationalization statement per RFC 7595 Section 3.6.
+
+The client resolves the `host` subcomponent of the `authority` to one or
+more network addresses, most commonly using DNS A {{?RFC1035}} and AAAA {{?RFC3596}} records.
+
+When SVCB-compatible records {{?RFC9460}} are published for the `authority`,
+a client MAY use them to learn the server's endpoints and supported ALPN
+protocols before connecting. A client using WebTransport resolves the
+`https` URI derived in {{webtransport}} using HTTPS resource records as for
+any `https` origin.
+TODO: reference moqt SVCB record draft once available.
 
 If the port is omitted in the URI, a default port of 443 is used.
 
@@ -3112,15 +3122,13 @@ Redirect {
 }
 ~~~
 
-* Connect URI: The URI to connect to for this track. If the length is
+* Connect URI: The URI to connect to for the redirected request. If the length is
   zero, the requester SHOULD use the current session's URI. If a server
   receives a Redirect with a non-zero Connect URI Length it MUST close the
   session with a `PROTOCOL_VIOLATION`.
 
 * Track Namespace and Track Name: The Track Namespace and Track Name to use
-  for the redirected request. If both have zero length, the redirected request
-  uses the same values as the original request. Otherwise, Track Namespace and
-  Track Name are the literal values for the redirected request.
+  for the redirected request, together referred to as the Redirect target.
 
   Track Name is not meaningful for namespace-scoped requests
   (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and MUST be empty;
@@ -3200,15 +3208,14 @@ REDIRECT:
 : The request cannot be fulfilled by this endpoint, but could succeed at the
 location specified in the Redirect structure. The requester SHOULD establish a
 new session to the provided URI (if present) and retry the request using the
-Full Track Name from the Redirect (if present). A Retry Interval of 0 indicates
-the original request SHOULD NOT be retried at the current URI and Full Track
-Name; it does not prevent the requester from following a Redirect to a different
-URI or Full Track Name. This error code can appear in
+Redirect target. A Retry Interval of 0 indicates the original request SHOULD NOT be retried as sent;
+it does not prevent the requester from following a Redirect to a different
+URI or Redirect target. This error code can appear in
 response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
 redirects from upstream
 and MAY forward a REDIRECT response to matching downstream requests. A relay
-MAY cache a REDIRECT response for a Full Track Name for up to Retry Interval
+MAY cache a REDIRECT response for up to Retry Interval
 milliseconds and use it to respond to subsequent matching requests without
 forwarding them upstream.
 
@@ -5159,6 +5166,15 @@ To mitigate fingerprinting risks:
 Operators are advised that detailed implementation identification
 facilitates the same privacy concerns as persistent identifiers, since it
 enables correlation of sessions across time.
+
+## Logging of Untrusted String Fields {#logging-untrusted-strings}
+
+The Reason Phrase ({{reason-phrase}}) and MOQT_IMPLEMENTATION option
+({{moqt-implementation}}) carry sender-controlled text that is commonly written
+to logs. Even though these fields are UTF-8 encoded, an endpoint that logs or
+renders them SHOULD sanitize them first (for example, by escaping bytes outside
+the printable ASCII range), since unsanitized values can enable log injection or
+terminal escape sequence injection.
 
 # Grease {#grease}
 
