@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 30 January 2027                                   I. Swett, Ed.
+Expires: 31 January 2027                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            29 July 2026
+                                                            30 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 January 2027.
+   This Internet-Draft will expire on 31 January 2027.
 
 Copyright Notice
 
@@ -953,8 +953,8 @@ Table of Contents
    has additional information, two tracks are assumed to belong to the
    same scope if and only if the authority and the path values are
    equal.  The authority and the path values are communicated through
-   the CLIENT_SETUP message in case of raw QUIC, and through HTTP
-   request header fields in case of WebTransport.
+   the SETUP message in case of raw QUIC, and through HTTP request
+   header fields in case of WebTransport.
 
    Because each Full Track Name is unique within an MOQT scope, they can
    be used as a cache key for the track.  If, at a given moment in time,
@@ -6365,9 +6365,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-05, 6 July 2026,
+              draft-ietf-scone-protocol-06, 29 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-05>.
+              protocol-06>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
