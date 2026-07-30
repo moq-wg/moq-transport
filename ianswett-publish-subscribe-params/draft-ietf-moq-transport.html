@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 30 January 2027</td>
+<td class="center">Expires 31 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-07-29" class="published">29 July 2026</time>
+<time datetime="2026-07-30" class="published">30 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-01-30">30 January 2027</time></dd>
+<dd class="expires"><time datetime="2027-01-31">31 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 30 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 31 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1746,6 +1746,9 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.8">
                 <p id="section-toc.1-1.13.2.8.1"><a href="#section-13.8" class="auto internal xref">13.8</a>.  <a href="#name-implementation-identificati" class="internal xref">Implementation Identification Fingerprinting</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.9">
+                <p id="section-toc.1-1.13.2.9.1"><a href="#section-13.9" class="auto internal xref">13.9</a>.  <a href="#name-logging-of-untrusted-string" class="internal xref">Logging of Untrusted String Fields</a></p>
 </li>
             </ul>
 </li>
@@ -2753,7 +2756,7 @@ require the scope to include all of those CDNs.<a href="#section-2.4.3-1" class=
 beginning of the session. Unless the application has additional information,
 two tracks are assumed to belong to the same scope if and only if the authority
 and the path values are equal. The authority and the path values are
-communicated through the CLIENT_SETUP message in case of raw QUIC, and through
+communicated through the SETUP message in case of raw QUIC, and through
 HTTP request header fields in case of WebTransport.<a href="#section-2.4.3-2" class="pilcrow">¶</a></p>
 <p id="section-2.4.3-3">Because each Full Track Name is unique within an MOQT scope, they can be used as
 a cache key for the track. If, at a given moment in time, two tracks within the
@@ -2989,15 +2992,23 @@ that terminates the client's connection.<a href="#section-3.1.3-3.2.1" class="pi
 </li>
           </ul>
 <p id="section-3.1.3-4">TODO: Add internationalization statement per RFC 7595 Section 3.6.<a href="#section-3.1.3-4" class="pilcrow">¶</a></p>
-<p id="section-3.1.3-5">If the port is omitted in the URI, a default port of 443 is used.<a href="#section-3.1.3-5" class="pilcrow">¶</a></p>
-<p id="section-3.1.3-6">The client <span class="bcp14">MAY</span> use either native QUIC or WebTransport. On a QUIC connection,
+<p id="section-3.1.3-5">The client resolves the <code>host</code> subcomponent of the <code>authority</code> to one or
+more network addresses, most commonly using DNS A <span>[<a href="#RFC1035" class="cite xref">RFC1035</a>]</span> and AAAA <span>[<a href="#RFC3596" class="cite xref">RFC3596</a>]</span> records.<a href="#section-3.1.3-5" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-6">When SVCB-compatible records <span>[<a href="#RFC9460" class="cite xref">RFC9460</a>]</span> are published for the <code>authority</code>,
+a client <span class="bcp14">MAY</span> use them to learn the server's endpoints and supported ALPN
+protocols before connecting. A client using WebTransport resolves the
+<code>https</code> URI derived in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a> using HTTPS resource records as for
+any <code>https</code> origin.
+TODO: reference moqt SVCB record draft once available.<a href="#section-3.1.3-6" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-7">If the port is omitted in the URI, a default port of 443 is used.<a href="#section-3.1.3-7" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-8">The client <span class="bcp14">MAY</span> use either native QUIC or WebTransport. On a QUIC connection,
 the client offers any combination of MOQT ALPNs (e.g. <code>moqt-1</code>, <code>moqt-2</code>)
 and <code>h3</code> that it supports in its TLS ClientHello, in preference order. If the
 server selects an MOQT ALPN, the session proceeds as described in
 <a href="#native-quic" class="auto internal xref">Section 3.1.5</a>. If the server selects <code>h3</code>, the client establishes a
 WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a>. On a TCP+TLS
 connection, the client offers <code>h2</code> in its TLS ClientHello and establishes a
-WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a>.<a href="#section-3.1.3-6" class="pilcrow">¶</a></p>
+WebTransport session as described in <a href="#webtransport" class="auto internal xref">Section 3.1.4</a>.<a href="#section-3.1.3-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="webtransport">
@@ -5617,16 +5628,14 @@ Redirect {
 </div>
 <ul class="normal">
 <li class="normal" id="section-10.6.1-3.1">
-              <p id="section-10.6.1-3.1.1">Connect URI: The URI to connect to for this track. If the length is
+              <p id="section-10.6.1-3.1.1">Connect URI: The URI to connect to for the redirected request. If the length is
 zero, the requester <span class="bcp14">SHOULD</span> use the current session's URI. If a server
 receives a Redirect with a non-zero Connect URI Length it <span class="bcp14">MUST</span> close the
 session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.6.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-10.6.1-3.2">
               <p id="section-10.6.1-3.2.1">Track Namespace and Track Name: The Track Namespace and Track Name to use
-for the redirected request. If both have zero length, the redirected request
-uses the same values as the original request. Otherwise, Track Namespace and
-Track Name are the literal values for the redirected request.<a href="#section-10.6.1-3.2.1" class="pilcrow">¶</a></p>
+for the redirected request, together referred to as the Redirect target.<a href="#section-10.6.1-3.2.1" class="pilcrow">¶</a></p>
 <p id="section-10.6.1-3.2.2">
 Track Name is not meaningful for namespace-scoped requests
 (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and <span class="bcp14">MUST</span> be empty;
@@ -5742,15 +5751,14 @@ sender <span class="bcp14">SHOULD</span> use the Retry Interval to indicate when
               <p id="section-10.6.2-5.20.1">The request cannot be fulfilled by this endpoint, but could succeed at the
 location specified in the Redirect structure. The requester <span class="bcp14">SHOULD</span> establish a
 new session to the provided URI (if present) and retry the request using the
-Full Track Name from the Redirect (if present). A Retry Interval of 0 indicates
-the original request <span class="bcp14">SHOULD NOT</span> be retried at the current URI and Full Track
-Name; it does not prevent the requester from following a Redirect to a different
-URI or Full Track Name. This error code can appear in
+Redirect target. A Retry Interval of 0 indicates the original request <span class="bcp14">SHOULD NOT</span> be retried as sent;
+it does not prevent the requester from following a Redirect to a different
+URI or Redirect target. This error code can appear in
 response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
 redirects from upstream
 and <span class="bcp14">MAY</span> forward a REDIRECT response to matching downstream requests. A relay
-<span class="bcp14">MAY</span> cache a REDIRECT response for a Full Track Name for up to Retry Interval
+<span class="bcp14">MAY</span> cache a REDIRECT response for up to Retry Interval
 milliseconds and use it to respond to subsequent matching requests without
 forwarding them upstream.<a href="#section-10.6.2-5.20.1" class="pilcrow">¶</a></p>
 </dd>
@@ -8241,6 +8249,19 @@ facilitates the same privacy concerns as persistent identifiers, since it
 enables correlation of sessions across time.<a href="#section-13.8-5" class="pilcrow">¶</a></p>
 </section>
 </div>
+<div id="logging-untrusted-strings">
+<section id="section-13.9">
+        <h3 id="name-logging-of-untrusted-string">
+<a href="#section-13.9" class="section-number selfRef">13.9. </a><a href="#name-logging-of-untrusted-string" class="section-name selfRef">Logging of Untrusted String Fields</a>
+        </h3>
+<p id="section-13.9-1">The Reason Phrase (<a href="#reason-phrase" class="auto internal xref">Section 1.4.4</a>) and MOQT_IMPLEMENTATION option
+(<a href="#moqt-implementation" class="auto internal xref">Section 10.3.1.5</a>) carry sender-controlled text that is commonly written
+to logs. Even though these fields are UTF-8 encoded, an endpoint that logs or
+renders them <span class="bcp14">SHOULD</span> sanitize them first (for example, by escaping bytes outside
+the printable ASCII range), since unsanitized values can enable log injection or
+terminal escape sequence injection.<a href="#section-13.9-1" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="grease">
@@ -9678,11 +9699,19 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
         <dd>
-<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-05</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-05">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-05</a>&gt;</span>. </dd>
+<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-06</span>, <time datetime="2026-07-29" class="refDate">29 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-06">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-06</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PPA">[PPA]</dt>
         <dd>
 <span class="refAuthor">Nandakumar, S.</span>, <span class="refAuthor">Jennings, C. F.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Privacy Pass Authentication for Media over QUIC (MoQ)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-privacy-pass-auth-03</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-privacy-pass-auth-03">https://datatracker.ietf.org/doc/html/draft-ietf-moq-privacy-pass-auth-03</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC1035">[RFC1035]</dt>
+        <dd>
+<span class="refAuthor">Mockapetris, P.</span>, <span class="refTitle">"Domain names - implementation and specification"</span>, <span class="seriesInfo">STD 13</span>, <span class="seriesInfo">RFC 1035</span>, <span class="seriesInfo">DOI 10.17487/RFC1035</span>, <time datetime="1987-11" class="refDate">November 1987</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1035">https://www.rfc-editor.org/rfc/rfc1035</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC3596">[RFC3596]</dt>
+        <dd>
+<span class="refAuthor">Thomson, S.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Ksinant, V.</span>, and <span class="refAuthor">M. Souissi</span>, <span class="refTitle">"DNS Extensions to Support IP Version 6"</span>, <span class="seriesInfo">STD 88</span>, <span class="seriesInfo">RFC 3596</span>, <span class="seriesInfo">DOI 10.17487/RFC3596</span>, <time datetime="2003-10" class="refDate">October 2003</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3596">https://www.rfc-editor.org/rfc/rfc3596</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC6582">[RFC6582]</dt>
         <dd>
@@ -9707,6 +9736,10 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dt id="RFC9438">[RFC9438]</dt>
         <dd>
 <span class="refAuthor">Xu, L.</span>, <span class="refAuthor">Ha, S.</span>, <span class="refAuthor">Rhee, I.</span>, <span class="refAuthor">Goel, V.</span>, and <span class="refAuthor">L. Eggert, Ed.</span>, <span class="refTitle">"CUBIC for Fast and Long-Distance Networks"</span>, <span class="seriesInfo">RFC 9438</span>, <span class="seriesInfo">DOI 10.17487/RFC9438</span>, <time datetime="2023-08" class="refDate">August 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9438">https://www.rfc-editor.org/rfc/rfc9438</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9460">[RFC9460]</dt>
+        <dd>
+<span class="refAuthor">Schwartz, B.</span>, <span class="refAuthor">Bishop, M.</span>, and <span class="refAuthor">E. Nygren</span>, <span class="refTitle">"Service Binding and Parameter Specification via the DNS (SVCB and HTTPS Resource Records)"</span>, <span class="seriesInfo">RFC 9460</span>, <span class="seriesInfo">DOI 10.17487/RFC9460</span>, <time datetime="2023-11" class="refDate">November 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9460">https://www.rfc-editor.org/rfc/rfc9460</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9525">[RFC9525]</dt>
         <dd>

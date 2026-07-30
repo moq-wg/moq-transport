@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 30 January 2027                                   I. Swett, Ed.
+Expires: 31 January 2027                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            29 July 2026
+                                                            30 July 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 January 2027.
+   This Internet-Draft will expire on 31 January 2027.
 
 Copyright Notice
 
@@ -244,6 +244,7 @@ Table of Contents
        13.7.2.  SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS with short
                prefixes
      13.8.  Implementation Identification Fingerprinting
+     13.9.  Logging of Untrusted String Fields
    14. Grease
    15. IANA Considerations
      15.1.  URI Scheme Registrations
@@ -953,8 +954,8 @@ Table of Contents
    has additional information, two tracks are assumed to belong to the
    same scope if and only if the authority and the path values are
    equal.  The authority and the path values are communicated through
-   the CLIENT_SETUP message in case of raw QUIC, and through HTTP
-   request header fields in case of WebTransport.
+   the SETUP message in case of raw QUIC, and through HTTP request
+   header fields in case of WebTransport.
 
    Because each Full Track Name is unique within an MOQT scope, they can
    be used as a cache key for the track.  If, at a given moment in time,
@@ -1171,6 +1172,17 @@ Table of Contents
       that terminates the client's connection.
 
    TODO: Add internationalization statement per RFC 7595 Section 3.6.
+
+   The client resolves the host subcomponent of the authority to one or
+   more network addresses, most commonly using DNS A [RFC1035] and AAAA
+   [RFC3596] records.
+
+   When SVCB-compatible records [RFC9460] are published for the
+   authority, a client MAY use them to learn the server's endpoints and
+   supported ALPN protocols before connecting.  A client using
+   WebTransport resolves the https URI derived in Section 3.1.4 using
+   HTTPS resource records as for any https origin.  TODO: reference moqt
+   SVCB record draft once available.
 
    If the port is omitted in the URI, a default port of 443 is used.
 
@@ -3493,16 +3505,14 @@ Range { Start, [End] }
      Track Name (..),
    }
 
-   *  Connect URI: The URI to connect to for this track.  If the length
-      is zero, the requester SHOULD use the current session's URI.  If a
-      server receives a Redirect with a non-zero Connect URI Length it
-      MUST close the session with a PROTOCOL_VIOLATION.
+   *  Connect URI: The URI to connect to for the redirected request.  If
+      the length is zero, the requester SHOULD use the current session's
+      URI.  If a server receives a Redirect with a non-zero Connect URI
+      Length it MUST close the session with a PROTOCOL_VIOLATION.
 
    *  Track Namespace and Track Name: The Track Namespace and Track Name
-      to use for the redirected request.  If both have zero length, the
-      redirected request uses the same values as the original request.
-      Otherwise, Track Namespace and Track Name are the literal values
-      for the redirected request.
+      to use for the redirected request, together referred to as the
+      Redirect target.
 
       Track Name is not meaningful for namespace-scoped requests
       (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and
@@ -3579,18 +3589,17 @@ Range { Start, [End] }
    REDIRECT:  The request cannot be fulfilled by this endpoint, but
       could succeed at the location specified in the Redirect structure.
       The requester SHOULD establish a new session to the provided URI
-      (if present) and retry the request using the Full Track Name from
-      the Redirect (if present).  A Retry Interval of 0 indicates the
-      original request SHOULD NOT be retried at the current URI and Full
-      Track Name; it does not prevent the requester from following a
-      Redirect to a different URI or Full Track Name.  This error code
+      (if present) and retry the request using the Redirect target.  A
+      Retry Interval of 0 indicates the original request SHOULD NOT be
+      retried as sent; it does not prevent the requester from following
+      a Redirect to a different URI or Redirect target.  This error code
       can appear in response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH,
       PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS.
       Relays are not required to follow redirects from upstream and MAY
       forward a REDIRECT response to matching downstream requests.  A
-      relay MAY cache a REDIRECT response for a Full Track Name for up
-      to Retry Interval milliseconds and use it to respond to subsequent
-      matching requests without forwarding them upstream.
+      relay MAY cache a REDIRECT response for up to Retry Interval
+      milliseconds and use it to respond to subsequent matching requests
+      without forwarding them upstream.
 
    Below are errors for use by the publisher.  They can appear in
    response to SUBSCRIBE, FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and
@@ -5664,6 +5673,16 @@ EXT 1 and EXT N can be modified or removed by Relays
    facilitates the same privacy concerns as persistent identifiers,
    since it enables correlation of sessions across time.
 
+13.9.  Logging of Untrusted String Fields
+
+   The Reason Phrase (Section 1.4.4) and MOQT_IMPLEMENTATION option
+   (Section 10.3.1.5) carry sender-controlled text that is commonly
+   written to logs.  Even though these fields are UTF-8 encoded, an
+   endpoint that logs or renders them SHOULD sanitize them first (for
+   example, by escaping bytes outside the printable ASCII range), since
+   unsanitized values can enable log injection or terminal escape
+   sequence injection.
+
 14.  Grease
 
    To ensure that implementations correctly handle unknown values and do
@@ -6371,9 +6390,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-05, 6 July 2026,
+              draft-ietf-scone-protocol-06, 29 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-05>.
+              protocol-06>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
@@ -6381,6 +6400,15 @@ Informative References
               auth-03, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
               privacy-pass-auth-03>.
+
+   [RFC1035]  Mockapetris, P., "Domain names - implementation and
+              specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
+              November 1987, <https://www.rfc-editor.org/rfc/rfc1035>.
+
+   [RFC3596]  Thomson, S., Huitema, C., Ksinant, V., and M. Souissi,
+              "DNS Extensions to Support IP Version 6", STD 88,
+              RFC 3596, DOI 10.17487/RFC3596, October 2003,
+              <https://www.rfc-editor.org/rfc/rfc3596>.
 
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
@@ -6408,6 +6436,11 @@ Informative References
               "CUBIC for Fast and Long-Distance Networks", RFC 9438,
               DOI 10.17487/RFC9438, August 2023,
               <https://www.rfc-editor.org/rfc/rfc9438>.
+
+   [RFC9460]  Schwartz, B., Bishop, M., and E. Nygren, "Service Binding
+              and Parameter Specification via the DNS (SVCB and HTTPS
+              Resource Records)", RFC 9460, DOI 10.17487/RFC9460,
+              November 2023, <https://www.rfc-editor.org/rfc/rfc9460>.
 
    [RFC9525]  Saint-Andre, P. and R. Salz, "Service Identity in TLS",
               RFC 9525, DOI 10.17487/RFC9525, November 2023,
