@@ -4566,7 +4566,7 @@ serialized Object, if any, and this Location, inclusive, either do not exist
 (when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).  A
 publisher SHOULD NOT use `End of Non-Existent Range` in a FETCH response except to
 split a range of Objects that will not be serialized into those that are known
-not to exist and those with unknown status.
+not to exist and those with unknown or timed out status.
 
 When an Object follows an End of Range indicator and uses flags that reference
 the "prior Object", the prior Object fields are determined as follows:
