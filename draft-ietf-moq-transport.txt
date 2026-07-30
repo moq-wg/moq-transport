@@ -1172,6 +1172,17 @@ Table of Contents
 
    TODO: Add internationalization statement per RFC 7595 Section 3.6.
 
+   The client resolves the host subcomponent of the authority to one or
+   more network addresses, most commonly using DNS A [RFC1035] and AAAA
+   [RFC3596] records.
+
+   When SVCB-compatible records [RFC9460] are published for the
+   authority, a client MAY use them to learn the server's endpoints and
+   supported ALPN protocols before connecting.  A client using
+   WebTransport resolves the https URI derived in Section 3.1.4 using
+   HTTPS resource records as for any https origin.  TODO: reference moqt
+   SVCB record draft once available.
+
    If the port is omitted in the URI, a default port of 443 is used.
 
    The client MAY use either native QUIC or WebTransport.  On a QUIC
@@ -6376,6 +6387,15 @@ Informative References
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
               privacy-pass-auth-03>.
 
+   [RFC1035]  Mockapetris, P., "Domain names - implementation and
+              specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
+              November 1987, <https://www.rfc-editor.org/rfc/rfc1035>.
+
+   [RFC3596]  Thomson, S., Huitema, C., Ksinant, V., and M. Souissi,
+              "DNS Extensions to Support IP Version 6", STD 88,
+              RFC 3596, DOI 10.17487/RFC3596, October 2003,
+              <https://www.rfc-editor.org/rfc/rfc3596>.
+
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
               RFC 6582, DOI 10.17487/RFC6582, April 2012,
@@ -6402,6 +6422,11 @@ Informative References
               "CUBIC for Fast and Long-Distance Networks", RFC 9438,
               DOI 10.17487/RFC9438, August 2023,
               <https://www.rfc-editor.org/rfc/rfc9438>.
+
+   [RFC9460]  Schwartz, B., Bishop, M., and E. Nygren, "Service Binding
+              and Parameter Specification via the DNS (SVCB and HTTPS
+              Resource Records)", RFC 9460, DOI 10.17487/RFC9460,
+              November 2023, <https://www.rfc-editor.org/rfc/rfc9460>.
 
    [RFC9525]  Saint-Andre, P. and R. Salz, "Service Identity in TLS",
               RFC 9525, DOI 10.17487/RFC9525, November 2023,
