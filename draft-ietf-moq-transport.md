@@ -1571,8 +1571,8 @@ encoded from StartGroup, but both the start and end groups are absolute, not
 relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
 the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
-EndGroupDelta and EndObject can be omitted for an open-ended subscription
-or to end a fetch at the `Largest Object`.
+EndGroupDelta and EndObject can be omitted for an open-ended subscription.
+When they are omitted from a Fetch, the EndGroup and EndObject are 'Largest Object'.
 EndObject can be omitted to include all objects in the End Group.
 
 If the publisher cannot satisfy the requested Location Filter (see
