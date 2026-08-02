@@ -3618,7 +3618,7 @@ described below.
 
 #### Joining Fetch Range Calculation
 
-The `Largest Object` value from the corresponding
+The Joining Location value from the corresponding
 subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
