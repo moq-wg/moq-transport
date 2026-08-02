@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-30T02:37:23.887085+00:00",
+  "timestamp": "2026-08-02T03:17:24.098111+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -40658,7 +40658,7 @@
       "id": "I_kwDOG2Ho4M7NXMT2",
       "title": "Restrict strings that will be placed in log to be safe",
       "url": "https://github.com/moq-wg/moq-transport/issues/1234",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "fluffy",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -40671,8 +40671,8 @@
       ],
       "body": "\nWe have seen many problems with security logs getting strange and non printable character sent to them that need to be removed. We should limit reason phrases and MOQT_IMPLEMENTATION parameter to things that are safe to log. \n\nGiven the use of this is not for end users, I would suggest limiting to code points hexadecimal 20 through 7E. \n\n",
       "createdAt": "2025-09-23T13:55:26Z",
-      "updatedAt": "2026-06-15T20:09:35Z",
-      "closedAt": null,
+      "updatedAt": "2026-07-30T18:48:20Z",
+      "closedAt": "2026-07-30T18:48:20Z",
       "comments": [
         {
           "author": "afrind",
@@ -49605,7 +49605,7 @@
       "id": "I_kwDOG2Ho4M8AAAABFSgAKw",
       "title": "security consideration for utf-8 messages to logging",
       "url": "https://github.com/moq-wg/moq-transport/issues/1668",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "fluffy",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -49614,8 +49614,8 @@
       ],
       "body": "\nProvide guidance to make utf-8 data safe when sending to logging ",
       "createdAt": "2026-06-12T14:09:43Z",
-      "updatedAt": "2026-06-13T11:54:57Z",
-      "closedAt": null,
+      "updatedAt": "2026-07-30T18:48:20Z",
+      "closedAt": "2026-07-30T18:48:20Z",
       "comments": [
         {
           "author": "afrind",
@@ -50273,7 +50273,7 @@
       "id": "I_kwDOG2Ho4M8AAAABFbw30w",
       "title": "URI resolution",
       "url": "https://github.com/moq-wg/moq-transport/issues/1696",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "fluffy",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -50282,8 +50282,8 @@
       ],
       "body": "\nThe draft says \n\n> Discovery of MOQT servers is always done out-of-band.\n\nbut I don't think this is quite the case. I think we need to describe how that works. If we were doing HTTP over again, I think we would use SRV records. I think the raw quic should use SRV as it gives us better load balancing capabilities. I realize websockets may be more limited. \n\n",
       "createdAt": "2026-06-14T15:30:41Z",
-      "updatedAt": "2026-06-14T18:29:29Z",
-      "closedAt": null,
+      "updatedAt": "2026-07-30T18:24:47Z",
+      "closedAt": "2026-07-30T18:24:21Z",
       "comments": [
         {
           "author": "afrind",
@@ -50298,6 +50298,13 @@
           "body": "Ah I think I see what you are saying.",
           "createdAt": "2026-06-14T18:29:19Z",
           "updatedAt": "2026-06-14T18:29:19Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "We added a TODO in the draft to add a reference to a future moqt svcb draft.",
+          "createdAt": "2026-07-30T18:24:47Z",
+          "updatedAt": "2026-07-30T18:24:47Z"
         }
       ]
     },
@@ -50857,7 +50864,7 @@
       "id": "I_kwDOG2Ho4M8AAAABFcgXpQ",
       "title": "Fill Timeout reduction by relay",
       "url": "https://github.com/moq-wg/moq-transport/issues/1720",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "fluffy",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -50868,8 +50875,8 @@
       ],
       "body": "The draft says \n\n> If\n> the subscriber specifies a Fill Timeout larger than the relay is\n> willing to wait, the relay MAY use a shorter timeout without\n> informing the subscriber.\n\nI don't like the idea that relay can use a shorter time, perhaps 0, without the subscriber knowing that happened. Could we design a way to inform what was used, or negotiate a lower bound that will not be shortened, or return an error when this happens. \n\nClients will need this information to be able to sort out why a request failed and what to do about it. \n\n",
       "createdAt": "2026-06-14T19:53:10Z",
-      "updatedAt": "2026-07-21T15:53:16Z",
-      "closedAt": null,
+      "updatedAt": "2026-07-30T21:47:10Z",
+      "closedAt": "2026-07-30T21:47:10Z",
       "comments": [
         {
           "author": "afrind",
@@ -51704,7 +51711,7 @@
       "id": "I_kwDOG2Ho4M8AAAABHGFKgQ",
       "title": "REDIRECT ambiguity with empty namespace and empty name",
       "url": "https://github.com/moq-wg/moq-transport/issues/1793",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "sharmafb",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -51714,8 +51721,8 @@
       ],
       "body": "Redirect uses \"zero namespace + empty track name\" as \"same as original\", but that is also a valid Full Track Name. Should we instead add an explicit flag?",
       "createdAt": "2026-06-29T19:44:57Z",
-      "updatedAt": "2026-07-15T01:42:38Z",
-      "closedAt": null,
+      "updatedAt": "2026-07-30T18:48:37Z",
+      "closedAt": "2026-07-30T18:48:37Z",
       "comments": [
         {
           "author": "afrind",
@@ -52119,7 +52126,9 @@
       "state": "OPEN",
       "author": "lminiero",
       "authorAssociation": "NONE",
-      "assignees": [],
+      "assignees": [
+        "suhasHere"
+      ],
       "labels": [
         "Editorial",
         "Needs PR",
@@ -52127,7 +52136,7 @@
       ],
       "body": "I'm going through the changes in the new draft-19, and the whole section on filters (5.1.3) is very hard to process for me, let alone implement. The exact format of how to serialize each filter is, IMHO, not clear at all (at least to a non-native speaker like I am). The syntax is presented like this:\n\n```\nSUBGROUP_FILTER { Type=0x25, Length, [SetID], Range... }\t\nOBJECTID_FILTER { Type=0x26, Length, [SetID], Range... }\t\nPRIORITY_FILTER { Type=0x27, Length, [SetID], Range... }\t\nOBJECT_PROPERTY_FILTER { Type=0x28, Length, [SetID], [Property Type], Range... }\t\nTRACK_PROPERTY_FILTER  { Type=0x29, Length, [SetID], [Property Type], Range... }\nRange { Start, [End] }\n```\n\nThe text says:\n\n> Each Range Filter is a sequence of Start/End (vi64) inclusive Rang pairs prefixed with a Length (vi64) in bytes and a SetID (8 bits).\n\nbut that doesn't help. Am I writing/parsing Length and SetID once, and then I can have multiple Ranges? Ot is the whole Length+SetID+Range that can be repeated multiple tiimes, over the same filter? Besides, SetID is presented in square brackets, that in the rest of the document usually means \"it's optional\": the text doesn't say what makes it optional, though, it only says it's an 8-bit value, not what rule to follow to add or skip it. Not knowing how many times SetID can appear in each filter parameter, it's also very unclear to me how the OR/AND part is supposed to work.\n\nI'm sure this has been discussed at length, but I haven't followed any interim, so you can consider me a dumb reader that sees this text for the first time (which is what most MoQ implementers will be anyway), so I guess the text should be made clearer than it currently is. Not knowing what the actual meaning is, I can't provide suggestions at this stage on how to improve the text.",
       "createdAt": "2026-07-10T15:26:45Z",
-      "updatedAt": "2026-07-29T17:22:21Z",
+      "updatedAt": "2026-07-30T19:02:43Z",
       "closedAt": null,
       "comments": [
         {
@@ -52270,15 +52279,15 @@
       "id": "I_kwDOG2Ho4M8AAAABJc3rHA",
       "title": "Reserved Namespaces punches hole upstream",
       "url": "https://github.com/moq-wg/moq-transport/issues/1819",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "c-taylor",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "> MOQT reserves all Track Namespace values whose first tuple field\n   begins with a period (0x2e, .).  These namespaces MUST NOT be used\n   unless their meaning is defined through IANA registration.  Unless\n   otherwise specified, an endpoint that receives a request for an\n   unrecognized reserved namespace MUST pass it to the Application, so\n   that future extensions can define new reserved namespaces without\n   breaking older implementations.\n\nConsider SHOULD or MAY instead of \"unrecognized reserved namespace MUST pass it to the Application\"\nThere may be a need to limit this pinhole as the unrecognized space will be large.\n\nFailing that, a note about security consideration is likely appropriate.",
       "createdAt": "2026-07-20T13:06:19Z",
-      "updatedAt": "2026-07-22T12:52:04Z",
-      "closedAt": null,
+      "updatedAt": "2026-07-31T19:18:20Z",
+      "closedAt": "2026-07-31T19:18:20Z",
       "comments": [
         {
           "author": "c-taylor",
@@ -52314,6 +52323,13 @@
           "body": "@c-taylor let me know if you agree that the root of the issue here is a misunderstanding of where \"The application\" sits in this picture, and what specific changes you might like.\n\nI don't see this as a security risk, because absent this rule, all requests are passed to the application.\n\nI also think the Unless otherwise specified...Y MUST Z is an acceptable pattern?  It's intended to allow this to be extensible.",
           "createdAt": "2026-07-22T12:52:03Z",
           "updatedAt": "2026-07-22T12:52:03Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm closing because I think this was a misunderstanding.  Please reopen if that's a mistake.",
+          "createdAt": "2026-07-31T19:18:20Z",
+          "updatedAt": "2026-07-31T19:18:20Z"
         }
       ]
     },
@@ -52416,11 +52432,15 @@
       "state": "OPEN",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
-      "labels": [],
+      "assignees": [
+        "suhasHere"
+      ],
+      "labels": [
+        "Needs PR"
+      ],
       "body": "this came as part of msf discussion at IETF Vienna",
       "createdAt": "2026-07-24T14:17:16Z",
-      "updatedAt": "2026-07-24T14:20:16Z",
+      "updatedAt": "2026-07-30T19:06:36Z",
       "closedAt": null,
       "comments": []
     },
@@ -52429,16 +52449,26 @@
       "id": "I_kwDOG2Ho4M8AAAABKDE9hg",
       "title": "IANA Properties text might need upadate",
       "url": "https://github.com/moq-wg/moq-transport/issues/1829",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "fluffy",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "duplicate"
+      ],
       "body": "\nShould it be reserved for application specific or Private. \n\nSome confusion on what an IETF applications would do. \n\nThis came out of Will's presentation on session 3 of IETF 126 \n\n\n\n",
       "createdAt": "2026-07-24T14:19:04Z",
-      "updatedAt": "2026-07-24T14:19:04Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2026-07-30T19:05:57Z",
+      "closedAt": "2026-07-30T19:05:57Z",
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Dup of #1828 ",
+          "createdAt": "2026-07-30T19:05:57Z",
+          "updatedAt": "2026-07-30T19:05:57Z"
+        }
+      ]
     },
     {
       "number": 1832,
@@ -52449,10 +52479,12 @@
       "author": "mzanaty",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs PR"
+      ],
       "body": "Publish Done defines a reason:\nSUBSCRIPTION_ENDED (0x3): The publisher reached the end of an associated location filter. \n\nThis seems wrong, especially since filters can be updated. Only the original publisher should be able to permanently end a track regardless of subscriber filters.",
       "createdAt": "2026-07-27T23:14:14Z",
-      "updatedAt": "2026-07-28T01:44:07Z",
+      "updatedAt": "2026-07-30T19:06:10Z",
       "closedAt": null,
       "comments": [
         {
@@ -52492,6 +52524,46 @@
           "body": "Note: There seem to be unclear definition in WT itself: https://github.com/ietf-wg-webtrans/draft-ietf-webtrans-http3/issues/287",
           "createdAt": "2026-07-29T18:43:12Z",
           "updatedAt": "2026-07-29T18:43:12Z"
+        }
+      ]
+    },
+    {
+      "number": 1837,
+      "id": "I_kwDOG2Ho4M8AAAABK9G7JQ",
+      "title": "FETCH and REQUEST_ERROR encoding",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1837",
+      "state": "OPEN",
+      "author": "mengelbart",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Wire Format"
+      ],
+      "body": "I am trying to generate parser and serializer code for control messages, which is harder for FETCH and REQUEST_ERROR than for other messages because these can have different formats depending on the values of other fields in the same messages: FETCH changes format based on the `Fetch Type` field, and REQUEST_ERROR can have a `Redirect` field if the `Error Code` has a certain value. For all other messages, I can just define the list of fields and their types, and then copy code to parse and serialize each field. This doesn't work for FETCH and REQUEST_ERROR, because their formats depend on these other fields.\n\nWould it be possible to use the `Message Type` to encode the format instead? E.g., similar to SUBGROUP_HEADER, which uses different types depending on which fields are present, FETCH could use three message types to indicate the type of FETCH request. And REQUEST_ERROR could be split into REQUEST_REDIRECT (which contains only `Retry Interval`, `Error Reason` and `Redirect`), and REQUEST_ERROR (which doesn't need the `Redirect` field).",
+      "createdAt": "2026-07-31T13:44:22Z",
+      "updatedAt": "2026-08-01T12:58:45Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "How ugly is your parser for these cases?  The FETCH spelling has been there a long while, though I think @martinduke had similar gripes.\n\nI think the cognitive load of additional messages in the protocol for these cases is higher than having value-dependent fields.  Note that e.g. Object Status in the data plane functions similarly when length = 0, i think?",
+          "createdAt": "2026-07-31T19:17:45Z",
+          "updatedAt": "2026-07-31T19:17:45Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "it wasn't a big deal to me code-wise but I did find three separate formats for the FETCH message to be bit-inefficient and editorially hard to read. I guess two of the formats are going into a parameter so I think this problem is taking care of itself?",
+          "createdAt": "2026-07-31T20:15:32Z",
+          "updatedAt": "2026-07-31T20:15:32Z"
+        },
+        {
+          "author": "mengelbart",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "The code is not very ugly. Now I just generate code for the messages that are easy, and implement the others manually. That works, but it is slightly annoying, especially when upgrading to new versions.\n\nYou're right, object status has the same issue, but objects also have that issue in general, because their format can change based on the type of the subgroup header message that opened the stream on which they are sent.\n\nI wouldn't be concerned about the load of additional messages. We also already have, I think, 48 different subgroup header messages, some of which have the same format.\n\nHowever, if this has been discussed before and it will be solved by parameters anyway, I'm fine with closing this.",
+          "createdAt": "2026-08-01T12:58:45Z",
+          "updatedAt": "2026-08-01T12:58:45Z"
         }
       ]
     }
@@ -174474,7 +174546,7 @@
       "id": "PR_kwDOG2Ho4M61Oa_I",
       "title": "SWITCH for Client-side ABR",
       "url": "https://github.com/moq-wg/moq-transport/pull/1378",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "gwendalsimon",
       "authorAssociation": "NONE",
       "assignees": [],
@@ -174486,14 +174558,14 @@
       ],
       "body": "Fixes #1354 ... which addressed six previous issues.\r\n\r\nCredits to @wilaw and @acbegen ",
       "createdAt": "2025-11-24T15:24:41Z",
-      "updatedAt": "2026-06-27T19:20:09Z",
+      "updatedAt": "2026-07-30T18:07:15Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "3bc4279a9608a6c90fcc79ddb8de5da53ed56a22",
       "headRepository": "gwendalsimon/moq-transport",
       "headRefName": "switch",
       "headRefOid": "bde10f3981154853b2d3eba4189ea9930cde9f46",
-      "closedAt": null,
+      "closedAt": "2026-07-30T18:07:15Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -174560,6 +174632,13 @@
           "body": "> The SWITCH is a key feature and addon to the Relay and the Subscriber as many use cases need a feature like this.\r\n> \r\n> Based on our experimental implementation, here comes with some suggestions for discussion:\r\n> \r\n> 1. Explicit timeout: Make the \"`implementation-specific timeout  T_switch`\u201d explicitly in the SWITCH message, either a new property or re-use RENDEZVOUS_TIMEOUT;\r\n\r\nAgreed. A dedicated `SWITCH_TIMEOUT` parameter would be cleaner than reusing `RENDEZVOUS_TIMEOUT`, which has different semantics.\r\n\r\n> 2. Explicit priority for catch-up: current PR says \u201c`The Relay SHOULD assign a higher QUIC stream priority to this catch-up stream than to any concurrent SUBGROUP_HEADER streams for the target Track until the catch-up stream is closed`\u201d: suggest adding a priority delta to the SWITCH message, if it helps.\r\n\r\nA good suggestion, though specifying the semantics precisely (units, baseline, interaction with `SUBSCRIBER_PRIORITY`) adds complexity that may outweigh the benefit at this stage. The SHOULD gives relays sufficient flexibility; if experience shows otherwise, a parameter can be added in a follow-on.\r\n\r\n> 3. Also for streams with large group sizes, switching at group boundaries may not always be the best option if a fast or hard SWITCH is needed. Please consider adding a way to instruct the Relay to do a hard and **deterministic** switch, as the switching may take **non-deterministic** time and wait for the next group boundary. It may be fast if the switching is already close to the end of a group; or be slow if the switching happens to the beginning of a long group.\r\n\r\nExcellent use case. Worth noting that with the current spec, a subscriber at Group 10 can already set `Minimum Switching Group ID` = 10 to get an immediate switch: the relay opens Track B right away and delivers Group 10 from Object 0. The player is responsible for handling the buffered Track A data for that group. This is the fastest gapless path available today.\r\n\r\nAn idea is a `Request New Group` field: when set, the relay issues `NEW_GROUP_REQUEST` upstream on both tracks, forcing the publishers to start a new Group as soon as practical. For aligned ABR tracks this creates a synthetic common Group boundary within the publisher's keyframe interval. It would be deterministic and gapless.\r\n\r\nIn a related topic, @afrind suggested a `Hard Switch` flag. Concretely: subscriber is at Group 10, relay has Groups 11 from both Track A and Track B in cache, subscriber sends `SWITCH` with `Minimum Switching Group ID` = 11. By default, the relay finishes delivering Track A Group 10 before opening Track B at Group 11. It is the expected gapless behavior. With `Hard Switch` = 1, the relay terminates Track A mid-Group 10 and begins Track B at Group 11 immediately, at the cost of a content gap.\r\n\r\nBoth could be fixed fields in the `SWITCH` message wire format, or Parameters. The latter is the natural extension point, though parameters would require additional spec text to prevent them from being forwarded to the target Track `PUBLISH`",
           "createdAt": "2026-06-05T14:36:01Z",
           "updatedAt": "2026-06-05T14:36:01Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think most of the switch focus is now on #1674 and #1675, so I'm closing this PR for now.",
+          "createdAt": "2026-07-30T18:07:15Z",
+          "updatedAt": "2026-07-30T18:07:15Z"
         }
       ],
       "reviews": [
@@ -194448,7 +194527,7 @@
       "id": "PR_kwDOG2Ho4M7PbwJG",
       "title": "RFC: Add flow control for Subscriptions",
       "url": "https://github.com/moq-wg/moq-transport/pull/1591",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -194458,18 +194537,26 @@
       ],
       "body": "Adds MAX_SUB_STREAMS and MAX_SUB_BYTES for flow control and introduces SUBGROUP_RESET.\r\n\r\nI did not add Setup Options to configure defaults for new Subscriptions, but I can if people like this.\r\n\r\nFixes #869.",
       "createdAt": "2026-04-02T03:16:59Z",
-      "updatedAt": "2026-07-29T17:17:48Z",
+      "updatedAt": "2026-07-30T18:13:44Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "0d4e133ebd56d88b938c4ed5ba0b95485e9c3302",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "flow-control-subscriptions-12772134318151394003",
       "headRefOid": "4f4ecc958935ffbd9dedced12e5f539f7c54ab62",
-      "closedAt": null,
+      "closedAt": "2026-07-30T18:13:44Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "We're going to progress this as an extension draft for now.",
+          "createdAt": "2026-07-30T18:13:44Z",
+          "updatedAt": "2026-07-30T18:13:44Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M7xj1kj",
@@ -210185,20 +210272,22 @@
       "state": "OPEN",
       "author": "mzanaty",
       "authorAssociation": "CONTRIBUTOR",
-      "assignees": [],
+      "assignees": [
+        "mzanaty"
+      ],
       "labels": [
         "Design",
         "Filters"
       ],
       "body": "",
       "createdAt": "2026-07-09T03:42:16Z",
-      "updatedAt": "2026-07-29T17:07:02Z",
+      "updatedAt": "2026-08-02T01:17:34Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9f55601ca5ea789c46786f2a7470bc0b36696398",
       "headRepository": "mzanaty/moq-transport",
       "headRefName": "patch-5",
-      "headRefOid": "94d94cf2797c9958ac8b2da89c92d2b124c71f67",
+      "headRefOid": "75839256fb7d0b936ee65f1554f6ac46dafd8b76",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -210588,6 +210677,232 @@
               "updatedAt": "2026-07-29T17:07:02Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH2sJFA",
+          "commit": {
+            "abbreviatedOid": "94d94cf"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-30T18:32:50Z",
+          "updatedAt": "2026-07-30T18:37:51Z",
+          "comments": [
+            {
+              "originalPosition": 99,
+              "body": "Auth/Ed vibe is that we probably don't want implicit joining fetch/fill-fetch behavior.\r\n\r\nAdd some warning guidance about the footgun here.\r\n",
+              "createdAt": "2026-07-30T18:32:50Z",
+              "updatedAt": "2026-07-30T18:37:51Z"
+            },
+            {
+              "originalPosition": 227,
+              "body": "Another option - make the end _exclusive_ and the way to fetch all of group 10 collapses to FETCH 10,0 11,0.\r\n\r\nI had suggested this way back when but folks we unenthused as I recall.",
+              "createdAt": "2026-07-30T18:37:41Z",
+              "updatedAt": "2026-07-30T18:37:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABICxXIQ",
+          "commit": {
+            "abbreviatedOid": "fd036f4"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-01T13:33:58Z",
+          "updatedAt": "2026-08-01T13:33:58Z",
+          "comments": [
+            {
+              "originalPosition": 103,
+              "body": "Existing text, not moved, just reflowed. I'm taking the above guidance as leave it alone.",
+              "createdAt": "2026-08-01T13:33:58Z",
+              "updatedAt": "2026-08-01T13:33:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABICx2vg",
+          "commit": {
+            "abbreviatedOid": "fd036f4"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-01T13:39:50Z",
+          "updatedAt": "2026-08-01T13:39:50Z",
+          "comments": [
+            {
+              "originalPosition": 111,
+              "body": "At the end of a track, largest object = end of track, right? So largest object already covers all cases. Please reopen if I'm missing something.",
+              "createdAt": "2026-08-01T13:39:50Z",
+              "updatedAt": "2026-08-01T13:39:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABICyr3A",
+          "commit": {
+            "abbreviatedOid": "fd036f4"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-01T13:49:24Z",
+          "updatedAt": "2026-08-01T13:49:25Z",
+          "comments": [
+            {
+              "originalPosition": 126,
+              "body": "Unfiltered (no location filter) = beginning to end, seems equivalent. Unfiltered seems like the right framing, similar to HTTP range requests, you get the entire resource/track.",
+              "createdAt": "2026-08-01T13:49:25Z",
+              "updatedAt": "2026-08-01T13:49:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABIDM2RQ",
+          "commit": {
+            "abbreviatedOid": "fd036f4"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-01T17:07:15Z",
+          "updatedAt": "2026-08-01T17:07:15Z",
+          "comments": [
+            {
+              "originalPosition": 183,
+              "body": "The old text explains the +1 hack in fetch locations which was needed to reserve Obj ID 0 to mean \"all objects in the group\". End Obj ID is now optional, so it can be omitted instead of reserving 0 to mean \"all objects in the group\". So the special 0 / +1 hack is gone.",
+              "createdAt": "2026-08-01T17:07:15Z",
+              "updatedAt": "2026-08-01T17:07:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABIDNEfQ",
+          "commit": {
+            "abbreviatedOid": "fd036f4"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-01T17:09:22Z",
+          "updatedAt": "2026-08-01T17:09:23Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "Updated \"without a filter\" too.",
+              "createdAt": "2026-08-01T17:09:22Z",
+              "updatedAt": "2026-08-01T17:09:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABIDNtFw",
+          "commit": {
+            "abbreviatedOid": "fd036f4"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-01T17:15:09Z",
+          "updatedAt": "2026-08-01T17:15:10Z",
+          "comments": [
+            {
+              "originalPosition": 33,
+              "body": "If there is a specific structure that applies only to a specific protocol element, I think it is much clearer to define both at the same time, rather than define a general structure unlinked to any protocol element and force the reader to find the protocol element context in which it applies. But eds/auths can use their discretion here.",
+              "createdAt": "2026-08-01T17:15:09Z",
+              "updatedAt": "2026-08-01T17:15:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABIDO7aQ",
+          "commit": {
+            "abbreviatedOid": "fd036f4"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-01T17:24:18Z",
+          "updatedAt": "2026-08-01T17:24:19Z",
+          "comments": [
+            {
+              "originalPosition": 47,
+              "body": "I recall this, but believe it was during simpler days when we thought it was easy to determine an entire group was delivered, before we had subgroups, gaps, filters, and other complexities. If Martin feels the old restriction still has value and is still needed, please reopen. A motivation for a full end location is Ian's suggestion to replace Forward with a Location filter with the exact end location to stop, even if in the past.",
+              "createdAt": "2026-08-01T17:24:18Z",
+              "updatedAt": "2026-08-01T17:24:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABIDPSFA",
+          "commit": {
+            "abbreviatedOid": "fd036f4"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-01T17:27:20Z",
+          "updatedAt": "2026-08-01T17:27:20Z",
+          "comments": [
+            {
+              "originalPosition": 173,
+              "body": "Agreed, while equivalent, there is no need for this change, so I will revert.",
+              "createdAt": "2026-08-01T17:27:20Z",
+              "updatedAt": "2026-08-01T17:27:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABIEU7nA",
+          "commit": {
+            "abbreviatedOid": "fd036f4"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-02T01:12:58Z",
+          "updatedAt": "2026-08-02T01:12:58Z",
+          "comments": [
+            {
+              "originalPosition": 227,
+              "body": "The fetch end object ID=0 hack to mean \"all objects in the group\" (and the resulting +1 actual location confusion) is no longer needed since end object ID is optional and can be omitted for \"all objects in the group\".",
+              "createdAt": "2026-08-02T01:12:58Z",
+              "updatedAt": "2026-08-02T01:12:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABIEWKFg",
+          "commit": {
+            "abbreviatedOid": "fd036f4"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-02T01:17:34Z",
+          "updatedAt": "2026-08-02T01:17:34Z",
+          "comments": [
+            {
+              "originalPosition": 232,
+              "body": "I think this means End Location in Fetch OK compared to Start Location in Fetch, so no delta encoding there.",
+              "createdAt": "2026-08-02T01:17:34Z",
+              "updatedAt": "2026-08-02T01:17:34Z"
+            }
+          ]
         }
       ]
     },
@@ -210955,7 +211270,7 @@
       "id": "PR_kwDOG2Ho4M7znL_9",
       "title": "Define host resolution for moqt URIs",
       "url": "https://github.com/moq-wg/moq-transport/pull/1817",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -210964,17 +211279,19 @@
       ],
       "body": "Specify that the host is resolved to network addresses (A/AAAA) and allow optional use of SVCB/HTTPS records to discover endpoints and supported ALPN protocols before connecting.\r\n\r\nFixes: #1696",
       "createdAt": "2026-07-19T20:49:52Z",
-      "updatedAt": "2026-07-29T20:04:19Z",
+      "updatedAt": "2026-07-30T18:24:25Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "17ebc844608c08e8e6a5570bb2cf489006ae0156",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "uri-host-resolution",
-      "headRefOid": "eeb1e086ceb4a90d8b943d1616efff8aea13213e",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "246755a9cde5eaae38e961a9c48895606d53b1e2",
+      "closedAt": "2026-07-30T18:24:19Z",
+      "mergedAt": "2026-07-30T18:24:19Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "de51462278a69572531c4a24cf7338b1a7ae9693"
+      },
       "comments": [
         {
           "author": "suhasHere",
@@ -211017,6 +211334,27 @@
           "body": "OK.  I also put some text for this in a google doc somewhere so LMK if you want text.",
           "createdAt": "2026-07-29T20:04:19Z",
           "updatedAt": "2026-07-29T20:04:19Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@suhasHere\r\n\r\nMy preference is that SVCB go in its own document.  If moq-wg adopts it we can reference in moq-transport, but I'd rather not ref an ID, or hold this PR based on that.  Not hard to add a ref as an editorial PR.\r\n\r\nBelow is the text @bemasc sent me.\r\n\r\nMOQ SVCB Mapping\r\n\r\nService owners MAY publish SVCB records for the `authority` using Port-Prefix Naming ({{?RFC9460}}, Section 2.3).  Clients MAY use these records to learn the server's endpoints and relevant service parameters, such as the supported ALPN protocols, before connecting. A client using WebTransport resolves the `https` URI derived in {{webtransport}} using HTTPS resource records as for\r\nany `https` origin.\r\n\r\nThe only default ALPN is \u201cmoqt\u201d.  ((NOTE: This ALPN value is not assigned yet.  Testing of draft versions will therefore require use of the \u201cno-default-alpn\u201d SvcParam.))\r\n\r\nAll SvcParams typically applicable to QUIC or TLS are also applicable to these SVCB records.\r\n\r\nExamples\r\n;; A and AAAA records are omitted for brevity.\r\n\r\n;; Minimal endpoint: Standard MOQT over QUIC.\r\n_443._moqt.moq.example. IN SVCB 1 .\r\n\r\n;; Testing endpoint for a draft version of MOQT with QUIC and QMUX\r\n_443._moqt.moq.example. IN SVCB 1 . no-default-alpn alpn=moqt-20,moqt-20-qx\r\n\r\n;; A complex deployment with WebTransport, aliases, ECH, and QUIC+TCP primary with TCP-only fallback\r\n_443._moqt.moq.example. IN SVCB 0 moq-provider.example.\r\nmoq-provider.example. IN SVCB 1 . ech=ABC\u2026 alpn=moqt-qx\r\nmoq-provider.example. IN SVCB 2 backup.moq-provider.example. ech=ABC\u2026 no-default-alpn alpn=moqt-qx\r\nmoq.example. IN HTTPS 0 webtransport.moq-provider.example.\r\nwebtransport.moq-provider.example. IN HTTPS 1 moq-provider.example. ech=ABC\u2026 alpn=h2,h3\r\n\r\nMapping Summary\r\n\r\nMapped scheme:  \"moqt\"\r\nOther affected schemes: None\r\nRR type: SVCB (64)\r\nName prefix: _$PORT._moqt \r\nAutomatically mandatory keys: port, no-default-alpn\r\nSvcParam defaults:  alpn: [\"moqt\"]\r\nSpecial behaviors:  Replaced by HTTPS record when using WebTransport\r\nKeys that records must include: None\r\n",
+          "createdAt": "2026-07-30T04:21:22Z",
+          "updatedAt": "2026-07-30T04:21:22Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@afrind I am ok with it , but want to highlight that this PR doesn't fully address the issue #1696 though , but only partly ",
+          "createdAt": "2026-07-30T06:29:42Z",
+          "updatedAt": "2026-07-30T06:30:12Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Thanks for sharing the text . Cullen and I got something similar written down as well . We will include the text from @bemsac ",
+          "createdAt": "2026-07-30T06:33:21Z",
+          "updatedAt": "2026-07-30T06:33:21Z"
         }
       ],
       "reviews": [
@@ -211039,6 +211377,92 @@
               "updatedAt": "2026-07-19T21:24:19Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH2mDlA",
+          "commit": {
+            "abbreviatedOid": "eeb1e08"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-30T18:21:16Z",
+          "updatedAt": "2026-07-30T18:21:16Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "```suggestion\r\nmore network addresses, most commonly using DNS A {{?RFC1035}} and AAAA {{?RFC3596}} records.\r\n```",
+              "createdAt": "2026-07-30T18:21:16Z",
+              "updatedAt": "2026-07-30T18:21:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH2ml2w",
+          "commit": {
+            "abbreviatedOid": "4caad29"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-30T18:22:16Z",
+          "updatedAt": "2026-07-30T18:22:16Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "```suggestion\r\nTODO: reference moqt SVCB record draft once available.\r\n```",
+              "createdAt": "2026-07-30T18:22:16Z",
+              "updatedAt": "2026-07-30T18:22:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH2mx9w",
+          "commit": {
+            "abbreviatedOid": "6f9ad83"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-30T18:22:41Z",
+          "updatedAt": "2026-07-30T18:22:41Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "```suggestion\r\nTODO: reference moqt SVCB record draft once available.\r\n\r\n```",
+              "createdAt": "2026-07-30T18:22:41Z",
+              "updatedAt": "2026-07-30T18:22:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH2m_Og",
+          "commit": {
+            "abbreviatedOid": "246755a"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-30T18:23:08Z",
+          "updatedAt": "2026-07-30T18:23:08Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH2ndEw",
+          "commit": {
+            "abbreviatedOid": "246755a"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-30T18:24:10Z",
+          "updatedAt": "2026-07-30T18:24:10Z",
+          "comments": []
         }
       ]
     },
@@ -211087,7 +211511,7 @@
     {
       "number": 1820,
       "id": "PR_kwDOG2Ho4M70YfQ2",
-      "title": "Add SUBSCRIPTION_STATE_UPDATE message",
+      "title": "Add PUBLISH_NOTIFY message",
       "url": "https://github.com/moq-wg/moq-transport/pull/1820",
       "state": "OPEN",
       "author": "afrind",
@@ -211096,15 +211520,15 @@
       "labels": [
         "Design"
       ],
-      "body": "Add a new control message, SUBSCRIPTION_STATE_UPDATE (0x22), that a publisher sends on a subscription's bidirectional stream to notify the subscriber that subscription state has changed for a reason other than a subscriber-sent REQUEST_UPDATE. Unlike REQUEST_UPDATE, it is a unilateral notification: no REQUEST_OK/REQUEST_ERROR response and not subject to MAX_REQUEST_UPDATES. The FORWARD and LOCATION_FILTER parameters are updated to permit appearing in this message.\r\n\r\nNo existing mechanism in the draft sends this message yet. It is intended to support:\r\n\r\n- SWITCH_FROM (#1674, #1675)\r\n- Top-N (#1518)\r\n- Possibly Default Publisher Priority (#1770)",
+      "body": "Add a new control message, PUBLISH_NOTIFY (0x22), that a publisher sends on a subscription's bidirectional stream to notify the subscriber that subscription state has changed for a reason other than a subscriber-sent REQUEST_UPDATE. Unlike REQUEST_UPDATE, it is a unilateral notification: no REQUEST_OK/REQUEST_ERROR response and not subject to MAX_REQUEST_UPDATES. The FORWARD and LOCATION_FILTER parameters are updated to permit appearing in this message.\r\n\r\nNo existing mechanism in the draft sends this message yet. It is intended to support:\r\n\r\n- SWITCH_FROM (#1674, #1675)\r\n- Top-N (#1518)\r\n- Possibly Default Publisher Priority (#1770)",
       "createdAt": "2026-07-21T13:37:28Z",
-      "updatedAt": "2026-07-24T13:43:46Z",
+      "updatedAt": "2026-08-01T03:52:16Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "fd312e32ba762fcbe89a85f3091ebd152a8f2177",
+      "baseRefOid": "46479c752eb6e034f73961bc324916ec2dffc451",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "subscription-state-update",
-      "headRefOid": "6f75258799dea499c6f4758d1521e5d9e74f2803",
+      "headRefOid": "023e90aa49db9e8fc0f18607fb04324a69bcc389",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -211123,6 +211547,20 @@
           "body": "Could/Should this include Largest Object, so we can tell what Object the Subscription state changed?",
           "createdAt": "2026-07-24T13:43:46Z",
           "updatedAt": "2026-07-24T13:43:46Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "IIUC the sole purpose of this is to communicate unilateral changes to FORWARD. Under what circumstances would this happen? I can only think of Top-N.\r\n",
+          "createdAt": "2026-07-31T23:38:00Z",
+          "updatedAt": "2026-07-31T23:38:00Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> IIUC the sole purpose of this is to communicate unilateral changes to FORWARD. Under what circumstances would this happen? I can only think of Top-N.\r\n\r\nIf you include informing the peer of the new end group of the Location filter, it\u2019s also useful for SSTS and SWITCH_FROM",
+          "createdAt": "2026-08-01T03:52:16Z",
+          "updatedAt": "2026-08-01T03:52:16Z"
         }
       ],
       "reviews": [
@@ -211171,6 +211609,44 @@
               "updatedAt": "2026-07-23T15:33:26Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH-VUAA",
+          "commit": {
+            "abbreviatedOid": "023e90a"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "PUBLISH_NOTIFY makes me think that you're notifying a subscriber of a PUBLISH, as in one that's coming, not a change to subscription state.\n\nI'm ok with the name, but there might be better options?  SUBSCRIPTION_UPDATED?",
+          "createdAt": "2026-07-31T15:53:52Z",
+          "updatedAt": "2026-07-31T16:03:53Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "```suggestion\n| 0x22   | PUBLISH_NOTIFY ({{message-publish-notify}})          | Request          |\n```",
+              "createdAt": "2026-07-31T15:53:52Z",
+              "updatedAt": "2026-07-31T16:03:54Z"
+            },
+            {
+              "originalPosition": 71,
+              "body": "```suggestion\nstream to notify the subscriber that the state of the subscription has changed for a\n```",
+              "createdAt": "2026-07-31T15:56:12Z",
+              "updatedAt": "2026-07-31T16:03:54Z"
+            },
+            {
+              "originalPosition": 88,
+              "body": "I think this first sentence is potentially confusing, so I'd rather drop it.\n\n```suggestion\nA publisher MUST NOT use PUBLISH_NOTIFY to\n```",
+              "createdAt": "2026-07-31T15:59:23Z",
+              "updatedAt": "2026-07-31T16:03:54Z"
+            },
+            {
+              "originalPosition": 90,
+              "body": "This is a bit vague to me.  Everything is under the subscriber's control, but there are cases its asking the Publisher to manage the state of the subscription.",
+              "createdAt": "2026-07-31T16:01:28Z",
+              "updatedAt": "2026-07-31T16:03:54Z"
+            }
+          ]
         }
       ]
     },
@@ -211179,7 +211655,7 @@
       "id": "PR_kwDOG2Ho4M70uFVZ",
       "title": "Add Timed-Out gap status for expired Fill Timeout",
       "url": "https://github.com/moq-wg/moq-transport/pull/1822",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -211188,17 +211664,19 @@
       ],
       "body": "Report FETCH gaps caused by Fill Timeout expiry as a distinct End of Timed-Out Range (0x20C), separate from End of Unknown Range, so a subscriber can tell Objects the relay stopped waiting for apart from Objects whose status is genuinely unknown.\r\n\r\nFixes: #1720",
       "createdAt": "2026-07-22T06:25:33Z",
-      "updatedAt": "2026-07-28T15:28:14Z",
+      "updatedAt": "2026-07-30T21:47:12Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "timed-out-gaps",
-      "headRefOid": "6771adcd0c2777f3db1fb24712004c682173efaf",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "3a83180cf930d369e7765df8e6a40c994a288bf5",
+      "closedAt": "2026-07-30T21:47:09Z",
+      "mergedAt": "2026-07-30T21:47:09Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "20bd5f2eb49a66a46387e785a0cf1a4c3fff4594"
+      },
       "comments": [],
       "reviews": [
         {
@@ -211240,6 +211718,78 @@
               "updatedAt": "2026-07-28T15:28:14Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH21Efg",
+          "commit": {
+            "abbreviatedOid": "6771adc"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-30T18:49:51Z",
+          "updatedAt": "2026-07-30T18:49:51Z",
+          "comments": [
+            {
+              "originalPosition": 55,
+              "body": "```suggestion\r\nnot to exist and those with unknown or timed out status.\r\n```",
+              "createdAt": "2026-07-30T18:49:51Z",
+              "updatedAt": "2026-07-30T18:49:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH21LEg",
+          "commit": {
+            "abbreviatedOid": "6771adc"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-30T18:50:05Z",
+          "updatedAt": "2026-07-30T18:50:05Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH21bRA",
+          "commit": {
+            "abbreviatedOid": "3a83180"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-30T18:50:37Z",
+          "updatedAt": "2026-07-30T18:50:37Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH3gUmw",
+          "commit": {
+            "abbreviatedOid": "3a83180"
+          },
+          "author": "sandarsh",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-30T20:22:17Z",
+          "updatedAt": "2026-07-30T20:22:17Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH3hRCA",
+          "commit": {
+            "abbreviatedOid": "3a83180"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-30T20:24:13Z",
+          "updatedAt": "2026-07-30T20:24:13Z",
+          "comments": []
         }
       ]
     },
@@ -211248,7 +211798,7 @@
       "id": "PR_kwDOG2Ho4M70uO18",
       "title": "Add security consideration for logging untrusted string fields",
       "url": "https://github.com/moq-wg/moq-transport/pull/1823",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -211257,17 +211807,19 @@
       ],
       "body": "Recommend endpoints sanitize the Reason Phrase and MOQT_IMPLEMENTATION fields before logging or rendering them, rather than restricting their encoding, to avoid creating a new error condition.\r\n\r\nFixes: #1234\r\nFixes: #1668\r\n\r\nBoth fields may be removed later; see #273 (Reason Phrase) and #1745 (MOQT_IMPLEMENTATION).",
       "createdAt": "2026-07-22T06:32:41Z",
-      "updatedAt": "2026-07-24T18:05:07Z",
+      "updatedAt": "2026-07-30T18:48:21Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "sanitize-strings-for-logging",
       "headRefOid": "26df1c89a6022d8a0837178b9d58e1a52663b54a",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-07-30T18:48:18Z",
+      "mergedAt": "2026-07-30T18:48:18Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "76f3a6d22efd3f47363d8c63cd26b697c08857f6"
+      },
       "comments": [],
       "reviews": [
         {
@@ -211295,6 +211847,19 @@
           "createdAt": "2026-07-24T18:05:07Z",
           "updatedAt": "2026-07-24T18:05:07Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH20G4A",
+          "commit": {
+            "abbreviatedOid": "26df1c8"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-30T18:48:02Z",
+          "updatedAt": "2026-07-30T18:48:02Z",
+          "comments": []
         }
       ]
     },
@@ -211303,7 +211868,7 @@
       "id": "PR_kwDOG2Ho4M70vwHG",
       "title": "Resolve REDIRECT ambiguity with empty namespace and name",
       "url": "https://github.com/moq-wg/moq-transport/pull/1824",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -211312,17 +211877,19 @@
       ],
       "body": "Empty Track Namespace and Track Name in a Redirect were overloaded to mean \"reuse the original request's values,\" which collides with a legitimately empty Full Track Name. Remove the reuse rule so the fields are always the literal values for the redirected request, and refer to them collectively as the Redirect target.\r\n\r\nAlternative to #1805\r\n\r\nFixes: #1793",
       "createdAt": "2026-07-22T07:38:08Z",
-      "updatedAt": "2026-07-29T14:49:03Z",
+      "updatedAt": "2026-07-30T18:48:39Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "redirect-require-ftn",
       "headRefOid": "f9eb47a6d2eabd17d4f377813095c0d2244899cf",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-07-30T18:48:36Z",
+      "mergedAt": "2026-07-30T18:48:35Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "46479c752eb6e034f73961bc324916ec2dffc451"
+      },
       "comments": [],
       "reviews": [
         {
@@ -211387,13 +211954,15 @@
       "state": "OPEN",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "suhasHere"
+      ],
       "labels": [
         "Design"
       ],
       "body": "Fixes #1352 ",
       "createdAt": "2026-07-22T08:25:26Z",
-      "updatedAt": "2026-07-26T11:15:00Z",
+      "updatedAt": "2026-07-30T18:57:43Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
@@ -211909,20 +212478,24 @@
       "state": "OPEN",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "vasilvv",
+        "suhasHere",
+        "afrind"
+      ],
       "labels": [
         "Design",
         "Publish"
       ],
       "body": "Fixes #1803\r\n\r\nI didn't add any normative language that they MUST be specified, otherwise the Subscriber will assume the default value for the Parameter, but maybe I should?",
       "createdAt": "2026-07-28T16:02:28Z",
-      "updatedAt": "2026-07-29T17:21:20Z",
+      "updatedAt": "2026-07-31T17:52:28Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "2231e82b611d80b80ebe0412b93d8891274d7fa5",
+      "baseRefOid": "20bd5f2eb49a66a46387e785a0cf1a4c3fff4594",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-publish-subscribe-params",
-      "headRefOid": "a45f6f19f2e5939c376ce78d549f24920dbb4608",
+      "headRefOid": "98dca2e5a1f1787e40a0d455f8dfe37bd9bc7900",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -211948,6 +212521,50 @@
               "updatedAt": "2026-07-28T16:47:44Z"
             }
           ]
+        }
+      ]
+    },
+    {
+      "number": 1836,
+      "id": "PR_kwDOG2Ho4M74jwiC",
+      "title": "Fix CLIENT_SETUP to SETUP",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1836",
+      "state": "MERGED",
+      "author": "mengelbart",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "I guess this was an oversight when the setup messages were merged.",
+      "createdAt": "2026-07-30T14:11:47Z",
+      "updatedAt": "2026-07-30T18:06:16Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "2231e82b611d80b80ebe0412b93d8891274d7fa5",
+      "headRepository": "mengelbart/moq-transport",
+      "headRefName": "fix-client-setup",
+      "headRefOid": "ab6ef1c7165852a0d440fc66bd2719c273f147eb",
+      "closedAt": "2026-07-30T18:06:16Z",
+      "mergedAt": "2026-07-30T18:06:16Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "c4f85ad8940606b521fcb37afe04b1dafe51508b"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABH2eDQA",
+          "commit": {
+            "abbreviatedOid": "ab6ef1c"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-30T18:06:03Z",
+          "updatedAt": "2026-07-30T18:06:03Z",
+          "comments": []
         }
       ]
     }
