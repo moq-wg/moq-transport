@@ -3538,9 +3538,6 @@ UNAUTHORIZED (0x1):
 TRACK_ENDED (0x2):
 : The track is no longer being published.
 
-SUBSCRIPTION_ENDED (0x3):
-: The publisher reached the end of an associated location filter.
-
 GOING_AWAY (0x4):
 : The subscriber or publisher issued a GOAWAY message.
 
@@ -5502,7 +5499,6 @@ This document does not define any initial entries.
 | INTERNAL_ERROR     | 0x0  | {{message-publish-done}} |
 | UNAUTHORIZED       | 0x1  | {{message-publish-done}} |
 | TRACK_ENDED        | 0x2  | {{message-publish-done}} |
-| SUBSCRIPTION_ENDED | 0x3  | {{message-publish-done}} |
 | GOING_AWAY         | 0x4  | {{message-publish-done}} |
 | TOO_FAR_BEHIND     | 0x5  | {{message-publish-done}} |
 | EXPIRED            | 0x6  | {{message-publish-done}} |
