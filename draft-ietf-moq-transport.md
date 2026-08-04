@@ -2356,7 +2356,7 @@ new request stream.
 |--------|------------------------------------------------|------------------|
 | 0x4    | SUBSCRIBE_OK ({{message-subscribe-ok}})        | Request          |
 |--------|------------------------------------------------|------------------|
-| 0x22   | PUBLISH_NOTIFY ({{ss-update}})                 | Request          |
+| 0x22   | PUBLISH_NOTIFY ({{message-publish-notify}})          | Request          |
 |--------|------------------------------------------------|------------------|
 | 0x1D   | PUBLISH ({{message-publish}})                  | Request, First   |
 |--------|------------------------------------------------|------------------|
@@ -3422,7 +3422,7 @@ interested it can cancel the corresponding bidirectional stream.
 ## PUBLISH_NOTIFY {#ss-update}
 
 A publisher sends PUBLISH_NOTIFY on a subscription's bidirectional
-stream to notify the subscriber the state of the subscription has changed for a
+stream to notify the subscriber that the state of the subscription has changed for a
 reason other than a subscriber sent REQUEST_UPDATE.  Unlike REQUEST_UPDATE
 ({{message-request-update}}), it is a unilateral notification: the receiver
 does not respond with REQUEST_OK or REQUEST_ERROR, and the message is not
@@ -3438,8 +3438,7 @@ If a parameter is not present, its value is unchanged.  The semantics of each
 parameter, including whether it may appear in PUBLISH_NOTIFY, are
 defined by the parameter.
 
-PUBLISH_NOTIFY reports the current subscription state; it does not modify
-parameters chosen by the subscriber.  A publisher MUST NOT use PUBLISH_NOTIFY to
+A publisher MUST NOT use PUBLISH_NOTIFY to
 change the value of a subscription parameter that is under the subscriber's
 control.  Such parameters can only be changed by the subscriber via
 REQUEST_UPDATE ({{message-request-update}}).
