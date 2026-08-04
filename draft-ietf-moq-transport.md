@@ -3623,10 +3623,13 @@ subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
 The publisher receiving a Joining Fetch sets the End Location to
-`Largest Object` (see {{subscriptions}}.
+the Joining Location (see {{subscriptions}}.
+
+Note: the last Object included in the Joining FETCH response is the Object
+at the Joining Location.
 
 For a Relative Joining Fetch, the publisher sets the Start Location to
-{Largest Object.Group + 1 - StartGroup, 0}.
+{Joining Location.Group + 1 - StartGroup, 0}.
 
 For an Absolute Joining Fetch, the publisher sets the Start Location to
 {StartGroup, 0}.
@@ -3737,7 +3740,7 @@ FETCH_OK Message {
   This is the End Location from the FETCH request Location Filter unless
   the requested range extends beyond published data.
   If End Location is smaller than the Start Location in the corresponding FETCH
-  request Location Filter, the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
+  the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
