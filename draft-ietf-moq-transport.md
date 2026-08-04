@@ -1531,6 +1531,8 @@ largest Location ({{location-structure}}) in the
 Track from the perspective of the publisher processing the message.  `Largest
 Object` updates when the first byte of an Object with a Location larger than the
 previous value is published or received through a subscription.
+Next Object is defined as {Largest Object.Group, Largest Object.Object + 1}.
+Next Group is defined as {Largest Object.Group + 1, 0}.
 
 A Location filter parameter has the following length-prefixed structure:
 
@@ -1544,24 +1546,24 @@ LOCATION_FILTER Parameter {
   [EndObject (vi64),]
 ~~~
 
-Length (in bytes) determines how many optional vi64 fields are present, 0 to 4.
-Length can be 0 for no filter, e.g. to remove the filter in REQUEST_UPDATE.
-Optional fields can be omitted consecutively from the end.  The options are:
-  * 1 vi64: StartGroup is present
-  * 2 vi64: StartGroup, StartObject are present
-  * 3 vi64: StartGroup, StartObject, EndGroupDelta are present
-  * 4 vi64: StartGroup, StartObject, EndGroupDelta, EndObject are present
+Length (in bytes) determines how many optional vi64 fields are present.
+Length can be 0 for no filter to remove the filter in REQUEST_UPDATE.
+Optional fields can be omitted consecutively from the end.
+  * If only one is present, it is StartGroup.
+  * If only two are present, they are StartGroup and StartObject.
+  * If only three are present, they are StartGroup, StartObject, and EndGroupDelta.
 
-If only StartGroup is present, it is a relative number of groups prior to the next group,
+If only StartGroup is present, it is a relative number of groups prior to the Next Group,
 hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
-  * StartGroup=0 will start at the next group
+  * StartGroup=0 will start at the Next Group
   * StartGroup=1 will start at the current group
   * StartGroup=2 will start at 1 group prior to the current group
   * StartGroup=N will start at N-1 groups prior to the current group
 
 If only StartGroup and StartObject are present and both 0, the start Location
 is the Next Object which is `{Largest Object.Group, Largest Object.Object + 1}`,
-or {0,0} if no content has been delivered yet.
+or {0,0} if no content has been delivered yet.  To start at absolute Location {0, 0}
+with no end, i.e. unfiltered, do not include a Location Filter.
 Note that due to network reordering or prioritization, relays can receive Objects with
 Locations smaller than `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass this filter.
