@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-02T03:17:24.098111+00:00",
+  "timestamp": "2026-08-04T02:48:13.879753+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -50864,19 +50864,20 @@
       "id": "I_kwDOG2Ho4M8AAAABFcgXpQ",
       "title": "Fill Timeout reduction by relay",
       "url": "https://github.com/moq-wg/moq-transport/issues/1720",
-      "state": "CLOSED",
+      "state": "OPEN",
       "author": "fluffy",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
-        "afrind"
+        "fluffy"
       ],
       "labels": [
-        "Needs PR"
+        "Needs Discussion",
+        "BLOCKED"
       ],
       "body": "The draft says \n\n> If\n> the subscriber specifies a Fill Timeout larger than the relay is\n> willing to wait, the relay MAY use a shorter timeout without\n> informing the subscriber.\n\nI don't like the idea that relay can use a shorter time, perhaps 0, without the subscriber knowing that happened. Could we design a way to inform what was used, or negotiate a lower bound that will not be shortened, or return an error when this happens. \n\nClients will need this information to be able to sort out why a request failed and what to do about it. \n\n",
       "createdAt": "2026-06-14T19:53:10Z",
-      "updatedAt": "2026-07-30T21:47:10Z",
-      "closedAt": "2026-07-30T21:47:10Z",
+      "updatedAt": "2026-08-03T23:08:02Z",
+      "closedAt": null,
       "comments": [
         {
           "author": "afrind",
@@ -50884,6 +50885,20 @@
           "body": "There's no way a relay should need to honor timeouts from relatively untrusted clients (eg: FILL_TIMOUET=1 day).  We could add a setup parameter that indicates the relay's max, which pre-informs clients that it will clamp anything larger.  However, when relays are resource constrained/under load, relays are gonna do what they need to do.  The client gets \"UNKOWN\" and can deal with it.",
           "createdAt": "2026-06-14T20:00:24Z",
           "updatedAt": "2026-06-14T20:00:24Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I don't think the PR resolved my issue, I'm fine with the relay rejecting the request becaue the fill time is too long but it is going to be very hard to build apps where the relay changes this without telling the subscriber what happened. ",
+          "createdAt": "2026-08-03T16:23:12Z",
+          "updatedAt": "2026-08-03T16:23:12Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@fluffy do you have a specific use case that is going to break in mind, or are you arguing based on experiences of things going badly in other protocols?  It would really help me understand if you can give concrete flows and negative outcomes if a client issues a FILL_FETCH timeout of 5s and the relay times out after 1s instead, with no notification?  I can't see one.\n\nLet's walk through the options:\n\nCurrent draft:\n\n```\nC->S:  FETCH FILL_TIMEOUT=5s\nS->C:  FETCH_OK, data, data, TIMEOUT (after 1s), data.\n```\n\n> relay rejecting the request because the fill time is too long\n\n\n```\nC->S:  FETCH FILL_TIMEOUT=5s\nS->C: REQUEST_ERROR FILL_TIMEOUT_TOO_LONG, MAX_FILL_TIMEOUT=1s\nC->S: FETCH FILL_TIMEOUT=1s\nS->C:  FETCH_OK, data, data, TIMEOUT (after 1s), data.\n```\n\nThis is the **same outcome** as the current draft, with additional complexity, **1 RTT later**.\n\n>  add a setup parameter that indicates the relay's max\n\nS->C: SETUP MAX_FILL_TIMEOUT 1s\nC->S: FETCH FILL_TIMEOUT 1s\nS->C:  FETCH_OK, data, data, TIMEOUT (after 1s), data.\n\nThis is the **same outcome** as above, with additional complexity.\n\nIt also seems inconsistent because every publisher has 12 _other_ internal timeouts (see IETF 126 slides) it didn't broadcast to the subscriber.\n\nI see only complexity downsides and no problems being solved here.",
+          "createdAt": "2026-08-03T23:07:46Z",
+          "updatedAt": "2026-08-03T23:07:46Z"
         }
       ]
     },
@@ -52508,7 +52523,7 @@
       "labels": [],
       "body": "Is the draft's Scope section talking about `path` in RFC 3986 sense, or PATH option/HTTP `:path` sense? \n\n### Background:\n- [RFC 3986 | Section 3](https://www.rfc-editor.org/info/rfc3986/#section-3) defines `path` and `query` as two distinct components\n- HTTP/2 and HTTP/3 (and thereof WT) defines: The \":path\" pseudo-header field includes the path and query parts of the target URI\n\n### MOQT Text:\n> **2.4.3 Scope**\n> Unless the application has additional information, two tracks are assumed to belong to the same scope if and only if the authority and the _path_ values are equal. The authority and the path values are communicated through the CLIENT_SETUP message in case of raw QUIC, and through HTTP request header fields in case of WebTransport\n\n> **10.3.1.2. PATH**\n> When connecting to a server using a URI with the \"moqt\" scheme, the client MUST set the PATH option to the path-abempty portion of the URI; if query is present, the client MUST concatenate ?, followed by the query portion of the URI to the option.",
       "createdAt": "2026-07-29T16:56:24Z",
-      "updatedAt": "2026-07-29T18:43:12Z",
+      "updatedAt": "2026-08-03T09:01:04Z",
       "closedAt": null,
       "comments": [
         {
@@ -52524,6 +52539,13 @@
           "body": "Note: There seem to be unclear definition in WT itself: https://github.com/ietf-wg-webtrans/draft-ietf-webtrans-http3/issues/287",
           "createdAt": "2026-07-29T18:43:12Z",
           "updatedAt": "2026-07-29T18:43:12Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "+1 to query not being part of scope. RFC3986 treats query as an opaque sequence of characters. It does not mention key=value pairs, ampersands (&), or any specific parameter ordering rules. The arrangement, meaning, and interpretation of individual query items are left entirely to the specific application. This looseness should not be baked into the scope, which is a fundamental naming concept for MOQT. ",
+          "createdAt": "2026-08-03T09:01:04Z",
+          "updatedAt": "2026-08-03T09:01:04Z"
         }
       ]
     },
@@ -52564,6 +52586,50 @@
           "body": "The code is not very ugly. Now I just generate code for the messages that are easy, and implement the others manually. That works, but it is slightly annoying, especially when upgrading to new versions.\n\nYou're right, object status has the same issue, but objects also have that issue in general, because their format can change based on the type of the subgroup header message that opened the stream on which they are sent.\n\nI wouldn't be concerned about the load of additional messages. We also already have, I think, 48 different subgroup header messages, some of which have the same format.\n\nHowever, if this has been discussed before and it will be solved by parameters anyway, I'm fine with closing this.",
           "createdAt": "2026-08-01T12:58:45Z",
           "updatedAt": "2026-08-01T12:58:45Z"
+        }
+      ]
+    },
+    {
+      "number": 1838,
+      "id": "I_kwDOG2Ho4M8AAAABLRqo4w",
+      "title": "Semantics of multiple AUTHORIZATION TOKEN parameters in one message",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1838",
+      "state": "OPEN",
+      "author": "michalhosna",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "10.2.2 allows repetition:\n\n> The AUTHORIZATION TOKEN parameter MAY be repeated within a message...\"\n\nFrom the discussions, I understand that at least part of the WG assumes this should be handled in an \"or\" manner, i.e. at least one token must be valid.\n\nBut the current text doesn't really specify how this should be handled on the receiving side, or what the semantics are in general. The section defines per-token error handling, but nothing about how multiple tokens combine into a single authorization decision. 13.3 (Authorization) only says \"Relays will verify the token to ensure that the request is authorized\" (_singular_).\n\nFurthermore, the following part is probably not compatible with the general \"or\" idea, even though I am not sure what \"invalid\" covers here.\n\n> The receiver of a message containing a well-formed Token structure but otherwise invalid AUTHORIZATION TOKEN parameter MUST reject that message with an MALFORMED_AUTH_TOKEN error.\n\nShould we codify \"or\" behaviour? How prescriptive should the text be?\n\nE.g.:\n\n> Unless the application has additional information, when a message carries more than one AUTHORIZATION TOKEN parameter, the receiver is expected to evaluate each token. The request is assumed to be authorized if verification succeeds for at least one of the tokens.\n\nOr just something like:\n\n> The receiver MUST ignore any AUTHORIZATION TOKEN value it doesn't understand.\n\n----\n\nRelated:\n- #722\n- #996 + #1276 added uniqueness requirements.\n- #1724",
+      "createdAt": "2026-08-03T15:53:22Z",
+      "updatedAt": "2026-08-03T15:53:22Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 1839,
+      "id": "I_kwDOG2Ho4M8AAAABLR-JPQ",
+      "title": "resolution of URI",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1839",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "fluffy"
+      ],
+      "labels": [
+        "Needs PR"
+      ],
+      "body": "The draft says \n\n> When SVCB-compatible records {{?RFC9460}} are published for the `authority`,\n> a client MAY use them to learn the server's endpoints and supported ALPN\n> protocols before connecting. \n> \n\nI don't think this is anywhere near specific enough.  The base draft needs to say how URI resolution works and how this ties to TLS certs. I can't deploy a load balancing  and HA strategy for relays unless I know what clients will do. The TLS does not provide much security unless we say how it relates to the URI. ",
+      "createdAt": "2026-08-03T16:29:28Z",
+      "updatedAt": "2026-08-03T22:45:02Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@fluffy I'm assigning this to you - please put up a PR that addresses your concerns and I will review.  I think you have specifics in mind that you aren't communicating clearly enough for me to action them.  Having glanced over RFC 9110 section section 4.3.3, perhaps that is what you are thinking?  However, if we also need 1800 words to describe this, I'm going to suggest we split our URI definition to a document other than transport (see also RFC 9110 [semantics] / 9114 [wire protocol] split).",
+          "createdAt": "2026-08-03T22:44:55Z",
+          "updatedAt": "2026-08-03T22:44:55Z"
         }
       ]
     }
@@ -210281,13 +210347,13 @@
       ],
       "body": "",
       "createdAt": "2026-07-09T03:42:16Z",
-      "updatedAt": "2026-08-02T01:17:34Z",
+      "updatedAt": "2026-08-04T00:43:38Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9f55601ca5ea789c46786f2a7470bc0b36696398",
       "headRepository": "mzanaty/moq-transport",
       "headRefName": "patch-5",
-      "headRefOid": "75839256fb7d0b936ee65f1554f6ac46dafd8b76",
+      "headRefOid": "bdced61438dee9ed7e172e2f7e5351872c3cd44d",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -210901,6 +210967,86 @@
               "body": "I think this means End Location in Fetch OK compared to Start Location in Fetch, so no delta encoding there.",
               "createdAt": "2026-08-02T01:17:34Z",
               "updatedAt": "2026-08-02T01:17:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABIGsS7Q",
+          "commit": {
+            "abbreviatedOid": "7583925"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-02T14:52:43Z",
+          "updatedAt": "2026-08-02T14:52:43Z",
+          "comments": [
+            {
+              "originalPosition": 86,
+              "body": "Agreed, will reword without numbers to avoid confusion with Length. ",
+              "createdAt": "2026-08-02T14:52:43Z",
+              "updatedAt": "2026-08-02T14:52:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABIGtDCA",
+          "commit": {
+            "abbreviatedOid": "7583925"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-02T14:57:00Z",
+          "updatedAt": "2026-08-02T14:57:01Z",
+          "comments": [
+            {
+              "originalPosition": 91,
+              "body": "Next Group/Object should be defined first in terms of Largest Object, then used in capitals later. Old text already had Next Group, so I think it's intuitive and good to keep. ",
+              "createdAt": "2026-08-02T14:57:01Z",
+              "updatedAt": "2026-08-02T14:57:01Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABIGuNzw",
+          "commit": {
+            "abbreviatedOid": "7583925"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-02T15:04:13Z",
+          "updatedAt": "2026-08-02T15:04:13Z",
+          "comments": [
+            {
+              "originalPosition": 96,
+              "body": "Should we clamp computed group < 0 to 0 instead of error? If the sub asks for 1 group prior, but head is 0, should we clamp to 0 or error? I'm inclined to clamp to 0, since this seems like valid common app behavior to ask for 1 prior group when blind of head. ",
+              "createdAt": "2026-08-02T15:04:13Z",
+              "updatedAt": "2026-08-02T15:04:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABIGuolA",
+          "commit": {
+            "abbreviatedOid": "7583925"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-02T15:06:28Z",
+          "updatedAt": "2026-08-02T15:06:28Z",
+          "comments": [
+            {
+              "originalPosition": 99,
+              "body": "I will leave 0,0 for now but add Alan's suggested text. I have ideas to remove it once fill/fetch lands. ",
+              "createdAt": "2026-08-02T15:06:28Z",
+              "updatedAt": "2026-08-02T15:06:28Z"
             }
           ]
         }
@@ -212408,7 +212554,7 @@
       ],
       "body": "Fixes #1832",
       "createdAt": "2026-07-27T23:55:12Z",
-      "updatedAt": "2026-07-29T00:08:21Z",
+      "updatedAt": "2026-08-04T00:09:32Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
@@ -212426,6 +212572,13 @@
           "body": "PUBLISH_DONE still has utility, but this particular code isn't helpful given that one can update the filter range, and a relay can almost never tell with certainty that a subscriber's filter was fully satisfied.\r\n\r\nI think Top-N and SWITCH_FROM can generate PUBLISH_DONE from a relay other than \"track ended/error\" but they can specify their own codes.",
           "createdAt": "2026-07-29T00:06:44Z",
           "updatedAt": "2026-07-29T00:06:44Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Can we add editorial language under EndGroup and location filters that the publisher will never send PUBLISH_DONE and the onus is on the subscriber to terminate these?",
+          "createdAt": "2026-08-04T00:09:32Z",
+          "updatedAt": "2026-08-04T00:09:32Z"
         }
       ],
       "reviews": [
