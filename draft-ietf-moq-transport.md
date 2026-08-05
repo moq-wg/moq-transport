@@ -2007,12 +2007,13 @@ subgroup, and the Track Property otherwise.  If both the publisher's value and
 the subscriber's value are non-zero, the smaller of the two is used.
 
 If the OBJECT_DELIVERY_TIMEOUT is not zero, the MOQT implementation MUST retain
-the time at which the first payload byte of every object has been either
+the time at which the first payload byte (for objects that have a payload) or
+last header byte (for objects that have no payload) of every object has been either
 received from the upstream subscription, or provided by the original publisher
 application.  The actual mechanism by which the timeout works depends on the
 Object Forwarding Preference:
 
-- For subgroups, the implementation MUST check the time elapsed since the first
+- For subgroups, the implementation MUST check the time elapsed since the designated
   byte of the object before attempting to pass it to the underlying transport
   for transmission; if the time elapsed exceeds OBJECT_DELIVERY_TIMEOUT, it
   MUST reset the underlying transport stream with the reset stream code
@@ -2024,7 +2025,7 @@ Object Forwarding Preference:
   transport layer, as any data buffered at this layer can no longer be timed
   out, potentially leading to transmission of expired data.
 - For datagrams, the implementation MUST drop the datagrams if the time elapsed
-  since the first byte exceeds OBJECT_DELIVERY_TIMEOUT.  Similar to subgroups,
+  since the designated byte exceeds OBJECT_DELIVERY_TIMEOUT.  Similar to subgroups,
   implementations SHOULD either minimize datagram queueing, or use datagram
   queueing mechanisms that support time bounds (such as the `outgoingMaxAge`
   parameter in the W3C WebTransport API).
@@ -2048,7 +2049,7 @@ are non-zero, the smaller of the two is used.
 
 |          | `SUBGROUP_DELIVERY_TIMEOUT` | `OBJECT_DELIVERY_TIMEOUT` |
 |:---------|:----------------------------|:--------------------------|
-| Timeout starts | When the FIN for the subgroup is received | When the first byte of the object is received |
+| Timeout starts | When the FIN for the subgroup is received | When the designated byte of the object is received |
 | Timeout checked at | Via a timer until all data is acknowledged | When the object is sent to the underlying transport |
 | Action upon timeout | Reset for subgroups, drop for datagrams | Reset for subgroups, drop for datagrams |
 {: #timeout-comparison title="Comparison of the delivery timeout mechanisms" }
