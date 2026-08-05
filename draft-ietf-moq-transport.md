@@ -2839,7 +2839,7 @@ number of tracks within a namespace with the highest Property Values for a
 specified Track or Object Property Type. This Property Type MUST be even, i.e. a single
 integer value (see {{moq-key-value-pair}}), otherwise the endpoint MUST
 close the session with a `PROTOCOL_VIOLATION`.
-See {{top-tracks-filters}} and {{max-top-tracks}}.
+See {{top-tracks-filters}}.
 
 ### EXPIRES Parameter {#expires}
 
