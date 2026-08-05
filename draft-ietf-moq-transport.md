@@ -2007,8 +2007,8 @@ subgroup, and the Track Property otherwise.  If both the publisher's value and
 the subscriber's value are non-zero, the smaller of the two is used.
 
 If the OBJECT_DELIVERY_TIMEOUT is not zero, the MOQT implementation MUST retain
-the time at which the first payload byte (for objects that have a payload) or
-last header byte (for objects that have no payload) of every object has been either
+the time at which the first payload byte (or the last header byte,
+if the object has no payload) of every object has been either
 received from the upstream subscription, or provided by the original publisher
 application.  The actual mechanism by which the timeout works depends on the
 Object Forwarding Preference:
