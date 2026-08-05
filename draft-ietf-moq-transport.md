@@ -936,7 +936,18 @@ The `moqt` URI scheme has the following security considerations:
 - The `path-abempty` and `query` components are visible to the relay
   that terminates the client's connection.
 
-TODO: Add internationalization statement per RFC 7595 Section 3.6.
+Characters in the `authority` component that are excluded by the syntax
+defined above MUST be converted from Unicode to ASCII as specified
+in {{!RFC3987}}.  For the purposes of scheme-based normalization,
+Internationalized Domain Name (IDN) forms of the `authority` component
+and their conversions to punycode are considered equivalent
+(see Section 5.3.3 of {{!RFC3987}}).
+
+Characters in other components that are excluded by the syntax defined
+above MUST be converted from Unicode to ASCII by first encoding the
+characters as UTF-8 and then replacing the corresponding bytes using
+their percent-encoded form as defined in the URI {{!RFC3986}} and
+IRI {{!RFC3987}} specifications.
 
 The client resolves the `host` subcomponent of the `authority` to one or
 more network addresses, most commonly using DNS A {{?RFC1035}} and AAAA {{?RFC3596}} records.
