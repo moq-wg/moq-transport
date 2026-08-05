@@ -1690,7 +1690,7 @@ To join a Track at a past Group, the subscriber sends a SUBSCRIBE or
 REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
 {{joining-fetches}}) for the intended start Group, which can be relative.
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
-Filter Type `Next Group Start`.
+a Location Filter {{location-filters}} that starts at the Next Group.
 
 #### Dynamically Starting New Groups
 
@@ -1701,16 +1701,15 @@ Publisher create a new group than issue a Joining FETCH.  Publishers indicate a
 Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
 ({{dynamic-groups}}).
 
-One possible subscriber pattern is to SUBSCRIBE to a Track using Filter Type
-`Largest Object` and observe the `Largest Location` in the response.  If the
+One possible subscriber pattern is to SUBSCRIBE to a Track using a Location Filter
+that starts at the Next Object and observe the `Largest Object` in the response.  If the
 Object ID is below the application's threshold, the subscriber sends a FETCH for
 the beginning of the Group.  If the Object ID is above the threshold and the
 Track supports dynamic groups, the subscriber sends a REQUEST_UPDATE message with the
-NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
-{{new-group-request}}).
+NEW_GROUP_REQUEST parameter equal to the Next Group (see {{new-group-request}}).
 
-Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
-`Next Group Start` and NEW_GROUP_REQUEST equal to 0.  The value of
+Another possible subscriber pattern is to send a SUBSCRIBE with a Location Filter
+that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
 groups. A publisher that does will begin the next group as soon as practical.
 
