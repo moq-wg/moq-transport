@@ -1518,16 +1518,17 @@ end with an error.
 
 ### Location Filters {#location-filters}
 
-Subscribers can specify a Location filter parameter on a subscription or fetch
-indicating to the publisher which Objects to send.  Subscriptions without a
-filter pass all Objects published or received via upstream subscriptions.
+Subscribers can specify a Location filter on a subscription indicating to the publisher
+which Objects to send.  Subscriptions without a filter pass all Objects
+published or received via upstream subscriptions.
+
+Fetch requests can also specify a Location filter.
 
 A Location filter specifies an inclusive range of Locations.  Only objects
 with Locations within the inclusive range pass the filter.
 
-Some Location filters are defined to be relative to the `Largest Object` which is
-communicated in SUBSCRIBE_OK.  The `Largest Object` is the Object with the
-largest Location ({{location-structure}}) in the
+Some Location filters are defined to be relative to the `Largest Object`.  The `Largest
+Object` is the Object with the largest Location ({{location-structure}}) in the
 Track from the perspective of the publisher processing the message.  `Largest
 Object` updates when the first byte of an Object with a Location larger than the
 previous value is published or received through a subscription.
@@ -1563,10 +1564,13 @@ hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For ex
 If only StartGroup and StartObject are present and both 0, the start Location
 is the Next Object which is `{Largest Object.Group, Largest Object.Object + 1}`,
 or {0,0} if no content has been delivered yet.  To start at absolute Location {0, 0}
-with no end, i.e. unfiltered, do not include a Location Filter.
+with no end, which is equivalent to unfiltered, do not include a Location Filter.
 Note that due to network reordering or prioritization, relays can receive Objects with
 Locations smaller than `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass this filter.
+
+If a relative start group results in a computed absolute group less than 0, the
+computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
 
 Otherwise, all start/end group/object fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
@@ -1574,7 +1578,7 @@ relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
 the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
 EndGroupDelta and EndObject can be omitted for an open-ended subscription.
-When they are omitted from a Fetch, the EndGroup and EndObject are 'Largest Object'.
+When they are omitted from a Fetch, the EndGroup and EndObject are `Largest Object`.
 EndObject can be omitted to include all objects in the End Group.
 
 If the publisher cannot satisfy the requested Location Filter (see
