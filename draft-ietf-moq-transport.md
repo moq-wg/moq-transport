@@ -2836,7 +2836,7 @@ REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
 The TOP_TRACKS_FILTER parameter (Type=0x30) MAY appear in a SUBSCRIBE_TRACKS
 message or REQUEST_UPDATE for it.  It selects a specified
 number of tracks within a namespace with the highest Property Values for a
-specified Track or Object Property Type which MUST be even, i.e. a single
+specified Track or Object Property Type. This Property Type MUST be even, i.e. a single
 integer value (see {{moq-key-value-pair}}), otherwise the endpoint MUST
 close the session with a `PROTOCOL_VIOLATION`.
 See {{top-tracks-filters}} and {{max-top-tracks}}.
