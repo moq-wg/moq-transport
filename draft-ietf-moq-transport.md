@@ -1549,8 +1549,6 @@ Object` is the Object with the largest Location ({{location-structure}}) in the
 Track from the perspective of the publisher processing the message. Largest
 Object updates when the first byte of an Object with a Location larger than the
 previous value is published or received through a subscription.
-Next Object is defined as {Largest Object.Group, Largest Object.Object + 1}.
-Next Group is defined as {Largest Object.Group + 1, 0}.
 
 A Location filter parameter has the following length-prefixed structure:
 
