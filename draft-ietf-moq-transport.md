@@ -1565,7 +1565,7 @@ LOCATION_FILTER Parameter {
 ~~~
 
 Length (in bytes) determines how many optional vi64 fields are present.
-Length can be 0 for no filter to remove the filter in REQUEST_UPDATE.
+Length can be 0 to indicate no filter, for example to remove the filter in REQUEST_UPDATE.
 Optional fields can be omitted consecutively from the end.
   * If only one is present, it is StartGroup.
   * If only two are present, they are StartGroup and StartObject.
@@ -1589,7 +1589,7 @@ these Objects do not pass this filter.
 If a relative start group results in a computed absolute group less than 0, the
 computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
 
-Otherwise, all start/end group/object fields are absolute.  EndGroupDelta is delta
+Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
 relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
 the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
@@ -3652,7 +3652,8 @@ Joining Fetch {
 
 A Location Filter parameter (see {{location-filters}}) MUST be included
 to specify the joining start Location as a relative or absolute value,
-described below.
+described below.  If a publisher receives a Joining Fetch with no Location Filter parameter,
+it MUST close the session with `PROTOCOL_VIOLATION`.
 
 #### Joining Fetch Range Calculation
 
@@ -3733,7 +3734,7 @@ Fetch includes a Location Filter parameter
 which specifies an inclusive range of Objects starting at Start Location and
 ending at End Location.
 
-Locations larger than the `Largest Object` will not be retrieved by a FETCH.  If the
+Objects with Locations larger than the `Largest Object` will not be retrieved by a FETCH.  If the
 requested End Location exceeds the `Largest Object`, the actual end of
 the FETCH response is indicated in the FETCH_OK End Location.
 
@@ -3776,7 +3777,7 @@ FETCH_OK Message {
 
 * End Location: The end of the range covered by the FETCH response.
   This is the End Location from the FETCH request Location Filter unless
-  the requested range extends beyond published data.
+  the requested range extends beyond Largest Object or the last Object in the Track.
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
 
