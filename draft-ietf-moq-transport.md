@@ -1563,11 +1563,10 @@ LOCATION_FILTER Parameter {
 ~~~
 
 Length (in bytes) determines how many optional vi64 fields are present.
-Length can be 0 to indicate no filter, for example to remove the filter in REQUEST_UPDATE.
-Optional fields can be omitted consecutively from the end.
-  * If only one is present, it is StartGroup.
-  * If only two are present, they are StartGroup and StartObject.
-  * If only three are present, they are StartGroup, StartObject, and EndGroupDelta.
+A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
+  * If only one field is present, it is StartGroup.
+  * If only two fields are present, they are StartGroup and StartObject.
+  * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
 
 If only StartGroup is present, it is a relative number of groups prior to the Next Group,
 hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
