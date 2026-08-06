@@ -3727,11 +3727,12 @@ cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch includes a Location Filter parameter
+Fetch can include a Location Filter parameter (see {{location-filters}})
 which specifies an inclusive range of Objects starting at Start Location and
 ending at End Location.
 
-Objects with Locations larger than the `Largest Object` will not be retrieved by a FETCH.  If the
+Objects with Locations larger than the `Largest Object` at the time the request
+is processed will not be retrieved by a FETCH.  If the
 requested End Location exceeds the `Largest Object`, the actual end of
 the FETCH response is indicated in the FETCH_OK End Location.
 
@@ -3774,7 +3775,8 @@ FETCH_OK Message {
 
 * End Location: The end of the range covered by the FETCH response.
   This is the End Location from the FETCH request Location Filter unless
-  the requested range extends beyond Largest Object or the last Object in the Track.
+  the requested range extends beyond Largest Object at the time
+  the request was processed, or the last Object in the Track.
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
 
