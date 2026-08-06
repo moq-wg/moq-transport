@@ -1591,9 +1591,11 @@ encoded from StartGroup, but both the start and end groups are absolute, not
 relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
 the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
-EndGroupDelta and EndObject can be omitted for an open-ended subscription.
-When they are omitted from a Fetch, the EndGroup and EndObject are `Largest Object`.
-EndObject can be omitted to include all objects in the End Group.
+When EndGroupDelta and EndObject are omitted from a subscription filter, the
+subscription is open-ended. When they are omitted from a Fetch, the
+EndGroup and EndObject are `Largest Object`.
+
+When EndObject is omitted, the filter includes all objects in the End Group.
 
 If the publisher cannot satisfy the requested Location Filter (see
 {{location-filter}}) or if the entire End Group has already been published
@@ -3645,11 +3647,6 @@ Joining Fetch {
   to a subscription in the same session in the `Established` or `Pending
   (subscriber)` states, it MUST return a REQUEST_ERROR with error code
   `INVALID_JOINING_REQUEST_ID`.
-
-A Location Filter parameter (see {{location-filters}}) MUST be included
-to specify the joining start Location as a relative or absolute value,
-described below.  If a publisher receives a Joining Fetch with no Location Filter parameter,
-it MUST close the session with `PROTOCOL_VIOLATION`.
 
 #### Joining Fetch Range Calculation
 
