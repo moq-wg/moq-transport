@@ -3664,7 +3664,8 @@ Note: the last Object included in the Joining FETCH response is the Object
 at the Joining Location.
 
 For a Relative Joining Fetch, the publisher sets the Start Location to
-{Joining Location.Group + 1 - StartGroup, 0}.
+{Joining Location.Group + 1 - StartGroup, 0} or {0, 0} if the Start Location's group
+would be less than zero.
 
 For an Absolute Joining Fetch, the publisher sets the Start Location to
 {StartGroup, 0}.
