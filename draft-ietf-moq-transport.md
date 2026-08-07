@@ -2356,6 +2356,8 @@ new request stream.
 |--------|------------------------------------------------|------------------|
 | 0x4    | SUBSCRIBE_OK ({{message-subscribe-ok}})        | Request          |
 |--------|------------------------------------------------|------------------|
+| 0x22   | PUBLISH_NOTIFY ({{message-publish-notify}})          | Request          |
+|--------|------------------------------------------------|------------------|
 | 0x1D   | PUBLISH ({{message-publish}})                  | Request, First   |
 |--------|------------------------------------------------|------------------|
 | 0x1E   | RESERVED (PUBLISH_OK in <= 17)                 | Request          |
@@ -2702,11 +2704,14 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 ### LOCATION FILTER Parameter {#location-filter}
 
 The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a
-subscription) message. It is a Location Filter (see {{location-filters}}).
+encoding. It MAY appear in a SUBSCRIBE, PUBLISH_OK, REQUEST_UPDATE (for a
+subscription) or PUBLISH_NOTIFY message. It is a Location Filter (see
+{{location-filters}}).
 
 If omitted from SUBSCRIBE, the subscription is
-unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
+unfiltered.  If omitted from REQUEST_UPDATE or PUBLISH_NOTIFY, the
+value is unchanged.  When sent in PUBLISH_NOTIFY, it reports the
+Location Filter now in effect at the publisher.
 
 ### SUBGROUP FILTER Parameter {#subgroup-filter}
 
@@ -2766,7 +2771,7 @@ does not expire or expires at an unknown time.
 ### LARGEST OBJECT Parameter {#largest-param}
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
-in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, or TRACK_STATUS_OK.
+in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or PUBLISH_NOTIFY.
 It contains the largest Location (see {{location-structure}}) in the
 Track observed by the sending endpoint (see {{location-filters}}). If Objects
 have been published on this Track the Publisher MUST include this parameter.
@@ -2784,18 +2789,20 @@ PUBLISH, or REQUEST_UPDATE_OK
 
 The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
-PUBLISH and SUBSCRIBE_TRACKS. It specifies the Forwarding State on
-affected subscriptions (see {{subscriptions}}). The allowed values are 0 (don't
-forward) or 1 (forward). If an endpoint receives a value outside this range, it
-MUST close the session with `PROTOCOL_VIOLATION`.
+PUBLISH, PUBLISH_OK, SUBSCRIBE_TRACKS and PUBLISH_NOTIFY. It
+specifies the Forwarding State on affected subscriptions (see {{subscriptions}}).
+The allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives
+a value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
 
 In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies the
 Forwarding State on future subscriptions that match the prefix. Existing
 subscriptions are unaffected.
 
-If the parameter is omitted from REQUEST_UPDATE, the value for the
-subscription remains unchanged.  If the parameter is omitted from any other
-message, the default value is 1.
+If the parameter is omitted from REQUEST_UPDATE or PUBLISH_NOTIFY,
+the value for the subscription remains unchanged.  If the parameter is omitted
+from any other message, the default value is 1.  When sent in
+PUBLISH_NOTIFY, it reports the Forwarding State now in effect at the
+publisher.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
@@ -3411,6 +3418,48 @@ REQUEST_OK will contain Track Namespace suffixes relative to the
 updated prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
 no effect on existing subscriptions.  If the subscriber is no longer
 interested it can cancel the corresponding bidirectional stream.
+
+## PUBLISH_NOTIFY {#ss-update}
+
+A publisher sends PUBLISH_NOTIFY on a subscription's bidirectional
+stream to notify the subscriber that the state of the subscription has changed for a
+reason other than a subscriber sent REQUEST_UPDATE.  Unlike REQUEST_UPDATE
+({{message-request-update}}), it is a unilateral notification: the receiver
+does not respond with REQUEST_OK or REQUEST_ERROR, and the message is not
+subject to the MAX_REQUEST_UPDATES limit ({{max-request-updates}}).
+
+PUBLISH_NOTIFY applies only to subscriptions, and is sent only by
+the publisher.  An endpoint that receives a PUBLISH_NOTIFY for any
+other request type, or from the subscriber, MUST close the session with a
+`PROTOCOL_VIOLATION`.
+
+A PUBLISH_NOTIFY carries the parameters whose values have changed.
+If a parameter is not present, its value is unchanged.  The semantics of each
+parameter, including whether it may appear in PUBLISH_NOTIFY, are
+defined by the parameter.
+
+A publisher MUST NOT use PUBLISH_NOTIFY to
+change the value of a subscription parameter that is under the subscriber's
+control.  Such parameters can only be changed by the subscriber via
+REQUEST_UPDATE ({{message-request-update}}).
+
+The publisher MUST include the LARGEST_OBJECT parameter ({{largest-param}}), if
+known, in PUBLISH_NOTIFY so the subscriber can determine the point in the
+Track at which the change took effect.
+
+The format of PUBLISH_NOTIFY is as follows:
+
+~~~
+PUBLISH_NOTIFY Message {
+  Type (vi64) = 0x22,
+  Length (16),
+  Number of Parameters (vi64),
+  Parameters (..) ...
+}
+~~~
+{: #moq-transport-ss-update-format title="MOQT PUBLISH_NOTIFY Message"}
+
+* Parameters: The parameters are defined in {{message-params}}.
 
 ## PUBLISH {#message-publish}
 
