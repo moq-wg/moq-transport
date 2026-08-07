@@ -5971,7 +5971,7 @@ EXT 1 and EXT N can be modified or removed by Relays
     |0x0D| VIDEO_CONFIG        |Track,| draft-ietf-moq-loc            |
     |    |                     |Object|                               |
     +----+---------------------+------+-------------------------------+
-    |0x0F| AUIDO_CONFIG        |Track,| draft-ietf-moq-loc            |
+    |0x0F| AUDIO_CONFIG        |Track,| draft-ietf-moq-loc            |
     |    |                     |Object|                               |
     +----+---------------------+------+-------------------------------+
     |0x0A| ENCRYPTED_LIST      |Object| draft-ietf-moq-secure-objects |
