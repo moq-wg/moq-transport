@@ -4363,7 +4363,7 @@ header with any of these values, it MUST close the session with a
 
 * Values where bit 4 is not set. Bit 4 MUST be 1 for SUBGROUP_HEADER.
 
-* Values of 128 or greater (i.e., any value that requires more than a two-byte
+* Values of 128 or greater (i.e., any value that requires more than a one-byte
   variable-length integer encoding).
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
