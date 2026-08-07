@@ -4803,7 +4803,7 @@ Range { Start, [End] }
       SUBGROUP_HEADER.
 
    *  Values of 128 or greater (i.e., any value that requires more than
-      a two-byte variable-length integer encoding).
+      a one-byte variable-length integer encoding).
 
    To send an Object with Object Forwarding Preference = Subgroup, find
    the open stream that is associated with the subscription, Group ID
