@@ -5022,7 +5022,6 @@ in use.
 When using bearer token-based authentication (e.g., {{CAT}}), a token
 that is bound to a client-held key via a confirmation claim prevents
 a stolen token from being replayed by a different party.
-party.
 
 When unlinkable access is used (e.g., {{PPA}}), the token's scope
 extensions determine which namespaces the bearer can publish to.
