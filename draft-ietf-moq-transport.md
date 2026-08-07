@@ -5350,6 +5350,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x29 | TRACK_PROPERTY_FILTER | {{track-property-filter}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
+| 0x35 | INCLUDE_PROPERTIES | {{include-properties-param}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
