@@ -3011,13 +3011,25 @@ session migration ({{session-migration}}) with an optional URI.  A client MUST
 send a zero-length New Session URI in any GOAWAY, as clients cannot instruct
 servers to initiate connections.
 
-A `GOAWAY` MAY also be sent on a request stream to initiate migration of
-that individual request.  Upon receiving a GOAWAY on a request stream, the
-endpoint SHOULD re-issue that specific request on a session at the specified
-URI (or the current session if no URI is provided), and close the old request
-stream using the appropriate mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).
-This allows, for example, moving the publishers and subscribers of a common set
-of tracks to a common relay without draining their entire session.
+The publisher MAY send a `GOAWAY` on a request stream to initiate migration of
+that individual request.  For subscriptions established via SUBSCRIBE or FETCH,
+the publisher is the responder; for subscriptions established via PUBLISH, the
+publisher is the requester.  In all cases, only the publisher (the endpoint
+sending objects for the track) MAY send a GOAWAY on the request stream.  An
+endpoint that receives a GOAWAY from the subscriber on a request stream MUST
+close the session with a `PROTOCOL_VIOLATION`.
+
+For SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, and TRACK_STATUS, only the
+responder (the endpoint that received the request) MAY send a GOAWAY on the
+request stream.  For PUBLISH_NAMESPACE, only the requester (the publisher
+offering its namespace) MAY send a GOAWAY.
+
+Upon receiving a GOAWAY on a request stream, the receiver SHOULD re-issue
+that specific request on a session at the specified URI (or the current session
+if no URI is provided), and close the old request stream using the appropriate
+mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).  This allows, for example,
+moving the publishers and subscribers of a common set of tracks to a common
+relay without draining their entire session.
 
 The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually UNSUBSCRIBE for each existing subscription, while a
