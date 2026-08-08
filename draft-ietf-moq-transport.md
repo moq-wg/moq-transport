@@ -2487,7 +2487,8 @@ The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) uses Length-prefixed
 encoding. It MAY appear in a PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
 SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
 parameter conveys information to authorize the sender to perform the operation
-carrying the parameter.
+carrying the parameter. This Parameter MUST NOT be copied from a SUBSCRIBE_TRACKS
+to the resulting PUBLISH message Parameters.
 
 The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
@@ -2609,7 +2610,7 @@ that alias has not received a response.
 ### SUBGROUP_DELIVERY_TIMEOUT Parameter {#subgroup-delivery-timeout}
 
 The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a varint. It
-MAY appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
+MAY appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
 semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
@@ -2619,7 +2620,7 @@ for the same track.
 ### OBJECT_DELIVERY_TIMEOUT Parameter {#object-delivery-timeout}
 
 The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a varint. It
-MAY appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
+MAY appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
 semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
@@ -2678,8 +2679,8 @@ If RENDEZVOUS_TIMEOUT is absent, the default is 0.
 ### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It MAY
-appear in a SUBSCRIBE, FETCH, or REQUEST_UPDATE (for a subscription or FETCH).
-It is an integer expressing the priority of a
+appear in a SUBSCRIBE, PUBLISH, FETCH, or REQUEST_UPDATE
+(for a subscription or FETCH). It is an integer expressing the priority of a
 subscription relative to other subscriptions and fetch responses in the same
 session. Lower numbers get higher priority. See {{priorities}}.
 
@@ -2688,7 +2689,7 @@ If omitted from SUBSCRIBE or FETCH, the publisher uses the value 128.
 ### GROUP ORDER Parameter {#group-order}
 
 The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8. It MAY appear in a
-SUBSCRIBE, SUBSCRIBE_TRACKS, or FETCH.
+SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, or FETCH.
 
 Its value indicates how to prioritize Objects from different groups within
 the same subscription (see {{priorities}}), or how to order Groups in a Fetch
@@ -2702,7 +2703,7 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 ### LOCATION FILTER Parameter {#location-filter}
 
 The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a
+encoding. It MAY appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE (for a
 subscription) message. It is a Location Filter (see {{location-filters}}).
 
 If omitted from SUBSCRIBE, the subscription is
@@ -3443,7 +3444,10 @@ PUBLISH Message {
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
   {{track-alias}}).
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}. Parameters such
+  as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY, SUBGROUP_DELIVERY_TIMEOUT,
+  OBJECT_DELIVERY_TIMEOUT, and LOCATION FILTER can appear in the Parameters
+  of a PUBLISH to inform the Subscriber of the initial Subscription parameters.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
@@ -4002,8 +4006,8 @@ only interested in or authorized to access a subset of available tracks.
 Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
 in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
 publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS. The Parameters are not explicitly communicated, with the
-exception of FORWARD and GROUP_ORDER as described below.
+SUBSCRIBE_TRACKS. The Parameters SHOULD be explicitly communicated, including the
+FORWARD and GROUP_ORDER parameters as described below.
 
 If the FORWARD parameter ({{forward-parameter}}) is present in this message and
 equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
