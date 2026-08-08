@@ -5501,7 +5501,7 @@ close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4-
 responder (the endpoint that received the request) <span class="bcp14">MAY</span> send a GOAWAY on the
 request stream.  For PUBLISH_NAMESPACE, only the requester (the publisher
 offering its namespace) <span class="bcp14">MAY</span> send a GOAWAY.<a href="#section-10.4-3" class="pilcrow">¶</a></p>
-<p id="section-10.4-4">Upon receiving a GOAWAY on a request stream, the subscriber <span class="bcp14">SHOULD</span> re-issue
+<p id="section-10.4-4">Upon receiving a GOAWAY on a request stream, the receiver <span class="bcp14">SHOULD</span> re-issue
 that specific request on a session at the specified URI (or the current session
 if no URI is provided), and close the old request stream using the appropriate
 mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).  This allows, for example,

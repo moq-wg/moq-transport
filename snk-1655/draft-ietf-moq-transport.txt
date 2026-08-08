@@ -3404,9 +3404,9 @@ Range { Start, [End] }
    on the request stream.  For PUBLISH_NAMESPACE, only the requester
    (the publisher offering its namespace) MAY send a GOAWAY.
 
-   Upon receiving a GOAWAY on a request stream, the subscriber SHOULD
-   re-issue that specific request on a session at the specified URI (or
-   the current session if no URI is provided), and close the old request
+   Upon receiving a GOAWAY on a request stream, the receiver SHOULD re-
+   issue that specific request on a session at the specified URI (or the
+   current session if no URI is provided), and close the old request
    stream using the appropriate mechanism (e.g. FIN, stream reset, or
    PUBLISH_DONE).  This allows, for example, moving the publishers and
    subscribers of a common set of tracks to a common relay without
