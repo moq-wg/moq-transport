@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 23 January 2027                                   I. Swett, Ed.
+Expires: 10 February 2027                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            22 July 2026
+                                                           9 August 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 January 2027.
+   This Internet-Draft will expire on 10 February 2027.
 
 Copyright Notice
 
@@ -175,6 +175,7 @@ Table of Contents
        10.2.16. LARGEST OBJECT Parameter
        10.2.17. NEW GROUP REQUEST Parameter
        10.2.18. TRACK_NAMESPACE_PREFIX Parameter
+       10.2.19. INCLUDE_PROPERTIES Parameter
      10.3.  SETUP
        10.3.1.  Setup Options
      10.4.  GOAWAY
@@ -243,6 +244,7 @@ Table of Contents
        13.7.2.  SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS with short
                prefixes
      13.8.  Implementation Identification Fingerprinting
+     13.9.  Logging of Untrusted String Fields
    14. Grease
    15. IANA Considerations
      15.1.  URI Scheme Registrations
@@ -952,8 +954,8 @@ Table of Contents
    has additional information, two tracks are assumed to belong to the
    same scope if and only if the authority and the path values are
    equal.  The authority and the path values are communicated through
-   the CLIENT_SETUP message in case of raw QUIC, and through HTTP
-   request header fields in case of WebTransport.
+   the SETUP message in case of raw QUIC, and through HTTP request
+   header fields in case of WebTransport.
 
    Because each Full Track Name is unique within an MOQT scope, they can
    be used as a cache key for the track.  If, at a given moment in time,
@@ -1170,6 +1172,17 @@ Table of Contents
       that terminates the client's connection.
 
    TODO: Add internationalization statement per RFC 7595 Section 3.6.
+
+   The client resolves the host subcomponent of the authority to one or
+   more network addresses, most commonly using DNS A [RFC1035] and AAAA
+   [RFC3596] records.
+
+   When SVCB-compatible records [RFC9460] are published for the
+   authority, a client MAY use them to learn the server's endpoints and
+   supported ALPN protocols before connecting.  A client using
+   WebTransport resolves the https URI derived in Section 3.1.4 using
+   HTTPS resource records as for any https origin.  TODO: reference moqt
+   SVCB record draft once available.
 
    If the port is omitted in the URI, a default port of 443 is used.
 
@@ -1784,10 +1797,10 @@ Table of Contents
    without a filter pass all Objects published or received via upstream
    subscriptions.
 
-   All Location filters have a Start Location and an optional End Group
-   Delta.  Only objects published or received via a subscription having
-   Locations greater than or equal to Start Location and strictly less
-   than or equal to the End Group (when present) pass the filter.
+   Fetch requests can also specify a Location filter.
+
+   A Location filter specifies an inclusive range of Locations.  Only
+   objects with Locations within the inclusive range pass the filter.
 
    Some Location filters are defined to be relative to the Largest
    Object.  The Largest Object is the Object with the largest Location
@@ -1796,50 +1809,73 @@ Table of Contents
    of an Object with a Location larger than the previous value is
    published or received through a subscription.
 
-   A Location Filter has the following structure:
+   A Location filter parameter has the following length-prefixed
+   structure:
 
-   Location Filter {
-     Filter Type (vi64),
-     [Start Location (Location),]
-     [End Group Delta (vi64),]
+   LOCATION_FILTER Parameter {
+     Parameter Type (vi64) = 0x21,
+     Length (vi64),
+     [StartGroup (vi64),]
+     [StartObject (vi64),]
+     [EndGroupDelta (vi64),]
+     [EndObject (vi64),]
    }
 
-   Filter Type can have one of the following values:
+   Length (in bytes) determines how many optional vi64 fields are
+   present.  A length of 0 indicates no filter, for example to remove
+   the filter in REQUEST_UPDATE.
 
-   Largest Object (0x2): The filter Start Location is {Largest
-   Object.Group, Largest Object.Object + 1} and Largest Object is
-   communicated in SUBSCRIBE_OK.  If no content has been delivered yet,
-   the filter Start Location is {0, 0}. There is no End Group - the
-   subscription is open ended.  Note that due to network reordering or
-   prioritization, relays can receive Objects with Locations smaller
-   than Largest Object after the SUBSCRIBE is processed, but these
-   Objects do not pass the Largest Object filter.
+   *  If only one field is present, it is StartGroup.
 
-   Next Group Start (0x1): The filter Start Location is {Largest
-   Object.Group + 1, 0} and Largest Object is communicated in
-   SUBSCRIBE_OK.  If no content has been delivered yet, the filter Start
-   Location is {0, 0}.  There is no End Group - the subscription is open
-   ended.  For scenarios where the subscriber intends to start from more
-   than one group in the future, it can use an AbsoluteStart filter
-   instead.
+   *  If only two fields are present, they are StartGroup and
+      StartObject.
 
-   AbsoluteStart (0x3): The filter Start Location is specified
-   explicitly.  The specified Start Location MAY be less than the
-   Largest Object observed at the publisher.  There is no End Group -
-   the subscription is open ended.  An AbsoluteStart filter with Start =
-   {0, 0} is equivalent to an unfiltered subscription.
+   *  If only three fields are present, they are StartGroup,
+      StartObject, and EndGroupDelta.
 
-   AbsoluteRange (0x4): The filter Start Location and End Group are
-   specified explicitly.  The specified Start Location MAY be less than
-   the Largest Object observed at the publisher.  If the specified End
-   Group Delta is zero, the remainder of that Group passes the filter.
-   Otherwise, the last Group ID to be delivered will be the Group ID in
-   Start Location plus the End Group Delta.  If the resulting Group ID
-   would be greater than 2^64 - 1, the endpoint MUST close the session
-   with a PROTOCOL_VIOLATION.
+   If only StartGroup is present, it is a relative number of groups
+   prior to the Next Group, hence the start Location is {Largest
+   Object.Group + 1 - StartGroup, 0}. For example:
 
-   An endpoint that receives a filter type other than the above MUST
-   close the session with PROTOCOL_VIOLATION.
+   *  StartGroup=0 will start at the Next Group
+
+   *  StartGroup=1 will start at the current group
+
+   *  StartGroup=2 will start at 1 group prior to the current group
+
+   *  StartGroup=N will start at N-1 groups prior to the current group
+
+   If only StartGroup and StartObject are present and both 0, the start
+   Location is the Next Object which is {Largest Object.Group, Largest
+   Object.Object + 1}, or {0,0} if no content has been delivered yet.
+   To start at absolute Location {0, 0} with no end, which is equivalent
+   to unfiltered, do not include a Location Filter.  Note that due to
+   network reordering or prioritization, relays can receive Objects with
+   Locations smaller than Largest Object after the SUBSCRIBE is
+   processed, but these Objects do not pass this filter.
+
+   If a relative start group results in a computed absolute group less
+   than 0, the computed value is set to 0; if greater than 2^64 - 1, it
+   is set to 2^64 - 1.
+
+   Otherwise, all fields are absolute.  EndGroupDelta is delta encoded
+   from StartGroup, but both the start and end groups are absolute, not
+   relative to Largest Object.  If StartGroup + EndGroupDelta exceeds
+   2^64 - 1, the endpoint MUST close the session with a
+   PROTOCOL_VIOLATION.
+
+   When EndGroupDelta and EndObject are omitted from a subscription
+   filter, the subscription is open-ended.  When they are omitted from a
+   Fetch, the EndGroup and EndObject are Largest Object.
+
+   When EndObject is omitted, the filter includes all objects in the End
+   Group.
+
+   A Location Filter where the End Location is strictly less than the
+   Start Location matches no objects and pauses the subscription (see
+   Section 5.1.5).  The recommended encoding for a paused filter is
+   StartGroup=0, StartObject=1, EndGroupDelta=0, EndObject=0, which
+   represents the empty range [{0,1}, {0,0}].
 
    If the publisher cannot satisfy the requested Location Filter (see
    Section 10.2.9) or if the entire End Group has already been published
@@ -1885,12 +1921,12 @@ Range { Start, [End] }
 
    The Track Property filter parameter MAY appear multiple times in a
    SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.  All other filter
-   parameters MAY appear multiple times in a FETCH, SUBSCRIBE, PUBLISH,
-   SUBSCRIBE_TRACKS, PUBLISH_OK, or REQUEST_UPDATE (on a subscription,
-   from the subscriber only) message.  If the same combination of
-   Parameter Type, SetID, and Property Type (only in the Track and
-   Object Property Filters) repeat in any message, an endpoint MUST
-   reject this with REQUEST_ERROR with error code INVALID_FILTER.
+   parameters MAY appear multiple times in a FETCH, SUBSCRIBE,
+   SUBSCRIBE_TRACKS, or REQUEST_UPDATE (on a subscription, from the
+   subscriber only) message.  If the same combination of Parameter Type,
+   SetID, and Property Type (only in the Track and Object Property
+   Filters) repeat in any message, an endpoint MUST reject this with
+   REQUEST_ERROR with error code INVALID_FILTER.
 
    In REQUEST_UPDATE, Length can be 0 to remove a filter parameter or
    non-zero to replace that entire filter parameter including all sets
@@ -1926,21 +1962,20 @@ Range { Start, [End] }
 
 5.1.5.  Pausing Subscriptions
 
-   A subscription is paused by including a Range Filter with an empty
-   range set.  For example, an OBJECTID_FILTER (Parameter Type 0x26)
-   containing only a SetID and no ranges matches no Object IDs, causing
-   all Objects to be blocked.  Any Range Filter type (0x25-0x27) can be
-   used for this purpose; the result is the same since an empty range
-   set passes nothing.
+   A subscription is paused by including a Location Filter where the End
+   Location is strictly less than the Start Location, creating an empty
+   range that no object can satisfy.  The recommended encoding is
+   StartGroup=0, StartObject=1, EndGroupDelta=0, EndObject=0,
+   representing the empty range [{0,1}, {0,0}].
 
    A paused subscription does not deliver any Objects, but control
    messages such as PUBLISH_DONE (Section 10.11) are still sent.
 
-   To pause a subscription, the endpoint includes a Range Filter with an
-   empty range set in SUBSCRIBE, PUBLISH, PUBLISH_OK, SUBSCRIBE_TRACKS,
-   or REQUEST_UPDATE.  To resume, the endpoint sends a REQUEST_UPDATE
-   that either removes the pausing filter parameter (Length=0) or
-   replaces it with a non-empty range set (see Section 5.1.3).
+   To pause a subscription, the endpoint includes a pausing Location
+   Filter in SUBSCRIBE, PUBLISH, PUBLISH_OK, SUBSCRIBE_TRACKS, or
+   REQUEST_UPDATE.  To resume, the endpoint sends a REQUEST_UPDATE that
+   either removes the Location Filter (Length=0) or replaces it with a
+   non-pausing filter (see Section 5.1.2).
 
    In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, the paused
    state applies to future subscriptions that match the prefix.
@@ -1958,7 +1993,8 @@ Range { Start, [End] }
    PUBLISH_OK or REQUEST_UPDATE that is not paused, followed by a
    Joining FETCH (see Section 10.12.2) for the intended start Group,
    which can be relative.  To join a Track at the next Group, the
-   subscriber sends a SUBSCRIBE with Filter Type Next Group Start.
+   subscriber sends a SUBSCRIBE with a Location Filter Section 5.1.2
+   that starts at the Next Group.
 
 5.1.6.1.  Dynamically Starting New Groups
 
@@ -1969,20 +2005,20 @@ Range { Start, [End] }
    Joining FETCH.  Publishers indicate a Track supports dynamic group
    creation using the DYNAMIC_GROUPS parameter (Section 12.6).
 
-   One possible subscriber pattern is to SUBSCRIBE to a Track using
-   Filter Type Largest Object and observe the Largest Location in the
-   response.  If the Object ID is below the application's threshold, the
-   subscriber sends a FETCH for the beginning of the Group.  If the
-   Object ID is above the threshold and the Track supports dynamic
-   groups, the subscriber sends a REQUEST_UPDATE message with the
-   NEW_GROUP_REQUEST parameter equal to the Largest Location's Group,
-   plus one (see Section 10.2.17).
+   One possible subscriber pattern is to SUBSCRIBE to a Track using a
+   Location Filter that starts at the Next Object and observe the
+   Largest Object in the response.  If the Object ID is below the
+   application's threshold, the subscriber sends a FETCH for the
+   beginning of the Group.  If the Object ID is above the threshold and
+   the Track supports dynamic groups, the subscriber sends a
+   REQUEST_UPDATE message with the NEW_GROUP_REQUEST parameter equal to
+   the Next Group (see Section 10.2.17).
 
-   Another possible subscriber pattern is to send a SUBSCRIBE with
-   Filter Type Next Group Start and NEW_GROUP_REQUEST equal to 0.  The
-   value of DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the
-   publisher supports dynamic groups.  A publisher that does will begin
-   the next group as soon as practical.
+   Another possible subscriber pattern is to send a SUBSCRIBE with a
+   Location Filter that starts at the Next Group and NEW_GROUP_REQUEST
+   equal to 0.  The value of DYNAMIC_GROUPS in SUBSCRIBE_OK will
+   indicate if the publisher supports dynamic groups.  A publisher that
+   does will begin the next group as soon as practical.
 
 5.2.  Fetch State Management
 
@@ -2983,21 +3019,22 @@ Range { Start, [End] }
 
    It is the maximum total duration in milliseconds a relay SHOULD spend
    waiting for upstream sources to provide Objects that are not
-   immediately available before reporting them as Unknown gaps in the
+   immediately available before reporting them as Timed-Out gaps in the
    FETCH response.  When a relay encounters Objects within the requested
    range that are not immediately available and have unknown status, it
    issues upstream FETCHes to retrieve them.  The Fill Timeout
    represents a total budget for all such upstream FETCHes generated by
    this request.  If the budget is exhausted, the relay reports any
-   remaining unavailable Objects as Unknown gaps and continues
-   delivering available Objects in the range.
+   remaining unavailable Objects as Timed-Out gaps (End of Timed-Out
+   Range, see Section 11.4.4.2) and continues delivering available
+   Objects in the range.
 
    A value of 0 indicates the subscriber only wants Objects that are
    immediately available; the relay MUST NOT wait for upstream delivery
-   and MUST report any unavailable Objects as Unknown gaps.
+   and MUST report any unavailable Objects as Timed-Out gaps.
 
    If the Fill Timeout parameter is absent, the relay waits for an
-   implementation specific duration before reporting Unknown gaps.  If
+   implementation specific duration before reporting Timed-Out gaps.  If
    the subscriber specifies a Fill Timeout larger than the relay is
    willing to wait, the relay MAY use a shorter timeout without
    informing the subscriber.
@@ -3061,12 +3098,14 @@ Range { Start, [End] }
 10.2.9.  LOCATION FILTER Parameter
 
    The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-
-   prefixed encoding.  It MAY appear in a SUBSCRIBE, PUBLISH_OK or
-   REQUEST_UPDATE (for a subscription) message.  It is a Location Filter
-   (see Section 5.1.2).
+   prefixed encoding.  It MAY appear in a FETCH, SUBSCRIBE, PUBLISH,
+   PUBLISH_OK, SUBSCRIBE_TRACKS, or REQUEST_UPDATE (for a subscription)
+   message.  It is a Location Filter (see Section 5.1.2).
 
-   If omitted from SUBSCRIBE or PUBLISH_OK, the subscription is
-   unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
+   If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
+   unfiltered.  If omitted from PUBLISH, PUBLISH_OK, or
+   SUBSCRIBE_TRACKS, the subscription is not paused.  If omitted from
+   REQUEST_UPDATE, the value is unchanged.
 
 10.2.10.  SUBGROUP FILTER Parameter
 
@@ -3200,6 +3239,19 @@ Range { Start, [End] }
    another active subscription of the same type in the same session, the
    receiver MUST respond with REQUEST_ERROR with error code
    PREFIX_OVERLAP.
+
+10.2.19.  INCLUDE_PROPERTIES Parameter
+
+   The INCLUDE_PROPERTIES parameter (Parameter Type 0x35) is a uint8.
+   It MAY appear in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS.
+   It specifies whether the OK message sent in response includes Track
+   Properties or whether the resulting PUBLISH messages include Track
+   Properties in the case of SUBSCRIBE_TRACKS.  If INCLUDE_PROPERTIES is
+   0, the Track Properties are still present in the message, but they
+   SHOULD be empty.  The allowed values are 0 (do not send Properties)
+   or 1 (send Properties), and the default is 1.  If an endpoint
+   receives a value outside this range, it MUST close the session with
+   PROTOCOL_VIOLATION.
 
 10.3.  SETUP
 
@@ -3480,16 +3532,14 @@ Range { Start, [End] }
      Track Name (..),
    }
 
-   *  Connect URI: The URI to connect to for this track.  If the length
-      is zero, the requester SHOULD use the current session's URI.  If a
-      server receives a Redirect with a non-zero Connect URI Length it
-      MUST close the session with a PROTOCOL_VIOLATION.
+   *  Connect URI: The URI to connect to for the redirected request.  If
+      the length is zero, the requester SHOULD use the current session's
+      URI.  If a server receives a Redirect with a non-zero Connect URI
+      Length it MUST close the session with a PROTOCOL_VIOLATION.
 
    *  Track Namespace and Track Name: The Track Namespace and Track Name
-      to use for the redirected request.  If both have zero length, the
-      redirected request uses the same values as the original request.
-      Otherwise, Track Namespace and Track Name are the literal values
-      for the redirected request.
+      to use for the redirected request, together referred to as the
+      Redirect target.
 
       Track Name is not meaningful for namespace-scoped requests
       (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and
@@ -3566,18 +3616,17 @@ Range { Start, [End] }
    REDIRECT:  The request cannot be fulfilled by this endpoint, but
       could succeed at the location specified in the Redirect structure.
       The requester SHOULD establish a new session to the provided URI
-      (if present) and retry the request using the Full Track Name from
-      the Redirect (if present).  A Retry Interval of 0 indicates the
-      original request SHOULD NOT be retried at the current URI and Full
-      Track Name; it does not prevent the requester from following a
-      Redirect to a different URI or Full Track Name.  This error code
+      (if present) and retry the request using the Redirect target.  A
+      Retry Interval of 0 indicates the original request SHOULD NOT be
+      retried as sent; it does not prevent the requester from following
+      a Redirect to a different URI or Redirect target.  This error code
       can appear in response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH,
       PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS.
       Relays are not required to follow redirects from upstream and MAY
       forward a REDIRECT response to matching downstream requests.  A
-      relay MAY cache a REDIRECT response for a Full Track Name for up
-      to Retry Interval milliseconds and use it to respond to subsequent
-      matching requests without forwarding them upstream.
+      relay MAY cache a REDIRECT response for up to Retry Interval
+      milliseconds and use it to respond to subsequent matching requests
+      without forwarding them upstream.
 
    Below are errors for use by the publisher.  They can appear in
    response to SUBSCRIBE, FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and
@@ -3886,7 +3935,7 @@ Range { Start, [End] }
       did not open any streams for this subscription, the publisher MUST
       set Stream Count to 0.  If the publisher is unable to set Stream
       Count to the exact number of streams opened for the subscription,
-      it MUST set Stream Count to 2^62 - 1.  Subscribers SHOULD use a
+      it MUST set Stream Count to 2^64 - 1.  Subscribers SHOULD use a
       timeout or other mechanism to remove subscription state in case
       the publisher set an incorrect value, reset a stream before the
       SUBGROUP_HEADER, or set the maximum value.  If a subscriber
@@ -3961,8 +4010,6 @@ Range { Start, [End] }
      Track Namespace (..),
      Track Name Length (vi64),
      Track Name (..),
-     Start Location (Location),
-     End Location (Location)
    }
 
    *  Track Namespace: Identifies the namespace of the track as defined
@@ -3971,10 +4018,9 @@ Range { Start, [End] }
    *  Track Name: Identifies the track name as defined in
       (Section 2.4.1).
 
-   *  Start Location: The start Location.
-
-   *  End Location: The end Location, plus 1.  A Location.Object value
-      of 0 means the entire group is requested.
+   A Location Filter parameter (see Section 5.1.2) can be included to
+   specify the start and end Locations, otherwise the entire track is
+   included.
 
 10.12.2.  Joining Fetches
 
@@ -4014,7 +4060,6 @@ Range { Start, [End] }
 
    Joining Fetch {
      Joining Request ID (vi64),
-     Joining Start (vi64)
    }
 
    *  Joining Request ID: The Request ID of the subscription to be
@@ -4023,9 +4068,6 @@ Range { Start, [End] }
       the Established or Pending (subscriber) states, it MUST return a
       REQUEST_ERROR with error code INVALID_JOINING_REQUEST_ID.
 
-   *  Joining Start : A relative or absolute value used to determine the
-      Start Location, described below.
-
 10.12.2.1.  Joining Fetch Range Calculation
 
    The Joining Location value from the corresponding subscription is
@@ -4033,19 +4075,18 @@ Range { Start, [End] }
    retrieved by the FETCH and SUBSCRIBE are contiguous and non-
    overlapping.
 
-   The publisher receiving a Joining Fetch sets the End Location to
-   {Joining Location.Group, Joining Location.Object + 1} (see
-   Section 5.1.
+   The publisher receiving a Joining Fetch sets the End Location to the
+   Joining Location (see Section 5.1).
 
    Note: the last Object included in the Joining FETCH response is the
-   Object at the Joining Location.  The + 1 above indicates the
-   equivalent Standalone Fetch encoding.
+   Object at the Joining Location.
 
    For a Relative Joining Fetch, the publisher sets the Start Location
-   to {Joining Location.Group - Joining Start, 0}.
+   to {Joining Location.Group + 1 - StartGroup, 0} or {0, 0} if the
+   Start Location's group would be less than zero.
 
    For an Absolute Joining Fetch, the publisher sets the Start Location
-   to {Joining Start, 0}.
+   to {StartGroup, 0}.
 
 10.12.3.  Fetch Handling
 
@@ -4108,15 +4149,14 @@ Range { Start, [End] }
 
    The Object Forwarding Preference does not apply to fetches.
 
-   Fetch specifies an inclusive range of Objects starting at Start
-   Location and ending at End Location.  End Location MUST specify the
-   same or a larger Location than Start Location for Standalone and
-   Absolute Joining Fetches.
+   Fetch can include a Location Filter parameter (see Section 5.1.2)
+   which specifies an inclusive range of Objects starting at Start
+   Location and ending at End Location.
 
-   Objects larger than the Largest Object will not be retrieved by a
-   FETCH.  If the requested End Location exceeds the Largest available
-   Object, the actual end of the FETCH response is indicated in the
-   FETCH_OK End Location.
+   Objects with Locations larger than the Largest Object at the time the
+   request is processed will not be retrieved by a FETCH.  If the
+   requested End Location exceeds the Largest Object, the actual end of
+   the FETCH response is indicated in the FETCH_OK End Location.
 
    If no Objects have been published for the track or Start Location is
    greater than the Largest Object (Section 10.7) the publisher MUST
@@ -4155,17 +4195,10 @@ Range { Start, [End] }
    *  End Of Track: 1 if all Objects have been published on this Track,
       and the End Location is the final Object in the Track, 0 if not.
 
-   *  End Location: The end of the range covered by the FETCH response,
-      using the same encoding as the FETCH request End Location (the
-      last Object, plus 1; or 0 to indicate the entire Group).  This is
-      the End Location from the FETCH request unless the requested range
-      extends beyond published data:
-
-      -  If the requested FETCH End Location was beyond the Largest
-         known (possibly final) Object, End Location is {Largest.Group,
-         Largest.Object + 1} Where Fetch.End Location is either
-         Fetch.Standalone.End Location or the computed End Location
-         described in Section 10.12.2.1.
+   *  End Location: The end of the range covered by the FETCH response.
+      This is the End Location from the FETCH request Location Filter
+      unless the requested range extends beyond Largest Object at the
+      time the request was processed, or the last Object in the Track.
 
       If End Location is smaller than the Start Location in the
       corresponding FETCH the receiver MUST close the session with a
@@ -4395,15 +4428,15 @@ Range { Start, [End] }
    These parameters are used by the publisher as the initial
    Subscription parameters when a PUBLISH is sent as a result of
    SUBSCRIBE_TRACKS.  The Parameters are not explicitly communicated,
-   with the exception of pausing filters and GROUP_ORDER as described
-   below.
+   with the exception of a pausing Location Filter and GROUP_ORDER as
+   described below.
 
    If the subscription is paused (see Section 5.1.5) in this message,
    PUBLISH messages resulting from this SUBSCRIBE_TRACKS will include
-   the same pausing filter.  If the subscription is not paused or the
-   pausing filter is omitted from this message, PUBLISH messages
+   the same pausing Location Filter.  If the subscription is not paused
+   or the Location Filter is omitted from this message, PUBLISH messages
    resulting from this SUBSCRIBE_TRACKS will not include a pausing
-   filter (see Section 5.1).
+   Location Filter (see Section 5.1).
 
    If the GROUP_ORDER parameter (Section 10.2.8) is present in this
    message, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
@@ -4782,7 +4815,7 @@ Range { Start, [End] }
       SUBGROUP_HEADER.
 
    *  Values of 128 or greater (i.e., any value that requires more than
-      a two-byte variable-length integer encoding).
+      a one-byte variable-length integer encoding).
 
    To send an Object with Object Forwarding Preference = Subgroup, find
    the open stream that is associated with the subscription, Group ID
@@ -4970,6 +5003,8 @@ Range { Start, [End] }
                    +-------+---------------------------+
                    | 0x10C | End of Unknown Range      |
                    +-------+---------------------------+
+                   | 0x20C | End of Timed-Out Range    |
+                   +-------+---------------------------+
 
                                   Table 7
 
@@ -5061,15 +5096,15 @@ Range { Start, [End] }
 
 11.4.4.2.  End of Range
 
-   When Serialization Flags indicates an End of Range (e.g. values 0x8C
-   or 0x10C), the Group ID and Object ID fields are present.  Subgroup
-   ID, Priority and Properties are not present.  All Objects with
-   Locations between the last serialized Object, if any, and this
+   When Serialization Flags indicates an End of Range (e.g. values 0x8C,
+   0x10C, or 0x20C), the Group ID and Object ID fields are present.
+   Subgroup ID, Priority and Properties are not present.  All Objects
+   with Locations between the last serialized Object, if any, and this
    Location, inclusive, either do not exist (when Serialization Flags is
-   0x8C) or are unknown (0x10C).  A publisher SHOULD NOT use End of Non-
-   Existent Range in a FETCH response except to split a range of Objects
-   that will not be serialized into those that are known not to exist
-   and those with unknown status.
+   0x8C), are unknown (0x10C), or timed out (0x20C).  A publisher SHOULD
+   NOT use End of Non-Existent Range in a FETCH response except to split
+   a range of Objects that will not be serialized into those that are
+   known not to exist and those with unknown or timed out status.
 
    When an Object follows an End of Range indicator and uses flags that
    reference the "prior Object", the prior Object fields are determined
@@ -5499,7 +5534,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    When using bearer token-based authentication (e.g., [CAT]), a token
    that is bound to a client-held key via a confirmation claim prevents
-   a stolen token from being replayed by a different party. party.
+   a stolen token from being replayed by a different party.
 
    When unlinkable access is used (e.g., [PPA]), the token's scope
    extensions determine which namespaces the bearer can publish to.
@@ -5646,6 +5681,16 @@ EXT 1 and EXT N can be modified or removed by Relays
    Operators are advised that detailed implementation identification
    facilitates the same privacy concerns as persistent identifiers,
    since it enables correlation of sessions across time.
+
+13.9.  Logging of Untrusted String Fields
+
+   The Reason Phrase (Section 1.4.4) and MOQT_IMPLEMENTATION option
+   (Section 10.3.1.5) carry sender-controlled text that is commonly
+   written to logs.  Even though these fields are UTF-8 encoded, an
+   endpoint that logs or renders them SHOULD sanitize them first (for
+   example, by escaping bytes outside the printable ASCII range), since
+   unsanitized values can enable log injection or terminal escape
+   sequence injection.
 
 14.  Grease
 
@@ -5878,6 +5923,8 @@ EXT 1 and EXT N can be modified or removed by Relays
      +----------------+---------------------------+-----------------+
      | 0x34           | TRACK_NAMESPACE_PREFIX    | Section 10.2.18 |
      +----------------+---------------------------+-----------------+
+     | 0x35           | INCLUDE_PROPERTIES        | Section 10.2.19 |
+     +----------------+---------------------------+-----------------+
 
                                  Table 13
 
@@ -5936,7 +5983,7 @@ EXT 1 and EXT N can be modified or removed by Relays
     |0x0D| VIDEO_CONFIG        |Track,| draft-ietf-moq-loc            |
     |    |                     |Object|                               |
     +----+---------------------+------+-------------------------------+
-    |0x0F| AUIDO_CONFIG        |Track,| draft-ietf-moq-loc            |
+    |0x0F| AUDIO_CONFIG        |Track,| draft-ietf-moq-loc            |
     |    |                     |Object|                               |
     +----+---------------------+------+-------------------------------+
     |0x0A| ENCRYPTED_LIST      |Object| draft-ietf-moq-secure-objects |
@@ -6354,9 +6401,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-05, 6 July 2026,
+              draft-ietf-scone-protocol-06, 29 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-05>.
+              protocol-06>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
@@ -6364,6 +6411,15 @@ Informative References
               auth-03, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
               privacy-pass-auth-03>.
+
+   [RFC1035]  Mockapetris, P., "Domain names - implementation and
+              specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
+              November 1987, <https://www.rfc-editor.org/rfc/rfc1035>.
+
+   [RFC3596]  Thomson, S., Huitema, C., Ksinant, V., and M. Souissi,
+              "DNS Extensions to Support IP Version 6", STD 88,
+              RFC 3596, DOI 10.17487/RFC3596, October 2003,
+              <https://www.rfc-editor.org/rfc/rfc3596>.
 
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
@@ -6391,6 +6447,11 @@ Informative References
               "CUBIC for Fast and Long-Distance Networks", RFC 9438,
               DOI 10.17487/RFC9438, August 2023,
               <https://www.rfc-editor.org/rfc/rfc9438>.
+
+   [RFC9460]  Schwartz, B., Bishop, M., and E. Nygren, "Service Binding
+              and Parameter Specification via the DNS (SVCB and HTTPS
+              Resource Records)", RFC 9460, DOI 10.17487/RFC9460,
+              November 2023, <https://www.rfc-editor.org/rfc/rfc9460>.
 
    [RFC9525]  Saint-Andre, P. and R. Salz, "Service Identity in TLS",
               RFC 9525, DOI 10.17487/RFC9525, November 2023,
