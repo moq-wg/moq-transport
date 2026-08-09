@@ -792,8 +792,8 @@ are preceded by an explicit length field.
 Property types are registered in the IANA table 'MOQ Properties'.
 See {{iana}}.
 
-Certain Property type ranges are reserved for application-specific
-use and will never be allocated by IANA in future MOQT specifications:
+Certain Property type ranges are reserved for private use and will
+never be allocated by IANA in future MOQT specifications:
 
 * 0x78 to 0x7F (1-byte encoding): 8 code points for applications with
   tight space constraints
@@ -4726,7 +4726,7 @@ SUBGROUP_HEADER {
 The following Properties are defined in MOQT. Each Property
 specifies whether it can be used with Tracks, Objects, or both.
 
-Property types in ranges reserved for application-specific use
+Property types in ranges reserved for private use
 (0x78-0x7F, 0x3800-0x3FFF) are not defined by MOQT.
 See {{properties}} for usage guidance.
 
@@ -5309,7 +5309,7 @@ New Setup Option types are registered using the Specification Required
 policy ({{!RFC8126, Section 4.6}}).  Provisional registrations are
 permitted to allow experimentation and avoid codepoint collisions
 between independent implementations.  There is no reserved range for
-private or application-specific use; implementations that need custom
+private use; implementations that need custom
 Setup Options SHOULD request a provisional registration.
 
 ## Authorization Token Alias Type
@@ -5389,10 +5389,10 @@ types are skipped by parsing a varint value.
 
 * MOQ Properties - we wish to define the following registration policies:
   - 0x00 to 0x77: Standards Action or IESG Approval (1-byte encoding)
-  - 0x78 to 0x7F: Reserved for application-specific use (1-byte encoding,
+  - 0x78 to 0x7F: Reserved for private use (1-byte encoding,
     no registration permitted)
   - 0x80 to 0x37FF: Specification Required (2-byte encoding)
-  - 0x3800 to 0x3FFF: Reserved for application-specific use (2-byte encoding,
+  - 0x3800 to 0x3FFF: Reserved for private use (2-byte encoding,
     no registration permitted)
   - 0x4000 to 0x7FFF: Reserved for Mandatory Track Properties
     (see {{mandatory-track-properties}}). Properties registered in this range
@@ -5400,7 +5400,7 @@ types are skipped by parsing a varint value.
     this range.
   - 0x8000 and above: First Come First Served
 
-  Code points reserved for application-specific use will never be allocated
+  Code points reserved for private use will never be allocated
   by IANA. Applications using these values do not need to coordinate with
   IANA.  Note that applications consuming tracks from uncoordinated sources may
   encounter different semantics for the same code points, creating potential
@@ -5687,7 +5687,7 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Remove TRACK_STATUS from REQUEST_UPDATE (#1436)
 * Define how to use auth token cache safely with multiple streams (#1430)
 * Constrain encoding/parsing of track namespace and names (#1512)
-* Reserve Property type ranges for application-specific use (#1473)
+* Reserve Property type ranges for private use (#1473)
 * Make EndGroup in Subscription Filters a delta (#1470)
 * Copy DELIVERY_TIMEOUT min requirement from parameter to property (#1427)
 
