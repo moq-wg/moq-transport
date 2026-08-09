@@ -3448,6 +3448,10 @@ PUBLISH Message {
   as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY, SUBGROUP_DELIVERY_TIMEOUT,
   OBJECT_DELIVERY_TIMEOUT, and LOCATION FILTER can appear in the Parameters
   of a PUBLISH to inform the Subscriber of the initial Subscription parameters.
+  If the PUBLISH is the result of a SUBSCRIBE_TRACKS, the parameters are handled
+  as described in {{parameters-on-subscribe_tracks}}, otherwise, they represent
+  the publisher's initial settings for the subscription, which the subscriber can
+  change.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
