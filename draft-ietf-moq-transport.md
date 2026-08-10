@@ -3419,7 +3419,7 @@ updated prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
 no effect on existing subscriptions.  If the subscriber is no longer
 interested it can cancel the corresponding bidirectional stream.
 
-## PUBLISH_NOTIFY {#ss-update}
+## PUBLISH_NOTIFY {#message-publish-notify}
 
 A publisher sends PUBLISH_NOTIFY on a subscription's bidirectional
 stream to notify the subscriber that the state of the subscription has changed for a
@@ -3456,7 +3456,7 @@ PUBLISH_NOTIFY Message {
   Parameters (..) ...
 }
 ~~~
-{: #moq-transport-ss-update-format title="MOQT PUBLISH_NOTIFY Message"}
+{: #moq-transport-publish-notify-format title="MOQT PUBLISH_NOTIFY Message"}
 
 * Parameters: The parameters are defined in {{message-params}}.
 
