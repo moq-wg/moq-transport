@@ -3771,7 +3771,7 @@ FETCH_OK Message {
   the End Location is the final Object in the Track, 0 if not.
 
 * End Location: The end of the range covered by the FETCH response.
-  This is the End Location from the FETCH request Location Filter unless
+  This is the End Location from the FETCH request Location Filter parameter unless
   the requested range extends beyond Largest Object at the time
   the request was processed, or the last Object in the Track.
   If End Location is smaller than the Start Location in the corresponding FETCH
