@@ -3070,7 +3070,7 @@ exceeded, an endpoint MUST reject this with REQUEST_ERROR with error code INVALI
 
 The MAX_TOP_TRACKS option (Type 0x09) limits the peer's value of
 MaxTopTracks in the TOP_TRACKS_FILTER {{top-tracks-filter}} parameter.
-The default value is 0, so if not specified, the peer MUST NOT send any
+The default value is 0, so if not specified, the peer MUST NOT send the
 TOP_TRACKS_FILTER parameter.  If this limit is exceeded, an endpoint MUST
 close the session with a `PROTOCOL_VIOLATION`.
 
