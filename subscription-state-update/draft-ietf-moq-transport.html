@@ -6060,10 +6060,11 @@ unless the subscriber requested the change.<a href="#section-10.10-4" class="pil
 <p id="section-10.10-5">The publisher <span class="bcp14">MUST</span> include the LARGEST_OBJECT parameter (<a href="#largest-param" class="auto internal xref">Section 10.2.16</a>), if
 known, in PUBLISH_NOTIFY so the subscriber can determine the point in the
 Track at which the change took effect.<a href="#section-10.10-5" class="pilcrow">¶</a></p>
-<p id="section-10.10-6">The format of PUBLISH_NOTIFY is as follows:<a href="#section-10.10-6" class="pilcrow">¶</a></p>
+<p id="section-10.10-6">This message is informative and no action is required by the recipient.<a href="#section-10.10-6" class="pilcrow">¶</a></p>
+<p id="section-10.10-7">The format of PUBLISH_NOTIFY is as follows:<a href="#section-10.10-7" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_notify-message"></span><div id="moq-transport-publish-notify-format">
 <figure id="figure-13">
-          <div class="alignLeft art-text artwork" id="section-10.10-7.1">
+          <div class="alignLeft art-text artwork" id="section-10.10-8.1">
 <pre>
 PUBLISH_NOTIFY Message {
   Type (vi64) = 0x22,
@@ -6078,8 +6079,8 @@ PUBLISH_NOTIFY Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-10.10-8.1">
-            <p id="section-10.10-8.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.10-8.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-10.10-9.1">
+            <p id="section-10.10-9.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.10-9.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
