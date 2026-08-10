@@ -3439,9 +3439,8 @@ parameter, including whether it may appear in PUBLISH_NOTIFY, are
 defined by the parameter.
 
 A publisher MUST NOT use PUBLISH_NOTIFY to
-change the value of a subscription parameter that is under the subscriber's
-control.  Such parameters can only be changed by the subscriber via
-REQUEST_UPDATE ({{message-request-update}}).
+change the value of a subscriber controlled subscription parameter
+unless the subscriber requested the change.
 
 The publisher MUST include the LARGEST_OBJECT parameter ({{largest-param}}), if
 known, in PUBLISH_NOTIFY so the subscriber can determine the point in the
