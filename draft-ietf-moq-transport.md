@@ -3446,6 +3446,8 @@ The publisher MUST include the LARGEST_OBJECT parameter ({{largest-param}}), if
 known, in PUBLISH_NOTIFY so the subscriber can determine the point in the
 Track at which the change took effect.
 
+This message is informative and no action is required by the recipient.
+
 The format of PUBLISH_NOTIFY is as follows:
 
 ~~~
