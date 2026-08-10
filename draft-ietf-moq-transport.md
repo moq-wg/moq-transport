@@ -3449,7 +3449,7 @@ PUBLISH Message {
   OBJECT_DELIVERY_TIMEOUT, and LOCATION FILTER can appear in the Parameters
   of a PUBLISH to inform the Subscriber of the initial Subscription parameters.
   If the PUBLISH is the result of a SUBSCRIBE_TRACKS, the parameters are handled
-  as described in {{parameters-on-subscribe_tracks}}, otherwise, they represent
+  as described in {{parameters-on-subscribe-tracks}}, otherwise, they represent
   the publisher's initial settings for the subscription, which the subscriber can
   change.
 
@@ -4005,7 +4005,7 @@ SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
 a subscriber.  It is useful for subscribers that are
 only interested in or authorized to access a subset of available tracks.
 
-### Parameters on SUBSCRIBE_TRACKS
+### Parameters on SUBSCRIBE_TRACKS {#parameters-on-subscribe-tracks}
 
 Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
 in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
