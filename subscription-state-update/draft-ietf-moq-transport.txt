@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 31 January 2027                                   I. Swett, Ed.
+Expires: 11 February 2027                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            30 July 2026
+                                                          10 August 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 31 January 2027.
+   This Internet-Draft will expire on 11 February 2027.
 
 Copyright Notice
 
@@ -3804,8 +3804,8 @@ Range { Start, [End] }
 10.10.  PUBLISH_NOTIFY
 
    A publisher sends PUBLISH_NOTIFY on a subscription's bidirectional
-   stream to notify the subscriber the state of the subscription has
-   changed for a reason other than a subscriber sent REQUEST_UPDATE.
+   stream to notify the subscriber that the state of the subscription
+   has changed for a reason other than a subscriber sent REQUEST_UPDATE.
    Unlike REQUEST_UPDATE (Section 10.9), it is a unilateral
    notification: the receiver does not respond with REQUEST_OK or
    REQUEST_ERROR, and the message is not subject to the
@@ -3821,11 +3821,9 @@ Range { Start, [End] }
    of each parameter, including whether it may appear in PUBLISH_NOTIFY,
    are defined by the parameter.
 
-   PUBLISH_NOTIFY reports the current subscription state; it does not
-   modify parameters chosen by the subscriber.  A publisher MUST NOT use
-   PUBLISH_NOTIFY to change the value of a subscription parameter that
-   is under the subscriber's control.  Such parameters can only be
-   changed by the subscriber via REQUEST_UPDATE (Section 10.9).
+   A publisher MUST NOT use PUBLISH_NOTIFY to change the value of a
+   subscriber controlled subscription parameter unless the subscriber
+   requested the change.
 
    The publisher MUST include the LARGEST_OBJECT parameter
    (Section 10.2.16), if known, in PUBLISH_NOTIFY so the subscriber can
@@ -6322,9 +6320,9 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-09, 4 July 2026,
+              quic-reliable-stream-reset-10, 9 August 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-09>.
+              reliable-stream-reset-10>.
 
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
