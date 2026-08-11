@@ -1539,7 +1539,8 @@ Subscribers can specify a Location filter on a subscription indicating to the pu
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.
 
-Fetch requests can also specify a Location filter.
+Fetch requests can also specify a Location filter.  Fetch requests without a filter
+include all Locations from {0, 0} up to `Largest Object` (defined below).
 
 A Location filter specifies an inclusive range of Locations.  Only objects
 with Locations within the inclusive range pass the filter.
@@ -1577,8 +1578,8 @@ hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For ex
 
 If only StartGroup and StartObject are present and both 0, the start Location
 is the Next Object which is `{Largest Object.Group, Largest Object.Object + 1}`,
-or {0,0} if no content has been delivered yet.  To start at absolute Location {0, 0}
-with no end, which is equivalent to unfiltered, do not include a Location Filter.
+or {0, 0} if no content has been delivered yet.  To start at absolute Location {0, 0}
+with no end, which is equivalent to unfiltered, do not include a Location filter.
 Note that due to network reordering or prioritization, relays can receive Objects with
 Locations smaller than `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass this filter.
@@ -1597,8 +1598,7 @@ EndGroup and EndObject are `Largest Object`.
 
 When EndObject is omitted, the filter includes all objects in the End Group.
 
-If the publisher cannot satisfy the requested Location Filter (see
-{{location-filter}}) or if the entire End Group has already been published
+If the publisher cannot satisfy the requested Location filter,
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
 
