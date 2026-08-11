@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-09T01:57:04.105141+00:00",
+  "timestamp": "2026-08-11T01:57:02.852515+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -51918,7 +51918,7 @@
       "labels": [],
       "body": "I realized when writing my extension that it can't work with SUBSCRIBE_NAMESPACE. I need some way to indicate the number of hops for a given NAMESPACE: https://github.com/moq-dev/drafts/blob/main/draft-lcurley-moq-relay-hops.md\n\nThis is also important because relays are expected to wait for a SUBSCRIBE_NAMESPACE, while clients are expected to send a PUBLISH_NAMESPACE. However this means any parameters from the original publisher can't be proxied by a relay.\n\nRelated to #1798 ",
       "createdAt": "2026-07-06T19:23:30Z",
-      "updatedAt": "2026-07-07T23:33:23Z",
+      "updatedAt": "2026-08-10T16:42:38Z",
       "closedAt": "2026-07-07T23:33:23Z",
       "comments": [
         {
@@ -51955,6 +51955,13 @@
           "body": "The extension is extending NAMESPACE, which is the intended design. Closing",
           "createdAt": "2026-07-07T23:33:23Z",
           "updatedAt": "2026-07-07T23:33:23Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think this is a flaw in the draft we should address. I'm up to 2 extensions that have to independently say NAMESPACE should have parameters but they don't in the base draft for some reason.",
+          "createdAt": "2026-08-10T16:42:38Z",
+          "updatedAt": "2026-08-10T16:42:38Z"
         }
       ]
     },
@@ -51973,7 +51980,7 @@
       ],
       "body": "We added those to range filters to address scenarios like \"a relay has two different sets of filters and it wants to combine them\".  Now that we have multiple subscriptions (for similar reasons), is this still the right design?",
       "createdAt": "2026-07-06T21:25:02Z",
-      "updatedAt": "2026-07-22T06:12:33Z",
+      "updatedAt": "2026-08-10T15:49:46Z",
       "closedAt": null,
       "comments": [
         {
@@ -52017,6 +52024,13 @@
           "body": "> multiple subscriptions do not de-duplicate.\n\nThis is the key difference.  If I SUBSCRIBE t1, color=Red and SUBSCRIBE t1, priority=7, all objects that match both are delivered twice.  If I SUBSCRIBE t1, color=Red SetID=0, priority=8, SetID=1, I only get them once.",
           "createdAt": "2026-07-22T06:12:33Z",
           "updatedAt": "2026-07-22T06:12:33Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Alan's point is very strong. Think about the case where this goers to the Original Publisher and that publisher is a cell phone on an ingest case with poor upload bandwidth. That case seems like a place where it would be good to avoid having the same object sent twice. \n\nThat said, I would want to see a specific use case where this type of thing happened and was a problem. It also seems like something we could add later if it does become a problem. ",
+          "createdAt": "2026-08-10T15:49:45Z",
+          "updatedAt": "2026-08-10T15:49:45Z"
         }
       ]
     },
@@ -52857,6 +52871,58 @@
           "body": "If we want to have such properties defined in a reusable place (e.g. not MSF), I would recommend an extension draft rather than the core draft.  The only properties we define in moq-transport are the ones required for basic operation (e.g. delivery timeout, gaps)",
           "createdAt": "2026-08-07T17:35:43Z",
           "updatedAt": "2026-08-07T17:35:43Z"
+        }
+      ]
+    },
+    {
+      "number": 1854,
+      "id": "I_kwDOG2Ho4M8AAAABMLugqg",
+      "title": "to PUBLISH_NAMESPACE or to not PUBLISH_NAMESPACE",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1854",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I think this is a major interop issue, and it keeps biting me.\n\nThere are implicitly three roles in the moq-transport draft:\n- publisher\n- relay\n- subscriber\n\nWhile not stated, there's an implicit assumption that:\n- **publishers** should send `PUBLISH_NAMESPACE`\n- **subscribers** should send `SUBSCRIBE_NAMESPACE`\n- **relays** should wait for `PUBLISH_NAMESPACE` and `SUBSCRIBE_NAMESPACE`\n\nThe problem is that my library supports:\n- publishers connecting directly to subscribers (P2P): results in both messages\n- relays connecting to other relays (S2S): results in neither message.\n\n**There's no in-transport mechanism to know if the peer will PUBLISH or SUBSCRIBE.** \n\nMy workaround has been to always send both `PUBLISH_NAMESPACE` and `SUBSCRIBE_NAMESPACE`. But that's not ideal,  and then publishers complain that they get `PUBLISH_NAMESPACE` messages for random shit, as they expected the relay to wait for a `SUBSCRIBE_NAMESPACE`.\n\nThe other alternative is to have the application indicate if the peer is a relay just to decide whether to PUBLISH or not. I really don't like this approach.",
+      "createdAt": "2026-08-10T17:09:30Z",
+      "updatedAt": "2026-08-11T01:12:34Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "And I'm focusing on `PUBLISH_NAMESPACE` but this should apply to `PUBLISH` as well. A publisher is expected to `PUBLISH` but a relay is expected to wait for a `SUBSCRIBE`.",
+          "createdAt": "2026-08-10T17:12:10Z",
+          "updatedAt": "2026-08-10T17:12:10Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> While not stated, there's an implicit assumption that:\n> \n> publishers should send PUBLISH_NAMESPACE\n> subscribers should send SUBSCRIBE_NAMESPACE\n> relays should wait for PUBLISH_NAMESPACE and SUBSCRIBE_NAMESPACE\n\nI think this is the wrong framing.\n\nApplications know what they want to do and will send the messages they need to send to relays to make things work.  If your application needs to publish - send PUBLISH (not PUBLISH_NAMESPACE).  If your application wants to wait for subscribers to express interest, send PUBLISH_NAMESPACE.\n\nThe same is true for subscribers.  If you know what you want, send SUBSCRIBE.  If you need to do some form of track discovery, send SUBSCRIBE_NAMESPACE.\n\n> publishers connecting directly to subscribers (P2P): results in both messages\n\nSeems like this can be worked out by the application (always PUBLISH after connect?).\n\n> relays connecting to other relays (S2S): results in neither message.\n\nThis is explicitly out of scope.\n\n",
+          "createdAt": "2026-08-10T19:00:32Z",
+          "updatedAt": "2026-08-10T19:00:32Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Applications know what they want to do and will send the messages they need to send to relays to make things work.\n\nGeneric CDNs (ex. cloudflare) are oblivious to the intent of the application. \n\nUnless you're implying that a generic CDN MUST:\n1. wait for a (unique) SUBSCRIBE_NAMESPACE from a subscriber, and then forward it to all connections.\n2. wait for a PUBLISH_NAMESPACE from a publisher, then forward it to all connections.\n\nIt would be quite difficult to do 1, especially without a way to update a SUBSCRIBE_NAMESPACE because they work via prefix matching. \nI'm basically always doing 2 for IETF compatibility but then folks get annoyed during interop because publishers don't want to know about other broadcasts, yet my relay doesn't know if you're a publisher or a subscriber.",
+          "createdAt": "2026-08-10T22:21:13Z",
+          "updatedAt": "2026-08-10T22:46:07Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "When a client connects, my generic relay has no idea what broadcasts they're interested in, and blinding sending PUBLISH/PUBLISH_NAMESPACE feels objectively wrong, especially then there are optional tracks involved. \n\nIdeally, my relay could wait for explicit interest via SUBSCRIBE_NAMESPACE or SUBSCRIBE, but if the application expects a PUBLISH, then I have no choice than to firehose. I'm stuck sending unsolicited messages because I don't know if the peer will solicit them.",
+          "createdAt": "2026-08-10T22:25:19Z",
+          "updatedAt": "2026-08-10T22:46:40Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Generic CDNs (ex. cloudflare) are oblivious to the intent of the application.\n\nmoq-transport is not about how to build the inner workings of a CDN.  That is explicitly out of scope.  A CDN is a **single relay** from the perspective of the document.\n\n> Unless you're implying that a generic CDN MUST:\n> \n> 1. wait for a (unique) SUBSCRIBE_NAMESPACE from a subscriber, and then forward it to all connections.\n\nA relay never forwards a SUBSCRIBE_NAMESPACE to connected clients.\n\n> 2. wait for a PUBLISH_NAMESPACE from a publisher, then forward it to all connections.> \n\nA relay never forwards a PUBLISH_NAMESPACE to connected clients.\n\nClient's send these messages to a relay (or CDN acting as a relay).  The relay sends only SUBSCRIBE, PUBLISH and NAMESPACE (via SUB_NS reply stream) messages to clients.\n\n> publishers don't want to know about other broadcasts, yet my relay doesn't know if you're a publisher or a subscriber.\n\nCount me among the people who are annoyed ;)  I think where you're running into trouble is you are trying to make relays that connect to your relay identical to end clients.  I like symmetry too, but when you think about practical deployments, relays that connect to other relays are going to have different authentication/authorization profiles.  You don't dump the internal state of your relay to any old Joe who connects.\n\n> When a client connects, my generic relay has no idea what broadcasts they're interested in, and blinding sending PUBLISH/PUBLISH_NAMESPACE feels objectively wrong, especially then there are optional tracks involved.\n\nBlindly sending PUBLISH / PUBLISH_NAMESPACE _is_ wrong, see above.  Relays never send PUBLISH_NAMESPACE.  Wait for the client to SUBSCRIBE_TRACKS to solicit PUBLISH (for which they are authorized) or SUBSCRIBE_NAMESPACE to solicit NAMESPACE.\n\n> Ideally, my relay could wait for explicit interest via SUBSCRIBE_NAMESPACE or SUBSCRIBE, but if the application expects a PUBLISH, then I have no choice than to firehose.\n\n\"I have no choice than to firehose\" -- I think you've come down on the wrong side of this question.  The application has to ask for what it wants, and the relay has to validate that the client is authorized to receive it.  If the app wants a PUBLISH, it sends SUBSCRIBE_TRACKS.\n\n>  I'm stuck sending unsolicited messages because I don't know if the peer will solicit them.\n\nA client that doesn't send any requests gets exactly what it deserves?",
+          "createdAt": "2026-08-11T01:12:34Z",
+          "updatedAt": "2026-08-11T01:12:34Z"
         }
       ]
     }
@@ -200143,7 +200209,7 @@
       ],
       "body": "A revision of #1642, this PR allows any range of objects passed to subscription to be satisfied.  The portion of the range before Largest Object comes on a \"fill fetch stream\" -- a unidirectional stream beginning with a FETCH_HEADER.\r\n\r\n- Renamed AbsoluteStart/Range filters to AbsoluteStart/RangeFill, and added a new filter: RelativeStartFill.\r\n- Defined the semantics of fill-fetch and the streams are opened and closed\r\n- Added a FILL_PARAMETERS parameter, which carries the fill-specific versions of SUBSCRIBER_PRIORITY, GROUP_ORDER, etc\r\n- Updated the priority algorithm to explain how to order objects on fill-fetch vs the live portion of a subscription\r\n  - Different Groups, same Group Order -> object's group determines\r\n  - Different Groups and Different Group Order -> live wins\r\n  - Same Group -> fill-fetch wins\r\n- Explained how PUBLISH_OK and REQUEST_UPDATE work with new filter types\r\n- Removed the Joining version of FETCH and removed the \"standalone\" monikker\r\n- Minor updates to PUBLISH_DONE to include fill-fetch streams in stream count, and allow the publisher to delay the message\r\n- INVALID_RANGE now only applies to FETCH\r\n\r\nFixes: #1039\r\nFixes: #1313\r\nFixes: #1614",
       "createdAt": "2026-06-14T00:18:23Z",
-      "updatedAt": "2026-08-07T23:20:31Z",
+      "updatedAt": "2026-08-10T04:00:04Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "368044bdbd69e185785cbb99a7a31cc394aa315c",
@@ -201819,6 +201885,32 @@
               "updatedAt": "2026-07-23T15:08:11Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABI64nlA",
+          "commit": {
+            "abbreviatedOid": "544bdc9"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-10T03:55:42Z",
+          "updatedAt": "2026-08-10T04:00:04Z",
+          "comments": [
+            {
+              "originalPosition": 296,
+              "body": "I believe we discussed in Vienna and agreed that we don't want PUBLISH_OK to contain any subscription modifying params, and this is aligned with that.",
+              "createdAt": "2026-08-10T03:55:42Z",
+              "updatedAt": "2026-08-10T04:00:04Z"
+            },
+            {
+              "originalPosition": 457,
+              "body": "Please refer to the 7/6 minutes: https://datatracker.ietf.org/doc/minutes-interim-2026-moq-18-202607061630/\r\n\r\n> Conclusion: Sentiment is to remove it. Alan to follow up with chairs offline. Decision must be final by draft-20 (before interop target). People can bake off draft-18 vs. draft-20 if desired.\r\n\r\nI will defer to the chairs @martinduke @gloinul ",
+              "createdAt": "2026-08-10T03:59:33Z",
+              "updatedAt": "2026-08-10T04:00:04Z"
+            }
+          ]
         }
       ]
     },
@@ -201837,7 +201929,7 @@
       ],
       "body": "Introduce a new parameter SWITCH_FROM, that can appear in SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE.  The parameter has a Mode enum which can control details of the switching algorithm.  The base algorithm and a single \"Hard\" mode that flips the Forward State are defined.  Subsequent PRs will introduce additional modes.\r\n\r\nThe parameter also has a \"Publish Done\" option which the subscriber uses to control whether the other track is closed or left open after Switch.\r\n\r\nSee #1354\r\nFixes #1519 ",
       "createdAt": "2026-06-14T00:50:19Z",
-      "updatedAt": "2026-08-07T23:31:41Z",
+      "updatedAt": "2026-08-10T15:25:21Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "fill-fetch",
       "baseRefOid": "803b98d65563a4c5c2762d3e5d2a7e238e438f52",
@@ -203231,6 +203323,70 @@
               "body": "Maybe it's easier to switch on any object in the fill range?",
               "createdAt": "2026-08-07T23:24:54Z",
               "updatedAt": "2026-08-07T23:31:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABI8wr-A",
+          "commit": {
+            "abbreviatedOid": "05ef536"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-10T09:52:37Z",
+          "updatedAt": "2026-08-10T09:52:37Z",
+          "comments": [
+            {
+              "originalPosition": 34,
+              "body": "In the case where the payload is media and keyframes are located at group boundaries, wouldn't switching on 'any object' give you an un-decodeable object sequence? Since groups are defined agnostically as join points to tracks, shouldn't all switches occur at group boundaries? ",
+              "createdAt": "2026-08-10T09:52:37Z",
+              "updatedAt": "2026-08-10T09:52:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABI_W4gg",
+          "commit": {
+            "abbreviatedOid": "05ef536"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "This looks good at broad level but I think a few small things needed. ",
+          "createdAt": "2026-08-10T15:16:35Z",
+          "updatedAt": "2026-08-10T15:25:21Z",
+          "comments": [
+            {
+              "originalPosition": 36,
+              "body": "let me put a very weak vote for Immediate but don't really care. ",
+              "createdAt": "2026-08-10T15:16:35Z",
+              "updatedAt": "2026-08-10T15:25:21Z"
+            },
+            {
+              "originalPosition": 55,
+              "body": "This does not seem part of this PR. I would asume this happens the same as it would if forwarding is changes from 0 to 1. ",
+              "createdAt": "2026-08-10T15:18:49Z",
+              "updatedAt": "2026-08-10T15:25:21Z"
+            },
+            {
+              "originalPosition": 63,
+              "body": "So the stub relays will need to forward this upstream. I think this MUST NOT needs to be a SHOULD NOT with an explanation around that ",
+              "createdAt": "2026-08-10T15:20:30Z",
+              "updatedAt": "2026-08-10T15:25:21Z"
+            },
+            {
+              "originalPosition": 61,
+              "body": "This needs clear advice how it works for relays with no cache. ",
+              "createdAt": "2026-08-10T15:20:49Z",
+              "updatedAt": "2026-08-10T15:25:21Z"
+            },
+            {
+              "originalPosition": 113,
+              "body": "how do we get the extra information of why the switch could not be done ",
+              "createdAt": "2026-08-10T15:24:19Z",
+              "updatedAt": "2026-08-10T15:25:21Z"
             }
           ]
         }
@@ -210656,13 +210812,13 @@
       ],
       "body": "",
       "createdAt": "2026-07-09T03:42:16Z",
-      "updatedAt": "2026-08-08T01:56:26Z",
+      "updatedAt": "2026-08-10T15:09:30Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "20bd5f2eb49a66a46387e785a0cf1a4c3fff4594",
       "headRepository": "mzanaty/moq-transport",
       "headRefName": "patch-5",
-      "headRefOid": "17cef8ab19b5380136fde1d0def961e3762c05b1",
+      "headRefOid": "1e2f4b41f5b0fa1a857d2b01d1df70f757b0787c",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -212005,6 +212161,70 @@
           "createdAt": "2026-08-08T01:56:26Z",
           "updatedAt": "2026-08-08T01:56:26Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABI6ylsQ",
+          "commit": {
+            "abbreviatedOid": "17cef8a"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-10T03:22:10Z",
+          "updatedAt": "2026-08-10T03:28:14Z",
+          "comments": [
+            {
+              "originalPosition": 91,
+              "body": "@suhasHere the computed value can be less than 0 if current group is e.g. 10 and StartGroup is 20.",
+              "createdAt": "2026-08-10T03:22:10Z",
+              "updatedAt": "2026-08-10T03:28:14Z"
+            },
+            {
+              "originalPosition": 81,
+              "body": "All N are greater than 0, not sure what you are saying",
+              "createdAt": "2026-08-10T03:23:56Z",
+              "updatedAt": "2026-08-10T03:28:14Z"
+            },
+            {
+              "originalPosition": 77,
+              "body": "@suhasHere that's an interesting idea.  I don't love the idea of deferring filter resolution.  I'd rather just default to Next Group or 0,0.  This is the case where no objects have been published yet.",
+              "createdAt": "2026-08-10T03:27:06Z",
+              "updatedAt": "2026-08-10T03:28:14Z"
+            },
+            {
+              "originalPosition": 73,
+              "body": "I think it's clear from the text and the diagram what the order is.",
+              "createdAt": "2026-08-10T03:27:36Z",
+              "updatedAt": "2026-08-10T03:28:14Z"
+            },
+            {
+              "originalPosition": 74,
+              "body": "same as above.",
+              "createdAt": "2026-08-10T03:27:50Z",
+              "updatedAt": "2026-08-10T03:28:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABI_RUcw",
+          "commit": {
+            "abbreviatedOid": "1e2f4b4"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2026-08-10T15:06:45Z",
+          "updatedAt": "2026-08-10T15:09:30Z",
+          "comments": [
+            {
+              "originalPosition": 31,
+              "body": "Start seems like a bad name. I think it more a count of Prior objects or groups that you add to current to get the StartGroup. ",
+              "createdAt": "2026-08-10T15:06:45Z",
+              "updatedAt": "2026-08-10T15:09:30Z"
+            }
+          ]
         }
       ]
     },
@@ -212626,13 +212846,13 @@
       ],
       "body": "Add a new control message, PUBLISH_NOTIFY (0x22), that a publisher sends on a subscription's bidirectional stream to notify the subscriber that subscription state has changed for a reason other than a subscriber-sent REQUEST_UPDATE. Unlike REQUEST_UPDATE, it is a unilateral notification: no REQUEST_OK/REQUEST_ERROR response and not subject to MAX_REQUEST_UPDATES. The FORWARD and LOCATION_FILTER parameters are updated to permit appearing in this message.\r\n\r\nNo existing mechanism in the draft sends this message yet. It is intended to support:\r\n\r\n- SWITCH_FROM (#1674, #1675)\r\n- Top-N (#1518)\r\n- Possibly Default Publisher Priority (#1770)",
       "createdAt": "2026-07-21T13:37:28Z",
-      "updatedAt": "2026-08-07T22:59:53Z",
+      "updatedAt": "2026-08-10T15:44:59Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "46479c752eb6e034f73961bc324916ec2dffc451",
+      "baseRefOid": "257d25b9c6fc8fb95226b29dcbe227def4eeff82",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "subscription-state-update",
-      "headRefOid": "a2e7332328ca38a6049888cc39a48f6b20e2d0a3",
+      "headRefOid": "9193b4d87975cf4ed9ce1bc3756dcdebcee61316",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -212665,6 +212885,13 @@
           "body": "> IIUC the sole purpose of this is to communicate unilateral changes to FORWARD. Under what circumstances would this happen? I can only think of Top-N.\r\n\r\nIf you include informing the peer of the new end group of the Location filter, it\u2019s also useful for SSTS and SWITCH_FROM",
           "createdAt": "2026-08-01T03:52:16Z",
           "updatedAt": "2026-08-01T03:52:16Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I still think this needs information about what a relay does when it receives this. Am I missing something ?\r\n\r\nThis message is strictly informative, and is only sent when the subscriber requested some deferred action (eg: top-n deselected a track).  No specific action is required by the receiver.  I can add a line to this effect.",
+          "createdAt": "2026-08-10T15:43:06Z",
+          "updatedAt": "2026-08-10T15:43:06Z"
         }
       ],
       "reviews": [
@@ -212789,6 +213016,39 @@
               "body": "@ianswett see my suggestion below.  It probably needs an example pointing to something other than REQUEST_UPDATE (e.g. SWITCH_FROM or SSTS), but none of those are here yet. I didn't see how best to fix it.",
               "createdAt": "2026-08-04T22:39:41Z",
               "updatedAt": "2026-08-04T22:39:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABI_VVOA",
+          "commit": {
+            "abbreviatedOid": "106d3c4"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I still think this needs information about what a relay does when it receives this.  Am I missing something ?",
+          "createdAt": "2026-08-10T15:13:53Z",
+          "updatedAt": "2026-08-10T15:13:53Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABI_lthg",
+          "commit": {
+            "abbreviatedOid": "106d3c4"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-10T15:44:35Z",
+          "updatedAt": "2026-08-10T15:44:36Z",
+          "comments": [
+            {
+              "originalPosition": 94,
+              "body": "```suggestion\r\n\r\nThis message is informative and no action is required by the recipient.\r\n\r\n```",
+              "createdAt": "2026-08-10T15:44:36Z",
+              "updatedAt": "2026-08-10T15:44:52Z"
             }
           ]
         }
@@ -213106,13 +213366,13 @@
       ],
       "body": "Fixes #1352 ",
       "createdAt": "2026-07-22T08:25:26Z",
-      "updatedAt": "2026-07-30T18:57:43Z",
+      "updatedAt": "2026-08-09T16:03:57Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
+      "baseRefOid": "257d25b9c6fc8fb95226b29dcbe227def4eeff82",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "remove-forward-parameter",
-      "headRefOid": "b877a36ba5462180e6ec4fa3f163bb8199dc049b",
+      "headRefOid": "8c38b6ddca00dd4746de1300e31bdcaad60bccc5",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -213233,13 +213493,13 @@
       ],
       "body": "Added Top Tracks Filter (was Track Filter in PR#1508 / PR#1401).",
       "createdAt": "2026-07-24T17:47:02Z",
-      "updatedAt": "2026-08-05T18:30:19Z",
+      "updatedAt": "2026-08-10T15:53:03Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
       "headRepository": "mzanaty/moq-transport",
       "headRefName": "patch-6",
-      "headRefOid": "b8d6ce538fb3eb08b97bb09a87efe9fbeaf158ee",
+      "headRefOid": "8e2b9d2bcd7589fc7517adec9d7a7a5c0540ed4b",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -213680,13 +213940,13 @@
       ],
       "body": "Fixes #1803\r\n\r\nI didn't add any normative language that they MUST be specified, otherwise the Subscriber will assume the default value for the Parameter, but maybe I should?",
       "createdAt": "2026-07-28T16:02:28Z",
-      "updatedAt": "2026-08-06T19:00:41Z",
+      "updatedAt": "2026-08-10T03:35:27Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "20bd5f2eb49a66a46387e785a0cf1a4c3fff4594",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-publish-subscribe-params",
-      "headRefOid": "af7f3da91a54e91c8ffa4d6b6c99a3f0c7eec971",
+      "headRefOid": "26e49e00faa76829f5f2d36115a66f957e4014a2",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -214075,7 +214335,7 @@
       "labels": [],
       "body": "Fixes #1810  \r\nI do feel current text is still fine, but I did readjust some text to clarify the flow and also made purely editorial changes to keep filter type defined as multi-line\r\n\r\n@mzanaty please see if this makes sense.",
       "createdAt": "2026-08-08T02:53:40Z",
-      "updatedAt": "2026-08-08T02:53:41Z",
+      "updatedAt": "2026-08-09T18:49:09Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "257d25b9c6fc8fb95226b29dcbe227def4eeff82",
@@ -214087,7 +214347,46 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABI5lwRQ",
+          "commit": {
+            "abbreviatedOid": "53e1246"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Thanks for the improvements.  Now that its clearer, I don't think the language about how to handle SetIDs is correct?  Or maybe its unclear?",
+          "createdAt": "2026-08-09T18:39:37Z",
+          "updatedAt": "2026-08-09T18:47:04Z",
+          "comments": [
+            {
+              "originalPosition": 59,
+              "body": "I tried to clarify, but I am not sure what filter is being removed in all cases?  Does specifying OBJECT_PROPERTY_FILTER with Length of 0 remove all Object property filters for all SetIDs?  Is that what we want?\n\n```suggestion\nis 0, there is no filter and no further fields are present.  This can\nbe used in REQUEST_UPDATE to remove a filter. \nThe Object Property and Track Property Filters include a\n```",
+              "createdAt": "2026-08-09T18:39:37Z",
+              "updatedAt": "2026-08-09T18:47:04Z"
+            },
+            {
+              "originalPosition": 75,
+              "body": "```suggestion\nfirst Range), and End is delta encoded from its own Start.  If adding the delta\nwould exceed 2^64-1, it MUST be rejected with REQUEST_ERROR / INVALID_FILTER.\n```",
+              "createdAt": "2026-08-09T18:43:49Z",
+              "updatedAt": "2026-08-09T18:47:04Z"
+            },
+            {
+              "originalPosition": 82,
+              "body": "It'd be good to give an overview of the SetID concept in its own section before the framing, because it seems like an afterthought here.",
+              "createdAt": "2026-08-09T18:45:21Z",
+              "updatedAt": "2026-08-09T18:47:04Z"
+            },
+            {
+              "originalPosition": 97,
+              "body": "What about SetID?",
+              "createdAt": "2026-08-09T18:46:17Z",
+              "updatedAt": "2026-08-09T18:47:04Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 1852,
