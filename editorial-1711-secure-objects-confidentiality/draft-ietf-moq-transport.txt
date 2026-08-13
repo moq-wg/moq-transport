@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 9 February 2027                                   I. Swett, Ed.
+Expires: 14 February 2027                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           8 August 2026
+                                                          13 August 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 February 2027.
+   This Internet-Draft will expire on 14 February 2027.
 
 Copyright Notice
 
@@ -5217,10 +5217,9 @@ EXT 1 and EXT N can be modified or removed by Relays
    analyzed and correlated between end subscribers by relays.
 
    Consistent with the principle of confidential operation by default,
-   content that must not be exposed to relays can be kept confidential
-   by applying end-to-end object encryption, for example using Secure
-   Objects ([I-D.ietf-moq-secure-objects]), so that relays retain access
-   only to the metadata required for forwarding.  Such end-to-end
+   publishers can apply end-to-end object encryption, for example using
+   Secure Objects ([I-D.ietf-moq-secure-objects]), so that relays retain
+   access only to the metadata required for forwarding.  Such end-to-end
    security mechanisms are external to this specification and
    additionally provide source authenticity.  MOQT's object model
    enables both the object data and Object Properties to be
@@ -5878,9 +5877,9 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-09, 4 July 2026,
+              quic-reliable-stream-reset-10, 9 August 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-09>.
+              reliable-stream-reset-10>.
 
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
