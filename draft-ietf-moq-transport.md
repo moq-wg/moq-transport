@@ -2792,7 +2792,7 @@ PUBLISH, or REQUEST_UPDATE_OK
 
 The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
-PUBLISH, PUBLISH_OK, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
+PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
 specifies the Forwarding State on affected subscriptions (see {{subscriptions}}).
 The allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives
 a value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
