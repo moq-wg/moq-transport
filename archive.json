@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-11T01:57:02.852515+00:00",
+  "timestamp": "2026-08-13T02:11:47.130103+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -52520,7 +52520,7 @@
       ],
       "body": "Publish Done defines a reason:\nSUBSCRIPTION_ENDED (0x3): The publisher reached the end of an associated location filter. \n\nThis seems wrong, especially since filters can be updated. Only the original publisher should be able to permanently end a track regardless of subscriber filters.",
       "createdAt": "2026-07-27T23:14:14Z",
-      "updatedAt": "2026-07-30T19:06:10Z",
+      "updatedAt": "2026-08-12T18:51:13Z",
       "closedAt": null,
       "comments": [
         {
@@ -52529,6 +52529,20 @@
           "body": "Thanks for bringing this to attention @mzanaty  .. PublishDone was not scoped to indicate when a filter ended and glad this was caught.",
           "createdAt": "2026-07-28T01:44:07Z",
           "updatedAt": "2026-07-28T01:44:07Z"
+        },
+        {
+          "author": "laiDisney",
+          "authorAssociation": "NONE",
+          "body": "@mzanaty @suhasHere Thanks for opening this issue thread. Per the PR, I have two questions that I can't be sure about:\n\n* By removing this publish_done for SUBSCRIPTION_ENDED, does it mean that a publisher should not close the subscription when the filter end is reached? It has to wait for the subscriber to close it, right?\n* On the other hand, does MOQT allow a publisher to proactively close a subscription for an application-level reason that is not an error?\n\nI would be grateful for some clarification.",
+          "createdAt": "2026-08-12T09:17:53Z",
+          "updatedAt": "2026-08-12T09:20:09Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> By removing this publish_done for SUBSCRIPTION_ENDED, does it mean that a publisher should not close the subscription when the filter end is reached? It has to wait for the subscriber to close it, right?\n\nI will say, even though a relay can't with great certainty know that that a track will get no further objects, a publisher often does.  That said, it seems like we don't want to proactively close the subscription here to allow the client to send a request_update and change the filter?\n\n> On the other hand, does MOQT allow a publisher to proactively close a subscription for an application-level reason that is not an error?\n\nThere are a few non-error codes - Track Ended or Goaway.  You can also define your own code.  Do you have an example of a case where the publisher wants to end the subscription?",
+          "createdAt": "2026-08-12T18:51:13Z",
+          "updatedAt": "2026-08-12T18:51:13Z"
         }
       ]
     },
@@ -52824,7 +52838,7 @@
       "labels": [],
       "body": "The Range Filter introduced in MOQT v19 defines one or more Subgroup Filters, allowing subscribers to specify the subgroups they are interested in receiving. When a relay dynamically filters out one or more subgroups, the receiving subscriber may observe gaps in the Object ID sequence. To explicitly indicate that these missing objects were intentionally omitted by the applied range filters, rather than lost due to network congestion, MOQT may need a new **Prior Subgroup ID Gap** mechanism, analogous to the existing Prior Group ID Gap and Prior Object ID Gap fields.\n\n## Prior Subgroup ID Gap\n\nPrior Subgroup ID Gap only applies to Objects, not Tracks.\n\n- Prior Subgroup ID Gap (Property Type: 0x3F): A variable-length integer containing the number of Subgroups prior to the current Subgroup ID (within the current Group) that do not and will never exist because they were conditionally filtered out.\n \n(or similar spec. defined in 12.9 Prior Object ID Gap) ",
       "createdAt": "2026-08-06T07:03:38Z",
-      "updatedAt": "2026-08-07T18:43:18Z",
+      "updatedAt": "2026-08-11T12:29:55Z",
       "closedAt": null,
       "comments": [
         {
@@ -52847,6 +52861,13 @@
           "body": "@yuyou please do not paste LLM output directly into GitHub issues.\n\nI would only be convinced to add this header to the moq-transport if there is a strong use case _for a relay_.  All properties currently in the document fit that test.  Your proposed property could still be valuable for applications (publishers and subscribers), in which case it can be defined in an extension or streaming format document.\n\nMy read on relay need:\n\n> 1. The Need for a Gap: Without a Subgroup ID Gap, a real-time subscriber or relay has no way of knowing if Subgroup 1 is merely delayed by the network or if it will never arrive.\n\nThe relay generally doesn't care if a subgroup arrives from upstream or not.  If it arrives and passes filters, it will get delivered downstream.  Applications usually know their subgroup structure and/or can learn it out of band from e.g. a catalog.\n\n> 2. The Need for a Gap: If the publisher sends Subgroups 0 and 2 but skips 1, the relay might keep resources (or flow control credits) allocated for the \"missing\" Subgroup 1 stream,.\n\nNo relay pre-allocates stream / flow control credits based on anticipated subgroup numbering today -- it's not clear why they would.\n\n> 3. The Need for a Gap: While the Prior Object ID Gap tells the subscriber that specific objects are missing, it does not explicitly tie those objects back to the delivery structure (Subgroup ID).\n\nThis is an application level concern, not something the relay needs to know.  In this example, there wouldn't be a gap header -- the subscriber would wait for 1 and needs to have timeout based logic to detect if it is dropped.\n\n> 4. The Need for a Gap: If the fetch response has a gap in Object IDs, the relay doesn't inherently know if those objects were originally part of a specific subgroup it was already serving to other clients.\n\nLocations in a gapped range in FETCH do not exist.  Objects that are served contain their subgroup id.  A relay that cares can detect the subgroup gaps.  Relays detect gaps in object ID space and send upstream FETCHes to fill them, regardless of how the subgroups are organized.\n\nI wonder if you are asking for something different, which is a MOQT level drop notification -- e.g. sent by a _relay_ (not original publisher) that drops or resets data due to delivery timeouts.  In other words, the exact opposite of this proposal - you want to know when a subgroup _definitely exists_ that you're not going to get, rather than when there's no subgroup at all.  The gap property approach still leaves you with \"maybe the publisher doesn't use gap headers\" or \"there is a subgroup here, which may be coming, or not\".  This has been discussed before but didn't receive enough support to continue #423.",
           "createdAt": "2026-08-07T18:43:18Z",
           "updatedAt": "2026-08-07T18:43:18Z"
+        },
+        {
+          "author": "yuyou",
+          "authorAssociation": "NONE",
+          "body": "Sorry for the LLM-created length text and appreciate your time and answer. \n\nI agree that a subgroup gap may be more useful and could be handled at the application level. The current MOQ specification says: \u201cThis property can be added by the Original Publisher, but MUST NOT be added by relays.\u201d  I wasn\u2019t familiar with the original use cases for the two gaps (Group ID and Object ID). Anyway, a Relay is not expected to track or modify these gaps, would it be considered a design option by adding a subgroup gap, if it helps the MOQT applications? \n\nThis question was triggered by our Range Filter implementation, as it is unclear to me if the ranger filter(s) will land original publisher or not. \n",
+          "createdAt": "2026-08-11T12:29:55Z",
+          "updatedAt": "2026-08-11T12:29:55Z"
         }
       ]
     },
@@ -52886,7 +52907,7 @@
       "labels": [],
       "body": "I think this is a major interop issue, and it keeps biting me.\n\nThere are implicitly three roles in the moq-transport draft:\n- publisher\n- relay\n- subscriber\n\nWhile not stated, there's an implicit assumption that:\n- **publishers** should send `PUBLISH_NAMESPACE`\n- **subscribers** should send `SUBSCRIBE_NAMESPACE`\n- **relays** should wait for `PUBLISH_NAMESPACE` and `SUBSCRIBE_NAMESPACE`\n\nThe problem is that my library supports:\n- publishers connecting directly to subscribers (P2P): results in both messages\n- relays connecting to other relays (S2S): results in neither message.\n\n**There's no in-transport mechanism to know if the peer will PUBLISH or SUBSCRIBE.** \n\nMy workaround has been to always send both `PUBLISH_NAMESPACE` and `SUBSCRIBE_NAMESPACE`. But that's not ideal,  and then publishers complain that they get `PUBLISH_NAMESPACE` messages for random shit, as they expected the relay to wait for a `SUBSCRIBE_NAMESPACE`.\n\nThe other alternative is to have the application indicate if the peer is a relay just to decide whether to PUBLISH or not. I really don't like this approach.",
       "createdAt": "2026-08-10T17:09:30Z",
-      "updatedAt": "2026-08-11T01:12:34Z",
+      "updatedAt": "2026-08-11T19:52:02Z",
       "closedAt": null,
       "comments": [
         {
@@ -52923,6 +52944,20 @@
           "body": "> Generic CDNs (ex. cloudflare) are oblivious to the intent of the application.\n\nmoq-transport is not about how to build the inner workings of a CDN.  That is explicitly out of scope.  A CDN is a **single relay** from the perspective of the document.\n\n> Unless you're implying that a generic CDN MUST:\n> \n> 1. wait for a (unique) SUBSCRIBE_NAMESPACE from a subscriber, and then forward it to all connections.\n\nA relay never forwards a SUBSCRIBE_NAMESPACE to connected clients.\n\n> 2. wait for a PUBLISH_NAMESPACE from a publisher, then forward it to all connections.> \n\nA relay never forwards a PUBLISH_NAMESPACE to connected clients.\n\nClient's send these messages to a relay (or CDN acting as a relay).  The relay sends only SUBSCRIBE, PUBLISH and NAMESPACE (via SUB_NS reply stream) messages to clients.\n\n> publishers don't want to know about other broadcasts, yet my relay doesn't know if you're a publisher or a subscriber.\n\nCount me among the people who are annoyed ;)  I think where you're running into trouble is you are trying to make relays that connect to your relay identical to end clients.  I like symmetry too, but when you think about practical deployments, relays that connect to other relays are going to have different authentication/authorization profiles.  You don't dump the internal state of your relay to any old Joe who connects.\n\n> When a client connects, my generic relay has no idea what broadcasts they're interested in, and blinding sending PUBLISH/PUBLISH_NAMESPACE feels objectively wrong, especially then there are optional tracks involved.\n\nBlindly sending PUBLISH / PUBLISH_NAMESPACE _is_ wrong, see above.  Relays never send PUBLISH_NAMESPACE.  Wait for the client to SUBSCRIBE_TRACKS to solicit PUBLISH (for which they are authorized) or SUBSCRIBE_NAMESPACE to solicit NAMESPACE.\n\n> Ideally, my relay could wait for explicit interest via SUBSCRIBE_NAMESPACE or SUBSCRIBE, but if the application expects a PUBLISH, then I have no choice than to firehose.\n\n\"I have no choice than to firehose\" -- I think you've come down on the wrong side of this question.  The application has to ask for what it wants, and the relay has to validate that the client is authorized to receive it.  If the app wants a PUBLISH, it sends SUBSCRIBE_TRACKS.\n\n>  I'm stuck sending unsolicited messages because I don't know if the peer will solicit them.\n\nA client that doesn't send any requests gets exactly what it deserves?",
           "createdAt": "2026-08-11T01:12:34Z",
           "updatedAt": "2026-08-11T01:12:34Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > Generic CDNs (ex. cloudflare) are oblivious to the intent of the application.\n> \n> moq-transport is not about how to build the inner workings of a CDN. That is explicitly out of scope. A CDN is a **single relay** from the perspective of the document.\n\nOf course, switch out CDN with relay. A CDN acts like a logical relay node.\n\nI do need the ability to run relays outside of a CDN. The distributed nature of MoQ (any number of relays) is extremely powerful, and companies are already running `moq-relay` instances within their private network or as P2P nodes.\n\nIMO relay to relay communication should be in scope, otherwise you can't run a relay middlebox (within a network) like you can a HTTP reverse proxy. The way you decide to connect relays together (set up the mesh) should be out of scope, but it feels like a huge mistake that two relays have no standardized way to connect to each other.\n\n\n> > Unless you're implying that a generic CDN MUST:\n> > \n> > 1. wait for a (unique) SUBSCRIBE_NAMESPACE from a subscriber, and then forward it to all connections.\n> \n> A relay never forwards a SUBSCRIBE_NAMESPACE to connected clients.\n>\n> > 2. wait for a PUBLISH_NAMESPACE from a publisher, then forward it to all connections.>\n> \n> A relay never forwards a PUBLISH_NAMESPACE to connected clients.\n> \n> Client's send these messages to a relay (or CDN acting as a relay). The relay sends only SUBSCRIBE, PUBLISH and NAMESPACE (via SUB_NS reply stream) messages to clients.\n\nWhy PUBLISH, but not PUBLISH_NAMESPACE? You mean only in response to a SUBSCRIBE_TRACKS, and not unsolicited, right?\n\nThe problem IMO is the the relay is not expected to send SUBSCRIBE_NAMESPACE. Why not? That would fix my issue because clients could *optionally* send PUBLISH_NAMESPACE to avoid an RTT. \n\nIn the current draft, clients need an explicit configuration indicating whether they are connecting to a relay, and relays need an explicit configuration whether they are accepting connections from another relay. That all goes away if relays/subscribers are expected to `SUBSCRIBE_NAMESPACE`.",
+          "createdAt": "2026-08-11T19:47:04Z",
+          "updatedAt": "2026-08-11T19:47:04Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@afrind alternatively, what about an extension? The peer can advertise if it requires an elicit SUBSCRIBE_NAMESPACE? That is far safer than expecting the application to know/configure if the peer will PUBLISH_NAMESPACE.\n\n- if the extension is not negotiated: we PUBLISH_NAMESPACE.\n- if the extension is negotiated and true: then we wait for a SUBSCRIBE_NAMESPACE. (relay behavior)\n- if the extension is negotiated and false: then we PUBLISH_NAMESPACE. (client behavior)\n\nThe latter could reduce an RTT when used for distribution, as the relay would send a PUBLISH_NAMESPACE if the client asks for it.",
+          "createdAt": "2026-08-11T19:49:41Z",
+          "updatedAt": "2026-08-11T19:52:02Z"
         }
       ]
     }
@@ -210812,13 +210847,13 @@
       ],
       "body": "",
       "createdAt": "2026-07-09T03:42:16Z",
-      "updatedAt": "2026-08-10T15:09:30Z",
+      "updatedAt": "2026-08-11T18:01:18Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "20bd5f2eb49a66a46387e785a0cf1a4c3fff4594",
       "headRepository": "mzanaty/moq-transport",
       "headRefName": "patch-5",
-      "headRefOid": "1e2f4b41f5b0fa1a857d2b01d1df70f757b0787c",
+      "headRefOid": "55f70a00ab01d88c3cc3f7684d35b6b99aa2b70a",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -212225,6 +212260,70 @@
               "updatedAt": "2026-08-10T15:09:30Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABI_Znzg",
+          "commit": {
+            "abbreviatedOid": "1e2f4b4"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-10T15:21:46Z",
+          "updatedAt": "2026-08-11T17:35:41Z",
+          "comments": [
+            {
+              "originalPosition": 77,
+              "body": "If no objects have been published, I think the correct resolution of any relative start is simply unfiltered. Nothing else makes sense, since there is no current group or prior groups, or any way to compute any relative group until an object is eventually published. Deferred resolution is an unnecessary burden that would anyway produce the wrong result. If you ask for Next Group when nothing was published, then finally object 5,0 is published, you would want to receive it, but deferred resolution would set Largest Object to 5,0 and Next Group to 6, so you would not get it. Unfiltered is what you likely want for a relative start if nothing published, to avoid the confusion in deferred resolution.",
+              "createdAt": "2026-08-10T15:21:46Z",
+              "updatedAt": "2026-08-11T17:35:41Z"
+            },
+            {
+              "originalPosition": 81,
+              "body": "The extra \"for N>0\" seems harmless, although perhaps superfluous. Should it be N>0 or N>1? Do you consider \"0 groups prior to the current group\" to be nonsensical or clearly mean current group? If the latter, we could also consider wording relative to next not current group to eliminate N-1: \"StartGroup=N will start at N groups prior the Next Group\".",
+              "createdAt": "2026-08-10T15:29:27Z",
+              "updatedAt": "2026-08-11T17:35:41Z"
+            },
+            {
+              "originalPosition": 91,
+              "body": "The computed value depends on an unknown Largest Object (only known by the peer), so relative start can go negative.",
+              "createdAt": "2026-08-10T15:32:16Z",
+              "updatedAt": "2026-08-11T17:35:41Z"
+            },
+            {
+              "originalPosition": 101,
+              "body": "Correct, for standalone fetch. Joining fetch says you MUST provide a filter, but Ian wants to remove this so it behaves just like standalone fetch: unfiltered up to Largest Object (or Track End, which I guess is also Largest Object when the track ends.) I agree with Ian, remove the MUST, and Martin, add clarifying text for this unfiltered case.",
+              "createdAt": "2026-08-10T15:39:53Z",
+              "updatedAt": "2026-08-11T17:35:41Z"
+            },
+            {
+              "originalPosition": 31,
+              "body": "StartGroup can be relative (if it's the only field present) or absolute (if more fields present). Need a name that works for both cases. Open to anything better.",
+              "createdAt": "2026-08-10T15:49:55Z",
+              "updatedAt": "2026-08-11T17:35:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABJJ2w5Q",
+          "commit": {
+            "abbreviatedOid": "63e2c81"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-11T18:01:18Z",
+          "updatedAt": "2026-08-11T18:01:18Z",
+          "comments": [
+            {
+              "originalPosition": 187,
+              "body": "Agreed, MUST removed",
+              "createdAt": "2026-08-11T18:01:18Z",
+              "updatedAt": "2026-08-11T18:01:18Z"
+            }
+          ]
         }
       ]
     },
@@ -212846,7 +212945,7 @@
       ],
       "body": "Add a new control message, PUBLISH_NOTIFY (0x22), that a publisher sends on a subscription's bidirectional stream to notify the subscriber that subscription state has changed for a reason other than a subscriber-sent REQUEST_UPDATE. Unlike REQUEST_UPDATE, it is a unilateral notification: no REQUEST_OK/REQUEST_ERROR response and not subject to MAX_REQUEST_UPDATES. The FORWARD and LOCATION_FILTER parameters are updated to permit appearing in this message.\r\n\r\nNo existing mechanism in the draft sends this message yet. It is intended to support:\r\n\r\n- SWITCH_FROM (#1674, #1675)\r\n- Top-N (#1518)\r\n- Possibly Default Publisher Priority (#1770)",
       "createdAt": "2026-07-21T13:37:28Z",
-      "updatedAt": "2026-08-10T15:44:59Z",
+      "updatedAt": "2026-08-12T18:00:13Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "257d25b9c6fc8fb95226b29dcbe227def4eeff82",
@@ -212892,6 +212991,13 @@
           "body": "> I still think this needs information about what a relay does when it receives this. Am I missing something ?\r\n\r\nThis message is strictly informative, and is only sent when the subscriber requested some deferred action (eg: top-n deselected a track).  No specific action is required by the receiver.  I can add a line to this effect.",
           "createdAt": "2026-08-10T15:43:06Z",
           "updatedAt": "2026-08-10T15:43:06Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> PUBLISH_NOTIFY makes me think that you're notifying a subscriber of a PUBLISH, as in one that's coming, not a change to subscription state.\r\n\r\nI have a similar concern. PUBLISH_STATE_NOTIFY?",
+          "createdAt": "2026-08-12T18:00:13Z",
+          "updatedAt": "2026-08-12T18:00:13Z"
         }
       ],
       "reviews": [
