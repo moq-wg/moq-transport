@@ -4051,8 +4051,9 @@ only interested in or authorized to access a subset of available tracks.
 Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
 in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
 publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS. The Parameters SHOULD be explicitly communicated, including the
-FORWARD and GROUP_ORDER parameters as described below.
+SUBSCRIBE_TRACKS. These Parameters are explicitly communicated, including the
+FORWARD and GROUP_ORDER parameters as described below.  When omitted by
+the publisher in PUBLISH, the subscriber uses the default value for each.
 
 If the FORWARD parameter ({{forward-parameter}}) is present in this message and
 equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
