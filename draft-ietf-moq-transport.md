@@ -912,18 +912,35 @@ MOQT session to the identified server.
 TODO: Add URI scheme security considerations per RFC 7595 Section 3.7
 (e.g., authority in SNI, path/query exposure).
 
-Characters in the `authority` component that are excluded by the syntax
-defined above MUST be converted from Unicode to ASCII as specified
-in {{!RFC3987}}.  For the purposes of scheme-based normalization,
-Internationalized Domain Name (IDN) forms of the `authority` component
-and their conversions to punycode are considered equivalent
-(see Section 5.3.3 of {{!RFC3987}}).
+The `moqt` URI scheme is ASCII-only; the `authority`, `path-abempty`, and
+`query` components use the syntax defined in {{!RFC3986}}.  An
+Internationalized Resource Identifier (IRI) {{!RFC3987}} that uses the
+`moqt` scheme MUST be converted to a `moqt` URI before use, as follows:
 
-Characters in other components that are excluded by the syntax defined
-above MUST be converted from Unicode to ASCII by first encoding the
-characters as UTF-8 and then replacing the corresponding bytes using
-their percent-encoded form as defined in the URI {{!RFC3986}} and
-IRI {{!RFC3987}} specifications.
+* A `host` that contains non-ASCII characters MUST be converted to its
+  A-label form {{!RFC5890}}, as specified in Section 5 of {{!RFC5891}}.
+* Characters in the other components that are excluded by the syntax
+  defined above MUST be converted from Unicode to ASCII by first encoding
+  the characters as UTF-8 and then replacing the corresponding bytes with
+  their percent-encoded form, as defined in the URI {{!RFC3986}} and
+  IRI {{!RFC3987}} specifications.
+
+Two `moqt` URIs are equivalent if, after the syntax-based normalization
+defined in Section 6.2.2 of {{!RFC3986}}, their normalized forms are
+identical when compared character by character.  The following
+scheme-based normalization rules (Section 6.2.3 of {{!RFC3986}}) apply:
+
+* The scheme and host are case-insensitive and are normalized to
+  lowercase; all other components are compared case-sensitively.
+* An omitted port is equivalent to a port of 443.
+* An empty path is equivalent to a path of "/".
+
+The fragment component ({{moqt-fragment}}) is not included in the
+comparison, since it is not transmitted to the server.
+
+These rules match those for `https` URIs (see Section 4.2.3 of
+{{!RFC9110}}), so that a `moqt` URI and the `https` URI derived from it by
+scheme replacement ({{webtransport}}) compare consistently.
 
 If the port is omitted in the URI, a default port of 443 is used.
 
