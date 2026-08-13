@@ -1468,18 +1468,15 @@ a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK
 ({{message-request-ok}}) or REQUEST_ERROR in response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
-All `Established` subscriptions have a Forward State which is either 0 or 1.
-The publisher does not send Objects if the Forward State is 0, and does send them
-if the Forward State is 1.  The initiator of the subscription sets the initial
-Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send
-REQUEST_UPDATE to update the Forward State. Control messages, such as
-PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
+A subscription can be paused, which blocks all Objects from being sent (see
+{{pausing-subscriptions}}). Control messages, such as PUBLISH_DONE
+({{message-publish-done}}) are sent regardless of whether the subscription is
+paused.
 
 A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
-or REQUEST_UPDATE_OK that changes the Forward State
-from 0 to 1.  This value is called the Joining Location and can be used in a
-Joining FETCH (see {{joining-fetches}}) while the subscription is in the
-`Established` state.
+or REQUEST_UPDATE_OK that resumes a paused subscription.  This value is called
+the Joining Location and can be used in a Joining FETCH (see
+{{joining-fetches}}) while the subscription is in the `Established` state.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -1512,7 +1509,7 @@ incurring additional latency.
 Publishers MAY start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with REQUEST_ERROR or sets Forward=0 in REQUEST_UPDATE. It can also result in
+with REQUEST_ERROR or pauses the subscription in PUBLISH_OK. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 {{datagrams}} and {{subgroup-header}}).
 
@@ -1539,10 +1536,10 @@ Subscribers can specify a Location filter on a subscription indicating to the pu
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.
 
-All Location filters have a Start Location and an optional End Group Delta.  Only objects
-published or received via a subscription having Locations greater than or
-equal to Start Location and strictly less than or equal to the End Group (when
-present) pass the filter.
+Fetch requests can also specify a Location filter.
+
+A Location filter specifies an inclusive range of Locations.  Only objects
+with Locations within the inclusive range pass the filter.
 
 Some Location filters are defined to be relative to the `Largest Object`. The `Largest
 Object` is the Object with the largest Location ({{location-structure}}) in the
@@ -1550,49 +1547,64 @@ Track from the perspective of the publisher processing the message. Largest
 Object updates when the first byte of an Object with a Location larger than the
 previous value is published or received through a subscription.
 
-A Location Filter has the following structure:
+A Location filter parameter has the following length-prefixed structure:
 
 ~~~
-Location Filter {
-  Filter Type (vi64),
-  [Start Location (Location),]
-  [End Group Delta (vi64),]
+LOCATION_FILTER Parameter {
+  Parameter Type (vi64) = 0x21,
+  Length (vi64),
+  [StartGroup (vi64),]
+  [StartObject (vi64),]
+  [EndGroupDelta (vi64),]
+  [EndObject (vi64),]
 }
 ~~~
 
-Filter Type can have one of the following values:
+Length (in bytes) determines how many optional vi64 fields are present.
+A length of 0 indicates no filter, for example to remove the filter in
+REQUEST_UPDATE.
 
-Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
-Largest Object.Object + 1}` and `Largest Object` is communicated in
-SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
-{0, 0}. There is no End Group - the subscription is open ended.  Note that due
-to network reordering or prioritization, relays can receive Objects with
-Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
-these Objects do not pass the Largest Object filter.
+  * If only one field is present, it is StartGroup.
+  * If only two fields are present, they are StartGroup and StartObject.
+  * If only three fields are present, they are StartGroup, StartObject, and
+    EndGroupDelta.
 
-Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
-0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
-delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
-the subscription is open ended. For scenarios where the subscriber intends to
-start from more than one group in the future, it can use an AbsoluteStart filter
-instead.
+If only StartGroup is present, it is a relative number of groups prior to the
+Next Group, hence the start Location is
+`{Largest Object.Group + 1 - StartGroup, 0}`. For example:
 
-AbsoluteStart (0x3): The filter Start Location is specified explicitly. The
-specified `Start Location` MAY be less than the `Largest Object` observed at the
-publisher. There is no End Group - the subscription is open ended.  An
-AbsoluteStart filter with `Start` = {0, 0} is equivalent to an unfiltered
-subscription.
+  * StartGroup=0 will start at the Next Group
+  * StartGroup=1 will start at the current group
+  * StartGroup=2 will start at 1 group prior to the current group
+  * StartGroup=N will start at N-1 groups prior to the current group
 
-AbsoluteRange (0x4): The filter Start Location and End Group are specified
-explicitly. The specified `Start Location` MAY be less than the `Largest Object`
-observed at the publisher. If the specified `End Group Delta` is zero, the
-remainder of that Group passes the filter. Otherwise, the last Group ID to be
-delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
-If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
-close the session with a `PROTOCOL_VIOLATION`.
+If only StartGroup and StartObject are present and both 0, the start Location
+is the Next Object which is `{Largest Object.Group, Largest Object.Object + 1}`,
+or {0,0} if no content has been delivered yet.  To start at absolute Location
+{0, 0} with no end, which is equivalent to unfiltered, do not include a Location
+Filter.  Note that due to network reordering or prioritization, relays can
+receive Objects with Locations smaller than `Largest Object` after the SUBSCRIBE
+is processed, but these Objects do not pass this filter.
 
-An endpoint that receives a filter type other than the above MUST close the
-session with `PROTOCOL_VIOLATION`.
+If a relative start group results in a computed absolute group less than 0, the
+computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
+
+Otherwise, all fields are absolute.  EndGroupDelta is delta encoded from
+StartGroup, but both the start and end groups are absolute, not relative to
+`Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1, the endpoint
+MUST close the session with a `PROTOCOL_VIOLATION`.
+
+When EndGroupDelta and EndObject are omitted from a subscription filter, the
+subscription is open-ended. When they are omitted from a Fetch, the EndGroup and
+EndObject are `Largest Object`.
+
+When EndObject is omitted, the filter includes all objects in the End Group.
+
+A Location Filter where the End Location is strictly less than the Start
+Location matches no objects and pauses the subscription (see
+{{pausing-subscriptions}}).  The recommended encoding for a paused filter is
+StartGroup=0, StartObject=1, EndGroupDelta=0, EndObject=0, which represents the
+empty range [{0,1}, {0,0}].
 
 If the publisher cannot satisfy the requested Location Filter (see
 {{location-filter}}) or if the entire End Group has already been published
@@ -1670,12 +1682,30 @@ All filter types are combined using logical "AND" operations
 to further restrict which tracks and objects pass all filter criteria.
 This includes all Range Filters {{range-filters}} and Location
 Filters {{location-filters}}, which can be evaluated in any order.
-The Forward parameter is also a type of filter.  The publisher MUST
-forward only objects that pass all filters.
+The publisher MUST forward only objects that pass all filters.
 
 ~~~
-Pass = Forward AND Location Filters AND Range Filters
+Pass = Location Filters AND Range Filters
 ~~~
+
+### Pausing Subscriptions {#pausing-subscriptions}
+
+A subscription is paused by including a Location Filter where the End Location
+is strictly less than the Start Location, creating an empty range that no object
+can satisfy.  The recommended encoding is StartGroup=0, StartObject=1,
+EndGroupDelta=0, EndObject=0, representing the empty range [{0,1}, {0,0}].
+
+A paused subscription does not deliver any Objects, but control messages such
+as PUBLISH_DONE ({{message-publish-done}}) are still sent.
+
+To pause a subscription, the endpoint includes a pausing Location Filter in
+SUBSCRIBE, PUBLISH, PUBLISH_OK, SUBSCRIBE_TRACKS, or REQUEST_UPDATE. To resume,
+the endpoint sends a REQUEST_UPDATE that either removes the Location Filter
+(Length=0) or replaces it with a non-pausing filter (see {{location-filters}}).
+
+In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, the paused state applies
+to future subscriptions that match the prefix. Existing subscriptions are
+unaffected.
 
 ### Joining an Ongoing Track
 
@@ -1684,11 +1714,11 @@ is a join point, so in order for a subscriber to join a Track, it needs to
 request an existing Group or wait for a future Group.  Different applications
 will have different approaches for when to begin a new Group.
 
-To join a Track at a past Group, the subscriber sends a SUBSCRIBE or
-REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE, PUBLISH_OK or
+REQUEST_UPDATE that is not paused, followed by a Joining FETCH (see
 {{joining-fetches}}) for the intended start Group, which can be relative.
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
-Filter Type `Next Group Start`.
+a Location Filter {{location-filters}} that starts at the Next Group.
 
 #### Dynamically Starting New Groups
 
@@ -1699,16 +1729,15 @@ Publisher create a new group than issue a Joining FETCH.  Publishers indicate a
 Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
 ({{dynamic-groups}}).
 
-One possible subscriber pattern is to SUBSCRIBE to a Track using Filter Type
-`Largest Object` and observe the `Largest Location` in the response.  If the
+One possible subscriber pattern is to SUBSCRIBE to a Track using a Location Filter
+that starts at the Next Object and observe the `Largest Object` in the response.  If the
 Object ID is below the application's threshold, the subscriber sends a FETCH for
 the beginning of the Group.  If the Object ID is above the threshold and the
 Track supports dynamic groups, the subscriber sends a REQUEST_UPDATE message with the
-NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
-{{new-group-request}}).
+NEW_GROUP_REQUEST parameter equal to the Next Group (see {{new-group-request}}).
 
-Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
-`Next Group Start` and NEW_GROUP_REQUEST equal to 0.  The value of
+Another possible subscriber pattern is to send a SUBSCRIBE with a Location Filter
+that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
 groups. A publisher that does will begin the next group as soon as practical.
 
@@ -2106,20 +2135,21 @@ A cache MUST store all fields of an Object defined in {{object-header}},
 with the exception of any Object Properties ({{object-properties}})
 that specify otherwise.
 
-## Forward Handling
+## Paused Subscription Handling
 
-If one or more downstream subscribers to a track have Forward=1, the relay
-MUST set Forward=1 upstream in order to receive and forward the requested
-Objects. When no downstream subscriber has Forward=1, the relay chooses the
-upstream Forward value at its discretion, considering the following
-tradeoffs and deployment considerations:
+If one or more downstream subscribers to a track are not paused, the relay
+MUST ensure the upstream subscription is not paused in order to receive and
+forward the requested Objects. When all downstream subscribers are paused,
+the relay chooses the upstream paused state at its discretion, considering the
+following tradeoffs and deployment considerations:
 
-  - Setting Forward=1 upstream starts object delivery and pre-warms the
-    relay's cache, so objects are available when a downstream subscriber
-    sets Forward=1. This reduces latency but consumes upstream and publisher
-    resources for content no downstream subscriber is currently receiving.
-  - Setting Forward=0 upstream avoids that work, at the cost of higher
-    latency when forwarding is later enabled.
+  - Keeping the upstream subscription active starts object delivery and
+    pre-warms the relay's cache, so objects are available when a downstream
+    subscriber resumes. This reduces latency but consumes upstream and
+    publisher resources for content no downstream subscriber is currently
+    receiving.
+  - Pausing the upstream subscription avoids that work, at the cost of
+    higher latency when delivery is later resumed.
 
 ## Multiple Publishers
 
@@ -2203,8 +2233,8 @@ to the old relay can be cancelled (see {{request-cancellation}}).
 There are two ways to publish through a relay:
 
 1. Send a PUBLISH message for a specific Track to the relay. The relay MAY
-pause the Subscription with REQUEST_UPDATE in Forward State=0 until there are
-known subscribers for new Tracks.
+respond with PUBLISH_OK in a paused state (see {{pausing-subscriptions}}) until
+there are known subscribers for new Tracks.
 
 2. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
 enables the relay to send SUBSCRIBE or FETCH messages to publishers for Tracks
@@ -2252,12 +2282,12 @@ one publisher is available, the Relay MUST send the FETCH to at least one of the
 
 When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 `Established` upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
-SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
-State=0, the Relay MUST send REQUEST_UPDATE with Forward=1 to all publishers.
+SUBSCRIBE is not paused and the upstream subscriptions are paused, the Relay
+MUST send REQUEST_UPDATE to resume all upstream subscriptions.
 If there are no `Established` upstream subscriptions for the requested Track, the Relay
 MUST send a SUBSCRIBE request to each publisher that has published the
-subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
-then the Relay MUST use Forward=1 when subscribing upstream.
+subscription's namespace or prefix thereof.  If the SUBSCRIBE is not paused,
+the Relay MUST NOT pause when subscribing upstream.
 
 When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
 request to each subscriber that has sent SUBSCRIBE_TRACKS for the Track's
@@ -2272,8 +2302,7 @@ send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
 matching subscription.  When it receives an authorized PUBLISH message for a
 Track that has `Established` downstream subscriptions, it MUST respond with
 PUBLISH_OK.  If at least one downstream subscriber for the Track has
-Forward State=1, the Relay MUST change the Forward State to 1 with
-REQUEST_UPDATE.
+a non-paused subscription, the Relay MUST NOT pause in the reply.
 
 If a Session is closed due to an unknown or invalid control message or Object,
 the Relay MUST NOT propagate that message or Object to another Session, because
@@ -2463,7 +2492,7 @@ if found.
 The number of Message Parameters is not specifically limited, but the total
 length of a control message is limited to 2^16-1 bytes.
 
-Message Parameters in SUBSCRIBE and FETCH MUST NOT cause the
+Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
 publisher to alter the payload of the objects it sends, as that would violate
 the track uniqueness guarantee described in {{track-scope}}.
 
@@ -2609,7 +2638,7 @@ that alias has not received a response.
 ### SUBGROUP_DELIVERY_TIMEOUT Parameter {#subgroup-delivery-timeout}
 
 The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a varint. It
-MAY appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
+MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.  Its
 semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
@@ -2619,7 +2648,7 @@ for the same track.
 ### OBJECT_DELIVERY_TIMEOUT Parameter {#object-delivery-timeout}
 
 The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a varint. It
-MAY appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
+MAY appear in a PUBLISH_OK, SUBSCRIBE, or REQUEST_UPDATE message.  Its
 semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
@@ -2678,12 +2707,13 @@ If RENDEZVOUS_TIMEOUT is absent, the default is 0.
 ### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It MAY
-appear in a SUBSCRIBE, FETCH, or REQUEST_UPDATE (for a subscription or FETCH).
-It is an integer expressing the priority of a
+appear in a SUBSCRIBE, FETCH, REQUEST_UPDATE (for a subscription or FETCH),
+or PUBLISH_OK message. It is an integer expressing the priority of a
 subscription relative to other subscriptions and fetch responses in the same
 session. Lower numbers get higher priority. See {{priorities}}.
 
-If omitted from SUBSCRIBE or FETCH, the publisher uses the value 128.
+If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
+the value 128.
 
 ### GROUP ORDER Parameter {#group-order}
 
@@ -2702,11 +2732,14 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 ### LOCATION FILTER Parameter {#location-filter}
 
 The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a
-subscription) message. It is a Location Filter (see {{location-filters}}).
+encoding. It MAY appear in a FETCH, SUBSCRIBE, PUBLISH, PUBLISH_OK,
+SUBSCRIBE_TRACKS, or REQUEST_UPDATE (for a subscription) message. It is a
+Location Filter (see {{location-filters}}).
 
-If omitted from SUBSCRIBE, the subscription is
-unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
+If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
+unfiltered.  If omitted from PUBLISH, PUBLISH_OK, or SUBSCRIBE_TRACKS, the
+subscription is not paused.  If omitted from REQUEST_UPDATE, the value is
+unchanged.
 
 ### SUBGROUP FILTER Parameter {#subgroup-filter}
 
@@ -2780,30 +2813,13 @@ A relay MUST set LARGEST_OBJECT to the largest of the following:
 PUBLISH, or REQUEST_UPDATE_OK
 2. The largest Location of an Object received on an upstream subscription
 
-### FORWARD Parameter {#forward-parameter}
-
-The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
-SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
-PUBLISH and SUBSCRIBE_TRACKS. It specifies the Forwarding State on
-affected subscriptions (see {{subscriptions}}). The allowed values are 0 (don't
-forward) or 1 (forward). If an endpoint receives a value outside this range, it
-MUST close the session with `PROTOCOL_VIOLATION`.
-
-In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies the
-Forwarding State on future subscriptions that match the prefix. Existing
-subscriptions are unaffected.
-
-If the parameter is omitted from REQUEST_UPDATE, the value for the
-subscription remains unchanged.  If the parameter is omitted from any other
-message, the default value is 1.
-
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
 The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint. It MAY appear
-in SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
+in PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
-this parameter in REQUEST_UPDATE if the Track did not
+this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
 include the DYNAMIC_GROUPS Property with value 1.  A subscriber MAY
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
@@ -3452,9 +3468,9 @@ send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.
 
-A publisher that sends the FORWARD parameter ({{forward-parameter}}) equal to 0
-indicates that it will not transmit any objects until the subscriber sets the
-Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
+A publisher that pauses the subscription (see {{pausing-subscriptions}})
+indicates that it will not transmit any objects until the subscriber resumes it
+via PUBLISH_OK or REQUEST_UPDATE. If the subscription is not paused, the
 publisher will start transmitting objects immediately, possibly before
 PUBLISH_OK.
 
@@ -3588,8 +3604,6 @@ Standalone Fetch {
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
-  Start Location (Location),
-  End Location (Location)
 }
 ~~~
 
@@ -3598,10 +3612,9 @@ Standalone Fetch {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Start Location: The start Location.
-
-* End Location: The end Location, plus 1. A Location.Object value of 0
-  means the entire group is requested.
+A Location Filter parameter (see {{location-filters}}) can be included
+to specify the start and end Locations, otherwise the entire track is
+included.
 
 ### Joining Fetches
 
@@ -3621,16 +3634,15 @@ Location or a Location relative to the Largest group.
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer
 with a certain number of groups prior to the live edge of a track.
 
-A Joining Fetch is only permitted when the associated subscription has
-Forward State 1; otherwise the publisher MUST respond with a
-REQUEST_ERROR with error code `INVALID_RANGE`. A publisher MUST process
-any pending REQUEST_UPDATE
+A Joining Fetch is only permitted when the associated subscription is not
+paused; otherwise the publisher MUST respond with a REQUEST_ERROR with error
+code `INVALID_RANGE`. A publisher MUST process any pending REQUEST_UPDATE
 messages for the associated subscription before evaluating the current
-request. Relays with an upstream subscription in transition from Forward State 0
-to 1 can either send a Joining Fetch upstream or buffer the Joining Fetch until
-the upstream subscription returns REQUEST_UPDATE_OK with the new Largest Object.
-Changing the Forward State of the associated subscription to 0 after the Joining
-Fetch has been accepted has no effect on the Joining Fetch.
+request. Relays with an upstream subscription transitioning from paused to
+active can either send a Joining Fetch upstream or buffer the Joining Fetch
+until the upstream subscription returns REQUEST_UPDATE_OK with the new Largest
+Object. Pausing the associated subscription after the Joining Fetch has been
+accepted has no effect on the Joining Fetch.
 
 If no Objects have been published for the track the publisher MUST
 respond with a REQUEST_ERROR with error code `INVALID_RANGE`.
@@ -3640,7 +3652,6 @@ A Joining Fetch includes this structure:
 ~~~
 Joining Fetch {
   Joining Request ID (vi64),
-  Joining Start (vi64)
 }
 ~~~
 
@@ -3650,9 +3661,6 @@ Joining Fetch {
   (subscriber)` states, it MUST return a REQUEST_ERROR with error code
   `INVALID_JOINING_REQUEST_ID`.
 
-* Joining Start : A relative or absolute value used to determine the Start
-  Location, described below.
-
 #### Joining Fetch Range Calculation
 
 The Joining Location value from the corresponding
@@ -3660,17 +3668,17 @@ subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
 The publisher receiving a Joining Fetch sets the End Location to
-{Joining Location.Group, Joining Location.Object + 1} (see {{subscriptions}}.
+the Joining Location (see {{subscriptions}}).
 
 Note: the last Object included in the Joining FETCH response is the Object
-at the Joining Location.  The `+ 1` above indicates the equivalent Standalone
-Fetch encoding.
+at the Joining Location.
 
 For a Relative Joining Fetch, the publisher sets the Start Location to
-{Joining Location.Group - Joining Start, 0}.
+{Joining Location.Group + 1 - StartGroup, 0} or {0, 0} if the Start Location's
+group would be less than zero.
 
 For an Absolute Joining Fetch, the publisher sets the Start Location to
-{Joining Start, 0}.
+{StartGroup, 0}.
 
 
 ### Fetch Handling
@@ -3729,12 +3737,13 @@ cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch specifies an inclusive range of Objects starting at Start Location and
-ending at End Location. End Location MUST specify the same or a larger Location
-than Start Location for Standalone and Absolute Joining Fetches.
+Fetch can include a Location Filter parameter (see {{location-filters}})
+which specifies an inclusive range of Objects starting at Start Location and
+ending at End Location.
 
-Objects larger than the Largest Object will not be retrieved by a FETCH.  If the
-requested End Location exceeds the Largest available Object, the actual end of
+Objects with Locations larger than the `Largest Object` at the time the request
+is processed will not be retrieved by a FETCH.  If the
+requested End Location exceeds the `Largest Object`, the actual end of
 the FETCH response is indicated in the FETCH_OK End Location.
 
 If no Objects have been published for the track or Start Location is greater
@@ -3774,15 +3783,10 @@ FETCH_OK Message {
 * End Of Track: 1 if all Objects have been published on this Track, and
   the End Location is the final Object in the Track, 0 if not.
 
-* End Location: The end of the range covered by the FETCH response,
-  using the same encoding as the FETCH request End Location (the last
-  Object, plus 1; or 0 to indicate the entire Group).
-  This is the End Location from the FETCH request unless
-  the requested range extends beyond published data:
-   - If the requested FETCH End Location was beyond the Largest known (possibly
-     final) Object, End Location is {Largest.Group, Largest.Object + 1}
-  Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
-  End Location described in {{joining-fetch-range-calculation}}.
+* End Location: The end of the range covered by the FETCH response.
+  This is the End Location from the FETCH request Location Filter unless
+  the requested range extends beyond Largest Object at the time
+  the request was processed, or the last Object in the Track.
 
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
@@ -4003,13 +4007,13 @@ Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is vali
 in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
 publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
 SUBSCRIBE_TRACKS. The Parameters are not explicitly communicated, with the
-exception of FORWARD and GROUP_ORDER as described below.
+exception of a pausing Location Filter and GROUP_ORDER as described below.
 
-If the FORWARD parameter ({{forward-parameter}}) is present in this message and
-equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
-the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
-from this message, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
-set the FORWARD parameter to 1, or indicate that value by omitting the parameter
+If the subscription is paused (see {{pausing-subscriptions}}) in this message,
+PUBLISH messages resulting from this SUBSCRIBE_TRACKS will include the same
+pausing Location Filter. If the subscription is not paused or the Location Filter
+is omitted from this message, PUBLISH messages resulting from this
+SUBSCRIBE_TRACKS will not include a pausing Location Filter
 (see {{subscriptions}}).
 
 If the GROUP_ORDER parameter ({{group-order}}) is present in this message,
@@ -4417,7 +4421,7 @@ not limited to:
 * A publisher's decision to end the subscription early
 * A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
   the Start Location to a larger Location
-* Omitting a Subgroup Object due to the subscriber's Forward State
+* Omitting a Subgroup Object due to the subscription being paused
 
 When RESET_STREAM_AT is used, the
 reliable_size SHOULD include the stream header so the receiver can identify the
@@ -4491,9 +4495,9 @@ Subgroups in a Group at once.
 
 A publisher that receives a STOP_SENDING on a Subgroup stream SHOULD NOT attempt
 to open a new stream to deliver additional Objects in that Subgroup.  However,
-if the publisher subsequently receives a REQUEST_UPDATE that changes the Forward
-State from 0 to 1, it MAY open a new stream to deliver Objects in that Subgroup,
-as the update indicates the subscriber has renewed interest in forwarded Objects.
+if the publisher subsequently receives a REQUEST_UPDATE that resumes a paused
+subscription, it MAY open a new stream to deliver Objects in that Subgroup,
+as the update indicates the subscriber has renewed interest in receiving Objects.
 
 The application SHOULD use a relevant error code when resetting a stream,
 as defined in {{stream-reset-codes}}.
@@ -4788,7 +4792,7 @@ If omitted, the publisher's preference is Ascending (0x1).
 DYNAMIC_GROUPS (Property Type 0x30) is a Track Property.
 The allowed values are 0 or 1. When the value is 1, it indicates
 that the subscriber can request the Original Publisher to start a new Group
-by including the NEW_GROUP_REQUEST parameter in REQUEST_UPDATE
+by including the NEW_GROUP_REQUEST parameter in PUBLISH_OK or REQUEST_UPDATE
 for this Track. If an endpoint receives a value larger than 1, it MUST close
 the session with `PROTOCOL_VIOLATION`.
 
@@ -5338,7 +5342,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
 | 0x0A | FILL_TIMEOUT | {{fill-timeout}} |
-| 0x10 | FORWARD | {{forward-parameter}} |
+| 0x10 | Reserved | N/A |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | LOCATION_FILTER | {{location-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
