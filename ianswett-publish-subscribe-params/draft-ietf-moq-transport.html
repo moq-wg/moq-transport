@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 11 February 2027</td>
+<td class="center">Expires 14 February 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-10" class="published">10 August 2026</time>
+<time datetime="2026-08-13" class="published">13 August 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-11">11 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-02-14">14 February 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 11 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 14 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -7237,7 +7237,7 @@ is reserved for future use.<a href="#section-11.4.2-9.1.1" class="pilcrow">¶</a
               <p id="section-11.4.2-9.2.1">Values where bit 4 is not set. Bit 4 <span class="bcp14">MUST</span> be 1 for SUBGROUP_HEADER.<a href="#section-11.4.2-9.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-11.4.2-9.3">
-              <p id="section-11.4.2-9.3.1">Values of 128 or greater (i.e., any value that requires more than a two-byte
+              <p id="section-11.4.2-9.3.1">Values of 128 or greater (i.e., any value that requires more than a one-byte
 variable-length integer encoding).<a href="#section-11.4.2-9.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
@@ -8084,8 +8084,7 @@ permitted namespaces is determined by the authorization framework
 in use.<a href="#section-13.3.3-2" class="pilcrow">¶</a></p>
 <p id="section-13.3.3-3">When using bearer token-based authentication (e.g., <span>[<a href="#CAT" class="cite xref">CAT</a>]</span>), a token
 that is bound to a client-held key via a confirmation claim prevents
-a stolen token from being replayed by a different party.
-party.<a href="#section-13.3.3-3" class="pilcrow">¶</a></p>
+a stolen token from being replayed by a different party.<a href="#section-13.3.3-3" class="pilcrow">¶</a></p>
 <p id="section-13.3.3-4">When unlinkable access is used (e.g., <span>[<a href="#PPA" class="cite xref">PPA</a>]</span>), the token's scope
 extensions determine which namespaces the bearer can publish to.
 Impersonation is still prevented because the token does not grant
@@ -8117,16 +8116,16 @@ understand where on the timeline this media fragment belongs.<a href="#section-1
 access to media objects, object sizes and traffic patterns enable
 analysis of content. Track namespace and track name can also be
 analyzed and correlated between end subscribers by relays.<a href="#section-13.4-3" class="pilcrow">¶</a></p>
-<p id="section-13.4-4">The end-to-end media security is handled by mechanisms external to this
-specification. They need to provide source authenticity and
-confidentiality. MOQT's object model does enable both the object
-data itself as well as Object Properties to be confidentiality and
-integrity protected. MOQT also supports Object Properties being
-integrity protected but not encrypted.<a href="#section-13.4-4" class="pilcrow">¶</a></p>
-<p id="section-13.4-5">Current proposals for media security include:
- - An E2EE scheme based on SFRAME: <span>[<a href="#I-D.ietf-moq-secure-objects" class="cite xref">I-D.ietf-moq-secure-objects</a>]</span>.<a href="#section-13.4-5" class="pilcrow">¶</a></p>
-<p id="section-13.4-6">Secure key distribution for end-to-end encryption is specific to the
-encryption system and deployment, and outside the scope of this document.<a href="#section-13.4-6" class="pilcrow">¶</a></p>
+<p id="section-13.4-4">Consistent with the principle of confidential operation by default,
+publishers can apply end-to-end object encryption, for example using Secure Objects
+(<span>[<a href="#I-D.ietf-moq-secure-objects" class="cite xref">I-D.ietf-moq-secure-objects</a>]</span>), so that relays retain access only to
+the metadata required for forwarding. Such end-to-end security
+mechanisms are external to this specification and additionally provide
+source authenticity. MOQT's object model enables both the object data
+and Object Properties to be confidentiality and integrity protected, or
+integrity protected only.<a href="#section-13.4-4" class="pilcrow">¶</a></p>
+<p id="section-13.4-5">Secure key distribution for end-to-end encryption is specific to the
+encryption system and deployment, and outside the scope of this document.<a href="#section-13.4-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="resource-exhaustion">
@@ -8710,6 +8709,13 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
                 <a href="#track-namespace-prefix-param" class="auto internal xref">Section 10.2.19</a>
 </td>
             </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x35</td>
+              <td class="text-left" rowspan="1" colspan="1">INCLUDE_PROPERTIES</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#include-properties-param" class="auto internal xref">Section 10.2.20</a>
+</td>
+            </tr>
           </tbody>
         </table>
 <ul class="normal">
@@ -8862,7 +8868,7 @@ These entries share the same Property Type space as the table above.<a href="#se
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x0F</td>
-              <td class="text-left" rowspan="1" colspan="1">AUIDO_CONFIG</td>
+              <td class="text-left" rowspan="1" colspan="1">AUDIO_CONFIG</td>
               <td class="text-left" rowspan="1" colspan="1">Track, Object</td>
               <td class="text-left" rowspan="1" colspan="1">draft-ietf-moq-loc</td>
             </tr>

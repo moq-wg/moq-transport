@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 11 February 2027                                  I. Swett, Ed.
+Expires: 14 February 2027                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          10 August 2026
+                                                          13 August 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 February 2027.
+   This Internet-Draft will expire on 14 February 2027.
 
 Copyright Notice
 
@@ -4813,7 +4813,7 @@ Range { Start, [End] }
       SUBGROUP_HEADER.
 
    *  Values of 128 or greater (i.e., any value that requires more than
-      a two-byte variable-length integer encoding).
+      a one-byte variable-length integer encoding).
 
    To send an Object with Object Forwarding Preference = Subgroup, find
    the open stream that is associated with the subscription, Group ID
@@ -5532,7 +5532,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    When using bearer token-based authentication (e.g., [CAT]), a token
    that is bound to a client-held key via a confirmation claim prevents
-   a stolen token from being replayed by a different party. party.
+   a stolen token from being replayed by a different party.
 
    When unlinkable access is used (e.g., [PPA]), the token's scope
    extensions determine which namespaces the bearer can publish to.
@@ -5563,15 +5563,14 @@ EXT 1 and EXT N can be modified or removed by Relays
    analysis of content.  Track namespace and track name can also be
    analyzed and correlated between end subscribers by relays.
 
-   The end-to-end media security is handled by mechanisms external to
-   this specification.  They need to provide source authenticity and
-   confidentiality.  MOQT's object model does enable both the object
-   data itself as well as Object Properties to be confidentiality and
-   integrity protected.  MOQT also supports Object Properties being
-   integrity protected but not encrypted.
-
-   Current proposals for media security include: - An E2EE scheme based
-   on SFRAME: [I-D.ietf-moq-secure-objects].
+   Consistent with the principle of confidential operation by default,
+   publishers can apply end-to-end object encryption, for example using
+   Secure Objects ([I-D.ietf-moq-secure-objects]), so that relays retain
+   access only to the metadata required for forwarding.  Such end-to-end
+   security mechanisms are external to this specification and
+   additionally provide source authenticity.  MOQT's object model
+   enables both the object data and Object Properties to be
+   confidentiality and integrity protected, or integrity protected only.
 
    Secure key distribution for end-to-end encryption is specific to the
    encryption system and deployment, and outside the scope of this
@@ -5921,6 +5920,8 @@ EXT 1 and EXT N can be modified or removed by Relays
      +----------------+---------------------------+-----------------+
      | 0x34           | TRACK_NAMESPACE_PREFIX    | Section 10.2.19 |
      +----------------+---------------------------+-----------------+
+     | 0x35           | INCLUDE_PROPERTIES        | Section 10.2.20 |
+     +----------------+---------------------------+-----------------+
 
                                  Table 13
 
@@ -5979,7 +5980,7 @@ EXT 1 and EXT N can be modified or removed by Relays
     |0x0D| VIDEO_CONFIG        |Track,| draft-ietf-moq-loc            |
     |    |                     |Object|                               |
     +----+---------------------+------+-------------------------------+
-    |0x0F| AUIDO_CONFIG        |Track,| draft-ietf-moq-loc            |
+    |0x0F| AUDIO_CONFIG        |Track,| draft-ietf-moq-loc            |
     |    |                     |Object|                               |
     +----+---------------------+------+-------------------------------+
     |0x0A| ENCRYPTED_LIST      |Object| draft-ietf-moq-secure-objects |
