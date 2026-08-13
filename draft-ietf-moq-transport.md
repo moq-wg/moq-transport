@@ -1539,10 +1539,11 @@ Subscribers can specify a Location filter on a subscription indicating to the pu
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.
 
-All Location filters have a Start Location and an optional End Group Delta.  Only objects
-published or received via a subscription having Locations greater than or
-equal to Start Location and strictly less than or equal to the End Group (when
-present) pass the filter.
+Fetch requests can also specify a Location filter.  Fetch requests without a filter
+include all Locations from {0, 0} up to `Largest Object` (defined below).
+
+A Location filter specifies an inclusive range of Locations.  Only objects
+with Locations within the inclusive range pass the filter.
 
 Some Location filters are defined to be relative to the `Largest Object`. The `Largest
 Object` is the Object with the largest Location ({{location-structure}}) in the
@@ -1550,52 +1551,54 @@ Track from the perspective of the publisher processing the message. Largest
 Object updates when the first byte of an Object with a Location larger than the
 previous value is published or received through a subscription.
 
-A Location Filter has the following structure:
+A Location filter parameter has the following length-prefixed structure:
 
 ~~~
-Location Filter {
-  Filter Type (vi64),
-  [Start Location (Location),]
-  [End Group Delta (vi64),]
-}
+LOCATION_FILTER Parameter {
+  Parameter Type (vi64) = 0x21,
+  Length (vi64),
+  [StartGroup (vi64),]
+  [StartObject (vi64),]
+  [EndGroupDelta (vi64),]
+  [EndObject (vi64),]
 ~~~
 
-Filter Type can have one of the following values:
+Length (in bytes) determines how many optional vi64 fields are present.
+A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
+  * If only one field is present, it is StartGroup.
+  * If only two fields are present, they are StartGroup and StartObject.
+  * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
 
-Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
-Largest Object.Object + 1}` and `Largest Object` is communicated in
-SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
-{0, 0}. There is no End Group - the subscription is open ended.  Note that due
-to network reordering or prioritization, relays can receive Objects with
-Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
-these Objects do not pass the Largest Object filter.
+If only StartGroup is present, it is a relative number of groups prior to the Next Group,
+hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
+  * StartGroup=0 will start at the Next Group
+  * StartGroup=1 will start at the current group
+  * StartGroup=2 will start at 1 group prior to the current group
+  * StartGroup=N will start at N-1 groups prior to the current group
 
-Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
-0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
-delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
-the subscription is open ended. For scenarios where the subscriber intends to
-start from more than one group in the future, it can use an AbsoluteStart filter
-instead.
+If only StartGroup and StartObject are present and both 0, the start Location
+is the Next Object which is `{Largest Object.Group, Largest Object.Object + 1}`,
+or {0, 0} if no content has been delivered yet.  To start at absolute Location {0, 0}
+with no end, which is equivalent to unfiltered, do not include a Location filter.
+Note that due to network reordering or prioritization, relays can receive Objects with
+Locations smaller than `Largest Object` after the SUBSCRIBE is processed, but
+these Objects do not pass this filter.
 
-AbsoluteStart (0x3): The filter Start Location is specified explicitly. The
-specified `Start Location` MAY be less than the `Largest Object` observed at the
-publisher. There is no End Group - the subscription is open ended.  An
-AbsoluteStart filter with `Start` = {0, 0} is equivalent to an unfiltered
-subscription.
+If a relative start group results in a computed absolute group less than 0, the
+computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
 
-AbsoluteRange (0x4): The filter Start Location and End Group are specified
-explicitly. The specified `Start Location` MAY be less than the `Largest Object`
-observed at the publisher. If the specified `End Group Delta` is zero, the
-remainder of that Group passes the filter. Otherwise, the last Group ID to be
-delivered will be the Group ID in `Start Location` plus the `End Group Delta`.
-If the resulting Group ID would be greater than 2^64 - 1, the endpoint MUST
-close the session with a `PROTOCOL_VIOLATION`.
+Otherwise, all fields are absolute.  EndGroupDelta is delta
+encoded from StartGroup, but both the start and end groups are absolute, not
+relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
+the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
-An endpoint that receives a filter type other than the above MUST close the
-session with `PROTOCOL_VIOLATION`.
+When EndGroupDelta and EndObject are omitted from a subscription filter, the
+subscription is open-ended. When they are omitted from a Fetch, the
+EndGroup and EndObject are `Largest Object`.
 
-If the publisher cannot satisfy the requested Location Filter (see
-{{location-filter}}) or if the entire End Group has already been published
+When EndObject is omitted, the filter includes all objects in the End Group.
+
+If the publisher cannot satisfy the requested Location filter,
 it SHOULD send a REQUEST_ERROR with code `INVALID_RANGE`.  A publisher MUST
 NOT send objects from outside the requested range.
 
@@ -1688,7 +1691,7 @@ To join a Track at a past Group, the subscriber sends a SUBSCRIBE or
 REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
 {{joining-fetches}}) for the intended start Group, which can be relative.
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
-Filter Type `Next Group Start`.
+a Location Filter {{location-filters}} that starts at the Next Group.
 
 #### Dynamically Starting New Groups
 
@@ -1699,16 +1702,15 @@ Publisher create a new group than issue a Joining FETCH.  Publishers indicate a
 Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
 ({{dynamic-groups}}).
 
-One possible subscriber pattern is to SUBSCRIBE to a Track using Filter Type
-`Largest Object` and observe the `Largest Location` in the response.  If the
+One possible subscriber pattern is to SUBSCRIBE to a Track using a Location Filter
+that starts at the Next Object and observe the `Largest Object` in the response.  If the
 Object ID is below the application's threshold, the subscriber sends a FETCH for
 the beginning of the Group.  If the Object ID is above the threshold and the
 Track supports dynamic groups, the subscriber sends a REQUEST_UPDATE message with the
-NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
-{{new-group-request}}).
+NEW_GROUP_REQUEST parameter equal to the Next Group (see {{new-group-request}}).
 
-Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
-`Next Group Start` and NEW_GROUP_REQUEST equal to 0.  The value of
+Another possible subscriber pattern is to send a SUBSCRIBE with a Location Filter
+that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
 groups. A publisher that does will begin the next group as soon as practical.
 
@@ -2702,10 +2704,10 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 ### LOCATION FILTER Parameter {#location-filter}
 
 The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a
+encoding. It MAY appear in a FETCH, SUBSCRIBE, or REQUEST_UPDATE (for a
 subscription) message. It is a Location Filter (see {{location-filters}}).
 
-If omitted from SUBSCRIBE, the subscription is
+If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
 unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.
 
 ### SUBGROUP FILTER Parameter {#subgroup-filter}
@@ -3588,8 +3590,6 @@ Standalone Fetch {
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
-  Start Location (Location),
-  End Location (Location)
 }
 ~~~
 
@@ -3598,10 +3598,9 @@ Standalone Fetch {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Start Location: The start Location.
-
-* End Location: The end Location, plus 1. A Location.Object value of 0
-  means the entire group is requested.
+A Location Filter parameter (see {{location-filters}}) can be included
+to specify the start and end Locations, otherwise the entire track is
+included.
 
 ### Joining Fetches
 
@@ -3640,7 +3639,6 @@ A Joining Fetch includes this structure:
 ~~~
 Joining Fetch {
   Joining Request ID (vi64),
-  Joining Start (vi64)
 }
 ~~~
 
@@ -3650,9 +3648,6 @@ Joining Fetch {
   (subscriber)` states, it MUST return a REQUEST_ERROR with error code
   `INVALID_JOINING_REQUEST_ID`.
 
-* Joining Start : A relative or absolute value used to determine the Start
-  Location, described below.
-
 #### Joining Fetch Range Calculation
 
 The Joining Location value from the corresponding
@@ -3660,17 +3655,17 @@ subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
 The publisher receiving a Joining Fetch sets the End Location to
-{Joining Location.Group, Joining Location.Object + 1} (see {{subscriptions}}.
+the Joining Location (see {{subscriptions}}.
 
 Note: the last Object included in the Joining FETCH response is the Object
-at the Joining Location.  The `+ 1` above indicates the equivalent Standalone
-Fetch encoding.
+at the Joining Location.
 
 For a Relative Joining Fetch, the publisher sets the Start Location to
-{Joining Location.Group - Joining Start, 0}.
+{Joining Location.Group + 1 - StartGroup, 0} or {0, 0} if the Start Location's group
+would be less than zero.
 
 For an Absolute Joining Fetch, the publisher sets the Start Location to
-{Joining Start, 0}.
+{StartGroup, 0}.
 
 
 ### Fetch Handling
@@ -3729,12 +3724,13 @@ cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch specifies an inclusive range of Objects starting at Start Location and
-ending at End Location. End Location MUST specify the same or a larger Location
-than Start Location for Standalone and Absolute Joining Fetches.
+Fetch can include a Location Filter parameter (see {{location-filters}})
+which specifies an inclusive range of Objects starting at Start Location and
+ending at End Location.
 
-Objects larger than the Largest Object will not be retrieved by a FETCH.  If the
-requested End Location exceeds the Largest available Object, the actual end of
+Objects with Locations larger than the `Largest Object` at the time the request
+is processed will not be retrieved by a FETCH.  If the
+requested End Location exceeds the `Largest Object`, the actual end of
 the FETCH response is indicated in the FETCH_OK End Location.
 
 If no Objects have been published for the track or Start Location is greater
@@ -3774,16 +3770,10 @@ FETCH_OK Message {
 * End Of Track: 1 if all Objects have been published on this Track, and
   the End Location is the final Object in the Track, 0 if not.
 
-* End Location: The end of the range covered by the FETCH response,
-  using the same encoding as the FETCH request End Location (the last
-  Object, plus 1; or 0 to indicate the entire Group).
-  This is the End Location from the FETCH request unless
-  the requested range extends beyond published data:
-   - If the requested FETCH End Location was beyond the Largest known (possibly
-     final) Object, End Location is {Largest.Group, Largest.Object + 1}
-  Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
-  End Location described in {{joining-fetch-range-calculation}}.
-
+* End Location: The end of the range covered by the FETCH response.
+  This is the End Location from the FETCH request Location Filter parameter unless
+  the requested range extends beyond Largest Object at the time
+  the request was processed, or the last Object in the Track.
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
 
