@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 11 February 2027</td>
+<td class="center">Expires 14 February 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-10" class="published">10 August 2026</time>
+<time datetime="2026-08-13" class="published">13 August 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-11">11 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-02-14">14 February 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 11 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 14 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1559,7 +1559,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.10">
-                <p id="section-toc.1-1.10.2.10.1"><a href="#section-10.10" class="auto internal xref">10.10</a>. <a href="#name-publish_notify" class="internal xref">PUBLISH_NOTIFY</a></p>
+                <p id="section-toc.1-1.10.2.10.1"><a href="#section-10.10" class="auto internal xref">10.10</a>. <a href="#name-publish_state_notify" class="internal xref">PUBLISH_STATE_NOTIFY</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.11">
                 <p id="section-toc.1-1.10.2.11.1"><a href="#section-10.11" class="auto internal xref">10.11</a>. <a href="#name-publish" class="internal xref">PUBLISH</a></p>
@@ -4675,7 +4675,7 @@ new request stream.<a href="#section-10-3" class="pilcrow">¶</a></p>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x22</td>
-            <td class="text-left" rowspan="1" colspan="1">PUBLISH_NOTIFY (<a href="#message-publish-notify" class="auto internal xref">Section 10.10</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">PUBLISH_STATE_NOTIFY (<a href="#ps-notify" class="auto internal xref">Section 10.10</a>)</td>
             <td class="text-left" rowspan="1" colspan="1">Request</td>
           </tr>
           <tr>
@@ -5116,11 +5116,11 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).<a h
           </h4>
 <p id="section-10.2.9-1">The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
 encoding. It <span class="bcp14">MAY</span> appear in a SUBSCRIBE, PUBLISH_OK, REQUEST_UPDATE (for a
-subscription) or PUBLISH_NOTIFY message. It is a Location Filter (see
+subscription) or PUBLISH_STATE_NOTIFY message. It is a Location Filter (see
 <a href="#location-filters" class="auto internal xref">Section 5.1.2</a>).<a href="#section-10.2.9-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.9-2">If omitted from SUBSCRIBE, the subscription is
-unfiltered.  If omitted from REQUEST_UPDATE or PUBLISH_NOTIFY, the
-value is unchanged.  When sent in PUBLISH_NOTIFY, it reports the
+unfiltered.  If omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY, the
+value is unchanged.  When sent in PUBLISH_STATE_NOTIFY, it reports the
 Location Filter now in effect at the publisher.<a href="#section-10.2.9-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -5207,10 +5207,11 @@ does not expire or expires at an unknown time.<a href="#section-10.2.15-3" class
 <a href="#section-10.2.16" class="section-number selfRef">10.2.16. </a><a href="#name-largest-object-parameter" class="section-name selfRef">LARGEST OBJECT Parameter</a>
           </h4>
 <p id="section-10.2.16-1">The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It <span class="bcp14">MAY</span> appear
-in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or PUBLISH_NOTIFY.
-It contains the largest Location (see <a href="#location-structure" class="auto internal xref">Section 1.4.2</a>) in the
-Track observed by the sending endpoint (see <a href="#location-filters" class="auto internal xref">Section 5.1.2</a>). If Objects
-have been published on this Track the Publisher <span class="bcp14">MUST</span> include this parameter.<a href="#section-10.2.16-1" class="pilcrow">¶</a></p>
+in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or
+PUBLISH_STATE_NOTIFY.  It contains the largest Location (see
+<a href="#location-structure" class="auto internal xref">Section 1.4.2</a>) in the Track observed by the sending endpoint (see
+<a href="#location-filters" class="auto internal xref">Section 5.1.2</a>). If Objects have been published on this Track the
+Publisher <span class="bcp14">MUST</span> include this parameter.<a href="#section-10.2.16-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.16-2">If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.<a href="#section-10.2.16-2" class="pilcrow">¶</a></p>
 <p id="section-10.2.16-3">A relay <span class="bcp14">MUST</span> set LARGEST_OBJECT to the largest of the following:<a href="#section-10.2.16-3" class="pilcrow">¶</a></p>
@@ -5232,17 +5233,17 @@ PUBLISH, or REQUEST_UPDATE_OK<a href="#section-10.2.16-4.1.1" class="pilcrow">¶
           </h4>
 <p id="section-10.2.17-1">The FORWARD parameter (Parameter Type 0x10) is a uint8. It <span class="bcp14">MAY</span> appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
-PUBLISH, PUBLISH_OK, SUBSCRIBE_TRACKS and PUBLISH_NOTIFY. It
+PUBLISH, PUBLISH_OK, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
 specifies the Forwarding State on affected subscriptions (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).
 The allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives
 a value outside this range, it <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.17-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.17-2">In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies the
 Forwarding State on future subscriptions that match the prefix. Existing
 subscriptions are unaffected.<a href="#section-10.2.17-2" class="pilcrow">¶</a></p>
-<p id="section-10.2.17-3">If the parameter is omitted from REQUEST_UPDATE or PUBLISH_NOTIFY,
+<p id="section-10.2.17-3">If the parameter is omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY,
 the value for the subscription remains unchanged.  If the parameter is omitted
 from any other message, the default value is 1.  When sent in
-PUBLISH_NOTIFY, it reports the Forwarding State now in effect at the
+PUBLISH_STATE_NOTIFY, it reports the Forwarding State now in effect at the
 publisher.<a href="#section-10.2.17-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -6035,38 +6036,38 @@ interested it can cancel the corresponding bidirectional stream.<a href="#sectio
 </div>
 </section>
 </div>
-<div id="message-publish-notify">
+<div id="ps-notify">
 <section id="section-10.10">
-        <h3 id="name-publish_notify">
-<a href="#section-10.10" class="section-number selfRef">10.10. </a><a href="#name-publish_notify" class="section-name selfRef">PUBLISH_NOTIFY</a>
+        <h3 id="name-publish_state_notify">
+<a href="#section-10.10" class="section-number selfRef">10.10. </a><a href="#name-publish_state_notify" class="section-name selfRef">PUBLISH_STATE_NOTIFY</a>
         </h3>
-<p id="section-10.10-1">A publisher sends PUBLISH_NOTIFY on a subscription's bidirectional
+<p id="section-10.10-1">A publisher sends PUBLISH_STATE_NOTIFY on a subscription's bidirectional
 stream to notify the subscriber that the state of the subscription has changed for a
 reason other than a subscriber sent REQUEST_UPDATE.  Unlike REQUEST_UPDATE
 (<a href="#message-request-update" class="auto internal xref">Section 10.9</a>), it is a unilateral notification: the receiver
 does not respond with REQUEST_OK or REQUEST_ERROR, and the message is not
 subject to the MAX_REQUEST_UPDATES limit (<a href="#max-request-updates" class="auto internal xref">Section 10.3.1.7</a>).<a href="#section-10.10-1" class="pilcrow">¶</a></p>
-<p id="section-10.10-2">PUBLISH_NOTIFY applies only to subscriptions, and is sent only by
-the publisher.  An endpoint that receives a PUBLISH_NOTIFY for any
+<p id="section-10.10-2">PUBLISH_STATE_NOTIFY applies only to subscriptions, and is sent only by
+the publisher.  An endpoint that receives a PUBLISH_STATE_NOTIFY for any
 other request type, or from the subscriber, <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.10-2" class="pilcrow">¶</a></p>
-<p id="section-10.10-3">A PUBLISH_NOTIFY carries the parameters whose values have changed.
+<p id="section-10.10-3">A PUBLISH_STATE_NOTIFY carries the parameters whose values have changed.
 If a parameter is not present, its value is unchanged.  The semantics of each
-parameter, including whether it may appear in PUBLISH_NOTIFY, are
+parameter, including whether it may appear in PUBLISH_STATE_NOTIFY, are
 defined by the parameter.<a href="#section-10.10-3" class="pilcrow">¶</a></p>
-<p id="section-10.10-4">A publisher <span class="bcp14">MUST NOT</span> use PUBLISH_NOTIFY to
+<p id="section-10.10-4">A publisher <span class="bcp14">MUST NOT</span> use PUBLISH_STATE_NOTIFY to
 change the value of a subscriber controlled subscription parameter
 unless the subscriber requested the change.<a href="#section-10.10-4" class="pilcrow">¶</a></p>
 <p id="section-10.10-5">The publisher <span class="bcp14">MUST</span> include the LARGEST_OBJECT parameter (<a href="#largest-param" class="auto internal xref">Section 10.2.16</a>), if
-known, in PUBLISH_NOTIFY so the subscriber can determine the point in the
+known, in PUBLISH_STATE_NOTIFY so the subscriber can determine the point in the
 Track at which the change took effect.<a href="#section-10.10-5" class="pilcrow">¶</a></p>
 <p id="section-10.10-6">This message is informative and no action is required by the recipient.<a href="#section-10.10-6" class="pilcrow">¶</a></p>
-<p id="section-10.10-7">The format of PUBLISH_NOTIFY is as follows:<a href="#section-10.10-7" class="pilcrow">¶</a></p>
-<span id="name-moqt-publish_notify-message"></span><div id="moq-transport-publish-notify-format">
+<p id="section-10.10-7">The format of PUBLISH_STATE_NOTIFY is as follows:<a href="#section-10.10-7" class="pilcrow">¶</a></p>
+<span id="name-moqt-publish_state_notify-m"></span><div id="moq-transport-ps-notify-format">
 <figure id="figure-13">
           <div class="alignLeft art-text artwork" id="section-10.10-8.1">
 <pre>
-PUBLISH_NOTIFY Message {
+PUBLISH_STATE_NOTIFY Message {
   Type (vi64) = 0x22,
   Length (16),
   Number of Parameters (vi64),
@@ -6075,7 +6076,7 @@ PUBLISH_NOTIFY Message {
 </pre>
 </div>
 <figcaption><a href="#figure-13" class="selfRef">Figure 13</a>:
-<a href="#name-moqt-publish_notify-message" class="selfRef">MOQT PUBLISH_NOTIFY Message</a>
+<a href="#name-moqt-publish_state_notify-m" class="selfRef">MOQT PUBLISH_STATE_NOTIFY Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
@@ -8171,16 +8172,16 @@ understand where on the timeline this media fragment belongs.<a href="#section-1
 access to media objects, object sizes and traffic patterns enable
 analysis of content. Track namespace and track name can also be
 analyzed and correlated between end subscribers by relays.<a href="#section-13.4-3" class="pilcrow">¶</a></p>
-<p id="section-13.4-4">The end-to-end media security is handled by mechanisms external to this
-specification. They need to provide source authenticity and
-confidentiality. MOQT's object model does enable both the object
-data itself as well as Object Properties to be confidentiality and
-integrity protected. MOQT also supports Object Properties being
-integrity protected but not encrypted.<a href="#section-13.4-4" class="pilcrow">¶</a></p>
-<p id="section-13.4-5">Current proposals for media security include:
- - An E2EE scheme based on SFRAME: <span>[<a href="#I-D.ietf-moq-secure-objects" class="cite xref">I-D.ietf-moq-secure-objects</a>]</span>.<a href="#section-13.4-5" class="pilcrow">¶</a></p>
-<p id="section-13.4-6">Secure key distribution for end-to-end encryption is specific to the
-encryption system and deployment, and outside the scope of this document.<a href="#section-13.4-6" class="pilcrow">¶</a></p>
+<p id="section-13.4-4">Consistent with the principle of confidential operation by default,
+publishers can apply end-to-end object encryption, for example using Secure Objects
+(<span>[<a href="#I-D.ietf-moq-secure-objects" class="cite xref">I-D.ietf-moq-secure-objects</a>]</span>), so that relays retain access only to
+the metadata required for forwarding. Such end-to-end security
+mechanisms are external to this specification and additionally provide
+source authenticity. MOQT's object model enables both the object data
+and Object Properties to be confidentiality and integrity protected, or
+integrity protected only.<a href="#section-13.4-4" class="pilcrow">¶</a></p>
+<p id="section-13.4-5">Secure key distribution for end-to-end encryption is specific to the
+encryption system and deployment, and outside the scope of this document.<a href="#section-13.4-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="resource-exhaustion">
