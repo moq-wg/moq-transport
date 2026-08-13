@@ -4230,14 +4230,14 @@ publisher's value is the Object Property when present on the first object of the
 subgroup, and the Track Property otherwise.  If both the publisher's value and
 the subscriber's value are non-zero, the smaller of the two is used.<a href="#section-8-2" class="pilcrow">¶</a></p>
 <p id="section-8-3">If the OBJECT_DELIVERY_TIMEOUT is not zero, the MOQT implementation <span class="bcp14">MUST</span> retain
-the time at which the first payload byte of every object has been either
+the time at which the last header byte of every object has been either
 received from the upstream subscription, or provided by the original publisher
 application.  The actual mechanism by which the timeout works depends on the
 Object Forwarding Preference:<a href="#section-8-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8-4.1">
-          <p id="section-8-4.1.1">For subgroups, the implementation <span class="bcp14">MUST</span> check the time elapsed since the first
-byte of the object before attempting to pass it to the underlying transport
+          <p id="section-8-4.1.1">For subgroups, the implementation <span class="bcp14">MUST</span> check the time elapsed
+before attempting to pass it to the underlying transport
 for transmission; if the time elapsed exceeds OBJECT_DELIVERY_TIMEOUT, it
 <span class="bcp14">MUST</span> reset the underlying transport stream with the reset stream code
 DELIVERY_TIMEOUT (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.4.3</a>) and <span class="bcp14">SHOULD NOT</span> attempt to
@@ -4250,7 +4250,7 @@ out, potentially leading to transmission of expired data.<a href="#section-8-4.1
 </li>
         <li class="normal" id="section-8-4.2">
           <p id="section-8-4.2.1">For datagrams, the implementation <span class="bcp14">MUST</span> drop the datagrams if the time elapsed
-since the first byte exceeds OBJECT_DELIVERY_TIMEOUT.  Similar to subgroups,
+exceeds OBJECT_DELIVERY_TIMEOUT.  Similar to subgroups,
 implementations <span class="bcp14">SHOULD</span> either minimize datagram queueing, or use datagram
 queueing mechanisms that support time bounds (such as the <code>outgoingMaxAge</code>
 parameter in the W3C WebTransport API).<a href="#section-8-4.2.1" class="pilcrow">¶</a></p>
@@ -4288,7 +4288,7 @@ are non-zero, the smaller of the two is used.<a href="#section-8-6" class="pilcr
           <tr>
             <td class="text-left" rowspan="1" colspan="1">Timeout starts</td>
             <td class="text-left" rowspan="1" colspan="1">When the FIN for the subgroup is received</td>
-            <td class="text-left" rowspan="1" colspan="1">When the first byte of the object is received</td>
+            <td class="text-left" rowspan="1" colspan="1">When the last byte of the object header is received</td>
           </tr>
           <tr>
             <td class="text-left" rowspan="1" colspan="1">Timeout checked at</td>
