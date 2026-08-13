@@ -4371,7 +4371,7 @@ header with any of these values, it MUST close the session with a
 
 * Values where bit 4 is not set. Bit 4 MUST be 1 for SUBGROUP_HEADER.
 
-* Values of 128 or greater (i.e., any value that requires more than a two-byte
+* Values of 128 or greater (i.e., any value that requires more than a one-byte
   variable-length integer encoding).
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
@@ -5030,7 +5030,6 @@ in use.
 When using bearer token-based authentication (e.g., {{CAT}}), a token
 that is bound to a client-held key via a confirmation claim prevents
 a stolen token from being replayed by a different party.
-party.
 
 When unlinkable access is used (e.g., {{PPA}}), the token's scope
 extensions determine which namespaces the bearer can publish to.
@@ -5061,15 +5060,14 @@ access to media objects, object sizes and traffic patterns enable
 analysis of content. Track namespace and track name can also be
 analyzed and correlated between end subscribers by relays.
 
-The end-to-end media security is handled by mechanisms external to this
-specification. They need to provide source authenticity and
-confidentiality. MOQT's object model does enable both the object
-data itself as well as Object Properties to be confidentiality and
-integrity protected. MOQT also supports Object Properties being
-integrity protected but not encrypted.
-
-Current proposals for media security include:
- - An E2EE scheme based on SFRAME: {{I-D.ietf-moq-secure-objects}}.
+Consistent with the principle of confidential operation by default,
+publishers can apply end-to-end object encryption, for example using Secure Objects
+({{I-D.ietf-moq-secure-objects}}), so that relays retain access only to
+the metadata required for forwarding. Such end-to-end security
+mechanisms are external to this specification and additionally provide
+source authenticity. MOQT's object model enables both the object data
+and Object Properties to be confidentiality and integrity protected, or
+integrity protected only.
 
 Secure key distribution for end-to-end encryption is specific to the
 encryption system and deployment, and outside the scope of this document.
@@ -5359,6 +5357,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x29 | TRACK_PROPERTY_FILTER | {{track-property-filter}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
+| 0x35 | INCLUDE_PROPERTIES | {{include-properties-param}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
@@ -5387,7 +5386,7 @@ These entries share the same Property Type space as the table above.
 | 0x09 | VIDEO_FRAME_MARKING | Object | draft-ietf-moq-loc |
 | 0x0C | AUDIO_LEVEL | Object | draft-ietf-moq-loc |
 | 0x0D | VIDEO_CONFIG | Track, Object | draft-ietf-moq-loc |
-| 0x0F | AUIDO_CONFIG | Track, Object | draft-ietf-moq-loc |
+| 0x0F | AUDIO_CONFIG | Track, Object | draft-ietf-moq-loc |
 | 0x0A | ENCRYPTED_LIST | Object | draft-ietf-moq-secure-objects |
 | 0x32 | PADDING | Object | draft-ietf-moq-secure-objects |
 
