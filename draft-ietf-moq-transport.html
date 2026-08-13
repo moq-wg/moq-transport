@@ -3734,56 +3734,57 @@ end with an error.<a href="#section-5.1.1-4" class="pilcrow">¶</a></p>
 <p id="section-5.1.2-1">Subscribers can specify a Location filter on a subscription indicating to the publisher
 which Objects to send.  Subscriptions without a filter pass all Objects
 published or received via upstream subscriptions.<a href="#section-5.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-2">All Location filters have a Start Location and an optional End Group Delta.  Only objects
-published or received via a subscription having Locations greater than or
-equal to Start Location and strictly less than or equal to the End Group (when
-present) pass the filter.<a href="#section-5.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-3">Some Location filters are defined to be relative to the <code>Largest Object</code>. The <code>Largest
+<p id="section-5.1.2-2">Fetch requests can also specify a Location filter.  Fetch requests without a filter
+include all Locations from {0, 0} up to <code>Largest Object</code> (defined below).<a href="#section-5.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-3">A Location filter specifies an inclusive range of Locations.  Only objects
+with Locations within the inclusive range pass the filter.<a href="#section-5.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-4">Some Location filters are defined to be relative to the <code>Largest Object</code>. The <code>Largest
 Object</code> is the Object with the largest Location (<a href="#location-structure" class="auto internal xref">Section 1.4.2</a>) in the
 Track from the perspective of the publisher processing the message. Largest
 Object updates when the first byte of an Object with a Location larger than the
-previous value is published or received through a subscription.<a href="#section-5.1.2-3" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-4">A Location Filter has the following structure:<a href="#section-5.1.2-4" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-5.1.2-5">
+previous value is published or received through a subscription.<a href="#section-5.1.2-4" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-5">A Location filter parameter has the following length-prefixed structure:<a href="#section-5.1.2-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.1.2-6">
 <pre>
-Location Filter {
-  Filter Type (vi64),
-  [Start Location (Location),]
-  [End Group Delta (vi64),]
-}
-</pre><a href="#section-5.1.2-5" class="pilcrow">¶</a>
+LOCATION_FILTER Parameter {
+  Parameter Type (vi64) = 0x21,
+  Length (vi64),
+  [StartGroup (vi64),]
+  [StartObject (vi64),]
+  [EndGroupDelta (vi64),]
+  [EndObject (vi64),]
+</pre><a href="#section-5.1.2-6" class="pilcrow">¶</a>
 </div>
-<p id="section-5.1.2-6">Filter Type can have one of the following values:<a href="#section-5.1.2-6" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-7">Largest Object (0x2): The filter Start Location is <code>{Largest Object.Group,
-Largest Object.Object + 1}</code> and <code>Largest Object</code> is communicated in
-SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
-{0, 0}. There is no End Group - the subscription is open ended.  Note that due
-to network reordering or prioritization, relays can receive Objects with
-Locations smaller than  <code>Largest Object</code> after the SUBSCRIBE is processed, but
-these Objects do not pass the Largest Object filter.<a href="#section-5.1.2-7" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-8">Next Group Start (0x1): The filter Start Location is <code>{Largest Object.Group + 1,
-0}</code> and <code>Largest Object</code> is communicated in SUBSCRIBE_OK. If no content has been
-delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
-the subscription is open ended. For scenarios where the subscriber intends to
-start from more than one group in the future, it can use an AbsoluteStart filter
-instead.<a href="#section-5.1.2-8" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-9">AbsoluteStart (0x3): The filter Start Location is specified explicitly. The
-specified <code>Start Location</code> <span class="bcp14">MAY</span> be less than the <code>Largest Object</code> observed at the
-publisher. There is no End Group - the subscription is open ended.  An
-AbsoluteStart filter with <code>Start</code> = {0, 0} is equivalent to an unfiltered
-subscription.<a href="#section-5.1.2-9" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-10">AbsoluteRange (0x4): The filter Start Location and End Group are specified
-explicitly. The specified <code>Start Location</code> <span class="bcp14">MAY</span> be less than the <code>Largest Object</code>
-observed at the publisher. If the specified <code>End Group Delta</code> is zero, the
-remainder of that Group passes the filter. Otherwise, the last Group ID to be
-delivered will be the Group ID in <code>Start Location</code> plus the <code>End Group Delta</code>.
-If the resulting Group ID would be greater than 2^64 - 1, the endpoint <span class="bcp14">MUST</span>
-close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-11">An endpoint that receives a filter type other than the above <span class="bcp14">MUST</span> close the
-session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-12">If the publisher cannot satisfy the requested Location Filter (see
-<a href="#location-filter" class="auto internal xref">Section 10.2.9</a>) or if the entire End Group has already been published
-it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR with code <code>INVALID_RANGE</code>.  A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range.<a href="#section-5.1.2-12" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-7">Length (in bytes) determines how many optional vi64 fields are present.
+A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
+  * If only one field is present, it is StartGroup.
+  * If only two fields are present, they are StartGroup and StartObject.
+  * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.<a href="#section-5.1.2-7" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-8">If only StartGroup is present, it is a relative number of groups prior to the Next Group,
+hence the start Location is <code>{Largest Object.Group + 1 - StartGroup, 0}</code>. For example:
+  * StartGroup=0 will start at the Next Group
+  * StartGroup=1 will start at the current group
+  * StartGroup=2 will start at 1 group prior to the current group
+  * StartGroup=N will start at N-1 groups prior to the current group<a href="#section-5.1.2-8" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-9">If only StartGroup and StartObject are present and both 0, the start Location
+is the Next Object which is <code>{Largest Object.Group, Largest Object.Object + 1}</code>,
+or {0, 0} if no content has been delivered yet.  To start at absolute Location {0, 0}
+with no end, which is equivalent to unfiltered, do not include a Location filter.
+Note that due to network reordering or prioritization, relays can receive Objects with
+Locations smaller than <code>Largest Object</code> after the SUBSCRIBE is processed, but
+these Objects do not pass this filter.<a href="#section-5.1.2-9" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-10">If a relative start group results in a computed absolute group less than 0, the
+computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.<a href="#section-5.1.2-10" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-11">Otherwise, all fields are absolute.  EndGroupDelta is delta
+encoded from StartGroup, but both the start and end groups are absolute, not
+relative to <code>Largest Object</code>.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
+the endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-5.1.2-11" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-12">When EndGroupDelta and EndObject are omitted from a subscription filter, the
+subscription is open-ended. When they are omitted from a Fetch, the
+EndGroup and EndObject are <code>Largest Object</code>.<a href="#section-5.1.2-12" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-13">When EndObject is omitted, the filter includes all objects in the End Group.<a href="#section-5.1.2-13" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-14">If the publisher cannot satisfy the requested Location filter,
+it <span class="bcp14">SHOULD</span> send a REQUEST_ERROR with code <code>INVALID_RANGE</code>.  A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested range.<a href="#section-5.1.2-14" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="range-filters">
@@ -3879,7 +3880,7 @@ will have different approaches for when to begin a new Group.<a href="#section-5
 REQUEST_UPDATE with Forward State 1 followed by a Joining FETCH (see
 <a href="#joining-fetches" class="auto internal xref">Section 10.12.2</a>) for the intended start Group, which can be relative.
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
-Filter Type <code>Next Group Start</code>.<a href="#section-5.1.5-2" class="pilcrow">¶</a></p>
+a Location Filter <a href="#location-filters" class="auto internal xref">Section 5.1.2</a> that starts at the Next Group.<a href="#section-5.1.5-2" class="pilcrow">¶</a></p>
 <div id="dynamically-starting-new-groups">
 <section id="section-5.1.5.1">
             <h5 id="name-dynamically-starting-new-gr">
@@ -3891,15 +3892,14 @@ joining a Track might detect that it is more efficient to request the Original
 Publisher create a new group than issue a Joining FETCH.  Publishers indicate a
 Track supports dynamic group creation using the DYNAMIC_GROUPS parameter
 (<a href="#dynamic-groups" class="auto internal xref">Section 12.6</a>).<a href="#section-5.1.5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1.5.1-2">One possible subscriber pattern is to SUBSCRIBE to a Track using Filter Type
-<code>Largest Object</code> and observe the <code>Largest Location</code> in the response.  If the
+<p id="section-5.1.5.1-2">One possible subscriber pattern is to SUBSCRIBE to a Track using a Location Filter
+that starts at the Next Object and observe the <code>Largest Object</code> in the response.  If the
 Object ID is below the application's threshold, the subscriber sends a FETCH for
 the beginning of the Group.  If the Object ID is above the threshold and the
 Track supports dynamic groups, the subscriber sends a REQUEST_UPDATE message with the
-NEW_GROUP_REQUEST parameter equal to the Largest Location's Group, plus one (see
-<a href="#new-group-request" class="auto internal xref">Section 10.2.18</a>).<a href="#section-5.1.5.1-2" class="pilcrow">¶</a></p>
-<p id="section-5.1.5.1-3">Another possible subscriber pattern is to send a SUBSCRIBE with Filter Type
-<code>Next Group Start</code> and NEW_GROUP_REQUEST equal to 0.  The value of
+NEW_GROUP_REQUEST parameter equal to the Next Group (see <a href="#new-group-request" class="auto internal xref">Section 10.2.18</a>).<a href="#section-5.1.5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1.5.1-3">Another possible subscriber pattern is to send a SUBSCRIBE with a Location Filter
+that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
 groups. A publisher that does will begin the next group as soon as practical.<a href="#section-5.1.5.1-3" class="pilcrow">¶</a></p>
 </section>
@@ -5107,9 +5107,9 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).<a h
 <a href="#section-10.2.9" class="section-number selfRef">10.2.9. </a><a href="#name-location-filter-parameter" class="section-name selfRef">LOCATION FILTER Parameter</a>
           </h4>
 <p id="section-10.2.9-1">The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It <span class="bcp14">MAY</span> appear in a SUBSCRIBE or REQUEST_UPDATE (for a
+encoding. It <span class="bcp14">MAY</span> appear in a FETCH, SUBSCRIBE, or REQUEST_UPDATE (for a
 subscription) message. It is a Location Filter (see <a href="#location-filters" class="auto internal xref">Section 5.1.2</a>).<a href="#section-10.2.9-1" class="pilcrow">¶</a></p>
-<p id="section-10.2.9-2">If omitted from SUBSCRIBE, the subscription is
+<p id="section-10.2.9-2">If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
 unfiltered.  If omitted from REQUEST_UPDATE, the value is unchanged.<a href="#section-10.2.9-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -6264,8 +6264,6 @@ Standalone Fetch {
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
-  Start Location (Location),
-  End Location (Location)
 }
 </pre><a href="#section-10.12.1-3" class="pilcrow">¶</a>
 </div>
@@ -6277,14 +6275,10 @@ Standalone Fetch {
             <li class="normal" id="section-10.12.1-4.2">
               <p id="section-10.12.1-4.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-10.12.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-10.12.1-4.3">
-              <p id="section-10.12.1-4.3.1">Start Location: The start Location.<a href="#section-10.12.1-4.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-10.12.1-4.4">
-              <p id="section-10.12.1-4.4.1">End Location: The end Location, plus 1. A Location.Object value of 0
-means the entire group is requested.<a href="#section-10.12.1-4.4.1" class="pilcrow">¶</a></p>
-</li>
           </ul>
+<p id="section-10.12.1-5">A Location Filter parameter (see <a href="#location-filters" class="auto internal xref">Section 5.1.2</a>) can be included
+to specify the start and end Locations, otherwise the entire track is
+included.<a href="#section-10.12.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="joining-fetches">
@@ -6322,7 +6316,6 @@ respond with a REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href=
 <pre>
 Joining Fetch {
   Joining Request ID (vi64),
-  Joining Start (vi64)
 }
 </pre><a href="#section-10.12.2-7" class="pilcrow">¶</a>
 </div>
@@ -6334,10 +6327,6 @@ to a subscription in the same session in the <code>Established</code> or <code>P
 (subscriber)</code> states, it <span class="bcp14">MUST</span> return a REQUEST_ERROR with error code
 <code>INVALID_JOINING_REQUEST_ID</code>.<a href="#section-10.12.2-8.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-10.12.2-8.2">
-              <p id="section-10.12.2-8.2.1">Joining Start : A relative or absolute value used to determine the Start
-Location, described below.<a href="#section-10.12.2-8.2.1" class="pilcrow">¶</a></p>
-</li>
           </ul>
 <div id="joining-fetch-range-calculation">
 <section id="section-10.12.2.1">
@@ -6348,14 +6337,14 @@ Location, described below.<a href="#section-10.12.2-8.2.1" class="pilcrow">¶</a
 subscription is used to calculate the end of a Joining Fetch, so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.<a href="#section-10.12.2.1-1" class="pilcrow">¶</a></p>
 <p id="section-10.12.2.1-2">The publisher receiving a Joining Fetch sets the End Location to
-{Joining Location.Group, Joining Location.Object + 1} (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>.<a href="#section-10.12.2.1-2" class="pilcrow">¶</a></p>
+the Joining Location (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>.<a href="#section-10.12.2.1-2" class="pilcrow">¶</a></p>
 <p id="section-10.12.2.1-3">Note: the last Object included in the Joining FETCH response is the Object
-at the Joining Location.  The <code>+ 1</code> above indicates the equivalent Standalone
-Fetch encoding.<a href="#section-10.12.2.1-3" class="pilcrow">¶</a></p>
+at the Joining Location.<a href="#section-10.12.2.1-3" class="pilcrow">¶</a></p>
 <p id="section-10.12.2.1-4">For a Relative Joining Fetch, the publisher sets the Start Location to
-{Joining Location.Group - Joining Start, 0}.<a href="#section-10.12.2.1-4" class="pilcrow">¶</a></p>
+{Joining Location.Group + 1 - StartGroup, 0} or {0, 0} if the Start Location's group
+would be less than zero.<a href="#section-10.12.2.1-4" class="pilcrow">¶</a></p>
 <p id="section-10.12.2.1-5">For an Absolute Joining Fetch, the publisher sets the Start Location to
-{Joining Start, 0}.<a href="#section-10.12.2.1-5" class="pilcrow">¶</a></p>
+{StartGroup, 0}.<a href="#section-10.12.2.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -6427,11 +6416,12 @@ If the upstream FETCH fails, the relay sends a REQUEST_ERROR and can reset the
 unidirectional stream.  It can choose to do so immediately or wait until the
 cached objects have been delivered before resetting the stream.<a href="#section-10.12.3-6" class="pilcrow">¶</a></p>
 <p id="section-10.12.3-7">The Object Forwarding Preference does not apply to fetches.<a href="#section-10.12.3-7" class="pilcrow">¶</a></p>
-<p id="section-10.12.3-8">Fetch specifies an inclusive range of Objects starting at Start Location and
-ending at End Location. End Location <span class="bcp14">MUST</span> specify the same or a larger Location
-than Start Location for Standalone and Absolute Joining Fetches.<a href="#section-10.12.3-8" class="pilcrow">¶</a></p>
-<p id="section-10.12.3-9">Objects larger than the Largest Object will not be retrieved by a FETCH.  If the
-requested End Location exceeds the Largest available Object, the actual end of
+<p id="section-10.12.3-8">Fetch can include a Location Filter parameter (see <a href="#location-filters" class="auto internal xref">Section 5.1.2</a>)
+which specifies an inclusive range of Objects starting at Start Location and
+ending at End Location.<a href="#section-10.12.3-8" class="pilcrow">¶</a></p>
+<p id="section-10.12.3-9">Objects with Locations larger than the <code>Largest Object</code> at the time the request
+is processed will not be retrieved by a FETCH.  If the
+requested End Location exceeds the <code>Largest Object</code>, the actual end of
 the FETCH response is indicated in the FETCH_OK End Location.<a href="#section-10.12.3-9" class="pilcrow">¶</a></p>
 <p id="section-10.12.3-10">If no Objects have been published for the track or Start Location is greater
 than the <code>Largest Object</code> (<a href="#message-subscribe-req" class="auto internal xref">Section 10.7</a>) the publisher <span class="bcp14">MUST</span> return
@@ -6482,22 +6472,12 @@ FETCH_OK Message {
 the End Location is the final Object in the Track, 0 if not.<a href="#section-10.13-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.13-3.2">
-            <p id="section-10.13-3.2.1">End Location: The end of the range covered by the FETCH response,
-using the same encoding as the FETCH request End Location (the last
-Object, plus 1; or 0 to indicate the entire Group).
-This is the End Location from the FETCH request unless
-the requested range extends beyond published data:<a href="#section-10.13-3.2.1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-10.13-3.2.2.1">
-                <p id="section-10.13-3.2.2.1.1">If the requested FETCH End Location was beyond the Largest known (possibly
-final) Object, End Location is {Largest.Group, Largest.Object + 1}
-Where Fetch.End Location is either Fetch.Standalone.End Location or the computed
-End Location described in <a href="#joining-fetch-range-calculation" class="auto internal xref">Section 10.12.2.1</a>.<a href="#section-10.13-3.2.2.1.1" class="pilcrow">¶</a></p>
-</li>
-            </ul>
-<p id="section-10.13-3.2.3">
+            <p id="section-10.13-3.2.1">End Location: The end of the range covered by the FETCH response.
+This is the End Location from the FETCH request Location Filter parameter unless
+the requested range extends beyond Largest Object at the time
+the request was processed, or the last Object in the Track.
 If End Location is smaller than the Start Location in the corresponding FETCH
-the receiver <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.13-3.2.3" class="pilcrow">¶</a></p>
+the receiver <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.13-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.13-3.3">
             <p id="section-10.13-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.13-3.3.1" class="pilcrow">¶</a></p>
