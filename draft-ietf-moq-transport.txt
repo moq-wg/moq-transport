@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 8 February 2027                                   I. Swett, Ed.
+Expires: 14 February 2027                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           7 August 2026
+                                                          13 August 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 February 2027.
+   This Internet-Draft will expire on 14 February 2027.
 
 Copyright Notice
 
@@ -5553,15 +5553,14 @@ EXT 1 and EXT N can be modified or removed by Relays
    analysis of content.  Track namespace and track name can also be
    analyzed and correlated between end subscribers by relays.
 
-   The end-to-end media security is handled by mechanisms external to
-   this specification.  They need to provide source authenticity and
-   confidentiality.  MOQT's object model does enable both the object
-   data itself as well as Object Properties to be confidentiality and
-   integrity protected.  MOQT also supports Object Properties being
-   integrity protected but not encrypted.
-
-   Current proposals for media security include: - An E2EE scheme based
-   on SFRAME: [I-D.ietf-moq-secure-objects].
+   Consistent with the principle of confidential operation by default,
+   publishers can apply end-to-end object encryption, for example using
+   Secure Objects ([I-D.ietf-moq-secure-objects]), so that relays retain
+   access only to the metadata required for forwarding.  Such end-to-end
+   security mechanisms are external to this specification and
+   additionally provide source authenticity.  MOQT's object model
+   enables both the object data and Object Properties to be
+   confidentiality and integrity protected, or integrity protected only.
 
    Secure key distribution for end-to-end encryption is specific to the
    encryption system and deployment, and outside the scope of this
@@ -6277,9 +6276,9 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-09, 4 July 2026,
+              quic-reliable-stream-reset-10, 9 August 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-09>.
+              reliable-stream-reset-10>.
 
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
