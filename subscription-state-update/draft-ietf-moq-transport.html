@@ -5233,7 +5233,7 @@ PUBLISH, or REQUEST_UPDATE_OK<a href="#section-10.2.16-4.1.1" class="pilcrow">¶
           </h4>
 <p id="section-10.2.17-1">The FORWARD parameter (Parameter Type 0x10) is a uint8. It <span class="bcp14">MAY</span> appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
-PUBLISH, PUBLISH_OK, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
+PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
 specifies the Forwarding State on affected subscriptions (see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).
 The allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives
 a value outside this range, it <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.17-1" class="pilcrow">¶</a></p>
