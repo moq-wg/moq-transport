@@ -730,10 +730,15 @@ require the scope to include all of those CDNs.
 
 A single MOQT transport session is tied to the scope that is negotiated in the
 beginning of the session. Unless the application has additional information,
-two tracks are assumed to belong to the same scope if and only if the authority
-and the path values are equal. The authority and the path values are
-communicated through the SETUP message in case of raw QUIC, and through
-HTTP request header fields in case of WebTransport.
+two tracks are assumed to belong to the same scope if and only if the
+`authority` and `path-abempty` components ({{moqt-uri-scheme}}) of their
+connection URIs are equal. These values are communicated through the SETUP
+message in case of raw QUIC, and through HTTP request header fields in case of
+WebTransport.
+
+The `query` component of the connection URI is not part of the scope; two
+connection URIs that differ only in their `query` components identify the same
+scope.
 
 Because each Full Track Name is unique within an MOQT scope, they can be used as
 a cache key for the track. If, at a given moment in time, two tracks within the
@@ -877,7 +882,7 @@ would be identified as "moqt-13".
 Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
 negotiation in the SETUP messages.
 
-### MOQT URI Scheme
+### MOQT URI Scheme {#moqt-uri-scheme}
 
 An MOQT server is identified using a URI with the "moqt" scheme.  The "moqt"
 URI scheme is defined as follows, using definitions from {{!RFC3986}}:
