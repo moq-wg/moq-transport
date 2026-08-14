@@ -936,7 +936,35 @@ The `moqt` URI scheme has the following security considerations:
 - The `path-abempty` and `query` components are visible to the relay
   that terminates the client's connection.
 
-TODO: Add internationalization statement per RFC 7595 Section 3.6.
+The `moqt` URI scheme is ASCII-only; the `authority`, `path-abempty`, and
+`query` components use the syntax defined in {{!RFC3986}}.  An
+Internationalized Resource Identifier (IRI) {{!RFC3987}} that uses the
+`moqt` scheme MUST be converted to a `moqt` URI before use, as follows:
+
+* A `host` that contains non-ASCII characters MUST be converted to its
+  A-label form {{!RFC5890}}, as specified in Section 5 of {{!RFC5891}}.
+* Characters in the other components that are excluded by the syntax
+  defined above MUST be converted from Unicode to ASCII by first encoding
+  the characters as UTF-8 and then replacing the corresponding bytes with
+  their percent-encoded form, as defined in the URI {{!RFC3986}} and
+  IRI {{!RFC3987}} specifications.
+
+Two `moqt` URIs are equivalent if, after the syntax-based normalization
+defined in Section 6.2.2 of {{!RFC3986}}, their normalized forms are
+identical when compared character by character.  The following
+scheme-based normalization rules (Section 6.2.3 of {{!RFC3986}}) apply:
+
+* The scheme and host are case-insensitive and are normalized to
+  lowercase; all other components are compared case-sensitively.
+* An omitted port is equivalent to a port of 443.
+* An empty path is equivalent to a path of "/".
+
+The fragment component ({{moqt-fragment}}) is not included in the
+comparison, since it is not transmitted to the server.
+
+These rules match those for `https` URIs (see Section 4.2.3 of
+{{!RFC9110}}), so that a `moqt` URI and the `https` URI derived from it by
+scheme replacement ({{webtransport}}) compare consistently.
 
 The client resolves the `host` subcomponent of the `authority` to one or
 more network addresses, most commonly using DNS A {{?RFC1035}} and AAAA {{?RFC3596}} records.
