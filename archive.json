@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-16T01:33:46.002818+00:00",
+  "timestamp": "2026-08-18T01:21:55.144311+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -213768,7 +213768,7 @@
       ],
       "body": "Added Top Tracks Filter (was Track Filter in PR#1508 / PR#1401).",
       "createdAt": "2026-07-24T17:47:02Z",
-      "updatedAt": "2026-08-10T15:53:03Z",
+      "updatedAt": "2026-08-17T11:07:53Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
@@ -213835,6 +213835,13 @@
           "body": "1. For naming, do people prefer MaxSelectedTracks over MaxTopTracks? I'm agnostic, but included top since it's used in similar features of other protocols/tools. The setup option should match this, so if we change one we should sync both.\r\n2. For group boundaries, many apps would often update the property only on a new group, but there is no restriction. If the receiver gets an object mid-group and wants to start from 0, it can fetch. If zero latency joining fetch is needed, I suppose we could allow Fill in Sub Tracks to always ask for Current Group. But I'm not sure allowing Fill (or Location Filters) in Sub Tracks is a good idea.",
           "createdAt": "2026-07-28T00:25:57Z",
           "updatedAt": "2026-07-28T00:25:57Z"
+        },
+        {
+          "author": "yuyou",
+          "authorAssociation": "NONE",
+          "body": "@mzanaty @suhasHere \r\n\r\nI need some confirmation/clarification while implementing the Track Filter in our Relay. Appreciate if you could help me out.\r\n\r\nOne architectural question while trying to implement the Track Filter: does the session handling the SUBSCRIBE_TRACKS request with the Top Tracks Filter actually receive the object-level events for all tracks in the namespace so it can evaluate their property values? Our implementation, e.g.  tracks active tracks at the PUBLISH level, not per-object, and there's no relay-side monitoring of objects for tracks the namespace-subscriber never explicitly subscribed to. without sending PUBLISH_OK back, then the relay won't actually receive the object stream for that track. So if the relay wants to filter tracks based on property values, it needs to actively subscribe to every track in the namespace upstream to observe those properties \u2014 even tracks that haven't been selected yet \u2014 which could mean opening subscriptions for video quality, bitrate, and other metadata across all available tracks.\r\n\r\nOf course, this may be applied to the tier 1 relays only which face upstream origin publishers  (see the figure).\r\n\r\n```\r\n                    Top-4 at each tier\r\n\r\n       100             100             100             100\r\n        |               |               |               |\r\n       [P]             [P]             [P]             [P]\r\n        \\               /               \\               /\r\n         \\             /                 \\             /\r\n          \\           /                   \\           /\r\n           +---------+                     +---------+\r\n                |                               |\r\n               200                             200\r\n                |                               |\r\n               [R]                             [R]\r\n                \\                               /\r\n                 \\ (8, 4 for each)             / (8, 4 for each)\r\n                  \\                           /\r\n                   +-------------------------+\r\n                              |\r\n                             8 (4 for each)\r\n                             [R]\r\n                              |\r\n                              4\r\n                              |\r\n                             (S)\r\n\r\n                         Tracks carried\r\n```",
+          "createdAt": "2026-08-17T10:28:21Z",
+          "updatedAt": "2026-08-17T11:07:53Z"
         }
       ],
       "reviews": [
