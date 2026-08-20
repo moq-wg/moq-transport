@@ -4119,6 +4119,10 @@ Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
 retain sufficient state to quickly discard these unwanted Objects, rather than
 treating them as belonging to an unknown Track Alias.
 
+To avoid a protocol violation and to ensure the Subscriber knows which Track
+Objects are from, Publishers SHOULD NOT reuse a Track Alias within a session
+unless it is certain the prior Subscription has been completely closed and
+no Objects are scheduled to be sent or in flight.
 
 ## Objects {#message-object}
 
