@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-18T01:21:55.144311+00:00",
+  "timestamp": "2026-08-20T01:22:49.371655+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -200307,13 +200307,13 @@
       ],
       "body": "A revision of #1642, this PR allows any range of objects passed to subscription to be satisfied.  The portion of the range before Largest Object comes on a \"fill fetch stream\" -- a unidirectional stream beginning with a FETCH_HEADER.\r\n\r\n- Renamed AbsoluteStart/Range filters to AbsoluteStart/RangeFill, and added a new filter: RelativeStartFill.\r\n- Defined the semantics of fill-fetch and the streams are opened and closed\r\n- Added a FILL_PARAMETERS parameter, which carries the fill-specific versions of SUBSCRIBER_PRIORITY, GROUP_ORDER, etc\r\n- Updated the priority algorithm to explain how to order objects on fill-fetch vs the live portion of a subscription\r\n  - Different Groups, same Group Order -> object's group determines\r\n  - Different Groups and Different Group Order -> live wins\r\n  - Same Group -> fill-fetch wins\r\n- Explained how PUBLISH_OK and REQUEST_UPDATE work with new filter types\r\n- Removed the Joining version of FETCH and removed the \"standalone\" monikker\r\n- Minor updates to PUBLISH_DONE to include fill-fetch streams in stream count, and allow the publisher to delay the message\r\n- INVALID_RANGE now only applies to FETCH\r\n\r\nFixes: #1039\r\nFixes: #1313\r\nFixes: #1614",
       "createdAt": "2026-06-14T00:18:23Z",
-      "updatedAt": "2026-08-10T04:00:04Z",
+      "updatedAt": "2026-08-18T19:06:32Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "368044bdbd69e185785cbb99a7a31cc394aa315c",
+      "baseRefOid": "d5c55ebefb56790bd8bb56dc5c7d4fe340d5f4dd",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "fill-fetch",
-      "headRefOid": "544bdc9b3bd90a75f951d25109f264373e4c8110",
+      "headRefOid": "21b648b7f3ceb24c4b1afb45eac85e321a356e5e",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -213768,7 +213768,7 @@
       ],
       "body": "Added Top Tracks Filter (was Track Filter in PR#1508 / PR#1401).",
       "createdAt": "2026-07-24T17:47:02Z",
-      "updatedAt": "2026-08-17T11:07:53Z",
+      "updatedAt": "2026-08-18T13:17:21Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
@@ -213842,6 +213842,13 @@
           "body": "@mzanaty @suhasHere \r\n\r\nI need some confirmation/clarification while implementing the Track Filter in our Relay. Appreciate if you could help me out.\r\n\r\nOne architectural question while trying to implement the Track Filter: does the session handling the SUBSCRIBE_TRACKS request with the Top Tracks Filter actually receive the object-level events for all tracks in the namespace so it can evaluate their property values? Our implementation, e.g.  tracks active tracks at the PUBLISH level, not per-object, and there's no relay-side monitoring of objects for tracks the namespace-subscriber never explicitly subscribed to. without sending PUBLISH_OK back, then the relay won't actually receive the object stream for that track. So if the relay wants to filter tracks based on property values, it needs to actively subscribe to every track in the namespace upstream to observe those properties \u2014 even tracks that haven't been selected yet \u2014 which could mean opening subscriptions for video quality, bitrate, and other metadata across all available tracks.\r\n\r\nOf course, this may be applied to the tier 1 relays only which face upstream origin publishers  (see the figure).\r\n\r\n```\r\n                    Top-4 at each tier\r\n\r\n       100             100             100             100\r\n        |               |               |               |\r\n       [P]             [P]             [P]             [P]\r\n        \\               /               \\               /\r\n         \\             /                 \\             /\r\n          \\           /                   \\           /\r\n           +---------+                     +---------+\r\n                |                               |\r\n               200                             200\r\n                |                               |\r\n               [R]                             [R]\r\n                \\                               /\r\n                 \\ (8, 4 for each)             / (8, 4 for each)\r\n                  \\                           /\r\n                   +-------------------------+\r\n                              |\r\n                             8 (4 for each)\r\n                             [R]\r\n                              |\r\n                              4\r\n                              |\r\n                             (S)\r\n\r\n                         Tracks carried\r\n```",
           "createdAt": "2026-08-17T10:28:21Z",
           "updatedAt": "2026-08-17T11:07:53Z"
+        },
+        {
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Yu, relays should propagate the Top Tracks filter upstream to ensure they only get N tracks on each direct ingress connection. If an edge relay has P publishers directly connected on separate ingress connections that match the subscribed namespace, it must subscribe to all P publishers to inspect their objects and select the right tracks. ",
+          "createdAt": "2026-08-18T13:17:21Z",
+          "updatedAt": "2026-08-18T13:17:21Z"
         }
       ],
       "reviews": [
@@ -214801,11 +214808,13 @@
       "state": "OPEN",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "suhasHere"
+      ],
       "labels": [],
       "body": "Fixes #1655 by clarifying who can send GoAway requests in a given session",
       "createdAt": "2026-08-08T21:28:25Z",
-      "updatedAt": "2026-08-13T19:36:00Z",
+      "updatedAt": "2026-08-18T17:01:00Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "257d25b9c6fc8fb95226b29dcbe227def4eeff82",
@@ -214872,7 +214881,7 @@
       ],
       "body": "Fixes #1828 ",
       "createdAt": "2026-08-09T00:11:07Z",
-      "updatedAt": "2026-08-13T19:16:03Z",
+      "updatedAt": "2026-08-19T16:34:30Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "257d25b9c6fc8fb95226b29dcbe227def4eeff82",
@@ -214904,6 +214913,13 @@
           "body": "> Now, the application-specific ranges are useful for interoperability; for example, MSF could define those, and those would be interoperable.\r\n\r\n@vasilvv We did discuss this in length at IETF126 . The challenge is, application-specific, is not defined term though",
           "createdAt": "2026-08-13T19:08:22Z",
           "updatedAt": "2026-08-13T19:08:22Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "By \"not defined\", do you mean \"not defined in terms of IANA\"?  You don't really need IANA to define it, as far as IANA is concerned, the application-specific spaces are just defined in `draft-ietf-moq-transport`.  We kind of do similar thing with webtrans reset codes if I remember correctly.",
+          "createdAt": "2026-08-19T16:34:30Z",
+          "updatedAt": "2026-08-19T16:34:30Z"
         }
       ],
       "reviews": [
@@ -214936,7 +214952,7 @@
       ],
       "body": "Name the RFC 3986 components explicitly in the scope-equality rule and state that the query component is not part of the scope.\r\n\r\nFixes: #1835",
       "createdAt": "2026-08-14T19:05:14Z",
-      "updatedAt": "2026-08-14T19:05:15Z",
+      "updatedAt": "2026-08-19T16:32:33Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d5c55ebefb56790bd8bb56dc5c7d4fe340d5f4dd",
@@ -214948,7 +214964,21 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKICSog",
+          "commit": {
+            "abbreviatedOid": "40761e6"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "This does seem counterintuitive to me, but I do not see any strong reason to do this one way or another.",
+          "createdAt": "2026-08-19T16:32:33Z",
+          "updatedAt": "2026-08-19T16:32:33Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
