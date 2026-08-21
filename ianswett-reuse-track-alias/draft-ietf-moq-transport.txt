@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 21 February 2027                                  I. Swett, Ed.
+Expires: 22 February 2027                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          20 August 2026
+                                                          21 August 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 February 2027.
+   This Internet-Draft will expire on 22 February 2027.
 
 Copyright Notice
 
@@ -4532,16 +4532,25 @@ Range { Start, [End] }
    a different Track with an Established subscription, it MUST close the
    session with error DUPLICATE_TRACK_ALIAS.
 
+   Objects can be sent before the Subscriber knows the Track Alias,
+   requiring buffering Objects with an unknown Track Alias.  If a Track
+   Alias is used for two concurrent subscriptions to the same Track, the
+   Subscriber needs Objects to be filtered by each Subscription's
+   filters.  Because a Publisher can re-use a Track Alias for the second
+   Subscription to a Track, the Subscriber needs to act as though the
+   Track Alias is reused until told otherwise, in order to avoid missing
+   Objects.
+
+   To avoid a protocol violation and to ensure the Subscriber knows
+   which Track Objects are from, Publishers SHOULD NOT reuse a Track
+   Alias for different Tracks within a session, unless it is certain the
+   prior Subscription has been completely closed and no Objects are
+   scheduled to be sent or in flight.
+
    Objects can arrive after a subscription has been cancelled.
    Subscribers SHOULD retain sufficient state to quickly discard these
    unwanted Objects, rather than treating them as belonging to an
    unknown Track Alias.
-
-   To avoid a protocol violation and to ensure the Subscriber knows
-   which Track Objects are from, Publishers SHOULD NOT reuse a Track
-   Alias within a session unless it is certain the prior Subscription
-   has been completely closed and no Objects are scheduled to be sent or
-   in flight.
 
 11.2.  Objects
 
@@ -6435,9 +6444,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-06, 29 July 2026,
+              draft-ietf-scone-protocol-07, 20 August 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-06>.
+              protocol-07>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
