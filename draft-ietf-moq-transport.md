@@ -4130,7 +4130,8 @@ completely closed and no Objects are scheduled to be sent or in flight.
 
 Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
 retain sufficient state to quickly discard these unwanted Objects, rather than
-treating them as belonging to an unknown Track Alias. 
+treating them as belonging to an unknown Track Alias.
+
 
 ## Objects {#message-object}
 
