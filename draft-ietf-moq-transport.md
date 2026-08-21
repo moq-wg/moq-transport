@@ -4115,14 +4115,22 @@ PUBLISH or SUBSCRIBE_OK that uses the same Track Alias as a different Track
 with an `Established` subscription, it MUST close the session with error
 `DUPLICATE_TRACK_ALIAS`.
 
-Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
-retain sufficient state to quickly discard these unwanted Objects, rather than
-treating them as belonging to an unknown Track Alias.
+Objects can be sent before the Subscriber knows the Track Alias, requiring
+buffering Objects with an unknown Track Alias. If a Track Alias
+is used for two concurrent subscriptions to the same Track, the Subscriber needs
+Objects to be filtered by each Subscription's filters. Because
+a Publisher can re-use a Track Alias for the second Subscription to a Track,
+the Subscriber needs to act as though the Track Alias is reused until told
+otherwise, in order to avoid missing Objects.
 
 To avoid a protocol violation and to ensure the Subscriber knows which Track
-Objects are from, Publishers SHOULD NOT reuse a Track Alias within a session
-unless it is certain the prior Subscription has been completely closed and
-no Objects are scheduled to be sent or in flight.
+Objects are from, Publishers SHOULD NOT reuse a Track Alias for different Tracks
+within a session, unless it is certain the prior Subscription has been
+completely closed and no Objects are scheduled to be sent or in flight.
+
+Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
+retain sufficient state to quickly discard these unwanted Objects, rather than
+treating them as belonging to an unknown Track Alias. 
 
 ## Objects {#message-object}
 
