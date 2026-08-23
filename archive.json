@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-20T01:22:49.371655+00:00",
+  "timestamp": "2026-08-23T01:35:37.980397+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -51925,15 +51925,17 @@
       "id": "I_kwDOG2Ho4M8AAAABH2_xAg",
       "title": "NAMESPACE doesn't allow parameters like PUBLISH_NAMESPACE",
       "url": "https://github.com/moq-wg/moq-transport/issues/1800",
-      "state": "CLOSED",
+      "state": "OPEN",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion"
+      ],
       "body": "I realized when writing my extension that it can't work with SUBSCRIBE_NAMESPACE. I need some way to indicate the number of hops for a given NAMESPACE: https://github.com/moq-dev/drafts/blob/main/draft-lcurley-moq-relay-hops.md\n\nThis is also important because relays are expected to wait for a SUBSCRIBE_NAMESPACE, while clients are expected to send a PUBLISH_NAMESPACE. However this means any parameters from the original publisher can't be proxied by a relay.\n\nRelated to #1798 ",
       "createdAt": "2026-07-06T19:23:30Z",
-      "updatedAt": "2026-08-10T16:42:38Z",
-      "closedAt": "2026-07-07T23:33:23Z",
+      "updatedAt": "2026-08-20T19:23:27Z",
+      "closedAt": null,
       "comments": [
         {
           "author": "afrind",
@@ -51973,9 +51975,16 @@
         {
           "author": "kixelated",
           "authorAssociation": "COLLABORATOR",
-          "body": "I think this is a flaw in the draft we should address. I'm up to 2 extensions that have to independently say NAMESPACE should have parameters but they don't in the base draft for some reason.",
+          "body": "I think this is a flaw in the draft we should address. I'm up to 2 extensions that have to independently say NAMESPACE should have parameters but they don't exist in the base draft for some reason.",
           "createdAt": "2026-08-10T16:42:38Z",
-          "updatedAt": "2026-08-10T16:42:38Z"
+          "updatedAt": "2026-08-20T19:23:27Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'd like to discuss this at Monday's interim on 8/24",
+          "createdAt": "2026-08-20T18:49:27Z",
+          "updatedAt": "2026-08-20T18:49:27Z"
         }
       ]
     },
@@ -52053,7 +52062,7 @@
       "id": "I_kwDOG2Ho4M8AAAABH91KVw",
       "title": "How do you know what Parameters a PUBLISH has?",
       "url": "https://github.com/moq-wg/moq-transport/issues/1803",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -52066,8 +52075,8 @@
       ],
       "body": "Fixing #1660 allows SUBSCRIBE parameters on SUBSCRIBE_TRACKS, but it's also possible to update those parameters.\n\nHow does a Subscriber know what Parameters were used to create the subscription?  There are two cases, FORWARD and GROUP_ORDER where we echo that back in the PUBLISH today.\n\nThere's also the case when a PUBLISH arrives that is not associated with a SUBSCRIBE_TRACKS.  It seems somewhat important to know the effective values for other Parameters, such as SUBSCRIBER_PRIORITY, as well as FORWARD and GROUP_ORDER?\n\nIn the virtual interim on July 6th, some people were concerned about creating another error condition if a Publisher specifies a Parameter that doesn't match one in the original SUBSCRIBE_TRACKS.\n\nIdeas I posted on #1660:\n1) Assume that people can figure out what the initial parameters are, so omit them. (Status quo)\n  - Pro: Easy, Status quo\n  - Con: If you update SUB_TRACKS, then how do you know which params are in use? Doesn't tell you anything about bare PUBLISH\n2) Reference the Request ID of the SUB_TRACKS or subsequent REQUEST_UPDATE to indicate which params are in use\n  - Pro: Only one field, simple validation.\n  - Con: Instead of being racy, now you need to store all params ever sent on a SUB_TRACKS for an unknown time.  Doesn't tell you anything about bare PUBLISH\n3) Repeat all the SUBSCRIBE parameters in the PUBLISH\n  - Pro: No new framing or codepoints. They also don't conflict, so there's no ambiguity.  Could be useful in bare PUBLISH?  Similar to what we do for FORWARD and GROUP_ORDER today.\n  - Con: Some SUBSCRIBE parameters don't make that much sense in the PUBLISH and aren't allowed there today. Could conflict with the SUBSCRIBE_TRACKS, which creates another error condition.\n4) Create a parameter that contains all the parameters the Subscription was initialized with (ie: SUBSCRIBE_PARAMS?)\n  - Pro: Don't have to think about whether a Parameter might have a different meaning depending on which perspective it comes from (it probably shouldn't anyway, though?)\n  - Con: Another nested parameter. Could conflict with the SUBSCRIBE_TRACKS, which creates another error condition.\n5) Use a potential new frame (ie: SUBSCRIPTION_STATE_UPDATE) to communicate the Subscription state\n - Pro: Could re-use a mechanism we (probably) want for DTS and Switch\n - Con: Arrives after the PUBLISH instead of in the PUBLISH. Could conflict with the SUBSCRIBE_TRACKS, which creates another error condition.\n\n",
       "createdAt": "2026-07-07T14:40:08Z",
-      "updatedAt": "2026-08-05T21:10:31Z",
-      "closedAt": null,
+      "updatedAt": "2026-08-21T13:53:19Z",
+      "closedAt": "2026-08-21T13:53:19Z",
       "comments": [
         {
           "author": "afrind",
@@ -52635,7 +52644,7 @@
       ],
       "body": "I am trying to generate parser and serializer code for control messages, which is harder for FETCH and REQUEST_ERROR than for other messages because these can have different formats depending on the values of other fields in the same messages: FETCH changes format based on the `Fetch Type` field, and REQUEST_ERROR can have a `Redirect` field if the `Error Code` has a certain value. For all other messages, I can just define the list of fields and their types, and then copy code to parse and serialize each field. This doesn't work for FETCH and REQUEST_ERROR, because their formats depend on these other fields.\n\nWould it be possible to use the `Message Type` to encode the format instead? E.g., similar to SUBGROUP_HEADER, which uses different types depending on which fields are present, FETCH could use three message types to indicate the type of FETCH request. And REQUEST_ERROR could be split into REQUEST_REDIRECT (which contains only `Retry Interval`, `Error Reason` and `Redirect`), and REQUEST_ERROR (which doesn't need the `Redirect` field).",
       "createdAt": "2026-07-31T13:44:22Z",
-      "updatedAt": "2026-08-04T23:04:53Z",
+      "updatedAt": "2026-08-21T15:35:14Z",
       "closedAt": null,
       "comments": [
         {
@@ -52665,6 +52674,20 @@
           "body": "I'll leave it open a little while to see if anyone wants to +1 here.  If there's not momentum by September 1, will close with no action.",
           "createdAt": "2026-08-04T23:04:53Z",
           "updatedAt": "2026-08-04T23:04:53Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Reminder to chime in if you want this change",
+          "createdAt": "2026-08-20T18:55:54Z",
+          "updatedAt": "2026-08-20T18:55:54Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I would prefer three message types to the status quo, but moving joining fetch to a SUBSCRIBE parameter is superior to both.",
+          "createdAt": "2026-08-21T15:35:14Z",
+          "updatedAt": "2026-08-21T15:35:14Z"
         }
       ]
     },
@@ -52959,11 +52982,15 @@
       "state": "OPEN",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
-      "labels": [],
+      "assignees": [
+        "kixelated"
+      ],
+      "labels": [
+        "BLOCKED"
+      ],
       "body": "I think this is a major interop issue, and it keeps biting me.\n\nThere are implicitly three roles in the moq-transport draft:\n- publisher\n- relay\n- subscriber\n\nWhile not stated, there's an implicit assumption that:\n- **publishers** should send `PUBLISH_NAMESPACE`\n- **subscribers** should send `SUBSCRIBE_NAMESPACE`\n- **relays** should wait for `PUBLISH_NAMESPACE` and `SUBSCRIBE_NAMESPACE`\n\nThe problem is that my library supports:\n- publishers connecting directly to subscribers (P2P): results in both messages\n- relays connecting to other relays (S2S): results in neither message.\n\n**There's no in-transport mechanism to know if the peer will PUBLISH or SUBSCRIBE.** \n\nMy workaround has been to always send both `PUBLISH_NAMESPACE` and `SUBSCRIBE_NAMESPACE`. But that's not ideal,  and then publishers complain that they get `PUBLISH_NAMESPACE` messages for random shit, as they expected the relay to wait for a `SUBSCRIBE_NAMESPACE`.\n\nThe other alternative is to have the application indicate if the peer is a relay just to decide whether to PUBLISH or not. I really don't like this approach.",
       "createdAt": "2026-08-10T17:09:30Z",
-      "updatedAt": "2026-08-13T20:18:35Z",
+      "updatedAt": "2026-08-20T18:50:44Z",
       "closedAt": null,
       "comments": [
         {
@@ -200307,7 +200334,7 @@
       ],
       "body": "A revision of #1642, this PR allows any range of objects passed to subscription to be satisfied.  The portion of the range before Largest Object comes on a \"fill fetch stream\" -- a unidirectional stream beginning with a FETCH_HEADER.\r\n\r\n- Renamed AbsoluteStart/Range filters to AbsoluteStart/RangeFill, and added a new filter: RelativeStartFill.\r\n- Defined the semantics of fill-fetch and the streams are opened and closed\r\n- Added a FILL_PARAMETERS parameter, which carries the fill-specific versions of SUBSCRIBER_PRIORITY, GROUP_ORDER, etc\r\n- Updated the priority algorithm to explain how to order objects on fill-fetch vs the live portion of a subscription\r\n  - Different Groups, same Group Order -> object's group determines\r\n  - Different Groups and Different Group Order -> live wins\r\n  - Same Group -> fill-fetch wins\r\n- Explained how PUBLISH_OK and REQUEST_UPDATE work with new filter types\r\n- Removed the Joining version of FETCH and removed the \"standalone\" monikker\r\n- Minor updates to PUBLISH_DONE to include fill-fetch streams in stream count, and allow the publisher to delay the message\r\n- INVALID_RANGE now only applies to FETCH\r\n\r\nFixes: #1039\r\nFixes: #1313\r\nFixes: #1614",
       "createdAt": "2026-06-14T00:18:23Z",
-      "updatedAt": "2026-08-18T19:06:32Z",
+      "updatedAt": "2026-08-20T18:21:02Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d5c55ebefb56790bd8bb56dc5c7d4fe340d5f4dd",
@@ -202007,6 +202034,56 @@
               "body": "Please refer to the 7/6 minutes: https://datatracker.ietf.org/doc/minutes-interim-2026-moq-18-202607061630/\r\n\r\n> Conclusion: Sentiment is to remove it. Alan to follow up with chairs offline. Decision must be final by draft-20 (before interop target). People can bake off draft-18 vs. draft-20 if desired.\r\n\r\nI will defer to the chairs @martinduke @gloinul ",
               "createdAt": "2026-08-10T03:59:33Z",
               "updatedAt": "2026-08-10T04:00:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKRpQuQ",
+          "commit": {
+            "abbreviatedOid": "21b648b"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Overall looks good, but I have a few questions.",
+          "createdAt": "2026-08-20T15:31:38Z",
+          "updatedAt": "2026-08-20T18:21:02Z",
+          "comments": [
+            {
+              "originalPosition": 38,
+              "body": "This might not be directly related to this PR (feel free to move this to a separate issue if necessary), but I do think we should clarify that the subscribers MUST handle objects out of range gracefully, since things like updating filters is async.",
+              "createdAt": "2026-08-20T15:31:38Z",
+              "updatedAt": "2026-08-20T18:21:02Z"
+            },
+            {
+              "originalPosition": 111,
+              "body": "I am a bit confused, don't range filters also apply to fetches and fills?",
+              "createdAt": "2026-08-20T18:06:19Z",
+              "updatedAt": "2026-08-20T18:21:02Z"
+            },
+            {
+              "originalPosition": 63,
+              "body": "Also range filters?",
+              "createdAt": "2026-08-20T18:06:42Z",
+              "updatedAt": "2026-08-20T18:21:02Z"
+            },
+            {
+              "originalPosition": 124,
+              "body": "Should this discuss Next Object vs no filter at all?",
+              "createdAt": "2026-08-20T18:07:39Z",
+              "updatedAt": "2026-08-20T18:21:02Z"
+            },
+            {
+              "originalPosition": 177,
+              "body": "I assume if they're in the same subscription, they by definition have the same subscriber priority?\n\n(actually, why was this changed?)",
+              "createdAt": "2026-08-20T18:11:09Z",
+              "updatedAt": "2026-08-20T18:21:02Z"
+            },
+            {
+              "originalPosition": 266,
+              "body": "Range filters?",
+              "createdAt": "2026-08-20T18:19:45Z",
+              "updatedAt": "2026-08-20T18:21:02Z"
             }
           ]
         }
@@ -214215,7 +214292,7 @@
       "id": "PR_kwDOG2Ho4M73iyUa",
       "title": "PUBLISH can contain Subscription Parameters",
       "url": "https://github.com/moq-wg/moq-transport/pull/1834",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -214227,17 +214304,19 @@
       ],
       "body": "Fixes #1803\r\n\r\nI didn't add any normative language that they MUST be specified, otherwise the Subscriber will assume the default value for the Parameter, but maybe I should?",
       "createdAt": "2026-07-28T16:02:28Z",
-      "updatedAt": "2026-08-13T21:28:32Z",
+      "updatedAt": "2026-08-21T20:07:26Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d5c55ebefb56790bd8bb56dc5c7d4fe340d5f4dd",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-publish-subscribe-params",
       "headRefOid": "1220ac05670da12d5f142be0f80225a751d43084",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-08-21T13:53:18Z",
+      "mergedAt": "2026-08-21T13:53:18Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "e1ae858d5c4009253ea19bfed30e3b58c4399de3"
+      },
       "comments": [],
       "reviews": [
         {
@@ -214337,6 +214416,19 @@
           "body": "Thanks @afrind for the suggestion.  Sorry @suhasHere I accidentally deleted your suggestion, but PTAL at what's there now.",
           "createdAt": "2026-08-13T21:28:32Z",
           "updatedAt": "2026-08-13T21:28:32Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKZ29OA",
+          "commit": {
+            "abbreviatedOid": "1220ac0"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-08-21T12:21:56Z",
+          "updatedAt": "2026-08-21T12:21:56Z",
           "comments": []
         }
       ]
@@ -214977,6 +215069,115 @@
           "createdAt": "2026-08-19T16:32:33Z",
           "updatedAt": "2026-08-19T16:32:33Z",
           "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1856,
+      "id": "PR_kwDOG2Ho4M8AAAABAdGzdQ",
+      "title": "Beware re-using a Track Alias",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1856",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial & Minor Design"
+      ],
+      "body": "For a different Track\r\n\r\nFixes #1795",
+      "createdAt": "2026-08-20T18:18:13Z",
+      "updatedAt": "2026-08-21T14:44:23Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "d5c55ebefb56790bd8bb56dc5c7d4fe340d5f4dd",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-reuse-track-alias",
+      "headRefOid": "a945a5a55bf44e2f9aca75c973aa424f27d93a13",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKTE3dw",
+          "commit": {
+            "abbreviatedOid": "6306314"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-20T18:23:19Z",
+          "updatedAt": "2026-08-20T18:23:20Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "Did you intentionally leave off \"for a different Track\"?  e.g. the rules for reusing the alias for the same track also require you to know the previous subscription is done?\r\n\r\nThe draft says the publisher must not send objects outside the filter.  So if I \r\n\r\nSUBSCRIBE t1 10,0 - 11\r\nSUB_OK Alias=X\r\nSUBSCRIBE t1 12,0 - 13\r\nSUB_OK Alias=X  // delayed in network\r\nOBJECT AlIas=X 12,0 // receiver assumes this is part of the first t1 subscription, the second one never receives.\r\n",
+              "createdAt": "2026-08-20T18:23:20Z",
+              "updatedAt": "2026-08-20T18:30:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKaxiHw",
+          "commit": {
+            "abbreviatedOid": "6306314"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-21T14:08:26Z",
+          "updatedAt": "2026-08-21T14:08:26Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "The example you give is concerning, and I'm not sure how best to handle it except to highlight the issue and advise people handle it?\n\nPopping up a level, I don't think a subscriber can enforce that MUST, because you could have a sequence of REQUEST_UPDATES and there are still Objects in flight that are from a prior filter?",
+              "createdAt": "2026-08-21T14:08:26Z",
+              "updatedAt": "2026-08-21T14:08:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKbDZqA",
+          "commit": {
+            "abbreviatedOid": "f7d0aac"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-21T14:36:52Z",
+          "updatedAt": "2026-08-21T14:36:53Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "```suggestion\ntreating them as belonging to an unknown Track Alias.\n\n```",
+              "createdAt": "2026-08-21T14:36:52Z",
+              "updatedAt": "2026-08-21T14:36:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKbHNfA",
+          "commit": {
+            "abbreviatedOid": "6306314"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-21T14:44:23Z",
+          "updatedAt": "2026-08-21T14:44:23Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "I took another stab at this.  Its sort of ugly, but I think the new text is more accurate.",
+              "createdAt": "2026-08-21T14:44:23Z",
+              "updatedAt": "2026-08-21T14:44:23Z"
+            }
+          ]
         }
       ]
     }
