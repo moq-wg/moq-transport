@@ -1669,18 +1669,13 @@ messages.
 
 ### Combining Filters
 
-All filter types are combined using logical "AND" operations
-to further restrict which tracks and objects pass all filter criteria.
-This includes all Range Filters {{range-filters}}, Location Filters
-{{location-filters}}, and Top Tracks Filters {{top-tracks-filters}}.
-Top Tracks Filters always evaluate first before all other filters
-which can be evaluated in any order.
+Filter types can be combined to further restrict which tracks and
+objects pass all filter criteria. Track filters are evaluated before
+object filters. The Track Property Filter is evaluated first, then the
+Top Tracks Filter {{top-tracks-filters}}, and finally all object
+Location Filters {{location-filters}} and Range Filters {{range-filters}}.
 The Forward parameter is also a type of filter.  The publisher MUST
-forward only objects that pass all filters.
-
-~~~
-Pass = Top Tracks Filter AND Forward AND Location Filter AND Range Filters
-~~~
+send only objects that pass all filters.
 
 ### Joining an Ongoing Track
 
@@ -1870,7 +1865,8 @@ the resulting Subscriptions can be filtered by any Range Filter.
 The TOP_TRACKS_FILTER parameter {{top-tracks-filter}} selects a specified
 number (N) of tracks within a namespace with the highest Property Values
 for a specified Track or Object Property Type which MUST be even, i.e.
-a single integer value (see {{moq-key-value-pair}}).
+a single integer value (see {{moq-key-value-pair}}).  Object Property
+values override any Track Property values of the same type.
 
 It is encoded with a Length prefix in bytes. A length of 0 indicates
 no filter, which can be used to remove the filter in REQUEST_UPDATE.
