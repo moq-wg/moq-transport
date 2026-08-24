@@ -6636,9 +6636,11 @@ it is sent on the response stream of a SUBSCRIBE_NAMESPACE request.
 All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.<a href="#section-10.17-1" class="pilcrow">¶</a></p>
+<p id="section-10.17-2">When Parameters of a NAMESPACE change, the NAMESPACE message is sent again
+with the updated Parameters.<a href="#section-10.17-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-namespace-message"></span><div id="moq-transport-ns-format">
 <figure id="figure-19">
-          <div class="alignLeft art-text artwork" id="section-10.17-2.1">
+          <div class="alignLeft art-text artwork" id="section-10.17-3.1">
 <pre>
 NAMESPACE Message {
   Type (vi64) = 0x8,
@@ -6654,13 +6656,13 @@ NAMESPACE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-10.17-3.1">
-            <p id="section-10.17-3.1.1">Track Namespace Suffix: Specifies the final portion of a track's
+<li class="normal" id="section-10.17-4.1">
+            <p id="section-10.17-4.1.1">Track Namespace Suffix: Specifies the final portion of a track's
 namespace as defined in <a href="#track-name" class="auto internal xref">Section 2.4.1</a> after removing namespace tuples included in
-'Track Namespace Prefix' <a href="#message-subscribe-ns" class="auto internal xref">Section 10.19</a>.<a href="#section-10.17-3.1.1" class="pilcrow">¶</a></p>
+'Track Namespace Prefix' <a href="#message-subscribe-ns" class="auto internal xref">Section 10.19</a>.<a href="#section-10.17-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-10.17-3.2">
-            <p id="section-10.17-3.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.17-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-10.17-4.2">
+            <p id="section-10.17-4.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 10.2</a>.<a href="#section-10.17-4.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
