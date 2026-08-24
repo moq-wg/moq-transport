@@ -3903,6 +3903,8 @@ NAMESPACE Message {
   Type (vi64) = 0x8,
   Length (16),
   Track Namespace Suffix (..),
+  Number of Parameters (vi64),
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-ns-format title="MOQT NAMESPACE Message"}
@@ -3910,6 +3912,8 @@ NAMESPACE Message {
 * Track Namespace Suffix: Specifies the final portion of a track's
   namespace as defined in {{track-name}} after removing namespace tuples included in
   'Track Namespace Prefix' {{message-subscribe-ns}}.
+
+* Parameters: The parameters are defined in {{message-params}}.
 
 ## NAMESPACE_DONE {#message-namespace-done}
 
