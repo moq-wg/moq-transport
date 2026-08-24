@@ -3898,6 +3898,9 @@ All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.
 
+When Parameters of a NAMESPACE change, the NAMESPACE message is sent again
+with the updated Parameters.
+
 ~~~
 NAMESPACE Message {
   Type (vi64) = 0x8,
