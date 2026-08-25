@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-23T01:35:37.980397+00:00",
+  "timestamp": "2026-08-25T01:23:50.070392+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -50493,7 +50493,7 @@
       ],
       "body": "The spec has\n\n> As described in Section 2.1, an endpoint can receive an Object after\n> it has already recorded that the Object does not exist. A caching\n> relay SHOULD NOT cache or forward the Object in this case.\n\nI think this should be a protocol error.  \n",
       "createdAt": "2026-06-14T16:25:50Z",
-      "updatedAt": "2026-07-23T13:18:27Z",
+      "updatedAt": "2026-08-24T17:18:56Z",
       "closedAt": null,
       "comments": [
         {
@@ -50544,6 +50544,13 @@
           "body": "> if an publisher does not know if an object has existed in the past, or may exist in the future, it MUST not singalling that indicates it does not exist.\n\nI don't find this to be practical for the past - effectively it means every publisher needs to retain every object ever published forever, or relays will never be able to cache non-existence for objects that expire.  The reason is because if a FETCH reaches a publisher including this object range, it can either:\n\na) return it\nb) signal non-existence (cacheable)\nc) return unknown (uncacheable)\n\nIgnore previous comment about consensus call.  The clarification is new in draft-18",
           "createdAt": "2026-07-23T13:14:43Z",
           "updatedAt": "2026-07-23T13:18:27Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "My proposal would be to say if this happens, it is a malformed track. ( thanks Martin for pointing out not protocol error ). ",
+          "createdAt": "2026-08-24T17:18:56Z",
+          "updatedAt": "2026-08-24T17:18:56Z"
         }
       ]
     },
@@ -51930,11 +51937,11 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Needs Discussion"
+        "Needs PR"
       ],
       "body": "I realized when writing my extension that it can't work with SUBSCRIBE_NAMESPACE. I need some way to indicate the number of hops for a given NAMESPACE: https://github.com/moq-dev/drafts/blob/main/draft-lcurley-moq-relay-hops.md\n\nThis is also important because relays are expected to wait for a SUBSCRIBE_NAMESPACE, while clients are expected to send a PUBLISH_NAMESPACE. However this means any parameters from the original publisher can't be proxied by a relay.\n\nRelated to #1798 ",
       "createdAt": "2026-07-06T19:23:30Z",
-      "updatedAt": "2026-08-20T19:23:27Z",
+      "updatedAt": "2026-08-24T17:50:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -51985,6 +51992,13 @@
           "body": "I'd like to discuss this at Monday's interim on 8/24",
           "createdAt": "2026-08-20T18:49:27Z",
           "updatedAt": "2026-08-20T18:49:27Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "From today's interim:\nThere was broad support for adding Parameters back in and no objection, so this just needs a PR.",
+          "createdAt": "2026-08-24T17:49:55Z",
+          "updatedAt": "2026-08-24T17:49:55Z"
         }
       ]
     },
@@ -51993,7 +52007,7 @@
       "id": "I_kwDOG2Ho4M8AAAABH3xgmw",
       "title": "Reconsider \"OR\" functionality in range filters",
       "url": "https://github.com/moq-wg/moq-transport/issues/1801",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -52003,8 +52017,8 @@
       ],
       "body": "We added those to range filters to address scenarios like \"a relay has two different sets of filters and it wants to combine them\".  Now that we have multiple subscriptions (for similar reasons), is this still the right design?",
       "createdAt": "2026-07-06T21:25:02Z",
-      "updatedAt": "2026-08-10T15:49:46Z",
-      "closedAt": null,
+      "updatedAt": "2026-08-24T17:58:26Z",
+      "closedAt": "2026-08-24T17:58:26Z",
       "comments": [
         {
           "author": "afrind",
@@ -52054,6 +52068,27 @@
           "body": "Alan's point is very strong. Think about the case where this goers to the Original Publisher and that publisher is a cell phone on an ingest case with poor upload bandwidth. That case seems like a place where it would be good to avoid having the same object sent twice. \n\nThat said, I would want to see a specific use case where this type of thing happened and was a problem. It also seems like something we could add later if it does become a problem. ",
           "createdAt": "2026-08-10T15:49:45Z",
           "updatedAt": "2026-08-10T15:49:45Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "When reviewing #1851, I realized that updating OR filters is odd, or at least I believe it is.\n\nTake the case of a REQUEST_UPDATE that wants to remove one of two OR Object property filters, for example.\n\nThe framing is: `OBJECT_PROPERTY_FILTER { Type=0x28, Length, [SetID], [Property Type], Range... }`\n\nIf the Length is 0, the filter is removed.  Given the SetID is after the Length, that must remove the filter for all SetIDs\n\nIf the Length is not-zero, a SetID is specified, and only that SetID is overwritten\n\nTo remove a single SetID with REQUEST_UPDATE, I believe you have to put two OBJECT_PROPERTY_FILTERs, with the first having 0 length to remove all the filters, and the next adding the one you want to keep back.\n\nDo we guarantee that Properties order are maintained when there are multiple?  If not, you could end up with no filter if they're switched.",
+          "createdAt": "2026-08-24T14:58:06Z",
+          "updatedAt": "2026-08-24T14:58:06Z"
+        },
+        {
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "See the current text in Range Filters:\n\n\"In REQUEST_UPDATE, Length can be 0 to remove a filter parameter or non-zero to replace that entire filter parameter including all sets and Property Types.\"\n\nSo if an object property filter with multiple sets is removed or replaced, all sets are removed or replaced.\n\nFor property types, there is only one in each parameter, so there is no \"order\" since only one. ",
+          "createdAt": "2026-08-24T15:30:02Z",
+          "updatedAt": "2026-08-24T15:30:02Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "From today's virtual interim:\nThere was relatively broad support for keeping the OR functionality.  There wasn't a lot of support for changing the framing at this point.   I misunderstood the current framing, so removing a single Object Property Filter is more straightforward than I thought and only requires a single parameter (per Property/filter being updated).\n\nThere was a lot of support for better text, so people should review #1851 ",
+          "createdAt": "2026-08-24T17:48:50Z",
+          "updatedAt": "2026-08-24T17:49:08Z"
         }
       ]
     },
@@ -53048,6 +53083,30 @@
           "body": "> IMO relay to relay communication should be in scope\n\nI suggest you take your argument to the list and see if you can find support.  I think we should be polishing and releasing what we have at this stage, rather than changing scope.\n\n> Why PUBLISH, but not PUBLISH_NAMESPACE? You mean only in response to a SUBSCRIBE_TRACKS, and not unsolicited, right?\n\nThis is correct, relays only send PUBLISH in response to SUBSCRIBE_TRACKS and not unsolicited.\n\n> The problem IMO is the the relay is not expected to send SUBSCRIBE_NAMESPACE. Why not? \n\nIt's not really necessary, in the same way an HTTP server doesn't ask the client to tell it about all the files on its filesystem that it might later send in a POST.  As designed, a moq-transport client that calls up a relay is going to PUBLISH_NAMESPACE the namespaces it wants to get SUBSCRIBE's for.  Further, there's an idea of authority here (I think the draft has recently tried to clarify).  When a client sends PUBLISH_NAMESPACE, the relay checks that's it's really authoritative for tracks under that namespace, and rejects the request otherwise.  When an endpoint sends SUBSCRIBE_NAMESPACE, in effect it's authorizing the publisher for every namespace under that prefix.  A relay can't send SUBSCRIBE_NAMESPACE * to an untrusted client, because the client might say \"cnn.com\".\n\n> That would fix my issue because clients could optionally send PUBLISH_NAMESPACE to avoid an RTT.\n\nI'm lost where this extra RTT is coming from?  If your client already knows it wants to get SUBSCRIBE's from the relay under foo-bar, then include the PUBLISH_NAMESPACE (or PUBLISH specific tracks) in your 0-RTT right after SETUP.  SUBSCRIBE_NAMESPACE is not required to solicit PUBLISH_NAMESPACE.\n\n> In the current draft, clients need an explicit configuration indicating whether they are connecting to a relay\n\nIs that true?  Seems like you can blanket send PUBLISH_NAMESPACE or PUBLISH from the client to a relay or a generic subscriber.\n\n> relays need an explicit configuration whether they are accepting connections from another relay\n\nRelay to relay is out of scope...but see also the \"SUBSCRIBE_NAMESPACE includes authoritative trust under the prefix\" - which seems like something you're going to have to deal with in your configuration _anyways_.  I've implemented a relay-to-relay system using native MOQT, but it relies on knowing that a given connection is coming from a trusted relay peer, and not a malicious actor.\n\nRegarding your extension proposal, I'm still not sure what problem you are trying to solve - eg why a publisher client ever needs or wants to wait for a SUBSCRIBE_NAMESPACE from the peer to PUBLISH_NAMESPACE?  Is there some harm caused by it?",
           "createdAt": "2026-08-13T20:17:39Z",
           "updatedAt": "2026-08-13T20:18:35Z"
+        }
+      ]
+    },
+    {
+      "number": 1857,
+      "id": "I_kwDOG2Ho4M8AAAABOC0nIw",
+      "title": "Metadata in the data plane: no scope between Track and Object",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1857",
+      "state": "OPEN",
+      "author": "michalhosna",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "MOQT has Track and Object property scopes but nothing \"in between\", i.e. no general way to attach metadata to a Subgroup or a Group.\n\nSubgroup scope is being emulated for SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT which, \"as an Object Property on the first object in a subgroup, [override] the Track-level value for that subgroup\". And the scope for object property PRIOR_GROUP_ID_GAP is weird, but definitely not scoped to a given object.\n\nUsing object parameters as emulation for wider than object scope has a number of problems.\n1. Mid-group join may miss them\n2. A fetch range may be mid-group\n\nboth of those existed for long time, but reading group without the beginning could be considered transient state, but \n\n3. Filters may exclude this metadata even in \"steady-state\". \n\nFrom general extensibility standpoint, I am missing this metadata when trying to build application on top of MOQT, and first-object as group emulation is, at minimum, hacky. I feel this is a missing extension point and should be there given that object model is the foundation of moqt. \n\nIt seems relatively easy to add subgroup parameters, given that subgroup headers exist, but the single-byte bit-field compressed type is practically full.\nTrue group-level would require more significant changes in the data plane. As would some other generic data-plane metadata carrier. But both of those could bring more resilient mechanism to add metadata. \n\nI understand that this may be quite heavy change, possibly past-deadline, but I feel this should have a dedicated general discussion.\n\nDo people think we should have an additional extension point for metadata in data-plane? Which/where/how? \n",
+      "createdAt": "2026-08-24T17:11:49Z",
+      "updatedAt": "2026-08-24T17:25:40Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "riedlse",
+          "authorAssociation": "NONE",
+          "body": "Strong +1 from an operator side. We run 24/7 live linear channels with server-side ad insertion over MoQ, and the lack of a group-scoped metadata point is exactly why we carry splice/boundary signaling (SCTE-35-derived: boundary here, duration N, resume at X) in a self-defined JSON track today. Splice points align to group boundaries by construction in our pipeline, so group scope is the natural carrier \u2014 and we've hit both failure modes named here in practice: late joiners reading stale boundary state, and boundary metadata living in a side track precisely because object-property emulation can't survive mid-group join. Happy to share our workaround's design notes as input.",
+          "createdAt": "2026-08-24T17:25:40Z",
+          "updatedAt": "2026-08-24T17:25:40Z"
         }
       ]
     }
@@ -200334,7 +200393,7 @@
       ],
       "body": "A revision of #1642, this PR allows any range of objects passed to subscription to be satisfied.  The portion of the range before Largest Object comes on a \"fill fetch stream\" -- a unidirectional stream beginning with a FETCH_HEADER.\r\n\r\n- Renamed AbsoluteStart/Range filters to AbsoluteStart/RangeFill, and added a new filter: RelativeStartFill.\r\n- Defined the semantics of fill-fetch and the streams are opened and closed\r\n- Added a FILL_PARAMETERS parameter, which carries the fill-specific versions of SUBSCRIBER_PRIORITY, GROUP_ORDER, etc\r\n- Updated the priority algorithm to explain how to order objects on fill-fetch vs the live portion of a subscription\r\n  - Different Groups, same Group Order -> object's group determines\r\n  - Different Groups and Different Group Order -> live wins\r\n  - Same Group -> fill-fetch wins\r\n- Explained how PUBLISH_OK and REQUEST_UPDATE work with new filter types\r\n- Removed the Joining version of FETCH and removed the \"standalone\" monikker\r\n- Minor updates to PUBLISH_DONE to include fill-fetch streams in stream count, and allow the publisher to delay the message\r\n- INVALID_RANGE now only applies to FETCH\r\n\r\nFixes: #1039\r\nFixes: #1313\r\nFixes: #1614",
       "createdAt": "2026-06-14T00:18:23Z",
-      "updatedAt": "2026-08-20T18:21:02Z",
+      "updatedAt": "2026-08-24T16:38:12Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d5c55ebefb56790bd8bb56dc5c7d4fe340d5f4dd",
@@ -202084,6 +202143,112 @@
               "body": "Range filters?",
               "createdAt": "2026-08-20T18:19:45Z",
               "updatedAt": "2026-08-20T18:21:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKkE4mw",
+          "commit": {
+            "abbreviatedOid": "21b648b"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Thanks for all the updates. The majority of the proposal seems fine except few clarifications to help implementations.",
+          "createdAt": "2026-08-24T01:06:13Z",
+          "updatedAt": "2026-08-24T02:30:39Z",
+          "comments": [
+            {
+              "originalPosition": 78,
+              "body": "Agreed. The thing I am missing here is, there is no way for an end subscriber or any subscriber to know why a fetch stream didn't never showed up. The application needs to guess ? \n\nCan we add clarifying text here to address the same ?",
+              "createdAt": "2026-08-24T01:06:13Z",
+              "updatedAt": "2026-08-24T02:30:40Z"
+            },
+            {
+              "originalPosition": 38,
+              "body": "+1 , adding some text in this PR will be great.",
+              "createdAt": "2026-08-24T01:06:53Z",
+              "updatedAt": "2026-08-24T02:30:40Z"
+            },
+            {
+              "originalPosition": 50,
+              "body": "Is it a protocol violation to include fill_params and subscription location filters both in the past ? I remembered the WG agreed to clarify this to say something like that is not permitted ?",
+              "createdAt": "2026-08-24T01:08:42Z",
+              "updatedAt": "2026-08-24T02:30:40Z"
+            },
+            {
+              "originalPosition": 52,
+              "body": "May be I am missing something , i was not able to find text in {{location-filters}} for rules that says fill range never extends beyond 'Largest Object'",
+              "createdAt": "2026-08-24T01:12:37Z",
+              "updatedAt": "2026-08-24T02:30:40Z"
+            },
+            {
+              "originalPosition": 50,
+              "body": "the same need to be clarified on if fill range is in the future too . We need to clarify what it means for processing the request ",
+              "createdAt": "2026-08-24T01:13:48Z",
+              "updatedAt": "2026-08-24T02:30:40Z"
+            },
+            {
+              "originalPosition": 60,
+              "body": "```suggestion\nedge while the subscription itself starts at the Next Group.  If the fill range\nis empty or results in no objects, the publisher does not open a fill fetch stream.\n```",
+              "createdAt": "2026-08-24T01:14:39Z",
+              "updatedAt": "2026-08-24T02:30:40Z"
+            },
+            {
+              "originalPosition": 71,
+              "body": "```suggestion\nmultiple fill fetch streams open at once (as a result of REQUEST UPDATES), each identified by its Request ID;\n```",
+              "createdAt": "2026-08-24T01:16:35Z",
+              "updatedAt": "2026-08-24T02:30:40Z"
+            },
+            {
+              "originalPosition": 79,
+              "body": "this makes sense. however, it doesn't seem to address the joining fetch flow, where a subscriber doesn't know the largest object. ",
+              "createdAt": "2026-08-24T01:18:01Z",
+              "updatedAt": "2026-08-24T02:30:40Z"
+            },
+            {
+              "originalPosition": 98,
+              "body": "on \"it can open a fill fetch stream and reset\nit immediately after the FETCH_HEADER if necessary\" --> this is mandatory for cases when the result of range look up is empty. I would suggest we make it not optional.",
+              "createdAt": "2026-08-24T01:19:56Z",
+              "updatedAt": "2026-08-24T02:30:40Z"
+            },
+            {
+              "originalPosition": 135,
+              "body": "```suggestion\nstream and delivers objects from the Largest Location in subgroups or\ndatagrams (see {{fill-semantics}}).\n```",
+              "createdAt": "2026-08-24T02:07:19Z",
+              "updatedAt": "2026-08-24T02:30:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKqFkMA",
+          "commit": {
+            "abbreviatedOid": "21b648b"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-24T16:28:06Z",
+          "updatedAt": "2026-08-24T16:38:12Z",
+          "comments": [
+            {
+              "originalPosition": 79,
+              "body": "I'm a bit lost - I suspect I am missing how this works. Solving this with no extra RTT was the whole point of Joining  Fetch",
+              "createdAt": "2026-08-24T16:28:07Z",
+              "updatedAt": "2026-08-24T16:38:12Z"
+            },
+            {
+              "originalPosition": 92,
+              "body": "This seems like really deep layer violation. I don't think we should be using transport level signal to change what is happening on a whole other transaction. I would prefer some sort of applications stop ",
+              "createdAt": "2026-08-24T16:30:31Z",
+              "updatedAt": "2026-08-24T16:38:12Z"
+            },
+            {
+              "originalPosition": 99,
+              "body": "trivial note but would be clearer to replace the \"it\" with something to make it clear ",
+              "createdAt": "2026-08-24T16:31:45Z",
+              "updatedAt": "2026-08-24T16:38:12Z"
             }
           ]
         }
@@ -213845,13 +214010,13 @@
       ],
       "body": "Added Top Tracks Filter (was Track Filter in PR#1508 / PR#1401).",
       "createdAt": "2026-07-24T17:47:02Z",
-      "updatedAt": "2026-08-18T13:17:21Z",
+      "updatedAt": "2026-08-24T19:54:27Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "dea37d038ba7c5bbfb027a180907afa95e19f40f",
+      "baseRefOid": "e1ae858d5c4009253ea19bfed30e3b58c4399de3",
       "headRepository": "mzanaty/moq-transport",
       "headRefName": "patch-6",
-      "headRefOid": "8e2b9d2bcd7589fc7517adec9d7a7a5c0540ed4b",
+      "headRefOid": "73717a885ee57205ad96c78e9805dab96c0da45d",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -214134,6 +214299,56 @@
               "body": "Relays generally don't know group length, although they could estimate it from past groups forwarded. I don't expect this property to be omitted if a track supports Top Tracks, so the default is for a corner/error case when omitted, not a typical value used for most tracks.",
               "createdAt": "2026-08-05T18:30:18Z",
               "updatedAt": "2026-08-05T18:30:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKrlDHg",
+          "commit": {
+            "abbreviatedOid": "f837eeb"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-24T19:28:47Z",
+          "updatedAt": "2026-08-24T19:54:26Z",
+          "comments": [
+            {
+              "originalPosition": 2,
+              "body": "Agreed, updated.",
+              "createdAt": "2026-08-24T19:28:47Z",
+              "updatedAt": "2026-08-24T19:54:26Z"
+            },
+            {
+              "originalPosition": 15,
+              "body": "Agreed, updated.",
+              "createdAt": "2026-08-24T19:29:09Z",
+              "updatedAt": "2026-08-24T19:54:26Z"
+            },
+            {
+              "originalPosition": 33,
+              "body": "Agreed, updated.",
+              "createdAt": "2026-08-24T19:29:30Z",
+              "updatedAt": "2026-08-24T19:54:26Z"
+            },
+            {
+              "originalPosition": 52,
+              "body": "Yes, timeout was originally part of the filter parameters, but moved to a track property since it should be set by the publisher for all subscribers.",
+              "createdAt": "2026-08-24T19:32:12Z",
+              "updatedAt": "2026-08-24T19:54:26Z"
+            },
+            {
+              "originalPosition": 100,
+              "body": "This is for reclaiming resources even if no data streams, to purge all subscription state (alias, tokens, internals). The data streams should have terminated normally with FIN or RESET before the track was deselected. This reclaims resources long after deselection when a track is unlikely to be reselected.",
+              "createdAt": "2026-08-24T19:41:24Z",
+              "updatedAt": "2026-08-24T19:54:26Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "Assuming you mean update the property type not parameter, yes, there is currently no restriction. Do you think we should disallow updating the property type? I'm fine with restricting updates to MaxTopTracks (N).",
+              "createdAt": "2026-08-24T19:44:18Z",
+              "updatedAt": "2026-08-24T19:54:26Z"
             }
           ]
         }
@@ -215086,7 +215301,7 @@
       ],
       "body": "For a different Track\r\n\r\nFixes #1795",
       "createdAt": "2026-08-20T18:18:13Z",
-      "updatedAt": "2026-08-21T14:44:23Z",
+      "updatedAt": "2026-08-24T16:26:06Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d5c55ebefb56790bd8bb56dc5c7d4fe340d5f4dd",
@@ -215178,8 +215393,89 @@
               "updatedAt": "2026-08-21T14:44:23Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKkbL0w",
+          "commit": {
+            "abbreviatedOid": "a945a5a"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-24T03:03:59Z",
+          "updatedAt": "2026-08-24T03:03:59Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "```suggestion\nbuffering Objects with an unknown Track Alias. \n```",
+              "createdAt": "2026-08-24T03:03:59Z",
+              "updatedAt": "2026-08-24T03:03:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKkbRDA",
+          "commit": {
+            "abbreviatedOid": "a945a5a"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "looks fine, with some simplification",
+          "createdAt": "2026-08-24T03:04:24Z",
+          "updatedAt": "2026-08-24T03:04:24Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABKqETjQ",
+          "commit": {
+            "abbreviatedOid": "a945a5a"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-24T16:26:05Z",
+          "updatedAt": "2026-08-24T16:26:06Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "Shouldn't I say something about this complexity?  It seems like a potential gotcha for client implementations and I wouldn't want all clients to have to re-discover this.",
+              "createdAt": "2026-08-24T16:26:05Z",
+              "updatedAt": "2026-08-24T16:26:06Z"
+            }
+          ]
         }
       ]
+    },
+    {
+      "number": 1858,
+      "id": "PR_kwDOG2Ho4M8AAAABA1iNdw",
+      "title": "Add Parameters back to NAMESPACE",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1858",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Wire Format"
+      ],
+      "body": "Fixes #1800 ",
+      "createdAt": "2026-08-24T18:03:37Z",
+      "updatedAt": "2026-08-24T18:27:31Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "e1ae858d5c4009253ea19bfed30e3b58c4399de3",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-namespace-params",
+      "headRefOid": "2d27b2411d9af216d812f2bf9d19f4e1fbf8bb49",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
