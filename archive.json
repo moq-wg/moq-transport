@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-25T01:23:50.070392+00:00",
+  "timestamp": "2026-08-27T08:19:00.528687+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -53109,6 +53109,22 @@
           "updatedAt": "2026-08-24T17:25:40Z"
         }
       ]
+    },
+    {
+      "number": 1859,
+      "id": "I_kwDOG2Ho4M8AAAABOZ_bZw",
+      "title": "No way to specify equal-pri data: interleave vs serially?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1859",
+      "state": "OPEN",
+      "author": "sharmafb",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The existing priorities express ordering, but not whether equal-priority data should be completed serially or interleaved. Should we add in an INCREMENTAL parameter like HTTP does in RFC 9218?",
+      "createdAt": "2026-08-26T21:47:45Z",
+      "updatedAt": "2026-08-26T21:48:03Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -214010,7 +214026,7 @@
       ],
       "body": "Added Top Tracks Filter (was Track Filter in PR#1508 / PR#1401).",
       "createdAt": "2026-07-24T17:47:02Z",
-      "updatedAt": "2026-08-24T19:54:27Z",
+      "updatedAt": "2026-08-26T07:21:17Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e1ae858d5c4009253ea19bfed30e3b58c4399de3",
@@ -214091,6 +214107,34 @@
           "body": "Yu, relays should propagate the Top Tracks filter upstream to ensure they only get N tracks on each direct ingress connection. If an edge relay has P publishers directly connected on separate ingress connections that match the subscribed namespace, it must subscribe to all P publishers to inspect their objects and select the right tracks. ",
           "createdAt": "2026-08-18T13:17:21Z",
           "updatedAt": "2026-08-18T13:17:21Z"
+        },
+        {
+          "author": "yuyou",
+          "authorAssociation": "NONE",
+          "body": "just confirm, when 2+ subscribers subscribe to the track on the same relay, would the relay coalesce  those requests or not towards upstream? I feel the coalescing should not be applied, as neither OR or AND would work.\r\n\r\n```\r\nP1 -- (top n filter 1) -------> R1 -- (top n AND/OR top m). --> R0\r\n                         |     \r\nP2-- (top m filter 2) ---+\r\n```",
+          "createdAt": "2026-08-25T10:00:53Z",
+          "updatedAt": "2026-08-25T10:01:31Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> just confirm, when 2+ subscribers subscribe to the track on the same relay, would the relay coalesce those requests or not towards upstream? I feel the coalescing should not be applied, as neither OR or AND would work.\r\n> \r\n> ```\r\n> P1 -- (top n filter 1) -------> R1 -- (top n AND/OR top m). --> R0\r\n>                          |     \r\n> P2-- (top m filter 2) ---+\r\n> ```\r\n@yuyou  in this case , R1 would do top(X), where x = greaterOf(m, n)",
+          "createdAt": "2026-08-25T12:49:12Z",
+          "updatedAt": "2026-08-25T12:49:12Z"
+        },
+        {
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Yu, filter 1 and 2 can be aggregated upstream (using max of n,m) only if they have the same property type and namespace. If not, they can't be aggregated. ",
+          "createdAt": "2026-08-25T14:12:21Z",
+          "updatedAt": "2026-08-25T14:14:26Z"
+        },
+        {
+          "author": "yuyou",
+          "authorAssociation": "NONE",
+          "body": "I will update our Relay server with the Top Track Filter initial implementation. It supports SETUP negotiation and filters like object propertiees.\r\n\r\nThe relay-side aggregation has not been done yet but it would be the next feature to explore. ",
+          "createdAt": "2026-08-26T07:21:16Z",
+          "updatedAt": "2026-08-26T07:21:16Z"
         }
       ],
       "reviews": [
@@ -215301,7 +215345,7 @@
       ],
       "body": "For a different Track\r\n\r\nFixes #1795",
       "createdAt": "2026-08-20T18:18:13Z",
-      "updatedAt": "2026-08-24T16:26:06Z",
+      "updatedAt": "2026-08-26T15:46:44Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d5c55ebefb56790bd8bb56dc5c7d4fe340d5f4dd",
@@ -215444,6 +215488,26 @@
               "body": "Shouldn't I say something about this complexity?  It seems like a potential gotcha for client implementations and I wouldn't want all clients to have to re-discover this.",
               "createdAt": "2026-08-24T16:26:05Z",
               "updatedAt": "2026-08-24T16:26:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABK_SdXA",
+          "commit": {
+            "abbreviatedOid": "a945a5a"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-26T15:46:43Z",
+          "updatedAt": "2026-08-26T15:46:44Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "Buffering or filtering alone is insufficient to handle the case I suggested.  We can just warn?  Something like this \r\n\r\n> A subscriber that receives objects can deliver them immediately to subscription(s) known to use the associated alias. Reusing the same Track Alias for concurrent subscriptions the same Track can lead to missed delivery to a new subscription if the objects arrive before the control message establishing the shared Alias.",
+              "createdAt": "2026-08-26T15:46:43Z",
+              "updatedAt": "2026-08-26T15:46:44Z"
             }
           ]
         }
