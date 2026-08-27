@@ -3358,7 +3358,7 @@ REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.
 The publisher can also send REQUEST_UPDATE to modify parameters set
 using SUBSCRIBE_OK.
 
-An endpoint that receives a REQUEST_UPDATE other than in the two cases above
+An endpoint that receives a REQUEST_UPDATE other than in the three cases above
 MUST close the session with a `PROTOCOL_VIOLATION`.
 
 The receiver of a REQUEST_UPDATE MUST respond with exactly one REQUEST_OK
