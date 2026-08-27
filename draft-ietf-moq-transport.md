@@ -1893,8 +1893,8 @@ Timeout in the next section refers to this Track Property.
 
 Tracks are promoted to the selected state, demoted to the
 deselected state, or purged back to the unknown state as
-shown in the following diagram. Objects only pass the filter
-for tracks in the selected state, as shown below.
+shown in the following diagram. Only Objects from selected
+Tracks are published.
 
 ~~~
         +--------------+
@@ -1913,12 +1913,10 @@ limit state  |    +---> REQ UPD FWD=1 --->|   Tracks   |
         | out of Top N |     Demoted/Timeout
         +--------------+
 
-          Objects FAIL                     Objects PASS
-           the filter                       the filter
 ~~~
 
-A track is selected if it publishes an object with the top N highest
-value for Property Type, where N = MaxTopTracks.  The publisher
+A track is selected if it has published an object with one of the top
+MaxTopTracks highest values for Property Type.  The publisher
 MUST send a PUBLISH message for each newly selected track.  For tracks
 with the same value, the track with the earlier delivered object wins
 the tie breaker, so a selected track remains selected until another track
@@ -1947,10 +1945,11 @@ newly deselected tracks demoted out of the top N (send REQUEST_UPDATE
 with Forward=0).  It can also purge excessive old deselected tracks as
 needed (send PUBLISH_DONE).
 
-If a Top Tracks Filter for a namespace overlaps with a direct subscription
-to a track name in the same namespace, it is considered to pass the Top Tracks
-Filter whether or not it is counted in the top N list, and MUST NOT
-be subject to filter state changes or actions.
+If a Top Tracks Filter for a namespace overlaps with a SUBSCRIBE
+to a track name in the same namespace, its state MUST NOT be modified
+by the Top Tracks Filter and it does not change the Top N computation.
+For example, if the Track is not in the Top N, then the Subscriber will receive a total of
+N+1 Subscriptions from that Track Namespace.
 
 Objects received with a location lower than the largest received in that track
 are ignored for Top Tracks Filter state updates; however, if the track is already
