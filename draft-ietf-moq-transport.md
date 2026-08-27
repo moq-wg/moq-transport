@@ -1905,11 +1905,11 @@ Tracks are published.
              |    |     Newly Selected    +------------+
 PUBLISH_DONE |    +---> PUBLISH FWD=1 --->|  SELECTED  |
 as needed to |             Promoted       |  in Top N  |
-limit state  |    +---> REQ UPD FWD=1 --->|   Tracks   |
+limit state  |    +---> NOTIFY  FWD=1 --->|   Tracks   |
              |    |       Reselected      +------------+
              |    |                             |
         +--------------+                        |
-        |  DESELECTED  |<---- REQ UPD FWD=0 <---+
+        |  DESELECTED  |<---- NOTIFY  FWD=0 <---+
         | out of Top N |     Demoted/Timeout
         +--------------+
 
@@ -1923,10 +1923,10 @@ the tie breaker, so a selected track remains selected until another track
 publishes a higher value that demotes it out of the top N, or Timeout
 elapses before the track delivers an object that remains in the top N,
 either of which deselect the track.  The publisher MUST send a
-REQUEST_UPDATE message with Forward=0 when a track is deselected.
-The publisher MUST send a REQUEST_UPDATE message with Forward=1 when a
+PUBLISH_STATE_NOTIFY message with Forward=0 when a track is deselected.
+The publisher MUST send a PUBLISH_STATE_NOTIFY message with Forward=1 when a
 deselected track is reselected, which also updates the Joining Location
-as described in {{joining-fetch-range-calculation}}.
+as described in {{joining-fetches}}.
 
 Recently deselected tracks SHOULD be kept in a list to avoid more PUBLISH
 messages in case a deselected track is reselected.  A relay SHOULD limit
@@ -1940,8 +1940,8 @@ control messages but small enough to avoid excessive old subscription state.
 If the TOP_TRACKS_FILTER parameter is updated, the publisher evaluates the
 new filter to determine the new list of top N selected tracks and follows
 the same rules above for newly selected tracks in the top N (send PUBLISH),
-reselected tracks in the top N (send REQUEST_UPDATE with Forward=1), and
-newly deselected tracks demoted out of the top N (send REQUEST_UPDATE
+reselected tracks in the top N (send PUBLISH_STATE_NOTIFY with Forward=1), and
+newly deselected tracks demoted out of the top N (send PUBLISH_STATE_NOTIFY
 with Forward=0).  It can also purge excessive old deselected tracks as
 needed (send PUBLISH_DONE).
 
