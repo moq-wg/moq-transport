@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-27T08:19:00.528687+00:00",
+  "timestamp": "2026-08-30T04:29:48.042044+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -52510,13 +52510,22 @@
         "vasilvv"
       ],
       "labels": [
-        "Editorial"
+        "Editorial",
+        "Needs PR"
       ],
       "body": "MOQ model for flow control is different from how HTTP works, in the sense that it assumes you have data that you want to be delivered in real time.\n\nGiven that I've had to explain this notion many times before, it would be nice if we had the text explaining that (if we don't have it already and I missed it somehow)",
       "createdAt": "2026-07-23T16:38:47Z",
-      "updatedAt": "2026-07-23T16:38:47Z",
+      "updatedAt": "2026-08-27T15:59:43Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "#1637 is somewhat related.",
+          "createdAt": "2026-08-27T15:59:43Z",
+          "updatedAt": "2026-08-27T15:59:43Z"
+        }
+      ]
     },
     {
       "number": 1828,
@@ -53123,6 +53132,22 @@
       "body": "The existing priorities express ordering, but not whether equal-priority data should be completed serially or interleaved. Should we add in an INCREMENTAL parameter like HTTP does in RFC 9218?",
       "createdAt": "2026-08-26T21:47:45Z",
       "updatedAt": "2026-08-26T21:48:03Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 1860,
+      "id": "I_kwDOG2Ho4M8AAAABOudSjg",
+      "title": "Interest in an extension for atomic subscription bundles?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1860",
+      "state": "OPEN",
+      "author": "sharmafb",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "As of now, I can see that there is some discussion to have the ability to switch individual tracks (e.g: #1675). However, there are potentially use cases where we might want an atomic switch between two sets of tracks.\n\nFor example, sports streams may have three tracks: video, commentary audio, and captions. If someone wants to switch from watching tennis to soccer, having \"atomic subscription bundle\" functionality could prevent duplicate data transmission and bandwidth wastage.\n\nAnother example: A security dashboard might show tiled views from multiple cameras (each one is its own track). If the viewer switches from \"floor 1\" to \"office\", we'd avoid a partially rendered scene and wasted bandwidth by having an \"atomic subscription bundle\".\n\nWould anyone be interested if I write an extension for this?",
+      "createdAt": "2026-08-28T23:36:02Z",
+      "updatedAt": "2026-08-28T23:36:02Z",
       "closedAt": null,
       "comments": []
     }
@@ -207599,13 +207624,13 @@
       ],
       "body": "Treat `DEFAULT_PUBLISHER_PRIORITY` as compression only hop-by-hop parameter. \r\n\r\nFixes: #1270\r\n\r\nSee discussiong there.",
       "createdAt": "2026-06-17T12:39:04Z",
-      "updatedAt": "2026-08-13T18:20:59Z",
+      "updatedAt": "2026-08-27T16:20:13Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "385398b17544f9655450b514d506f430d81feebe",
+      "baseRefOid": "e1ae858d5c4009253ea19bfed30e3b58c4399de3",
       "headRepository": "michalhosna/moq-transport",
       "headRefName": "mh/default-publisher-priority",
-      "headRefOid": "766bf288e76b37241060a822c833aafec9579b10",
+      "headRefOid": "15cbb8fa23b3d15ed64fddbd47079445162145f5",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -214026,13 +214051,13 @@
       ],
       "body": "Added Top Tracks Filter (was Track Filter in PR#1508 / PR#1401).",
       "createdAt": "2026-07-24T17:47:02Z",
-      "updatedAt": "2026-08-26T07:21:17Z",
+      "updatedAt": "2026-08-27T15:24:29Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e1ae858d5c4009253ea19bfed30e3b58c4399de3",
       "headRepository": "mzanaty/moq-transport",
       "headRefName": "patch-6",
-      "headRefOid": "73717a885ee57205ad96c78e9805dab96c0da45d",
+      "headRefOid": "eafe29e32fd6509b94df92c634fa48a52f0aaa0a",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -214393,6 +214418,26 @@
               "body": "Assuming you mean update the property type not parameter, yes, there is currently no restriction. Do you think we should disallow updating the property type? I'm fine with restricting updates to MaxTopTracks (N).",
               "createdAt": "2026-08-24T19:44:18Z",
               "updatedAt": "2026-08-24T19:54:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLI9znw",
+          "commit": {
+            "abbreviatedOid": "3f7f058"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-27T15:24:28Z",
+          "updatedAt": "2026-08-27T15:24:29Z",
+          "comments": [
+            {
+              "originalPosition": 93,
+              "body": "Updated to use PUBLISH_STATE_NOTIFY. If PR#1825 replaces Forward with Location Filter, I will do the same here after it lands.",
+              "createdAt": "2026-08-27T15:24:28Z",
+              "updatedAt": "2026-08-27T15:24:29Z"
             }
           ]
         }
@@ -215303,7 +215348,7 @@
       ],
       "body": "Name the RFC 3986 components explicitly in the scope-equality rule and state that the query component is not part of the scope.\r\n\r\nFixes: #1835",
       "createdAt": "2026-08-14T19:05:14Z",
-      "updatedAt": "2026-08-19T16:32:33Z",
+      "updatedAt": "2026-08-27T15:52:58Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d5c55ebefb56790bd8bb56dc5c7d4fe340d5f4dd",
@@ -215328,6 +215373,19 @@
           "createdAt": "2026-08-19T16:32:33Z",
           "updatedAt": "2026-08-19T16:32:33Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLJOeoQ",
+          "commit": {
+            "abbreviatedOid": "40761e6"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-08-27T15:52:58Z",
+          "updatedAt": "2026-08-27T15:52:58Z",
+          "comments": []
         }
       ]
     },
@@ -215345,13 +215403,13 @@
       ],
       "body": "For a different Track\r\n\r\nFixes #1795",
       "createdAt": "2026-08-20T18:18:13Z",
-      "updatedAt": "2026-08-26T15:46:44Z",
+      "updatedAt": "2026-08-27T15:17:30Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d5c55ebefb56790bd8bb56dc5c7d4fe340d5f4dd",
+      "baseRefOid": "e1ae858d5c4009253ea19bfed30e3b58c4399de3",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-reuse-track-alias",
-      "headRefOid": "a945a5a55bf44e2f9aca75c973aa424f27d93a13",
+      "headRefOid": "a644a6aa5533b6bce857d362c37b9edd123e1cf5",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -215523,11 +215581,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Wire Format"
+        "Wire Format",
+        "Design"
       ],
       "body": "Fixes #1800 ",
       "createdAt": "2026-08-24T18:03:37Z",
-      "updatedAt": "2026-08-24T18:27:31Z",
+      "updatedAt": "2026-08-27T15:15:53Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e1ae858d5c4009253ea19bfed30e3b58c4399de3",
@@ -215539,7 +215598,21 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLI4gsg",
+          "commit": {
+            "abbreviatedOid": "2d27b24"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Someone might wonder why we allow params here but none are defined.",
+          "createdAt": "2026-08-27T15:15:46Z",
+          "updatedAt": "2026-08-27T15:15:46Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
