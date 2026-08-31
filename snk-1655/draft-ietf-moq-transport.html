@@ -5746,67 +5746,100 @@ it intends to close the session soon.  When sent by a server, it can initiate
 session migration (<a href="#session-migration" class="auto internal xref">Section 3.6</a>) with an optional URI.  A client <span class="bcp14">MUST</span>
 send a zero-length New Session URI in any GOAWAY, as clients cannot instruct
 servers to initiate connections.<a href="#section-10.4-1" class="pilcrow">¶</a></p>
-<p id="section-10.4-2">A <code>GOAWAY</code> <span class="bcp14">MAY</span> also be sent on a request stream to initiate migration of that
-individual request. Only the endpoint that received the request <span class="bcp14">MAY</span> send a
-GOAWAY on its request stream, effectively asking the requester to re-issue the
-request on another session or URI. An endpoint that receives a GOAWAY from the
-requester on a request stream <span class="bcp14">MUST</span> close the session with a
-<code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
-<p id="section-10.4-3">Upon receiving a GOAWAY on a request stream, the requester <span class="bcp14">SHOULD</span> re-issue
-that specific request on a session at the specified URI (or the current session
-if no URI is provided), and close the old request stream using the appropriate
-mechanism (e.g. FIN, stream reset, or PUBLISH_DONE). This allows, for example,
-a relay to move an individual subscription or publication to another relay
-without draining its entire session.<a href="#section-10.4-3" class="pilcrow">¶</a></p>
-<p id="section-10.4-4">The rule is symmetric across both roles and both request verbs — whoever
-received the request may ask the requester to re-issue it:<a href="#section-10.4-4" class="pilcrow">¶</a></p>
+<p id="section-10.4-2">A <code>GOAWAY</code> <span class="bcp14">MAY</span> also be sent on a request stream to migrate that individual
+request. Either endpoint of a request stream <span class="bcp14">MAY</span> send <code>GOAWAY</code> on it. As on
+the control stream, a client <span class="bcp14">MUST</span> send a zero-length New Session URI, since
+clients cannot instruct servers to initiate connections.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
+<p id="section-10.4-3">Upon receiving a GOAWAY on a request stream, the endpoint that issued the
+original request (the requester) <span class="bcp14">SHOULD</span> re-issue that same request at the
+New Session URI (or on the current session if no URI is provided). The old
+request stream is closed using the appropriate mechanism (e.g. FIN, stream
+reset, or PUBLISH_DONE). GOAWAY on a request stream never switches request
+verb — the requester re-issues the same verb it originally sent. Draining
+is handled by the existing per-request mechanisms (<code>PUBLISH_DONE</code>,
+unsubscribe, stream close), not by GOAWAY.<a href="#section-10.4-3" class="pilcrow">¶</a></p>
+<p id="section-10.4-4">The following table lists who may usefully send <code>GOAWAY</code> on a request
+stream for each subscription-creating request, and what that <code>GOAWAY</code>
+means. In every case, a <code>GOAWAY</code> sent by a server <span class="bcp14">MAY</span> carry a New Session
+URI (redirect); a <code>GOAWAY</code> sent by a client <span class="bcp14">MUST</span> carry a zero-length URI
+and is equivalent to draining the leg.<a href="#section-10.4-4" class="pilcrow">¶</a></p>
 <table class="center" id="table-7">
           <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">#</th>
-              <th class="text-left" rowspan="1" colspan="1">Requester</th>
-              <th class="text-left" rowspan="1" colspan="1">Request</th>
-              <th class="text-left" rowspan="1" colspan="1">GOAWAY sender (receiver)</th>
-              <th class="text-left" rowspan="1" colspan="1">New Session URI allowed?</th>
+              <th class="text-left" rowspan="1" colspan="1">Initiator</th>
+              <th class="text-left" rowspan="1" colspan="1">Verb</th>
+              <th class="text-left" rowspan="1" colspan="1">GOAWAY sender</th>
+              <th class="text-left" rowspan="1" colspan="1">Effect</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">1</td>
-              <td class="text-left" rowspan="1" colspan="1">client publisher</td>
+              <td class="text-left" rowspan="1" colspan="1">client</td>
               <td class="text-left" rowspan="1" colspan="1">PUBLISH</td>
               <td class="text-left" rowspan="1" colspan="1">server (subscriber)</td>
-              <td class="text-left" rowspan="1" colspan="1">yes</td>
+              <td class="text-left" rowspan="1" colspan="1">Server asks client to re-PUBLISH at New Session URI.</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">2</td>
-              <td class="text-left" rowspan="1" colspan="1">client subscriber</td>
-              <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE</td>
-              <td class="text-left" rowspan="1" colspan="1">server (publisher)</td>
-              <td class="text-left" rowspan="1" colspan="1">yes</td>
+              <td class="text-left" rowspan="1" colspan="1">client</td>
+              <td class="text-left" rowspan="1" colspan="1">PUBLISH</td>
+              <td class="text-left" rowspan="1" colspan="1">client (publisher)</td>
+              <td class="text-left" rowspan="1" colspan="1">Drain: client stops publishing on this stream.</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">3</td>
-              <td class="text-left" rowspan="1" colspan="1">server publisher</td>
-              <td class="text-left" rowspan="1" colspan="1">PUBLISH</td>
-              <td class="text-left" rowspan="1" colspan="1">client (subscriber)</td>
-              <td class="text-left" rowspan="1" colspan="1">no (empty, same session)</td>
+              <td class="text-left" rowspan="1" colspan="1">client</td>
+              <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE</td>
+              <td class="text-left" rowspan="1" colspan="1">server (publisher)</td>
+              <td class="text-left" rowspan="1" colspan="1">Server asks client to re-SUBSCRIBE at New Session URI.</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">4</td>
-              <td class="text-left" rowspan="1" colspan="1">server subscriber</td>
+              <td class="text-left" rowspan="1" colspan="1">client</td>
+              <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE</td>
+              <td class="text-left" rowspan="1" colspan="1">client (subscriber)</td>
+              <td class="text-left" rowspan="1" colspan="1">Drain: equivalent to unsubscribing.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">5</td>
+              <td class="text-left" rowspan="1" colspan="1">server</td>
+              <td class="text-left" rowspan="1" colspan="1">PUBLISH</td>
+              <td class="text-left" rowspan="1" colspan="1">server (publisher)</td>
+              <td class="text-left" rowspan="1" colspan="1">Server hands its outbound PUBLISH off to a new URI.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">6</td>
+              <td class="text-left" rowspan="1" colspan="1">server</td>
+              <td class="text-left" rowspan="1" colspan="1">PUBLISH</td>
+              <td class="text-left" rowspan="1" colspan="1">client (subscriber)</td>
+              <td class="text-left" rowspan="1" colspan="1">Drain: equivalent to closing the subscription.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">7</td>
+              <td class="text-left" rowspan="1" colspan="1">server</td>
+              <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE</td>
+              <td class="text-left" rowspan="1" colspan="1">server (subscriber)</td>
+              <td class="text-left" rowspan="1" colspan="1">Server hands its outbound SUBSCRIBE off to a new URI.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">8</td>
+              <td class="text-left" rowspan="1" colspan="1">server</td>
               <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE</td>
               <td class="text-left" rowspan="1" colspan="1">client (publisher)</td>
-              <td class="text-left" rowspan="1" colspan="1">no (empty, same session)</td>
+              <td class="text-left" rowspan="1" colspan="1">Drain: client stops publishing to the server.</td>
             </tr>
           </tbody>
         </table>
-<p id="section-10.4-6">The same shape applies to FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and
-PUBLISH_NAMESPACE. GOAWAY on a request stream never switches request verb —
-the requester re-issues the same verb it originally sent. Draining is handled
-by the existing per-request mechanisms (<code>PUBLISH_DONE</code>, unsubscribe, stream
-close), not by GOAWAY.<a href="#section-10.4-6" class="pilcrow">¶</a></p>
+<p id="section-10.4-6"><code>GOAWAY</code> on a request stream never switches request verb — the requester
+re-issues the same verb it originally sent. When the sender is a client,
+the same effect can equivalently be achieved by the existing per-request
+mechanisms (<code>PUBLISH_DONE</code>, unsubscribe, or stream close); those <span class="bcp14">SHOULD</span> be
+preferred over a bare-drain <code>GOAWAY</code>. The same shape (server-side redirect,
+client-side drain) applies to <code>FETCH</code>, <code>TRACK_STATUS</code>, <code>SUBSCRIBE_NAMESPACE</code>,
+<code>SUBSCRIBE_TRACKS</code>, and <code>PUBLISH_NAMESPACE</code>.<a href="#section-10.4-6" class="pilcrow">¶</a></p>
 <p id="section-10.4-7">The GOAWAY message does not impact subscription state. A subscriber
 <span class="bcp14">SHOULD</span> individually unsubscribe from each existing subscription, while a
 publisher <span class="bcp14">MAY</span> reject new requests after sending a GOAWAY.<a href="#section-10.4-7" class="pilcrow">¶</a></p>
