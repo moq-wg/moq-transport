@@ -3202,13 +3202,30 @@ session migration ({{session-migration}}) with an optional URI.  A client MUST
 send a zero-length New Session URI in any GOAWAY, as clients cannot instruct
 servers to initiate connections.
 
-A `GOAWAY` MAY also be sent on a request stream to initiate migration of
-that individual request.  Upon receiving a GOAWAY on a request stream, the
-endpoint SHOULD re-issue that specific request on a session at the specified
-URI (or the current session if no URI is provided), and close the old request
-stream using the appropriate mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).
-This allows, for example, moving the publishers and subscribers of a common set
-of tracks to a common relay without draining their entire session.
+A `GOAWAY` MAY also be sent on a request stream to migrate that individual
+request. Either endpoint of a request stream MAY send it, subject to the
+same URI rule as the control stream. When sent by a server it MAY carry a
+New Session URI (redirect); when sent by a client it MUST be zero-length
+(drain). The requester (the endpoint that issued the original request)
+SHOULD re-issue that same request at the New Session URI, or on the current
+session if none is given, and close the old request stream using the
+appropriate mechanism (e.g. FIN, stream reset, or `PUBLISH_DONE`). GOAWAY
+never switches the request verb.
+
+The four server-sent (redirect) cases for subscription-creating requests
+are:
+
+| Initiator | Verb      | Server role in stream | Effect                                     |
+|-----------|-----------|-----------------------|--------------------------------------------|
+| client    | PUBLISH   | subscriber            | Ask client to re-PUBLISH at New URI.       |
+| client    | SUBSCRIBE | publisher             | Ask client to re-SUBSCRIBE at New URI.     |
+| server    | PUBLISH   | publisher (requester) | Hand outbound PUBLISH off to a new URI.    |
+| server    | SUBSCRIBE | subscriber (requester)| Hand outbound SUBSCRIBE off to a new URI.  |
+
+A client-sent `GOAWAY` on a request stream drains that leg; the existing
+per-request mechanisms (`PUBLISH_DONE`, unsubscribe, stream close) SHOULD
+be preferred. The same shape applies to `FETCH`, `TRACK_STATUS`,
+`SUBSCRIBE_NAMESPACE`, `SUBSCRIBE_TRACKS`, and `PUBLISH_NAMESPACE`.
 
 The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually unsubscribe from each existing subscription, while a
