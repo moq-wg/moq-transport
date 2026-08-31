@@ -1836,13 +1836,13 @@ On receiving a message containing SWITCH_FROM, the publisher:
    subscription is in Forward State 0.
 
 2. Sets the activating subscription to Forward State 1 and applies the
-   the most recent SUBSCRIPTION_FILTER parameter for this subscription (which
+   most recent LOCATION_FILTER parameter for this subscription (which
    can be in the same message carrying SWITCH_FROM). This ensures objects
    in Groups greater than or equal to the Largest Object's Group
    are not missed during the transition.
 
-3. Waits until it is ready to publish an object from the SUBSCRIPTION_FILTER's
-   Start Location's Group (the Start Group; see {{subscription-filters}}),
+3. Waits until it is ready to publish an object from the LOCATION_FILTER's
+   Start Location's Group (the Start Group; see {{location-filters}}),
    computed from the activating track at the time the request is received, while
    continuing to deliver objects on the suspending subscription.  When GROUP_ORDER
    is Descending and Start Group is before the Current Group, the publisher
@@ -1854,17 +1854,17 @@ On receiving a message containing SWITCH_FROM, the publisher:
      Publish Done is 1, the publisher also sends PUBLISH_DONE with code
      SUBSCRIPTION_ENDED.
 
-   In all modes, the publisher also resets any outstanding streams (including fill-fetch streams) on the suspending
+   In all modes, the publisher also resets any outstanding streams (including fill fetch streams) on the suspending
    subscription; objects already in flight can still be received by the subscriber.
 
    If Publish Done is 0, the suspending subscription remains established.
 
-5. Begins delivery of activating subscription from Start Group. If the
-   SUBSCRIPTION_FILTER is a fill filter type, opens a fill fetch stream using
+5. Begins delivery of activating subscription from Start Group. If
+   FILL_PARAMETERS is present, opens a fill fetch stream using
    the activating subscription's Request ID (see {{fill-semantics}}).
 
 6. Responds on the activating subscription's control stream with SUBSCRIBE_OK or REQUEST_OK as appropriate, including
-   LARGEST_OBJECT if the SUBSCRIPTION_FILTER is a fill filter type.
+   LARGEST_OBJECT if FILL_PARAMETERS is present.
 
 If the publisher times out waiting to publish an object from the
 Start Group on the activating track, it MUST respond with REQUEST_ERROR `TIMEOUT`.
