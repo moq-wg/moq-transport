@@ -3227,6 +3227,22 @@ mechanism (e.g. FIN, stream reset, or PUBLISH_DONE). This allows, for example,
 a relay to move an individual subscription or publication to another relay
 without draining its entire session.
 
+The rule is symmetric across both roles and both request verbs — whoever
+received the request may ask the requester to re-issue it:
+
+| # | Requester        | Request   | GOAWAY sender (receiver) | New Session URI allowed? |
+|---|------------------|-----------|--------------------------|--------------------------|
+| 1 | client publisher | PUBLISH   | server (subscriber)      | yes                      |
+| 2 | client subscriber| SUBSCRIBE | server (publisher)       | yes                      |
+| 3 | server publisher | PUBLISH   | client (subscriber)      | no (empty, same session) |
+| 4 | server subscriber| SUBSCRIBE | client (publisher)       | no (empty, same session) |
+
+The same shape applies to FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and
+PUBLISH_NAMESPACE. GOAWAY on a request stream never switches request verb —
+the requester re-issues the same verb it originally sent. Draining is handled
+by the existing per-request mechanisms (`PUBLISH_DONE`, unsubscribe, stream
+close), not by GOAWAY.
+
 The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually unsubscribe from each existing subscription, while a
 publisher MAY reject new requests after sending a GOAWAY.
