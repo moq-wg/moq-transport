@@ -743,6 +743,27 @@ manner in which tracks are delivered via Parameters, but the actual content of
 the tracks does not depend on those parameters; this is in contrast to protocols
 like HTTP, where request headers can alter the server response.
 
+{{scope-hierarchy}} illustrates the naming hierarchy within an MOQT scope,
+using the serialized representation from {{namespace-name-format}} for
+namespaces and tracks:
+
+~~~
+                 Scope (https://example.org/moq)
+                                |
+                    +-----------+-----------+
+                    |                       |
+            namespace "a" (a)       namespace "d" (d)
+                    |                       |
+         +----------+----------+            \-- track "test" (d--test)
+         |                     |
+namespace "b" (a-b)   namespace "c" (a-c)
+         |
+         +-- track "foo" (a-b--foo)
+         |
+         \-- track "bar" (a-b--bar)
+~~~
+{: #scope-hierarchy title="Example of a track hierarchy within a scope"}
+
 A publisher that loses state (e.g. crashes) and intends to resume publishing on
 the same Track risks colliding with previously published Objects and violating
 the above requirements.  A publisher can handle this in application specific
