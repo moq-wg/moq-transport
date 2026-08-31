@@ -5758,23 +5758,72 @@ if no URI is provided), and close the old request stream using the appropriate
 mechanism (e.g. FIN, stream reset, or PUBLISH_DONE). This allows, for example,
 a relay to move an individual subscription or publication to another relay
 without draining its entire session.<a href="#section-10.4-3" class="pilcrow">¶</a></p>
-<p id="section-10.4-4">The GOAWAY message does not impact subscription state. A subscriber
+<p id="section-10.4-4">The rule is symmetric across both roles and both request verbs — whoever
+received the request may ask the requester to re-issue it:<a href="#section-10.4-4" class="pilcrow">¶</a></p>
+<table class="center" id="table-7">
+          <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">#</th>
+              <th class="text-left" rowspan="1" colspan="1">Requester</th>
+              <th class="text-left" rowspan="1" colspan="1">Request</th>
+              <th class="text-left" rowspan="1" colspan="1">GOAWAY sender (receiver)</th>
+              <th class="text-left" rowspan="1" colspan="1">New Session URI allowed?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">1</td>
+              <td class="text-left" rowspan="1" colspan="1">client publisher</td>
+              <td class="text-left" rowspan="1" colspan="1">PUBLISH</td>
+              <td class="text-left" rowspan="1" colspan="1">server (subscriber)</td>
+              <td class="text-left" rowspan="1" colspan="1">yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">2</td>
+              <td class="text-left" rowspan="1" colspan="1">client subscriber</td>
+              <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE</td>
+              <td class="text-left" rowspan="1" colspan="1">server (publisher)</td>
+              <td class="text-left" rowspan="1" colspan="1">yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">3</td>
+              <td class="text-left" rowspan="1" colspan="1">server publisher</td>
+              <td class="text-left" rowspan="1" colspan="1">PUBLISH</td>
+              <td class="text-left" rowspan="1" colspan="1">client (subscriber)</td>
+              <td class="text-left" rowspan="1" colspan="1">no (empty, same session)</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">4</td>
+              <td class="text-left" rowspan="1" colspan="1">server subscriber</td>
+              <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE</td>
+              <td class="text-left" rowspan="1" colspan="1">client (publisher)</td>
+              <td class="text-left" rowspan="1" colspan="1">no (empty, same session)</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-10.4-6">The same shape applies to FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and
+PUBLISH_NAMESPACE. GOAWAY on a request stream never switches request verb —
+the requester re-issues the same verb it originally sent. Draining is handled
+by the existing per-request mechanisms (<code>PUBLISH_DONE</code>, unsubscribe, stream
+close), not by GOAWAY.<a href="#section-10.4-6" class="pilcrow">¶</a></p>
+<p id="section-10.4-7">The GOAWAY message does not impact subscription state. A subscriber
 <span class="bcp14">SHOULD</span> individually unsubscribe from each existing subscription, while a
-publisher <span class="bcp14">MAY</span> reject new requests after sending a GOAWAY.<a href="#section-10.4-4" class="pilcrow">¶</a></p>
-<p id="section-10.4-5">Upon receiving a GOAWAY on the control stream, an endpoint <span class="bcp14">SHOULD NOT</span> initiate new requests to the
+publisher <span class="bcp14">MAY</span> reject new requests after sending a GOAWAY.<a href="#section-10.4-7" class="pilcrow">¶</a></p>
+<p id="section-10.4-8">Upon receiving a GOAWAY on the control stream, an endpoint <span class="bcp14">SHOULD NOT</span> initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and TRACK_STATUS.<a href="#section-10.4-5" class="pilcrow">¶</a></p>
-<p id="section-10.4-6">Sending a GOAWAY does not prevent the sender from initiating new requests,
+SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and TRACK_STATUS.<a href="#section-10.4-8" class="pilcrow">¶</a></p>
+<p id="section-10.4-9">Sending a GOAWAY does not prevent the sender from initiating new requests,
 though the sender <span class="bcp14">SHOULD</span> avoid initiating requests unless required by migration
 (see (<a href="#graceful-subscriber-switchover" class="auto internal xref">Section 9.4.1</a> and <a href="#graceful-publisher-switchover" class="auto internal xref">Section 9.5.1</a>).
 An endpoint that receives a GOAWAY <span class="bcp14">MAY</span> reject new requests with an appropriate
-error code (e.g., REQUEST_ERROR with error code GOING_AWAY).<a href="#section-10.4-6" class="pilcrow">¶</a></p>
-<p id="section-10.4-7">The endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>
+error code (e.g., REQUEST_ERROR with error code GOING_AWAY).<a href="#section-10.4-9" class="pilcrow">¶</a></p>
+<p id="section-10.4-10">The endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>
 (<a href="#session-termination" class="auto internal xref">Section 3.5</a>) if it receives more than one GOAWAY on the
-control stream or on a single request stream.<a href="#section-10.4-7" class="pilcrow">¶</a></p>
+control stream or on a single request stream.<a href="#section-10.4-10" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
 <figure id="figure-7">
-          <div class="alignLeft art-text artwork" id="section-10.4-8.1">
+          <div class="alignLeft art-text artwork" id="section-10.4-11.1">
 <pre>
 GOAWAY Message {
   Type (vi64) = 0x10,
@@ -5790,27 +5839,27 @@ GOAWAY Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-10.4-9.1">
-            <p id="section-10.4-9.1.1">New Session URI: When received by a client, indicates where the client can
+<li class="normal" id="section-10.4-12.1">
+            <p id="section-10.4-12.1.1">New Session URI: When received by a client, indicates where the client can
 connect to continue this session or re-issue this request.  The client <span class="bcp14">MUST</span>
 use this URI for the new session if provided. If the URI is zero bytes long,
 the current URI is reused instead. The new session URI <span class="bcp14">SHOULD</span> use the same scheme
 as the current URI to ensure compatibility.  The maximum length of the New
 Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
-maximum, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4-9.1.1" class="pilcrow">¶</a></p>
-<p id="section-10.4-9.1.2">
+maximum, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4-12.1.1" class="pilcrow">¶</a></p>
+<p id="section-10.4-12.1.2">
 If a server receives a GOAWAY with a non-zero New Session URI Length it <span class="bcp14">MUST</span>
-close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4-9.1.2" class="pilcrow">¶</a></p>
+close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4-12.1.2" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-10.4-9.2">
-            <p id="section-10.4-9.2.1">Timeout: The time in milliseconds the sender will wait for graceful closure.
+          <li class="normal" id="section-10.4-12.2">
+            <p id="section-10.4-12.2.1">Timeout: The time in milliseconds the sender will wait for graceful closure.
 When sent on the control stream, the sender closes the session with
 <code>GOAWAY_TIMEOUT</code> after the indicated timeout if there are still open requests.
 When sent on a request stream, the sender <span class="bcp14">SHOULD</span> reset the stream with
 <code>GOING_AWAY</code> after the indicated timeout.  A value of 0 indicates the sender has no
 specific timeout, but the recipient <span class="bcp14">SHOULD</span> migrate as quickly as
 possible. This is a hint; the sender of the GOAWAY <span class="bcp14">MAY</span> close the session or
-reset the request stream before the indicated timeout has elapsed.<a href="#section-10.4-9.2.1" class="pilcrow">¶</a></p>
+reset the request stream before the indicated timeout has elapsed.<a href="#section-10.4-12.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -7597,8 +7646,8 @@ format:<a href="#section-11.4.4-3" class="pilcrow">¶</a></p>
 <p id="section-11.4.4-5">The Serialization Flags field defines the serialization of the Object.  It is
 a variable-length integer.  When less than 128, the bits represent flags described
 below.  The following additional values are defined:<a href="#section-11.4.4-5" class="pilcrow">¶</a></p>
-<table class="center" id="table-7">
-            <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
+<table class="center" id="table-8">
+            <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Value</th>
@@ -7629,8 +7678,8 @@ below.  The following additional values are defined:<a href="#section-11.4.4-5" 
 <p id="section-11.4.4.1-1">The two least significant bits (LSBs) of the Serialization Flags form a two-bit
 field that defines the encoding of the Subgroup.  To extract this value, the
 Subscriber performs a bitwise AND operation with the mask 0x03.<a href="#section-11.4.4.1-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-8">
-              <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
+<table class="center" id="table-9">
+              <caption><a href="#table-9" class="selfRef">Table 9</a></caption>
 <thead>
                 <tr>
                   <th class="text-left" rowspan="1" colspan="1">Bitmask Result (Serialization Flags &amp; 0x03)</th>
@@ -7659,8 +7708,8 @@ Subscriber performs a bitwise AND operation with the mask 0x03.<a href="#section
 <p id="section-11.4.4.1-3">The following table defines additional flags within the Serialization Flags
 field. Each flag is an independent boolean value, where a set bit (1) indicates
 the corresponding condition is true.<a href="#section-11.4.4.1-3" class="pilcrow">¶</a></p>
-<table class="center" id="table-9">
-              <caption><a href="#table-9" class="selfRef">Table 9</a></caption>
+<table class="center" id="table-10">
+              <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
 <thead>
                 <tr>
                   <th class="text-left" rowspan="1" colspan="1">Bitmask</th>
@@ -8577,8 +8626,8 @@ Required policy (<span>[<a href="#RFC8126" class="cite xref">RFC8126</a>], <a hr
         <h3 id="name-setup-options-2">
 <a href="#section-15.4" class="section-number selfRef">15.4. </a><a href="#name-setup-options-2" class="section-name selfRef">Setup Options</a>
         </h3>
-<table class="center" id="table-10">
-          <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
+<table class="center" id="table-11">
+          <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Type</th>
@@ -8660,8 +8709,8 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
         <h3 id="name-authorization-token-alias-t">
 <a href="#section-15.5" class="section-number selfRef">15.5. </a><a href="#name-authorization-token-alias-t" class="section-name selfRef">Authorization Token Alias Type</a>
         </h3>
-<table class="center" id="table-11">
-          <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
+<table class="center" id="table-12">
+          <caption><a href="#table-12" class="selfRef">Table 12</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Code</th>
@@ -8707,8 +8756,8 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
         <h3 id="name-moqt-auth-token-type">
 <a href="#section-15.6" class="section-number selfRef">15.6. </a><a href="#name-moqt-auth-token-type" class="section-name selfRef">MOQT Auth Token Type</a>
         </h3>
-<table class="center" id="table-12">
-          <caption><a href="#table-12" class="selfRef">Table 12</a></caption>
+<table class="center" id="table-13">
+          <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Code</th>
@@ -8740,8 +8789,8 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
         <h3 id="name-message-parameters-2">
 <a href="#section-15.7" class="section-number selfRef">15.7. </a><a href="#name-message-parameters-2" class="section-name selfRef">Message Parameters</a>
         </h3>
-<table class="center" id="table-13">
-          <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
+<table class="center" id="table-14">
+          <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Parameter Type</th>
@@ -8904,8 +8953,8 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
         <h3 id="name-properties-2">
 <a href="#section-15.8" class="section-number selfRef">15.8. </a><a href="#name-properties-2" class="section-name selfRef">Properties</a>
         </h3>
-<table class="center" id="table-14">
-          <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
+<table class="center" id="table-15">
+          <caption><a href="#table-15" class="selfRef">Table 15</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Type</th>
@@ -8999,8 +9048,8 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
         </table>
 <p id="section-15.8-2">The following table contains provisional registrations for other active drafts in the moq wg.
 These entries share the same Property Type space as the table above.<a href="#section-15.8-2" class="pilcrow">¶</a></p>
-<table class="center" id="table-15">
-          <caption><a href="#table-15" class="selfRef">Table 15</a></caption>
+<table class="center" id="table-16">
+          <caption><a href="#table-16" class="selfRef">Table 16</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Type</th>
@@ -9109,8 +9158,8 @@ collision risks.<a href="#section-15.8-5.1.3" class="pilcrow">¶</a></p>
 <p id="section-15.9-1">This document establishes a registry for Object Status values (see
 <a href="#object-status" class="auto internal xref">Section 11.2.1.1</a>). The "Payload" column indicates whether an Object with that
 status is permitted to carry a non-empty payload.<a href="#section-15.9-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-16">
-          <caption><a href="#table-16" class="selfRef">Table 16</a></caption>
+<table class="center" id="table-17">
+          <caption><a href="#table-17" class="selfRef">Table 17</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Code</th>
@@ -9160,8 +9209,8 @@ status permits a payload.<a href="#section-15.9-3" class="pilcrow">¶</a></p>
 under the <code>.session</code> namespace (see <a href="#session-level-tracks" class="auto internal xref">Section 3.2.2</a>). The
 registration policy is Specification Required (per <span>[<a href="#RFC8126" class="cite xref">RFC8126</a>], <a href="https://rfc-editor.org/rfc/rfc8126#section-4.6" class="relref">Section 4.6</a></span>).<a href="#section-15.10-1" class="pilcrow">¶</a></p>
 <p id="section-15.10-2">Each registration must include:<a href="#section-15.10-2" class="pilcrow">¶</a></p>
-<table class="center" id="table-17">
-          <caption><a href="#table-17" class="selfRef">Table 17</a></caption>
+<table class="center" id="table-18">
+          <caption><a href="#table-18" class="selfRef">Table 18</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Field</th>
@@ -9204,8 +9253,8 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
           <h4 id="name-session-termination-error-c">
 <a href="#section-15.11.1" class="section-number selfRef">15.11.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
           </h4>
-<table class="center" id="table-18">
-            <caption><a href="#table-18" class="selfRef">Table 18</a></caption>
+<table class="center" id="table-19">
+            <caption><a href="#table-19" class="selfRef">Table 19</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -9377,8 +9426,8 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
           <h4 id="name-request_error-codes">
 <a href="#section-15.11.2" class="section-number selfRef">15.11.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
           </h4>
-<table class="center" id="table-19">
-            <caption><a href="#table-19" class="selfRef">Table 19</a></caption>
+<table class="center" id="table-20">
+            <caption><a href="#table-20" class="selfRef">Table 20</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -9529,8 +9578,8 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
           <h4 id="name-publish_done-codes">
 <a href="#section-15.11.3" class="section-number selfRef">15.11.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
           </h4>
-<table class="center" id="table-20">
-            <caption><a href="#table-20" class="selfRef">Table 20</a></caption>
+<table class="center" id="table-21">
+            <caption><a href="#table-21" class="selfRef">Table 21</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -9618,8 +9667,8 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
           <h4 id="name-stream-reset-error-codes-2">
 <a href="#section-15.11.4" class="section-number selfRef">15.11.4. </a><a href="#name-stream-reset-error-codes-2" class="section-name selfRef">Stream Reset Error Codes</a>
           </h4>
-<table class="center" id="table-21">
-            <caption><a href="#table-21" class="selfRef">Table 21</a></caption>
+<table class="center" id="table-22">
+            <caption><a href="#table-22" class="selfRef">Table 22</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>

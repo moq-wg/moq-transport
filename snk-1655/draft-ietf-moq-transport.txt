@@ -3635,6 +3635,34 @@ Table of Contents
    individual subscription or publication to another relay without
    draining its entire session.
 
+   The rule is symmetric across both roles and both request verbs —
+   whoever received the request may ask the requester to re-issue it:
+
+      +===+============+===========+===============+===============+
+      | # | Requester  | Request   | GOAWAY sender | New Session   |
+      |   |            |           | (receiver)    | URI allowed?  |
+      +===+============+===========+===============+===============+
+      | 1 | client     | PUBLISH   | server        | yes           |
+      |   | publisher  |           | (subscriber)  |               |
+      +---+------------+-----------+---------------+---------------+
+      | 2 | client     | SUBSCRIBE | server        | yes           |
+      |   | subscriber |           | (publisher)   |               |
+      +---+------------+-----------+---------------+---------------+
+      | 3 | server     | PUBLISH   | client        | no (empty,    |
+      |   | publisher  |           | (subscriber)  | same session) |
+      +---+------------+-----------+---------------+---------------+
+      | 4 | server     | SUBSCRIBE | client        | no (empty,    |
+      |   | subscriber |           | (publisher)   | same session) |
+      +---+------------+-----------+---------------+---------------+
+
+                                 Table 7
+
+   The same shape applies to FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE,
+   and PUBLISH_NAMESPACE.  GOAWAY on a request stream never switches
+   request verb — the requester re-issues the same verb it originally
+   sent.  Draining is handled by the existing per-request mechanisms
+   (PUBLISH_DONE, unsubscribe, stream close), not by GOAWAY.
+
    The GOAWAY message does not impact subscription state.  A subscriber
    SHOULD individually unsubscribe from each existing subscription,
    while a publisher MAY reject new requests after sending a GOAWAY.
@@ -5173,7 +5201,7 @@ Table of Contents
                    | 0x20C | End of Timed-Out Range    |
                    +-------+---------------------------+
 
-                                  Table 7
+                                  Table 8
 
    Any other value is a PROTOCOL_VIOLATION.
 
@@ -5200,7 +5228,7 @@ Table of Contents
      |                              | present                       |
      +------------------------------+-------------------------------+
 
-                                 Table 8
+                                 Table 9
 
    The following table defines additional flags within the Serialization
    Flags field.  Each flag is an independent boolean value, where a set
@@ -5227,7 +5255,7 @@ Table of Contents
      |         |                          | least significant bits  |
      +---------+--------------------------+-------------------------+
 
-                                 Table 9
+                                 Table 10
 
    The first Object MUST include a Group ID Delta and Object ID Delta,
    and these values are the absolute Group ID and Object ID.  If the
@@ -6008,7 +6036,7 @@ EXT 1 and EXT N can be modified or removed by Relays
     | 0x7f * N + 0x9D | Reserved for greasing     | Section 14       |
     +-----------------+---------------------------+------------------+
 
-                                 Table 10
+                                 Table 11
 
    Endpoints MUST ignore unknown Setup Options as specified in
    Section 10.3.
@@ -6034,7 +6062,7 @@ EXT 1 and EXT N can be modified or removed by Relays
                    |  0x3 | USE_VALUE | Section 10.2.2 |
                    +------+-----------+----------------+
 
-                                  Table 11
+                                  Table 12
 
 15.6.  MOQT Auth Token Type
 
@@ -6046,7 +6074,7 @@ EXT 1 and EXT N can be modified or removed by Relays
        | 0x7f * N + 0x9D | Reserved for greasing | Section 14     |
        +-----------------+-----------------------+----------------+
 
-                                 Table 12
+                                 Table 13
 
 15.7.  Message Parameters
 
@@ -6094,7 +6122,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      | 0x35           | INCLUDE_PROPERTIES        | Section 10.2.21 |
      +----------------+---------------------------+-----------------+
 
-                                 Table 13
+                                 Table 14
 
    *  Message Parameters - List which params can be repeated in the
       table.
@@ -6130,7 +6158,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    |     0x9D |                               |        |               |
    +----------+-------------------------------+--------+---------------+
 
-                                  Table 14
+                                  Table 15
 
    The following table contains provisional registrations for other
    active drafts in the moq wg.  These entries share the same Property
@@ -6159,7 +6187,7 @@ EXT 1 and EXT N can be modified or removed by Relays
     |0x32| PADDING             |Object| draft-ietf-moq-secure-objects |
     +----+---------------------+------+-------------------------------+
 
-                                  Table 15
+                                  Table 16
 
    Endpoints MUST ignore unknown Property types, skipping them according
    to the Key-Value-Pair encoding; odd types use their length field,
@@ -6208,7 +6236,7 @@ EXT 1 and EXT N can be modified or removed by Relays
            |  0x4 | End of Track | No      | Section 11.2.1.1 |
            +------+--------------+---------+------------------+
 
-                                 Table 16
+                                 Table 17
 
    New Object Status values are registered using the Specification
    Required policy ([RFC8126], Section 4.6).  Each registration MUST
@@ -6241,7 +6269,7 @@ EXT 1 and EXT N can be modified or removed by Relays
           |                 | specification                    |
           +-----------------+----------------------------------+
 
-                                 Table 17
+                                 Table 18
 
    This document does not define any initial entries.
 
@@ -6297,7 +6325,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      | Reserved for greasing      | 0x7f * N + 0x9D | Section 14    |
      +----------------------------+-----------------+---------------+
 
-                                 Table 18
+                                 Table 19
 
 15.11.2.  REQUEST_ERROR Codes
 
@@ -6343,7 +6371,7 @@ EXT 1 and EXT N can be modified or removed by Relays
         | Reserved for greasing | 0x7f * N + 0x9D | Section 14    |
         +-----------------------+-----------------+---------------+
 
-                                  Table 19
+                                  Table 20
 
 15.11.3.  PUBLISH_DONE Codes
 
@@ -6371,7 +6399,7 @@ EXT 1 and EXT N can be modified or removed by Relays
         | Reserved for greasing | 0x7f * N + 0x9D | Section 14    |
         +-----------------------+-----------------+---------------+
 
-                                  Table 20
+                                  Table 21
 
 15.11.4.  Stream Reset Error Codes
 
@@ -6401,7 +6429,7 @@ EXT 1 and EXT N can be modified or removed by Relays
         | Reserved for greasing | 0x7f * N + 0x9D | Section 14    |
         +-----------------------+-----------------+---------------+
 
-                                  Table 21
+                                  Table 22
 
 Contributors
 
