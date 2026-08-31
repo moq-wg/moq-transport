@@ -4137,10 +4137,8 @@ publisher as the initial Subscription parameters when a PUBLISH is sent as a res
 SUBSCRIBE_TRACKS. These Parameters are explicitly communicated in PUBLISH.
 When omitted by the publisher in PUBLISH, the subscriber uses the default value for each.
 
-To join Tracks initiated via the resulting PUBLISHes at Group boundaries,
-the subscriber can specify a Location Filter and optionally include fill parameters,
-as described in {{joining-tracks}}.
-
+To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a
+Location Filter and optionally include fill parameters, as described in {{joining-tracks}}.
 
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
