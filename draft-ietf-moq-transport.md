@@ -4173,8 +4173,9 @@ the datagram.  See {{object-datagram}}.
 
 An endpoint that receives an unknown datagram type MUST close the session.
 
-Every Object has an `Object Forwarding Preference` and the Original Publisher
-MAY use both Subgroups and Datagrams within a Group or Track.
+An Original Publisher MAY use both Subgroups and Datagrams within a Group
+or Track; each Object's `Object Forwarding Preference` (see
+{{object-header}}) determines which is used.
 
 ## Track Alias {#track-alias}
 
