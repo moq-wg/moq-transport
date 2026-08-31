@@ -3978,7 +3978,7 @@ Pass = Forward AND Location Filters AND Range Filters
 </div>
 </section>
 </div>
-<div id="joining-an-ongoing-track">
+<div id="joining-tracks">
 <section id="section-5.1.6">
           <h4 id="name-joining-an-ongoing-track">
 <a href="#section-5.1.6" class="section-number selfRef">5.1.6. </a><a href="#name-joining-an-ongoing-track" class="section-name selfRef">Joining an Ongoing Track</a>
@@ -5407,10 +5407,6 @@ inside FILL_PARAMETERS.<a href="#section-10.2.15-6" class="pilcrow">¶</a></p>
 <p id="section-10.2.15-7">FILL_PARAMETERS is not retained as subscription state. It applies only to the
 message that carries it, so the sticky-parameter rules in
 <a href="#message-request-update" class="auto internal xref">Section 10.9</a> do not apply to it.<a href="#section-10.2.15-7" class="pilcrow">¶</a></p>
-<p id="section-10.2.15-8">To fill-join a track initiated via PUBLISH, the subscriber <span class="bcp14">SHOULD</span> respond with
-PUBLISH_OK with Forward State 0, then send REQUEST_UPDATE with Forward State 1
-and FILL_PARAMETERS. The REQUEST_UPDATE_OK will contain a fresh LARGEST_OBJECT
-establishing the correct fill range.<a href="#section-10.2.15-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="expires">
@@ -6931,21 +6927,10 @@ only interested in or authorized to access a subset of available tracks.<a href=
 <p id="section-10.20.1-1">Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
 in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
 publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS. These Parameters are explicitly communicated, including the
-FORWARD and GROUP_ORDER parameters as described below.  When omitted by
-the publisher in PUBLISH, the subscriber uses the default value for each.<a href="#section-10.20.1-1" class="pilcrow">¶</a></p>
-<p id="section-10.20.1-2">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 10.2.18</a>) is present in this message and
-equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
-the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
-from this message, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
-set the FORWARD parameter to 1, or indicate that value by omitting the parameter
-(see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).<a href="#section-10.20.1-2" class="pilcrow">¶</a></p>
-<p id="section-10.20.1-3">If the GROUP_ORDER parameter (<a href="#group-order" class="auto internal xref">Section 10.2.8</a>) is present in this message,
-PUBLISH messages resulting from this SUBSCRIBE_TRACKS will include the
-GROUP_ORDER parameter with the same value. If the GROUP_ORDER parameter is
-omitted from this message, PUBLISH messages resulting from this
-SUBSCRIBE_TRACKS will use the publisher's default group order preference
-(see <a href="#group-order-pref" class="auto internal xref">Section 12.5</a>).<a href="#section-10.20.1-3" class="pilcrow">¶</a></p>
+SUBSCRIBE_TRACKS. These Parameters are explicitly communicated in PUBLISH.
+When omitted by the publisher in PUBLISH, the subscriber uses the default value for each.<a href="#section-10.20.1-1" class="pilcrow">¶</a></p>
+<p id="section-10.20.1-2">To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a
+Location Filter and optionally include FILL_PARAMETERS, as described in <a href="#joining-tracks" class="auto internal xref">Section 5.1.6</a>.<a href="#section-10.20.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
