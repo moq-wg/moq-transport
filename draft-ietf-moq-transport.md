@@ -1295,9 +1295,6 @@ DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
 : Authorization Token attempted to register an Alias that was in use (see
   {{authorization-token}}).
 
-VERSION_NEGOTIATION_FAILED (0x15):
-: The client didn't offer a version supported by the server.
-
 MALFORMED_AUTH_TOKEN (0x16):
 : Invalid Auth Token serialization during registration (see
   {{authorization-token}}).
@@ -1481,10 +1478,6 @@ if the Forward State is 1.  The initiator of the subscription sets the initial
 Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send
 REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
-
-A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
-or REQUEST_UPDATE_OK that changes the Forward State
-from 0 to 1.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -1797,7 +1790,7 @@ forward only objects that pass all filters.
 Pass = Forward AND Location Filters AND Range Filters
 ~~~
 
-### Joining an Ongoing Track
+### Joining an Ongoing Track {#joining-tracks}
 
 The MOQT Object model is designed with the concept that the beginning of a Group
 is a join point, so in order for a subscriber to join a Track, it needs to
@@ -1829,7 +1822,7 @@ applications might want to only begin a new Group when needed.  A subscriber
 joining a Track might detect that it is more efficient to request the Original
 Publisher create a new group than to fill the current group.  Publishers
 indicate a Track supports dynamic group creation using the DYNAMIC_GROUPS
-parameter ({{dynamic-groups}}).
+Track Property ({{dynamic-groups}}).
 
 One possible subscriber pattern is to SUBSCRIBE to a Track using a Location Filter
 that starts at the Next Object and observe the `Largest Object` in the response.  If the
@@ -2308,13 +2301,14 @@ multiple subscribers request the same Track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 Track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
-Because MOQT restricts widening a subscription, relays that
-aggregate upstream subscriptions can subscribe using the Largest Object
-Location filter to avoid churn as downstream subscribers with disparate filters
-subscribe and unsubscribe from a Track. Aggregating subscriptions can also
-help relays conserve resources especially with disparate filters or
-SUBSCRIBE_TRACKS in a namespace with a large number of Tracks
-(see {{large-namespaces}}).
+Relays that aggregate subscriptions MAY combine filters from downstream
+subscribers on the upstream subscription, up to the peer's MAX_FILTER_RANGES.
+If adding filters to an upstream subscription is not possible, the relay can either
+remove some or all filters, or make additional subscriptions to the same Track.
+Multiple subscriptions to the same Track with non-disjoint filter sets will result in
+duplicate objects arriving at the relay.  Using wider upstream filters can protect the
+relay from churn as subscribers with disparate filters subscribe and unsubscribe from
+a Track, at the cost of receiving more objects.
 
 A subscriber remains subscribed to a Track at a Relay until it unsubscribes, the
 upstream publisher terminates the subscription, or the subscription expires (see
@@ -2900,10 +2894,10 @@ REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
 
 The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-prefixed
 encoding. It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a subscription)
-message. Its value is a block of Key-Value Pairs (see {{moq-key-value-pair}})
-that apply to the fill fetch stream (see {{fill-semantics}}).  Its presence is
-what requests a fill fetch stream; a subscription with no FILL_PARAMETERS
-opens none.
+message. Its value is a sequence of Parameters that apply to the fill fetch
+stream (see {{fill-semantics}}), encoded as if they were Parameters for a
+separate message (see {{message-parameters}}).  Its presence is what requests a
+fill fetch stream; a subscription with no FILL_PARAMETERS opens none.
 
 The following parameters MAY appear inside FILL_PARAMETERS:
 
@@ -2935,11 +2929,6 @@ inside FILL_PARAMETERS.
 FILL_PARAMETERS is not retained as subscription state. It applies only to the
 message that carries it, so the sticky-parameter rules in
 {{message-request-update}} do not apply to it.
-
-To fill-join a track initiated via PUBLISH, the subscriber SHOULD respond with
-PUBLISH_OK with Forward State 0, then send REQUEST_UPDATE with Forward State 1
-and FILL_PARAMETERS. The REQUEST_UPDATE_OK will contain a fresh LARGEST_OBJECT
-establishing the correct fill range.
 
 ### EXPIRES Parameter {#expires}
 
@@ -3114,7 +3103,7 @@ these rules, the session MUST be closed with `MALFORMED_AUTHORITY`.
 
 The PATH option (Option Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC ({{native-quic}}).  It MUST NOT be used by
-the server, or when WebTransport is used.  When a PATH parameter is received
+the server, or when WebTransport is used.  When a PATH setup option is received
 from a server, or when a PATH parameter is received while WebTransport is used,
 or when a PATH parameter is received by a server but the server does not
 support the specified path, the session MUST be closed with `INVALID_PATH`.
@@ -3276,8 +3265,8 @@ The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
 TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
 requests.
 
-This document uses the shorthand PUBLISH_OK,
-REQUEST_UPDATE_OK, TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and
+This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
+TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
 PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
 corresponding request type.
 
@@ -4139,23 +4128,11 @@ only interested in or authorized to access a subset of available tracks.
 Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
 in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
 publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS. These Parameters are explicitly communicated, including the
-FORWARD and GROUP_ORDER parameters as described below.  When omitted by
-the publisher in PUBLISH, the subscriber uses the default value for each.
+SUBSCRIBE_TRACKS. These Parameters are explicitly communicated in PUBLISH.
+When omitted by the publisher in PUBLISH, the subscriber uses the default value for each.
 
-If the FORWARD parameter ({{forward-parameter}}) is present in this message and
-equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
-the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
-from this message, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
-set the FORWARD parameter to 1, or indicate that value by omitting the parameter
-(see {{subscriptions}}).
-
-If the GROUP_ORDER parameter ({{group-order}}) is present in this message,
-PUBLISH messages resulting from this SUBSCRIBE_TRACKS will include the
-GROUP_ORDER parameter with the same value. If the GROUP_ORDER parameter is
-omitted from this message, PUBLISH messages resulting from this
-SUBSCRIBE_TRACKS will use the publisher's default group order preference
-(see {{group-order-pref}}).
+To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a
+Location Filter and optionally include FILL_PARAMETERS, as described in {{joining-tracks}}.
 
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
@@ -5615,7 +5592,6 @@ This document does not define any initial entries.
 | DATA_STREAM_TIMEOUT        | 0x12 | {{session-termination}} |
 | AUTH_TOKEN_CACHE_OVERFLOW  | 0x13 | {{session-termination}} |
 | DUPLICATE_AUTH_TOKEN_ALIAS | 0x14 | {{session-termination}} |
-| VERSION_NEGOTIATION_FAILED | 0x15 | {{session-termination}} |
 | MALFORMED_AUTH_TOKEN       | 0x16 | {{session-termination}} |
 | UNKNOWN_AUTH_TOKEN_ALIAS   | 0x17 | {{session-termination}} |
 | EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
