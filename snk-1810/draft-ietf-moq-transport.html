@@ -3923,16 +3923,16 @@ Range {
 </pre><a href="#section-5.1.4-2" class="pilcrow">¶</a>
 </div>
 <p id="section-5.1.4-3">Length (vi64) is the byte count of all fields after itself.  When Length
-is 0 (used in REQUEST_UPDATE to remove a filter), no further fields are
-present.  The Object Property and Track Property Filters include a
-Property Type (vi64) between SetID and the Ranges.<a href="#section-5.1.4-3" class="pilcrow">¶</a></p>
-<p id="section-5.1.4-4">Each Range is an inclusive Start/End pair.  The final End can be omitted
-to indicate the Range is open-ended.  An object matches the filter if its
-value falls within any Range (i.e., Ranges are OR'd within a filter
-parameter).<a href="#section-5.1.4-4" class="pilcrow">¶</a></p>
+is 0, there is no filter and no further fields are present.  This can be
+used in REQUEST_UPDATE to remove a filter.  The Object Property and Track
+Property Filters include a Property Type (vi64) which follows SetID.<a href="#section-5.1.4-3" class="pilcrow">¶</a></p>
+<p id="section-5.1.4-4">Each Range is an inclusive Start/End pair.  End is optional in the last
+pair; if omitted it indicates the last Range is open-ended.  An object
+matches the filter if its value falls within any Range (i.e., Ranges are
+OR'd within a filter parameter).<a href="#section-5.1.4-4" class="pilcrow">¶</a></p>
 <p id="section-5.1.4-5">Each Start is delta encoded from the prior Range's End (or from 0 for the
-first Range), and End is delta encoded from its own Start.  A delta
-that exceeds 2^64-1 <span class="bcp14">MUST</span> be rejected with REQUEST_ERROR / INVALID_FILTER.
+first Range), and End is delta encoded from its own Start.  If adding the delta
+would exceed 2^64-1, the request <span class="bcp14">MUST</span> be rejected with <code>INVALID_FILTER</code>.
 For example, ranges 3-5 and 10-15 encode as: Start=3, End=2, Start=5, End=5.<a href="#section-5.1.4-5" class="pilcrow">¶</a></p>
 <p id="section-5.1.4-6">Filter parameters with the same SetID are AND'd; distinct SetIDs are OR'd.
 The final result is SetID=0 OR SetID=1 OR ... SetID=255, where each
