@@ -3114,7 +3114,7 @@ these rules, the session MUST be closed with `MALFORMED_AUTHORITY`.
 
 The PATH option (Option Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC ({{native-quic}}).  It MUST NOT be used by
-the server, or when WebTransport is used.  When a PATH option is received
+the server, or when WebTransport is used.  When a PATH setup option is received
 from a server, or when a PATH parameter is received while WebTransport is used,
 or when a PATH parameter is received by a server but the server does not
 support the specified path, the session MUST be closed with `INVALID_PATH`.
