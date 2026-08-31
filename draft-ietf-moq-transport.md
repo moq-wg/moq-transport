@@ -4418,7 +4418,7 @@ unidirectional stream does not affect the MOQT application state, and therefore 
 no effect on outstanding subscriptions. Closing a bidirectional request stream is
 governed by {{request-cancellation}}.
 
-### Subgroup Header
+### Subgroup Header {#subgroup-header}
 
 All Objects on a Subgroup stream belong to the track identified by `Track Alias`
 (see {{track-alias}}) and the Subgroup indicated by 'Group ID' and `Subgroup
@@ -4527,7 +4527,7 @@ unless there is a Prior Object ID Gap property (see
 {: #object-subgroup-format title="MOQT Subgroup Object Fields"}
 
 
-### Closing Subgroup Streams
+### Closing Subgroup Streams {#closing-subgroup-streams}
 
 Subscribers will often need to know if they have received all objects in a
 Subgroup, particularly if they serve as a relay or cache. QUIC and Webtransport
