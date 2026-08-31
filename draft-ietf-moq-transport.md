@@ -4173,7 +4173,7 @@ the datagram.  See {{object-datagram}}.
 
 An endpoint that receives an unknown datagram type MUST close the session.
 
-Every Object has a 'Object Forwarding Preference' and the Original Publisher
+Every Object has an `Object Forwarding Preference` and the Original Publisher
 MAY use both Subgroups and Datagrams within a Group or Track.
 
 ## Track Alias {#track-alias}
@@ -4243,7 +4243,7 @@ according to its `Object Forwarding Preference`.
 * Object Status: An enumeration used to indicate whether the Object is a normal Object
   or mark the end of a group or track. See {{object-status}} below.
 
-* Object Properties : A sequence of Properties associated with the object.
+* Object Properties: A sequence of Properties associated with the object.
   See {{object-properties}}.
 
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
@@ -4256,7 +4256,7 @@ via a SUBSCRIPTION, and is absent in Objects delivered via a FETCH.  It allows
 the publisher to explicitly communicate that a specific range of objects does
 not exist.
 
-`Status` can have following values:
+`Status` can have the following values:
 
 * 0x0 := Normal object. This status is implicit for any non-zero length object.
          Zero-length objects explicitly encode the Normal status.
@@ -4265,7 +4265,7 @@ not exist.
          Group ID and the Object ID that is greater than or equal to the one
          specified exist in the group identified by the Group ID.
 
-* 0x4 := Indicates End of Track. Indicates that no objects with the location
+* 0x4 := Indicates End of Track. Indicates that no objects with the Location
          that is equal to or greater than the one specified exist.
 
 All of those SHOULD be cached.
@@ -4420,9 +4420,9 @@ governed by {{request-cancellation}}.
 
 ### Subgroup Header {#subgroup-header}
 
-All Objects on a Subgroup stream belong to the track identified by `Track Alias`
-(see {{track-alias}}) and the Subgroup indicated by 'Group ID' and `Subgroup
-ID` indicated by the SUBGROUP_HEADER.
+All Objects on a Subgroup stream belong to the track identified by
+`Track Alias` (see {{track-alias}}) and the Subgroup indicated by `Group ID`
+and `Subgroup ID` in the SUBGROUP_HEADER.
 
 If an endpoint receives a subgroup with an unknown Track Alias, it MAY abandon
 the stream, or choose to buffer it for a brief period to handle reordering with
