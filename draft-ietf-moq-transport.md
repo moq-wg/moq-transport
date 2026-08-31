@@ -5695,6 +5695,67 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 
 Issue and pull request numbers are listed with a leading octothorp.
 
+## Since draft-ietf-moq-transport-19
+
+**Session and Control Plane**
+
+* Replace Joining FETCH with fill fetch streams (#1673)
+  - Add the FILL_PARAMETERS parameter, whose presence on a subscription
+    requests a fill; it carries a sequence of Parameters (#1868)
+  - Remove the Joining variant of FETCH and the "standalone" moniker
+* Restructure the Location Filter to match the other filter parameters, and
+  carry the FETCH range in LOCATION_FILTER instead of message fields (#1809)
+* Add PUBLISH_STATE_NOTIFY message (#1820)
+* Add INCLUDE_PROPERTIES parameter (#1813, #1847)
+* PUBLISH can carry Subscription Parameters, and AUTHORIZATION TOKEN is never
+  copied from SUBSCRIBE_TRACKS (#1834)
+* Subscription parameters appear in REQUEST_UPDATE, not PUBLISH_OK (#1790)
+* Allow FORWARD on a REQUEST_UPDATE for SUBSCRIBE_TRACKS (#1812)
+* Remove PUBLISH_DONE status code SUBSCRIPTION_ENDED; a subscription does not
+  end because Largest Object passes the end of the Location Filter (#1833)
+* Change the maximum Stream Count in PUBLISH_DONE to 2^64 - 1 (#1831)
+* Remove the requirement for a publisher to retain Largest Location (#1872)
+* Remove the VERSION_NEGOTIATION_FAILED session error (#1867)
+* A relay MUST send an upstream FETCH to at least one publisher (#1804)
+* Discuss the tradeoffs of aggregating downstream filters onto an upstream
+  subscription (#1735)
+* Resolve REDIRECT ambiguity with empty Track Namespace and Track Name (#1824)
+* Clarify Retry Interval of 0 with REDIRECT (#1785)
+* Define host resolution for moqt URIs (#1817)
+* Exclude the URI query component from the MOQT scope (#1855)
+* SUBSCRIBE_TRACKS Parameters are the publisher's initial Subscription
+  parameters and are explicitly communicated in the resulting PUBLISH
+  (#1815, #1869)
+
+**Data Plane Wire Format and Handling**
+
+* Describe OBJECT_DATAGRAM and SUBGROUP_HEADER types as Type Flags bitfields;
+  a set bit with no specified meaning is a `PROTOCOL_VIOLATION` (#1774)
+* Add `End of Timed-Out Range` for Objects abandoned when Fill Timeout
+  expires (#1822)
+* OBJECT_DELIVERY_TIMEOUT starts at the last header byte instead of the first
+  payload byte (#1844)
+* Define scheduling between fill-delivered and subscription-delivered Objects
+  (#1673)
+* Beware re-using a Track Alias for concurrent subscriptions (#1856)
+
+**Security Considerations**
+
+* Add a Preventing Impersonation section (#1737, #1789)
+* Expand mutual TLS and authorization guidance (#1786)
+* Add moqt URI scheme security considerations (#1772)
+* Add a security consideration for logging untrusted string fields (#1823)
+* Recommend end-to-end object encryption for confidentiality from relays
+  (#1755)
+
+**Notable Editorial Changes**
+
+* Clarify the Range Filters section for readability (#1851)
+* Note that the recommended name encoding is not guaranteed filename-safe
+  (#1863)
+* Fix LOC and Secure Objects entries in the provisional Property registry
+  (#1807, #1818, #1848)
+
 ## Since draft-ietf-moq-transport-18
 
 **Session and Control Plane**
