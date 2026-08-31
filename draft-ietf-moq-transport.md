@@ -4665,22 +4665,25 @@ format:
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
 
-The Serialization Flags field defines the serialization of the Object.  It is
-a variable-length integer.  When less than 128, the bits represent flags described
-below.  The following additional values are defined:
+The Serialization Flags field defines the serialization of the Object. It is
+a variable-length integer. When less than 128, the bits represent flags
+described in {{fetch-serialization-flags}}. When 128 or greater, the value
+signals a range indicator; the defined values are:
+
+**Reserved Serialization Flags values:**
 
 Value | Meaning
-0x8C | End of Non-Existent Range
+0x8C  | End of Non-Existent Range
 0x10C | End of Unknown Range
 0x20C | End of Timed-Out Range
 
-Any other value is a `PROTOCOL_VIOLATION`.
+Any other value 128 or greater is a `PROTOCOL_VIOLATION`.
 
-#### Flags
+#### Flags {#fetch-serialization-flags}
 
-The two least significant bits (LSBs) of the Serialization Flags form a two-bit
-field that defines the encoding of the Subgroup.  To extract this value, the
-Subscriber performs a bitwise AND operation with the mask 0x03.
+**Subgroup ID encoding (bits 0-1, mask 0x03):** The two least significant
+bits of the Serialization Flags form a two-bit field that defines the
+encoding of the Subgroup ID.
 
 Bitmask Result (Serialization Flags & 0x03) | Meaning
 0x00 | Subgroup ID is zero
@@ -4688,9 +4691,8 @@ Bitmask Result (Serialization Flags & 0x03) | Meaning
 0x02 | Subgroup ID is the prior Object's Subgroup ID plus one
 0x03 | The Subgroup ID field is present
 
-The following table defines additional flags within the Serialization Flags
-field. Each flag is an independent boolean value, where a set bit (1) indicates
-the corresponding condition is true.
+**Independent flag bits:** Each of the following is an independent boolean;
+a set bit (1) indicates the corresponding condition is true.
 
 Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
