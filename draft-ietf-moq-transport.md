@@ -818,8 +818,8 @@ being forwarded to or processed by endpoints that do not understand them.
 An Object received with a Mandatory Track Property as an Object Property is
 malformed (see {{malformed-tracks}}).
 
-When an endpoint receives Track Properties in PUBLISH, SUBSCRIBE_OK, or
-FETCH_OK messages containing a Mandatory Track Property type that it does not
+When an endpoint receives a Mandatory Track Property in PUBLISH,
+SUBSCRIBE_OK, or FETCH_OK that it does not
 understand, it MUST NOT process or forward that track:
 
 * For PUBLISH messages: the subscriber MUST respond with REQUEST_ERROR with
@@ -2575,7 +2575,7 @@ If a receiver detects that an authorization token has expired, it MUST retain
 the registered Alias until it is deleted by the sender, though it MAY discard
 other state associated with the token that is no longer needed.  Expiration does
 not affect the size occupied by a token in the token cache.  Any message that
-references such a token with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_TOKEN`.
+references an expired token with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_TOKEN`.
 
 Using an Alias to refer to a previously registered Token Type and Value is for
 efficiency only and has the same effect as if the Token Type and Value was
