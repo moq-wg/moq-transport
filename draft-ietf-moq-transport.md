@@ -1892,41 +1892,52 @@ On receiving a message containing SWITCH_FROM, the publisher:
    in Groups greater than or equal to the Largest Object's Group
    are not missed during the transition.
 
-3. Waits until it is ready to publish an object from the LOCATION_FILTER's
-   Start Location's Group (the Start Group; see {{location-filters}}),
-   computed from the activating track at the time the request is received, while
-   continuing to deliver objects on the suspending subscription.  When GROUP_ORDER
-   is Descending and Start Group is before the Current Group, the publisher
-   waits for the first object in the largest group in the fill range instead.
+3. Responds on the activating subscription's control stream with SUBSCRIBE_OK
+   or REQUEST_OK as appropriate, as soon as `Largest Object` for the activating
+   track is known.  This response indicates that the switch has been accepted;
+   it does not indicate that delivery on the activating subscription has begun.
+   If the publisher times out before `Largest Object` is known, it MUST respond
+   with REQUEST_ERROR `TIMEOUT`.
 
-4. Stops delivery on the suspending subscription:
+4. Waits until it is ready to publish an object from the Start Group, computed
+   from the activating track at the time the request is received, while
+   continuing to deliver objects on the suspending subscription.
 
-   * Mode Hard (0x0): sets Forward State 0 on the suspending subscription. If
-     Publish Done is 1, the publisher also sends PUBLISH_DONE with code
-     SWITCHED_AWAY.
+   When the activating subscription opens a fill fetch stream (see
+   {{fill-semantics}}), the Start Group is the first Group of the fill range
+   that the stream delivers: the Group of the fill range's Start Location, or
+   the largest Group in the fill range when GROUP_ORDER inside FILL_PARAMETERS
+   is Descending.  Otherwise the Start Group is the Group of the Start Location
+   of the activating subscription's LOCATION_FILTER (see {{location-filters}}).
 
-   In all modes, the publisher also resets any outstanding streams (including fill fetch streams) on the suspending
-   subscription; objects already in flight can still be received by the subscriber.
+5. Stops delivery on the suspending subscription:
 
-   If Publish Done is 0, the suspending subscription remains established.
+   * Mode Hard (0x0): sets Forward State 0 on the suspending subscription.
 
-5. Begins delivery of activating subscription from Start Group. If
-   FILL_PARAMETERS is present, opens a fill fetch stream using
-   the activating subscription's Request ID (see {{fill-semantics}}).
+   In all modes, the publisher also resets any outstanding streams (including
+   fill fetch streams) on the suspending subscription; objects already in flight
+   can still be received by the subscriber.
 
-6. Responds on the activating subscription's control stream with SUBSCRIBE_OK or REQUEST_OK as appropriate, including
-   LARGEST_OBJECT if FILL_PARAMETERS is present.
+   The publisher then sends PUBLISH_STATE_NOTIFY ({{ps-notify}}) on the
+   suspending subscription's stream, reporting the state now in effect and
+   including LARGEST_OBJECT.  If Publish Done is 1, the publisher follows it
+   with PUBLISH_DONE with code SWITCHED_AWAY; otherwise
+   the suspending subscription remains established.
 
-If the publisher times out waiting to publish an object from the
-Start Group on the activating track, it MUST respond with REQUEST_ERROR `TIMEOUT`.
+6. Begins delivery of activating subscription from Start Group, including any
+   fill fetch stream (see {{fill-semantics}}), which uses the activating
+   subscription's Request ID.
+
+If the publisher cannot begin delivery on the activating subscription, it MUST
+leave the suspending subscription unchanged.
 
 ### Relay Handling of SWITCH_FROM {#relay-switch-from}
 
-Relays ordinarily handle the switch locally, applying
-the start group computation from {{track-switching}} using locally observed
-state for the activating track and servicing any fill fetch stream from cache
-and upstream sources as described in {{fill-semantics}}.  When a relay performs
-the switch operation, it MUST NOT forward the SWITCH_FROM parameter upstream.
+Relays ordinarily handle the switch locally, applying the start group
+computation from {{track-switching}} using locally observed state for the
+activating track and servicing any fill fetch stream from cache and upstream
+sources.  When a relay performs the switch operation, it MUST NOT forward the
+SWITCH_FROM parameter upstream.
 
 # Namespace Discovery {#track-discovery}
 
