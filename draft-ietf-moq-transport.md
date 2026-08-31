@@ -1686,31 +1686,67 @@ Object header fields (Subgroup ID, Object ID, and Publisher Priority).
 There are five Range Filter parameter types, 0x25-0x29, as shown below.
 
 ~~~
-SUBGROUP_FILTER { Type=0x25, Length, [SetID], Range... }
-OBJECTID_FILTER { Type=0x26, Length, [SetID], Range... }
-PRIORITY_FILTER { Type=0x27, Length, [SetID], Range... }
-OBJECT_PROPERTY_FILTER { Type=0x28, Length, [SetID], [Property Type], Range... }
-TRACK_PROPERTY_FILTER  { Type=0x29, Length, [SetID], [Property Type], Range... }
-Range { Start, [End] }
+SUBGROUP_FILTER {
+  Type (vi64) = 0x25,
+  Length (vi64),
+  [SetID (8)],
+  [Range (..) ...]
+}
+
+OBJECTID_FILTER {
+  Type (vi64) = 0x26,
+  Length (vi64),
+  [SetID (8)],
+  [Range (..) ...]
+}
+
+PRIORITY_FILTER {
+  Type (vi64) = 0x27,
+  Length (vi64),
+  [SetID (8)],
+  [Range (..) ...]
+}
+
+OBJECT_PROPERTY_FILTER {
+  Type (vi64) = 0x28,
+  Length (vi64),
+  [SetID (8)],
+  [Property Type (vi64)],
+  [Range (..) ...]
+}
+
+TRACK_PROPERTY_FILTER {
+  Type (vi64) = 0x29,
+  Length (vi64),
+  [SetID (8)],
+  [Property Type (vi64)],
+  [Range (..) ...]
+}
+
+Range {
+  Start (vi64),
+  [End (vi64)]
+}
 ~~~
 
-Each Range Filter is a sequence of Start/End (vi64) inclusive Range pairs
-prefixed with a Length (vi64) in bytes and a SetID (8 bits).
-The Track and Object Property Filters include an additional prefix for Property Type (vi64).
-The final End in a sequence of Ranges can be omitted to indicate the Range is open-ended.
+Length (vi64) is the byte count of all fields after itself.  When Length
+is 0, there is no filter and no further fields are present.  This can be
+used in REQUEST_UPDATE to remove a filter.  The Object Property and Track
+Property Filters include a Property Type (vi64) which follows SetID.
 
-Each Start is delta encoded from the prior Range's End or from 0
-for the first Range, and End is delta encoded from the current Range's Start.
-Any delta encoding that results in a value that exceeds 2^64-1
-MUST be rejected with REQUEST_ERROR with error code INVALID_FILTER.
-For example, to express ranges 3-5 and 10-15: the first Start is 3
-(delta from 0), the first End is 2 (5 minus 3), the second Start is 5
-(10 minus 5), and the second End is 5 (15 minus 10).
+Each Range is an inclusive Start/End pair.  End is optional in the last
+pair; if omitted it indicates the last Range is open-ended.  An object
+matches the filter if its value falls within any Range (i.e., Ranges are
+OR'd within a filter parameter).
 
-All filter parameters with the same SetID value are combined using logical
-"AND" operations, then all the resulting sets are combined using logical
-"OR" operations.  The final result is SetID=0 OR SetID=1 OR ... SetID=255,
-where each SetID=i is the AND of filters with SetID=i.
+Each Start is delta encoded from the prior Range's End (or from 0 for the
+first Range), and End is delta encoded from its own Start.  If adding the delta
+would exceed 2^64-1, the request MUST be rejected with `INVALID_FILTER`.
+For example, ranges 3-5 and 10-15 encode as: Start=3, End=2, Start=5, End=5.
+
+Filter parameters with the same SetID are AND'd; distinct SetIDs are OR'd.
+The final result is SetID=0 OR SetID=1 OR ... SetID=255, where each
+SetID=i is the AND of all filter parameters carrying that SetID.
 
 The Track Property filter parameter MAY appear multiple times in a
 SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
@@ -1720,10 +1756,9 @@ message.  If the same combination of Parameter Type, SetID, and Property Type
 (only in the Track and Object Property Filters) repeat in any message,
 an endpoint MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
 
-In REQUEST_UPDATE, Length can be 0 to remove a filter parameter or non-zero
-to replace that entire filter parameter including all sets and Property Types.
-If a filter parameter is omitted from REQUEST_UPDATE, the value is unchanged.
-If omitted from other messages, the default is no filter.
+In REQUEST_UPDATE, Length of 0 removes the filter; non-zero replaces it
+entirely.  If a filter parameter is omitted from REQUEST_UPDATE, it is
+unchanged.  If omitted from other messages, the default is no filter.
 
 Range Filters are only allowed if the setup option MAX_FILTER_RANGES
 is non-zero, which limits the total number of Ranges allowed
