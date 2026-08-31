@@ -1790,7 +1790,7 @@ forward only objects that pass all filters.
 Pass = Forward AND Location Filters AND Range Filters
 ~~~
 
-### Joining an Ongoing Track
+### Joining an Ongoing Track {#joining-tracks}
 
 The MOQT Object model is designed with the concept that the beginning of a Group
 is a join point, so in order for a subscriber to join a Track, it needs to
@@ -2929,11 +2929,6 @@ inside FILL_PARAMETERS.
 FILL_PARAMETERS is not retained as subscription state. It applies only to the
 message that carries it, so the sticky-parameter rules in
 {{message-request-update}} do not apply to it.
-
-To fill-join a track initiated via PUBLISH, the subscriber SHOULD respond with
-PUBLISH_OK with Forward State 0, then send REQUEST_UPDATE with Forward State 1
-and FILL_PARAMETERS. The REQUEST_UPDATE_OK will contain a fresh LARGEST_OBJECT
-establishing the correct fill range.
 
 ### EXPIRES Parameter {#expires}
 
@@ -4133,23 +4128,11 @@ only interested in or authorized to access a subset of available tracks.
 Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
 in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
 publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS. These Parameters are explicitly communicated, including the
-FORWARD and GROUP_ORDER parameters as described below.  When omitted by
-the publisher in PUBLISH, the subscriber uses the default value for each.
+SUBSCRIBE_TRACKS. These Parameters are explicitly communicated in PUBLISH.
+When omitted by the publisher in PUBLISH, the subscriber uses the default value for each.
 
-If the FORWARD parameter ({{forward-parameter}}) is present in this message and
-equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
-the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
-from this message, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
-set the FORWARD parameter to 1, or indicate that value by omitting the parameter
-(see {{subscriptions}}).
-
-If the GROUP_ORDER parameter ({{group-order}}) is present in this message,
-PUBLISH messages resulting from this SUBSCRIBE_TRACKS will include the
-GROUP_ORDER parameter with the same value. If the GROUP_ORDER parameter is
-omitted from this message, PUBLISH messages resulting from this
-SUBSCRIBE_TRACKS will use the publisher's default group order preference
-(see {{group-order-pref}}).
+To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a
+Location Filter and optionally include FILL_PARAMETERS, as described in {{joining-tracks}}.
 
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
