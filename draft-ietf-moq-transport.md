@@ -313,7 +313,7 @@ The following table contains some example encodings:
 |----------------------|----------------------------|
 {: format title="Example Integer Encodings"}
 
-Variable length integers do not need to be encoded using the minimum number of
+Variable-length integers do not need to be encoded using the minimum number of
 bytes; any encoding length that can represent the value is valid. Note that, as
 a result, the same numeric value can be represented by more than one byte
 sequence. For example, the value 0 can be encoded as `0x00`, `0x8000`,
@@ -348,9 +348,9 @@ Location A < Location B if:
 
 ### Key-Value-Pair Structure
 
-Key-Value-Pair is a flexible structure designed to carry key/value
-pairs in which the key is a variable length integer and the value
-is either a variable length integer or a byte field of arbitrary
+Key-Value-Pair is a flexible structure that carries key/value
+pairs in which the key is a variable-length integer and the value
+is either a variable-length integer or a byte field of arbitrary
 length.
 
 Key-Value-Pairs encode a Type value as a delta from the previous Type value,
@@ -372,14 +372,14 @@ Key-Value-Pair {
 ~~~
 {: #moq-key-value-pair format title="MOQT Key-Value-Pair"}
 
-* Delta Type: an unsigned integer, encoded as a varint, identifying the Type
+* Delta Type: an unsigned variable-length integer identifying the Type
   as a delta encoded value from the previous Type, if any. The Type identifies
   the type of value and also the subsequent serialization.
 * Length: Only present when Type is odd. Specifies the length of the Value field
   in bytes. The maximum length of a value is 2^16-1 bytes.  If an endpoint
   receives a length larger than the maximum, it MUST close the session with a
   `PROTOCOL_VIOLATION`.
-* Value: A single varint encoded value when Type is even, otherwise a
+* Value: A single variable-length integer when Type is even, otherwise a
   sequence of Length bytes.
 
 If a receiver understands a Type, and the following Value or Length/Value does
@@ -392,7 +392,7 @@ the sequence. The source of this length varies by context.
 ### Reason Phrase Structure {#reason-phrase}
 
 Reason Phrase provides a way for the sender to encode additional diagnostic
-information about the error condition, where appropriate.
+information about an error condition, where appropriate.
 
 ~~~
 Reason Phrase {
@@ -406,7 +406,7 @@ Reason Phrase {
   1024 bytes. If an endpoint receives a length exceeding the maximum, it MUST
   close the session with a `PROTOCOL_VIOLATION`
 
-* Reason Phrase Value: Additional diagnostic information about the error condition.
+* Reason Phrase Value: Additional diagnostic information about an error condition.
   The reason phrase value is encoded as UTF-8 string and does not carry information,
   such as language tags, that would aid comprehension by any entity other than
   the one that created the text.
@@ -416,7 +416,7 @@ Reason Phrase {
 There is often a need to render namespace tuples and track names for
 purposes such as logging, representing track filenames, or use in
 certain authorization verification schemes. The namespace and track name
-are binary, so they need to be converted to a safe form.
+are binary and need to be converted to a safe form.
 
 The following format is RECOMMENDED:
 
@@ -424,9 +424,9 @@ The following format is RECOMMENDED:
   between them followed by the track name with a double hyphen (--)
   between the last namespace and track name.
 
-* Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output as is,
+* Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output verbatim,
   while all other bytes are encoded as a period (.) symbol followed by
-  exactly two lower case hex digits.
+  exactly two lowercase hexadecimal digits.
 
 This format allows many common names to be rendered in an easily human readable
 form while still supporting binary values.  Note that while the character set
@@ -439,11 +439,11 @@ can collide.
 When parsing a serialized namespace or track name back to its binary form,
 implementations MUST apply the following rules to ensure a canonical encoding:
 
-* A period (.) MUST be followed by exactly two hex digits. A trailing period
-  or a period followed by fewer than two hex digits is invalid.
+* A period (.) MUST be followed by exactly two hexadecimal digits. A trailing period
+  or a period followed by fewer than two hexadecimal digits is invalid.
 
-* The hex digits following a period (.) MUST be lowercase (a-f). Uppercase
-  hex digits (A-F) are invalid and MUST cause parsing to fail.
+* The hexadecimal digits following a period (.) MUST be lowercase (a-f). Uppercase
+  hexadecimal digits (A-F) are invalid and MUST cause parsing to fail.
 
 * Bytes that can be represented literally (a-z, A-Z, 0-9, _) MUST NOT appear
   in their hex-encoded form. For example, `.61` is invalid because `a` must
@@ -513,7 +513,7 @@ possible states:
 2. The Object is known to exist. From this state, it can transition to not
    existing, but not vice versa.
 3. The state of the Object is unknown, either because it has not yet been
-   received, or it has not been produced yet.
+   received, or it has not yet been produced.
 
 A gap in the observed Object IDs does not by itself convey any information about
 the skipped Objects. Skipped Objects remain in the unknown state until they are
@@ -522,7 +522,7 @@ received or their non-existence is signalled, for example in a FETCH stream (see
 
 Since Objects can be delivered out of order, an endpoint can receive an Object
 after it has already recorded that the Object does not exist (e.g., via a FETCH
-gap from one source and later delivery via a subscription).  This is not a
+gap from one source and delayed delivery via a subscription).  This is not a
 protocol error and the Track is not malformed.
 
 Whenever the publisher communicates that certain objects do not exist, this
@@ -537,7 +537,7 @@ A subgroup is a sequence of one or more objects from the same group
 ({{model-group}}) in ascending order by Object ID. Objects in a subgroup
 have a dependency and priority relationship consistent with sharing a
 stream and are sent on a single stream whenever possible. A Group is delivered
-using at least as many streams as there are Subgroups,
+using at least as many streams as there are Subgroups in the Group,
 typically with a one-to-one mapping between Subgroups and streams.
 
 When an Object's forwarding preference (see {{object-properties}}) is
@@ -595,13 +595,13 @@ with time (where "time" is defined according to the internal clock of the media
 being sent). In some cases, Groups will be produced in increasing order, but sent
 to subscribers in a different order, for example when the subscription's Group
 Order is Descending.  Due to network reordering and the partial reliability
-features of MOQT, Groups can always be received out of order.
+features of MOQT, Objects from different Groups can always be received out of order.
 
 As a result, subscribers cannot infer the existence of a Group until an object in
 the Group is received. This can create gaps in a cache that can be filled
 by doing a Fetch upstream, if necessary.
 
-Applications that cannot produce Group IDs that increase with time are limited
+Applications that do not produce Group IDs that increase with time are limited
 to the subset of MOQT that does not compare group IDs. Subscribers to these
 Tracks SHOULD NOT use Location filters which span multiple Groups in FETCH or
 SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so they could have
@@ -814,14 +814,14 @@ context known to the publisher and subscriber.
 
 Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
 Properties. These properties MUST have Track scope. Mandatory Track Properties
-have special handling rules that prevent tracks with required extensions from
+have special handling rules that prevent tracks with required properties from
 being forwarded to or processed by endpoints that do not understand them.
 
 An Object received with a Mandatory Track Property as an Object Property is
 malformed (see {{malformed-tracks}}).
 
-When an endpoint receives Track Properties (in PUBLISH, SUBSCRIBE_OK, or
-FETCH_OK messages) containing a Mandatory Track Property type that it does not
+When an endpoint receives a Mandatory Track Property in PUBLISH,
+SUBSCRIBE_OK, or FETCH_OK that it does not
 understand, it MUST NOT process or forward that track:
 
 * For PUBLISH messages: the subscriber MUST respond with REQUEST_ERROR with
@@ -1049,8 +1049,8 @@ MOQT uses a pair of unidirectional streams for creating the session and
 exchanging control messages. Each peer opens one control stream beginning with
 a SETUP message. Using a pair of unidirectional streams rather than a single
 bidirectional stream allows either peer to send data as soon as it is able.
-Depending on whether 0-RTT is available on the QUIC connection, either client or
-server might be able to send stream data first.
+Depending on whether 0-RTT is available on the QUIC connection, either the client or
+the server might be able to send stream data first.
 
 In addition to the control streams, this specification uses bidirectional streams
 to carry requests.  A request stream begins with one of these seven message types:
@@ -1396,14 +1396,14 @@ unnecessary probing.
 
 Congestion control algorithms are commonly optimized for throughput, not consistency.
 For example, BBR's PROBE_RTT state halves the sending rate for more than a round trip
-in order to obtain an accurate minimum RTT. Similarly, Reno halves it's congestion
+in order to obtain an accurate minimum RTT. Similarly, Reno halves its congestion
 window upon detecting loss.  In both cases, the large reduction in sending rate might
 cause issues with latency sensitive applications.
 
 # Extensibility
 
 MOQT defines all messages necessary to implement both simple publishing or
-subscribing endpoints as well as highly functional Relays.  Non-Relay endpoints
+subscribing endpoints as well as fully capable Relays.  Non-Relay endpoints
 MAY implement only the subset of functionality required to perform necessary
 tasks.  For example, a limited media player could operate using only SUBSCRIBE
 related messages.  Limited endpoints SHOULD respond to any unsupported messages
@@ -1519,18 +1519,18 @@ the Subscriber dropping Objects if its buffering limits are exceeded (see
 ### Subscription State Management
 
 A subscriber keeps subscription state until it cancels the request
-(see {{request-cancellation}}), or after receipt of a PUBLISH_DONE or
+(see {{request-cancellation}}), or until receipt of a PUBLISH_DONE or
 REQUEST_ERROR. Note that PUBLISH_DONE does not usually indicate that state
-can immediately be destroyed, see {{message-publish-done}}.
+can immediately be removed, see {{message-publish-done}}.
 
-The Publisher can destroy subscription state as soon as it has received
+The Publisher can remove subscription state as soon as it has received
 STOP_SENDING. It MUST reset any open streams associated with the SUBSCRIBE.
 
 The Publisher can also immediately delete subscription state after sending
 PUBLISH_DONE, but MUST NOT send it until it has closed all related streams.
 
 A REQUEST_ERROR indicates no objects will be delivered, and both endpoints can
-immediately destroy relevant state. Objects MUST NOT be sent for requests that
+immediately remove relevant state. Objects MUST NOT be sent for requests that
 end with an error.
 
 ### Location Filters {#location-filters}
@@ -1583,8 +1583,8 @@ hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For ex
 
 If only StartGroup and StartObject are present and both 0, the start Location
 is the Next Object which is `{Largest Object.Group, Largest Object.Object + 1}`,
-or {0, 0} if no content has been delivered yet.  To start at absolute Location {0, 0}
-with no end, which is equivalent to unfiltered, do not include a Location filter.
+or {0, 0} if no content has been delivered yet.  An open-ended filter that starts at absolute
+Location {0, 0} is equivalent to unfiltered, so the subscriber need not include a Location filter.
 Note that due to network reordering or prioritization, relays can receive Objects with
 Locations smaller than `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass this filter.
@@ -1697,9 +1697,9 @@ Range { Start, [End] }
 Each Range Filter is a sequence of Start/End (vi64) inclusive Range pairs
 prefixed with a Length (vi64) in bytes and a SetID (8 bits).
 The Track and Object Property Filters include an additional prefix for Property Type (vi64).
-The final End in a sequence of Ranges can be omitted to indicate no end.
+The final End in a sequence of Ranges can be omitted to indicate the Range is open-ended.
 
-Start is delta encoded from the prior Range's End or from 0
+Each Start is delta encoded from the prior Range's End or from 0
 for the first Range, and End is delta encoded from the current Range's Start.
 Any delta encoding that results in a value that exceeds 2^64-1
 MUST be rejected with REQUEST_ERROR with error code INVALID_FILTER.
@@ -1812,14 +1812,14 @@ the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
 data stream as well as the bidi request stream. It MUST send STOP_SENDING
 for the bidi request stream.
 
-The Publisher can destroy fetch state as soon as it has received a
+The Publisher can remove fetch state as soon as it has received a
 STOP_SENDING. It MUST reset the bidi request stream and unidirectional
-data stream associated with the FETCH. It can also destroy state after closing
+data stream associated with the FETCH. It can also remove state after closing
 the FETCH data stream.
 
-It can destroy all FETCH state after closing the data stream with a FIN.
+It can remove all FETCH state after closing the data stream with a FIN.
 
-A REQUEST_ERROR indicates that both endpoints can immediately destroy state.
+A REQUEST_ERROR indicates that both endpoints can immediately remove state.
 Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
 results in error.
@@ -1977,7 +1977,7 @@ An Object is not schedulable if it is known that no part of it can be written
 due to underlying transport flow control limits.
 
 A single subgroup or datagram has a single publisher priority. Within a
-response to SUBSCRIBE, it can be useful to conceptualize this process as
+subscription, it can be useful to conceptualize this process as
 scheduling subgroups or datagrams instead of individual objects on them.
 FETCH responses however can contain objects with different publisher
 priorities.
@@ -2057,7 +2057,7 @@ in the near future or it wants to reserve some bandwidth for control messages.
 
 Given the critical nature of control messages and their relatively
 small size, the control streams SHOULD be prioritized highest, followed by the
-bidi request streams and then all subscribed Objects. Bidi request streams MAY be
+bidi request streams and then all Objects. Bidi request streams MAY be
 prioritized within themselves by Subscriber Priority if specified.
 
 ## Considerations for Setting Priorities
@@ -2066,7 +2066,7 @@ For downstream subscriptions, relays SHOULD respect the subscriber and original
 publisher's priorities.  Relays can receive subscriptions with conflicting
 subscriber priorities or Group Order preferences.  Relays SHOULD NOT directly
 use Subscriber Priority or Group Order from incoming subscriptions for upstream
-subscriptions. Relays' use of these fields for upstream subscriptions can be
+subscriptions. A Relay's use of these fields for upstream subscriptions can be
 based on factors specific to it, such as the popularity of the content or
 policy, or relays can specify the same value for all upstream subscriptions.
 
@@ -2088,7 +2088,7 @@ set either higher or lower.
 
 Each MOQT subscription has two timeout values associated with it: a
 SUBGROUP_DELIVERY_TIMEOUT and an OBJECT_DELIVERY_TIMEOUT.  Both of those values
-are expressed in milliseconds; both are optional; a value of 0 means that
+are expressed in milliseconds and both are optional; a value of 0 means that
 there is no timeout set.
 
 The publisher communicates both timeout values as a Track Property; the
@@ -2114,7 +2114,7 @@ Object Forwarding Preference:
   DELIVERY_TIMEOUT (see {{closing-subgroup-streams}}) and SHOULD NOT attempt to
   open a new stream to deliver additional Objects in that Subgroup.  The
   implementation SHOULD check object delivery timeouts before retransmitting
-  object data if the underlying transport implementation allows that.  The
+  object data if the underlying transport implementation allows.  The
   implementations SHOULD minimize the amount of data buffered at the underlying
   transport layer, as any data buffered at this layer can no longer be timed
   out, potentially leading to transmission of expired data.
@@ -2137,7 +2137,7 @@ MUST reset the stream.  This ensures that MOQT can time out subgroups
 where all of the data has been sent but not yet fully delivered due to
 packet loss.
 
-For objects with Object Forwarding Preference set to Datagram, the
+For objects whose Object Forwarding Preference is Datagram, the
 SUBGROUP_DELIVERY_TIMEOUT acts the same way as OBJECT_DELIVERY_TIMEOUT; if both
 are non-zero, the smaller of the two is used.
 
@@ -2149,9 +2149,9 @@ are non-zero, the smaller of the two is used.
 {: #timeout-comparison title="Comparison of the delivery timeout mechanisms" }
 
 Publishers can, at their discretion, discontinue forwarding Objects before
-either of the timeouts occurs, subject to stream closure and ordering
-constraints described in {{closing-subgroup-streams}}.  However, if none of the
-timeouts are set to a non-zero value, all Objects in the track matching the
+either timeout occurs, subject to stream closure and ordering
+constraints described in {{closing-subgroup-streams}}.  However, if neither
+timeout is set to a non-zero value, all Objects in the track matching the
 subscription filter are delivered as indicated by their Group Order and
 Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher MAY
@@ -2489,7 +2489,7 @@ new request stream.
 |--------|------------------------------------------------|------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
-Control messages have a length to make parsing easier, but no control messages
+Control messages have a length to simplify parsing, but no control messages
 are intended to be ignored. The length is set to the number of bytes in the
 Message Body, which is defined by each message type.  If the length does not
 match the length of the Message Body, the receiver MUST close the session with a
@@ -2611,7 +2611,7 @@ Token {
 
 DELETE (0x0):
 : There is an Alias but no Type or Value. This Alias and the Token Value it was
-previously associated with| MUST be retired. Retiring removes them from the pool
+previously associated with MUST be retired. Retiring removes them from the pool
 of actively registered tokens.
 
 REGISTER (0x1):
@@ -2625,13 +2625,13 @@ previously registered with this Alias.
 
 USE_VALUE (0x3):
 : There is no Alias and there is a Type and Value. Use the Token Value as
-provided. The Token Value may be discarded after processing.
+provided. The Token Value MAY be discarded after processing.
 
 If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
 message, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 * Token Alias - a Session-specific integer identifier that references a Token
-  Value. There are separate Alias spaces for the client and server (e.g.: they
+  Type and Token Value. There are separate Alias spaces for the client and server (e.g.: they
   can each register Alias=1). Once a Token Alias has been registered, it cannot
   be re-registered by the same endpoint in the Session without first being
   deleted. Use of the Token Alias is optional.
@@ -2656,7 +2656,7 @@ invalid AUTHORIZATION TOKEN parameter MUST reject that message with an
 `MALFORMED_AUTH_TOKEN` error.
 
 The receiver of a message carrying an AUTHORIZATION TOKEN with Alias Type
-REGISTER that does not result in a Session error MUST register the Token Alias,
+REGISTER that does not result in a Session error MUST register the Token Alias
 in the token cache, even if the message fails for other reasons, including
 `Unauthorized`.  This allows senders to pipeline messages that refer to
 previously registered tokens without potentially terminating the entire Session.
@@ -2672,7 +2672,7 @@ If a receiver detects that an authorization token has expired, it MUST retain
 the registered Alias until it is deleted by the sender, though it MAY discard
 other state associated with the token that is no longer needed.  Expiration does
 not affect the size occupied by a token in the token cache.  Any message that
-references the token with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_TOKEN`.
+references an expired token with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_TOKEN`.
 
 Using an Alias to refer to a previously registered Token Type and Value is for
 efficiency only and has the same effect as if the Token Type and Value was
@@ -4831,14 +4831,14 @@ See {{properties}} for usage guidance.
 ## SUBGROUP_DELIVERY_TIMEOUT {#subgroup-delivery-timeout-ext}
 
 SUBGROUP_DELIVERY_TIMEOUT (Property Type 0x06) is a Track and Object Property.
-It is a varint.  Its semantics are defined in {{delivery-timeouts}}.  As an
+It is a variable-length integer.  Its semantics are defined in {{delivery-timeouts}}.  As an
 Object Property on the first object in a subgroup, it overrides the Track-level
 value for that subgroup; it is ignored on any other object in the subgroup.
 
 ## OBJECT_DELIVERY_TIMEOUT {#object-delivery-timeout-ext}
 
 OBJECT_DELIVERY_TIMEOUT (Property Type 0x02) is a Track and Object Property.
-It is a varint.  Its semantics are defined in {{delivery-timeouts}}.  As an
+It is a variable-length integer.  Its semantics are defined in {{delivery-timeouts}}.  As an
 Object Property on the first object in a subgroup, it overrides the Track-level
 value for that subgroup; it is ignored on any other object in the subgroup.
 
@@ -4953,7 +4953,7 @@ An Object MUST NOT contain more than one instance of this property.
 
 Prior Group ID Gap only applies to Objects, not Tracks.
 
-Prior Group ID Gap (Property Type 0x3C) is a variable length integer
+Prior Group ID Gap (Property Type 0x3C) is a variable-length integer
 containing the number of Groups prior to the current Group that do not, and will
 never, exist. For example, if the Original Publisher is publishing an Object in
 Group 7 and knows it will never publish any Objects in Group 8 or Group 9, it
@@ -4987,7 +4987,7 @@ An Object MUST NOT contain more than one instance of this property.
 
 Prior Object ID Gap only applies to Objects, not Tracks.
 
-Prior Object ID Gap (Property Type 0x3E) is a variable length integer
+Prior Object ID Gap (Property Type 0x3E) is a variable-length integer
 containing the number of Objects prior to the current Object that do not, and
 will never, exist. For example, if the Original Publisher is publishing Object
 10 in Group 3 and knows it will never publish Objects 8 or 9 in this Group, it
@@ -5483,7 +5483,7 @@ These entries share the same Property Type space as the table above.
 
 Endpoints MUST ignore unknown Property types, skipping them according
 to the Key-Value-Pair encoding; odd types use their length field, even
-types are skipped by parsing a varint value.
+types are skipped by parsing a variable-length integer value.
 
 * MOQ Properties - we wish to define the following registration policies:
   - 0x00 to 0x77: Standards Action or IESG Approval (1-byte encoding)
