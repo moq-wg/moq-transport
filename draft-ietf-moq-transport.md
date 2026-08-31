@@ -1479,10 +1479,6 @@ Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send
 REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
 
-A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
-or REQUEST_UPDATE_OK that changes the Forward State
-from 0 to 1.
-
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
 without knowing the client is interested in and authorized to receive the
