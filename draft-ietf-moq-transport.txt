@@ -3691,9 +3691,9 @@ Table of Contents
    and PUBLISH_NAMESPACE requests.
 
    This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
-   TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and PUBLISH_NAMESPACE_OK to
-   refer to a REQUEST_OK sent in response to the corresponding request
-   type.
+   TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
+   PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
+   corresponding request type.
 
    REQUEST_OK Message {
      Type (vi64) = 0x7,
