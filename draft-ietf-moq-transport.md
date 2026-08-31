@@ -1730,16 +1730,14 @@ Range {
 ~~~
 
 Length (vi64) is the byte count of all fields after itself.  When Length
-is 0 (used in REQUEST_UPDATE to remove a filter), no further fields are
-is 0, there is no filter and no further fields are present.  This can
-be used in REQUEST_UPDATE to remove a filter. 
-The Object Property and Track Property Filters include a
-Property Type (vi64) which follows SetID.
+is 0, there is no filter and no further fields are present.  This can be
+used in REQUEST_UPDATE to remove a filter.  The Object Property and Track
+Property Filters include a Property Type (vi64) which follows SetID.
 
-Each Range is an inclusive Start/End pair.  End is optional in the last pair; if omitted
-it indicates the last Range is open-ended.  An object matches the filter if its
-value falls within any Range (i.e., Ranges are OR'd within a filter
-parameter).
+Each Range is an inclusive Start/End pair.  End is optional in the last
+pair; if omitted it indicates the last Range is open-ended.  An object
+matches the filter if its value falls within any Range (i.e., Ranges are
+OR'd within a filter parameter).
 
 Each Start is delta encoded from the prior Range's End (or from 0 for the
 first Range), and End is delta encoded from its own Start.  If adding the delta
