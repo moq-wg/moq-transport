@@ -1601,8 +1601,14 @@ EndGroup and EndObject are `Largest Object`.
 
 When EndObject is omitted, the filter includes all objects in the End Group.
 
+A Location Filter on a subscription is always valid, even if it specifies a range
+entirely before Largest Object.
+
 A publisher MUST NOT send subscription-delivered objects from outside the
-requested range.  Fill-delivered objects are governed by the Location filter in
+requested range.  Because updating filters is asynchronous,
+subscribers can receive objects outside the current filter.
+
+Fill-delivered objects are governed by the Location filter in
 FILL_PARAMETERS (see {{fill-semantics}}).
 
 ### Fill Semantics {#fill-semantics}
@@ -1624,17 +1630,18 @@ inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
 Because the fill range is specified independently of the subscription's
 Location filter, a subscriber can retrieve a range of Groups prior to the live
 edge while the subscription itself starts at the Next Group.  If the fill range
-is empty, the publisher does not open a fill fetch stream.
+is empty, or starts after Largest Object, the publisher does not open a fill fetch stream.
 
 The fill fetch stream inherits the subscription's parameters, including
-subscriber priority and authorization; parameters carried inside
+subscriber priority, range filters and authorization; parameters carried inside
 FILL_PARAMETERS override them for the fill fetch stream.  FILL_TIMEOUT (see
 {{fill-timeout}}) applies to fill fetch streams in the same way it applies to a
 FETCH.
 
 The FETCH_HEADER on the fill fetch stream carries the Request ID of the message
 that initiated it: the SUBSCRIBE Request ID for the initial fill, or the
-REQUEST_UPDATE Request ID for a subsequent fill.  A subscription can have
+REQUEST_UPDATE Request ID for a subsequent fill.  As a result of
+REQUEST_UPDATE, a subscription can have
 multiple fill fetch streams open at once, each identified by its Request ID;
 opening a new fill fetch stream does not implicitly cancel any previously
 opened fill fetch streams.
@@ -1642,8 +1649,8 @@ opened fill fetch streams.
 An object delivered on the fill fetch stream is **fill-delivered**.  When the
 fill range overlaps the subscription's Location filter, an object can be both
 fill-delivered and subscription-delivered.  A subscriber that wants each Object
-delivered exactly once specifies a fill range that ends immediately before the
-start of the subscription's Location filter.
+delivered exactly once uses the Next Object Subscription Location Filter coupled
+with an open-ended fill range, which the publisher will end at Largest Object.
 
 #### Opening and Closing Fill Fetch Streams
 
@@ -1655,15 +1662,14 @@ REQUEST_UPDATE that carries FILL_PARAMETERS while Forward State is 1.
   open one either.
 - A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open a new fill
   fetch stream.
-- When the subscription is cancelled with STOP_SENDING on the bidi stream, the
-  publisher MUST reset any open fill fetch streams.
+- When the subscription is cancelled, the publisher MUST reset any open fill fetch streams.
 
 The publisher signals that the fill is complete by closing the stream with a
 FIN once all objects in the fill range have been delivered.  Because there is
 no REQUEST_ERROR associated with a fill fetch stream, the publisher signals a
-fill failure by resetting the stream; it can open a fill fetch stream and reset
+fill failure by resetting the stream; it MUST open a fill fetch stream and reset
 it immediately after the FETCH_HEADER if necessary.  A subscriber can cancel a
-fill fetch stream independently by sending STOP_SENDING on it.  Resetting or
+fill fetch stream independently using STOP_SENDING.  Resetting or
 cancelling a fill fetch stream, by either endpoint, does not affect the
 subscription, which continues to deliver objects using subscribe subgroups and
 datagrams.
@@ -1740,7 +1746,7 @@ to further restrict which tracks and objects pass all filter criteria.
 This includes all Range Filters {{range-filters}} and Location
 Filters {{location-filters}}, which can be evaluated in any order.
 The Forward parameter is also a type of filter.  The publisher MUST
-forward only subscription-delivered objects that pass all filters.
+forward only objects that pass all filters.
 
 ~~~
 Pass = Forward AND Location Filters AND Range Filters
@@ -1765,7 +1771,7 @@ the current Group from its start.
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a
 FILL_PARAMETERS parameter whose Location filter selects the intended Groups,
 which can be relative.  The publisher delivers the fill range on a fill fetch
-stream and delivers newly published or received Objects in subgroups or
+stream and subscription-delivered Objects in subgroups or
 datagrams (see {{fill-semantics}}).
 
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
@@ -2861,6 +2867,10 @@ The following parameters MAY appear inside FILL_PARAMETERS:
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | LOCATION_FILTER | {{location-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
+| 0x25 | SUBGROUP_FILTER | {{range-filters}} |
+| 0x26 | OBJECTID_FILTER | {{range-filters}} |
+| 0x27 | PRIORITY_FILTER | {{range-filters}} |
+| 0x28 | OBJECT_PROPERTY_FILTER | {{range-filters}} |
 
 The LOCATION_FILTER inside FILL_PARAMETERS selects the fill range and is
 evaluated using the rules for a Fetch (see {{location-filters}}); it is
@@ -3673,10 +3683,6 @@ A sender MUST NOT destroy subscription state until it sends PUBLISH_DONE, though
 it can choose to stop sending objects (and thus send PUBLISH_DONE) for any
 reason.
 
-A publisher MAY delay sending PUBLISH_DONE after the end of a Track if it
-intends to allow subscribers to request fills (see {{fill-semantics}}) of the
-completed Track. PUBLISH_DONE ends the subscription, after which no further fill
-fetch streams can be opened.
 
 A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least the
 larger of SUBGROUP_DELIVERY_TIMEOUT or OBJECT_DELIVERY_TIMEOUT in case some
