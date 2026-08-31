@@ -2309,13 +2309,13 @@ allows relays to make only a single upstream subscription for the
 Track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
 Because changing the range of an established subscription is not retroactive
-and can create gaps that require FETCH requests to fill, relays that
-aggregate upstream subscriptions can subscribe using the Largest Object
-Location filter to avoid churn as downstream subscribers with disparate filters
-subscribe and unsubscribe from a Track. Aggregating subscriptions can also
-help relays conserve resources especially with disparate filters or
-SUBSCRIBE_TRACKS in a namespace with a large number of Tracks
-(see {{large-namespaces}}).
+and can create gaps that require a fill fetch stream (see {{fill-semantics}})
+or a FETCH to fill, relays that aggregate upstream subscriptions can subscribe
+using a Location Filter that starts at the Next Object to avoid churn as
+downstream subscribers with disparate filters subscribe and unsubscribe from
+a Track. Aggregating subscriptions can also help relays conserve resources
+especially with disparate filters or SUBSCRIBE_TRACKS in a namespace with a
+large number of Tracks (see {{large-namespaces}}).
 
 A subscriber remains subscribed to a Track at a Relay until it unsubscribes, the
 upstream publisher terminates the subscription, or the subscription expires (see
