@@ -1788,7 +1788,7 @@ Object Property types and values.  It only filters Object Properties in
 the Object header, and does not evaluate Track Properties in PUBLISH
 messages.
 
-### Combining Filters
+### Combining Filters {#combining-filters}
 
 All filter types are combined using logical "AND" operations
 to further restrict which tracks and objects pass all filter criteria.
@@ -1802,22 +1802,29 @@ Pass = Location Filters AND Range Filters
 
 ### Pausing Subscriptions {#pausing-subscriptions}
 
-A subscription is paused by including a Location Filter where the End Location
-is strictly less than the Start Location, creating an empty range that no object
-can satisfy.  The recommended encoding is StartGroup=0, StartObject=1,
-EndGroupDelta=0, EndObject=0, representing the empty range [{0,1}, {0,0}].
+A subscription can be paused, which suppresses delivery of all Objects, by
+including a Location Filter whose End Location is strictly less than its Start
+Location: an empty range that no object can satisfy. The recommended encoding
+is StartGroup=0, StartObject=1, EndGroupDelta=0, EndObject=0, representing the
+empty range [{0,1}, {0,0}]. Any other filter that filters out all Objects
+(for example, a Location Filter whose range lies entirely before the Track's
+first Object) has the same effect on delivery.
 
-A paused subscription does not deliver any Objects, but control messages such
-as PUBLISH_DONE ({{message-publish-done}}) are still sent.
+When multiple filter SetIDs are in use, filters within a SetID are combined
+with AND while distinct SetIDs are combined with OR
+(see {{combining-filters}}). To pause a subscription, the pausing filter MUST
+be present in every SetID used by the subscription; otherwise Objects can still
+pass via an unpaused SetID.
 
 To pause a subscription, the endpoint includes a pausing Location Filter in
-SUBSCRIBE, PUBLISH, PUBLISH_OK, SUBSCRIBE_TRACKS, or REQUEST_UPDATE. To resume,
-the endpoint sends a REQUEST_UPDATE that either removes the Location Filter
-(Length=0) or replaces it with a non-pausing filter (see {{location-filters}}).
+SUBSCRIBE, PUBLISH, PUBLISH_OK, or REQUEST_UPDATE. To resume, the endpoint
+sends a REQUEST_UPDATE that either removes the Location Filter (Length=0) or
+replaces it with a non-pausing filter (see {{location-filters}}).
 
-In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, the paused state applies
-to future subscriptions that match the prefix. Existing subscriptions are
-unaffected.
+A pausing Location Filter can also appear in SUBSCRIBE_TRACKS; it does not
+pause any existing subscription. Instead, it sets the initial paused state for
+future subscriptions that match the prefix (see
+{{parameters-on-subscribe-tracks}}).
 
 ### Joining an Ongoing Track
 
