@@ -1295,9 +1295,6 @@ DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
 : Authorization Token attempted to register an Alias that was in use (see
   {{authorization-token}}).
 
-VERSION_NEGOTIATION_FAILED (0x15):
-: The client didn't offer a version supported by the server.
-
 MALFORMED_AUTH_TOKEN (0x16):
 : Invalid Auth Token serialization during registration (see
   {{authorization-token}}).
@@ -5599,7 +5596,6 @@ This document does not define any initial entries.
 | DATA_STREAM_TIMEOUT        | 0x12 | {{session-termination}} |
 | AUTH_TOKEN_CACHE_OVERFLOW  | 0x13 | {{session-termination}} |
 | DUPLICATE_AUTH_TOKEN_ALIAS | 0x14 | {{session-termination}} |
-| VERSION_NEGOTIATION_FAILED | 0x15 | {{session-termination}} |
 | MALFORMED_AUTH_TOKEN       | 0x16 | {{session-termination}} |
 | UNKNOWN_AUTH_TOKEN_ALIAS   | 0x17 | {{session-termination}} |
 | EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
