@@ -4126,11 +4126,14 @@ with an `Established` subscription, it MUST close the session with error
 
 Objects can be sent before the Subscriber knows the Track Alias, requiring
 buffering Objects with an unknown Track Alias. If a Track Alias
-is used for two concurrent subscriptions to the same Track, the Subscriber needs
-Objects to be filtered by each Subscription's filters. Because
-a Publisher can re-use a Track Alias for the second Subscription to a Track,
-the Subscriber needs to act as though the Track Alias is reused until told
-otherwise, in order to avoid missing Objects.
+is used for two concurrent subscriptions to the same Track, an
+Object that arrives with the Track Alias could be for either
+Subscription. Reusing the same Track Alias for concurrent
+subscriptions to the same Track can lead to missed delivery
+if objects for the new subscription arrive
+before the control message establishing the shared Alias.
+The Subscriber can assume the Track Alias is reused until
+told otherwise, in order to avoid missing Objects.
 
 To avoid a protocol violation and to ensure the Subscriber knows which Track
 Objects are from, Publishers SHOULD NOT reuse a Track Alias for different Tracks
