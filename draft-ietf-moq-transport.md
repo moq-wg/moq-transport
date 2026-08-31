@@ -1802,29 +1802,21 @@ Pass = Location Filters AND Range Filters
 
 ### Pausing Subscriptions {#pausing-subscriptions}
 
-A subscription can be paused, which suppresses delivery of all Objects, by
-including a Location Filter whose End Location is strictly less than its Start
-Location: an empty range that no object can satisfy. The recommended encoding
-is StartGroup=0, StartObject=1, EndGroupDelta=0, EndObject=0, representing the
-empty range [{0,1}, {0,0}]. Any other filter that filters out all Objects
-(for example, a Location Filter whose range lies entirely before the Track's
-first Object) has the same effect on delivery.
+A subscription is paused by any filter that matches no Objects. The
+recommended pausing filter is a Location Filter with StartGroup=0,
+StartObject=1, EndGroupDelta=0, EndObject=0, representing the empty range
+[{0,1}, {0,0}]. When multiple filter SetIDs are in use (see
+{{combining-filters}}), the pausing filter MUST be present in every SetID;
+otherwise Objects can pass via an unpaused SetID.
 
-When multiple filter SetIDs are in use, filters within a SetID are combined
-with AND while distinct SetIDs are combined with OR
-(see {{combining-filters}}). To pause a subscription, the pausing filter MUST
-be present in every SetID used by the subscription; otherwise Objects can still
-pass via an unpaused SetID.
+An endpoint pauses a subscription by including a pausing Location Filter in
+SUBSCRIBE, PUBLISH, PUBLISH_OK, or REQUEST_UPDATE, and resumes it by sending a
+REQUEST_UPDATE that removes the Location Filter (Length=0) or replaces it with
+a non-pausing filter.
 
-To pause a subscription, the endpoint includes a pausing Location Filter in
-SUBSCRIBE, PUBLISH, PUBLISH_OK, or REQUEST_UPDATE. To resume, the endpoint
-sends a REQUEST_UPDATE that either removes the Location Filter (Length=0) or
-replaces it with a non-pausing filter (see {{location-filters}}).
-
-A pausing Location Filter can also appear in SUBSCRIBE_TRACKS; it does not
-pause any existing subscription. Instead, it sets the initial paused state for
-future subscriptions that match the prefix (see
-{{parameters-on-subscribe-tracks}}).
+A pausing Location Filter in SUBSCRIBE_TRACKS does not pause any existing
+subscription; it sets the initial paused state for future subscriptions that
+match the prefix (see {{parameters-on-subscribe-tracks}}).
 
 ### Joining an Ongoing Track
 
