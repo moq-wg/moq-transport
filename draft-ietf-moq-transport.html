@@ -5323,10 +5323,10 @@ REQUEST_ERROR with error code INVALID_FILTER. See <a href="#range-filters" class
           </h4>
 <p id="section-10.2.15-1">The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-prefixed
 encoding. It <span class="bcp14">MAY</span> appear in a SUBSCRIBE or REQUEST_UPDATE (for a subscription)
-message. Its value is a block of Key-Value Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>)
-that apply to the fill fetch stream (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).  Its presence is
-what requests a fill fetch stream; a subscription with no FILL_PARAMETERS
-opens none.<a href="#section-10.2.15-1" class="pilcrow">¶</a></p>
+message. Its value is a sequence of Parameters that apply to the fill fetch
+stream (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>), encoded as if they were Parameters for a
+separate message (see <a href="#message-parameters" class="auto internal xref">Section 15.7</a>).  Its presence is what requests a
+fill fetch stream; a subscription with no FILL_PARAMETERS opens none.<a href="#section-10.2.15-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.15-2">The following parameters <span class="bcp14">MAY</span> appear inside FILL_PARAMETERS:<a href="#section-10.2.15-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-6">
             <caption><a href="#table-6" class="selfRef">Table 6</a></caption>

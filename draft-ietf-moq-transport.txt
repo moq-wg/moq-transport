@@ -3269,10 +3269,11 @@ Table of Contents
 
    The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-
    prefixed encoding.  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE
-   (for a subscription) message.  Its value is a block of Key-Value
-   Pairs (see Figure 2) that apply to the fill fetch stream (see
-   Section 5.1.3).  Its presence is what requests a fill fetch stream; a
-   subscription with no FILL_PARAMETERS opens none.
+   (for a subscription) message.  Its value is a sequence of Parameters
+   that apply to the fill fetch stream (see Section 5.1.3), encoded as
+   if they were Parameters for a separate message (see Section 15.7).
+   Its presence is what requests a fill fetch stream; a subscription
+   with no FILL_PARAMETERS opens none.
 
    The following parameters MAY appear inside FILL_PARAMETERS:
 
