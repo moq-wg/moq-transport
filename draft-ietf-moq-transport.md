@@ -3031,7 +3031,7 @@ This allows, for example, moving the publishers and subscribers of a common set
 of tracks to a common relay without draining their entire session.
 
 The GOAWAY message does not impact subscription state. A subscriber
-SHOULD individually UNSUBSCRIBE for each existing subscription, while a
+SHOULD individually unsubscribe from each existing subscription, while a
 publisher MAY reject new requests after sending a GOAWAY.
 
 Upon receiving a GOAWAY on the control stream, an endpoint SHOULD NOT initiate new requests to the
