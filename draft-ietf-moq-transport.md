@@ -1615,6 +1615,9 @@ A publisher MUST NOT send subscription-delivered objects from outside the
 requested range.  Because updating filters is asynchronous,
 subscribers can receive objects outside the current filter.
 
+A publisher does not end a subscription solely because the Largest Object advances
+past the end of the current Location Filter.
+
 Fill-delivered objects are governed by the Location filter in
 FILL_PARAMETERS (see {{fill-semantics}}).
 
