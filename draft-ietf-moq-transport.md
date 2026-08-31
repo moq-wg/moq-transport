@@ -2898,10 +2898,10 @@ REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
 
 The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-prefixed
 encoding. It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a subscription)
-message. Its value is a block of Key-Value Pairs (see {{moq-key-value-pair}})
-that apply to the fill fetch stream (see {{fill-semantics}}).  Its presence is
-what requests a fill fetch stream; a subscription with no FILL_PARAMETERS
-opens none.
+message. Its value is a sequence of Parameters that apply to the fill fetch
+stream (see {{fill-semantics}}), encoded as if they were Parameters for a
+separate message (see {{message-parameters}}).  Its presence is what requests a
+fill fetch stream; a subscription with no FILL_PARAMETERS opens none.
 
 The following parameters MAY appear inside FILL_PARAMETERS:
 
