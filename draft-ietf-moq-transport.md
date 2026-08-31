@@ -4209,6 +4209,19 @@ Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
 retain sufficient state to quickly discard these unwanted Objects, rather than
 treating them as belonging to an unknown Track Alias.
 
+### Unknown Track Alias {#unknown-track-alias}
+
+When an endpoint receives a datagram or opens a stream with a Track Alias that
+is not yet associated with an `Established` subscription, it MAY drop the
+data or buffer it briefly to handle reordering with the control message that
+establishes the Track Alias. For streams, the endpoint MAY withhold stream
+flow control beyond the stream header until the Track Alias has been
+established. To prevent deadlocks, endpoints MUST allocate connection flow
+control to control streams before allocating it to any data streams;
+otherwise a receiver might wait for a control message containing a Track
+Alias to release flow control, while the sender waits for flow control to
+send the message.
+
 
 ## Objects {#message-object}
 
@@ -4312,10 +4325,8 @@ Object Property types are registered in the IANA table
 ## Datagrams
 
 A single object can be conveyed in a datagram.  The Track Alias field
-({{track-alias}}) indicates the track this Datagram belongs to.  If an endpoint
-receives a datagram with an unknown Track Alias, it MAY drop the datagram or
-choose to buffer it for a brief period to handle reordering with the control
-message that establishes the Track Alias.
+({{track-alias}}) indicates the track this Datagram belongs to; see
+{{unknown-track-alias}} for handling of unknown Track Aliases.
 
 An Object received in an `OBJECT_DATAGRAM` message has an `Object Forwarding
 Preference` = `Datagram`.
@@ -4424,14 +4435,8 @@ All Objects on a Subgroup stream belong to the track identified by
 `Track Alias` (see {{track-alias}}) and the Subgroup indicated by `Group ID`
 and `Subgroup ID` in the SUBGROUP_HEADER.
 
-If an endpoint receives a subgroup with an unknown Track Alias, it MAY abandon
-the stream, or choose to buffer it for a brief period to handle reordering with
-the control message that establishes the Track Alias.  The endpoint MAY withhold
-stream flow control beyond the SUBGROUP_HEADER until the Track Alias has been
-established.  To prevent deadlocks, endpoints MUST allocate connection flow
-control to the control streams before allocating it to any data streams. Otherwise,
-a receiver might wait for a control message containing a Track Alias to release
-flow control, while the sender waits for flow control to send the message.
+See {{unknown-track-alias}} for handling of subgroups with unknown Track
+Aliases.
 
 ~~~
 SUBGROUP_HEADER {
