@@ -3455,44 +3455,39 @@ registered Authorization tokens has been exceeded.<a href="#section-3.5-3.26.1" 
 <a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5-3.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.5-3.29">VERSION_NEGOTIATION_FAILED (0x15):</dt>
+<dt id="section-3.5-3.29">MALFORMED_AUTH_TOKEN (0x16):</dt>
           <dd style="margin-left: 1.5em" id="section-3.5-3.30">
-            <p id="section-3.5-3.30.1">The client didn't offer a version supported by the server.<a href="#section-3.5-3.30.1" class="pilcrow">¶</a></p>
+            <p id="section-3.5-3.30.1">Invalid Auth Token serialization during registration (see
+<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5-3.30.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.5-3.31">MALFORMED_AUTH_TOKEN (0x16):</dt>
+<dt id="section-3.5-3.31">UNKNOWN_AUTH_TOKEN_ALIAS (0x17):</dt>
           <dd style="margin-left: 1.5em" id="section-3.5-3.32">
-            <p id="section-3.5-3.32.1">Invalid Auth Token serialization during registration (see
+            <p id="section-3.5-3.32.1">No registered token found for the provided Alias (see
 <a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5-3.32.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.5-3.33">UNKNOWN_AUTH_TOKEN_ALIAS (0x17):</dt>
+<dt id="section-3.5-3.33">EXPIRED_AUTH_TOKEN (0x18):</dt>
           <dd style="margin-left: 1.5em" id="section-3.5-3.34">
-            <p id="section-3.5-3.34.1">No registered token found for the provided Alias (see
-<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5-3.34.1" class="pilcrow">¶</a></p>
+            <p id="section-3.5-3.34.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5-3.34.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.5-3.35">EXPIRED_AUTH_TOKEN (0x18):</dt>
+<dt id="section-3.5-3.35">INVALID_AUTHORITY (0x19):</dt>
           <dd style="margin-left: 1.5em" id="section-3.5-3.36">
-            <p id="section-3.5-3.36.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5-3.36.1" class="pilcrow">¶</a></p>
+            <p id="section-3.5-3.36.1">The specified AUTHORITY does not correspond to this server or cannot be
+used in this context.<a href="#section-3.5-3.36.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.5-3.37">INVALID_AUTHORITY (0x19):</dt>
+<dt id="section-3.5-3.37">MALFORMED_AUTHORITY (0x1A):</dt>
           <dd style="margin-left: 1.5em" id="section-3.5-3.38">
-            <p id="section-3.5-3.38.1">The specified AUTHORITY does not correspond to this server or cannot be
-used in this context.<a href="#section-3.5-3.38.1" class="pilcrow">¶</a></p>
+            <p id="section-3.5-3.38.1">The AUTHORITY value is syntactically invalid.<a href="#section-3.5-3.38.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.5-3.39">MALFORMED_AUTHORITY (0x1A):</dt>
+<dt id="section-3.5-3.39">TOO_MANY_REQUEST_UPDATES (0x1B):</dt>
           <dd style="margin-left: 1.5em" id="section-3.5-3.40">
-            <p id="section-3.5-3.40.1">The AUTHORITY value is syntactically invalid.<a href="#section-3.5-3.40.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.5-3.41">TOO_MANY_REQUEST_UPDATES (0x1B):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.5-3.42">
-            <p id="section-3.5-3.42.1">The endpoint received a REQUEST_UPDATE that exceeded the per-stream limit
+            <p id="section-3.5-3.40.1">The endpoint received a REQUEST_UPDATE that exceeded the per-stream limit
 communicated via the MAX_REQUEST_UPDATES Setup Option
-(<a href="#max-request-updates" class="auto internal xref">Section 10.3.1.7</a>).<a href="#section-3.5-3.42.1" class="pilcrow">¶</a></p>
+(<a href="#max-request-updates" class="auto internal xref">Section 10.3.1.7</a>).<a href="#section-3.5-3.40.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -3681,38 +3676,35 @@ if the Forward State is 1.  The initiator of the subscription sets the initial
 Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send
 REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 10.12</a>) are sent regardless of the forward state.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">A publisher <span class="bcp14">MUST</span> save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
-or REQUEST_UPDATE_OK that changes the Forward State
-from 0 to 1.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
-<p id="section-5.1-7">Either endpoint can initiate a subscription to a track without exchanging any
+<p id="section-5.1-6">Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays <span class="bcp14">MUST NOT</span> send any PUBLISH messages
 without knowing the client is interested in and authorized to receive the
 content. The communication of intent and authorization can be accomplished by
 the client sending SUBSCRIBE_NAMESPACE, or conveyed in other mechanisms out of
-band.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
-<p id="section-5.1-8">An endpoint <span class="bcp14">MAY</span> SUBSCRIBE to a Track it is publishing, though only Relays are
+band.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">An endpoint <span class="bcp14">MAY</span> SUBSCRIBE to a Track it is publishing, though only Relays are
 required to handle such a SUBSCRIBE.  Such self-subscriptions are identical to
 subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
-rules.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
-<p id="section-5.1-9">An endpoint <span class="bcp14">MAY</span> have multiple concurrent subscriptions to the same Track,
+rules.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">An endpoint <span class="bcp14">MAY</span> have multiple concurrent subscriptions to the same Track,
 each identified by a unique Request ID. A publisher <span class="bcp14">MAY</span> assign the same or
-different Track Aliases to these subscriptions.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
-<p id="section-5.1-10">When an Object matches the filters of multiple subscriptions to the same Track,
+different Track Aliases to these subscriptions.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<p id="section-5.1-9">When an Object matches the filters of multiple subscriptions to the same Track,
 the publisher <span class="bcp14">MUST</span> send the Object once for each matching subscription, even
 when those subscriptions share the same Track Alias. Because subscriptions can
 share a Track Alias, the subscriber re-applies each subscription's filter to
 determine which subscription a received Object belongs to. Subscribers <span class="bcp14">SHOULD</span>
 avoid overlapping filters across subscriptions to the same Track, as they are
-responsible for deduplicating any resulting duplicate Objects.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
-<p id="section-5.1-11">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to avoid
-incurring additional latency.<a href="#section-5.1-11" class="pilcrow">¶</a></p>
-<p id="section-5.1-12">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
+responsible for deduplicating any resulting duplicate Objects.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<p id="section-5.1-10">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to avoid
+incurring additional latency.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+<p id="section-5.1-11">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
 with REQUEST_ERROR or sets Forward=0 in REQUEST_UPDATE. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
-<a href="#datagrams" class="auto internal xref">Section 11.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 11.4.2</a>).<a href="#section-5.1-12" class="pilcrow">¶</a></p>
+<a href="#datagrams" class="auto internal xref">Section 11.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 11.4.2</a>).<a href="#section-5.1-11" class="pilcrow">¶</a></p>
 <div id="subscription-state-management">
 <section id="section-5.1.1">
           <h4 id="name-subscription-state-manageme">
@@ -3989,7 +3981,7 @@ Pass = Forward AND Location Filters AND Range Filters
 </div>
 </section>
 </div>
-<div id="joining-an-ongoing-track">
+<div id="joining-tracks">
 <section id="section-5.1.6">
           <h4 id="name-joining-an-ongoing-track">
 <a href="#section-5.1.6" class="section-number selfRef">5.1.6. </a><a href="#name-joining-an-ongoing-track" class="section-name selfRef">Joining an Ongoing Track</a>
@@ -4022,7 +4014,7 @@ applications might want to only begin a new Group when needed.  A subscriber
 joining a Track might detect that it is more efficient to request the Original
 Publisher create a new group than to fill the current group.  Publishers
 indicate a Track supports dynamic group creation using the DYNAMIC_GROUPS
-parameter (<a href="#dynamic-groups" class="auto internal xref">Section 12.6</a>).<a href="#section-5.1.6.1-1" class="pilcrow">¶</a></p>
+Track Property (<a href="#dynamic-groups" class="auto internal xref">Section 12.6</a>).<a href="#section-5.1.6.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1.6.1-2">One possible subscriber pattern is to SUBSCRIBE to a Track using a Location Filter
 that starts at the Next Object and observe the <code>Largest Object</code> in the response.  If the
 Object ID is below the application's threshold, the subscriber sends a FETCH for
@@ -4571,13 +4563,14 @@ multiple subscribers request the same Track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 Track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
-Because MOQT restricts widening a subscription, relays that
-aggregate upstream subscriptions can subscribe using the Largest Object
-Location filter to avoid churn as downstream subscribers with disparate filters
-subscribe and unsubscribe from a Track. Aggregating subscriptions can also
-help relays conserve resources especially with disparate filters or
-SUBSCRIBE_TRACKS in a namespace with a large number of Tracks
-(see <a href="#large-namespaces" class="auto internal xref">Section 6.3.1</a>).<a href="#section-9.4-5" class="pilcrow">¶</a></p>
+Relays that aggregate subscriptions <span class="bcp14">MAY</span> combine filters from downstream
+subscribers on the upstream subscription, up to the peer's MAX_FILTER_RANGES.
+If adding filters to an upstream subscription is not possible, the relay can either
+remove some or all filters, or make additional subscriptions to the same Track.
+Multiple subscriptions to the same Track with non-disjoint filter sets will result in
+duplicate objects arriving at the relay.  Using wider upstream filters can protect the
+relay from churn as subscribers with disparate filters subscribe and unsubscribe from
+a Track, at the cost of receiving more objects.<a href="#section-9.4-5" class="pilcrow">¶</a></p>
 <p id="section-9.4-6">A subscriber remains subscribed to a Track at a Relay until it unsubscribes, the
 upstream publisher terminates the subscription, or the subscription expires (see
 <a href="#message-subscribe-ok" class="auto internal xref">Section 10.8</a>).  A subscription with a filter can reach a state where
@@ -5330,10 +5323,10 @@ REQUEST_ERROR with error code INVALID_FILTER. See <a href="#range-filters" class
           </h4>
 <p id="section-10.2.15-1">The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-prefixed
 encoding. It <span class="bcp14">MAY</span> appear in a SUBSCRIBE or REQUEST_UPDATE (for a subscription)
-message. Its value is a block of Key-Value Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>)
-that apply to the fill fetch stream (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).  Its presence is
-what requests a fill fetch stream; a subscription with no FILL_PARAMETERS
-opens none.<a href="#section-10.2.15-1" class="pilcrow">¶</a></p>
+message. Its value is a sequence of Parameters that apply to the fill fetch
+stream (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>), encoded as if they were Parameters for a
+separate message (see <a href="#message-parameters" class="auto internal xref">Section 15.7</a>).  Its presence is what requests a
+fill fetch stream; a subscription with no FILL_PARAMETERS opens none.<a href="#section-10.2.15-1" class="pilcrow">¶</a></p>
 <p id="section-10.2.15-2">The following parameters <span class="bcp14">MAY</span> appear inside FILL_PARAMETERS:<a href="#section-10.2.15-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-6">
             <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
@@ -5417,10 +5410,6 @@ inside FILL_PARAMETERS.<a href="#section-10.2.15-6" class="pilcrow">¶</a></p>
 <p id="section-10.2.15-7">FILL_PARAMETERS is not retained as subscription state. It applies only to the
 message that carries it, so the sticky-parameter rules in
 <a href="#message-request-update" class="auto internal xref">Section 10.9</a> do not apply to it.<a href="#section-10.2.15-7" class="pilcrow">¶</a></p>
-<p id="section-10.2.15-8">To fill-join a track initiated via PUBLISH, the subscriber <span class="bcp14">SHOULD</span> respond with
-PUBLISH_OK with Forward State 0, then send REQUEST_UPDATE with Forward State 1
-and FILL_PARAMETERS. The REQUEST_UPDATE_OK will contain a fresh LARGEST_OBJECT
-establishing the correct fill range.<a href="#section-10.2.15-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="expires">
@@ -5632,7 +5621,7 @@ these rules, the session <span class="bcp14">MUST</span> be closed with <code>MA
             </h5>
 <p id="section-10.3.1.2-1">The PATH option (Option Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC (<a href="#native-quic" class="auto internal xref">Section 3.1.5</a>).  It <span class="bcp14">MUST NOT</span> be used by
-the server, or when WebTransport is used.  When a PATH parameter is received
+the server, or when WebTransport is used.  When a PATH setup option is received
 from a server, or when a PATH parameter is received while WebTransport is used,
 or when a PATH parameter is received by a server but the server does not
 support the specified path, the session <span class="bcp14">MUST</span> be closed with <code>INVALID_PATH</code>.<a href="#section-10.3.1.2-1" class="pilcrow">¶</a></p>
@@ -5821,8 +5810,8 @@ reset the request stream before the indicated timeout has elapsed.<a href="#sect
 <p id="section-10.5-1">The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
 TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
 requests.<a href="#section-10.5-1" class="pilcrow">¶</a></p>
-<p id="section-10.5-2">This document uses the shorthand PUBLISH_OK,
-REQUEST_UPDATE_OK, TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and
+<p id="section-10.5-2">This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
+TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
 PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
 corresponding request type.<a href="#section-10.5-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_ok-message"></span><div id="moq-transport-request-ok">
@@ -6941,21 +6930,10 @@ only interested in or authorized to access a subset of available tracks.<a href=
 <p id="section-10.20.1-1">Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
 in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
 publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS. These Parameters are explicitly communicated, including the
-FORWARD and GROUP_ORDER parameters as described below.  When omitted by
-the publisher in PUBLISH, the subscriber uses the default value for each.<a href="#section-10.20.1-1" class="pilcrow">¶</a></p>
-<p id="section-10.20.1-2">If the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 10.2.18</a>) is present in this message and
-equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will set
-the FORWARD parameter to 0. If the FORWARD parameter is equal to 1 or omitted
-from this message, PUBLISH messages resulting from this SUBSCRIBE_TRACKS will
-set the FORWARD parameter to 1, or indicate that value by omitting the parameter
-(see <a href="#subscriptions" class="auto internal xref">Section 5.1</a>).<a href="#section-10.20.1-2" class="pilcrow">¶</a></p>
-<p id="section-10.20.1-3">If the GROUP_ORDER parameter (<a href="#group-order" class="auto internal xref">Section 10.2.8</a>) is present in this message,
-PUBLISH messages resulting from this SUBSCRIBE_TRACKS will include the
-GROUP_ORDER parameter with the same value. If the GROUP_ORDER parameter is
-omitted from this message, PUBLISH messages resulting from this
-SUBSCRIBE_TRACKS will use the publisher's default group order preference
-(see <a href="#group-order-pref" class="auto internal xref">Section 12.5</a>).<a href="#section-10.20.1-3" class="pilcrow">¶</a></p>
+SUBSCRIBE_TRACKS. These Parameters are explicitly communicated in PUBLISH.
+When omitted by the publisher in PUBLISH, the subscriber uses the default value for each.<a href="#section-10.20.1-1" class="pilcrow">¶</a></p>
+<p id="section-10.20.1-2">To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a
+Location Filter and optionally include FILL_PARAMETERS, as described in <a href="#joining-tracks" class="auto internal xref">Section 5.1.6</a>.<a href="#section-10.20.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -9306,13 +9284,6 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">DUPLICATE_AUTH_TOKEN_ALIAS</td>
                 <td class="text-center" rowspan="1" colspan="1">0x14</td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#session-termination" class="auto internal xref">Section 3.5</a>
-</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">VERSION_NEGOTIATION_FAILED</td>
-                <td class="text-center" rowspan="1" colspan="1">0x15</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#session-termination" class="auto internal xref">Section 3.5</a>
 </td>
