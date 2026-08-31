@@ -1826,7 +1826,7 @@ applications might want to only begin a new Group when needed.  A subscriber
 joining a Track might detect that it is more efficient to request the Original
 Publisher create a new group than to fill the current group.  Publishers
 indicate a Track supports dynamic group creation using the DYNAMIC_GROUPS
-parameter ({{dynamic-groups}}).
+Track Property ({{dynamic-groups}}).
 
 One possible subscriber pattern is to SUBSCRIBE to a Track using a Location Filter
 that starts at the Next Object and observe the `Largest Object` in the response.  If the
@@ -3112,7 +3112,7 @@ these rules, the session MUST be closed with `MALFORMED_AUTHORITY`.
 
 The PATH option (Option Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC ({{native-quic}}).  It MUST NOT be used by
-the server, or when WebTransport is used.  When a PATH parameter is received
+the server, or when WebTransport is used.  When a PATH setup option is received
 from a server, or when a PATH parameter is received while WebTransport is used,
 or when a PATH parameter is received by a server but the server does not
 support the specified path, the session MUST be closed with `INVALID_PATH`.
