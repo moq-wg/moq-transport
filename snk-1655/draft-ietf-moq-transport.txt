@@ -3621,72 +3621,42 @@ Table of Contents
    connections.
 
    A GOAWAY MAY also be sent on a request stream to migrate that
-   individual request.  Either endpoint of a request stream MAY send
-   GOAWAY on it.  As on the control stream, a client MUST send a zero-
-   length New Session URI, since clients cannot instruct servers to
-   initiate connections.
+   individual request.  Either endpoint of a request stream MAY send it,
+   subject to the same URI rule as the control stream.  When sent by a
+   server it MAY carry a New Session URI (redirect); when sent by a
+   client it MUST be zero-length (drain).  The requester (the endpoint
+   that issued the original request) SHOULD re-issue that same request
+   at the New Session URI, or on the current session if none is given,
+   and close the old request stream using the appropriate mechanism
+   (e.g. FIN, stream reset, or PUBLISH_DONE).  GOAWAY never switches the
+   request verb.
 
-   Upon receiving a GOAWAY on a request stream, the endpoint that issued
-   the original request (the requester) SHOULD re-issue that same
-   request at the New Session URI (or on the current session if no URI
-   is provided).  The old request stream is closed using the appropriate
-   mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).  GOAWAY on a
-   request stream never switches request verb — the requester re-issues
-   the same verb it originally sent.  Draining is handled by the
-   existing per-request mechanisms (PUBLISH_DONE, unsubscribe, stream
-   close), not by GOAWAY.
+   The four server-sent (redirect) cases for subscription-creating
+   requests are:
 
-   The following table lists who may usefully send GOAWAY on a request
-   stream for each subscription-creating request, and what that GOAWAY
-   means.  In every case, a GOAWAY sent by a server MAY carry a New
-   Session URI (redirect); a GOAWAY sent by a client MUST carry a zero-
-   length URI and is equivalent to draining the leg.
-
-     +===+===========+===========+==============+====================+
-     | # | Initiator | Verb      | GOAWAY       | Effect             |
-     |   |           |           | sender       |                    |
-     +===+===========+===========+==============+====================+
-     | 1 | client    | PUBLISH   | server       | Server asks client |
-     |   |           |           | (subscriber) | to re-PUBLISH at   |
-     |   |           |           |              | New Session URI.   |
-     +---+-----------+-----------+--------------+--------------------+
-     | 2 | client    | PUBLISH   | client       | Drain: client      |
-     |   |           |           | (publisher)  | stops publishing   |
-     |   |           |           |              | on this stream.    |
-     +---+-----------+-----------+--------------+--------------------+
-     | 3 | client    | SUBSCRIBE | server       | Server asks client |
-     |   |           |           | (publisher)  | to re-SUBSCRIBE at |
-     |   |           |           |              | New Session URI.   |
-     +---+-----------+-----------+--------------+--------------------+
-     | 4 | client    | SUBSCRIBE | client       | Drain: equivalent  |
-     |   |           |           | (subscriber) | to unsubscribing.  |
-     +---+-----------+-----------+--------------+--------------------+
-     | 5 | server    | PUBLISH   | server       | Server hands its   |
-     |   |           |           | (publisher)  | outbound PUBLISH   |
-     |   |           |           |              | off to a new URI.  |
-     +---+-----------+-----------+--------------+--------------------+
-     | 6 | server    | PUBLISH   | client       | Drain: equivalent  |
-     |   |           |           | (subscriber) | to closing the     |
-     |   |           |           |              | subscription.      |
-     +---+-----------+-----------+--------------+--------------------+
-     | 7 | server    | SUBSCRIBE | server       | Server hands its   |
-     |   |           |           | (subscriber) | outbound SUBSCRIBE |
-     |   |           |           |              | off to a new URI.  |
-     +---+-----------+-----------+--------------+--------------------+
-     | 8 | server    | SUBSCRIBE | client       | Drain: client      |
-     |   |           |           | (publisher)  | stops publishing   |
-     |   |           |           |              | to the server.     |
-     +---+-----------+-----------+--------------+--------------------+
+     +===========+===========+=============+=========================+
+     | Initiator | Verb      | Server role | Effect                  |
+     |           |           | in stream   |                         |
+     +===========+===========+=============+=========================+
+     | client    | PUBLISH   | subscriber  | Ask client to re-       |
+     |           |           |             | PUBLISH at New URI.     |
+     +-----------+-----------+-------------+-------------------------+
+     | client    | SUBSCRIBE | publisher   | Ask client to re-       |
+     |           |           |             | SUBSCRIBE at New URI.   |
+     +-----------+-----------+-------------+-------------------------+
+     | server    | PUBLISH   | publisher   | Hand outbound PUBLISH   |
+     |           |           | (requester) | off to a new URI.       |
+     +-----------+-----------+-------------+-------------------------+
+     | server    | SUBSCRIBE | subscriber  | Hand outbound SUBSCRIBE |
+     |           |           | (requester) | off to a new URI.       |
+     +-----------+-----------+-------------+-------------------------+
 
                                   Table 7
 
-   GOAWAY on a request stream never switches request verb — the
-   requester re-issues the same verb it originally sent.  When the
-   sender is a client, the same effect can equivalently be achieved by
-   the existing per-request mechanisms (PUBLISH_DONE, unsubscribe, or
-   stream close); those SHOULD be preferred over a bare-drain GOAWAY.
-   The same shape (server-side redirect, client-side drain) applies to
-   FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, and
+   A client-sent GOAWAY on a request stream drains that leg; the
+   existing per-request mechanisms (PUBLISH_DONE, unsubscribe, stream
+   close) SHOULD be preferred.  The same shape applies to FETCH,
+   TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, and
    PUBLISH_NAMESPACE.
 
    The GOAWAY message does not impact subscription state.  A subscriber
