@@ -4598,9 +4598,8 @@ signal to close corresponding streams even if the FIN has not arrived, as
 further objects on the stream would be a protocol violation.
 
 Similarly, an End of Group Object indicates the maximum Object ID in the
-Group, so if all Objects in the Group have been received, a FIN can be sent on
-any stream where the entire subgroup has been sent. This might be complex to
-implement.
+Group, so if all Objects in the Group have been received, a FIN can be sent
+on any stream where the entire subgroup has been sent.
 
 Processing a reset means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
@@ -4610,11 +4609,11 @@ It also might send RESET_STREAM_AT with reliable_size set to the last Object it
 has, so as to reliably deliver the Objects it has while signaling that other
 Objects might exist.
 
-A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the Group
-or Subgroup is no longer of interest to it. The publisher SHOULD respond with
-a reset. If RESET_STREAM_AT is sent, note that the receiver
-has indicated no interest in the objects, so setting a reliable_size beyond the
-stream header is of questionable utility.
+A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the
+Group or Subgroup is no longer of interest to it. The publisher SHOULD
+respond with a reset. If RESET_STREAM_AT is sent, the publisher SHOULD NOT
+set reliable_size beyond the stream header, as the receiver has indicated no
+interest in the objects.
 
 Resets and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
