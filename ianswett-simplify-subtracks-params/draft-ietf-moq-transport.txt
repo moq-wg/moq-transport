@@ -4569,7 +4569,7 @@ Table of Contents
    uses the default value for each.
 
    To join Tracks initiated via the resulting PUBLISHes, the subscriber
-   can specify a Location Filter and optionally include fill parameters,
+   can specify a Location Filter and optionally include FILL_PARAMETERS,
    as described in Section 5.1.6.
 
 10.21.  PUBLISH_SKIPPED
