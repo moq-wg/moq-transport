@@ -2940,7 +2940,8 @@ Range { Start, [End] }
    REQUEST_UPDATE, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS,
    PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message.  This parameter
    conveys information to authorize the sender to perform the operation
-   carrying the parameter.
+   carrying the parameter.  This Parameter MUST NOT be copied from a
+   SUBSCRIBE_TRACKS to the resulting PUBLISH message Parameters.
 
    The parameter value is a Token structure containing an optional
    Session-specific Alias.  The Alias allows the sender to reference a
@@ -3068,8 +3069,8 @@ Range { Start, [End] }
 10.2.3.  SUBGROUP_DELIVERY_TIMEOUT Parameter
 
    The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a
-   varint.  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
-   semantics are defined in Section 8.
+   varint.  It MAY appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE
+   message.  Its semantics are defined in Section 8.
 
    This parameter is intended to be specific to a subscription, so it
    SHOULD NOT be forwarded upstream by a relay that intends to serve
@@ -3078,8 +3079,8 @@ Range { Start, [End] }
 10.2.4.  OBJECT_DELIVERY_TIMEOUT Parameter
 
    The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a
-   varint.  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE message.  Its
-   semantics are defined in Section 8.
+   varint.  It MAY appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE
+   message.  Its semantics are defined in Section 8.
 
    This parameter is intended to be specific to a subscription, so it
    SHOULD NOT be forwarded upstream by a relay that intends to serve
@@ -3145,18 +3146,19 @@ Range { Start, [End] }
 10.2.7.  SUBSCRIBER PRIORITY Parameter
 
    The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8.
-   It MAY appear in a SUBSCRIBE, FETCH, or REQUEST_UPDATE (for a
-   subscription or FETCH).  It is an integer expressing the priority of
-   a subscription relative to other subscriptions and fetch responses in
-   the same session.  Lower numbers get higher priority.  See Section 7.
+   It MAY appear in a SUBSCRIBE, PUBLISH, FETCH, or REQUEST_UPDATE (for
+   a subscription or FETCH).  It is an integer expressing the priority
+   of a subscription relative to other subscriptions and fetch responses
+   in the same session.  Lower numbers get higher priority.  See
+   Section 7.
 
    If omitted from SUBSCRIBE or FETCH, the publisher uses the value 128.
 
 10.2.8.  GROUP ORDER Parameter
 
    The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8.  It MAY
-   appear in a SUBSCRIBE, SUBSCRIBE_TRACKS, or FETCH, or inside a
-   FILL_PARAMETERS parameter (see Section 10.2.15).
+   appear in a SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, or FETCH, or inside
+   a FILL_PARAMETERS parameter (see Section 10.2.15).
 
    Its value indicates how to prioritize Objects from different groups
    within the same subscription (see Section 7), or how to order Groups
@@ -3174,7 +3176,7 @@ Range { Start, [End] }
 10.2.9.  LOCATION FILTER Parameter
 
    The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-
-   prefixed encoding.  It MAY appear in a FETCH, SUBSCRIBE,
+   prefixed encoding.  It MAY appear in a FETCH, SUBSCRIBE, PUBLISH,
    REQUEST_UPDATE (for a subscription) or PUBLISH_STATE_NOTIFY message.
    It is a Location Filter (see Section 5.1.2).
 
@@ -3582,8 +3584,8 @@ Range { Start, [End] }
    tracks to a common relay without draining their entire session.
 
    The GOAWAY message does not impact subscription state.  A subscriber
-   SHOULD individually UNSUBSCRIBE for each existing subscription, while
-   a publisher MAY reject new requests after sending a GOAWAY.
+   SHOULD individually unsubscribe from each existing subscription,
+   while a publisher MAY reject new requests after sending a GOAWAY.
 
    Upon receiving a GOAWAY on the control stream, an endpoint SHOULD NOT
    initiate new requests to the peer including SUBSCRIBE, PUBLISH,
@@ -4054,6 +4056,14 @@ Range { Start, [End] }
       Datagrams (see Section 11.1).
 
    *  Parameters: The parameters are defined in Section 10.2.
+      Parameters such as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY,
+      SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT, and LOCATION
+      FILTER can appear in the Parameters of a PUBLISH to inform the
+      Subscriber of the initial Subscription parameters.  If the PUBLISH
+      is the result of a SUBSCRIBE_TRACKS, the parameters are handled as
+      described in Section 10.20.1, otherwise, they represent the
+      publisher's initial settings for the subscription, which the
+      subscriber can change.
 
    *  Track Properties : A sequence of Properties.  See Section 2.5.
 
@@ -4517,8 +4527,10 @@ Range { Start, [End] }
    SUBSCRIBE) is valid in SUBSCRIBE_TRACKS, unless otherwise specified.
    These parameters are used by the publisher as the initial
    Subscription parameters when a PUBLISH is sent as a result of
-   SUBSCRIBE_TRACKS.  The Parameters are not explicitly communicated,
-   with the exception of FORWARD and GROUP_ORDER as described below.
+   SUBSCRIBE_TRACKS.  These Parameters are explicitly communicated,
+   including the FORWARD and GROUP_ORDER parameters as described below.
+   When omitted by the publisher in PUBLISH, the subscriber uses the
+   default value for each.
 
    If the FORWARD parameter (Section 10.2.18) is present in this message
    and equal to 0, PUBLISH messages resulting from this SUBSCRIBE_TRACKS
