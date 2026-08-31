@@ -625,9 +625,11 @@ Table of Contents
       is, while all other bytes are encoded as a period (.) symbol
       followed by exactly two lower case hex digits.
 
-   The goal of this format is to have a format that is both filename and
-   URL safe.  It allows many common names to be rendered in an easily
-   human readable form while still supporting binary values.
+   This format allows many common names to be rendered in an easily
+   human readable form while still supporting binary values.  Note that
+   while the character set is chosen to be generally both filename and
+   URL safe, filename safety is platform specific; for instance, on
+   case-insensitive filesystems, track names can collide.
 
 1.5.1.  Parsing Serialized Names
 
