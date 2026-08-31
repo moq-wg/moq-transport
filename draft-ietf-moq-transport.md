@@ -1479,10 +1479,6 @@ Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send
 REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
 
-A publisher MUST save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
-or REQUEST_UPDATE_OK that changes the Forward State
-from 0 to 1.
-
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
 without knowing the client is interested in and authorized to receive the
@@ -1826,7 +1822,7 @@ applications might want to only begin a new Group when needed.  A subscriber
 joining a Track might detect that it is more efficient to request the Original
 Publisher create a new group than to fill the current group.  Publishers
 indicate a Track supports dynamic group creation using the DYNAMIC_GROUPS
-parameter ({{dynamic-groups}}).
+Track Property ({{dynamic-groups}}).
 
 One possible subscriber pattern is to SUBSCRIBE to a Track using a Location Filter
 that starts at the Next Object and observe the `Largest Object` in the response.  If the
@@ -2898,10 +2894,10 @@ REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
 
 The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-prefixed
 encoding. It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a subscription)
-message. Its value is a block of Key-Value Pairs (see {{moq-key-value-pair}})
-that apply to the fill fetch stream (see {{fill-semantics}}).  Its presence is
-what requests a fill fetch stream; a subscription with no FILL_PARAMETERS
-opens none.
+message. Its value is a sequence of Parameters that apply to the fill fetch
+stream (see {{fill-semantics}}), encoded as if they were Parameters for a
+separate message (see {{message-parameters}}).  Its presence is what requests a
+fill fetch stream; a subscription with no FILL_PARAMETERS opens none.
 
 The following parameters MAY appear inside FILL_PARAMETERS:
 
@@ -3107,7 +3103,7 @@ these rules, the session MUST be closed with `MALFORMED_AUTHORITY`.
 
 The PATH option (Option Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC ({{native-quic}}).  It MUST NOT be used by
-the server, or when WebTransport is used.  When a PATH parameter is received
+the server, or when WebTransport is used.  When a PATH setup option is received
 from a server, or when a PATH parameter is received while WebTransport is used,
 or when a PATH parameter is received by a server but the server does not
 support the specified path, the session MUST be closed with `INVALID_PATH`.
@@ -3269,8 +3265,8 @@ The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
 TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
 requests.
 
-This document uses the shorthand PUBLISH_OK,
-REQUEST_UPDATE_OK, TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, and
+This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
+TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
 PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
 corresponding request type.
 
