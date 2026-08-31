@@ -3673,38 +3673,35 @@ if the Forward State is 1.  The initiator of the subscription sets the initial
 Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send
 REQUEST_UPDATE to update the Forward State. Control messages, such as
 PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 10.12</a>) are sent regardless of the forward state.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">A publisher <span class="bcp14">MUST</span> save the Largest Location communicated in SUBSCRIBE_OK, PUBLISH
-or REQUEST_UPDATE_OK that changes the Forward State
-from 0 to 1.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
-<p id="section-5.1-7">Either endpoint can initiate a subscription to a track without exchanging any
+<p id="section-5.1-6">Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays <span class="bcp14">MUST NOT</span> send any PUBLISH messages
 without knowing the client is interested in and authorized to receive the
 content. The communication of intent and authorization can be accomplished by
 the client sending SUBSCRIBE_NAMESPACE, or conveyed in other mechanisms out of
-band.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
-<p id="section-5.1-8">An endpoint <span class="bcp14">MAY</span> SUBSCRIBE to a Track it is publishing, though only Relays are
+band.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">An endpoint <span class="bcp14">MAY</span> SUBSCRIBE to a Track it is publishing, though only Relays are
 required to handle such a SUBSCRIBE.  Such self-subscriptions are identical to
 subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
-rules.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
-<p id="section-5.1-9">An endpoint <span class="bcp14">MAY</span> have multiple concurrent subscriptions to the same Track,
+rules.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">An endpoint <span class="bcp14">MAY</span> have multiple concurrent subscriptions to the same Track,
 each identified by a unique Request ID. A publisher <span class="bcp14">MAY</span> assign the same or
-different Track Aliases to these subscriptions.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
-<p id="section-5.1-10">When an Object matches the filters of multiple subscriptions to the same Track,
+different Track Aliases to these subscriptions.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<p id="section-5.1-9">When an Object matches the filters of multiple subscriptions to the same Track,
 the publisher <span class="bcp14">MUST</span> send the Object once for each matching subscription, even
 when those subscriptions share the same Track Alias. Because subscriptions can
 share a Track Alias, the subscriber re-applies each subscription's filter to
 determine which subscription a received Object belongs to. Subscribers <span class="bcp14">SHOULD</span>
 avoid overlapping filters across subscriptions to the same Track, as they are
-responsible for deduplicating any resulting duplicate Objects.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
-<p id="section-5.1-11">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to avoid
-incurring additional latency.<a href="#section-5.1-11" class="pilcrow">¶</a></p>
-<p id="section-5.1-12">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
+responsible for deduplicating any resulting duplicate Objects.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<p id="section-5.1-10">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to avoid
+incurring additional latency.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+<p id="section-5.1-11">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
 with REQUEST_ERROR or sets Forward=0 in REQUEST_UPDATE. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
-<a href="#datagrams" class="auto internal xref">Section 11.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 11.4.2</a>).<a href="#section-5.1-12" class="pilcrow">¶</a></p>
+<a href="#datagrams" class="auto internal xref">Section 11.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 11.4.2</a>).<a href="#section-5.1-11" class="pilcrow">¶</a></p>
 <div id="subscription-state-management">
 <section id="section-5.1.1">
           <h4 id="name-subscription-state-manageme">
