@@ -3452,44 +3452,39 @@ registered Authorization tokens has been exceeded.<a href="#section-3.5-3.26.1" 
 <a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5-3.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.5-3.29">VERSION_NEGOTIATION_FAILED (0x15):</dt>
+<dt id="section-3.5-3.29">MALFORMED_AUTH_TOKEN (0x16):</dt>
           <dd style="margin-left: 1.5em" id="section-3.5-3.30">
-            <p id="section-3.5-3.30.1">The client didn't offer a version supported by the server.<a href="#section-3.5-3.30.1" class="pilcrow">¶</a></p>
+            <p id="section-3.5-3.30.1">Invalid Auth Token serialization during registration (see
+<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5-3.30.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.5-3.31">MALFORMED_AUTH_TOKEN (0x16):</dt>
+<dt id="section-3.5-3.31">UNKNOWN_AUTH_TOKEN_ALIAS (0x17):</dt>
           <dd style="margin-left: 1.5em" id="section-3.5-3.32">
-            <p id="section-3.5-3.32.1">Invalid Auth Token serialization during registration (see
+            <p id="section-3.5-3.32.1">No registered token found for the provided Alias (see
 <a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5-3.32.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.5-3.33">UNKNOWN_AUTH_TOKEN_ALIAS (0x17):</dt>
+<dt id="section-3.5-3.33">EXPIRED_AUTH_TOKEN (0x18):</dt>
           <dd style="margin-left: 1.5em" id="section-3.5-3.34">
-            <p id="section-3.5-3.34.1">No registered token found for the provided Alias (see
-<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5-3.34.1" class="pilcrow">¶</a></p>
+            <p id="section-3.5-3.34.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5-3.34.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.5-3.35">EXPIRED_AUTH_TOKEN (0x18):</dt>
+<dt id="section-3.5-3.35">INVALID_AUTHORITY (0x19):</dt>
           <dd style="margin-left: 1.5em" id="section-3.5-3.36">
-            <p id="section-3.5-3.36.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 10.2.2</a>).<a href="#section-3.5-3.36.1" class="pilcrow">¶</a></p>
+            <p id="section-3.5-3.36.1">The specified AUTHORITY does not correspond to this server or cannot be
+used in this context.<a href="#section-3.5-3.36.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.5-3.37">INVALID_AUTHORITY (0x19):</dt>
+<dt id="section-3.5-3.37">MALFORMED_AUTHORITY (0x1A):</dt>
           <dd style="margin-left: 1.5em" id="section-3.5-3.38">
-            <p id="section-3.5-3.38.1">The specified AUTHORITY does not correspond to this server or cannot be
-used in this context.<a href="#section-3.5-3.38.1" class="pilcrow">¶</a></p>
+            <p id="section-3.5-3.38.1">The AUTHORITY value is syntactically invalid.<a href="#section-3.5-3.38.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.5-3.39">MALFORMED_AUTHORITY (0x1A):</dt>
+<dt id="section-3.5-3.39">TOO_MANY_REQUEST_UPDATES (0x1B):</dt>
           <dd style="margin-left: 1.5em" id="section-3.5-3.40">
-            <p id="section-3.5-3.40.1">The AUTHORITY value is syntactically invalid.<a href="#section-3.5-3.40.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.5-3.41">TOO_MANY_REQUEST_UPDATES (0x1B):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.5-3.42">
-            <p id="section-3.5-3.42.1">The endpoint received a REQUEST_UPDATE that exceeded the per-stream limit
+            <p id="section-3.5-3.40.1">The endpoint received a REQUEST_UPDATE that exceeded the per-stream limit
 communicated via the MAX_REQUEST_UPDATES Setup Option
-(<a href="#max-request-updates" class="auto internal xref">Section 10.3.1.7</a>).<a href="#section-3.5-3.42.1" class="pilcrow">¶</a></p>
+(<a href="#max-request-updates" class="auto internal xref">Section 10.3.1.7</a>).<a href="#section-3.5-3.40.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -4568,13 +4563,14 @@ multiple subscribers request the same Track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 Track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
-Because MOQT restricts widening a subscription, relays that
-aggregate upstream subscriptions can subscribe using the Largest Object
-Location filter to avoid churn as downstream subscribers with disparate filters
-subscribe and unsubscribe from a Track. Aggregating subscriptions can also
-help relays conserve resources especially with disparate filters or
-SUBSCRIBE_TRACKS in a namespace with a large number of Tracks
-(see <a href="#large-namespaces" class="auto internal xref">Section 6.3.1</a>).<a href="#section-9.4-5" class="pilcrow">¶</a></p>
+Relays that aggregate subscriptions <span class="bcp14">MAY</span> combine filters from downstream
+subscribers on the upstream subscription, up to the peer's MAX_FILTER_RANGES.
+If adding filters to an upstream subscription is not possible, the relay can either
+remove some or all filters, or make additional subscriptions to the same Track.
+Multiple subscriptions to the same Track with non-disjoint filter sets will result in
+duplicate objects arriving at the relay.  Using wider upstream filters can protect the
+relay from churn as subscribers with disparate filters subscribe and unsubscribe from
+a Track, at the cost of receiving more objects.<a href="#section-9.4-5" class="pilcrow">¶</a></p>
 <p id="section-9.4-6">A subscriber remains subscribed to a Track at a Relay until it unsubscribes, the
 upstream publisher terminates the subscription, or the subscription expires (see
 <a href="#message-subscribe-ok" class="auto internal xref">Section 10.8</a>).  A subscription with a filter can reach a state where
@@ -9288,13 +9284,6 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">DUPLICATE_AUTH_TOKEN_ALIAS</td>
                 <td class="text-center" rowspan="1" colspan="1">0x14</td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#session-termination" class="auto internal xref">Section 3.5</a>
-</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">VERSION_NEGOTIATION_FAILED</td>
-                <td class="text-center" rowspan="1" colspan="1">0x15</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#session-termination" class="auto internal xref">Section 3.5</a>
 </td>
