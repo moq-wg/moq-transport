@@ -1883,6 +1883,9 @@ Table of Contents
    the requested range.  Because updating filters is asynchronous,
    subscribers can receive objects outside the current filter.
 
+   A publisher does not end a subscription solely because the Largest
+   Object advances past the end of the current Location Filter.
+
    Fill-delivered objects are governed by the Location filter in
    FILL_PARAMETERS (see Section 5.1.3).
 
@@ -4210,9 +4213,6 @@ Table of Contents
 
    TRACK_ENDED (0x2):  The track is no longer being published.
 
-   SUBSCRIPTION_ENDED (0x3):  The publisher reached the end of an
-      associated location filter.
-
    GOING_AWAY (0x4):  The subscriber or publisher issued a GOAWAY
       message.
 
@@ -6332,8 +6332,6 @@ EXT 1 and EXT N can be modified or removed by Relays
         | UNAUTHORIZED          |       0x1       | Section 10.12 |
         +-----------------------+-----------------+---------------+
         | TRACK_ENDED           |       0x2       | Section 10.12 |
-        +-----------------------+-----------------+---------------+
-        | SUBSCRIPTION_ENDED    |       0x3       | Section 10.12 |
         +-----------------------+-----------------+---------------+
         | GOING_AWAY            |       0x4       | Section 10.12 |
         +-----------------------+-----------------+---------------+

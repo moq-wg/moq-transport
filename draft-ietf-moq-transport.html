@@ -3794,8 +3794,10 @@ entirely before Largest Object.<a href="#section-5.1.2-15" class="pilcrow">¶</a
 <p id="section-5.1.2-16">A publisher <span class="bcp14">MUST NOT</span> send subscription-delivered objects from outside the
 requested range.  Because updating filters is asynchronous,
 subscribers can receive objects outside the current filter.<a href="#section-5.1.2-16" class="pilcrow">¶</a></p>
-<p id="section-5.1.2-17">Fill-delivered objects are governed by the Location filter in
-FILL_PARAMETERS (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-5.1.2-17" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-17">A publisher does not end a subscription solely because the Largest Object advances
+past the end of the current Location Filter.<a href="#section-5.1.2-17" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-18">Fill-delivered objects are governed by the Location filter in
+FILL_PARAMETERS (see <a href="#fill-semantics" class="auto internal xref">Section 5.1.3</a>).<a href="#section-5.1.2-18" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="fill-semantics">
@@ -6489,42 +6491,37 @@ below:<a href="#section-10.12-9" class="pilcrow">¶</a></p>
             <p id="section-10.12-10.6.1">The track is no longer being published.<a href="#section-10.12-10.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-10.12-10.7">SUBSCRIPTION_ENDED (0x3):</dt>
+<dt id="section-10.12-10.7">GOING_AWAY (0x4):</dt>
           <dd style="margin-left: 1.5em" id="section-10.12-10.8">
-            <p id="section-10.12-10.8.1">The publisher reached the end of an associated location filter.<a href="#section-10.12-10.8.1" class="pilcrow">¶</a></p>
+            <p id="section-10.12-10.8.1">The subscriber or publisher issued a GOAWAY message.<a href="#section-10.12-10.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-10.12-10.9">GOING_AWAY (0x4):</dt>
+<dt id="section-10.12-10.9">TOO_FAR_BEHIND (0x5):</dt>
           <dd style="margin-left: 1.5em" id="section-10.12-10.10">
-            <p id="section-10.12-10.10.1">The subscriber or publisher issued a GOAWAY message.<a href="#section-10.12-10.10.1" class="pilcrow">¶</a></p>
+            <p id="section-10.12-10.10.1">The publisher's queue of objects to be sent to the given subscriber exceeds
+its implementation defined limit.<a href="#section-10.12-10.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-10.12-10.11">TOO_FAR_BEHIND (0x5):</dt>
+<dt id="section-10.12-10.11">EXPIRED (0x6):</dt>
           <dd style="margin-left: 1.5em" id="section-10.12-10.12">
-            <p id="section-10.12-10.12.1">The publisher's queue of objects to be sent to the given subscriber exceeds
-its implementation defined limit.<a href="#section-10.12-10.12.1" class="pilcrow">¶</a></p>
+            <p id="section-10.12-10.12.1">The publisher reached the timeout specified in SUBSCRIBE_OK.<a href="#section-10.12-10.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-10.12-10.13">EXPIRED (0x6):</dt>
+<dt id="section-10.12-10.13">MALFORMED_TRACK (0x12):</dt>
           <dd style="margin-left: 1.5em" id="section-10.12-10.14">
-            <p id="section-10.12-10.14.1">The publisher reached the timeout specified in SUBSCRIBE_OK.<a href="#section-10.12-10.14.1" class="pilcrow">¶</a></p>
+            <p id="section-10.12-10.14.1">A relay publisher detected that the track was malformed (see
+<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.12-10.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-10.12-10.15">MALFORMED_TRACK (0x12):</dt>
+<dt id="section-10.12-10.15">UPDATE_FAILED (0x8):</dt>
           <dd style="margin-left: 1.5em" id="section-10.12-10.16">
-            <p id="section-10.12-10.16.1">A relay publisher detected that the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-10.12-10.16.1" class="pilcrow">¶</a></p>
+            <p id="section-10.12-10.16.1">REQUEST_UPDATE failed on this subscription (see
+<a href="#message-request-update" class="auto internal xref">Section 10.9</a>).<a href="#section-10.12-10.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-10.12-10.17">UPDATE_FAILED (0x8):</dt>
+<dt id="section-10.12-10.17">EXCESSIVE_LOAD (0x9):</dt>
           <dd style="margin-left: 1.5em" id="section-10.12-10.18">
-            <p id="section-10.12-10.18.1">REQUEST_UPDATE failed on this subscription (see
-<a href="#message-request-update" class="auto internal xref">Section 10.9</a>).<a href="#section-10.12-10.18.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-10.12-10.19">EXCESSIVE_LOAD (0x9):</dt>
-          <dd style="margin-left: 1.5em" id="section-10.12-10.20">
-            <p id="section-10.12-10.20.1">The publisher is overloaded and is terminating the subscription.<a href="#section-10.12-10.20.1" class="pilcrow">¶</a></p>
+            <p id="section-10.12-10.18.1">The publisher is overloaded and is terminating the subscription.<a href="#section-10.12-10.18.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -9540,13 +9537,6 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">TRACK_ENDED</td>
                 <td class="text-center" rowspan="1" colspan="1">0x2</td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#message-publish-done" class="auto internal xref">Section 10.12</a>
-</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">SUBSCRIPTION_ENDED</td>
-                <td class="text-center" rowspan="1" colspan="1">0x3</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#message-publish-done" class="auto internal xref">Section 10.12</a>
 </td>
