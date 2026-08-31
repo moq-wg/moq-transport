@@ -5701,7 +5701,7 @@ Issue and pull request numbers are listed with a leading octothorp.
 
 * Replace Joining FETCH with fill fetch streams (#1673)
   - Add the FILL_PARAMETERS parameter, whose presence on a subscription
-    requests a fill
+    requests a fill; it carries a sequence of Parameters (#1868)
   - Remove the Joining variant of FETCH and the "standalone" moniker
 * Restructure the Location Filter to match the other filter parameters, and
   carry the FETCH range in LOCATION_FILTER instead of message fields (#1809)
@@ -5714,13 +5714,18 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Remove PUBLISH_DONE status code SUBSCRIPTION_ENDED; a subscription does not
   end because Largest Object passes the end of the Location Filter (#1833)
 * Change the maximum Stream Count in PUBLISH_DONE to 2^64 - 1 (#1831)
+* Remove the requirement for a publisher to retain Largest Location (#1872)
+* Remove the VERSION_NEGOTIATION_FAILED session error (#1867)
 * A relay MUST send an upstream FETCH to at least one publisher (#1804)
+* Discuss the tradeoffs of aggregating downstream filters onto an upstream
+  subscription (#1735)
 * Resolve REDIRECT ambiguity with empty Track Namespace and Track Name (#1824)
 * Clarify Retry Interval of 0 with REDIRECT (#1785)
 * Define host resolution for moqt URIs (#1817)
 * Exclude the URI query component from the MOQT scope (#1855)
-* SUBSCRIBE_TRACKS parameters are the publisher's initial Subscription
-  parameters, rather than copied into PUBLISH (#1815)
+* SUBSCRIBE_TRACKS Parameters are the publisher's initial Subscription
+  parameters and are explicitly communicated in the resulting PUBLISH
+  (#1815, #1869)
 
 **Data Plane Wire Format and Handling**
 
