@@ -1295,9 +1295,6 @@ DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
 : Authorization Token attempted to register an Alias that was in use (see
   {{authorization-token}}).
 
-VERSION_NEGOTIATION_FAILED (0x15):
-: The client didn't offer a version supported by the server.
-
 MALFORMED_AUTH_TOKEN (0x16):
 : Invalid Auth Token serialization during registration (see
   {{authorization-token}}).
@@ -2308,13 +2305,14 @@ multiple subscribers request the same Track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 Track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
-Because MOQT restricts widening a subscription, relays that
-aggregate upstream subscriptions can subscribe using the Largest Object
-Location filter to avoid churn as downstream subscribers with disparate filters
-subscribe and unsubscribe from a Track. Aggregating subscriptions can also
-help relays conserve resources especially with disparate filters or
-SUBSCRIBE_TRACKS in a namespace with a large number of Tracks
-(see {{large-namespaces}}).
+Relays that aggregate subscriptions MAY combine filters from downstream
+subscribers on the upstream subscription, up to the peer's MAX_FILTER_RANGES.
+If adding filters to an upstream subscription is not possible, the relay can either
+remove some or all filters, or make additional subscriptions to the same Track.
+Multiple subscriptions to the same Track with non-disjoint filter sets will result in
+duplicate objects arriving at the relay.  Using wider upstream filters can protect the
+relay from churn as subscribers with disparate filters subscribe and unsubscribe from
+a Track, at the cost of receiving more objects.
 
 A subscriber remains subscribed to a Track at a Relay until it unsubscribes, the
 upstream publisher terminates the subscription, or the subscription expires (see
@@ -5598,7 +5596,6 @@ This document does not define any initial entries.
 | DATA_STREAM_TIMEOUT        | 0x12 | {{session-termination}} |
 | AUTH_TOKEN_CACHE_OVERFLOW  | 0x13 | {{session-termination}} |
 | DUPLICATE_AUTH_TOKEN_ALIAS | 0x14 | {{session-termination}} |
-| VERSION_NEGOTIATION_FAILED | 0x15 | {{session-termination}} |
 | MALFORMED_AUTH_TOKEN       | 0x16 | {{session-termination}} |
 | UNKNOWN_AUTH_TOKEN_ALIAS   | 0x17 | {{session-termination}} |
 | EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
