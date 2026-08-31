@@ -4136,7 +4136,7 @@ SUBSCRIBE_TRACKS. These Parameters are explicitly communicated in PUBLISH.
 When omitted by the publisher in PUBLISH, the subscriber uses the default value for each.
 
 To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a
-Location Filter and optionally include fill parameters, as described in {{joining-tracks}}.
+Location Filter and optionally include FILL_PARAMETERS, as described in {{joining-tracks}}.
 
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
