@@ -2854,8 +2854,8 @@ have special handling rules that prevent tracks with required properties from
 being forwarded to or processed by endpoints that do not understand them.<a href="#section-2.5.1-1" class="pilcrow">¶</a></p>
 <p id="section-2.5.1-2">An Object received with a Mandatory Track Property as an Object Property is
 malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.4.2</a>).<a href="#section-2.5.1-2" class="pilcrow">¶</a></p>
-<p id="section-2.5.1-3">When an endpoint receives Track Properties in PUBLISH, SUBSCRIBE_OK, or
-FETCH_OK messages containing a Mandatory Track Property type that it does not
+<p id="section-2.5.1-3">When an endpoint receives a Mandatory Track Property in PUBLISH,
+SUBSCRIBE_OK, or FETCH_OK that it does not
 understand, it <span class="bcp14">MUST NOT</span> process or forward that track:<a href="#section-2.5.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-2.5.1-4.1">
@@ -4976,7 +4976,7 @@ Value, regardless of whether it is stored.<a href="#section-10.2.2-10" class="pi
 the registered Alias until it is deleted by the sender, though it <span class="bcp14">MAY</span> discard
 other state associated with the token that is no longer needed.  Expiration does
 not affect the size occupied by a token in the token cache.  Any message that
-references such a token with Alias Type USE_ALIAS fails with <code>EXPIRED_AUTH_TOKEN</code>.<a href="#section-10.2.2-11" class="pilcrow">¶</a></p>
+references an expired token with Alias Type USE_ALIAS fails with <code>EXPIRED_AUTH_TOKEN</code>.<a href="#section-10.2.2-11" class="pilcrow">¶</a></p>
 <p id="section-10.2.2-12">Using an Alias to refer to a previously registered Token Type and Value is for
 efficiency only and has the same effect as if the Token Type and Value was
 included directly.  Retiring an Alias that was previously used to authorize a
