@@ -1342,9 +1342,6 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.2">
                     <p id="section-toc.1-1.6.2.2.2.2.1"><a href="#section-6.2.2" class="auto internal xref">6.2.2</a>.  <a href="#name-native-quic" class="internal xref">Native QUIC</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.3">
-                    <p id="section-toc.1-1.6.2.2.2.3.1"><a href="#section-6.2.3" class="auto internal xref">6.2.3</a>.  <a href="#name-connection-url" class="internal xref">Connection URL</a></p>
-</li>
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
@@ -1666,13 +1663,10 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.11.2.3.1"><a href="#section-11.3" class="auto internal xref">11.3</a>.  <a href="#name-subgroup-streams" class="internal xref">Subgroup Streams</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.3.2.1">
-                    <p id="section-toc.1-1.11.2.3.2.1.1"><a href="#section-11.3.1" class="auto internal xref">11.3.1</a>.  <a href="#name-stream-cancellation" class="internal xref">Stream Cancellation</a></p>
+                    <p id="section-toc.1-1.11.2.3.2.1.1"><a href="#section-11.3.1" class="auto internal xref">11.3.1</a>.  <a href="#name-subgroup-header" class="internal xref">Subgroup Header</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.3.2.2">
-                    <p id="section-toc.1-1.11.2.3.2.2.1"><a href="#section-11.3.2" class="auto internal xref">11.3.2</a>.  <a href="#name-subgroup-header" class="internal xref">Subgroup Header</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.3.2.3">
-                    <p id="section-toc.1-1.11.2.3.2.3.1"><a href="#section-11.3.3" class="auto internal xref">11.3.3</a>.  <a href="#name-closing-subgroup-streams" class="internal xref">Closing Subgroup Streams</a></p>
+                    <p id="section-toc.1-1.11.2.3.2.2.1"><a href="#section-11.3.2" class="auto internal xref">11.3.2</a>.  <a href="#name-closing-subgroup-streams" class="internal xref">Closing Subgroup Streams</a></p>
 </li>
                 </ul>
 </li>
@@ -1694,9 +1688,6 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                     <p id="section-toc.1-1.11.2.5.2.2.1"><a href="#section-11.5.2" class="auto internal xref">11.5.2</a>.  <a href="#name-padding-datagrams" class="internal xref">Padding Datagrams</a></p>
 </li>
                 </ul>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.6">
-                <p id="section-toc.1-1.11.2.6.1"><a href="#section-11.6" class="auto internal xref">11.6</a>.  <a href="#name-examples" class="internal xref">Examples</a></p>
 </li>
             </ul>
 </li>
@@ -2150,7 +2141,7 @@ RESET_STREAM_AT can be used by MOQT, but the protocol is also designed to work
 correctly when the extension is not supported.<a href="#section-1.3-1" class="pilcrow">¶</a></p>
 <p id="section-1.3-2">When this document says an endpoint "resets" a stream, it means the endpoint
 sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
-<a href="#closing-subgroup-streams" class="auto internal xref">Section 11.3.3</a> for considerations on choosing between them).<a href="#section-1.3-2" class="pilcrow">¶</a></p>
+<a href="#closing-subgroup-streams" class="auto internal xref">Section 11.3.2</a> for considerations on choosing between them).<a href="#section-1.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="modularity">
@@ -2305,7 +2296,7 @@ likely belongs in a different Subgroup.<a href="#section-2.2-6" class="pilcrow">
 reasonable tradeoff between having an optimal mapping of Object relationships in
 a Group and minimizing the number of streams used.<a href="#section-2.2-7" class="pilcrow">¶</a></p>
 <p id="section-2.2-8">When the Original Publisher opens a new subgroup, it <span class="bcp14">MUST</span> set the FIRST_OBJECT
-bit (<a href="#subgroup-header" class="auto internal xref">Section 11.3.2</a>) to indicate that the first object in the subgroup
+bit (<a href="#subgroup-header" class="auto internal xref">Section 11.3.1</a>) to indicate that the first object in the subgroup
 stream is the first object ever published in that subgroup. A relay forwarding a
 subgroup that begins with the first object ever published in that subgroup <span class="bcp14">MUST</span>
 set the FIRST_OBJECT bit.<a href="#section-2.2-8" class="pilcrow">¶</a></p>
@@ -2593,7 +2584,7 @@ receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
 with REQUEST_ERROR or sets Forward=0 in REQUEST_UPDATE. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
-<a href="#datagrams" class="auto internal xref">Section 11.2</a> and <a href="#subgroup-header" class="auto internal xref">Section 11.3.2</a>).<a href="#section-3.1-11" class="pilcrow">¶</a></p>
+<a href="#datagrams" class="auto internal xref">Section 11.2</a> and <a href="#subgroup-header" class="auto internal xref">Section 11.3.1</a>).<a href="#section-3.1-11" class="pilcrow">¶</a></p>
 <div id="subscription-state-management">
 <section id="section-3.1.1">
           <h4 id="name-subscription-state-manageme">
@@ -3358,7 +3349,7 @@ Object Forwarding Preference:<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 before attempting to pass it to the underlying transport
 for transmission; if the time elapsed exceeds OBJECT_DELIVERY_TIMEOUT, it
 <span class="bcp14">MUST</span> reset the underlying transport stream with the reset stream code
-DELIVERY_TIMEOUT (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.3.3</a>) and <span class="bcp14">SHOULD NOT</span> attempt to
+DELIVERY_TIMEOUT (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.3.2</a>) and <span class="bcp14">SHOULD NOT</span> attempt to
 open a new stream to deliver additional Objects in that Subgroup.  The
 implementation <span class="bcp14">SHOULD</span> check object delivery timeouts before retransmitting
 object data if the underlying transport implementation allows.  The
@@ -3423,7 +3414,7 @@ are non-zero, the smaller of the two is used.<a href="#section-5.2-6" class="pil
 </div>
 <p id="section-5.2-8">Publishers can, at their discretion, discontinue forwarding Objects before
 either timeout occurs, subject to stream closure and ordering
-constraints described in <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.3.3</a>.  However, if neither
+constraints described in <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.3.2</a>.  However, if neither
 timeout is set to a non-zero value, all Objects in the track matching the
 subscription filter are delivered as indicated by their Group Order and
 Priority.  If a subscriber fails to consume Objects at a sufficient rate,
@@ -3577,17 +3568,6 @@ When the client uses native QUIC, the <code>authority</code>, <code>path-abempty
 portions of the URI are transmitted in Setup Options (see <a href="#setup-options" class="auto internal xref">Section 9.1.1</a>).<a href="#section-6.2.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="connection-url">
-<section id="section-6.2.3">
-          <h4 id="name-connection-url">
-<a href="#section-6.2.3" class="section-number selfRef">6.2.3. </a><a href="#name-connection-url" class="section-name selfRef">Connection URL</a>
-          </h4>
-<p id="section-6.2.3-1">Each track <span class="bcp14">MAY</span> have one or more associated connection URLs specifying
-network hosts through which a track may be accessed. The syntax of the
-Connection URL and the associated connection setup procedures are
-specific to the underlying transport protocol usage (see <a href="#session" class="auto internal xref">Section 6</a>).<a href="#section-6.2.3-1" class="pilcrow">¶</a></p>
-</section>
-</div>
 </section>
 </div>
 <div id="session-init">
@@ -3732,7 +3712,7 @@ the type of the stream.<a href="#section-6.4.1-1" class="pilcrow">¶</a></p>
               </tr>
               <tr>
                 <td class="text-right" rowspan="1" colspan="1">0b0XX1XXXX</td>
-                <td class="text-left" rowspan="1" colspan="1">SUBGROUP_HEADER  (<a href="#subgroup-header" class="auto internal xref">Section 11.3.2</a>)</td>
+                <td class="text-left" rowspan="1" colspan="1">SUBGROUP_HEADER  (<a href="#subgroup-header" class="auto internal xref">Section 11.3.1</a>)</td>
               </tr>
               <tr>
                 <td class="text-right" rowspan="1" colspan="1">0x2F00</td>
@@ -6943,7 +6923,7 @@ not exist.<a href="#section-11.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-11.1.1-4">All of those <span class="bcp14">SHOULD</span> be cached.<a href="#section-11.1.1-4" class="pilcrow">¶</a></p>
 <p id="section-11.1.1-5">There is no Object Status value indicating the end of a Subgroup. The end of a
 Subgroup is signaled by closing its stream with a FIN
-(see <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.3.3</a>).<a href="#section-11.1.1-5" class="pilcrow">¶</a></p>
+(see <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.3.2</a>).<a href="#section-11.1.1-5" class="pilcrow">¶</a></p>
 <p id="section-11.1.1-6">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and the session <span class="bcp14">SHOULD</span>
 be closed with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination-codes" class="auto internal xref">Section 14.2</a>).
 An Object <span class="bcp14">MUST</span> have an empty payload unless its Object Status value is
@@ -7101,31 +7081,19 @@ middle of a serialized Object, the session <span class="bcp14">SHOULD</span> be 
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.3-1" class="pilcrow">¶</a></p>
 <p id="section-11.3-2">A publisher <span class="bcp14">SHOULD NOT</span> open more than one stream at a time with the same Subgroup
 Header field values.<a href="#section-11.3-2" class="pilcrow">¶</a></p>
-<div id="stream-cancellation">
-<section id="section-11.3.1">
-          <h4 id="name-stream-cancellation">
-<a href="#section-11.3.1" class="section-number selfRef">11.3.1. </a><a href="#name-stream-cancellation" class="section-name selfRef">Stream Cancellation</a>
-          </h4>
-<p id="section-11.3.1-1">Streams aside from the control streams <span class="bcp14">MAY</span> be canceled due to congestion
-or other reasons by either the publisher or subscriber. Early termination of a
-unidirectional stream does not affect the MOQT application state, and therefore has
-no effect on outstanding subscriptions. Closing a bidirectional request stream is
-governed by <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>.<a href="#section-11.3.1-1" class="pilcrow">¶</a></p>
-</section>
-</div>
 <div id="subgroup-header">
-<section id="section-11.3.2">
+<section id="section-11.3.1">
           <h4 id="name-subgroup-header">
-<a href="#section-11.3.2" class="section-number selfRef">11.3.2. </a><a href="#name-subgroup-header" class="section-name selfRef">Subgroup Header</a>
+<a href="#section-11.3.1" class="section-number selfRef">11.3.1. </a><a href="#name-subgroup-header" class="section-name selfRef">Subgroup Header</a>
           </h4>
-<p id="section-11.3.2-1">All Objects on a Subgroup stream belong to the track identified by
+<p id="section-11.3.1-1">All Objects on a Subgroup stream belong to the track identified by
 <code>Track Alias</code> (see <a href="#track-alias" class="auto internal xref">Section 3.1.2</a>) and the Subgroup indicated by <code>Group ID</code>
-and <code>Subgroup ID</code> in the SUBGROUP_HEADER.<a href="#section-11.3.2-1" class="pilcrow">¶</a></p>
-<p id="section-11.3.2-2">See <a href="#unknown-track-alias" class="auto internal xref">Section 3.1.2.1</a> for handling of subgroups with unknown Track
-Aliases.<a href="#section-11.3.2-2" class="pilcrow">¶</a></p>
+and <code>Subgroup ID</code> in the SUBGROUP_HEADER.<a href="#section-11.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-2">See <a href="#unknown-track-alias" class="auto internal xref">Section 3.1.2.1</a> for handling of subgroups with unknown Track
+Aliases.<a href="#section-11.3.1-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup_header"></span><div id="object-header-format">
 <figure id="figure-25">
-            <div class="alignLeft art-text artwork" id="section-11.3.2-3.1">
+            <div class="alignLeft art-text artwork" id="section-11.3.1-3.1">
 <pre>
 SUBGROUP_HEADER {
   Type Flags (vi64),
@@ -7140,82 +7108,82 @@ SUBGROUP_HEADER {
 <a href="#name-moqt-subgroup_header" class="selfRef">MOQT SUBGROUP_HEADER</a>
             </figcaption></figure>
 </div>
-<p id="section-11.3.2-4">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
-<code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-11.3.2-4" class="pilcrow">¶</a></p>
-<p id="section-11.3.2-5">The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
+<p id="section-11.3.1-4">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
+<code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-11.3.1-4" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-5">The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
 encodes a set of flags. All values defined in this specification fit in a
-single-byte encoding (values less than 128).<a href="#section-11.3.2-5" class="pilcrow">¶</a></p>
-<p id="section-11.3.2-6">Bit 4 is always set to 1. The four low-order bits and bits 5-6 determine which
-fields are present in the header:<a href="#section-11.3.2-6" class="pilcrow">¶</a></p>
+single-byte encoding (values less than 128).<a href="#section-11.3.1-5" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-6">Bit 4 is always set to 1. The four low-order bits and bits 5-6 determine which
+fields are present in the header:<a href="#section-11.3.1-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.3.2-7.1">
-              <p id="section-11.3.2-7.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is present
+<li class="normal" id="section-11.3.1-7.1">
+              <p id="section-11.3.1-7.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is present
 in all Objects in this Subgroup. When set to 1, the Object Properties structure
 defined in <a href="#object-properties" class="auto internal xref">Section 11.1.2</a> is present in all Objects; Objects with no
-properties set Properties Length to 0. When set to 0, the field is never present.<a href="#section-11.3.2-7.1.1" class="pilcrow">¶</a></p>
+properties set Properties Length to 0. When set to 0, the field is never present.<a href="#section-11.3.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.2-7.2">
-              <p id="section-11.3.2-7.2.1">The <strong>SUBGROUP_ID_MODE</strong> field (bits 1-2, mask 0x06) is a two-bit field that
+            <li class="normal" id="section-11.3.1-7.2">
+              <p id="section-11.3.1-7.2.1">The <strong>SUBGROUP_ID_MODE</strong> field (bits 1-2, mask 0x06) is a two-bit field that
 determines the encoding of the Subgroup ID. To extract this value, perform a
-bitwise AND with mask 0x06 and right-shift by 1 bit:<a href="#section-11.3.2-7.2.1" class="pilcrow">¶</a></p>
+bitwise AND with mask 0x06 and right-shift by 1 bit:<a href="#section-11.3.1-7.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.3.2-7.2.2.1">
-                  <p id="section-11.3.2-7.2.2.1.1">0b00: The Subgroup ID field is absent and the Subgroup ID is 0.<a href="#section-11.3.2-7.2.2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.3.1-7.2.2.1">
+                  <p id="section-11.3.1-7.2.2.1.1">0b00: The Subgroup ID field is absent and the Subgroup ID is 0.<a href="#section-11.3.1-7.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-11.3.2-7.2.2.2">
-                  <p id="section-11.3.2-7.2.2.2.1">0b01: The Subgroup ID field is absent and the Subgroup ID is the Object ID
-of the first Object transmitted in this Subgroup.<a href="#section-11.3.2-7.2.2.2.1" class="pilcrow">¶</a></p>
+                <li class="normal" id="section-11.3.1-7.2.2.2">
+                  <p id="section-11.3.1-7.2.2.2.1">0b01: The Subgroup ID field is absent and the Subgroup ID is the Object ID
+of the first Object transmitted in this Subgroup.<a href="#section-11.3.1-7.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-11.3.2-7.2.2.3">
-                  <p id="section-11.3.2-7.2.2.3.1">0b10: The Subgroup ID field is present in the header.<a href="#section-11.3.2-7.2.2.3.1" class="pilcrow">¶</a></p>
+                <li class="normal" id="section-11.3.1-7.2.2.3">
+                  <p id="section-11.3.1-7.2.2.3.1">0b10: The Subgroup ID field is present in the header.<a href="#section-11.3.1-7.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-11.3.2-7.2.2.4">
-                  <p id="section-11.3.2-7.2.2.4.1">0b11: Reserved for future use.<a href="#section-11.3.2-7.2.2.4.1" class="pilcrow">¶</a></p>
+                <li class="normal" id="section-11.3.1-7.2.2.4">
+                  <p id="section-11.3.1-7.2.2.4.1">0b11: Reserved for future use.<a href="#section-11.3.1-7.2.2.4.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </li>
-            <li class="normal" id="section-11.3.2-7.3">
-              <p id="section-11.3.2-7.3.1">The <strong>END_OF_GROUP</strong> bit (0x08) indicates that this subgroup contains the
+            <li class="normal" id="section-11.3.1-7.3">
+              <p id="section-11.3.1-7.3.1">The <strong>END_OF_GROUP</strong> bit (0x08) indicates that this subgroup contains the
 largest Object in the Group. When set to 1, the subscriber can infer the final
 Object in the Group when the data stream is terminated by a FIN. In this case,
 Objects that have the same Group ID and an Object ID larger than the last
 Object received on the stream do not exist. This does not apply when the data
-stream is reset.<a href="#section-11.3.2-7.3.1" class="pilcrow">¶</a></p>
+stream is reset.<a href="#section-11.3.1-7.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.2-7.4">
-              <p id="section-11.3.2-7.4.1">The <strong>DEFAULT_PRIORITY</strong> bit (0x20) indicates when the Priority field is
+            <li class="normal" id="section-11.3.1-7.4">
+              <p id="section-11.3.1-7.4.1">The <strong>DEFAULT_PRIORITY</strong> bit (0x20) indicates when the Priority field is
 present. When set to 1, the Priority field is omitted and this Subgroup
 inherits the Publisher Priority specified in the control message that
 established the subscription. When set to 0, the Priority field is present in
-the Subgroup header.<a href="#section-11.3.2-7.4.1" class="pilcrow">¶</a></p>
+the Subgroup header.<a href="#section-11.3.1-7.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.2-7.5">
-              <p id="section-11.3.2-7.5.1">The <strong>FIRST_OBJECT</strong> bit (0x40) indicates that the first object in this
-subgroup stream is the first object published in the subgroup by the original publisher.<a href="#section-11.3.2-7.5.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.3.1-7.5">
+              <p id="section-11.3.1-7.5.1">The <strong>FIRST_OBJECT</strong> bit (0x40) indicates that the first object in this
+subgroup stream is the first object published in the subgroup by the original publisher.<a href="#section-11.3.1-7.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-11.3.2-8">The following Type Flags values are invalid. If an endpoint receives a stream
+<p id="section-11.3.1-8">The following Type Flags values are invalid. If an endpoint receives a stream
 header with any of these values, it <span class="bcp14">MUST</span> close the session with a
-<code>PROTOCOL_VIOLATION</code>:<a href="#section-11.3.2-8" class="pilcrow">¶</a></p>
+<code>PROTOCOL_VIOLATION</code>:<a href="#section-11.3.1-8" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.3.2-9.1">
-              <p id="section-11.3.2-9.1.1">Values with SUBGROUP_ID_MODE set to 0b11. This mode
-is reserved for future use.<a href="#section-11.3.2-9.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.3.1-9.1">
+              <p id="section-11.3.1-9.1.1">Values with SUBGROUP_ID_MODE set to 0b11. This mode
+is reserved for future use.<a href="#section-11.3.1-9.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.2-9.2">
-              <p id="section-11.3.2-9.2.1">Values where bit 4 is not set. Bit 4 <span class="bcp14">MUST</span> be 1 for SUBGROUP_HEADER.<a href="#section-11.3.2-9.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.3.1-9.2">
+              <p id="section-11.3.1-9.2.1">Values where bit 4 is not set. Bit 4 <span class="bcp14">MUST</span> be 1 for SUBGROUP_HEADER.<a href="#section-11.3.1-9.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.2-9.3">
-              <p id="section-11.3.2-9.3.1">Values of 128 or greater (i.e., any value that requires more than a one-byte
-variable-length integer encoding).<a href="#section-11.3.2-9.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.3.1-9.3">
+              <p id="section-11.3.1-9.3.1">Values of 128 or greater (i.e., any value that requires more than a one-byte
+variable-length integer encoding).<a href="#section-11.3.1-9.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-11.3.2-10">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
+<p id="section-11.3.1-10">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
 stream that is associated with the subscription, <code>Group ID</code> and <code>Subgroup ID</code>,
 or open a new one and send the <code>SUBGROUP_HEADER</code>. Then serialize the
-following fields.<a href="#section-11.3.2-10" class="pilcrow">¶</a></p>
-<p id="section-11.3.2-11">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-11.3.2-11" class="pilcrow">¶</a></p>
-<p id="section-11.3.2-12">The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
+following fields.<a href="#section-11.3.1-10" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-11">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-11.3.1-11" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-12">The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
 stream if there was one.  The Object ID is the Object ID Delta if it's the first
 Object in the Subgroup stream. If the resulting Object ID would be greater
 than 2^64 - 1, the endpoint <span class="bcp14">MUST</span> close the session with a
@@ -7224,10 +7192,10 @@ starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
 unless there is a Prior Object ID Gap property (see
-<a href="#prior-object-id-gap" class="auto internal xref">Section 10.9</a>).<a href="#section-11.3.2-12" class="pilcrow">¶</a></p>
+<a href="#prior-object-id-gap" class="auto internal xref">Section 10.9</a>).<a href="#section-11.3.1-12" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
 <figure id="figure-26">
-            <div class="alignLeft art-text artwork" id="section-11.3.2-13.1">
+            <div class="alignLeft art-text artwork" id="section-11.3.1-13.1">
 <pre>
 {
   Object ID Delta (vi64),
@@ -7245,111 +7213,111 @@ unless there is a Prior Object ID Gap property (see
 </section>
 </div>
 <div id="closing-subgroup-streams">
-<section id="section-11.3.3">
+<section id="section-11.3.2">
           <h4 id="name-closing-subgroup-streams">
-<a href="#section-11.3.3" class="section-number selfRef">11.3.3. </a><a href="#name-closing-subgroup-streams" class="section-name selfRef">Closing Subgroup Streams</a>
+<a href="#section-11.3.2" class="section-number selfRef">11.3.2. </a><a href="#name-closing-subgroup-streams" class="section-name selfRef">Closing Subgroup Streams</a>
           </h4>
-<p id="section-11.3.3-1">Subscribers will often need to know if they have received all objects in a
+<p id="section-11.3.2-1">Subscribers will often need to know if they have received all objects in a
 Subgroup, particularly if they serve as a relay or cache. QUIC and Webtransport
 streams provide signals that can be used for this purpose. Closing Subgroups
 promptly frees system resources and often unlocks flow control credit to open
-more streams.<a href="#section-11.3.3-1" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-2">If a sender has delivered all objects in a Subgroup to the QUIC stream, except
+more streams.<a href="#section-11.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-2">If a sender has delivered all objects in a Subgroup to the QUIC stream, except
 any Objects with Locations smaller than the subscription's Start Location, it
-<span class="bcp14">MUST</span> close the stream with a FIN.<a href="#section-11.3.3-2" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-3">If a sender closes the stream before delivering all such objects to the QUIC
+<span class="bcp14">MUST</span> close the stream with a FIN.<a href="#section-11.3.2-2" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-3">If a sender closes the stream before delivering all such objects to the QUIC
 stream, it <span class="bcp14">MUST</span> reset the stream. This includes, but is
-not limited to:<a href="#section-11.3.3-3" class="pilcrow">¶</a></p>
+not limited to:<a href="#section-11.3.2-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.3.3-4.1">
-              <p id="section-11.3.3-4.1.1">Either of the delivery timeouts defined in <a href="#delivery-timeouts" class="auto internal xref">Section 5.2</a><a href="#section-11.3.3-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.3.2-4.1">
+              <p id="section-11.3.2-4.1.1">Either of the delivery timeouts defined in <a href="#delivery-timeouts" class="auto internal xref">Section 5.2</a><a href="#section-11.3.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.3-4.2">
-              <p id="section-11.3.3-4.2.1">Early termination of subscription due to request cancellation<a href="#section-11.3.3-4.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.3.2-4.2">
+              <p id="section-11.3.2-4.2.1">Early termination of subscription due to request cancellation<a href="#section-11.3.2-4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.3-4.3">
-              <p id="section-11.3.3-4.3.1">A publisher's decision to end the subscription early<a href="#section-11.3.3-4.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.3.2-4.3">
+              <p id="section-11.3.2-4.3.1">A publisher's decision to end the subscription early<a href="#section-11.3.2-4.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.3-4.4">
-              <p id="section-11.3.3-4.4.1">A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
-the Start Location to a larger Location<a href="#section-11.3.3-4.4.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.3.2-4.4">
+              <p id="section-11.3.2-4.4.1">A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
+the Start Location to a larger Location<a href="#section-11.3.2-4.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.3-4.5">
-              <p id="section-11.3.3-4.5.1">Omitting a Subgroup Object due to the subscriber's Forward State<a href="#section-11.3.3-4.5.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.3.2-4.5">
+              <p id="section-11.3.2-4.5.1">Omitting a Subgroup Object due to the subscriber's Forward State<a href="#section-11.3.2-4.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-11.3.3-5">When RESET_STREAM_AT is used, the
+<p id="section-11.3.2-5">When RESET_STREAM_AT is used, the
 reliable_size <span class="bcp14">SHOULD</span> include the stream header so the receiver can identify the
 corresponding subscription and accurately account for reset data streams when
 handling PUBLISH_DONE (see <a href="#message-publish-done" class="auto internal xref">Section 9.9</a>).  Publishers that reset
 data streams without using RESET_STREAM_AT with an appropriate reliable_size can
-cause subscribers to hold on to subscription state until a timeout expires.<a href="#section-11.3.3-5" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-6">A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
+cause subscribers to hold on to subscription state until a timeout expires.<a href="#section-11.3.2-5" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-6">A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
-all data on the stream and the FIN, it can ignore any subsequent reset.<a href="#section-11.3.3-6" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-7">If a sender will not deliver any objects from a Subgroup, it <span class="bcp14">MAY</span> send
+all data on the stream and the FIN, it can ignore any subsequent reset.<a href="#section-11.3.2-6" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-7">If a sender will not deliver any objects from a Subgroup, it <span class="bcp14">MAY</span> send
 a SUBGROUP_HEADER on a new stream, with no objects, and then send RESET_STREAM_AT
 with a reliable_size equal to the length of the stream header. This explicitly
-tells the receiver there is an unsent Subgroup.<a href="#section-11.3.3-7" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-8">A relay <span class="bcp14">MUST NOT</span> forward an Object on an existing Subgroup stream unless it is
+tells the receiver there is an unsent Subgroup.<a href="#section-11.3.2-7" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-8">A relay <span class="bcp14">MUST NOT</span> forward an Object on an existing Subgroup stream unless it is
 the next Object in that Subgroup.  A relay determines that an Object is the next
-Object in the Subgroup if at least one of the following is true:<a href="#section-11.3.3-8" class="pilcrow">¶</a></p>
+Object in the Subgroup if at least one of the following is true:<a href="#section-11.3.2-8" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.3.3-9.1">
-              <p id="section-11.3.3-9.1.1">The Object ID is one greater than the previous Object sent on this Subgroup
-stream.<a href="#section-11.3.3-9.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.3.2-9.1">
+              <p id="section-11.3.2-9.1.1">The Object ID is one greater than the previous Object sent on this Subgroup
+stream.<a href="#section-11.3.2-9.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.3-9.2">
-              <p id="section-11.3.3-9.2.1">The Object was received on the same upstream Subgroup stream as the
+            <li class="normal" id="section-11.3.2-9.2">
+              <p id="section-11.3.2-9.2.1">The Object was received on the same upstream Subgroup stream as the
 previously sent Object on the downstream Subgroup stream, with no other
 Objects in between, unless the intervening Objects did not pass the
-subscriber's filters.<a href="#section-11.3.3-9.2.1" class="pilcrow">¶</a></p>
+subscriber's filters.<a href="#section-11.3.2-9.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.3.3-9.3">
-              <p id="section-11.3.3-9.3.1">It determined all Object IDs between the current and previous Object IDs
+            <li class="normal" id="section-11.3.2-9.3">
+              <p id="section-11.3.2-9.3.1">It determined all Object IDs between the current and previous Object IDs
 on the Subgroup stream belong to different Subgroups or do not exist,
-or do not pass the subscriber's filters.<a href="#section-11.3.3-9.3.1" class="pilcrow">¶</a></p>
+or do not pass the subscriber's filters.<a href="#section-11.3.2-9.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-11.3.3-10">If the relay does not know if an Object is the next Object, it <span class="bcp14">MUST</span> reset the
-Subgroup stream and open a new one to forward it.<a href="#section-11.3.3-10" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-11">Since SUBSCRIBEs always end on a group boundary, an ending subscription can
+<p id="section-11.3.2-10">If the relay does not know if an Object is the next Object, it <span class="bcp14">MUST</span> reset the
+Subgroup stream and open a new one to forward it.<a href="#section-11.3.2-10" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-11">Since SUBSCRIBEs always end on a group boundary, an ending subscription can
 always cleanly close all its subgroups. A sender that terminates a stream
 early for any other reason (e.g., to handoff to a different sender) <span class="bcp14">MUST</span>
 reset the stream. Senders <span class="bcp14">SHOULD</span> terminate a stream on
-Group boundaries to avoid doing so.<a href="#section-11.3.3-11" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-12">An MOQT implementation that processes a stream FIN is assured it has received
+Group boundaries to avoid doing so.<a href="#section-11.3.2-11" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-12">An MOQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
 can forward stream FINs to its own subscribers once those objects have been
 sent. A relay <span class="bcp14">MAY</span> treat receipt of End of Group or End of Track objects as a
 signal to close corresponding streams even if the FIN has not arrived, as
-further objects on the stream would be a protocol violation.<a href="#section-11.3.3-12" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-13">Similarly, an End of Group Object indicates the maximum Object ID in the
+further objects on the stream would be a protocol violation.<a href="#section-11.3.2-12" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-13">Similarly, an End of Group Object indicates the maximum Object ID in the
 Group, so if all Objects in the Group have been received, a FIN can be sent
-on any stream where the entire subgroup has been sent.<a href="#section-11.3.3-13" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-14">Processing a reset means that there might be other
+on any stream where the entire subgroup has been sent.<a href="#section-11.3.2-13" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-14">Processing a reset means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
 reset the corresponding downstream stream, or it might attempt to recover the
 missing Objects in an effort to send all the Objects in the subgroups and the FIN.
 It also might send RESET_STREAM_AT with reliable_size set to the last Object it
 has, so as to reliably deliver the Objects it has while signaling that other
-Objects might exist.<a href="#section-11.3.3-14" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-15">A subscriber <span class="bcp14">MAY</span> send a QUIC STOP_SENDING frame for a subgroup stream if the
+Objects might exist.<a href="#section-11.3.2-14" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-15">A subscriber <span class="bcp14">MAY</span> send a QUIC STOP_SENDING frame for a subgroup stream if the
 Group or Subgroup is no longer of interest to it. The publisher <span class="bcp14">SHOULD</span>
 respond with a reset. If RESET_STREAM_AT is sent, note that the receiver has
 indicated no interest in the objects, so setting a reliable_size beyond the
-stream header is of questionable utility.<a href="#section-11.3.3-15" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-16">Resets and STOP_SENDING on SUBSCRIBE data streams have no impact on other
+stream header is of questionable utility.<a href="#section-11.3.2-15" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-16">Resets and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
-Subgroups in a Group at once.<a href="#section-11.3.3-16" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-17">A publisher that receives a STOP_SENDING on a Subgroup stream <span class="bcp14">SHOULD NOT</span> attempt
+Subgroups in a Group at once.<a href="#section-11.3.2-16" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-17">A publisher that receives a STOP_SENDING on a Subgroup stream <span class="bcp14">SHOULD NOT</span> attempt
 to open a new stream to deliver additional Objects in that Subgroup.  However,
 if the publisher subsequently receives a REQUEST_UPDATE that changes the Forward
 State from 0 to 1, it <span class="bcp14">MAY</span> open a new stream to deliver Objects in that Subgroup,
-as the update indicates the subscriber has renewed interest in forwarded Objects.<a href="#section-11.3.3-17" class="pilcrow">¶</a></p>
-<p id="section-11.3.3-18">The application <span class="bcp14">SHOULD</span> use a relevant error code when resetting a stream,
-as defined in <a href="#stream-reset-codes" class="auto internal xref">Section 14.5</a>.<a href="#section-11.3.3-18" class="pilcrow">¶</a></p>
+as the update indicates the subscriber has renewed interest in forwarded Objects.<a href="#section-11.3.2-17" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-18">The application <span class="bcp14">SHOULD</span> use a relevant error code when resetting a stream,
+as defined in <a href="#stream-reset-codes" class="auto internal xref">Section 14.5</a>.<a href="#section-11.3.2-18" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -7628,73 +7596,6 @@ PADDING DATAGRAM {
 </div>
 <p id="section-11.5.2-3">The receiver <span class="bcp14">MUST</span> discard all data received in a padding datagram.<a href="#section-11.5.2-3" class="pilcrow">¶</a></p>
 </section>
-</div>
-</section>
-</div>
-<div id="examples">
-<section id="section-11.6">
-        <h3 id="name-examples">
-<a href="#section-11.6" class="section-number selfRef">11.6. </a><a href="#name-examples" class="section-name selfRef">Examples</a>
-        </h3>
-<p id="section-11.6-1">Sending a subgroup on one stream:<a href="#section-11.6-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-11.6-2">
-<pre>
-Stream = 2
-
-SUBGROUP_HEADER {
-  Type Flags = 0x14
-  Track Alias = 2
-  Group ID = 0
-  Subgroup ID = 0
-  Priority = 0
-}
-{
-  Object ID = 0
-  Object Payload Length = 4
-  Payload = "abcd"
-}
-{
-  Object ID = 1
-  Object Payload Length = 4
-  Payload = "efgh"
-}
-</pre><a href="#section-11.6-2" class="pilcrow">¶</a>
-</div>
-<p id="section-11.6-3">Sending a group on one stream, with the first object containing two
-Properties.<a href="#section-11.6-3" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-11.6-4">
-<pre>
-Stream = 2
-
-SUBGROUP_HEADER {
-  Type Flags = 0x35
-  Track Alias = 2
-  Group ID = 0
-  Subgroup ID = 0
-}
-{
-  Object ID Delta = 0 (Object ID is 0)
-  Properties Length = 33
-    {
-      Type = 4
-      Value = 2186796243
-    },
-    {
-      Type = 77
-      Length = 21
-      Value = "traceID:123456"
-    }
-  Object Payload Length = 4
-  Payload = "abcd"
-}
-{
-  Object ID Delta = 0 (Object ID is 1)
-  Properties Length = 0
-  Object Payload Length = 4
-  Payload = "efgh"
-}
-
-</pre><a href="#section-11.6-4" class="pilcrow">¶</a>
 </div>
 </section>
 </div>

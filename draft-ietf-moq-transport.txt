@@ -124,7 +124,6 @@ Table of Contents
      6.2.  Session establishment
        6.2.1.  WebTransport
        6.2.2.  Native QUIC
-       6.2.3.  Connection URL
      6.3.  Session initialization
        6.3.1.  0-RTT
        6.3.2.  Extension Negotiation
@@ -219,15 +218,13 @@ Table of Contents
      11.2.  Datagrams
        11.2.1.  Object Datagram
      11.3.  Subgroup Streams
-       11.3.1.  Stream Cancellation
-       11.3.2.  Subgroup Header
-       11.3.3.  Closing Subgroup Streams
+       11.3.1.  Subgroup Header
+       11.3.2.  Closing Subgroup Streams
      11.4.  Fetch Streams
        11.4.1.  Fetch Header
      11.5.  Padding
        11.5.1.  Padding Streams
        11.5.2.  Padding Datagrams
-     11.6.  Examples
    12. Transport Considerations
      12.1.  Congestion Control Considerations
        12.1.1.  Bufferbloat
@@ -447,7 +444,7 @@ Table of Contents
 
    When this document says an endpoint "resets" a stream, it means the
    endpoint sends a RESET_STREAM or RESET_STREAM_AT frame on that stream
-   (see Section 11.3.3 for considerations on choosing between them).
+   (see Section 11.3.2 for considerations on choosing between them).
 
 1.4.  Modularity
 
@@ -611,7 +608,7 @@ Table of Contents
    used.
 
    When the Original Publisher opens a new subgroup, it MUST set the
-   FIRST_OBJECT bit (Section 11.3.2) to indicate that the first object
+   FIRST_OBJECT bit (Section 11.3.1) to indicate that the first object
    in the subgroup stream is the first object ever published in that
    subgroup.  A relay forwarding a subgroup that begins with the first
    object ever published in that subgroup MUST set the FIRST_OBJECT bit.
@@ -886,7 +883,7 @@ Table of Contents
    the Subscriber rejects the subscription with REQUEST_ERROR or sets
    Forward=0 in REQUEST_UPDATE.  It can also result in the Subscriber
    dropping Objects if its buffering limits are exceeded (see
-   Section 11.2 and Section 11.3.2).
+   Section 11.2 and Section 11.3.1).
 
 3.1.1.  Subscription State Management
 
@@ -1668,7 +1665,7 @@ Table of Contents
       before attempting to pass it to the underlying transport for
       transmission; if the time elapsed exceeds OBJECT_DELIVERY_TIMEOUT,
       it MUST reset the underlying transport stream with the reset
-      stream code DELIVERY_TIMEOUT (see Section 11.3.3) and SHOULD NOT
+      stream code DELIVERY_TIMEOUT (see Section 11.3.2) and SHOULD NOT
       attempt to open a new stream to deliver additional Objects in that
       Subgroup.  The implementation SHOULD check object delivery
       timeouts before retransmitting object data if the underlying
@@ -1721,7 +1718,7 @@ Table of Contents
 
    Publishers can, at their discretion, discontinue forwarding Objects
    before either timeout occurs, subject to stream closure and ordering
-   constraints described in Section 11.3.3.  However, if neither timeout
+   constraints described in Section 11.3.2.  However, if neither timeout
    is set to a non-zero value, all Objects in the track matching the
    subscription filter are delivered as indicated by their Group Order
    and Priority.  If a subscriber fails to consume Objects at a
@@ -1861,13 +1858,6 @@ Table of Contents
    native QUIC, the authority, path-abempty and query portions of the
    URI are transmitted in Setup Options (see Section 9.1.1).
 
-6.2.3.  Connection URL
-
-   Each track MAY have one or more associated connection URLs specifying
-   network hosts through which a track may be accessed.  The syntax of
-   the Connection URL and the associated connection setup procedures are
-   specific to the underlying transport protocol usage (see Section 6).
-
 6.3.  Session initialization
 
    MOQT uses a pair of unidirectional streams for creating the session
@@ -1995,7 +1985,7 @@ Table of Contents
              +============+==================================+
              |       0x05 | FETCH_HEADER (Section 11.4.1)    |
              +------------+----------------------------------+
-             | 0b0XX1XXXX | SUBGROUP_HEADER (Section 11.3.2) |
+             | 0b0XX1XXXX | SUBGROUP_HEADER (Section 11.3.1) |
              +------------+----------------------------------+
              |     0x2F00 | SETUP (Section 9.1)              |
              +------------+----------------------------------+
@@ -4648,7 +4638,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    There is no Object Status value indicating the end of a Subgroup.
    The end of a Subgroup is signaled by closing its stream with a FIN
-   (see Section 11.3.3).
+   (see Section 11.3.2).
 
    Any other value SHOULD be treated as a protocol error and the session
    SHOULD be closed with a PROTOCOL_VIOLATION (Section 14.2).  An Object
@@ -4791,16 +4781,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    A publisher SHOULD NOT open more than one stream at a time with the
    same Subgroup Header field values.
 
-11.3.1.  Stream Cancellation
-
-   Streams aside from the control streams MAY be canceled due to
-   congestion or other reasons by either the publisher or subscriber.
-   Early termination of a unidirectional stream does not affect the MOQT
-   application state, and therefore has no effect on outstanding
-   subscriptions.  Closing a bidirectional request stream is governed by
-   Section 6.4.2.3.
-
-11.3.2.  Subgroup Header
+11.3.1.  Subgroup Header
 
    All Objects on a Subgroup stream belong to the track identified by
    Track Alias (see Section 3.1.2) and the Subgroup indicated by Group
@@ -4909,7 +4890,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                    Figure 26: MOQT Subgroup Object Fields
 
-11.3.3.  Closing Subgroup Streams
+11.3.2.  Closing Subgroup Streams
 
    Subscribers will often need to know if they have received all objects
    in a Subgroup, particularly if they serve as a relay or cache.  QUIC
@@ -5226,63 +5207,6 @@ EXT 1 and EXT N can be modified or removed by Relays
                       Figure 30: MOQT Padding Datagram
 
    The receiver MUST discard all data received in a padding datagram.
-
-11.6.  Examples
-
-   Sending a subgroup on one stream:
-
-   Stream = 2
-
-   SUBGROUP_HEADER {
-     Type Flags = 0x14
-     Track Alias = 2
-     Group ID = 0
-     Subgroup ID = 0
-     Priority = 0
-   }
-   {
-     Object ID = 0
-     Object Payload Length = 4
-     Payload = "abcd"
-   }
-   {
-     Object ID = 1
-     Object Payload Length = 4
-     Payload = "efgh"
-   }
-
-   Sending a group on one stream, with the first object containing two
-   Properties.
-
-   Stream = 2
-
-   SUBGROUP_HEADER {
-     Type Flags = 0x35
-     Track Alias = 2
-     Group ID = 0
-     Subgroup ID = 0
-   }
-   {
-     Object ID Delta = 0 (Object ID is 0)
-     Properties Length = 33
-       {
-         Type = 4
-         Value = 2186796243
-       },
-       {
-         Type = 77
-         Length = 21
-         Value = "traceID:123456"
-       }
-     Object Payload Length = 4
-     Payload = "abcd"
-   }
-   {
-     Object ID Delta = 0 (Object ID is 1)
-     Properties Length = 0
-     Object Payload Length = 4
-     Payload = "efgh"
-   }
 
 12.  Transport Considerations
 
