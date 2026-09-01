@@ -304,9 +304,9 @@ responsible for the content of the object payload. This includes the
 underlying encoding, compression, any end-to-end encryption, or
 authentication.
 
-### Canonical Object Fields {#object-header}
+### Object Fields {#object-header}
 
-A canonical MOQT Object has the following fields:
+A MOQT Object has the following fields:
 
 Track Namespace and Track Name: The track this object belongs to.
 
@@ -314,15 +314,15 @@ Group ID: The identifier of the Object's Group (see {{model-group}}) within the 
 
 Object ID: The order of the object within the group.
 
-Publisher Priority: An 8 bit integer indicating the publisher's priority for the Object ({{priorities}}).
+Publisher Priority: An integer indicating the publisher's priority for the Object ({{priorities}}).
 
-Object Forwarding Preference: An enumeration indicating how a publisher sends an object. The preferences are Subgroup and Datagram. Object Forwarding Preference is a property of an individual Object and can vary among Objects in the same Track. In a subscription, an Object MUST be sent according to its Object Forwarding Preference.
+Object Forwarding Preference: An enumeration indicating how a publisher sends an object. The preferences are Subgroup and Datagram. In a subscription, an Object MUST be sent according to its Object Forwarding Preference.
 
-Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}}) within the Group.
+Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}}) within the Group. Objects sent in Datagrams do not have a Subgroup ID.
 
-Object Properties : A sequence of Properties associated with the object. See {{object-properties}}.
+Object Properties : A sequence of key-value pairs associated with the object. See {{object-properties}}.
 
-Object Payload: An opaque payload intended for an End Subscriber and SHOULD NOT be processed by a relay.
+Object Payload: A possibly empty sequence of bytes.
 
 ### Object States
 
