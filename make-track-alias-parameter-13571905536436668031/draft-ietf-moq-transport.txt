@@ -3451,9 +3451,9 @@ Table of Contents
 10.2.22.  TRACK_ALIAS Parameter
 
    The TRACK_ALIAS parameter (Parameter Type 0x36) is a variable-length
-   integer.  It MAY appear in SUBSCRIBE_OK.  It provides the numeric
-   identifier used for this track in Subgroups or Datagrams (see
-   Section 11.1).
+   integer.  It MAY appear in SUBSCRIBE_OK.  It provides a publisher
+   specified identifier for delivering Objects from this track in
+   Subgroups or Datagrams (see Section 11.1).
 
 10.3.  SETUP
 
@@ -4362,10 +4362,9 @@ Table of Contents
    downstream subscription state or send any Objects.  If successful,
    the publisher responds with a TRACK_STATUS_OK with the same
    parameters and Track Properties it would have set in a SUBSCRIBE_OK.
-   The TRACK_ALIAS parameter is not used.  A publisher responds to a
-   failed TRACK_STATUS with an appropriate REQUEST_ERROR message.  The
-   bidi stream is closed with a FIN after TRACK_STATUS_OK or
-   REQUEST_ERROR are sent.
+   A publisher responds to a failed TRACK_STATUS with an appropriate
+   REQUEST_ERROR message.  The bidi stream is closed with a FIN after
+   TRACK_STATUS_OK or REQUEST_ERROR are sent.
 
    Relays without an Established subscription MAY forward TRACK_STATUS
    to one or more publishers, or MAY initiate a subscription (subject to
@@ -4627,9 +4626,9 @@ Table of Contents
    (Section 10.1).
 
    If the publisher provides the TRACK_ALIAS parameter (Section 10.2.22)
-   in SUBSCRIBE_OK, or the Track Alias field in PUBLISH, that value is
-   the Track Alias.  Otherwise, the numeric identifier is the Request ID
-   of the corresponding SUBSCRIBE or PUBLISH message.
+   in SUBSCRIBE_OK, or the Track Alias field in PUBLISH, that value can
+   be the Track Alias.  Otherwise, the numeric identifier is the Request
+   ID of the corresponding SUBSCRIBE or PUBLISH message.
 
    A Track Alias MUST have the parity (least significant bit) of the
    Publisher (i.e., the sender of the PUBLISH or SUBSCRIBE_OK).  Because
@@ -4642,10 +4641,9 @@ Table of Contents
 
    The same Track Alias MUST NOT be used by a publisher to refer to two
    different Tracks simultaneously in the same session.  If a subscriber
-   receives a PUBLISH or SUBSCRIBE_OK that provides a Track Alias that
-   is already in use by a different Track with an Established
-   subscription, it MUST close the session with error
-   DUPLICATE_TRACK_ALIAS.
+   receives a PUBLISH or SUBSCRIBE_OK that specifies a Track Alias
+   already in use by a different Track with an Established subscription,
+   it MUST close the session with error DUPLICATE_TRACK_ALIAS.
 
    Objects can be sent before the Subscriber knows the Track Alias,
    requiring buffering Objects with an unknown Track Alias.  If a Track

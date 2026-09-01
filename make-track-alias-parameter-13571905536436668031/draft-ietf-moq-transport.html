@@ -5560,7 +5560,7 @@ session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2.21-1" class=
 <a href="#section-10.2.22" class="section-number selfRef">10.2.22. </a><a href="#name-track_alias-parameter" class="section-name selfRef">TRACK_ALIAS Parameter</a>
           </h4>
 <p id="section-10.2.22-1">The TRACK_ALIAS parameter (Parameter Type 0x36) is a variable-length integer. It <span class="bcp14">MAY</span> appear
-in SUBSCRIBE_OK. It provides the numeric identifier used for this track in
+in SUBSCRIBE_OK. It provides a publisher specified identifier for delivering Objects from this track in
 Subgroups or Datagrams (see <a href="#track-alias" class="auto internal xref">Section 11.1</a>).<a href="#section-10.2.22-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -6677,7 +6677,7 @@ delivery (e.g. SUBSCRIBER_PRIORITY) are not included.<a href="#section-10.15-2" 
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
 TRACK_STATUS_OK with the same parameters and Track Properties it would have
-set in a SUBSCRIBE_OK. The TRACK_ALIAS parameter is not used.  A publisher responds to a
+set in a SUBSCRIBE_OK. A publisher responds to a
 failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
 TRACK_STATUS_OK or REQUEST_ERROR are sent.<a href="#section-10.15-3" class="pilcrow">¶</a></p>
@@ -7010,7 +7010,7 @@ the datagram.  See <a href="#object-datagram" class="auto internal xref">Section
 numeric identifier, rather than the Full Track Name.  This numeric identifier
 is either the Track Alias or the Request ID (<a href="#request-id" class="auto internal xref">Section 10.1</a>).<a href="#section-11.1-1" class="pilcrow">¶</a></p>
 <p id="section-11.1-2">If the publisher provides the TRACK_ALIAS parameter (<a href="#track-alias-param" class="auto internal xref">Section 10.2.22</a>) in
-SUBSCRIBE_OK, or the Track Alias field in PUBLISH, that value is the Track Alias.
+SUBSCRIBE_OK, or the Track Alias field in PUBLISH, that value can be the Track Alias.
 Otherwise, the numeric identifier is the Request ID of the corresponding SUBSCRIBE
 or PUBLISH message.<a href="#section-11.1-2" class="pilcrow">¶</a></p>
 <p id="section-11.1-3">A Track Alias <span class="bcp14">MUST</span> have the parity (least significant bit) of the Publisher
@@ -7022,7 +7022,7 @@ least significant bit. If a publisher provides a TRACK_ALIAS with the wrong
 parity, the session <span class="bcp14">MUST</span> be closed with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.1-3" class="pilcrow">¶</a></p>
 <p id="section-11.1-4">The same Track Alias <span class="bcp14">MUST NOT</span> be used by a publisher to refer to two different
 Tracks simultaneously in the same session. If a subscriber receives a
-PUBLISH or SUBSCRIBE_OK that provides a Track Alias that is already in use by a different Track
+PUBLISH or SUBSCRIBE_OK that specifies a Track Alias already in use by a different Track
 with an <code>Established</code> subscription, it <span class="bcp14">MUST</span> close the session with error
 <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-11.1-4" class="pilcrow">¶</a></p>
 <p id="section-11.1-5">Objects can be sent before the Subscriber knows the Track Alias, requiring
