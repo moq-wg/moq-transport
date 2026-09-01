@@ -893,11 +893,12 @@ groups. A publisher that does will begin the next group as soon as practical.
 
 ### Location Filters {#location-filters}
 
-A Location filter specifies an inclusive range of Locations.  Only objects
+A Location filter specifies an inclusive range of Locations or an inclusive start
+Location and an open-ended end location.  Only objects
 with Locations within the inclusive range pass the filter.  A Location filter
 is encoded as specified in {{location-filter}}.
 
-Subscribers can specify a Location filter on a subscription indicating to the
+Subscribers can specify a Location filter on a subscription to indicate to the
 publisher which Objects to send.  Subscriptions without a filter pass all
 Objects published or received via upstream subscriptions.
 
