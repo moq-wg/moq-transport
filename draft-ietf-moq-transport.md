@@ -3380,14 +3380,12 @@ SUBSCRIBE_NAMESPACE Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
-  {{track-namespace-structure}} with between 0 and 32 Track Namespace Fields.
-  This prefix is matched against track namespaces known to the publisher.  For
-  example, using the serialized format from {{namespace-name-format}}, if the
-  publisher is a relay that has received PUBLISH_NAMESPACE messages for
-  namespaces `example.2ecom-123-100` and `example.2ecom-123-200`, a
-  SUBSCRIBE_NAMESPACE for `example.2ecom-123` would match both.  If an endpoint
-  receives a Track Namespace Prefix consisting of greater than 32 Track
-  Namespace Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
+  {{track-namespace-structure}}.  This prefix is matched against track
+  namespaces known to the publisher.  For example, using the serialized format
+  from {{namespace-name-format}}, if the publisher is a relay that has received
+  PUBLISH_NAMESPACE messages for namespaces `example.2ecom-123-100` and
+  `example.2ecom-123-200`, a SUBSCRIBE_NAMESPACE for `example.2ecom-123` would
+  match both.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -3486,11 +3484,8 @@ SUBSCRIBE_TRACKS Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
-  {{track-namespace-structure}} with between 0 and 32 Track Namespace Fields.
-  This prefix is matched against track namespaces known to the publisher.  If
-  an endpoint receives a Track Namespace Prefix consisting of greater than 32
-  Track Namespace Fields, it MUST close the session with a
-  `PROTOCOL_VIOLATION`.
+  {{track-namespace-structure}}.  This prefix is matched against track
+  namespaces known to the publisher.
 
 * Parameters: The parameters are defined in {{message-params}}, though they
   are handled differently from the same Parameters on Subscriptions, as outlined
