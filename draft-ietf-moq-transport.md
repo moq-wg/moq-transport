@@ -893,70 +893,17 @@ tell a publisher to filter tracks (via TRACK PROPERTY FILTER) and objects
 according to subscriber-provided criteria.  Range filters are specified as
 ranges of integer values in Track and Object Properties and other
 Object header fields (Subgroup ID, Object ID, and Publisher Priority).
-There are five Range Filter parameter types, 0x25-0x29, as shown below.
+There are five Range Filter parameter types, 0x25-0x29.  They share the
+encoding specified in {{range-filter-structure}}.
 
-~~~
-SUBGROUP_FILTER {
-  Type (vi64) = 0x25,
-  Length (vi64),
-  [SetID (8)],
-  [Range (..) ...]
-}
+An object matches the filter if its value falls within any Range (i.e., Ranges
+are OR'd within a filter parameter).
 
-OBJECTID_FILTER {
-  Type (vi64) = 0x26,
-  Length (vi64),
-  [SetID (8)],
-  [Range (..) ...]
-}
-
-PRIORITY_FILTER {
-  Type (vi64) = 0x27,
-  Length (vi64),
-  [SetID (8)],
-  [Range (..) ...]
-}
-
-OBJECT_PROPERTY_FILTER {
-  Type (vi64) = 0x28,
-  Length (vi64),
-  [SetID (8)],
-  [Property Type (vi64)],
-  [Range (..) ...]
-}
-
-TRACK_PROPERTY_FILTER {
-  Type (vi64) = 0x29,
-  Length (vi64),
-  [SetID (8)],
-  [Property Type (vi64)],
-  [Range (..) ...]
-}
-
-Range {
-  Start (vi64),
-  [End (vi64)]
-}
-~~~
-
-Length (vi64) is the byte count of all fields after itself.  When Length
-is 0, there is no filter and no further fields are present.  This can be
-used in REQUEST_UPDATE to remove a filter.  The Object Property and Track
-Property Filters include a Property Type (vi64) which follows SetID.
-
-Each Range is an inclusive Start/End pair.  End is optional in the last
-pair; if omitted it indicates the last Range is open-ended.  An object
-matches the filter if its value falls within any Range (i.e., Ranges are
-OR'd within a filter parameter).
-
-Each Start is delta encoded from the prior Range's End (or from 0 for the
-first Range), and End is delta encoded from its own Start.  If adding the delta
-would exceed 2^64-1, the request MUST be rejected with `INVALID_FILTER`.
-For example, ranges 3-5 and 10-15 encode as: Start=3, End=2, Start=5, End=5.
-
-Filter parameters with the same SetID are AND'd; distinct SetIDs are OR'd.
-The final result is SetID=0 OR SetID=1 OR ... SetID=255, where each
-SetID=i is the AND of all filter parameters carrying that SetID.
+Each Range Filter parameter carries a SetID, which identifies the set of
+filters it belongs to.  Filter parameters with the same SetID are AND'd;
+distinct SetIDs are OR'd.  The final result is SetID=0 OR SetID=1 OR
+... SetID=255, where each SetID=i is the AND of all filter parameters
+carrying that SetID.
 
 The Track Property filter parameter MAY appear multiple times in a
 SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
@@ -2226,6 +2173,30 @@ Reason Phrase {
   The reason phrase value is encoded as UTF-8 string and does not carry information,
   such as language tags, that would aid comprehension by any entity other than
   the one that created the text.
+
+## Range Filter Structure {#range-filter-structure}
+
+Each Range Filter parameter (see {{range-filters}}) carries a sequence of
+Ranges, encoded as follows:
+
+~~~
+Range {
+  Start (vi64),
+  [End (vi64)]
+}
+~~~
+
+Length (vi64) is the byte count of all fields after itself.  When Length
+is 0, there is no filter and no further fields are present.  This can be
+used in REQUEST_UPDATE to remove a filter.
+
+Each Range is an inclusive Start/End pair.  End is optional in the last
+pair; if omitted it indicates the last Range is open-ended.
+
+Each Start is delta encoded from the prior Range's End (or from 0 for the
+first Range), and End is delta encoded from its own Start.  If adding the delta
+would exceed 2^64-1, the request MUST be rejected with `INVALID_FILTER`.
+For example, ranges 3-5 and 10-15 encode as: Start=3, End=2, Start=5, End=5.
 
 ## Track Namespace Structure {#track-namespace-structure}
 
@@ -3762,20 +3733,48 @@ Location Filter now in effect at the publisher.
 ### SUBGROUP FILTER Parameter {#subgroup-filter}
 
 The SUBGROUP_FILTER parameter (Type 0x25) selects objects with specified
-Ranges of Subgroup ID.  See {{range-filters}}.
+Ranges of Subgroup ID.  See {{range-filters}} and {{range-filter-structure}}.
+
+~~~
+SUBGROUP_FILTER {
+  Type (vi64) = 0x25,
+  Length (vi64),
+  [SetID (8)],
+  [Range (..) ...]
+}
+~~~
 
 ### OBJECTID FILTER Parameter {#objectid-filter}
 
 The OBJECTID_FILTER parameter (Type 0x26) selects objects with specified
-Ranges of Object ID.  See {{range-filters}}.
+Ranges of Object ID.  See {{range-filters}} and {{range-filter-structure}}.
+
+~~~
+OBJECTID_FILTER {
+  Type (vi64) = 0x26,
+  Length (vi64),
+  [SetID (8)],
+  [Range (..) ...]
+}
+~~~
 
 ### PRIORITY FILTER Parameter {#priority-filter}
 
 The PRIORITY_FILTER parameter (Type 0x27) selects objects with specified
-Ranges of Publisher Priority.  See {{range-filters}}.
+Ranges of Publisher Priority.  See {{range-filters}} and
+{{range-filter-structure}}.
 If a decoded value exceeds 255, the endpoint MUST reject this with
 REQUEST_ERROR with error code INVALID_FILTER since Publisher Priority
 is an 8-bit field.
+
+~~~
+PRIORITY_FILTER {
+  Type (vi64) = 0x27,
+  Length (vi64),
+  [SetID (8)],
+  [Range (..) ...]
+}
+~~~
 
 ### OBJECT PROPERTY FILTER Parameter {#object-property-filter}
 
@@ -3783,7 +3782,18 @@ The OBJECT_PROPERTY_FILTER parameter (Type 0x28) selects objects with
 required Ranges of Property Value for a required Object Property
 Type which MUST be even, i.e. a single integer value
 (see {{moq-key-value-pair}}), otherwise the endpoint MUST reject this with
-REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
+REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}} and
+{{range-filter-structure}}.
+
+~~~
+OBJECT_PROPERTY_FILTER {
+  Type (vi64) = 0x28,
+  Length (vi64),
+  [SetID (8)],
+  [Property Type (vi64)],
+  [Range (..) ...]
+}
+~~~
 
 ### TRACK PROPERTY FILTER Parameter {#track-property-filter}
 
@@ -3791,7 +3801,18 @@ The TRACK_PROPERTY_FILTER parameter (Type 0x29) selects tracks with
 required Ranges of Property Value for a required Track Property
 Type which MUST be even, i.e. a single integer value
 (see {{moq-key-value-pair}}), otherwise the endpoint MUST reject this with
-REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
+REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}} and
+{{range-filter-structure}}.
+
+~~~
+TRACK_PROPERTY_FILTER {
+  Type (vi64) = 0x29,
+  Length (vi64),
+  [SetID (8)],
+  [Property Type (vi64)],
+  [Range (..) ...]
+}
+~~~
 
 ### FILL PARAMETERS Parameter {#fill-parameters}
 
