@@ -542,15 +542,13 @@ ways, for example:
 
 # Publishing and Receiving Tracks
 
-MOQT provides two mechanisms for retrieving objects: subscriptions and fetches.
+ A subscription is a authorized and stateful ongoing relationship between a Publisher and a Subscriber for
+delivering Objects from a single Track. It is established by either endpoint (via SUBSCRIBE or
+PUBLISH), can be updated by the subscriber via REQUEST_UPDATE, and remains active until either
+ endpoint terminates it.
 
-A subscription is a long-lived association allowing the subscriber to receive
-newly-published objects for a single track.  It can be established either by the
-subscriber (using a SUBSCRIBE message) or the publisher (using a PUBLISH
-message).
-
-A fetch is a single transaction in which the subscriber retrieves pre-existing
-objects on the specified track.
+ A fetch is a one-shot request for a bounded set of Objects from a single Track. It carries no
+ persistent state and cannot be updated; the response is delivered on a single stream.
 
 ## Subscriptions {#subscriptions}
 
