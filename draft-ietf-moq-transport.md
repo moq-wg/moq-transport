@@ -548,9 +548,9 @@ be established by either endpoint, via either SUBSCRIBE or PUBLISH.  A
 subscription is active until either endpoint terminates it, and its parameters
 can be updated via REQUEST_UPDATE.
 
-A fetch is a one-shot request for a bounded set of pre-existing Objects from a
-single Track.  It carries no persistent state and cannot be updated; the
-response is delivered on a single stream.
+A fetch is a request for a bounded set of pre-existing Objects from a
+single Track.  It is delivered on a single stream, and ends automatically when
+all of the objects are delivered.
 
 ## Subscriptions {#subscriptions}
 
