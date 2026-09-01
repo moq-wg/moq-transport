@@ -300,8 +300,6 @@ Every Object within a Group belongs to exactly one Subgroup or Datagram. An
 Original Publisher MAY use both Subgroups and Datagrams within a Group or
 Track.
 
-### Canonical Object Fields
-
 Objects are comprised of two parts: metadata and a payload.  The metadata is
 never encrypted and is always visible to relays (see {{relays-moq}}). The
 payload portion may be encrypted, in which case it is only visible to the
@@ -309,6 +307,28 @@ Original Publisher and End Subscribers. The Original Publisher is solely
 responsible for the content of the object payload. This includes the
 underlying encoding, compression, any end-to-end encryption, or
 authentication.
+
+### Object Fields {#object-header}
+
+A MOQT Object has the following fields:
+
+Track Namespace and Track Name: The track this object belongs to.
+
+Group ID: The identifier of the Object's Group (see {{model-group}}) within the Track.
+
+Object ID: The order of the object within the group.
+
+Publisher Priority: An integer indicating the publisher's priority for the Object ({{priorities}}).
+
+Delivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram. In a subscription, an Object MUST be sent according to its Delivery Mode.
+
+Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}}) within the Group. Objects sent in Datagrams do not have a Subgroup ID.
+
+Object Properties : A sequence of key-value pairs associated with the object. See {{object-properties}}.
+
+Object Payload: A possibly empty sequence of bytes.
+
+### Object States
 
 From the perspective of a subscriber or a cache, an Object can be in three
 possible states:
@@ -345,7 +365,7 @@ stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups in the Group,
 typically with a one-to-one mapping between Subgroups and streams.
 
-When an Object's forwarding preference (see {{object-properties}}) is
+When an Object's Delivery Mode (see {{object-properties}}) is
 "Datagram", it is not sent in Subgroups, does not belong to a Subgroup in any
 way, and the description in the remainder of this section does not apply.
 
@@ -429,51 +449,13 @@ In MOQT, every track is identified by a Full Track Name, consisting of a Track
 Namespace and a Track Name.
 
 Track Namespace is an ordered set of between 0 and 32 Track Namespace Fields,
-encoded as follows:
-
-~~~
-Track Namespace {
-  Number of Track Namespace Fields (vi64),
-  Track Namespace Field (..) ...
-}
-~~~
-
-*  Number of Track Namespace Fields: A variable-length integer specifying
-   the number of Track Namespace Fields in the Track Namespace.
-
-Each Track Namespace Field is encoded as follows:
-
-~~~
-Track Namespace Field {
-  Track Namespace Field Length (vi64),
-  Track Namespace Field Value (..)
-}
-~~~
-
-* Track Namespace Field Length: A variable-length integer specifying the length
-  of the Track Namespace Field in bytes.
-
-* Track Namespace Field Value: A sequence of bytes that forms a Track Namespace
-  Field.
-
-Each Track Namespace Field Value MUST contain at least one byte. If an endpoint
-receives a Track Namespace Field with a Track Namespace Field Length of 0, it
-MUST close the session with a `PROTOCOL_VIOLATION`.
+encoded as described in {{track-namespace-structure}}.
 
 The structured nature of Track Namespace allows relays and applications to
-manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
-consisting of greater than 32 Track Namespace Fields, it MUST close the
-session with a `PROTOCOL_VIOLATION`.
+manipulate prefixes of a namespace.
 
 Track Name is a sequence of bytes, possibly empty, that identifies an individual
 track within the namespace.
-
-The maximum total length of a Full Track Name is 4,096 bytes. The length of a
-Full Track Name is computed as the sum of the Track Namespace Field Length
-fields and the Track Name Length field. The length of a Track Namespace is the
-sum of the Track Namespace Field Length fields. If an endpoint receives a Track
-Namespace or a Full Track Name exceeding 4,096 bytes, it MUST close the session
-with a `PROTOCOL_VIOLATION`.
 
 In this specification, both the Track Namespace Fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -543,6 +525,16 @@ ways, for example:
    determine the largest published Group ID.
 
 # Publishing and Receiving Tracks
+
+A subscription is a stateful ongoing relationship in which the Publisher
+delivers newly-published Objects from a single Track to the Subscriber. It can
+be established by either endpoint, via either SUBSCRIBE or PUBLISH.  A
+subscription is active until either endpoint terminates it, and its parameters
+can be updated via REQUEST_UPDATE.
+
+A fetch is a request for a bounded set of pre-existing Objects from a
+single Track.  It is delivered on a single stream, and ends automatically when
+all of the objects are delivered.
 
 ## Subscriptions {#subscriptions}
 
@@ -642,6 +634,9 @@ with REQUEST_ERROR or sets Forward=0 in REQUEST_UPDATE. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 {{datagrams}} and {{subgroup-header}}).
 
+An object published or received in a subgroup or datagram is
+**subscription-delivered**.
+
 ### Subscription State Management
 
 A subscriber keeps subscription state until it cancels the request
@@ -706,91 +701,142 @@ otherwise a receiver might wait for a control message containing a Track
 Alias to release flow control, while the sender waits for flow control to
 send the message.
 
+### Largest Object {#largest-object}
+
+The `Largest Object` is the Object with the largest Location
+({{location-structure}}) in the Track from the perspective of the publisher
+processing the message. Largest Object updates when the first byte of an Object
+with a Location larger than the previous value is published or received through
+a subscription.
+
+The `Next Object` is the Location immediately following `Largest Object`, which
+is `{Largest Object.Group, Largest Object.Object + 1}`, or {0, 0} if no content
+has been delivered yet. The `Next Group` is the first Location of the Group
+following `Largest Object`, which is `{Largest Object.Group + 1, 0}`.
+`Next Object` and `Next Group` are Locations that do not necessarily
+refer to an Object that exists.
+
+## Fetch
+
+### Fetch State Management
+
+The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
+FETCH.
+
+A subscriber keeps FETCH state until it cancels the request
+(see {{request-cancellation}}), receives REQUEST_ERROR, or the FETCH data stream
+receives a FIN or is reset. If the data stream is already open,
+the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
+data stream as well as the bidi request stream. It MUST send STOP_SENDING
+for the bidi request stream.
+
+The Publisher can remove fetch state as soon as it has received a
+STOP_SENDING. It MUST reset the bidi request stream and unidirectional
+data stream associated with the FETCH. It can also remove state after closing
+the FETCH data stream.
+
+It can remove all FETCH state after closing the data stream with a FIN.
+
+A REQUEST_ERROR indicates that both endpoints can immediately remove state.
+Since a relay can start delivering FETCH Objects from cache before determining
+the result of the request, some Objects could be received even if the FETCH
+results in error.
+
+## Filtering Tracks and Objects
 
 ### Location Filters {#location-filters}
 
-Subscribers can specify a Location filter on a subscription indicating to the publisher
-which Objects to send.  Subscriptions without a filter pass all Objects
-published or received via upstream subscriptions.
+A Location filter specifies an inclusive range of Locations or an inclusive start
+Location and an open-ended end location.  Only objects
+with Locations within the inclusive range pass the filter.  A Location filter
+is encoded as specified in {{location-filter}}.
 
-Fetch requests can also specify a Location filter.  Fetch requests without a filter
-include all Locations from {0, 0} up to `Largest Object` (defined below).
+Subscribers can specify a Location filter on a subscription to indicate to the
+publisher which Objects to send.  Subscriptions without a filter pass all
+Objects published or received via upstream subscriptions.
 
-A Location filter specifies an inclusive range of Locations.  Only objects
-with Locations within the inclusive range pass the filter.
+Fetch requests can also specify a Location filter.  Fetch requests without a
+filter include all Locations from {0, 0} up to `Largest Object`
+({{largest-object}}).
 
-An object published or received in a subgroup or datagram is
-**subscription-delivered**.  Objects delivered via a fill fetch stream (see
-{{fill-semantics}}) are **fill-delivered**.
+Some Location filters are defined to be relative to the `Largest Object`
+({{largest-object}}).
 
-Some Location filters are defined to be relative to the `Largest Object`. The `Largest
-Object` is the Object with the largest Location ({{location-structure}}) in the
-Track from the perspective of the publisher processing the message. Largest
-Object updates when the first byte of an Object with a Location larger than the
-previous value is published or received through a subscription.
+A Location Filter on a subscription is always valid, even if it specifies a
+range entirely before Largest Object.
 
-A Location filter parameter has the following length-prefixed structure:
+Note that due to network reordering or prioritization, relays can receive
+Objects with Locations smaller than `Largest Object` after the filter is
+processed, but these Objects do not pass a filter that starts at the Next
+Object.
+
+A publisher MUST NOT send objects from outside the requested range.  Because
+updating filters is asynchronous, subscribers can receive objects outside the
+current filter.
+
+A publisher does not end a subscription solely because the Largest Object
+advances past the end of the current Location Filter.
+
+### Range Filters {#range-filters}
+
+Range Filters are parameters in SUBSCRIBE, FETCH, or SUBSCRIBE_TRACKS that
+tell a publisher to filter tracks (via TRACK PROPERTY FILTER) and objects
+according to subscriber-provided criteria.  Range filters are specified as
+ranges of integer values in Track and Object Properties and other
+Object header fields (Subgroup ID, Object ID, and Publisher Priority).
+There are five Range Filter parameter types, 0x25-0x29.  They share the
+encoding specified in {{range-filter-structure}}.
+
+An object matches the filter if its value falls within any Range (i.e., Ranges
+are OR'd within a filter parameter).
+
+Each Range Filter parameter carries a SetID, which identifies the set of
+filters it belongs to.  Filter parameters with the same SetID are AND'd;
+distinct SetIDs are OR'd.  The final result is SetID=0 OR SetID=1 OR
+... SetID=255, where each SetID=i is the AND of all filter parameters
+carrying that SetID.
+
+The Track Property filter parameter MAY appear multiple times in a
+SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
+All other filter parameters MAY appear multiple times in a FETCH, SUBSCRIBE,
+SUBSCRIBE_TRACKS, or REQUEST_UPDATE (on a subscription, from the subscriber only)
+message.  If the same combination of Parameter Type, SetID, and Property Type
+(only in the Track and Object Property Filters) repeat in any message,
+an endpoint MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
+
+In REQUEST_UPDATE, Length of 0 removes the filter; non-zero replaces it
+entirely.  If a filter parameter is omitted from REQUEST_UPDATE, it is
+unchanged.  If omitted from other messages, the default is no filter.
+
+Range Filters are only allowed if the setup option MAX_FILTER_RANGES
+is non-zero, which limits the total number of Ranges allowed
+in all Range Filter parameters for a given subscription or fetch.
+If this limit is exceeded, an endpoint MUST reject this with REQUEST_ERROR
+with error code INVALID_FILTER.
+
+The Track Property Filter can be used in SUBSCRIBE_TRACKS to filter PUBLISH
+messages with required Track Property types and values.  PUBLISH messages
+which pass the filter will be forwarded while those which do not pass it
+will not be forwarded nor will any Objects.
+
+The Object Property Filter can be used to filter Objects with required
+Object Property types and values.  It only filters Object Properties,
+and does not evaluate Track Properties in PUBLISH messages.
+
+### Combining Filters
+
+All filter types are combined using logical "AND" operations
+to further restrict which tracks and objects pass all filter criteria.
+This includes all Range Filters {{range-filters}} and Location
+Filters {{location-filters}}, which can be evaluated in any order.
+The Forward parameter is also a type of filter.  The publisher MUST
+forward only objects that pass all filters.
 
 ~~~
-LOCATION_FILTER Parameter {
-  Parameter Type (vi64) = 0x21,
-  Length (vi64),
-  [StartGroup (vi64),]
-  [StartObject (vi64),]
-  [EndGroupDelta (vi64),]
-  [EndObject (vi64),]
-}
+Pass = Forward AND Location Filters AND Range Filters
 ~~~
 
-Length (in bytes) determines how many optional vi64 fields are present.
-A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
-  * If only one field is present, it is StartGroup.
-  * If only two fields are present, they are StartGroup and StartObject.
-  * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
-
-If only StartGroup is present, it is a relative number of groups prior to the Next Group,
-hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
-  * StartGroup=0 will start at the Next Group
-  * StartGroup=1 will start at the current group
-  * StartGroup=2 will start at 1 group prior to the current group
-  * StartGroup=N will start at N-1 groups prior to the current group
-
-If only StartGroup and StartObject are present and both 0, the start Location
-is the Next Object which is `{Largest Object.Group, Largest Object.Object + 1}`,
-or {0, 0} if no content has been delivered yet.  An open-ended filter that starts at absolute
-Location {0, 0} is equivalent to unfiltered, so the subscriber need not include a Location filter.
-Note that due to network reordering or prioritization, relays can receive Objects with
-Locations smaller than `Largest Object` after the SUBSCRIBE is processed, but
-these Objects do not pass this filter.
-
-If a relative start group results in a computed absolute group less than 0, the
-computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
-
-Otherwise, all fields are absolute.  EndGroupDelta is delta
-encoded from StartGroup, but both the start and end groups are absolute, not
-relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
-the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
-
-When EndGroupDelta and EndObject are omitted from a subscription filter, the
-subscription is open-ended. When they are omitted from a Fetch, the
-EndGroup and EndObject are `Largest Object`.
-
-When EndObject is omitted, the filter includes all objects in the End Group.
-
-A Location Filter on a subscription is always valid, even if it specifies a range
-entirely before Largest Object.
-
-A publisher MUST NOT send subscription-delivered objects from outside the
-requested range.  Because updating filters is asynchronous,
-subscribers can receive objects outside the current filter.
-
-A publisher does not end a subscription solely because the Largest Object advances
-past the end of the current Location Filter.
-
-Fill-delivered objects are governed by the Location filter in
-FILL_PARAMETERS (see {{fill-semantics}}).
-
-### Fill Semantics {#fill-semantics}
+## Fill Semantics {#fill-semantics}
 
 A subscription that carries a FILL_PARAMETERS parameter (see
 {{fill-parameters}}) causes the publisher to open a unidirectional stream
@@ -831,7 +877,7 @@ fill-delivered and subscription-delivered.  A subscriber that wants each Object
 delivered exactly once uses the Next Object Subscription Location Filter coupled
 with an open-ended fill range, which the publisher will end at Largest Object.
 
-#### Opening and Closing Fill Fetch Streams
+### Opening and Closing Fill Fetch Streams
 
 A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
 REQUEST_UPDATE that carries FILL_PARAMETERS while Forward State is 1.
@@ -853,120 +899,7 @@ cancelling a fill fetch stream, by either endpoint, does not affect the
 subscription, which continues to deliver objects using subscribe subgroups and
 datagrams.
 
-### Range Filters {#range-filters}
-
-Range Filters are parameters in SUBSCRIBE, FETCH, or SUBSCRIBE_TRACKS that
-tell a publisher to filter tracks (via TRACK PROPERTY FILTER) and objects
-according to subscriber-provided criteria.  Range filters are specified as
-ranges of integer values in Track and Object Properties and other
-Object header fields (Subgroup ID, Object ID, and Publisher Priority).
-There are five Range Filter parameter types, 0x25-0x29, as shown below.
-
-~~~
-SUBGROUP_FILTER {
-  Type (vi64) = 0x25,
-  Length (vi64),
-  [SetID (8)],
-  [Range (..) ...]
-}
-
-OBJECTID_FILTER {
-  Type (vi64) = 0x26,
-  Length (vi64),
-  [SetID (8)],
-  [Range (..) ...]
-}
-
-PRIORITY_FILTER {
-  Type (vi64) = 0x27,
-  Length (vi64),
-  [SetID (8)],
-  [Range (..) ...]
-}
-
-OBJECT_PROPERTY_FILTER {
-  Type (vi64) = 0x28,
-  Length (vi64),
-  [SetID (8)],
-  [Property Type (vi64)],
-  [Range (..) ...]
-}
-
-TRACK_PROPERTY_FILTER {
-  Type (vi64) = 0x29,
-  Length (vi64),
-  [SetID (8)],
-  [Property Type (vi64)],
-  [Range (..) ...]
-}
-
-Range {
-  Start (vi64),
-  [End (vi64)]
-}
-~~~
-
-Length (vi64) is the byte count of all fields after itself.  When Length
-is 0, there is no filter and no further fields are present.  This can be
-used in REQUEST_UPDATE to remove a filter.  The Object Property and Track
-Property Filters include a Property Type (vi64) which follows SetID.
-
-Each Range is an inclusive Start/End pair.  End is optional in the last
-pair; if omitted it indicates the last Range is open-ended.  An object
-matches the filter if its value falls within any Range (i.e., Ranges are
-OR'd within a filter parameter).
-
-Each Start is delta encoded from the prior Range's End (or from 0 for the
-first Range), and End is delta encoded from its own Start.  If adding the delta
-would exceed 2^64-1, the request MUST be rejected with `INVALID_FILTER`.
-For example, ranges 3-5 and 10-15 encode as: Start=3, End=2, Start=5, End=5.
-
-Filter parameters with the same SetID are AND'd; distinct SetIDs are OR'd.
-The final result is SetID=0 OR SetID=1 OR ... SetID=255, where each
-SetID=i is the AND of all filter parameters carrying that SetID.
-
-The Track Property filter parameter MAY appear multiple times in a
-SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
-All other filter parameters MAY appear multiple times in a FETCH, SUBSCRIBE,
-SUBSCRIBE_TRACKS, or REQUEST_UPDATE (on a subscription, from the subscriber only)
-message.  If the same combination of Parameter Type, SetID, and Property Type
-(only in the Track and Object Property Filters) repeat in any message,
-an endpoint MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
-
-In REQUEST_UPDATE, Length of 0 removes the filter; non-zero replaces it
-entirely.  If a filter parameter is omitted from REQUEST_UPDATE, it is
-unchanged.  If omitted from other messages, the default is no filter.
-
-Range Filters are only allowed if the setup option MAX_FILTER_RANGES
-is non-zero, which limits the total number of Ranges allowed
-in all Range Filter parameters for a given subscription or fetch.
-If this limit is exceeded, an endpoint MUST reject this with REQUEST_ERROR
-with error code INVALID_FILTER.
-
-The Track Property Filter can be used in SUBSCRIBE_TRACKS to filter PUBLISH
-messages with required Track Property types and values.  PUBLISH messages
-which pass the filter will be forwarded while those which do not pass it
-will not be forwarded nor will any Objects.
-
-The Object Property Filter can be used to filter Objects with required
-Object Property types and values.  It only filters Object Properties in
-the Object header, and does not evaluate Track Properties in PUBLISH
-messages.
-
-### Combining Filters
-
-All filter types are combined using logical "AND" operations
-to further restrict which tracks and objects pass all filter criteria.
-This includes all Range Filters {{range-filters}} and Location
-Filters {{location-filters}}, which can be evaluated in any order.
-The Forward parameter is also a type of filter.  The publisher MUST
-forward only objects that pass all filters.
-
-~~~
-Pass = Forward AND Location Filters AND Range Filters
-~~~
-
-### Joining an Ongoing Track {#joining-tracks}
+## Joining an Ongoing Track {#joining-tracks}
 
 The MOQT Object model is designed with the concept that the beginning of a Group
 is a join point, so in order for a subscriber to join a Track, it needs to
@@ -991,7 +924,7 @@ datagrams (see {{fill-semantics}}).
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
 a Location Filter {{location-filters}} that starts at the Next Group.
 
-#### Dynamically Starting New Groups
+### Dynamically Starting New Groups
 
 While some publishers will deterministically create new Groups, other
 applications might want to only begin a new Group when needed.  A subscriber
@@ -1011,31 +944,6 @@ Another possible subscriber pattern is to send a SUBSCRIBE with a Location Filte
 that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
 groups. A publisher that does will begin the next group as soon as practical.
-
-## Fetch State Management
-
-The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
-FETCH.
-
-A subscriber keeps FETCH state until it cancels the request
-(see {{request-cancellation}}), receives REQUEST_ERROR, or the FETCH data stream
-receives a FIN or is reset. If the data stream is already open,
-the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
-data stream as well as the bidi request stream. It MUST send STOP_SENDING
-for the bidi request stream.
-
-The Publisher can remove fetch state as soon as it has received a
-STOP_SENDING. It MUST reset the bidi request stream and unidirectional
-data stream associated with the FETCH. It can also remove state after closing
-the FETCH data stream.
-
-It can remove all FETCH state after closing the data stream with a FIN.
-
-A REQUEST_ERROR indicates that both endpoints can immediately remove state.
-Since a relay can start delivering FETCH Objects from cache before determining
-the result of the request, some Objects could be received even if the FETCH
-results in error.
-
 
 ## Mandatory Track Properties {#mandatory-track-properties}
 
@@ -1242,7 +1150,7 @@ MOQT maintains priorities between different schedulable objects.
 A schedulable object in MOQT is either:
 
 1. The first or next Object in a Subgroup that is in response to a subscription.
-2. An Object with forwarding preference Datagram.
+2. An Object with Delivery Mode Datagram.
 3. An Object in response to a FETCH where that Object is the next
    Object in the response.
 
@@ -1303,10 +1211,10 @@ the objects SHOULD be selected as follows:
    and publisher priority and belong to the same group of the same track, and
    one is delivered by the fill fetch stream while the other is
    subscription-delivered, the fill-delivered object is scheduled first. Otherwise,
-   the one with **the lowest Subgroup ID** (for objects with forwarding preference
-   Subgroup), or **the lowest Object ID** (for objects with forwarding preference
+   the one with **the lowest Subgroup ID** (for objects with Delivery Mode
+   Subgroup), or **the lowest Object ID** (for objects with Delivery Mode
    Datagram) is scheduled to be sent first.  If the two objects have
-   different Forwarding Preferences the datagram is sent first.
+   different Delivery Modes the datagram is sent first.
 
 Within the same group, fill-delivered objects win the tie-break over
 subscription-delivered objects (rule 4) because objects with smaller Locations
@@ -1378,7 +1286,7 @@ If the OBJECT_DELIVERY_TIMEOUT is not zero, the MOQT implementation MUST retain
 the time at which the last header byte of every object has been either
 received from the upstream subscription, or provided by the original publisher
 application.  The actual mechanism by which the timeout works depends on the
-Object Forwarding Preference:
+Object Delivery Mode:
 
 - For subgroups, the implementation MUST check the time elapsed
   before attempting to pass it to the underlying transport
@@ -1397,7 +1305,7 @@ Object Forwarding Preference:
   queueing mechanisms that support time bounds (such as the `outgoingMaxAge`
   parameter in the W3C WebTransport API).
 
-If the Object Forwarding Preference is Subgroup and the value of
+If the Object Delivery Mode is Subgroup and the value of
 SUBGROUP_DELIVERY_TIMEOUT is not zero, the MOQT implementation MUST
 start a timer of SUBGROUP_DELIVERY_TIMEOUT duration once it becomes
 aware that all of the objects on the subgroup have been published
@@ -1410,7 +1318,7 @@ MUST reset the stream.  This ensures that MOQT can time out subgroups
 where all of the data has been sent but not yet fully delivered due to
 packet loss.
 
-For objects whose Object Forwarding Preference is Datagram, the
+For objects whose Object Delivery Mode is Datagram, the
 SUBGROUP_DELIVERY_TIMEOUT acts the same way as OBJECT_DELIVERY_TIMEOUT; if both
 are non-zero, the smaller of the two is used.
 
@@ -1560,13 +1468,6 @@ The client establishes a QUIC connection to the host and port identified by the
 `authority` section of the URI.
 When the client uses native QUIC, the `authority`, `path-abempty` and `query`
 portions of the URI are transmitted in Setup Options (see {{setup-options}}).
-
-### Connection URL
-
-Each track MAY have one or more associated connection URLs specifying
-network hosts through which a track may be accessed. The syntax of the
-Connection URL and the associated connection setup procedures are
-specific to the underlying transport protocol usage (see {{session}}).
 
 ## Session initialization {#session-init}
 
@@ -1855,8 +1756,8 @@ fields that can be updated are the following:
 2. Object Properties can be added, removed or updated, subject
    to the constraints of the specific property.
 
-An endpoint that receives a duplicate Object with a different Forwarding
-Preference, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
+An endpoint that receives a duplicate Object with a different Delivery
+Mode, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
 
 For ranges of objects that do not exist, relays MAY change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
@@ -2322,6 +2223,73 @@ Reason Phrase {
   The reason phrase value is encoded as UTF-8 string and does not carry information,
   such as language tags, that would aid comprehension by any entity other than
   the one that created the text.
+
+## Range Filter Structure {#range-filter-structure}
+
+Each Range Filter parameter (see {{range-filters}}) carries a sequence of
+Ranges, encoded as follows:
+
+~~~
+Range {
+  Start (vi64),
+  [End (vi64)]
+}
+~~~
+
+Length (vi64) is the byte count of all fields after itself.  When Length
+is 0, there is no filter and no further fields are present.  This can be
+used in REQUEST_UPDATE to remove a filter.
+
+Each Range is an inclusive Start/End pair.  End is optional in the last
+pair; if omitted it indicates the last Range is open-ended.
+
+Each Start is delta encoded from the prior Range's End (or from 0 for the
+first Range), and End is delta encoded from its own Start.  If adding the delta
+would exceed 2^64-1, the request MUST be rejected with `INVALID_FILTER`.
+For example, ranges 3-5 and 10-15 encode as: Start=3, End=2, Start=5, End=5.
+
+## Track Namespace Structure {#track-namespace-structure}
+
+Track Namespace ({{track-name}}) is encoded as follows:
+
+~~~
+Track Namespace {
+  Number of Track Namespace Fields (vi64),
+  Track Namespace Field (..) ...
+}
+~~~
+
+*  Number of Track Namespace Fields: A variable-length integer specifying
+   the number of Track Namespace Fields in the Track Namespace.
+
+Each Track Namespace Field is encoded as follows:
+
+~~~
+Track Namespace Field {
+  Track Namespace Field Length (vi64),
+  Track Namespace Field Value (..)
+}
+~~~
+
+* Track Namespace Field Length: A variable-length integer specifying the length
+  of the Track Namespace Field in bytes.
+
+* Track Namespace Field Value: A sequence of bytes that forms a Track Namespace
+  Field.
+
+Each Track Namespace Field Value MUST contain at least one byte. If an endpoint
+receives a Track Namespace Field with a Track Namespace Field Length of 0, it
+MUST close the session with a `PROTOCOL_VIOLATION`.
+
+If an endpoint receives a Track Namespace consisting of greater than 32 Track
+Namespace Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
+
+The maximum total length of a Full Track Name is 4,096 bytes. The length of a
+Full Track Name is computed as the sum of the Track Namespace Field Length
+fields and the Track Name Length field. The length of a Track Namespace is the
+sum of the Track Namespace Field Length fields. If an endpoint receives a Track
+Namespace or a Full Track Name exceeding 4,096 bytes, it MUST close the session
+with a `PROTOCOL_VIOLATION`.
 
 ## Representing Namespace and Track Names {#namespace-name-format}
 
@@ -3017,7 +2985,7 @@ SUBSCRIBE Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies the namespace of the track as defined in
-  ({{track-name}}).
+  ({{track-namespace-structure}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
@@ -3075,7 +3043,8 @@ PUBLISH Message {
 
 * Request ID: See {{request-id}}.
 
-* Track Namespace: Identifies a track's namespace as defined in ({{track-name}})
+* Track Namespace: Identifies a track's namespace as defined in
+  ({{track-namespace-structure}})
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
@@ -3244,7 +3213,7 @@ FETCH Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
+({{track-namespace-structure}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
@@ -3275,9 +3244,9 @@ If the upstream FETCH fails, the relay sends a REQUEST_ERROR and can reset the
 unidirectional stream.  It can choose to do so immediately or wait until the
 cached objects have been delivered before resetting the stream.
 
-The Object Forwarding Preference does not apply to fetches.
+The Object Delivery Mode does not apply to fetches.
 
-Fetch can include a Location Filter parameter (see {{location-filters}})
+Fetch can include a Location Filter parameter (see {{location-filter}})
 which specifies an inclusive range of Objects starting at Start Location and
 ending at End Location.
 
@@ -3380,7 +3349,7 @@ PUBLISH_NAMESPACE Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in
-  {{track-name}}.
+  {{track-namespace-structure}}.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -3405,14 +3374,12 @@ SUBSCRIBE_NAMESPACE Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
-  {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
-  matched against track namespaces known to the publisher.  For example, using
-  the serialized format from {{namespace-name-format}}, if the publisher is a
-  relay that has received PUBLISH_NAMESPACE messages for namespaces
-  `example.2ecom-123-100` and `example.2ecom-123-200`, a SUBSCRIBE_NAMESPACE for
-  `example.2ecom-123` would match both.  If an endpoint receives a
-  Track Namespace Prefix consisting of greater than 32 Track Namespace
-  Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
+  {{track-namespace-structure}}.  This prefix is matched against track
+  namespaces known to the publisher.  For example, using the serialized format
+  from {{namespace-name-format}}, if the publisher is a relay that has received
+  PUBLISH_NAMESPACE messages for namespaces `example.2ecom-123-100` and
+  `example.2ecom-123-200`, a SUBSCRIBE_NAMESPACE for `example.2ecom-123` would
+  match both.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -3465,8 +3432,9 @@ NAMESPACE Message {
 {: #moq-transport-ns-format title="MOQT NAMESPACE Message"}
 
 * Track Namespace Suffix: Specifies the final portion of a track's
-  namespace as defined in {{track-name}} after removing namespace tuples included in
-  'Track Namespace Prefix' {{message-subscribe-ns}}.
+  namespace as defined in {{track-namespace-structure}} after removing
+  namespace tuples included in 'Track Namespace Prefix'
+  {{message-subscribe-ns}}.
 
 ## NAMESPACE_DONE {#message-namespace-done}
 
@@ -3486,8 +3454,8 @@ NAMESPACE_DONE Message {
 {: #moq-transport-ns-done-format title="MOQT NAMESPACE_DONE Message"}
 
 * Track Namespace Suffix: Specifies the final portion of a track's
-  namespace as defined in {{track-name}}. The namespace begins with the
-  'Track Namespace Prefix' specified in {{message-subscribe-ns}}.
+  namespace as defined in {{track-namespace-structure}}. The namespace begins
+  with the 'Track Namespace Prefix' specified in {{message-subscribe-ns}}.
 
 ## SUBSCRIBE_TRACKS {#message-subscribe-tracks}
 
@@ -3510,10 +3478,8 @@ SUBSCRIBE_TRACKS Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
-  {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
-  matched against track namespaces known to the publisher.  If an endpoint
-  receives a Track Namespace Prefix consisting of greater than 32 Track
-  Namespace Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
+  {{track-namespace-structure}}.  This prefix is matched against track
+  namespaces known to the publisher.
 
 * Parameters: The parameters are defined in {{message-params}}, though they
   are handled differently from the same Parameters on Subscriptions, as outlined
@@ -3571,8 +3537,8 @@ PUBLISH_SKIPPED Message {
 {: #moq-transport-publish-blocked-format title="MOQT PUBLISH_SKIPPED Message"}
 
 * Track Namespace Suffix: Specifies the final portion of a track's
-  namespace as defined in {{track-name}}. The namespace begins with the
-  'Track Namespace Prefix' specified in {{message-subscribe-tracks}}.
+  namespace as defined in {{track-namespace-structure}}. The namespace begins
+  with the 'Track Namespace Prefix' specified in {{message-subscribe-tracks}}.
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
@@ -3759,10 +3725,55 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 
 ### LOCATION FILTER Parameter {#location-filter}
 
-The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It MAY appear in a FETCH, SUBSCRIBE, PUBLISH, REQUEST_UPDATE
-(for a subscription) or PUBLISH_STATE_NOTIFY message. It is a Location
-Filter (see {{location-filters}}).
+The LOCATION_FILTER parameter (Parameter Type 0x21) MAY appear in a FETCH,
+SUBSCRIBE, PUBLISH, REQUEST_UPDATE (for a subscription) or
+PUBLISH_STATE_NOTIFY message. It is a Location Filter (see
+{{location-filters}}).
+
+A Location filter parameter has the following length-prefixed structure:
+
+~~~
+LOCATION_FILTER Parameter {
+  Parameter Type (vi64) = 0x21,
+  Length (vi64),
+  [StartGroup (vi64),]
+  [StartObject (vi64),]
+  [EndGroupDelta (vi64),]
+  [EndObject (vi64),]
+}
+~~~
+
+Length (in bytes) determines how many optional vi64 fields are present.
+A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
+  * If only one field is present, it is StartGroup.
+  * If only two fields are present, they are StartGroup and StartObject.
+  * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
+
+If only StartGroup is present, it is a relative number of groups prior to the Next Group,
+hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
+  * StartGroup=0 will start at the Next Group
+  * StartGroup=1 will start at the current group
+  * StartGroup=2 will start at 1 group prior to the current group
+  * StartGroup=N will start at N-1 groups prior to the current group
+
+If only StartGroup and StartObject are present and both 0, the start Location
+is the Next Object (see {{largest-object}}).  An open-ended filter that starts
+at absolute Location {0, 0} is equivalent to unfiltered, so the subscriber need
+not include a Location filter.
+
+If a relative start group results in a computed absolute group less than 0, the
+computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
+
+Otherwise, all fields are absolute.  EndGroupDelta is delta
+encoded from StartGroup, but both the start and end groups are absolute, not
+relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
+the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
+
+When EndGroupDelta and EndObject are omitted from a subscription filter, the
+subscription is open-ended. When they are omitted from a Fetch, the
+EndGroup and EndObject are `Largest Object`.
+
+When EndObject is omitted, the filter includes all objects in the End Group.
 
 If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
 unfiltered.  If omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY, the
@@ -3772,20 +3783,48 @@ Location Filter now in effect at the publisher.
 ### SUBGROUP FILTER Parameter {#subgroup-filter}
 
 The SUBGROUP_FILTER parameter (Type 0x25) selects objects with specified
-Ranges of Subgroup ID.  See {{range-filters}}.
+Ranges of Subgroup ID.  See {{range-filters}} and {{range-filter-structure}}.
+
+~~~
+SUBGROUP_FILTER {
+  Type (vi64) = 0x25,
+  Length (vi64),
+  [SetID (8)],
+  [Range (..) ...]
+}
+~~~
 
 ### OBJECTID FILTER Parameter {#objectid-filter}
 
 The OBJECTID_FILTER parameter (Type 0x26) selects objects with specified
-Ranges of Object ID.  See {{range-filters}}.
+Ranges of Object ID.  See {{range-filters}} and {{range-filter-structure}}.
+
+~~~
+OBJECTID_FILTER {
+  Type (vi64) = 0x26,
+  Length (vi64),
+  [SetID (8)],
+  [Range (..) ...]
+}
+~~~
 
 ### PRIORITY FILTER Parameter {#priority-filter}
 
 The PRIORITY_FILTER parameter (Type 0x27) selects objects with specified
-Ranges of Publisher Priority.  See {{range-filters}}.
+Ranges of Publisher Priority.  See {{range-filters}} and
+{{range-filter-structure}}.
 If a decoded value exceeds 255, the endpoint MUST reject this with
 REQUEST_ERROR with error code INVALID_FILTER since Publisher Priority
 is an 8-bit field.
+
+~~~
+PRIORITY_FILTER {
+  Type (vi64) = 0x27,
+  Length (vi64),
+  [SetID (8)],
+  [Range (..) ...]
+}
+~~~
 
 ### OBJECT PROPERTY FILTER Parameter {#object-property-filter}
 
@@ -3793,7 +3832,18 @@ The OBJECT_PROPERTY_FILTER parameter (Type 0x28) selects objects with
 required Ranges of Property Value for a required Object Property
 Type which MUST be even, i.e. a single integer value
 (see {{moq-key-value-pair}}), otherwise the endpoint MUST reject this with
-REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
+REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}} and
+{{range-filter-structure}}.
+
+~~~
+OBJECT_PROPERTY_FILTER {
+  Type (vi64) = 0x28,
+  Length (vi64),
+  [SetID (8)],
+  [Property Type (vi64)],
+  [Range (..) ...]
+}
+~~~
 
 ### TRACK PROPERTY FILTER Parameter {#track-property-filter}
 
@@ -3801,7 +3851,18 @@ The TRACK_PROPERTY_FILTER parameter (Type 0x29) selects tracks with
 required Ranges of Property Value for a required Track Property
 Type which MUST be even, i.e. a single integer value
 (see {{moq-key-value-pair}}), otherwise the endpoint MUST reject this with
-REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}}.
+REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}} and
+{{range-filter-structure}}.
+
+~~~
+TRACK_PROPERTY_FILTER {
+  Type (vi64) = 0x29,
+  Length (vi64),
+  [SetID (8)],
+  [Property Type (vi64)],
+  [Range (..) ...]
+}
+~~~
 
 ### FILL PARAMETERS Parameter {#fill-parameters}
 
@@ -3826,7 +3887,7 @@ The following parameters MAY appear inside FILL_PARAMETERS:
 | 0x28 | OBJECT_PROPERTY_FILTER | {{range-filters}} |
 
 The LOCATION_FILTER inside FILL_PARAMETERS selects the fill range and is
-evaluated using the rules for a Fetch (see {{location-filters}}); it is
+evaluated using the rules for a Fetch (see {{location-filter}}); it is
 independent of the subscription's own Location filter.
 
 A parameter that is omitted from FILL_PARAMETERS takes the value it has for the
@@ -3943,11 +4004,12 @@ outstanding until the Largest Group increases.
 ### TRACK_NAMESPACE_PREFIX Parameter {#track-namespace-prefix-param}
 
 The TRACK_NAMESPACE_PREFIX parameter (Parameter Type 0x34) uses the Track
-Namespace encoding described in {{track-name}}.  It MAY appear in REQUEST_UPDATE
-for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It updates the Track
-Namespace Prefix for that subscription.  If the new prefix would share a common prefix with
-another active subscription of the same type in the same session, the receiver
-MUST respond with REQUEST_ERROR with error code `PREFIX_OVERLAP`.
+Namespace encoding described in {{track-namespace-structure}}.  It MAY appear in
+REQUEST_UPDATE for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It
+updates the Track Namespace Prefix for that subscription.  If the new prefix
+would share a common prefix with another active subscription of the same type
+in the same session, the receiver MUST respond with REQUEST_ERROR with error
+code `PREFIX_OVERLAP`.
 
 ### INCLUDE_PROPERTIES Parameter {#include-properties-param}
 
@@ -4174,39 +4236,6 @@ An Object contains a range of contiguous bytes from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it.  Objects are sent by publishers.
 
-### Object Header {#object-header}
-
-A canonical MOQT Object has the following fields:
-
-* Track Namespace and Track Name: The track this object belongs to.
-
-* Group ID: The identifier of the Object's Group (see {{model-group}}) within
-  the Track.
-
-* Object ID: The order of the object within the group.
-
-* Publisher Priority: An 8 bit integer indicating the publisher's priority for
-the Object ({{priorities}}).
-
-* Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Subgroup and Datagram.  `Object Forwarding
-Preference` is a property of an individual Object and can vary among
-Objects in the same Track.  In a subscription, an Object MUST be sent
-according to its `Object Forwarding Preference`.
-
-* Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}})
-  within the Group. This field is omitted if the `Object Forwarding Preference`
-  is Datagram.
-
-* Object Status: An enumeration used to indicate whether the Object is a normal Object
-  or mark the end of a group or track. See {{object-status}} below.
-
-* Object Properties: A sequence of Properties associated with the object.
-  See {{object-properties}}.
-
-* Object Payload: An opaque payload intended for an End Subscriber and SHOULD
-NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
-
 ### Object Status {#object-status}
 
 The Object Status is a field that is only present in objects that are delivered
@@ -4273,10 +4302,10 @@ A single object can be conveyed in a datagram.  The Track Alias field
 ({{track-alias}}) indicates the track this Datagram belongs to; see
 {{unknown-track-alias}} for handling of unknown Track Aliases.
 
-An Object received in an `OBJECT_DATAGRAM` message has an `Object Forwarding
-Preference` = `Datagram`.
+An Object received in an `OBJECT_DATAGRAM` message has a `Delivery Mode` =
+`Datagram`.
 
-To send an Object with `Object Forwarding Preference` = `Datagram`, determine
+To send an Object with `Delivery Mode` = `Datagram`, determine
 the length of the header and payload and send the Object as datagram.  When the
 total size is larger than the maximum datagram size for the session, the Object
 will be dropped without any explicit notification.
@@ -4366,14 +4395,6 @@ middle of a serialized Object, the session SHOULD be closed with a
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
 Header field values.
 
-### Stream Cancellation
-
-Streams aside from the control streams MAY be canceled due to congestion
-or other reasons by either the publisher or subscriber. Early termination of a
-unidirectional stream does not affect the MOQT application state, and therefore has
-no effect on outstanding subscriptions. Closing a bidirectional request stream is
-governed by {{request-cancellation}}.
-
 ### Subgroup Header {#subgroup-header}
 
 All Objects on a Subgroup stream belong to the track identified by
@@ -4395,7 +4416,7 @@ SUBGROUP_HEADER {
 {: #object-header-format title="MOQT SUBGROUP_HEADER"}
 
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
-`Object Forwarding Preference` = `Subgroup`.
+`Delivery Mode` = `Subgroup`.
 
 The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
 encodes a set of flags. All values defined in this specification fit in a
@@ -4447,7 +4468,7 @@ header with any of these values, it MUST close the session with a
 * Values of 128 or greater (i.e., any value that requires more than a one-byte
   variable-length integer encoding).
 
-To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
+To send an Object with `Delivery Mode` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
 or open a new one and send the `SUBGROUP_HEADER`. Then serialize the
 following fields.
@@ -4670,7 +4691,7 @@ would be greater than 2^64-1, the Subscriber MUST close the Session with error
 
 The Object Properties structure is defined in {{object-properties}}.
 
-When encoding an Object with a Forwarding Preference of "Datagram" (see
+When encoding an Object with a Delivery Mode of "Datagram" (see
 {{object-properties}}), the object has no Subgroup ID. The publisher MUST SET bit 0x40 to '1'.
 When 0x40 is set, it SHOULD set the two least significant bits to zero and the subscriber
 MUST ignore the bits.
@@ -4742,68 +4763,6 @@ PADDING DATAGRAM {
 {: #padding-datagram-format title="MOQT Padding Datagram"}
 
 The receiver MUST discard all data received in a padding datagram.
-
-## Examples
-
-Sending a subgroup on one stream:
-
-~~~
-Stream = 2
-
-SUBGROUP_HEADER {
-  Type Flags = 0x14
-  Track Alias = 2
-  Group ID = 0
-  Subgroup ID = 0
-  Priority = 0
-}
-{
-  Object ID = 0
-  Object Payload Length = 4
-  Payload = "abcd"
-}
-{
-  Object ID = 1
-  Object Payload Length = 4
-  Payload = "efgh"
-}
-~~~
-
-Sending a group on one stream, with the first object containing two
-Properties.
-
-~~~
-Stream = 2
-
-SUBGROUP_HEADER {
-  Type Flags = 0x35
-  Track Alias = 2
-  Group ID = 0
-  Subgroup ID = 0
-}
-{
-  Object ID Delta = 0 (Object ID is 0)
-  Properties Length = 33
-    {
-      Type = 4
-      Value = 2186796243
-    },
-    {
-      Type = 77
-      Length = 21
-      Value = "traceID:123456"
-    }
-  Object Payload Length = 4
-  Payload = "abcd"
-}
-{
-  Object ID Delta = 0 (Object ID is 1)
-  Properties Length = 0
-  Object Payload Length = 4
-  Payload = "efgh"
-}
-
-~~~
 
 # Transport Considerations
 
@@ -5138,7 +5097,7 @@ include:
    indicated End of Track.
 6. The same Object is received more than once with different Payload or
    other immutable properties.
-7. An Object is received with a different Forwarding Preference than previously
+7. An Object is received with a different Delivery Mode than previously
    observed.
 
 The above list of conditions is not considered exhaustive.
