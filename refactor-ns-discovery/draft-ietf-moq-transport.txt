@@ -1377,24 +1377,15 @@ Table of Contents
    where the subscriber does not yet know the exact name, or wants to
    react as publishers come and go.
 
-   As a small example, suppose a relay has learned about two namespaces
-   from upstream, foo-alice and foo-bob.  A subscriber that opens
-   SUBSCRIBE_NAMESPACE with prefix foo will receive two NAMESPACE
-   messages, one for each.  If a third publisher then advertises foo-
-   carol upstream, the relay forwards a new NAMESPACE on the same
-   stream.  If the subscriber then wants Objects, not just names, it can
-   either issue individual SUBSCRIBEs or open SUBSCRIBE_TRACKS foo-alice
-   and receive a PUBLISH for every track Alice offers.
-
    Message syntax is defined in Section 9.  The rest of this section
    describes how each message is used.
 
 4.1.  Advertising Namespaces
 
-   A publisher makes its namespaces reachable by advertising them.  This
-   is how an Original Publisher tells its upstream relay that it has
-   content to offer, and how a relay in turn propagates that
-   availability to interested subscribers.
+   A publisher makes its namespaces reachable by advertising them.  An
+   Original Publisher typically advertises to an upstream relay to
+   signal that it has content to offer, and a relay may in turn re-
+   advertise those namespaces to interested subscribers.
 
    A publisher advertises a namespace by sending PUBLISH_NAMESPACE on a
    new bidirectional stream.  Advertisement is optional — a subscriber
@@ -1437,10 +1428,11 @@ Table of Contents
 
 4.2.  Subscribing to Namespaces
 
-   A subscriber that has a rough idea of what it is looking for, but not
-   the exact Full Track Name, uses SUBSCRIBE_NAMESPACE to enumerate what
-   a peer knows under a Track Namespace Prefix.  This is the primary way
-   a subscriber discovers new publishers as they come online.
+   When a subscriber knows a Track Namespace Prefix but not the specific
+   namespaces published under it, it uses SUBSCRIBE_NAMESPACE to
+   enumerate the namespaces the peer currently knows under that prefix,
+   and to receive updates as those namespaces are advertised or
+   withdrawn.
 
    A subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream.
    The publisher MUST respond with a single REQUEST_OK or REQUEST_ERROR
@@ -1463,11 +1455,14 @@ Table of Contents
 
 4.3.  Subscribing to Tracks by Prefix
 
-   Once a subscriber knows which namespaces exist, it may want Objects
-   from every track those namespaces contain, without having to name
-   each track individually.  SUBSCRIBE_TRACKS is the bulk equivalent of
-   SUBSCRIBE: instead of one Full Track Name, it takes a prefix, and the
-   publisher pushes a PUBLISH for every matching track as they appear.
+   Once a subscriber knows which namespaces exist, it may want to learn
+   about every track those namespaces contain in order to start
+   receiving Objects, without having to name each track individually.
+   SUBSCRIBE_TRACKS takes a Track Namespace Prefix, and the publisher
+   sends a PUBLISH message for each track whose namespace matches, both
+   for tracks it already knows and for tracks it subsequently learns
+   about.  Each such PUBLISH is handled via the normal acceptance flow
+   (see Section 9.8) before it becomes an active subscription.
 
    A subscriber sends SUBSCRIBE_TRACKS on a new bidirectional stream to
    request forwarding of PUBLISH messages for tracks whose namespace

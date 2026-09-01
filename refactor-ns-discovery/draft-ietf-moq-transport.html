@@ -3104,25 +3104,17 @@ move data: a subscriber that already knows a Full Track Name <span class="bcp14"
 <code>SUBSCRIBE</code> or <code>FETCH</code> directly. Discovery is a convenience for the case
 where the subscriber does not yet know the exact name, or wants to react
 as publishers come and go.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">As a small example, suppose a relay has learned about two namespaces from
-upstream, <code>foo-alice</code> and <code>foo-bob</code>. A subscriber that opens
-<code>SUBSCRIBE_NAMESPACE</code> with prefix <code>foo</code> will receive two <code>NAMESPACE</code>
-messages, one for each. If a third publisher then advertises <code>foo-carol</code>
-upstream, the relay forwards a new <code>NAMESPACE</code> on the same stream. If the
-subscriber then wants Objects, not just names, it can either issue
-individual <code>SUBSCRIBE</code>s or open <code>SUBSCRIBE_TRACKS foo-alice</code> and receive
-a <code>PUBLISH</code> for every track Alice offers.<a href="#section-4-7" class="pilcrow">¶</a></p>
-<p id="section-4-8">Message syntax is defined in <a href="#message" class="auto internal xref">Section 9</a>. The rest of this section
-describes how each message is used.<a href="#section-4-8" class="pilcrow">¶</a></p>
+<p id="section-4-7">Message syntax is defined in <a href="#message" class="auto internal xref">Section 9</a>. The rest of this section
+describes how each message is used.<a href="#section-4-7" class="pilcrow">¶</a></p>
 <div id="advertising-namespaces">
 <section id="section-4.1">
         <h3 id="name-advertising-namespaces">
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-advertising-namespaces" class="section-name selfRef">Advertising Namespaces</a>
         </h3>
-<p id="section-4.1-1">A publisher makes its namespaces reachable by advertising them. This is
-how an Original Publisher tells its upstream relay that it has content to
-offer, and how a relay in turn propagates that availability to interested
-subscribers.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-1">A publisher makes its namespaces reachable by advertising them. An
+Original Publisher typically advertises to an upstream relay to signal
+that it has content to offer, and a relay may in turn re-advertise those
+namespaces to interested subscribers.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <p id="section-4.1-2">A publisher advertises a namespace by sending <code>PUBLISH_NAMESPACE</code> on a new
 bidirectional stream. Advertisement is optional — a subscriber <span class="bcp14">MAY</span> send
 <code>SUBSCRIBE</code> or <code>FETCH</code> for a namespace it never received a
@@ -3161,10 +3153,10 @@ to compute paths through richly connected relay networks.<a href="#section-4.1-6
         <h3 id="name-subscribing-to-namespaces">
 <a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-subscribing-to-namespaces" class="section-name selfRef">Subscribing to Namespaces</a>
         </h3>
-<p id="section-4.2-1">A subscriber that has a rough idea of what it is looking for, but not the
-exact Full Track Name, uses <code>SUBSCRIBE_NAMESPACE</code> to enumerate what a
-peer knows under a Track Namespace Prefix. This is the primary way a
-subscriber discovers new publishers as they come online.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-1">When a subscriber knows a Track Namespace Prefix but not the specific
+namespaces published under it, it uses <code>SUBSCRIBE_NAMESPACE</code> to enumerate
+the namespaces the peer currently knows under that prefix, and to receive
+updates as those namespaces are advertised or withdrawn.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.2-2">A subscriber sends <code>SUBSCRIBE_NAMESPACE</code> on a new bidirectional stream.
 The publisher <span class="bcp14">MUST</span> respond with a single <code>REQUEST_OK</code> or <code>REQUEST_ERROR</code>
 as the first message on the stream, and then sends <code>NAMESPACE</code> messages
@@ -3187,11 +3179,14 @@ whether to try other publishers.<a href="#section-4.2-4" class="pilcrow">¶</a><
         <h3 id="name-subscribing-to-tracks-by-pr">
 <a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-subscribing-to-tracks-by-pr" class="section-name selfRef">Subscribing to Tracks by Prefix</a>
         </h3>
-<p id="section-4.3-1">Once a subscriber knows which namespaces exist, it may want Objects from
-every track those namespaces contain, without having to name each track
-individually. <code>SUBSCRIBE_TRACKS</code> is the bulk equivalent of <code>SUBSCRIBE</code>:
-instead of one Full Track Name, it takes a prefix, and the publisher
-pushes a <code>PUBLISH</code> for every matching track as they appear.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-1">Once a subscriber knows which namespaces exist, it may want to learn
+about every track those namespaces contain in order to start receiving
+Objects, without having to name each track individually.
+<code>SUBSCRIBE_TRACKS</code> takes a Track Namespace Prefix, and the publisher
+sends a <code>PUBLISH</code> message for each track whose namespace matches, both
+for tracks it already knows and for tracks it subsequently learns about.
+Each such <code>PUBLISH</code> is handled via the normal acceptance flow (see
+<a href="#message-publish" class="auto internal xref">Section 9.8</a>) before it becomes an active subscription.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
 <p id="section-4.3-2">A subscriber sends <code>SUBSCRIBE_TRACKS</code> on a new bidirectional stream to
 request forwarding of <code>PUBLISH</code> messages for tracks whose namespace
 matches the given prefix. The publisher <span class="bcp14">MUST</span> respond with a single
