@@ -318,13 +318,11 @@ Publisher Priority: An 8 bit integer indicating the publisher's priority for the
 
 Object Forwarding Preference: An enumeration indicating how a publisher sends an object. The preferences are Subgroup and Datagram. Object Forwarding Preference is a property of an individual Object and can vary among Objects in the same Track. In a subscription, an Object MUST be sent according to its Object Forwarding Preference.
 
-Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}}) within the Group. This field is omitted if the Object Forwarding Preference is Datagram.
-
-Object Status: An enumeration used to indicate whether the Object is a normal Object or mark the end of a group or track. See {{object-status}} below.
+Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}}) within the Group.
 
 Object Properties : A sequence of Properties associated with the object. See {{object-properties}}.
 
-Object Payload: An opaque payload intended for an End Subscriber and SHOULD NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
+Object Payload: An opaque payload intended for an End Subscriber and SHOULD NOT be processed by a relay.
 
 ### Object States
 
