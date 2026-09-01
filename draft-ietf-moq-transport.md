@@ -716,69 +716,6 @@ following `Largest Object`, which is `{Largest Object.Group + 1, 0}`.
 `Next Object` and `Next Group` are Locations that do not necessarily
 refer to an Object that exists.
 
-### Fill Semantics {#fill-semantics}
-
-A subscription that carries a FILL_PARAMETERS parameter (see
-{{fill-parameters}}) causes the publisher to open a unidirectional stream
-beginning with a FETCH_HEADER (see {{fetch-header}}) and delivered as a FETCH
-response (see {{message-fetch}}).  This is called a fill fetch stream.
-
-The **fill range** is the range of Locations selected by the Location filter
-inside FILL_PARAMETERS, or the subscription's Location filter if it is
-omitted. The filter is evaluated using the rules for a Fetch in
-{{location-filters}}, so the fill range never extends beyond `Largest
-Object`. When the subscription has no Location filter, or the LOCATION_FILTER
-inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
-`Largest Object`.  The subscriber learns the `Largest Object` from the
-`LARGEST_OBJECT` parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.
-
-Because the fill range is specified independently of the subscription's
-Location filter, a subscriber can retrieve a range of Groups prior to the live
-edge while the subscription itself starts at the Next Group.  If the fill range
-is empty, or starts after Largest Object, the publisher does not open a fill fetch stream.
-
-The fill fetch stream inherits the subscription's parameters, including
-subscriber priority, range filters and authorization; parameters carried inside
-FILL_PARAMETERS override them for the fill fetch stream.  FILL_TIMEOUT (see
-{{fill-timeout}}) applies to fill fetch streams in the same way it applies to a
-FETCH.
-
-The FETCH_HEADER on the fill fetch stream carries the Request ID of the message
-that initiated it: the SUBSCRIBE Request ID for the initial fill, or the
-REQUEST_UPDATE Request ID for a subsequent fill.  As a result of
-REQUEST_UPDATE, a subscription can have
-multiple fill fetch streams open at once, each identified by its Request ID;
-opening a new fill fetch stream does not implicitly cancel any previously
-opened fill fetch streams.
-
-An object delivered on the fill fetch stream is **fill-delivered**.  When the
-fill range overlaps the subscription's Location filter, an object can be both
-fill-delivered and subscription-delivered.  A subscriber that wants each Object
-delivered exactly once uses the Next Object Subscription Location Filter coupled
-with an open-ended fill range, which the publisher will end at Largest Object.
-
-#### Opening and Closing Fill Fetch Streams
-
-A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
-REQUEST_UPDATE that carries FILL_PARAMETERS while Forward State is 1.
-
-- FILL_PARAMETERS carried while Forward State is 0 opens no fill fetch stream.
-  Transitioning to Forward State 1 without re-sending FILL_PARAMETERS does not
-  open one either.
-- A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open a new fill
-  fetch stream.
-- When the subscription is cancelled, the publisher MUST reset any open fill fetch streams.
-
-The publisher signals that the fill is complete by closing the stream with a
-FIN once all objects in the fill range have been delivered.  Because there is
-no REQUEST_ERROR associated with a fill fetch stream, the publisher signals a
-fill failure by resetting the stream; it MUST open a fill fetch stream and reset
-it immediately after the FETCH_HEADER if necessary.  A subscriber can cancel a
-fill fetch stream independently using STOP_SENDING.  Resetting or
-cancelling a fill fetch stream, by either endpoint, does not affect the
-subscription, which continues to deliver objects using subscribe subgroups and
-datagrams.
-
 ## Fetch
 
 ### Fetch State Management
@@ -804,52 +741,6 @@ A REQUEST_ERROR indicates that both endpoints can immediately remove state.
 Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
 results in error.
-
-## Joining an Ongoing Track {#joining-tracks}
-
-The MOQT Object model is designed with the concept that the beginning of a Group
-is a join point, so in order for a subscriber to join a Track, it needs to
-request an existing Group or wait for a future Group.  Different applications
-will have different approaches for when to begin a new Group.
-
-To join a Track immediately, the subscriber sends a SUBSCRIBE with a Location
-Filter {{location-filters}} that starts at the Next Object.  Delivery begins
-with the next Object and can begin mid-group.
-
-To join a Track at the current Group, the subscriber sends a SUBSCRIBE with a
-Location Filter that starts at the Next Object and a FILL_PARAMETERS parameter
-(see {{fill-parameters}}) whose Location filter has StartGroup=1, which fills
-the current Group from its start.
-
-To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a
-FILL_PARAMETERS parameter whose Location filter selects the intended Groups,
-which can be relative.  The publisher delivers the fill range on a fill fetch
-stream and subscription-delivered Objects in subgroups or
-datagrams (see {{fill-semantics}}).
-
-To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
-a Location Filter {{location-filters}} that starts at the Next Group.
-
-### Dynamically Starting New Groups
-
-While some publishers will deterministically create new Groups, other
-applications might want to only begin a new Group when needed.  A subscriber
-joining a Track might detect that it is more efficient to request the Original
-Publisher create a new group than to fill the current group.  Publishers
-indicate a Track supports dynamic group creation using the DYNAMIC_GROUPS
-Track Property ({{dynamic-groups}}).
-
-One possible subscriber pattern is to SUBSCRIBE to a Track using a Location Filter
-that starts at the Next Object and observe the `Largest Object` in the response.  If the
-Object ID is below the application's threshold, the subscriber sends a FETCH for
-the beginning of the Group.  If the Object ID is above the threshold and the
-Track supports dynamic groups, the subscriber sends a REQUEST_UPDATE message with the
-NEW_GROUP_REQUEST parameter equal to the Next Group (see {{new-group-request}}).
-
-Another possible subscriber pattern is to send a SUBSCRIBE with a Location Filter
-that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
-DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
-groups. A publisher that does will begin the next group as soon as practical.
 
 ## Filtering Tracks and Objects
 
@@ -944,6 +835,115 @@ forward only objects that pass all filters.
 ~~~
 Pass = Forward AND Location Filters AND Range Filters
 ~~~
+
+## Fill Semantics {#fill-semantics}
+
+A subscription that carries a FILL_PARAMETERS parameter (see
+{{fill-parameters}}) causes the publisher to open a unidirectional stream
+beginning with a FETCH_HEADER (see {{fetch-header}}) and delivered as a FETCH
+response (see {{message-fetch}}).  This is called a fill fetch stream.
+
+The **fill range** is the range of Locations selected by the Location filter
+inside FILL_PARAMETERS, or the subscription's Location filter if it is
+omitted. The filter is evaluated using the rules for a Fetch in
+{{location-filters}}, so the fill range never extends beyond `Largest
+Object`. When the subscription has no Location filter, or the LOCATION_FILTER
+inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
+`Largest Object`.  The subscriber learns the `Largest Object` from the
+`LARGEST_OBJECT` parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.
+
+Because the fill range is specified independently of the subscription's
+Location filter, a subscriber can retrieve a range of Groups prior to the live
+edge while the subscription itself starts at the Next Group.  If the fill range
+is empty, or starts after Largest Object, the publisher does not open a fill fetch stream.
+
+The fill fetch stream inherits the subscription's parameters, including
+subscriber priority, range filters and authorization; parameters carried inside
+FILL_PARAMETERS override them for the fill fetch stream.  FILL_TIMEOUT (see
+{{fill-timeout}}) applies to fill fetch streams in the same way it applies to a
+FETCH.
+
+The FETCH_HEADER on the fill fetch stream carries the Request ID of the message
+that initiated it: the SUBSCRIBE Request ID for the initial fill, or the
+REQUEST_UPDATE Request ID for a subsequent fill.  As a result of
+REQUEST_UPDATE, a subscription can have
+multiple fill fetch streams open at once, each identified by its Request ID;
+opening a new fill fetch stream does not implicitly cancel any previously
+opened fill fetch streams.
+
+An object delivered on the fill fetch stream is **fill-delivered**.  When the
+fill range overlaps the subscription's Location filter, an object can be both
+fill-delivered and subscription-delivered.  A subscriber that wants each Object
+delivered exactly once uses the Next Object Subscription Location Filter coupled
+with an open-ended fill range, which the publisher will end at Largest Object.
+
+### Opening and Closing Fill Fetch Streams
+
+A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
+REQUEST_UPDATE that carries FILL_PARAMETERS while Forward State is 1.
+
+- FILL_PARAMETERS carried while Forward State is 0 opens no fill fetch stream.
+  Transitioning to Forward State 1 without re-sending FILL_PARAMETERS does not
+  open one either.
+- A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open a new fill
+  fetch stream.
+- When the subscription is cancelled, the publisher MUST reset any open fill fetch streams.
+
+The publisher signals that the fill is complete by closing the stream with a
+FIN once all objects in the fill range have been delivered.  Because there is
+no REQUEST_ERROR associated with a fill fetch stream, the publisher signals a
+fill failure by resetting the stream; it MUST open a fill fetch stream and reset
+it immediately after the FETCH_HEADER if necessary.  A subscriber can cancel a
+fill fetch stream independently using STOP_SENDING.  Resetting or
+cancelling a fill fetch stream, by either endpoint, does not affect the
+subscription, which continues to deliver objects using subscribe subgroups and
+datagrams.
+
+## Joining an Ongoing Track {#joining-tracks}
+
+The MOQT Object model is designed with the concept that the beginning of a Group
+is a join point, so in order for a subscriber to join a Track, it needs to
+request an existing Group or wait for a future Group.  Different applications
+will have different approaches for when to begin a new Group.
+
+To join a Track immediately, the subscriber sends a SUBSCRIBE with a Location
+Filter {{location-filters}} that starts at the Next Object.  Delivery begins
+with the next Object and can begin mid-group.
+
+To join a Track at the current Group, the subscriber sends a SUBSCRIBE with a
+Location Filter that starts at the Next Object and a FILL_PARAMETERS parameter
+(see {{fill-parameters}}) whose Location filter has StartGroup=1, which fills
+the current Group from its start.
+
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a
+FILL_PARAMETERS parameter whose Location filter selects the intended Groups,
+which can be relative.  The publisher delivers the fill range on a fill fetch
+stream and subscription-delivered Objects in subgroups or
+datagrams (see {{fill-semantics}}).
+
+To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
+a Location Filter {{location-filters}} that starts at the Next Group.
+
+### Dynamically Starting New Groups
+
+While some publishers will deterministically create new Groups, other
+applications might want to only begin a new Group when needed.  A subscriber
+joining a Track might detect that it is more efficient to request the Original
+Publisher create a new group than to fill the current group.  Publishers
+indicate a Track supports dynamic group creation using the DYNAMIC_GROUPS
+Track Property ({{dynamic-groups}}).
+
+One possible subscriber pattern is to SUBSCRIBE to a Track using a Location Filter
+that starts at the Next Object and observe the `Largest Object` in the response.  If the
+Object ID is below the application's threshold, the subscriber sends a FETCH for
+the beginning of the Group.  If the Object ID is above the threshold and the
+Track supports dynamic groups, the subscriber sends a REQUEST_UPDATE message with the
+NEW_GROUP_REQUEST parameter equal to the Next Group (see {{new-group-request}}).
+
+Another possible subscriber pattern is to send a SUBSCRIBE with a Location Filter
+that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
+DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
+groups. A publisher that does will begin the next group as soon as practical.
 
 ## Mandatory Track Properties {#mandatory-track-properties}
 
