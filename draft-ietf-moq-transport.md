@@ -304,7 +304,7 @@ responsible for the content of the object payload. This includes the
 underlying encoding, compression, any end-to-end encryption, or
 authentication.
 
-### Canonical Object Fields
+### Canonical Object Fields {#object-header}
 
 A canonical MOQT Object has the following fields:
 
