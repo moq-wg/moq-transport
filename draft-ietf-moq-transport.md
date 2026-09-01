@@ -1700,37 +1700,7 @@ terminate the subscription using PUBLISH_DONE with error `TOO_FAR_BEHIND`.
 
 # Sessions {#session}
 
-## Session establishment {#session-establishment}
-
-This document defines a protocol that can be used interchangeably both
-over a QUIC connection directly [QUIC], and over WebTransport
-[WebTransport].  Both provide streams and datagrams with similar
-semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
-main difference lies in how the servers are identified and how the
-connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
-MUST be supported and negotiated in the QUIC connection used for MOQT,
-which is already a requirement for WebTransport over HTTP/3.
-
-There is no definition of the protocol over other transports,
-such as TCP, and applications using MOQT might need to fallback to
-another protocol when QUIC or WebTransport aren't available.
-
-MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-({{WebTransport, Section 3.3}}) to perform version negotiation.
-
-The ALPN value {{!RFC7301}} for the final version of this specification
-is `moqt`.
-
-\[\[RFC editor: please remove the remainder of this section before publication.]]
-
-ALPNs used to identify IETF drafts are created by appending
-the draft number to "moqt-". For example, draft-ietf-moq-transport-13
-would be identified as "moqt-13".
-
-Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
-negotiation in the SETUP messages.
-
-### MOQT URI Scheme {#moqt-uri-scheme}
+## MOQT URI Scheme {#moqt-uri-scheme}
 
 An MOQT server is identified using a URI with the "moqt" scheme.  The "moqt"
 URI scheme is defined as follows, using definitions from {{!RFC3986}}:
@@ -1812,6 +1782,36 @@ WebTransport session as described in {{webtransport}}. On a TCP+TLS
 connection, the client offers `h2` in its TLS ClientHello and establishes a
 WebTransport session as described in {{webtransport}}.
 
+## Session establishment {#session-establishment}
+
+This document defines a protocol that can be used interchangeably both
+over a QUIC connection directly [QUIC], and over WebTransport
+[WebTransport].  Both provide streams and datagrams with similar
+semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
+main difference lies in how the servers are identified and how the
+connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
+MUST be supported and negotiated in the QUIC connection used for MOQT,
+which is already a requirement for WebTransport over HTTP/3.
+
+There is no definition of the protocol over other transports,
+such as TCP, and applications using MOQT might need to fallback to
+another protocol when QUIC or WebTransport aren't available.
+
+MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
+({{WebTransport, Section 3.3}}) to perform version negotiation.
+
+The ALPN value {{!RFC7301}} for the final version of this specification
+is `moqt`.
+
+\[\[RFC editor: please remove the remainder of this section before publication.]]
+
+ALPNs used to identify IETF drafts are created by appending
+the draft number to "moqt-". For example, draft-ietf-moq-transport-13
+would be identified as "moqt-13".
+
+Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
+negotiation in the SETUP messages.
+
 ### WebTransport {#webtransport}
 
 When the client uses WebTransport, it constructs an `https` URI from the `moqt`
@@ -1835,50 +1835,6 @@ Each track MAY have one or more associated connection URLs specifying
 network hosts through which a track may be accessed. The syntax of the
 Connection URL and the associated connection setup procedures are
 specific to the underlying transport protocol usage (see {{session}}).
-
-## Extension Negotiation {#extension-negotiation}
-
-Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
-Extensions can define new Message types, new Parameters, new Properties,
-new Parameter values, or new framing for Streams and Datagrams.
-
-The client and server MUST include all Setup Options {{setup-options}}
-required for the negotiated MOQT version in SETUP.
-
-Each endpoint declares the extensions it supports and provides any initial
-values required by those extensions as Setup Options in SETUP. Once an endpoint
-has both sent and received SETUP messages, it determines the set of negotiated
-extensions.
-
-New versions of MOQT MUST specify which existing extensions can be used with
-that version. New extensions MUST specify the existing versions with which they
-can be used.
-
-### Session-Level Tracks and Namespaces {#session-level-tracks}
-
-MOQT defines the `.session` namespace (the bytes 0x2e, 0x73, 0x65, 0x73,
-0x73, 0x69, 0x6f, 0x6e) in the first position of the Track Namespace for
-session-level tracks and namespaces. Session-level tracks and namespaces are
-managed by the MOQT implementation, not the Application. They provide a
-mechanism for extending MOQT transport functionality using existing
-subscription and object delivery machinery, without defining new control
-messages or stream types.
-
-The Application MUST NOT publish tracks or namespaces whose first
-field is `.session`. Relays MUST NOT forward requests for session-level
-tracks and namespaces to other sessions.
-
-The empty track name in the `.session` namespace is defined to not exist.
-A request with a Track Namespace whose first field is `.session` and an
-empty Track Name MUST be rejected with DOES_NOT_EXIST.
-
-An endpoint that receives a request for an unrecognized session-level track
-or namespace MUST reject it with REQUEST_ERROR using error code
-DOES_NOT_EXIST rather than passing it to the Application.
-
-The track names and namespaces available under the `.session` namespace are
-defined by extensions to this specification and registered with IANA (see
-{{iana-session-level-tracks}}).
 
 ## Session initialization {#session-init}
 
@@ -1963,42 +1919,23 @@ Subscriptions on the replaying client's behalf.
 Relays MAY defer initiating upstream subscriptions until the handshake is complete
 or reject 0-RTT entirely to mitigate resource exhaustion from replayed packets.
 
-### Graceful Request Stream Closure {#graceful-request-closure}
+### Extension Negotiation {#extension-negotiation}
 
-A request stream is bidirectional and each direction is closed independently,
-either gracefully with a FIN or abruptly with RESET_STREAM.
+Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
+Extensions can define new Message types, new Parameters, new Properties,
+new Parameter values, or new framing for Streams and Datagrams.
 
-A FIN only indicates that an endpoint will send no further messages in that
-direction; it is not a request cancellation. An endpoint MUST NOT send a FIN on
-a direction of a request stream until it has sent all required messages on that
-direction for its request type. In particular, an endpoint sending a response to
-a request MUST send the corresponding response message, and the publisher of an
-`Established` subscription MUST send PUBLISH_DONE, before sending a FIN. A FIN
-sent by the responder after its response and any subsequent messages for the
-request signals that the request is complete; if it has not already done so, the
-requester SHOULD then send a FIN on its direction, gracefully closing the stream.
-An endpoint that receives a FIN before all required messages have arrived treats
-the request as failed.
+The client and server MUST include all Setup Options {{setup-options}}
+required for the negotiated MOQT version in SETUP.
 
-An endpoint SHOULD send a FIN promptly after a message when it has nothing
-further to send on that direction and will not need to respond to a future
-REQUEST_UPDATE. A requester, with the exception of the sender of PUBLISH,
-MAY FIN immediately after sending a message if it will not send a
-REQUEST_UPDATE.
+Each endpoint declares the extensions it supports and provides any initial
+values required by those extensions as Setup Options in SETUP. Once an endpoint
+has both sent and received SETUP messages, it determines the set of negotiated
+extensions.
 
-### Request Cancellation and Rejection {#request-cancellation}
-
-Once a request stream has been opened, the request MAY be cancelled by either
-endpoint. Senders cancel requests if the response is no longer of interest;
-Receivers cancel requests if they are unable to or choose not to respond.
-Implementations cancel a request by abruptly terminating any directions of the
-stream that are still open, using RESET_STREAM for a direction they are sending
-and STOP_SENDING for a direction they are receiving. An endpoint that has
-already sent a FIN on its sending direction and subsequently wishes to cancel
-sends STOP_SENDING on the receiving direction.
-
-When an endpoint rejects a request without performing any application
-processing, it SHOULD send a REQUEST_ERROR and FIN the stream.
+New versions of MOQT MUST specify which existing extensions can be used with
+that version. New extensions MUST specify the existing versions with which they
+can be used.
 
 ### Stream Reset Error Codes {#stream-reset-codes}
 
@@ -2039,7 +1976,9 @@ MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
 
-## Unidirectional Stream Types {#stream-types}
+## Stream Usage
+
+### Unidirectional Streams {#stream-types}
 
 All unidirectional MOQT streams start with a variable-length integer indicating
 the type of the stream.
@@ -2061,6 +2000,92 @@ An endpoint that receives an unknown stream type MUST close the session.
 Control streams (SETUP) are described in {{session-init}}.
 Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
 Padding streams are described in {{padding}}.
+
+### Bidirectional Request Streams
+
+#### Request ID {#request-id}
+
+Request ID is included in request messages and is used to identify
+requests across messages. For example, fetch streams reference
+the Request ID of a SUBSCRIBE, PUBLISH, FETCH, or REQUEST_UPDATE.
+
+The client generates even numbered Request IDs, starting at 0, and the
+server generates odd numbered Request IDs, starting at 1.  Each
+endpoint increments its Request ID by 2 for each new request.
+
+Each SUBSCRIBE, PUBLISH, FETCH, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS,
+PUBLISH_NAMESPACE, REQUEST_UPDATE, and TRACK_STATUS message consumes a
+Request ID. Only
+request messages include a Request ID; response messages do not, since
+they are sent on the same bidirectional stream as the request.
+
+If an endpoint receives a Request ID where the least significant bit is
+incorrect for the sender, or a duplicate Request ID, it MUST close the
+session with `INVALID_REQUEST_ID`.
+
+
+#### Graceful Request Stream Closure {#graceful-request-closure}
+
+A request stream is bidirectional and each direction is closed independently,
+either gracefully with a FIN or abruptly with RESET_STREAM.
+
+A FIN only indicates that an endpoint will send no further messages in that
+direction; it is not a request cancellation. An endpoint MUST NOT send a FIN on
+a direction of a request stream until it has sent all required messages on that
+direction for its request type. In particular, an endpoint sending a response to
+a request MUST send the corresponding response message, and the publisher of an
+`Established` subscription MUST send PUBLISH_DONE, before sending a FIN. A FIN
+sent by the responder after its response and any subsequent messages for the
+request signals that the request is complete; if it has not already done so, the
+requester SHOULD then send a FIN on its direction, gracefully closing the stream.
+An endpoint that receives a FIN before all required messages have arrived treats
+the request as failed.
+
+An endpoint SHOULD send a FIN promptly after a message when it has nothing
+further to send on that direction and will not need to respond to a future
+REQUEST_UPDATE. A requester, with the exception of the sender of PUBLISH,
+MAY FIN immediately after sending a message if it will not send a
+REQUEST_UPDATE.
+
+#### Request Cancellation and Rejection {#request-cancellation}
+
+Once a request stream has been opened, the request MAY be cancelled by either
+endpoint. Senders cancel requests if the response is no longer of interest;
+Receivers cancel requests if they are unable to or choose not to respond.
+Implementations cancel a request by abruptly terminating any directions of the
+stream that are still open, using RESET_STREAM for a direction they are sending
+and STOP_SENDING for a direction they are receiving. An endpoint that has
+already sent a FIN on its sending direction and subsequently wishes to cancel
+sends STOP_SENDING on the receiving direction.
+
+When an endpoint rejects a request without performing any application
+processing, it SHOULD send a REQUEST_ERROR and FIN the stream.
+
+## Session-Level Tracks and Namespaces {#session-level-tracks}
+
+MOQT defines the `.session` namespace (the bytes 0x2e, 0x73, 0x65, 0x73,
+0x73, 0x69, 0x6f, 0x6e) in the first position of the Track Namespace for
+session-level tracks and namespaces. Session-level tracks and namespaces are
+managed by the MOQT implementation, not the Application. They provide a
+mechanism for extending MOQT transport functionality using existing
+subscription and object delivery machinery, without defining new control
+messages or stream types.
+
+The Application MUST NOT publish tracks or namespaces whose first
+field is `.session`. Relays MUST NOT forward requests for session-level
+tracks and namespaces to other sessions.
+
+The empty track name in the `.session` namespace is defined to not exist.
+A request with a Track Namespace whose first field is `.session` and an
+empty Track Name MUST be rejected with DOES_NOT_EXIST.
+
+An endpoint that receives a request for an unrecognized session-level track
+or namespace MUST reject it with REQUEST_ERROR using error code
+DOES_NOT_EXIST rather than passing it to the Application.
+
+The track names and namespaces available under the `.session` namespace are
+defined by extensions to this specification and registered with IANA (see
+{{iana-session-level-tracks}}).
 
 ## Termination  {#session-termination}
 
@@ -2156,7 +2181,7 @@ response to a condition with a single subscription or message. Implementations
 need to consider the impact on other outstanding subscriptions before making
 this choice.
 
-## Session Migration {#session-migration}
+### Graceful Session Migration {#session-migration}
 
 MOQT requires a long-lived and stateful session. However, a service
 provider needs the ability to shutdown/restart a server without waiting for all
@@ -2572,26 +2597,6 @@ are intended to be ignored. The length is set to the number of bytes in the
 Message Body, which is defined by each message type.  If the length does not
 match the length of the Message Body, the receiver MUST close the session with a
 `PROTOCOL_VIOLATION`.
-
-## Request ID {#request-id}
-
-Request ID is included in request messages and is used to identify
-requests across messages. For example, fetch streams reference
-the Request ID of a SUBSCRIBE, PUBLISH, FETCH, or REQUEST_UPDATE.
-
-The client generates even numbered Request IDs, starting at 0, and the
-server generates odd numbered Request IDs, starting at 1.  Each
-endpoint increments its Request ID by 2 for each new request.
-
-Each SUBSCRIBE, PUBLISH, FETCH, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS,
-PUBLISH_NAMESPACE, REQUEST_UPDATE, and TRACK_STATUS message consumes a
-Request ID. Only
-request messages include a Request ID; response messages do not, since
-they are sent on the same bidirectional stream as the request.
-
-If an endpoint receives a Request ID where the least significant bit is
-incorrect for the sender, or a duplicate Request ID, it MUST close the
-session with `INVALID_REQUEST_ID`.
 
 ## Message Parameters {#message-params}
 
