@@ -86,7 +86,8 @@ Table of Contents
      1.4.  Modularity
    2.  Object Data Model
      2.1.  Objects
-       2.1.1.  Canonical Object Fields
+       2.1.1.  Object Fields
+       2.1.2.  Object States
      2.2.  Subgroups
      2.3.  Groups
        2.3.1.  Group IDs
@@ -127,7 +128,6 @@ Table of Contents
      6.2.  Session establishment
        6.2.1.  WebTransport
        6.2.2.  Native QUIC
-       6.2.3.  Connection URL
      6.3.  Session initialization
        6.3.1.  0-RTT
        6.3.2.  Extension Negotiation
@@ -217,21 +217,18 @@ Table of Contents
      10.9.  Prior Object ID Gap
    11. Data Streams and Datagrams
      11.1.  Objects
-       11.1.1.  Object Header
-       11.1.2.  Object Status
-       11.1.3.  Object Properties
+       11.1.1.  Object Status
+       11.1.2.  Object Properties
      11.2.  Datagrams
        11.2.1.  Object Datagram
      11.3.  Subgroup Streams
-       11.3.1.  Stream Cancellation
-       11.3.2.  Subgroup Header
-       11.3.3.  Closing Subgroup Streams
+       11.3.1.  Subgroup Header
+       11.3.2.  Closing Subgroup Streams
      11.4.  Fetch Streams
        11.4.1.  Fetch Header
      11.5.  Padding
        11.5.1.  Padding Streams
        11.5.2.  Padding Datagrams
-     11.6.  Examples
    12. Transport Considerations
      12.1.  Congestion Control Considerations
        12.1.1.  Bufferbloat
@@ -451,7 +448,7 @@ Table of Contents
 
    When this document says an endpoint "resets" a stream, it means the
    endpoint sends a RESET_STREAM or RESET_STREAM_AT frame on that stream
-   (see Section 11.3.3 for considerations on choosing between them).
+   (see Section 11.3.2 for considerations on choosing between them).
 
 1.4.  Modularity
 
@@ -501,8 +498,6 @@ Table of Contents
    Datagram.  An Original Publisher MAY use both Subgroups and Datagrams
    within a Group or Track.
 
-2.1.1.  Canonical Object Fields
-
    Objects are comprised of two parts: metadata and a payload.  The
    metadata is never encrypted and is always visible to relays (see
    Section 7).  The payload portion may be encrypted, in which case it
@@ -510,6 +505,36 @@ Table of Contents
    Original Publisher is solely responsible for the content of the
    object payload.  This includes the underlying encoding, compression,
    any end-to-end encryption, or authentication.
+
+2.1.1.  Object Fields
+
+   A MOQT Object has the following fields:
+
+   Track Namespace and Track Name: The track this object belongs to.
+
+   Group ID: The identifier of the Object's Group (see Section 2.3)
+   within the Track.
+
+   Object ID: The order of the object within the group.
+
+   Publisher Priority: An integer indicating the publisher's priority
+   for the Object (Section 5.1).
+
+   Object Forwarding Preference: An enumeration indicating how a
+   publisher sends an object.  The preferences are Subgroup and
+   Datagram.  In a subscription, an Object MUST be sent according to its
+   Object Forwarding Preference.
+
+   Subgroup ID: The identifier of the Object's Subgroup (see
+   Section 2.2) within the Group.  Objects sent in Datagrams do not have
+   a Subgroup ID.
+
+   Object Properties : A sequence of key-value pairs associated with the
+   object.  See Section 11.1.2.
+
+   Object Payload: A possibly empty sequence of bytes.
+
+2.1.2.  Object States
 
    From the perspective of a subscriber or a cache, an Object can be in
    three possible states:
@@ -551,7 +576,7 @@ Table of Contents
    the Group, typically with a one-to-one mapping between Subgroups and
    streams.
 
-   When an Object's forwarding preference (see Section 11.1.3) is
+   When an Object's forwarding preference (see Section 11.1.2) is
    "Datagram", it is not sent in Subgroups, does not belong to a
    Subgroup in any way, and the description in the remainder of this
    section does not apply.
@@ -587,7 +612,7 @@ Table of Contents
    used.
 
    When the Original Publisher opens a new subgroup, it MUST set the
-   FIRST_OBJECT bit (Section 11.3.2) to indicate that the first object
+   FIRST_OBJECT bit (Section 11.3.1) to indicate that the first object
    in the subgroup stream is the first object ever published in that
    subgroup.  A relay forwarding a subgroup that begins with the first
    object ever published in that subgroup MUST set the FIRST_OBJECT bit.
@@ -862,7 +887,7 @@ Table of Contents
    the Subscriber rejects the subscription with REQUEST_ERROR or sets
    Forward=0 in REQUEST_UPDATE.  It can also result in the Subscriber
    dropping Objects if its buffering limits are exceeded (see
-   Section 11.2 and Section 11.3.2).
+   Section 11.2 and Section 11.3.1).
 
 3.1.1.  Subscription State Management
 
@@ -1277,8 +1302,8 @@ Table of Contents
 
    The Object Property Filter can be used to filter Objects with
    required Object Property types and values.  It only filters Object
-   Properties in the Object header, and does not evaluate Track
-   Properties in PUBLISH messages.
+   Properties, and does not evaluate Track Properties in PUBLISH
+   messages.
 
 3.4.3.  Combining Filters
 
@@ -1652,7 +1677,7 @@ Table of Contents
       before attempting to pass it to the underlying transport for
       transmission; if the time elapsed exceeds OBJECT_DELIVERY_TIMEOUT,
       it MUST reset the underlying transport stream with the reset
-      stream code DELIVERY_TIMEOUT (see Section 11.3.3) and SHOULD NOT
+      stream code DELIVERY_TIMEOUT (see Section 11.3.2) and SHOULD NOT
       attempt to open a new stream to deliver additional Objects in that
       Subgroup.  The implementation SHOULD check object delivery
       timeouts before retransmitting object data if the underlying
@@ -1705,7 +1730,7 @@ Table of Contents
 
    Publishers can, at their discretion, discontinue forwarding Objects
    before either timeout occurs, subject to stream closure and ordering
-   constraints described in Section 11.3.3.  However, if neither timeout
+   constraints described in Section 11.3.2.  However, if neither timeout
    is set to a non-zero value, all Objects in the track matching the
    subscription filter are delivered as indicated by their Group Order
    and Priority.  If a subscriber fails to consume Objects at a
@@ -1845,13 +1870,6 @@ Table of Contents
    native QUIC, the authority, path-abempty and query portions of the
    URI are transmitted in Setup Options (see Section 9.1.1).
 
-6.2.3.  Connection URL
-
-   Each track MAY have one or more associated connection URLs specifying
-   network hosts through which a track may be accessed.  The syntax of
-   the Connection URL and the associated connection setup procedures are
-   specific to the underlying transport protocol usage (see Section 6).
-
 6.3.  Session initialization
 
    MOQT uses a pair of unidirectional streams for creating the session
@@ -1979,7 +1997,7 @@ Table of Contents
              +============+==================================+
              |       0x05 | FETCH_HEADER (Section 11.4.1)    |
              +------------+----------------------------------+
-             | 0b0XX1XXXX | SUBGROUP_HEADER (Section 11.3.2) |
+             | 0b0XX1XXXX | SUBGROUP_HEADER (Section 11.3.1) |
              +------------+----------------------------------+
              |     0x2F00 | SETUP (Section 9.1)              |
              +------------+----------------------------------+
@@ -2181,8 +2199,8 @@ Table of Contents
    it has already recorded that the Object does not exist.  A caching
    relay SHOULD NOT cache or forward the Object in this case.
 
-   A cache MUST store all fields of an Object defined in Section 11.1.1,
-   with the exception of any Object Properties (Section 11.1.3) that
+   A cache MUST store all fields of an Object defined in Section 2.1.1,
+   with the exception of any Object Properties (Section 11.1.2) that
    specify otherwise.
 
 7.2.  Forward Handling
@@ -2410,7 +2428,7 @@ Table of Contents
 7.7.  Relay Object Handling
 
    MOQT encodes the delivery information in the Object header
-   (Section 11.1.1).  A relay MUST NOT modify Object fields when
+   (Section 2.1.1).  A relay MUST NOT modify Object fields when
    forwarding, except for Object Properties as specified in Section 8.4.
 
    A relay MUST treat the object payload as opaque.  A relay MUST NOT
@@ -2598,7 +2616,7 @@ Table of Contents
    Properties always appear as the final field in the messages that
    carry them; their length is the remaining bytes of the message after
    all preceding fields have been consumed.  Object Properties
-   (Section 11.1.3) are preceded by an explicit length field.
+   (Section 11.1.2) are preceded by an explicit length field.
 
    Property types are registered in the IANA table 'MOQ Properties'.
    See Section 16.
@@ -4607,43 +4625,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    track, as well as associated metadata required to deliver, cache, and
    forward it.  Objects are sent by publishers.
 
-11.1.1.  Object Header
-
-   A canonical MOQT Object has the following fields:
-
-   *  Track Namespace and Track Name: The track this object belongs to.
-
-   *  Group ID: The identifier of the Object's Group (see Section 2.3)
-      within the Track.
-
-   *  Object ID: The order of the object within the group.
-
-   *  Publisher Priority: An 8 bit integer indicating the publisher's
-      priority for the Object (Section 5.1).
-
-   *  Object Forwarding Preference: An enumeration indicating how a
-      publisher sends an object.  The preferences are Subgroup and
-      Datagram.  Object Forwarding Preference is a property of an
-      individual Object and can vary among Objects in the same Track.
-      In a subscription, an Object MUST be sent according to its Object
-      Forwarding Preference.
-
-   *  Subgroup ID: The identifier of the Object's Subgroup (see
-      Section 2.2) within the Group.  This field is omitted if the
-      Object Forwarding Preference is Datagram.
-
-   *  Object Status: An enumeration used to indicate whether the Object
-      is a normal Object or mark the end of a group or track.  See
-      Section 11.1.2 below.
-
-   *  Object Properties: A sequence of Properties associated with the
-      object.  See Section 11.1.3.
-
-   *  Object Payload: An opaque payload intended for an End Subscriber
-      and SHOULD NOT be processed by a relay.  Only present when 'Object
-      Status' is Normal (0x0).
-
-11.1.2.  Object Status
+11.1.1.  Object Status
 
    The Object Status is a field that is only present in objects that are
    delivered via a SUBSCRIPTION, and is absent in Objects delivered via
@@ -4668,7 +4650,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    There is no Object Status value indicating the end of a Subgroup.
    The end of a Subgroup is signaled by closing its stream with a FIN
-   (see Section 11.3.3).
+   (see Section 11.3.2).
 
    Any other value SHOULD be treated as a protocol error and the session
    SHOULD be closed with a PROTOCOL_VIOLATION (Section 14.2).  An Object
@@ -4677,7 +4659,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    (Section 16.9).  Of the values defined in this document, only Normal
    (0x0) permits a payload.
 
-11.1.3.  Object Properties
+11.1.2.  Object Properties
 
    Any Object with status Normal can have properties (Section 8.4).  If
    an endpoint receives properties on an Object with status that is not
@@ -4722,7 +4704,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    Each session along the path between the Original Publisher and End
    Subscriber might have different maximum datagram sizes.
-   Additionally, Object Properties (Section 11.1.3) can be added to
+   Additionally, Object Properties (Section 11.1.2) can be added to
    Objects as they pass through the MOQT network, increasing the size of
    the Object and the chances it will exceed the maximum datagram size
    of a downstream session and be dropped.
@@ -4756,7 +4738,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  The *PROPERTIES* bit (0x01) indicates when the Properties field is
       present.  When set to 1, the Object Properties structure defined
-      in Section 11.1.3 is present.  When set to 0, the field is absent.
+      in Section 11.1.2 is present.  When set to 0, the field is absent.
       If an endpoint receives a datagram with the PROPERTIES bit set and
       an Properties Length of 0, it MUST close the session with a
       PROTOCOL_VIOLATION.
@@ -4811,16 +4793,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    A publisher SHOULD NOT open more than one stream at a time with the
    same Subgroup Header field values.
 
-11.3.1.  Stream Cancellation
-
-   Streams aside from the control streams MAY be canceled due to
-   congestion or other reasons by either the publisher or subscriber.
-   Early termination of a unidirectional stream does not affect the MOQT
-   application state, and therefore has no effect on outstanding
-   subscriptions.  Closing a bidirectional request stream is governed by
-   Section 6.4.2.3.
-
-11.3.2.  Subgroup Header
+11.3.1.  Subgroup Header
 
    All Objects on a Subgroup stream belong to the track identified by
    Track Alias (see Section 3.1.2) and the Subgroup indicated by Group
@@ -4851,7 +4824,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  The *PROPERTIES* bit (0x01) indicates when the Properties field is
       present in all Objects in this Subgroup.  When set to 1, the
-      Object Properties structure defined in Section 11.1.3 is present
+      Object Properties structure defined in Section 11.1.2 is present
       in all Objects; Objects with no properties set Properties Length
       to 0.  When set to 0, the field is never present.
 
@@ -4929,7 +4902,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                    Figure 26: MOQT Subgroup Object Fields
 
-11.3.3.  Closing Subgroup Streams
+11.3.2.  Closing Subgroup Streams
 
    Subscribers will often need to know if they have received all objects
    in a Subgroup, particularly if they serve as a relay or cache.  QUIC
@@ -5166,10 +5139,10 @@ EXT 1 and EXT N can be modified or removed by Relays
    the Subscriber MUST close the Session with error
    'PROTOCOL_VIOLATION'.
 
-   The Object Properties structure is defined in Section 11.1.3.
+   The Object Properties structure is defined in Section 11.1.2.
 
    When encoding an Object with a Forwarding Preference of "Datagram"
-   (see Section 11.1.3), the object has no Subgroup ID.  The publisher
+   (see Section 11.1.2), the object has no Subgroup ID.  The publisher
    MUST SET bit 0x40 to '1'.  When 0x40 is set, it SHOULD set the two
    least significant bits to zero and the subscriber MUST ignore the
    bits.
@@ -5246,63 +5219,6 @@ EXT 1 and EXT N can be modified or removed by Relays
                       Figure 30: MOQT Padding Datagram
 
    The receiver MUST discard all data received in a padding datagram.
-
-11.6.  Examples
-
-   Sending a subgroup on one stream:
-
-   Stream = 2
-
-   SUBGROUP_HEADER {
-     Type Flags = 0x14
-     Track Alias = 2
-     Group ID = 0
-     Subgroup ID = 0
-     Priority = 0
-   }
-   {
-     Object ID = 0
-     Object Payload Length = 4
-     Payload = "abcd"
-   }
-   {
-     Object ID = 1
-     Object Payload Length = 4
-     Payload = "efgh"
-   }
-
-   Sending a group on one stream, with the first object containing two
-   Properties.
-
-   Stream = 2
-
-   SUBGROUP_HEADER {
-     Type Flags = 0x35
-     Track Alias = 2
-     Group ID = 0
-     Subgroup ID = 0
-   }
-   {
-     Object ID Delta = 0 (Object ID is 0)
-     Properties Length = 33
-       {
-         Type = 4
-         Value = 2186796243
-       },
-       {
-         Type = 77
-         Length = 21
-         Value = "traceID:123456"
-       }
-     Object Payload Length = 4
-     Payload = "abcd"
-   }
-   {
-     Object ID Delta = 0 (Object ID is 1)
-     Properties Length = 0
-     Object Payload Length = 4
-     Payload = "efgh"
-   }
 
 12.  Transport Considerations
 
@@ -6229,17 +6145,17 @@ EXT 1 and EXT N can be modified or removed by Relays
 16.9.  Object Status
 
    This document establishes a registry for Object Status values (see
-   Section 11.1.2).  The "Payload" column indicates whether an Object
+   Section 11.1.1).  The "Payload" column indicates whether an Object
    with that status is permitted to carry a non-empty payload.
 
             +======+==============+=========+================+
             | Code | Name         | Payload | Specification  |
             +======+==============+=========+================+
-            |  0x0 | Normal       | Yes     | Section 11.1.2 |
+            |  0x0 | Normal       | Yes     | Section 11.1.1 |
             +------+--------------+---------+----------------+
-            |  0x3 | End of Group | No      | Section 11.1.2 |
+            |  0x3 | End of Group | No      | Section 11.1.1 |
             +------+--------------+---------+----------------+
-            |  0x4 | End of Track | No      | Section 11.1.2 |
+            |  0x4 | End of Track | No      | Section 11.1.1 |
             +------+--------------+---------+----------------+
 
                                  Table 16
