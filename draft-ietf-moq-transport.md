@@ -1753,85 +1753,8 @@ is used, the session is closed using the CONNECTION\_CLOSE frame
 closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
 Section 6}}).
 
-When terminating the Session, the application MAY use any error message
-and SHOULD use a relevant code, as defined below:
-
-NO_ERROR (0x0):
-: The session is being terminated without an error.
-
-INTERNAL_ERROR (0x1):
-: An implementation specific error occurred.
-
-UNAUTHORIZED (0x2):
-: The client is not authorized to establish a session.
-
-PROTOCOL_VIOLATION (0x3):
-: The remote endpoint performed an action that was disallowed by the
-  specification.
-
-INVALID_REQUEST_ID (0x4):
-: The endpoint received a Request ID with an incorrect least significant
-  bit for the sender, or a duplicate Request ID. See {{request-id}}.
-
-DUPLICATE_TRACK_ALIAS (0x5):
-: The endpoint attempted to use a Track Alias that was already in use.
-
-KEY_VALUE_FORMATTING_ERROR (0x6):
-: The key-value pair has a formatting error.
-
-INVALID_PATH (0x8):
-: The PATH parameter was used by a server, on a WebTransport session, or the
-  server does not support the path.
-
-MALFORMED_PATH (0x9):
-: The PATH parameter does not conform to the rules in {{path}}.
-
-GOAWAY_TIMEOUT (0x10):
-: The session was closed because the peer took too long to close the session
-  in response to a GOAWAY ({{message-goaway}}) message. See session migration
-  ({{session-migration}}).
-
-CONTROL_MESSAGE_TIMEOUT (0x11):
-: The session was closed because the peer took too long to respond to a
-  control message.
-
-DATA_STREAM_TIMEOUT (0x12):
-: The session was closed because the peer took too long to send data expected
-  on an open Data Stream (see {{data-streams}}). This includes fields of a
-  stream header or an object header within a data stream. If an endpoint
-  times out waiting for a new object header on an open subgroup stream, it
-  MAY send a STOP_SENDING on that stream or terminate the subscription.
-
-AUTH_TOKEN_CACHE_OVERFLOW (0x13):
-: The Session limit {{max-auth-token-cache-size}} of the size of all
-  registered Authorization tokens has been exceeded.
-
-DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
-: Authorization Token attempted to register an Alias that was in use (see
-  {{authorization-token}}).
-
-MALFORMED_AUTH_TOKEN (0x16):
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-UNKNOWN_AUTH_TOKEN_ALIAS (0x17):
-: No registered token found for the provided Alias (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN (0x18):
-: Authorization token has expired ({{authorization-token}}).
-
-INVALID_AUTHORITY (0x19):
-: The specified AUTHORITY does not correspond to this server or cannot be
-  used in this context.
-
-MALFORMED_AUTHORITY (0x1A):
-: The AUTHORITY value is syntactically invalid.
-
-TOO_MANY_REQUEST_UPDATES (0x1B):
-: The endpoint received a REQUEST_UPDATE that exceeded the per-stream limit
-  communicated via the MAX_REQUEST_UPDATES Setup Option
-  ({{max-request-updates}}).
+The error codes used when terminating a Session are defined in
+{{session-termination-codes}}.
 
 An endpoint MAY choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
@@ -2652,7 +2575,7 @@ An endpoint that receives a GOAWAY MAY reject new requests with an appropriate
 error code (e.g., REQUEST_ERROR with error code GOING_AWAY).
 
 The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
-({{session-termination}}) if it receives more than one GOAWAY on the
+({{session-termination-codes}}) if it receives more than one GOAWAY on the
 control stream or on a single request stream.
 
 ~~~
@@ -4360,7 +4283,7 @@ Subgroup is signaled by closing its stream with a FIN
 (see {{closing-subgroup-streams}}).
 
 Any other value SHOULD be treated as a protocol error and the session SHOULD
-be closed with a `PROTOCOL_VIOLATION` ({{session-termination}}).
+be closed with a `PROTOCOL_VIOLATION` ({{session-termination-codes}}).
 An Object MUST have an empty payload unless its Object Status value is
 registered as permitting a payload in the Object Status registry
 ({{iana-object-status}}). Of the values defined in this document, only Normal
@@ -5285,7 +5208,87 @@ subscriptions with PUBLISH_DONE and reset any fetch streams with
 Status Code `MALFORMED_TRACK`. Object(s) triggering Malformed Track status
 MUST NOT be cached.
 
-## Session Termination Codes
+## Session Termination Codes {#session-termination-codes}
+
+When terminating the Session ({{session-termination}}), the application MAY use
+any error message and SHOULD use a relevant code, as defined below:
+
+NO_ERROR (0x0):
+: The session is being terminated without an error.
+
+INTERNAL_ERROR (0x1):
+: An implementation specific error occurred.
+
+UNAUTHORIZED (0x2):
+: The client is not authorized to establish a session.
+
+PROTOCOL_VIOLATION (0x3):
+: The remote endpoint performed an action that was disallowed by the
+  specification.
+
+INVALID_REQUEST_ID (0x4):
+: The endpoint received a Request ID with an incorrect least significant
+  bit for the sender, or a duplicate Request ID. See {{request-id}}.
+
+DUPLICATE_TRACK_ALIAS (0x5):
+: The endpoint attempted to use a Track Alias that was already in use.
+
+KEY_VALUE_FORMATTING_ERROR (0x6):
+: The key-value pair has a formatting error.
+
+INVALID_PATH (0x8):
+: The PATH parameter was used by a server, on a WebTransport session, or the
+  server does not support the path.
+
+MALFORMED_PATH (0x9):
+: The PATH parameter does not conform to the rules in {{path}}.
+
+GOAWAY_TIMEOUT (0x10):
+: The session was closed because the peer took too long to close the session
+  in response to a GOAWAY ({{message-goaway}}) message. See session migration
+  ({{session-migration}}).
+
+CONTROL_MESSAGE_TIMEOUT (0x11):
+: The session was closed because the peer took too long to respond to a
+  control message.
+
+DATA_STREAM_TIMEOUT (0x12):
+: The session was closed because the peer took too long to send data expected
+  on an open Data Stream (see {{data-streams}}). This includes fields of a
+  stream header or an object header within a data stream. If an endpoint
+  times out waiting for a new object header on an open subgroup stream, it
+  MAY send a STOP_SENDING on that stream or terminate the subscription.
+
+AUTH_TOKEN_CACHE_OVERFLOW (0x13):
+: The Session limit {{max-auth-token-cache-size}} of the size of all
+  registered Authorization tokens has been exceeded.
+
+DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
+: Authorization Token attempted to register an Alias that was in use (see
+  {{authorization-token}}).
+
+MALFORMED_AUTH_TOKEN (0x16):
+: Invalid Auth Token serialization during registration (see
+  {{authorization-token}}).
+
+UNKNOWN_AUTH_TOKEN_ALIAS (0x17):
+: No registered token found for the provided Alias (see
+  {{authorization-token}}).
+
+EXPIRED_AUTH_TOKEN (0x18):
+: Authorization token has expired ({{authorization-token}}).
+
+INVALID_AUTHORITY (0x19):
+: The specified AUTHORITY does not correspond to this server or cannot be
+  used in this context.
+
+MALFORMED_AUTHORITY (0x1A):
+: The AUTHORITY value is syntactically invalid.
+
+TOO_MANY_REQUEST_UPDATES (0x1B):
+: The endpoint received a REQUEST_UPDATE that exceeded the per-stream limit
+  communicated via the MAX_REQUEST_UPDATES Setup Option
+  ({{max-request-updates}}).
 
 ## Request Error Codes
 
@@ -5606,26 +5609,26 @@ This document does not define any initial entries.
 
 | Name                       | Code | Specification           |
 |:---------------------------|:----:|:------------------------|
-| NO_ERROR                   | 0x0  | {{session-termination}} |
-| INTERNAL_ERROR             | 0x1  | {{session-termination}} |
-| UNAUTHORIZED               | 0x2  | {{session-termination}} |
-| PROTOCOL_VIOLATION         | 0x3  | {{session-termination}} |
-| INVALID_REQUEST_ID         | 0x4  | {{session-termination}} |
-| DUPLICATE_TRACK_ALIAS      | 0x5  | {{session-termination}} |
-| KEY_VALUE_FORMATTING_ERROR | 0x6  | {{session-termination}} |
-| INVALID_PATH               | 0x8  | {{session-termination}} |
-| MALFORMED_PATH             | 0x9  | {{session-termination}} |
-| GOAWAY_TIMEOUT             | 0x10 | {{session-termination}} |
-| CONTROL_MESSAGE_TIMEOUT    | 0x11 | {{session-termination}} |
-| DATA_STREAM_TIMEOUT        | 0x12 | {{session-termination}} |
-| AUTH_TOKEN_CACHE_OVERFLOW  | 0x13 | {{session-termination}} |
-| DUPLICATE_AUTH_TOKEN_ALIAS | 0x14 | {{session-termination}} |
-| MALFORMED_AUTH_TOKEN       | 0x16 | {{session-termination}} |
-| UNKNOWN_AUTH_TOKEN_ALIAS   | 0x17 | {{session-termination}} |
-| EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
-| INVALID_AUTHORITY          | 0x19 | {{session-termination}} |
-| MALFORMED_AUTHORITY        | 0x1A | {{session-termination}} |
-| TOO_MANY_REQUEST_UPDATES   | 0x1B | {{session-termination}} |
+| NO_ERROR                   | 0x0  | {{session-termination-codes}} |
+| INTERNAL_ERROR             | 0x1  | {{session-termination-codes}} |
+| UNAUTHORIZED               | 0x2  | {{session-termination-codes}} |
+| PROTOCOL_VIOLATION         | 0x3  | {{session-termination-codes}} |
+| INVALID_REQUEST_ID         | 0x4  | {{session-termination-codes}} |
+| DUPLICATE_TRACK_ALIAS      | 0x5  | {{session-termination-codes}} |
+| KEY_VALUE_FORMATTING_ERROR | 0x6  | {{session-termination-codes}} |
+| INVALID_PATH               | 0x8  | {{session-termination-codes}} |
+| MALFORMED_PATH             | 0x9  | {{session-termination-codes}} |
+| GOAWAY_TIMEOUT             | 0x10 | {{session-termination-codes}} |
+| CONTROL_MESSAGE_TIMEOUT    | 0x11 | {{session-termination-codes}} |
+| DATA_STREAM_TIMEOUT        | 0x12 | {{session-termination-codes}} |
+| AUTH_TOKEN_CACHE_OVERFLOW  | 0x13 | {{session-termination-codes}} |
+| DUPLICATE_AUTH_TOKEN_ALIAS | 0x14 | {{session-termination-codes}} |
+| MALFORMED_AUTH_TOKEN       | 0x16 | {{session-termination-codes}} |
+| UNKNOWN_AUTH_TOKEN_ALIAS   | 0x17 | {{session-termination-codes}} |
+| EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination-codes}} |
+| INVALID_AUTHORITY          | 0x19 | {{session-termination-codes}} |
+| MALFORMED_AUTHORITY        | 0x1A | {{session-termination-codes}} |
+| TOO_MANY_REQUEST_UPDATES   | 0x1B | {{session-termination-codes}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### REQUEST_ERROR Codes {#iana-request-error}
