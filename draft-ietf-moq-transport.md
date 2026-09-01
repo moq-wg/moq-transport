@@ -3050,7 +3050,7 @@ session with `PROTOCOL_VIOLATION`.
 ### TRACK_ALIAS Parameter {#track-alias-param}
 
 The TRACK_ALIAS parameter (Parameter Type 0x36) is a variable-length integer. It MAY appear
-in SUBSCRIBE_OK. It provides a publisher specified identifier for delivering Objects from this track in
+in SUBSCRIBE_OK. It specifies a publisher identifier for delivering Objects from this track in
 Subgroups or Datagrams (see {{track-alias}}).
 
 ## SETUP {#message-setup}
