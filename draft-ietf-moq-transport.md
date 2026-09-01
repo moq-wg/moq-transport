@@ -509,6 +509,8 @@ identical sequence of bytes regardless of how or where it is retrieved.
 An Object can become unavailable, but its contents MUST NOT change over
 time.
 
+### Canonical Object Fields
+
 Objects are comprised of two parts: metadata and a payload.  The metadata is
 never encrypted and is always visible to relays (see {{relays-moq}}). The
 payload portion may be encrypted, in which case it is only visible to the
@@ -732,7 +734,21 @@ subscriptions with PUBLISH_DONE and reset any fetch streams with
 Status Code `MALFORMED_TRACK`. Object(s) triggering Malformed Track status
 MUST NOT be cached.
 
-### Scope {#track-scope}
+### Reserved Namespaces {#reserved-namespaces}
+
+MOQT reserves all Track Namespace values whose first tuple field begins with
+a period (0x2e, `.`). These namespaces MUST NOT be used unless their meaning
+is defined through IANA registration. Unless otherwise specified, an
+endpoint that receives a request for an unrecognized reserved namespace MUST
+pass it to the Application, so that future extensions can define new reserved
+namespaces without breaking older implementations.
+
+A Track Namespace whose first field is exactly `.` (a single period, 0x2e)
+is reserved and MUST NOT be used for any purpose; endpoints MUST NOT publish
+tracks or namespaces under it and MUST reject requests referencing it with
+DOES_NOT_EXIST.
+
+## Scope {#track-scope}
 
 An MOQT scope is a set of servers (as identified by their connection
 URIs) for which a Full Track Name is guaranteed to be unique and identify a
@@ -1801,20 +1817,6 @@ extensions.
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
-
-### Reserved Namespaces {#reserved-namespaces}
-
-MOQT reserves all Track Namespace values whose first tuple field begins with
-a period (0x2e, `.`). These namespaces MUST NOT be used unless their meaning
-is defined through IANA registration. Unless otherwise specified, an
-endpoint that receives a request for an unrecognized reserved namespace MUST
-pass it to the Application, so that future extensions can define new reserved
-namespaces without breaking older implementations.
-
-A Track Namespace whose first field is exactly `.` (a single period, 0x2e)
-is reserved and MUST NOT be used for any purpose; endpoints MUST NOT publish
-tracks or namespaces under it and MUST reject requests referencing it with
-DOES_NOT_EXIST.
 
 ### Session-Level Tracks and Namespaces {#session-level-tracks}
 
