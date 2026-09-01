@@ -2862,16 +2862,20 @@ with Locations within the inclusive range pass the filter.<a href="#section-3.4.
 <a href="#fill-semantics" class="auto internal xref">Section 3.1.4</a>) are <strong>fill-delivered</strong>.<a href="#section-3.4.1-4" class="pilcrow">¶</a></p>
 <p id="section-3.4.1-5">Some Location filters are defined to be relative to the <code>Largest Object</code>
 (<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>).<a href="#section-3.4.1-5" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-6">A Location filter is encoded as specified in <a href="#location-filter" class="auto internal xref">Section 9.20.10</a>.<a href="#section-3.4.1-6" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-7">A Location Filter on a subscription is always valid, even if it specifies a range
-entirely before Largest Object.<a href="#section-3.4.1-7" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-8">A publisher <span class="bcp14">MUST NOT</span> send subscription-delivered objects from outside the
+<p id="section-3.4.1-6">Note that due to network reordering or prioritization, relays can receive
+Objects with Locations smaller than <code>Largest Object</code> after the filter is
+processed, but these Objects do not pass a filter that starts at the Next
+Object.<a href="#section-3.4.1-6" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-7">A Location filter is encoded as specified in <a href="#location-filter" class="auto internal xref">Section 9.20.10</a>.<a href="#section-3.4.1-7" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-8">A Location Filter on a subscription is always valid, even if it specifies a range
+entirely before Largest Object.<a href="#section-3.4.1-8" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-9">A publisher <span class="bcp14">MUST NOT</span> send subscription-delivered objects from outside the
 requested range.  Because updating filters is asynchronous,
-subscribers can receive objects outside the current filter.<a href="#section-3.4.1-8" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-9">A publisher does not end a subscription solely because the Largest Object advances
-past the end of the current Location Filter.<a href="#section-3.4.1-9" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-10">Fill-delivered objects are governed by the Location filter in
-FILL_PARAMETERS (see <a href="#fill-semantics" class="auto internal xref">Section 3.1.4</a>).<a href="#section-3.4.1-10" class="pilcrow">¶</a></p>
+subscribers can receive objects outside the current filter.<a href="#section-3.4.1-9" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-10">A publisher does not end a subscription solely because the Largest Object advances
+past the end of the current Location Filter.<a href="#section-3.4.1-10" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-11">Fill-delivered objects are governed by the Location filter in
+FILL_PARAMETERS (see <a href="#fill-semantics" class="auto internal xref">Section 3.1.4</a>).<a href="#section-3.4.1-11" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="range-filters">
@@ -6367,10 +6371,7 @@ hence the start Location is <code>{Largest Object.Group + 1 - StartGroup, 0}</co
 <p id="section-9.20.10-6">If only StartGroup and StartObject are present and both 0, the start Location
 is the Next Object (see <a href="#largest-object" class="auto internal xref">Section 3.1.3</a>).  An open-ended filter that starts
 at absolute Location {0, 0} is equivalent to unfiltered, so the subscriber need
-not include a Location filter.
-Note that due to network reordering or prioritization, relays can receive Objects with
-Locations smaller than <code>Largest Object</code> after the SUBSCRIBE is processed, but
-these Objects do not pass this filter.<a href="#section-9.20.10-6" class="pilcrow">¶</a></p>
+not include a Location filter.<a href="#section-9.20.10-6" class="pilcrow">¶</a></p>
 <p id="section-9.20.10-7">If a relative start group results in a computed absolute group less than 0, the
 computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.<a href="#section-9.20.10-7" class="pilcrow">¶</a></p>
 <p id="section-9.20.10-8">Otherwise, all fields are absolute.  EndGroupDelta is delta

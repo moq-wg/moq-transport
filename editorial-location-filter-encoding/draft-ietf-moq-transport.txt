@@ -1142,6 +1142,11 @@ Table of Contents
    Some Location filters are defined to be relative to the Largest
    Object (Section 3.1.3).
 
+   Note that due to network reordering or prioritization, relays can
+   receive Objects with Locations smaller than Largest Object after the
+   filter is processed, but these Objects do not pass a filter that
+   starts at the Next Object.
+
    A Location filter is encoded as specified in Section 9.20.10.
 
    A Location Filter on a subscription is always valid, even if it
@@ -4159,9 +4164,6 @@ Table of Contents
    Location is the Next Object (see Section 3.1.3).  An open-ended
    filter that starts at absolute Location {0, 0} is equivalent to
    unfiltered, so the subscriber need not include a Location filter.
-   Note that due to network reordering or prioritization, relays can
-   receive Objects with Locations smaller than Largest Object after the
-   SUBSCRIBE is processed, but these Objects do not pass this filter.
 
    If a relative start group results in a computed absolute group less
    than 0, the computed value is set to 0; if greater than 2^64 - 1, it
