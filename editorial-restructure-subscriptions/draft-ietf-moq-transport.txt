@@ -497,6 +497,10 @@ Table of Contents
    retrieved.  An Object can become unavailable, but its contents MUST
    NOT change over time.
 
+   Every Object within a Group belongs to exactly one Subgroup or
+   Datagram.  An Original Publisher MAY use both Subgroups and Datagrams
+   within a Group or Track.
+
 2.1.1.  Canonical Object Fields
 
    Objects are comprised of two parts: metadata and a payload.  The
@@ -556,9 +560,6 @@ Table of Contents
    sending and retransmission of data.  Furthermore, many QUIC and
    WebTransport implementations offer the ability to control the
    relative scheduling priority of pending stream data.
-
-   Every Object within a Group belongs to exactly one Subgroup or
-   Datagram.
 
    When Objects are sent in a subscription (see Section 3.1), Objects
    from two subgroups MUST NOT be sent on the same stream, and Objects
@@ -916,6 +917,19 @@ Table of Contents
    Subscribers SHOULD retain sufficient state to quickly discard these
    unwanted Objects, rather than treating them as belonging to an
    unknown Track Alias.
+
+3.1.2.1.  Unknown Track Alias
+
+   When an endpoint receives a datagram or a new stream with a Track
+   Alias that is not yet associated with an Established subscription, it
+   MAY drop the data or buffer it briefly to handle reordering with the
+   control message that establishes the Track Alias.  For streams, the
+   endpoint MAY withhold stream flow control beyond the stream header
+   until the Track Alias has been established.  To prevent deadlocks,
+   endpoints MUST allocate connection flow control to control streams
+   before allocating it to any data streams; otherwise a receiver might
+   wait for a control message containing a Track Alias to release flow
+   control, while the sender waits for flow control to send the message.
 
 3.1.3.  Largest Object
 
@@ -4587,10 +4601,6 @@ EXT 1 and EXT N can be modified or removed by Relays
    An endpoint that receives an unknown datagram type MUST close the
    session.
 
-   Every Object has a 'Object Forwarding Preference' and the Original
-   Publisher MAY use both Subgroups and Datagrams within a Group or
-   Track.
-
 11.1.  Objects
 
    An Object contains a range of contiguous bytes from the specified
@@ -4626,7 +4636,7 @@ EXT 1 and EXT N can be modified or removed by Relays
       is a normal Object or mark the end of a group or track.  See
       Section 11.1.2 below.
 
-   *  Object Properties : A sequence of Properties associated with the
+   *  Object Properties: A sequence of Properties associated with the
       object.  See Section 11.1.3.
 
    *  Object Payload: An opaque payload intended for an End Subscriber
@@ -4640,7 +4650,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    a FETCH.  It allows the publisher to explicitly communicate that a
    specific range of objects does not exist.
 
-   Status can have following values:
+   Status can have the following values:
 
    *  0x0 := Normal object.  This status is implicit for any non-zero
       length object.  Zero-length objects explicitly encode the Normal
@@ -4652,7 +4662,7 @@ EXT 1 and EXT N can be modified or removed by Relays
       ID.
 
    *  0x4 := Indicates End of Track.  Indicates that no objects with the
-      location that is equal to or greater than the one specified exist.
+      Location that is equal to or greater than the one specified exist.
 
    All of those SHOULD be cached.
 
@@ -4698,10 +4708,8 @@ EXT 1 and EXT N can be modified or removed by Relays
 11.2.  Datagrams
 
    A single object can be conveyed in a datagram.  The Track Alias field
-   (Section 3.1.2) indicates the track this Datagram belongs to.  If an
-   endpoint receives a datagram with an unknown Track Alias, it MAY drop
-   the datagram or choose to buffer it for a brief period to handle
-   reordering with the control message that establishes the Track Alias.
+   (Section 3.1.2) indicates the track this Datagram belongs to; see
+   Section 3.1.2.1 for handling of unknown Track Aliases.
 
    An Object received in an OBJECT_DATAGRAM message has an Object
    Forwarding Preference = Datagram.
@@ -4815,19 +4823,11 @@ EXT 1 and EXT N can be modified or removed by Relays
 11.3.2.  Subgroup Header
 
    All Objects on a Subgroup stream belong to the track identified by
-   Track Alias (see Section 3.1.2) and the Subgroup indicated by 'Group
-   ID' and Subgroup ID indicated by the SUBGROUP_HEADER.
+   Track Alias (see Section 3.1.2) and the Subgroup indicated by Group
+   ID and Subgroup ID in the SUBGROUP_HEADER.
 
-   If an endpoint receives a subgroup with an unknown Track Alias, it
-   MAY abandon the stream, or choose to buffer it for a brief period to
-   handle reordering with the control message that establishes the Track
-   Alias.  The endpoint MAY withhold stream flow control beyond the
-   SUBGROUP_HEADER until the Track Alias has been established.  To
-   prevent deadlocks, endpoints MUST allocate connection flow control to
-   the control streams before allocating it to any data streams.
-   Otherwise, a receiver might wait for a control message containing a
-   Track Alias to release flow control, while the sender waits for flow
-   control to send the message.
+   See Section 3.1.2.1 for handling of subgroups with unknown Track
+   Aliases.
 
    SUBGROUP_HEADER {
      Type Flags (vi64),
@@ -5006,14 +5006,13 @@ EXT 1 and EXT N can be modified or removed by Relays
    received all objects in a subgroup from the start of the
    subscription.  If a relay, it can forward stream FINs to its own
    subscribers once those objects have been sent.  A relay MAY treat
-   receipt of EndOfGroup or EndOfTrack objects as a signal to close
+   receipt of End of Group or End of Track objects as a signal to close
    corresponding streams even if the FIN has not arrived, as further
    objects on the stream would be a protocol violation.
 
-   Similarly, an EndOfGroup message indicates the maximum Object ID in
+   Similarly, an End of Group Object indicates the maximum Object ID in
    the Group, so if all Objects in the Group have been received, a FIN
    can be sent on any stream where the entire subgroup has been sent.
-   This might be complex to implement.
 
    Processing a reset means that there might be other objects in the
    Subgroup beyond the last one received.  A relay might immediately
@@ -5078,8 +5077,10 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    The Serialization Flags field defines the serialization of the
    Object.  It is a variable-length integer.  When less than 128, the
-   bits represent flags described below.  The following additional
-   values are defined:
+   bits represent flags described in Section 11.4.1.1.  When 128 or
+   greater, the value signals a range indicator; the defined values are:
+
+   *Reserved Serialization Flags values:*
 
                    +=======+===========================+
                    | Value | Meaning                   |
@@ -5093,36 +5094,30 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 7
 
-   Any other value is a PROTOCOL_VIOLATION.
+   Any other value 128 or greater is a PROTOCOL_VIOLATION.
 
 11.4.1.1.  Flags
 
-   The two least significant bits (LSBs) of the Serialization Flags form
-   a two-bit field that defines the encoding of the Subgroup.  To
-   extract this value, the Subscriber performs a bitwise AND operation
-   with the mask 0x03.
+   *Subgroup ID encoding (bits 0-1, mask 0x03):* The two least
+   significant bits of the Serialization Flags form a two-bit field that
+   defines the encoding of the Subgroup ID.
 
-     +==============================+===============================+
-     | Bitmask Result               | Meaning                       |
-     | (Serialization Flags & 0x03) |                               |
-     +==============================+===============================+
-     | 0x00                         | Subgroup ID is zero           |
-     +------------------------------+-------------------------------+
-     | 0x01                         | Subgroup ID is the prior      |
-     |                              | Object's Subgroup ID          |
-     +------------------------------+-------------------------------+
-     | 0x02                         | Subgroup ID is the prior      |
-     |                              | Object's Subgroup ID plus one |
-     +------------------------------+-------------------------------+
-     | 0x03                         | The Subgroup ID field is      |
-     |                              | present                       |
-     +------------------------------+-------------------------------+
+    +=======+========================================================+
+    | Value | Meaning                                                |
+    +=======+========================================================+
+    | 0x00  | Subgroup ID is zero                                    |
+    +-------+--------------------------------------------------------+
+    | 0x01  | Subgroup ID is the prior Object's Subgroup ID          |
+    +-------+--------------------------------------------------------+
+    | 0x02  | Subgroup ID is the prior Object's Subgroup ID plus one |
+    +-------+--------------------------------------------------------+
+    | 0x03  | The Subgroup ID field is present                       |
+    +-------+--------------------------------------------------------+
 
                                  Table 8
 
-   The following table defines additional flags within the Serialization
-   Flags field.  Each flag is an independent boolean value, where a set
-   bit (1) indicates the corresponding condition is true.
+   *Independent flag bits:* Each of the following is an independent
+   boolean; a set bit (1) indicates the corresponding condition is true.
 
      +=========+==========================+=========================+
      | Bitmask | Condition if set         | Condition if not set    |
