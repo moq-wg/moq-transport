@@ -86,7 +86,7 @@ Table of Contents
      1.4.  Modularity
    2.  Object Data Model
      2.1.  Objects
-       2.1.1.  Canonical Object Fields
+       2.1.1.  Object Fields
        2.1.2.  Object States
      2.2.  Subgroups
      2.3.  Groups
@@ -501,9 +501,9 @@ Table of Contents
    object payload.  This includes the underlying encoding, compression,
    any end-to-end encryption, or authentication.
 
-2.1.1.  Canonical Object Fields
+2.1.1.  Object Fields
 
-   A canonical MOQT Object has the following fields:
+   A MOQT Object has the following fields:
 
    Track Namespace and Track Name: The track this object belongs to.
 
@@ -512,24 +512,22 @@ Table of Contents
 
    Object ID: The order of the object within the group.
 
-   Publisher Priority: An 8 bit integer indicating the publisher's
-   priority for the Object (Section 5.1).
+   Publisher Priority: An integer indicating the publisher's priority
+   for the Object (Section 5.1).
 
    Object Forwarding Preference: An enumeration indicating how a
    publisher sends an object.  The preferences are Subgroup and
-   Datagram.  Object Forwarding Preference is a property of an
-   individual Object and can vary among Objects in the same Track.  In a
-   subscription, an Object MUST be sent according to its Object
-   Forwarding Preference.
+   Datagram.  In a subscription, an Object MUST be sent according to its
+   Object Forwarding Preference.
 
    Subgroup ID: The identifier of the Object's Subgroup (see
-   Section 2.2) within the Group.
+   Section 2.2) within the Group.  Objects sent in Datagrams do not have
+   a Subgroup ID.
 
-   Object Properties : A sequence of Properties associated with the
+   Object Properties : A sequence of key-value pairs associated with the
    object.  See Section 11.1.2.
 
-   Object Payload: An opaque payload intended for an End Subscriber and
-   SHOULD NOT be processed by a relay.
+   Object Payload: A possibly empty sequence of bytes.
 
 2.1.2.  Object States
 

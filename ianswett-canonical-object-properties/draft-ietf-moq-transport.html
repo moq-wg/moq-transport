@@ -1207,7 +1207,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.2.2.1.1"><a href="#section-2.1" class="auto internal xref">2.1</a>.  <a href="#name-objects" class="internal xref">Objects</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1.2.1">
-                    <p id="section-toc.1-1.2.2.1.2.1.1"><a href="#section-2.1.1" class="auto internal xref">2.1.1</a>.  <a href="#name-canonical-object-fields" class="internal xref">Canonical Object Fields</a></p>
+                    <p id="section-toc.1-1.2.2.1.2.1.1"><a href="#section-2.1.1" class="auto internal xref">2.1.1</a>.  <a href="#name-object-fields" class="internal xref">Object Fields</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1.2.2">
                     <p id="section-toc.1-1.2.2.1.2.2.1"><a href="#section-2.1.2" class="auto internal xref">2.1.2</a>.  <a href="#name-object-states" class="internal xref">Object States</a></p>
@@ -2213,18 +2213,18 @@ underlying encoding, compression, any end-to-end encryption, or
 authentication.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
 <div id="object-header">
 <section id="section-2.1.1">
-          <h4 id="name-canonical-object-fields">
-<a href="#section-2.1.1" class="section-number selfRef">2.1.1. </a><a href="#name-canonical-object-fields" class="section-name selfRef">Canonical Object Fields</a>
+          <h4 id="name-object-fields">
+<a href="#section-2.1.1" class="section-number selfRef">2.1.1. </a><a href="#name-object-fields" class="section-name selfRef">Object Fields</a>
           </h4>
-<p id="section-2.1.1-1">A canonical MOQT Object has the following fields:<a href="#section-2.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-1">A MOQT Object has the following fields:<a href="#section-2.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-2.1.1-2">Track Namespace and Track Name: The track this object belongs to.<a href="#section-2.1.1-2" class="pilcrow">¶</a></p>
 <p id="section-2.1.1-3">Group ID: The identifier of the Object's Group (see <a href="#model-group" class="auto internal xref">Section 2.3</a>) within the Track.<a href="#section-2.1.1-3" class="pilcrow">¶</a></p>
 <p id="section-2.1.1-4">Object ID: The order of the object within the group.<a href="#section-2.1.1-4" class="pilcrow">¶</a></p>
-<p id="section-2.1.1-5">Publisher Priority: An 8 bit integer indicating the publisher's priority for the Object (<a href="#priorities" class="auto internal xref">Section 5.1</a>).<a href="#section-2.1.1-5" class="pilcrow">¶</a></p>
-<p id="section-2.1.1-6">Object Forwarding Preference: An enumeration indicating how a publisher sends an object. The preferences are Subgroup and Datagram. Object Forwarding Preference is a property of an individual Object and can vary among Objects in the same Track. In a subscription, an Object <span class="bcp14">MUST</span> be sent according to its Object Forwarding Preference.<a href="#section-2.1.1-6" class="pilcrow">¶</a></p>
-<p id="section-2.1.1-7">Subgroup ID: The identifier of the Object's Subgroup (see <a href="#model-subgroup" class="auto internal xref">Section 2.2</a>) within the Group.<a href="#section-2.1.1-7" class="pilcrow">¶</a></p>
-<p id="section-2.1.1-8">Object Properties : A sequence of Properties associated with the object. See <a href="#object-properties" class="auto internal xref">Section 11.1.2</a>.<a href="#section-2.1.1-8" class="pilcrow">¶</a></p>
-<p id="section-2.1.1-9">Object Payload: An opaque payload intended for an End Subscriber and <span class="bcp14">SHOULD NOT</span> be processed by a relay.<a href="#section-2.1.1-9" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-5">Publisher Priority: An integer indicating the publisher's priority for the Object (<a href="#priorities" class="auto internal xref">Section 5.1</a>).<a href="#section-2.1.1-5" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-6">Object Forwarding Preference: An enumeration indicating how a publisher sends an object. The preferences are Subgroup and Datagram. In a subscription, an Object <span class="bcp14">MUST</span> be sent according to its Object Forwarding Preference.<a href="#section-2.1.1-6" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-7">Subgroup ID: The identifier of the Object's Subgroup (see <a href="#model-subgroup" class="auto internal xref">Section 2.2</a>) within the Group. Objects sent in Datagrams do not have a Subgroup ID.<a href="#section-2.1.1-7" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-8">Object Properties : A sequence of key-value pairs associated with the object. See <a href="#object-properties" class="auto internal xref">Section 11.1.2</a>.<a href="#section-2.1.1-8" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-9">Object Payload: A possibly empty sequence of bytes.<a href="#section-2.1.1-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="object-states">
