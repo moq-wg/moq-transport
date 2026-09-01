@@ -296,6 +296,10 @@ identical sequence of bytes regardless of how or where it is retrieved.
 An Object can become unavailable, but its contents MUST NOT change over
 time.
 
+Every Object within a Group belongs to exactly one Subgroup or Datagram. An
+Original Publisher MAY use both Subgroups and Datagrams within a Group or
+Track.
+
 ### Canonical Object Fields
 
 Objects are comprised of two parts: metadata and a payload.  The metadata is
@@ -349,8 +353,6 @@ Streams offer in-order reliable delivery and the ability to cancel sending and
 retransmission of data. Furthermore, many QUIC and WebTransport implementations
 offer the ability to control the relative scheduling priority of pending stream
 data.
-
-Every Object within a Group belongs to exactly one Subgroup or Datagram.
 
 When Objects are sent in a subscription (see {{subscriptions}}),  Objects
 from two subgroups MUST NOT be sent on the same stream, and Objects from the
@@ -690,6 +692,19 @@ completely closed and no Objects are scheduled to be sent or in flight.
 Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
 retain sufficient state to quickly discard these unwanted Objects, rather than
 treating them as belonging to an unknown Track Alias.
+
+#### Unknown Track Alias {#unknown-track-alias}
+
+When an endpoint receives a datagram or a new stream with a Track Alias that
+is not yet associated with an `Established` subscription, it MAY drop the
+data or buffer it briefly to handle reordering with the control message that
+establishes the Track Alias. For streams, the endpoint MAY withhold stream
+flow control beyond the stream header until the Track Alias has been
+established. To prevent deadlocks, endpoints MUST allocate connection flow
+control to control streams before allocating it to any data streams;
+otherwise a receiver might wait for a control message containing a Track
+Alias to release flow control, while the sender waits for flow control to
+send the message.
 
 
 ### Location Filters {#location-filters}
@@ -4103,9 +4118,6 @@ the datagram.  See {{object-datagram}}.
 
 An endpoint that receives an unknown datagram type MUST close the session.
 
-Every Object has a 'Object Forwarding Preference' and the Original Publisher
-MAY use both Subgroups and Datagrams within a Group or Track.
-
 ## Objects {#message-object}
 
 An Object contains a range of contiguous bytes from the
@@ -4139,7 +4151,7 @@ according to its `Object Forwarding Preference`.
 * Object Status: An enumeration used to indicate whether the Object is a normal Object
   or mark the end of a group or track. See {{object-status}} below.
 
-* Object Properties : A sequence of Properties associated with the object.
+* Object Properties: A sequence of Properties associated with the object.
   See {{object-properties}}.
 
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
@@ -4152,7 +4164,7 @@ via a SUBSCRIPTION, and is absent in Objects delivered via a FETCH.  It allows
 the publisher to explicitly communicate that a specific range of objects does
 not exist.
 
-`Status` can have following values:
+`Status` can have the following values:
 
 * 0x0 := Normal object. This status is implicit for any non-zero length object.
          Zero-length objects explicitly encode the Normal status.
@@ -4161,7 +4173,7 @@ not exist.
          Group ID and the Object ID that is greater than or equal to the one
          specified exist in the group identified by the Group ID.
 
-* 0x4 := Indicates End of Track. Indicates that no objects with the location
+* 0x4 := Indicates End of Track. Indicates that no objects with the Location
          that is equal to or greater than the one specified exist.
 
 All of those SHOULD be cached.
@@ -4208,10 +4220,8 @@ Object Property types are registered in the IANA table
 ## Datagrams
 
 A single object can be conveyed in a datagram.  The Track Alias field
-({{track-alias}}) indicates the track this Datagram belongs to.  If an endpoint
-receives a datagram with an unknown Track Alias, it MAY drop the datagram or
-choose to buffer it for a brief period to handle reordering with the control
-message that establishes the Track Alias.
+({{track-alias}}) indicates the track this Datagram belongs to; see
+{{unknown-track-alias}} for handling of unknown Track Aliases.
 
 An Object received in an `OBJECT_DATAGRAM` message has an `Object Forwarding
 Preference` = `Datagram`.
@@ -4314,20 +4324,14 @@ unidirectional stream does not affect the MOQT application state, and therefore 
 no effect on outstanding subscriptions. Closing a bidirectional request stream is
 governed by {{request-cancellation}}.
 
-### Subgroup Header
+### Subgroup Header {#subgroup-header}
 
-All Objects on a Subgroup stream belong to the track identified by `Track Alias`
-(see {{track-alias}}) and the Subgroup indicated by 'Group ID' and `Subgroup
-ID` indicated by the SUBGROUP_HEADER.
+All Objects on a Subgroup stream belong to the track identified by
+`Track Alias` (see {{track-alias}}) and the Subgroup indicated by `Group ID`
+and `Subgroup ID` in the SUBGROUP_HEADER.
 
-If an endpoint receives a subgroup with an unknown Track Alias, it MAY abandon
-the stream, or choose to buffer it for a brief period to handle reordering with
-the control message that establishes the Track Alias.  The endpoint MAY withhold
-stream flow control beyond the SUBGROUP_HEADER until the Track Alias has been
-established.  To prevent deadlocks, endpoints MUST allocate connection flow
-control to the control streams before allocating it to any data streams. Otherwise,
-a receiver might wait for a control message containing a Track Alias to release
-flow control, while the sender waits for flow control to send the message.
+See {{unknown-track-alias}} for handling of subgroups with unknown Track
+Aliases.
 
 ~~~
 SUBGROUP_HEADER {
@@ -4423,7 +4427,7 @@ unless there is a Prior Object ID Gap property (see
 {: #object-subgroup-format title="MOQT Subgroup Object Fields"}
 
 
-### Closing Subgroup Streams
+### Closing Subgroup Streams {#closing-subgroup-streams}
 
 Subscribers will often need to know if they have received all objects in a
 Subgroup, particularly if they serve as a relay or cache. QUIC and Webtransport
@@ -4489,14 +4493,13 @@ Group boundaries to avoid doing so.
 An MOQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
 can forward stream FINs to its own subscribers once those objects have been
-sent. A relay MAY treat receipt of EndOfGroup or EndOfTrack objects as a signal
-to close corresponding streams even if the FIN has not arrived, as further
-objects on the stream would be a protocol violation.
+sent. A relay MAY treat receipt of End of Group or End of Track objects as a
+signal to close corresponding streams even if the FIN has not arrived, as
+further objects on the stream would be a protocol violation.
 
-Similarly, an EndOfGroup message indicates the maximum Object ID in the
-Group, so if all Objects in the Group have been received, a FIN can be sent on
-any stream where the entire subgroup has been sent. This might be complex to
-implement.
+Similarly, an End of Group Object indicates the maximum Object ID in the
+Group, so if all Objects in the Group have been received, a FIN can be sent
+on any stream where the entire subgroup has been sent.
 
 Processing a reset means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
@@ -4506,10 +4509,10 @@ It also might send RESET_STREAM_AT with reliable_size set to the last Object it
 has, so as to reliably deliver the Objects it has while signaling that other
 Objects might exist.
 
-A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the Group
-or Subgroup is no longer of interest to it. The publisher SHOULD respond with
-a reset. If RESET_STREAM_AT is sent, note that the receiver
-has indicated no interest in the objects, so setting a reliable_size beyond the
+A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the
+Group or Subgroup is no longer of interest to it. The publisher SHOULD
+respond with a reset. If RESET_STREAM_AT is sent, note that the receiver has
+indicated no interest in the objects, so setting a reliable_size beyond the
 stream header is of questionable utility.
 
 Resets and STOP_SENDING on SUBSCRIBE data streams have no impact on other
@@ -4558,32 +4561,34 @@ format:
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
 
-The Serialization Flags field defines the serialization of the Object.  It is
-a variable-length integer.  When less than 128, the bits represent flags described
-below.  The following additional values are defined:
+The Serialization Flags field defines the serialization of the Object. It is
+a variable-length integer. When less than 128, the bits represent flags
+described in {{fetch-serialization-flags}}. When 128 or greater, the value
+signals a range indicator; the defined values are:
+
+**Reserved Serialization Flags values:**
 
 Value | Meaning
-0x8C | End of Non-Existent Range
+0x8C  | End of Non-Existent Range
 0x10C | End of Unknown Range
 0x20C | End of Timed-Out Range
 
-Any other value is a `PROTOCOL_VIOLATION`.
+Any other value 128 or greater is a `PROTOCOL_VIOLATION`.
 
-#### Flags
+#### Flags {#fetch-serialization-flags}
 
-The two least significant bits (LSBs) of the Serialization Flags form a two-bit
-field that defines the encoding of the Subgroup.  To extract this value, the
-Subscriber performs a bitwise AND operation with the mask 0x03.
+**Subgroup ID encoding (bits 0-1, mask 0x03):** The two least significant
+bits of the Serialization Flags form a two-bit field that defines the
+encoding of the Subgroup ID.
 
-Bitmask Result (Serialization Flags & 0x03) | Meaning
+Value | Meaning
 0x00 | Subgroup ID is zero
 0x01 | Subgroup ID is the prior Object's Subgroup ID
 0x02 | Subgroup ID is the prior Object's Subgroup ID plus one
 0x03 | The Subgroup ID field is present
 
-The following table defines additional flags within the Serialization Flags
-field. Each flag is an independent boolean value, where a set bit (1) indicates
-the corresponding condition is true.
+**Independent flag bits:** Each of the following is an independent boolean;
+a set bit (1) indicates the corresponding condition is true.
 
 Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
