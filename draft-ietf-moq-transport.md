@@ -402,6 +402,42 @@ stream is the first object ever published in that subgroup. A relay forwarding a
 subgroup that begins with the first object ever published in that subgroup MUST
 set the FIRST_OBJECT bit.
 
+{{figure-subgroups}} shows an example of a Track where every Group contains
+five Objects, with the even ones belonging to Subgroup 0, and odd ones
+belonging to Subgroup 1.  Assuming that the subcription has started before any
+of those objects are published, the following will happen:
+
+- `{7, 0}`, `{7, 1}`, `{8, 0}`, and `{8, 1}` will be published on different
+  underlying transport streams.  They can potentially arrive in any order.
+- `{7, 2}` will arrive after `{7, 0}`, and `{7, 4}` will arrive after `{7, 2}`.
+  `{7, 3}` will arrive after `{7, 1}`.
+- The end of a Subgroup is signaled by a FIN after objects `{7, 3}` and
+  `{7, 4}`.
+- `END_OF_GROUP = 1` in Subgroup 0 header informs the receiver that, since
+  `{7, 4}` is the last object of that specific subgroup, there will be no
+  object `{7, 5}` or higher within Group 7.
+- Note that Subgroup 1 does not have `END_OF_GROUP` set to `1`.  If it did, it
+  would imply that `{7, 4}` does not exist, leading to a protocol violation.
+
+~~~
+:                   Group 7                    :          Group 8
+:                                              :
+:                  +-------+-------+           :      +-------+-----+
+: Subgroup 1       | {7,1} | {7,3} |           :      | {8,1} | ... |
+:                  +-------+-------+           :      +-------+-----+
+:                                              :
+:              +-------+-------+-------+       :  +-------+-------------+
+: Subgroup 0   | {7,0} | {7,2} | {7,4} |       :  | {8,0} |     ...     |
+:      ^       +-------+-------+-------+       :  +-------+-------------+
+:      |           ^                           :
+:      |           |                           :
+:      |           +-- FIRST_OBJECT = 1        :
+:      |                                       :
+:      +-- END_OF_GROUP = 1 in the subgroup    :
+:                                   header     :
+~~~
+{: #figure-subgroups title="Example of a Track with Objects layered into two Subgroups" }
+
 ## Groups {#model-group}
 
 A group is a collection of Objects and is a sub-unit of a Track
