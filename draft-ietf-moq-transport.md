@@ -265,219 +265,6 @@ with the appropriate `NOT_SUPPORTED` error code, rather than ignoring them.
 Relays MUST implement all MOQT messages defined in this document, as well as
 processing rules described in {{relays-moq}}.
 
-## Notational Conventions
-
-This document uses the conventions detailed in ({{?RFC9000, Section 1.3}})
-when describing the binary encoding.
-
-### Variable-Length Integers
-
-MOQT requires a variable-length integer encoding with the following properties:
-
-1. The encoded length can be determined from the first encoded byte.
-2. The range of 1 byte values is as large as possible.
-3. All 64 bit numbers can be encoded.
-
-The variable-length integer encoding uses the number of leading 1 bits of the
-first byte to indicate the length of the encoding in bytes. The remaining bits
-after the first 0 and subsequent bytes, if any, represent the integer value,
-encoded in network byte order.
-
-Integers are encoded in 1 to 9 bytes and can encode up to 64
-bit unsigned integers. The following table summarizes the encoding properties.
-
-|--------------|----------------|-------------|------------------------|
-| Leading Bits | Length (bytes) | Usable Bits | Range                  |
-|--------------|----------------|-------------|------------------------|
-| 0            | 1              | 7           | 0-127                  |
-|--------------|----------------|-------------|------------------------|
-| 10           | 2              | 14          | 0-16383                |
-|--------------|----------------|-------------|------------------------|
-| 110          | 3              | 21          | 0-2097151              |
-|--------------|----------------|-------------|------------------------|
-| 1110         | 4              | 28          | 0-268435455            |
-|--------------|----------------|-------------|------------------------|
-| 11110        | 5              | 35          | 0-34359738367          |
-|--------------|----------------|-------------|------------------------|
-| 111110       | 6              | 42          | 0-4398046511103        |
-|--------------|----------------|-------------|------------------------|
-| 1111110      | 7              | 49          | 0-562949953421311      |
-|--------------|----------------|-------------|------------------------|
-| 11111110     | 8              | 56          | 0-72057594037927935    |
-|--------------|----------------|-------------|------------------------|
-| 11111111     | 9              | 64          | 0-18446744073709551615 |
-|--------------|----------------|-------------|------------------------|
-{: format title="Summary of Integer Encodings"}
-
-The following table contains some example encodings:
-
-|----------------------|----------------------------|
-| Byte Sequence        | Decimal Value              |
-|----------------------|----------------------------|
-| 0x25                 | 37                         |
-| 0x8025               | 37                         |
-| 0xbbbd               | 15,293                     |
-| 0xed7f3e7d           | 226,442,877                |
-| 0xfaa1a0e403d8       | 2,893,212,287,960          |
-| 0xfc8998abc66bc0     | 151,288,809,941,952        |
-| 0xfefa318fa8e3ca11   | 70,423,237,261,249,041     |
-| 0xffffffffffffffffff | 18,446,744,073,709,551,615 |
-|----------------------|----------------------------|
-{: format title="Example Integer Encodings"}
-
-Variable-length integers do not need to be encoded using the minimum number of
-bytes; any encoding length that can represent the value is valid. Note that, as
-a result, the same numeric value can be represented by more than one byte
-sequence. For example, the value 0 can be encoded as `0x00`, `0x8000`,
-`0xc00000`, or any longer form.
-
-x (vi64):
-
-: Indicates that x holds an integer value using the variable-length
-  encoding as described above.
-
-
-### Location Structure
-
-Location identifies a particular Object in a Group within a Track.
-
-~~~
-Location {
-  Group (vi64),
-  Object (vi64)
-}
-~~~
-{: #moq-location format title="Location structure"}
-
-In this document, a Location can be expressed in the form of {GroupID,
-ObjectID}, where GroupID and ObjectID indicate the Group ID and Object ID of the
-Location, respectively.  The constituent parts of any Location A can be referred
-to using A.Group or A.Object.
-
-Location A < Location B if:
-
-`A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)`
-
-### Key-Value-Pair Structure
-
-Key-Value-Pair is a flexible structure that carries key/value
-pairs in which the key is a variable-length integer and the value
-is either a variable-length integer or a byte field of arbitrary
-length.
-
-Key-Value-Pairs encode a Type value as a delta from the previous Type value,
-or from 0 if there is no previous Type value. This is efficient on the wire
-and makes it easy to ensure there is only one instance of a type when needed.
-The previous Type value plus the Delta Type MUST NOT be greater than 2^64 - 1.
-If a Delta Type is received that would be too large, the Session MUST be closed
-with a `PROTOCOL_VIOLATION`.
-
-Key-Value-Pair is used in both the data plane and control plane, but
-is optimized for use in the data plane.
-
-~~~
-Key-Value-Pair {
-  Delta Type (vi64),
-  [Length (vi64),]
-  Value (..)
-}
-~~~
-{: #moq-key-value-pair format title="MOQT Key-Value-Pair"}
-
-* Delta Type: an unsigned variable-length integer identifying the Type
-  as a delta encoded value from the previous Type, if any. The Type identifies
-  the type of value and also the subsequent serialization.
-* Length: Only present when Type is odd. Specifies the length of the Value field
-  in bytes. The maximum length of a value is 2^16-1 bytes.  If an endpoint
-  receives a length larger than the maximum, it MUST close the session with a
-  `PROTOCOL_VIOLATION`.
-* Value: A single variable-length integer when Type is even, otherwise a
-  sequence of Length bytes.
-
-If a receiver understands a Type, and the following Value or Length/Value does
-not match the serialization defined by that Type, the receiver MUST close
-the session with error code `KEY_VALUE_FORMATTING_ERROR`.
-
-Key-Value-Pairs are always parsed with a known byte length, which bounds
-the sequence. The source of this length varies by context.
-
-### Reason Phrase Structure {#reason-phrase}
-
-Reason Phrase provides a way for the sender to encode additional diagnostic
-information about an error condition, where appropriate.
-
-~~~
-Reason Phrase {
-  Reason Phrase Length (vi64),
-  Reason Phrase Value (..)
-}
-~~~
-
-* Reason Phrase Length: A variable-length integer specifying the length of the
-  reason phrase in bytes. The reason phrase length has a maximum value of
-  1024 bytes. If an endpoint receives a length exceeding the maximum, it MUST
-  close the session with a `PROTOCOL_VIOLATION`
-
-* Reason Phrase Value: Additional diagnostic information about an error condition.
-  The reason phrase value is encoded as UTF-8 string and does not carry information,
-  such as language tags, that would aid comprehension by any entity other than
-  the one that created the text.
-
-## Representing Namespace and Track Names {#namespace-name-format}
-
-There is often a need to render namespace tuples and track names for
-purposes such as logging, representing track filenames, or use in
-certain authorization verification schemes. The namespace and track name
-are binary and need to be converted to a safe form.
-
-The following format is RECOMMENDED:
-
-* Each of the namespace tuples are rendered in order with a hyphen (-)
-  between them followed by the track name with a double hyphen (--)
-  between the last namespace and track name.
-
-* Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output verbatim,
-  while all other bytes are encoded as a period (.) symbol followed by
-  exactly two lowercase hexadecimal digits.
-
-This format allows many common names to be rendered in an easily human readable
-form while still supporting binary values.  Note that while the character set
-is chosen to be generally both filename and URL safe, filename safety is
-platform specific; for instance, on case-insensitive filesystems, track names
-can collide.
-
-### Parsing Serialized Names
-
-When parsing a serialized namespace or track name back to its binary form,
-implementations MUST apply the following rules to ensure a canonical encoding:
-
-* A period (.) MUST be followed by exactly two hexadecimal digits. A trailing period
-  or a period followed by fewer than two hexadecimal digits is invalid.
-
-* The hexadecimal digits following a period (.) MUST be lowercase (a-f). Uppercase
-  hexadecimal digits (A-F) are invalid and MUST cause parsing to fail.
-
-* Bytes that can be represented literally (a-z, A-Z, 0-9, _) MUST NOT appear
-  in their hex-encoded form. For example, `.61` is invalid because `a` must
-  be represented as the literal character `a`. A parser MUST reject such
-  redundant encodings.
-
-These rules ensure that the encoding is bijective: every binary value has
-exactly one valid serialized representation, and every valid serialized
-string maps to exactly one binary value. This property simplifies comparison
-of serialized names without requiring full deserialization.
-
-Implementations that receive an invalid serialized name SHOULD treat it as
-an error. The specific error handling behavior is application-defined.
-
-Example:
-
-~~~
-example.2enet-team2-project_x--report
-  Namespace tuples: (example.net, team2, project_x)
-  Track name: report
-~~~
-
 # Object Data Model {#model}
 
 MOQT has a hierarchical data model, comprised of tracks which contain
@@ -792,56 +579,6 @@ ways, for example:
    current time.
 3. Use TRACK_STATUS or similar mechanism to query the previous state to
    determine the largest published Group ID.
-
-## Properties {#properties}
-
-Tracks and Objects can have additional relay-visible fields, known as
-Properties, which do not require negotiation, and can be used to alter
-MOQT Object distribution.
-
-Properties are defined in {{moqt-properties}} as well as external
-specifications and are registered in an IANA table {{iana}}. These
-specifications define the type and value of the property, along with any rules
-concerning processing, modification, caching and forwarding.
-
-If a Relay does not support a Property, it MUST NOT be modified, MUST be
-forwarded, and MUST be cached with the Track or Object, unless it is a Mandatory
-Track Property as described in {{mandatory-track-properties}}.  If a Track or Object
-arrives with a different set of unknown properties than previously cached,
-the most recent set SHOULD replace any cached values, removing any unknown
-values not present in the new set.  Relays MUST NOT attempt to merge sets
-of unknown properties received in different messages.
-
-If a Relay supports a Property, it MUST follow the processing rules in the
-Property's definition.  Unless those rules permit otherwise, a Relay MUST NOT
-modify, add, or remove the Property; it MUST forward the Property to downstream
-subscribers and MUST cache it with the Track or Object if the Track or Object is
-cached.
-
-Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
-Track Properties always appear as the final field in the messages that
-carry them; their length is the remaining bytes of the message after all
-preceding fields have been consumed. Object Properties ({{object-properties}})
-are preceded by an explicit length field.
-
-Property types are registered in the IANA table 'MOQ Properties'.
-See {{iana}}.
-
-Certain Property type ranges are reserved for application-specific
-use and will never be allocated by IANA in future MOQT specifications:
-
-* 0x78 to 0x7F (1-byte encoding): 8 code points for applications with
-  tight space constraints
-* 0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including grease
-  {{grease}}) for applications with moderate space constraints
-
-Applications MAY use code points in these ranges without registration for
-format-specific metadata or other application-defined purposes. Relays that
-do not understand the application format MUST forward these properties
-unchanged but MUST NOT attempt to interpret their semantic meaning. Different
-applications using the same code point in these ranges may assign different
-meanings; the interpretation depends on the track or application
-context known to the publisher and subscriber.
 
 # Publishing and Receiving Tracks
 
@@ -2515,6 +2252,271 @@ A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.
 
 Relays prioritize forwarded Objects as described in {{priorities}}.
+
+# Notational Conventions and Common Structures
+
+This document uses the conventions detailed in ({{?RFC9000, Section 1.3}})
+when describing the binary encoding.
+
+## Variable-Length Integers
+
+MOQT requires a variable-length integer encoding with the following properties:
+
+1. The encoded length can be determined from the first encoded byte.
+2. The range of 1 byte values is as large as possible.
+3. All 64 bit numbers can be encoded.
+
+The variable-length integer encoding uses the number of leading 1 bits of the
+first byte to indicate the length of the encoding in bytes. The remaining bits
+after the first 0 and subsequent bytes, if any, represent the integer value,
+encoded in network byte order.
+
+Integers are encoded in 1 to 9 bytes and can encode up to 64
+bit unsigned integers. The following table summarizes the encoding properties.
+
+|--------------|----------------|-------------|------------------------|
+| Leading Bits | Length (bytes) | Usable Bits | Range                  |
+|--------------|----------------|-------------|------------------------|
+| 0            | 1              | 7           | 0-127                  |
+|--------------|----------------|-------------|------------------------|
+| 10           | 2              | 14          | 0-16383                |
+|--------------|----------------|-------------|------------------------|
+| 110          | 3              | 21          | 0-2097151              |
+|--------------|----------------|-------------|------------------------|
+| 1110         | 4              | 28          | 0-268435455            |
+|--------------|----------------|-------------|------------------------|
+| 11110        | 5              | 35          | 0-34359738367          |
+|--------------|----------------|-------------|------------------------|
+| 111110       | 6              | 42          | 0-4398046511103        |
+|--------------|----------------|-------------|------------------------|
+| 1111110      | 7              | 49          | 0-562949953421311      |
+|--------------|----------------|-------------|------------------------|
+| 11111110     | 8              | 56          | 0-72057594037927935    |
+|--------------|----------------|-------------|------------------------|
+| 11111111     | 9              | 64          | 0-18446744073709551615 |
+|--------------|----------------|-------------|------------------------|
+{: format title="Summary of Integer Encodings"}
+
+The following table contains some example encodings:
+
+|----------------------|----------------------------|
+| Byte Sequence        | Decimal Value              |
+|----------------------|----------------------------|
+| 0x25                 | 37                         |
+| 0x8025               | 37                         |
+| 0xbbbd               | 15,293                     |
+| 0xed7f3e7d           | 226,442,877                |
+| 0xfaa1a0e403d8       | 2,893,212,287,960          |
+| 0xfc8998abc66bc0     | 151,288,809,941,952        |
+| 0xfefa318fa8e3ca11   | 70,423,237,261,249,041     |
+| 0xffffffffffffffffff | 18,446,744,073,709,551,615 |
+|----------------------|----------------------------|
+{: format title="Example Integer Encodings"}
+
+Variable-length integers do not need to be encoded using the minimum number of
+bytes; any encoding length that can represent the value is valid. Note that, as
+a result, the same numeric value can be represented by more than one byte
+sequence. For example, the value 0 can be encoded as `0x00`, `0x8000`,
+`0xc00000`, or any longer form.
+
+x (vi64):
+
+: Indicates that x holds an integer value using the variable-length
+  encoding as described above.
+
+
+## Location Structure
+
+Location identifies a particular Object in a Group within a Track.
+
+~~~
+Location {
+  Group (vi64),
+  Object (vi64)
+}
+~~~
+{: #moq-location format title="Location structure"}
+
+In this document, a Location can be expressed in the form of {GroupID,
+ObjectID}, where GroupID and ObjectID indicate the Group ID and Object ID of the
+Location, respectively.  The constituent parts of any Location A can be referred
+to using A.Group or A.Object.
+
+Location A < Location B if:
+
+`A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)`
+
+## Key-Value-Pair Structure
+
+Key-Value-Pair is a flexible structure that carries key/value
+pairs in which the key is a variable-length integer and the value
+is either a variable-length integer or a byte field of arbitrary
+length.
+
+Key-Value-Pairs encode a Type value as a delta from the previous Type value,
+or from 0 if there is no previous Type value. This is efficient on the wire
+and makes it easy to ensure there is only one instance of a type when needed.
+The previous Type value plus the Delta Type MUST NOT be greater than 2^64 - 1.
+If a Delta Type is received that would be too large, the Session MUST be closed
+with a `PROTOCOL_VIOLATION`.
+
+Key-Value-Pair is used in both the data plane and control plane, but
+is optimized for use in the data plane.
+
+~~~
+Key-Value-Pair {
+  Delta Type (vi64),
+  [Length (vi64),]
+  Value (..)
+}
+~~~
+{: #moq-key-value-pair format title="MOQT Key-Value-Pair"}
+
+* Delta Type: an unsigned variable-length integer identifying the Type
+  as a delta encoded value from the previous Type, if any. The Type identifies
+  the type of value and also the subsequent serialization.
+* Length: Only present when Type is odd. Specifies the length of the Value field
+  in bytes. The maximum length of a value is 2^16-1 bytes.  If an endpoint
+  receives a length larger than the maximum, it MUST close the session with a
+  `PROTOCOL_VIOLATION`.
+* Value: A single variable-length integer when Type is even, otherwise a
+  sequence of Length bytes.
+
+If a receiver understands a Type, and the following Value or Length/Value does
+not match the serialization defined by that Type, the receiver MUST close
+the session with error code `KEY_VALUE_FORMATTING_ERROR`.
+
+Key-Value-Pairs are always parsed with a known byte length, which bounds
+the sequence. The source of this length varies by context.
+
+## Track and Object Properties {#properties}
+
+Tracks and Objects can have additional relay-visible fields, known as
+Properties, which do not require negotiation, and can be used to alter
+MOQT Object distribution.
+
+Properties are defined in {{moqt-properties}} as well as external
+specifications and are registered in an IANA table {{iana}}. These
+specifications define the type and value of the property, along with any rules
+concerning processing, modification, caching and forwarding.
+
+If a Relay does not support a Property, it MUST NOT be modified, MUST be
+forwarded, and MUST be cached with the Track or Object, unless it is a Mandatory
+Track Property as described in {{mandatory-track-properties}}.  If a Track or Object
+arrives with a different set of unknown properties than previously cached,
+the most recent set SHOULD replace any cached values, removing any unknown
+values not present in the new set.  Relays MUST NOT attempt to merge sets
+of unknown properties received in different messages.
+
+If a Relay supports a Property, it MUST follow the processing rules in the
+Property's definition.  Unless those rules permit otherwise, a Relay MUST NOT
+modify, add, or remove the Property; it MUST forward the Property to downstream
+subscribers and MUST cache it with the Track or Object if the Track or Object is
+cached.
+
+Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
+Track Properties always appear as the final field in the messages that
+carry them; their length is the remaining bytes of the message after all
+preceding fields have been consumed. Object Properties ({{object-properties}})
+are preceded by an explicit length field.
+
+Property types are registered in the IANA table 'MOQ Properties'.
+See {{iana}}.
+
+Certain Property type ranges are reserved for application-specific
+use and will never be allocated by IANA in future MOQT specifications:
+
+* 0x78 to 0x7F (1-byte encoding): 8 code points for applications with
+  tight space constraints
+* 0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including grease
+  {{grease}}) for applications with moderate space constraints
+
+Applications MAY use code points in these ranges without registration for
+format-specific metadata or other application-defined purposes. Relays that
+do not understand the application format MUST forward these properties
+unchanged but MUST NOT attempt to interpret their semantic meaning. Different
+applications using the same code point in these ranges may assign different
+meanings; the interpretation depends on the track or application
+context known to the publisher and subscriber.
+
+## Reason Phrase Structure {#reason-phrase}
+
+Reason Phrase provides a way for the sender to encode additional diagnostic
+information about an error condition, where appropriate.
+
+~~~
+Reason Phrase {
+  Reason Phrase Length (vi64),
+  Reason Phrase Value (..)
+}
+~~~
+
+* Reason Phrase Length: A variable-length integer specifying the length of the
+  reason phrase in bytes. The reason phrase length has a maximum value of
+  1024 bytes. If an endpoint receives a length exceeding the maximum, it MUST
+  close the session with a `PROTOCOL_VIOLATION`
+
+* Reason Phrase Value: Additional diagnostic information about an error condition.
+  The reason phrase value is encoded as UTF-8 string and does not carry information,
+  such as language tags, that would aid comprehension by any entity other than
+  the one that created the text.
+
+## Representing Namespace and Track Names {#namespace-name-format}
+
+There is often a need to render namespace tuples and track names for
+purposes such as logging, representing track filenames, or use in
+certain authorization verification schemes. The namespace and track name
+are binary and need to be converted to a safe form.
+
+The following format is RECOMMENDED:
+
+* Each of the namespace tuples are rendered in order with a hyphen (-)
+  between them followed by the track name with a double hyphen (--)
+  between the last namespace and track name.
+
+* Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output verbatim,
+  while all other bytes are encoded as a period (.) symbol followed by
+  exactly two lowercase hexadecimal digits.
+
+This format allows many common names to be rendered in an easily human readable
+form while still supporting binary values.  Note that while the character set
+is chosen to be generally both filename and URL safe, filename safety is
+platform specific; for instance, on case-insensitive filesystems, track names
+can collide.
+
+### Parsing Serialized Names
+
+When parsing a serialized namespace or track name back to its binary form,
+implementations MUST apply the following rules to ensure a canonical encoding:
+
+* A period (.) MUST be followed by exactly two hexadecimal digits. A trailing period
+  or a period followed by fewer than two hexadecimal digits is invalid.
+
+* The hexadecimal digits following a period (.) MUST be lowercase (a-f). Uppercase
+  hexadecimal digits (A-F) are invalid and MUST cause parsing to fail.
+
+* Bytes that can be represented literally (a-z, A-Z, 0-9, _) MUST NOT appear
+  in their hex-encoded form. For example, `.61` is invalid because `a` must
+  be represented as the literal character `a`. A parser MUST reject such
+  redundant encodings.
+
+These rules ensure that the encoding is bijective: every binary value has
+exactly one valid serialized representation, and every valid serialized
+string maps to exactly one binary value. This property simplifies comparison
+of serialized names without requiring full deserialization.
+
+Implementations that receive an invalid serialized name SHOULD treat it as
+an error. The specific error handling behavior is application-defined.
+
+Example:
+
+~~~
+example.2enet-team2-project_x--report
+  Namespace tuples: (example.net, team2, project_x)
+  Track name: report
+~~~
+
+## Authorization Token Compression
 
 # Control Messages {#message}
 
