@@ -1987,10 +1987,23 @@ in the Track Namespace are matched sequentially, requiring an exact match for
 each field. If the published or subscribed Track Namespace has the same or fewer
 fields than the Track Namespace in the message, it qualifies as a match.
 
-For example:
-A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
-that sent PUBLISH_NAMESPACE messages with namespace=(foo) or namespace=(foo,
-bar).  It will not match a session with namespace=(foobar).
+Using `(a, b)` to denote a Track Namespace with fields `a` then `b`, and
+`x` for a Track Name:
+
+* PUBLISH_NAMESPACE announced with a prefix of a SUBSCRIBE's namespace: a
+  publisher that sent PUBLISH_NAMESPACE for `(foo)` matches a SUBSCRIBE for
+  track `(foo, bar)/x`. A publisher that sent PUBLISH_NAMESPACE for `(foo,
+  bar)` also matches. A publisher that sent PUBLISH_NAMESPACE for `(foobar)`
+  does not match, because matching is per field, not per byte.
+* SUBSCRIBE_NAMESPACE prefix against PUBLISH_NAMESPACE: a subscriber that
+  sent SUBSCRIBE_NAMESPACE with prefix `(foo)` matches publishers that
+  announced `(foo)`, `(foo, bar)`, or `(foo, bar, baz)`. It does not match a
+  publisher that announced `(fo)` or `(foobar)`.
+* Empty prefix: a namespace prefix with zero fields matches every namespace
+  the peer has announced or subscribed to.
+* Longer prefix than announcement: a SUBSCRIBE_NAMESPACE with prefix `(foo,
+  bar)` does not match a publisher that only announced `(foo)`; matching
+  requires the announced namespace to have the same or fewer fields.
 
 Relays MUST send SUBSCRIBE messages to all matching publishers. This includes
 matching both Established subscriptions on the Full Track Name and Namespace
