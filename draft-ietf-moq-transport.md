@@ -734,6 +734,11 @@ processing the message. Largest Object updates when the first byte of an Object
 with a Location larger than the previous value is published or received through
 a subscription.
 
+The `Next Object` is the Location immediately following `Largest Object`, which
+is `{Largest Object.Group, Largest Object.Object + 1}`, or {0, 0} if no content
+has been delivered yet. The `Next Group` is the first Location of the Group
+following `Largest Object`, which is `{Largest Object.Group + 1, 0}`.
+
 ### Fill Semantics {#fill-semantics}
 
 A subscription that carries a FILL_PARAMETERS parameter (see
@@ -890,53 +895,12 @@ An object published or received in a subgroup or datagram is
 Some Location filters are defined to be relative to the `Largest Object`
 ({{largest-object}}).
 
-A Location filter parameter has the following length-prefixed structure:
+Note that due to network reordering or prioritization, relays can receive
+Objects with Locations smaller than `Largest Object` after the filter is
+processed, but these Objects do not pass a filter that starts at the Next
+Object.
 
-~~~
-LOCATION_FILTER Parameter {
-  Parameter Type (vi64) = 0x21,
-  Length (vi64),
-  [StartGroup (vi64),]
-  [StartObject (vi64),]
-  [EndGroupDelta (vi64),]
-  [EndObject (vi64),]
-}
-~~~
-
-Length (in bytes) determines how many optional vi64 fields are present.
-A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
-  * If only one field is present, it is StartGroup.
-  * If only two fields are present, they are StartGroup and StartObject.
-  * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
-
-If only StartGroup is present, it is a relative number of groups prior to the Next Group,
-hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
-  * StartGroup=0 will start at the Next Group
-  * StartGroup=1 will start at the current group
-  * StartGroup=2 will start at 1 group prior to the current group
-  * StartGroup=N will start at N-1 groups prior to the current group
-
-If only StartGroup and StartObject are present and both 0, the start Location
-is the Next Object which is `{Largest Object.Group, Largest Object.Object + 1}`,
-or {0, 0} if no content has been delivered yet.  An open-ended filter that starts at absolute
-Location {0, 0} is equivalent to unfiltered, so the subscriber need not include a Location filter.
-Note that due to network reordering or prioritization, relays can receive Objects with
-Locations smaller than `Largest Object` after the SUBSCRIBE is processed, but
-these Objects do not pass this filter.
-
-If a relative start group results in a computed absolute group less than 0, the
-computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
-
-Otherwise, all fields are absolute.  EndGroupDelta is delta
-encoded from StartGroup, but both the start and end groups are absolute, not
-relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
-the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
-
-When EndGroupDelta and EndObject are omitted from a subscription filter, the
-subscription is open-ended. When they are omitted from a Fetch, the
-EndGroup and EndObject are `Largest Object`.
-
-When EndObject is omitted, the filter includes all objects in the End Group.
+A Location filter is encoded as specified in {{location-filter}}.
 
 A Location Filter on a subscription is always valid, even if it specifies a range
 entirely before Largest Object.
@@ -3246,7 +3210,7 @@ cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch can include a Location Filter parameter (see {{location-filters}})
+Fetch can include a Location Filter parameter (see {{location-filter}})
 which specifies an inclusive range of Objects starting at Start Location and
 ending at End Location.
 
@@ -3728,10 +3692,55 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 
 ### LOCATION FILTER Parameter {#location-filter}
 
-The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It MAY appear in a FETCH, SUBSCRIBE, PUBLISH, REQUEST_UPDATE
-(for a subscription) or PUBLISH_STATE_NOTIFY message. It is a Location
-Filter (see {{location-filters}}).
+The LOCATION_FILTER parameter (Parameter Type 0x21) MAY appear in a FETCH,
+SUBSCRIBE, PUBLISH, REQUEST_UPDATE (for a subscription) or
+PUBLISH_STATE_NOTIFY message. It is a Location Filter (see
+{{location-filters}}).
+
+A Location filter parameter has the following length-prefixed structure:
+
+~~~
+LOCATION_FILTER Parameter {
+  Parameter Type (vi64) = 0x21,
+  Length (vi64),
+  [StartGroup (vi64),]
+  [StartObject (vi64),]
+  [EndGroupDelta (vi64),]
+  [EndObject (vi64),]
+}
+~~~
+
+Length (in bytes) determines how many optional vi64 fields are present.
+A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
+  * If only one field is present, it is StartGroup.
+  * If only two fields are present, they are StartGroup and StartObject.
+  * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
+
+If only StartGroup is present, it is a relative number of groups prior to the Next Group,
+hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
+  * StartGroup=0 will start at the Next Group
+  * StartGroup=1 will start at the current group
+  * StartGroup=2 will start at 1 group prior to the current group
+  * StartGroup=N will start at N-1 groups prior to the current group
+
+If only StartGroup and StartObject are present and both 0, the start Location
+is the Next Object (see {{largest-object}}).  An open-ended filter that starts
+at absolute Location {0, 0} is equivalent to unfiltered, so the subscriber need
+not include a Location filter.
+
+If a relative start group results in a computed absolute group less than 0, the
+computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
+
+Otherwise, all fields are absolute.  EndGroupDelta is delta
+encoded from StartGroup, but both the start and end groups are absolute, not
+relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
+the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
+
+When EndGroupDelta and EndObject are omitted from a subscription filter, the
+subscription is open-ended. When they are omitted from a Fetch, the
+EndGroup and EndObject are `Largest Object`.
+
+When EndObject is omitted, the filter includes all objects in the End Group.
 
 If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
 unfiltered.  If omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY, the
@@ -3795,7 +3804,7 @@ The following parameters MAY appear inside FILL_PARAMETERS:
 | 0x28 | OBJECT_PROPERTY_FILTER | {{range-filters}} |
 
 The LOCATION_FILTER inside FILL_PARAMETERS selects the fill range and is
-evaluated using the rules for a Fetch (see {{location-filters}}); it is
+evaluated using the rules for a Fetch (see {{location-filter}}); it is
 independent of the subscription's own Location filter.
 
 A parameter that is omitted from FILL_PARAMETERS takes the value it has for the
