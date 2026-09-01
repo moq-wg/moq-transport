@@ -320,8 +320,7 @@ Object ID: The order of the object within the group.
 
 Publisher Priority: An integer indicating the publisher's priority for the Object ({{priorities}}).
 
-Delivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram.
-In a subscription, an Object MUST be sent according to its Delivery Mode.
+Delivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram. In a subscription, an Object MUST be sent according to its Delivery Mode.
 
 Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}}) within the Group. Objects sent in Datagrams do not have a Subgroup ID.
 
