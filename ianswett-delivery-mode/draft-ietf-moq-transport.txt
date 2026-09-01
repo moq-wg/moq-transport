@@ -575,7 +575,7 @@ Table of Contents
    the Group, typically with a one-to-one mapping between Subgroups and
    streams.
 
-   When an Object's delivery mode (see Section 11.1.2) is "Datagram", it
+   When an Object's Delivery Mode (see Section 11.1.2) is "Datagram", it
    is not sent in Subgroups, does not belong to a Subgroup in any way,
    and the description in the remainder of this section does not apply.
 
