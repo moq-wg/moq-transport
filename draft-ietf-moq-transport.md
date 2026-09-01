@@ -320,7 +320,7 @@ Object ID: The order of the object within the group.
 
 Publisher Priority: An integer indicating the publisher's priority for the Object ({{priorities}}).
 
-Object Forwarding Preference: An enumeration indicating how a publisher sends an object. The preferences are Subgroup and Datagram. In a subscription, an Object MUST be sent according to its Object Forwarding Preference.
+Delivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram. In a subscription, an Object MUST be sent according to its Delivery Mode.
 
 Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}}) within the Group. Objects sent in Datagrams do not have a Subgroup ID.
 
@@ -365,7 +365,7 @@ stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups in the Group,
 typically with a one-to-one mapping between Subgroups and streams.
 
-When an Object's forwarding preference (see {{object-properties}}) is
+When an Object's Delivery Mode (see {{object-properties}}) is
 "Datagram", it is not sent in Subgroups, does not belong to a Subgroup in any
 way, and the description in the remainder of this section does not apply.
 
@@ -563,6 +563,16 @@ ways, for example:
    determine the largest published Group ID.
 
 # Publishing and Receiving Tracks
+
+A subscription is a stateful ongoing relationship in which the Publisher
+delivers newly-published Objects from a single Track to the Subscriber. It can
+be established by either endpoint, via either SUBSCRIBE or PUBLISH.  A
+subscription is active until either endpoint terminates it, and its parameters
+can be updated via REQUEST_UPDATE.
+
+A fetch is a request for a bounded set of pre-existing Objects from a
+single Track.  It is delivered on a single stream, and ends automatically when
+all of the objects are delivered.
 
 ## Subscriptions {#subscriptions}
 
@@ -1212,7 +1222,7 @@ MOQT maintains priorities between different schedulable objects.
 A schedulable object in MOQT is either:
 
 1. The first or next Object in a Subgroup that is in response to a subscription.
-2. An Object with forwarding preference Datagram.
+2. An Object with Delivery Mode Datagram.
 3. An Object in response to a FETCH where that Object is the next
    Object in the response.
 
@@ -1273,10 +1283,10 @@ the objects SHOULD be selected as follows:
    and publisher priority and belong to the same group of the same track, and
    one is delivered by the fill fetch stream while the other is
    subscription-delivered, the fill-delivered object is scheduled first. Otherwise,
-   the one with **the lowest Subgroup ID** (for objects with forwarding preference
-   Subgroup), or **the lowest Object ID** (for objects with forwarding preference
+   the one with **the lowest Subgroup ID** (for objects with Delivery Mode
+   Subgroup), or **the lowest Object ID** (for objects with Delivery Mode
    Datagram) is scheduled to be sent first.  If the two objects have
-   different Forwarding Preferences the datagram is sent first.
+   different Delivery Modes the datagram is sent first.
 
 Within the same group, fill-delivered objects win the tie-break over
 subscription-delivered objects (rule 4) because objects with smaller Locations
@@ -1348,7 +1358,7 @@ If the OBJECT_DELIVERY_TIMEOUT is not zero, the MOQT implementation MUST retain
 the time at which the last header byte of every object has been either
 received from the upstream subscription, or provided by the original publisher
 application.  The actual mechanism by which the timeout works depends on the
-Object Forwarding Preference:
+Object Delivery Mode:
 
 - For subgroups, the implementation MUST check the time elapsed
   before attempting to pass it to the underlying transport
@@ -1367,7 +1377,7 @@ Object Forwarding Preference:
   queueing mechanisms that support time bounds (such as the `outgoingMaxAge`
   parameter in the W3C WebTransport API).
 
-If the Object Forwarding Preference is Subgroup and the value of
+If the Object Delivery Mode is Subgroup and the value of
 SUBGROUP_DELIVERY_TIMEOUT is not zero, the MOQT implementation MUST
 start a timer of SUBGROUP_DELIVERY_TIMEOUT duration once it becomes
 aware that all of the objects on the subgroup have been published
@@ -1380,7 +1390,7 @@ MUST reset the stream.  This ensures that MOQT can time out subgroups
 where all of the data has been sent but not yet fully delivered due to
 packet loss.
 
-For objects whose Object Forwarding Preference is Datagram, the
+For objects whose Object Delivery Mode is Datagram, the
 SUBGROUP_DELIVERY_TIMEOUT acts the same way as OBJECT_DELIVERY_TIMEOUT; if both
 are non-zero, the smaller of the two is used.
 
@@ -3208,7 +3218,7 @@ If the upstream FETCH fails, the relay sends a REQUEST_ERROR and can reset the
 unidirectional stream.  It can choose to do so immediately or wait until the
 cached objects have been delivered before resetting the stream.
 
-The Object Forwarding Preference does not apply to fetches.
+The Object Delivery Mode does not apply to fetches.
 
 Fetch can include a Location Filter parameter (see {{location-filter}})
 which specifies an inclusive range of Objects starting at Start Location and
@@ -4221,7 +4231,7 @@ A single object can be conveyed in a datagram.  The Track Alias field
 An Object received in an `OBJECT_DATAGRAM` message has an `Object Forwarding
 Preference` = `Datagram`.
 
-To send an Object with `Object Forwarding Preference` = `Datagram`, determine
+To send an Object with `Delivery Mode` = `Datagram`, determine
 the length of the header and payload and send the Object as datagram.  When the
 total size is larger than the maximum datagram size for the session, the Object
 will be dropped without any explicit notification.
@@ -4332,7 +4342,7 @@ SUBGROUP_HEADER {
 {: #object-header-format title="MOQT SUBGROUP_HEADER"}
 
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
-`Object Forwarding Preference` = `Subgroup`.
+`Delivery Mode` = `Subgroup`.
 
 The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
 encodes a set of flags. All values defined in this specification fit in a
@@ -4384,7 +4394,7 @@ header with any of these values, it MUST close the session with a
 * Values of 128 or greater (i.e., any value that requires more than a one-byte
   variable-length integer encoding).
 
-To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
+To send an Object with `Delivery Mode` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
 or open a new one and send the `SUBGROUP_HEADER`. Then serialize the
 following fields.
@@ -4607,7 +4617,7 @@ would be greater than 2^64-1, the Subscriber MUST close the Session with error
 
 The Object Properties structure is defined in {{object-properties}}.
 
-When encoding an Object with a Forwarding Preference of "Datagram" (see
+When encoding an Object with a Delivery Mode of "Datagram" (see
 {{object-properties}}), the object has no Subgroup ID. The publisher MUST SET bit 0x40 to '1'.
 When 0x40 is set, it SHOULD set the two least significant bits to zero and the subscriber
 MUST ignore the bits.
@@ -5013,7 +5023,7 @@ include:
    indicated End of Track.
 6. The same Object is received more than once with different Payload or
    other immutable properties.
-7. An Object is received with a different Forwarding Preference than previously
+7. An Object is received with a different Delivery Mode than previously
    observed.
 
 The above list of conditions is not considered exhaustive.
