@@ -634,7 +634,7 @@ incurring additional latency.
 Publishers MAY start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with REQUEST_ERROR or pauses the subscription in PUBLISH_OK. It can also result in
+with REQUEST_ERROR or pauses the subscription in REQUEST_UPDATE. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 {{datagrams}} and {{subgroup-header}}).
 
@@ -957,7 +957,7 @@ Pass = Location Filters AND Range Filters
 
 ### Pausing Subscriptions {#pausing-subscriptions}
 
-A subscription is paused by any filter that matches no Objects. The
+A subscription is paused if it contains a filter that cannot match any Objects. The
 recommended pausing filter is a Location Filter with StartGroup=0,
 StartObject=1, EndGroupDelta=0, EndObject=0, representing the empty range
 [{0,1}, {0,0}]. When multiple filter SetIDs are in use (see
@@ -965,9 +965,12 @@ StartObject=1, EndGroupDelta=0, EndObject=0, representing the empty range
 otherwise Objects can pass via an unpaused SetID.
 
 An endpoint pauses a subscription by including a pausing Location Filter in
-SUBSCRIBE, PUBLISH, PUBLISH_OK, or REQUEST_UPDATE, and resumes it by sending a
+SUBSCRIBE, PUBLISH, or REQUEST_UPDATE, and resumes it by sending a
 REQUEST_UPDATE that removes the Location Filter (Length=0) or replaces it with
 a non-pausing filter.
+
+Endpoints SHOULD NOT use Range Filters to pause a subscription, because Range
+Filters are optional and MAX_FILTER_RANGES can be zero.
 
 A pausing Location Filter in SUBSCRIBE_TRACKS does not pause any existing
 subscription; it sets the initial paused state for future subscriptions that
@@ -3102,7 +3105,7 @@ STOP_SENDING frame.
 
 A publisher that pauses the subscription (see {{pausing-subscriptions}})
 indicates that it will not transmit any objects until the subscriber resumes it
-via PUBLISH_OK or REQUEST_UPDATE. If the subscription is not paused, the
+via REQUEST_UPDATE. If the subscription is not paused, the
 publisher will start transmitting objects immediately, possibly before
 PUBLISH_OK. Delivery starts at the Next Object relative to the Largest Object
 at the time the publisher begins sending.
@@ -4042,10 +4045,10 @@ PUBLISH, or REQUEST_UPDATE_OK
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
 The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint. It MAY appear
-in PUBLISH_OK, SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
+in SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
-this parameter in PUBLISH_OK or REQUEST_UPDATE if the Track did not
+this parameter in REQUEST_UPDATE if the Track did not
 include the DYNAMIC_GROUPS Property with value 1.  A subscriber MAY
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 original publisher does not support dynamic Groups, it ignores the parameter in that
@@ -5511,7 +5514,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
 | 0x0A | FILL_TIMEOUT | {{fill-timeout}} |
-| 0x10 | Reserved | N/A |
+| 0x10 | Reserved (Formerly FORWARD) | N/A |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | LOCATION_FILTER | {{location-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
