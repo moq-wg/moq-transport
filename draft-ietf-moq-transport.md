@@ -1526,13 +1526,6 @@ The client establishes a QUIC connection to the host and port identified by the
 When the client uses native QUIC, the `authority`, `path-abempty` and `query`
 portions of the URI are transmitted in Setup Options (see {{setup-options}}).
 
-### Connection URL
-
-Each track MAY have one or more associated connection URLs specifying
-network hosts through which a track may be accessed. The syntax of the
-Connection URL and the associated connection setup procedures are
-specific to the underlying transport protocol usage (see {{session}}).
-
 ## Session initialization {#session-init}
 
 MOQT uses a pair of unidirectional streams for creating the session and
@@ -4495,14 +4488,6 @@ middle of a serialized Object, the session SHOULD be closed with a
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
 Header field values.
 
-### Stream Cancellation
-
-Streams aside from the control streams MAY be canceled due to congestion
-or other reasons by either the publisher or subscriber. Early termination of a
-unidirectional stream does not affect the MOQT application state, and therefore has
-no effect on outstanding subscriptions. Closing a bidirectional request stream is
-governed by {{request-cancellation}}.
-
 ### Subgroup Header
 
 All Objects on a Subgroup stream belong to the track identified by `Track Alias`
@@ -4876,68 +4861,6 @@ PADDING DATAGRAM {
 {: #padding-datagram-format title="MOQT Padding Datagram"}
 
 The receiver MUST discard all data received in a padding datagram.
-
-## Examples
-
-Sending a subgroup on one stream:
-
-~~~
-Stream = 2
-
-SUBGROUP_HEADER {
-  Type Flags = 0x14
-  Track Alias = 2
-  Group ID = 0
-  Subgroup ID = 0
-  Priority = 0
-}
-{
-  Object ID = 0
-  Object Payload Length = 4
-  Payload = "abcd"
-}
-{
-  Object ID = 1
-  Object Payload Length = 4
-  Payload = "efgh"
-}
-~~~
-
-Sending a group on one stream, with the first object containing two
-Properties.
-
-~~~
-Stream = 2
-
-SUBGROUP_HEADER {
-  Type Flags = 0x35
-  Track Alias = 2
-  Group ID = 0
-  Subgroup ID = 0
-}
-{
-  Object ID Delta = 0 (Object ID is 0)
-  Properties Length = 33
-    {
-      Type = 4
-      Value = 2186796243
-    },
-    {
-      Type = 77
-      Length = 21
-      Value = "traceID:123456"
-    }
-  Object Payload Length = 4
-  Payload = "abcd"
-}
-{
-  Object ID Delta = 0 (Object ID is 1)
-  Properties Length = 0
-  Object Payload Length = 4
-  Payload = "efgh"
-}
-
-~~~
 
 # Transport Considerations
 
