@@ -2511,6 +2511,14 @@ determine the largest published Group ID.<a href="#section-2.5-6.3.1" class="pil
       <h2 id="name-publishing-and-receiving-tr">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-publishing-and-receiving-tr" class="section-name selfRef">Publishing and Receiving Tracks</a>
       </h2>
+<p id="section-3-1">A subscription is a stateful ongoing relationship in which the Publisher
+delivers newly-published Objects from a single Track to the Subscriber. It can
+be established by either endpoint, via either SUBSCRIBE or PUBLISH.  A
+subscription is active until either endpoint terminates it, and its parameters
+can be updated via REQUEST_UPDATE.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">A fetch is a request for a bounded set of pre-existing Objects from a
+single Track.  It is delivered on a single stream, and ends automatically when
+all of the objects are delivered.<a href="#section-3-2" class="pilcrow">¶</a></p>
 <div id="subscriptions">
 <section id="section-3.1">
         <h3 id="name-subscriptions">
