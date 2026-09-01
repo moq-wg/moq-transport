@@ -4210,6 +4210,201 @@ The allowed values are 0 (do not send Properties) or 1 (send Properties), and th
 default is 1. If an endpoint receives a value outside this range, it MUST close the
 session with `PROTOCOL_VIOLATION`.
 
+# MOQT Properties {#moqt-properties}
+
+The following Properties are defined in MOQT. Each Property
+specifies whether it can be used with Tracks, Objects, or both.
+
+Property types in ranges reserved for application-specific use
+(0x78-0x7F, 0x3800-0x3FFF) are not defined by MOQT.
+See {{properties}} for usage guidance.
+
+## SUBGROUP_DELIVERY_TIMEOUT {#subgroup-delivery-timeout-ext}
+
+SUBGROUP_DELIVERY_TIMEOUT (Property Type 0x06) is a Track and Object Property.
+It is a variable-length integer.  Its semantics are defined in {{delivery-timeouts}}.  As an
+Object Property on the first object in a subgroup, it overrides the Track-level
+value for that subgroup; it is ignored on any other object in the subgroup.
+
+## OBJECT_DELIVERY_TIMEOUT {#object-delivery-timeout-ext}
+
+OBJECT_DELIVERY_TIMEOUT (Property Type 0x02) is a Track and Object Property.
+It is a variable-length integer.  Its semantics are defined in {{delivery-timeouts}}.  As an
+Object Property on the first object in a subgroup, it overrides the Track-level
+value for that subgroup; it is ignored on any other object in the subgroup.
+
+## MAX CACHE DURATION {#max-cache-duration}
+
+MAX_CACHE_DURATION (Property Type 0x04) is a Track Property.
+
+It is an integer expressing
+the number of milliseconds an Object can be served from a cache. If present, the
+relay MUST NOT start forwarding any individual Object received through this
+subscription or fetch after the specified number of milliseconds has elapsed
+since the beginning of the Object was received.  This means Objects earlier in a
+multi-object stream will expire earlier than Objects later in the stream. Once
+Objects have expired from cache, their state becomes unknown (see
+{{model-object}}).
+
+If MAX_CACHE_DURATION is not sent by the publisher, the Objects
+can be cached until implementation constraints cause them to be evicted.
+
+## DEFAULT PUBLISHER PRIORITY {#publisher-priority}
+
+DEFAULT PUBLISHER PRIORITY (Property Type 0x0E) is a Track Property
+that specifies the priority of a subscription relative to other subscriptions
+in the same session.  The value is from 0 to 255 and lower numbers get higher
+priority.  See {{priorities}}. Priorities above 255 are invalid. Subgroups and
+Datagrams for this subscription inherit this priority, unless they specifically
+override it.
+
+If omitted, the Default Publisher Priority is 128.
+
+## DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
+
+DEFAULT_PUBLISHER_GROUP_ORDER (Property Type 0x22) is a Track Property.
+
+It is an enum indicating the publisher's preference for prioritizing Objects
+from different groups within the
+same subscription (see {{priorities}}). The allowed values are Ascending (0x1) or
+Descending (0x2). If an endpoint receives a value outside this range, it MUST
+close the session with `PROTOCOL_VIOLATION`.
+
+If omitted, the publisher's preference is Ascending (0x1).
+
+## DYNAMIC GROUPS {#dynamic-groups}
+
+DYNAMIC_GROUPS (Property Type 0x30) is a Track Property.
+The allowed values are 0 or 1. When the value is 1, it indicates
+that the subscriber can request the Original Publisher to start a new Group
+by including the NEW_GROUP_REQUEST parameter in REQUEST_UPDATE
+for this Track. If an endpoint receives a value larger than 1, it MUST close
+the session with `PROTOCOL_VIOLATION`.
+
+If omitted, the value is 0.
+
+## Immutable Properties
+
+Immutable Properties (Property Type 0xB) is a Track or Object Property that
+contains a sequence of Key-Value-Pairs (see {{moq-key-value-pair}}) that are
+themselves Track or Object Properties, respectively.
+
+~~~
+Immutable Properties {
+  Type (0xB),
+  Length (vi64),
+  Key-Value-Pair (..) ...
+}
+~~~
+
+This Property can be added by the Original Publisher, but MUST NOT be added by
+Relays. This Property MUST NOT be modified or removed and the serialization
+(e.g. variable-length integer encodings) of the Key-Value-Pairs MUST NOT
+change). Like other Properties, Relays MUST cache Immutable Properties if the
+Object or Track are cached and MUST forward it. Relays MAY decode and view
+the Properties in the Key-Value-Pairs.
+
+Unless specified by a particular Property specification, Properties
+MAY appear either in the mutable property list or inside Immutable Properties.
+When looking for the value of a property, processors MUST search both the
+mutable properties and the contents of Immutable Properties.
+
+If a Property allows multiple values, the same Property Type MAY appear in
+both the mutable list and inside Immutable Properties, unless prohibited by
+the Property specification.
+
+A Track is considered malformed (see {{malformed-tracks}}) if any of the
+following conditions are detected:
+
+ * An Object contains an Immutable Properties property that contains another
+   Immutable Properties key.
+ * A Key-Value-Pair cannot be parsed.
+
+The following figure shows an example Object structure with a combination of
+mutable and immutable properties and end to end encrypted metadata in the Object
+payload.
+
+~~~
+                   Object Header                      Object Payload
+<------------------------------------------------> <------------------->
++--------+-------+------------+-------+-----------+--------------------+
+| Object | Ext 1 | Immutable  | Ext N | [Payload] | Private Properties |
+| Fields |       | Properties |       | [Length]  | App Payload        |
++--------+-------+------------+-------+-----------+--------------------+
+                  xxxxxxxxxxxx                     xxxxxxxxxxxxxxxxxxxx
+                                                   yyyyyyyyyyyyyyyyyyyy
+x = e2e Authenticated Data
+y = e2e Encrypted Data
+EXT 1 and EXT N can be modified or removed by Relays
+~~~
+
+An Object MUST NOT contain more than one instance of this property.
+
+## Prior Group ID Gap
+
+Prior Group ID Gap only applies to Objects, not Tracks.
+
+Prior Group ID Gap (Property Type 0x3C) is a variable-length integer
+containing the number of Groups prior to the current Group that do not, and will
+never, exist. For example, if the Original Publisher is publishing an Object in
+Group 7 and knows it will never publish any Objects in Group 8 or Group 9, it
+can include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it
+sees fit.  A Track is considered malformed (see {{malformed-tracks}}) if any of
+the following conditions are detected:
+
+ * An Object contains more than one instance of Prior Group ID Gap.
+ * A Group contains more than one Object with different values for Prior Group
+    ID Gap.
+ * An Object has a Prior Group ID Gap larger than the Group ID.
+ * An endpoint receives an Object with a Prior Group ID Gap covering an Object
+   it previously received.
+ * An endpoint receives an Object with a Group ID within a previously
+   communicated gap.
+
+Use of this property is optional, as publishers might not know the prior gap size,
+or there may not be a gap. If Prior Group ID Gap is not present, the receiver
+cannot infer any information about the existence of prior groups (see
+{{group-ids}}).
+
+This property can be added by the Original Publisher, but MUST NOT be added by
+relays. This property MAY be removed by a relay when the object in question is
+served via FETCH, and the gap that the property communicates is already
+communicated implicitly in the FETCH response; it MUST NOT be modified or
+removed otherwise.
+
+An Object MUST NOT contain more than one instance of this property.
+
+## Prior Object ID Gap
+
+Prior Object ID Gap only applies to Objects, not Tracks.
+
+Prior Object ID Gap (Property Type 0x3E) is a variable-length integer
+containing the number of Objects prior to the current Object that do not, and
+will never, exist. For example, if the Original Publisher is publishing Object
+10 in Group 3 and knows it will never publish Objects 8 or 9 in this Group, it
+can include Prior Object ID Gap = 2.  A Track is considered malformed (see
+{{malformed-tracks}}) if any of the following conditions are detected:
+
+ * An Object contains more than one instance of Prior Object ID Gap.
+ * An Object has a Prior Object ID Gap larger than the Object ID.
+ * An endpoint receives an Object with a Prior Object ID Gap covering an Object
+   it previously received.
+ * An endpoint receives an Object with an Object ID within a previously
+   communicated gap.
+
+Use of this property is optional, as publishers might not know the prior gap size,
+or there might not be a gap. If Prior Object ID Gap is not present, the receiver
+cannot infer any information about the existence of prior objects (see
+{{model-object}}).
+
+This property can be added by the Original Publisher, but MUST NOT be added by
+relays. This property MAY be removed by a relay when the object in question is
+served via FETCH, and the gap that the property communicates is already
+communicated implicitly in the FETCH response; it MUST NOT be modified or
+removed otherwise.
+
+An Object MUST NOT contain more than one instance of this property.
+
 # Data Streams and Datagrams {#data-streams}
 
 A publisher sends Objects matching a subscription on Data Streams or Datagrams
@@ -4867,201 +5062,6 @@ SUBGROUP_HEADER {
 }
 
 ~~~
-
-# MOQT Properties {#moqt-properties}
-
-The following Properties are defined in MOQT. Each Property
-specifies whether it can be used with Tracks, Objects, or both.
-
-Property types in ranges reserved for application-specific use
-(0x78-0x7F, 0x3800-0x3FFF) are not defined by MOQT.
-See {{properties}} for usage guidance.
-
-## SUBGROUP_DELIVERY_TIMEOUT {#subgroup-delivery-timeout-ext}
-
-SUBGROUP_DELIVERY_TIMEOUT (Property Type 0x06) is a Track and Object Property.
-It is a variable-length integer.  Its semantics are defined in {{delivery-timeouts}}.  As an
-Object Property on the first object in a subgroup, it overrides the Track-level
-value for that subgroup; it is ignored on any other object in the subgroup.
-
-## OBJECT_DELIVERY_TIMEOUT {#object-delivery-timeout-ext}
-
-OBJECT_DELIVERY_TIMEOUT (Property Type 0x02) is a Track and Object Property.
-It is a variable-length integer.  Its semantics are defined in {{delivery-timeouts}}.  As an
-Object Property on the first object in a subgroup, it overrides the Track-level
-value for that subgroup; it is ignored on any other object in the subgroup.
-
-## MAX CACHE DURATION {#max-cache-duration}
-
-MAX_CACHE_DURATION (Property Type 0x04) is a Track Property.
-
-It is an integer expressing
-the number of milliseconds an Object can be served from a cache. If present, the
-relay MUST NOT start forwarding any individual Object received through this
-subscription or fetch after the specified number of milliseconds has elapsed
-since the beginning of the Object was received.  This means Objects earlier in a
-multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes unknown (see
-{{model-object}}).
-
-If MAX_CACHE_DURATION is not sent by the publisher, the Objects
-can be cached until implementation constraints cause them to be evicted.
-
-## DEFAULT PUBLISHER PRIORITY {#publisher-priority}
-
-DEFAULT PUBLISHER PRIORITY (Property Type 0x0E) is a Track Property
-that specifies the priority of a subscription relative to other subscriptions
-in the same session.  The value is from 0 to 255 and lower numbers get higher
-priority.  See {{priorities}}. Priorities above 255 are invalid. Subgroups and
-Datagrams for this subscription inherit this priority, unless they specifically
-override it.
-
-If omitted, the Default Publisher Priority is 128.
-
-## DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
-
-DEFAULT_PUBLISHER_GROUP_ORDER (Property Type 0x22) is a Track Property.
-
-It is an enum indicating the publisher's preference for prioritizing Objects
-from different groups within the
-same subscription (see {{priorities}}). The allowed values are Ascending (0x1) or
-Descending (0x2). If an endpoint receives a value outside this range, it MUST
-close the session with `PROTOCOL_VIOLATION`.
-
-If omitted, the publisher's preference is Ascending (0x1).
-
-## DYNAMIC GROUPS {#dynamic-groups}
-
-DYNAMIC_GROUPS (Property Type 0x30) is a Track Property.
-The allowed values are 0 or 1. When the value is 1, it indicates
-that the subscriber can request the Original Publisher to start a new Group
-by including the NEW_GROUP_REQUEST parameter in REQUEST_UPDATE
-for this Track. If an endpoint receives a value larger than 1, it MUST close
-the session with `PROTOCOL_VIOLATION`.
-
-If omitted, the value is 0.
-
-## Immutable Properties
-
-Immutable Properties (Property Type 0xB) is a Track or Object Property that
-contains a sequence of Key-Value-Pairs (see {{moq-key-value-pair}}) that are
-themselves Track or Object Properties, respectively.
-
-~~~
-Immutable Properties {
-  Type (0xB),
-  Length (vi64),
-  Key-Value-Pair (..) ...
-}
-~~~
-
-This Property can be added by the Original Publisher, but MUST NOT be added by
-Relays. This Property MUST NOT be modified or removed and the serialization
-(e.g. variable-length integer encodings) of the Key-Value-Pairs MUST NOT
-change). Like other Properties, Relays MUST cache Immutable Properties if the
-Object or Track are cached and MUST forward it. Relays MAY decode and view
-the Properties in the Key-Value-Pairs.
-
-Unless specified by a particular Property specification, Properties
-MAY appear either in the mutable property list or inside Immutable Properties.
-When looking for the value of a property, processors MUST search both the
-mutable properties and the contents of Immutable Properties.
-
-If a Property allows multiple values, the same Property Type MAY appear in
-both the mutable list and inside Immutable Properties, unless prohibited by
-the Property specification.
-
-A Track is considered malformed (see {{malformed-tracks}}) if any of the
-following conditions are detected:
-
- * An Object contains an Immutable Properties property that contains another
-   Immutable Properties key.
- * A Key-Value-Pair cannot be parsed.
-
-The following figure shows an example Object structure with a combination of
-mutable and immutable properties and end to end encrypted metadata in the Object
-payload.
-
-~~~
-                   Object Header                      Object Payload
-<------------------------------------------------> <------------------->
-+--------+-------+------------+-------+-----------+--------------------+
-| Object | Ext 1 | Immutable  | Ext N | [Payload] | Private Properties |
-| Fields |       | Properties |       | [Length]  | App Payload        |
-+--------+-------+------------+-------+-----------+--------------------+
-                  xxxxxxxxxxxx                     xxxxxxxxxxxxxxxxxxxx
-                                                   yyyyyyyyyyyyyyyyyyyy
-x = e2e Authenticated Data
-y = e2e Encrypted Data
-EXT 1 and EXT N can be modified or removed by Relays
-~~~
-
-An Object MUST NOT contain more than one instance of this property.
-
-## Prior Group ID Gap
-
-Prior Group ID Gap only applies to Objects, not Tracks.
-
-Prior Group ID Gap (Property Type 0x3C) is a variable-length integer
-containing the number of Groups prior to the current Group that do not, and will
-never, exist. For example, if the Original Publisher is publishing an Object in
-Group 7 and knows it will never publish any Objects in Group 8 or Group 9, it
-can include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it
-sees fit.  A Track is considered malformed (see {{malformed-tracks}}) if any of
-the following conditions are detected:
-
- * An Object contains more than one instance of Prior Group ID Gap.
- * A Group contains more than one Object with different values for Prior Group
-    ID Gap.
- * An Object has a Prior Group ID Gap larger than the Group ID.
- * An endpoint receives an Object with a Prior Group ID Gap covering an Object
-   it previously received.
- * An endpoint receives an Object with a Group ID within a previously
-   communicated gap.
-
-Use of this property is optional, as publishers might not know the prior gap size,
-or there may not be a gap. If Prior Group ID Gap is not present, the receiver
-cannot infer any information about the existence of prior groups (see
-{{group-ids}}).
-
-This property can be added by the Original Publisher, but MUST NOT be added by
-relays. This property MAY be removed by a relay when the object in question is
-served via FETCH, and the gap that the property communicates is already
-communicated implicitly in the FETCH response; it MUST NOT be modified or
-removed otherwise.
-
-An Object MUST NOT contain more than one instance of this property.
-
-## Prior Object ID Gap
-
-Prior Object ID Gap only applies to Objects, not Tracks.
-
-Prior Object ID Gap (Property Type 0x3E) is a variable-length integer
-containing the number of Objects prior to the current Object that do not, and
-will never, exist. For example, if the Original Publisher is publishing Object
-10 in Group 3 and knows it will never publish Objects 8 or 9 in this Group, it
-can include Prior Object ID Gap = 2.  A Track is considered malformed (see
-{{malformed-tracks}}) if any of the following conditions are detected:
-
- * An Object contains more than one instance of Prior Object ID Gap.
- * An Object has a Prior Object ID Gap larger than the Object ID.
- * An endpoint receives an Object with a Prior Object ID Gap covering an Object
-   it previously received.
- * An endpoint receives an Object with an Object ID within a previously
-   communicated gap.
-
-Use of this property is optional, as publishers might not know the prior gap size,
-or there might not be a gap. If Prior Object ID Gap is not present, the receiver
-cannot infer any information about the existence of prior objects (see
-{{model-object}}).
-
-This property can be added by the Original Publisher, but MUST NOT be added by
-relays. This property MAY be removed by a relay when the object in question is
-served via FETCH, and the gap that the property communicates is already
-communicated implicitly in the FETCH response; it MUST NOT be modified or
-removed otherwise.
-
-An Object MUST NOT contain more than one instance of this property.
 
 # Security Considerations {#security}
 
