@@ -2204,6 +2204,9 @@ its track namespace, track name, group ID, and object ID, and must be an
 identical sequence of bytes regardless of how or where it is retrieved.
 An Object can become unavailable, but its contents <span class="bcp14">MUST NOT</span> change over
 time.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
+<p id="section-2.1-2">Every Object within a Group belongs to exactly one Subgroup or Datagram. An
+Original Publisher <span class="bcp14">MAY</span> use both Subgroups and Datagrams within a Group or
+Track.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
 <div id="canonical-object-fields">
 <section id="section-2.1.1">
           <h4 id="name-canonical-object-fields">
@@ -2267,33 +2270,29 @@ way, and the description in the remainder of this section does not apply.<a href
 retransmission of data. Furthermore, many QUIC and WebTransport implementations
 offer the ability to control the relative scheduling priority of pending stream
 data.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
-<p id="section-2.2-4">Every Object within a Group belongs to exactly one Subgroup or Datagram. An
-Original Publisher <span class="bcp14">MAY</span> use both Subgroups and Datagrams within a Group or
-Track; each Object's <code>Object Forwarding Preference</code> (see <a href="#object-header" class="auto internal xref">Section 11.1.1</a>)
-determines which is used.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
-<p id="section-2.2-5">When Objects are sent in a subscription (see <a href="#subscriptions" class="auto internal xref">Section 3.1</a>),  Objects
+<p id="section-2.2-4">When Objects are sent in a subscription (see <a href="#subscriptions" class="auto internal xref">Section 3.1</a>),  Objects
 from two subgroups <span class="bcp14">MUST NOT</span> be sent on the same stream, and Objects from the
 same Subgroup <span class="bcp14">MUST NOT</span> be sent on different streams, unless one of the streams
 was reset prematurely, or upstream conditions have forced objects from a Subgroup
-to be sent out of Object ID order.<a href="#section-2.2-5" class="pilcrow">¶</a></p>
-<p id="section-2.2-6">Original publishers assign each Subgroup a Subgroup ID, and do so as they see fit.  The
+to be sent out of Object ID order.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
+<p id="section-2.2-5">Original publishers assign each Subgroup a Subgroup ID, and do so as they see fit.  The
 scope of a Subgroup ID is a Group, so Subgroups from different Groups <span class="bcp14">MAY</span> share a Subgroup
 ID without implying any relationship between them. In general, publishers assign
 objects to subgroups in order to leverage the features of streams as described
-above.<a href="#section-2.2-6" class="pilcrow">¶</a></p>
-<p id="section-2.2-7">In general, if Object B is dependent on Object A, then delivery of B can follow
+above.<a href="#section-2.2-5" class="pilcrow">¶</a></p>
+<p id="section-2.2-6">In general, if Object B is dependent on Object A, then delivery of B can follow
 A, i.e. A and B can be usefully delivered over a single stream.  If an Object is
 dependent on all previous Objects in a Subgroup, it likely fits best in that
 Subgroup.  If an Object is not dependent on any of the Objects in a Subgroup, it
-likely belongs in a different Subgroup.<a href="#section-2.2-7" class="pilcrow">¶</a></p>
-<p id="section-2.2-8">When assigning Objects to different Subgroups, the Original Publisher makes a
+likely belongs in a different Subgroup.<a href="#section-2.2-6" class="pilcrow">¶</a></p>
+<p id="section-2.2-7">When assigning Objects to different Subgroups, the Original Publisher makes a
 reasonable tradeoff between having an optimal mapping of Object relationships in
-a Group and minimizing the number of streams used.<a href="#section-2.2-8" class="pilcrow">¶</a></p>
-<p id="section-2.2-9">When the Original Publisher opens a new subgroup, it <span class="bcp14">MUST</span> set the FIRST_OBJECT
+a Group and minimizing the number of streams used.<a href="#section-2.2-7" class="pilcrow">¶</a></p>
+<p id="section-2.2-8">When the Original Publisher opens a new subgroup, it <span class="bcp14">MUST</span> set the FIRST_OBJECT
 bit (<a href="#subgroup-header" class="auto internal xref">Section 11.3.2</a>) to indicate that the first object in the subgroup
 stream is the first object ever published in that subgroup. A relay forwarding a
 subgroup that begins with the first object ever published in that subgroup <span class="bcp14">MUST</span>
-set the FIRST_OBJECT bit.<a href="#section-2.2-9" class="pilcrow">¶</a></p>
+set the FIRST_OBJECT bit.<a href="#section-2.2-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="model-group">
