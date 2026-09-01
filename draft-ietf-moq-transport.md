@@ -4460,7 +4460,7 @@ according to its `Object Forwarding Preference`.
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
 NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
 
-#### Object Status {#object-status}
+### Object Status {#object-status}
 
 The Object Status is a field that is only present in objects that are delivered
 via a SUBSCRIPTION, and is absent in Objects delivered via a FETCH.  It allows
@@ -4492,7 +4492,7 @@ registered as permitting a payload in the Object Status registry
 ({{iana-object-status}}). Of the values defined in this document, only Normal
 (0x0) permits a payload.
 
-#### Object Properties {#object-properties}
+### Object Properties {#object-properties}
 
 Any Object with status Normal can have properties ({{properties}}).
 If an endpoint receives properties on an Object with status that is
@@ -4610,7 +4610,7 @@ If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
 Object Status is not Normal (0x0), the endpoint MUST close the session with a
 `PROTOCOL_VIOLATION`, because only Normal Objects can have Properties.
 
-## Streams
+## Subgroup Streams
 
 When Objects are sent on streams, the stream begins with a Subgroup or Fetch
 Header and is followed by one or more sets of serialized Object fields.
@@ -4839,6 +4839,8 @@ as the update indicates the subscriber has renewed interest in forwarded Objects
 
 The application SHOULD use a relevant error code when resetting a stream,
 as defined in {{stream-reset-codes}}.
+
+## Fetch Streams
 
 ### Fetch Header {#fetch-header}
 
