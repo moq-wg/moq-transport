@@ -1452,15 +1452,18 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.8.2.5.1"><a href="#section-8.5" class="auto internal xref">8.5</a>.  <a href="#name-reason-phrase-structure" class="internal xref">Reason Phrase Structure</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.6">
-                <p id="section-toc.1-1.8.2.6.1"><a href="#section-8.6" class="auto internal xref">8.6</a>.  <a href="#name-representing-namespace-and-" class="internal xref">Representing Namespace and Track Names</a></p>
+                <p id="section-toc.1-1.8.2.6.1"><a href="#section-8.6" class="auto internal xref">8.6</a>.  <a href="#name-track-namespace-structure" class="internal xref">Track Namespace Structure</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.7">
+                <p id="section-toc.1-1.8.2.7.1"><a href="#section-8.7" class="auto internal xref">8.7</a>.  <a href="#name-representing-namespace-and-" class="internal xref">Representing Namespace and Track Names</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.6.2.1">
-                    <p id="section-toc.1-1.8.2.6.2.1.1"><a href="#section-8.6.1" class="auto internal xref">8.6.1</a>.  <a href="#name-parsing-serialized-names" class="internal xref">Parsing Serialized Names</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.7.2.1">
+                    <p id="section-toc.1-1.8.2.7.2.1.1"><a href="#section-8.7.1" class="auto internal xref">8.7.1</a>.  <a href="#name-parsing-serialized-names" class="internal xref">Parsing Serialized Names</a></p>
 </li>
                 </ul>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.7">
-                <p id="section-toc.1-1.8.2.7.1"><a href="#section-8.7" class="auto internal xref">8.7</a>.  <a href="#name-authorization-token-compres" class="internal xref">Authorization Token Compression</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.8">
+                <p id="section-toc.1-1.8.2.8.1"><a href="#section-8.8" class="auto internal xref">8.8</a>.  <a href="#name-authorization-token-compres" class="internal xref">Authorization Token Compression</a></p>
 </li>
             </ul>
 </li>
@@ -2375,62 +2378,18 @@ active.<a href="#section-2.4-1" class="pilcrow">¶</a></p>
 <p id="section-2.4.1-1">In MOQT, every track is identified by a Full Track Name, consisting of a Track
 Namespace and a Track Name.<a href="#section-2.4.1-1" class="pilcrow">¶</a></p>
 <p id="section-2.4.1-2">Track Namespace is an ordered set of between 0 and 32 Track Namespace Fields,
-encoded as follows:<a href="#section-2.4.1-2" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-2.4.1-3">
-<pre>
-Track Namespace {
-  Number of Track Namespace Fields (vi64),
-  Track Namespace Field (..) ...
-}
-</pre><a href="#section-2.4.1-3" class="pilcrow">¶</a>
-</div>
-<ul class="normal">
-<li class="normal" id="section-2.4.1-4.1">
-              <p id="section-2.4.1-4.1.1">Number of Track Namespace Fields: A variable-length integer specifying
-the number of Track Namespace Fields in the Track Namespace.<a href="#section-2.4.1-4.1.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-2.4.1-5">Each Track Namespace Field is encoded as follows:<a href="#section-2.4.1-5" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-2.4.1-6">
-<pre>
-Track Namespace Field {
-  Track Namespace Field Length (vi64),
-  Track Namespace Field Value (..)
-}
-</pre><a href="#section-2.4.1-6" class="pilcrow">¶</a>
-</div>
-<ul class="normal">
-<li class="normal" id="section-2.4.1-7.1">
-              <p id="section-2.4.1-7.1.1">Track Namespace Field Length: A variable-length integer specifying the length
-of the Track Namespace Field in bytes.<a href="#section-2.4.1-7.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-2.4.1-7.2">
-              <p id="section-2.4.1-7.2.1">Track Namespace Field Value: A sequence of bytes that forms a Track Namespace
-Field.<a href="#section-2.4.1-7.2.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-2.4.1-8">Each Track Namespace Field Value <span class="bcp14">MUST</span> contain at least one byte. If an endpoint
-receives a Track Namespace Field with a Track Namespace Field Length of 0, it
-<span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-2.4.1-8" class="pilcrow">¶</a></p>
-<p id="section-2.4.1-9">The structured nature of Track Namespace allows relays and applications to
-manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
-consisting of greater than 32 Track Namespace Fields, it <span class="bcp14">MUST</span> close the
-session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-2.4.1-9" class="pilcrow">¶</a></p>
-<p id="section-2.4.1-10">Track Name is a sequence of bytes, possibly empty, that identifies an individual
-track within the namespace.<a href="#section-2.4.1-10" class="pilcrow">¶</a></p>
-<p id="section-2.4.1-11">The maximum total length of a Full Track Name is 4,096 bytes. The length of a
-Full Track Name is computed as the sum of the Track Namespace Field Length
-fields and the Track Name Length field. The length of a Track Namespace is the
-sum of the Track Namespace Field Length fields. If an endpoint receives a Track
-Namespace or a Full Track Name exceeding 4,096 bytes, it <span class="bcp14">MUST</span> close the session
-with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-2.4.1-11" class="pilcrow">¶</a></p>
-<p id="section-2.4.1-12">In this specification, both the Track Namespace Fields and the Track Name
+encoded as described in <a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a>.<a href="#section-2.4.1-2" class="pilcrow">¶</a></p>
+<p id="section-2.4.1-3">The structured nature of Track Namespace allows relays and applications to
+manipulate prefixes of a namespace.<a href="#section-2.4.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.4.1-4">Track Name is a sequence of bytes, possibly empty, that identifies an individual
+track within the namespace.<a href="#section-2.4.1-4" class="pilcrow">¶</a></p>
+<p id="section-2.4.1-5">In this specification, both the Track Namespace Fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace Fields or Track Names is done by
 exact comparison of the bytes. Specifications that use MOQT may constrain the
 information in these fields, for example by restricting them to UTF-8. Any such
 specification needs to specify the canonicalization into the bytes in the Track
-Namespace Fields or Track Name such that exact comparison works.<a href="#section-2.4.1-12" class="pilcrow">¶</a></p>
+Namespace Fields or Track Name such that exact comparison works.<a href="#section-2.4.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="reserved-namespaces">
@@ -4538,90 +4497,142 @@ the one that created the text.<a href="#section-8.5-3.2.1" class="pilcrow">¶</a
         </ul>
 </section>
 </div>
-<div id="namespace-name-format">
+<div id="track-namespace-structure">
 <section id="section-8.6">
-        <h3 id="name-representing-namespace-and-">
-<a href="#section-8.6" class="section-number selfRef">8.6. </a><a href="#name-representing-namespace-and-" class="section-name selfRef">Representing Namespace and Track Names</a>
+        <h3 id="name-track-namespace-structure">
+<a href="#section-8.6" class="section-number selfRef">8.6. </a><a href="#name-track-namespace-structure" class="section-name selfRef">Track Namespace Structure</a>
         </h3>
-<p id="section-8.6-1">There is often a need to render namespace tuples and track names for
-purposes such as logging, representing track filenames, or use in
-certain authorization verification schemes. The namespace and track name
-are binary and need to be converted to a safe form.<a href="#section-8.6-1" class="pilcrow">¶</a></p>
-<p id="section-8.6-2">The following format is <span class="bcp14">RECOMMENDED</span>:<a href="#section-8.6-2" class="pilcrow">¶</a></p>
+<p id="section-8.6-1">Track Namespace (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>) is encoded as follows:<a href="#section-8.6-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.6-2">
+<pre>
+Track Namespace {
+  Number of Track Namespace Fields (vi64),
+  Track Namespace Field (..) ...
+}
+</pre><a href="#section-8.6-2" class="pilcrow">¶</a>
+</div>
 <ul class="normal">
 <li class="normal" id="section-8.6-3.1">
-            <p id="section-8.6-3.1.1">Each of the namespace tuples are rendered in order with a hyphen (-)
-between them followed by the track name with a double hyphen (--)
-between the last namespace and track name.<a href="#section-8.6-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.6-3.2">
-            <p id="section-8.6-3.2.1">Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output verbatim,
-while all other bytes are encoded as a period (.) symbol followed by
-exactly two lowercase hexadecimal digits.<a href="#section-8.6-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-8.6-3.1.1">Number of Track Namespace Fields: A variable-length integer specifying
+the number of Track Namespace Fields in the Track Namespace.<a href="#section-8.6-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.6-4">This format allows many common names to be rendered in an easily human readable
+<p id="section-8.6-4">Each Track Namespace Field is encoded as follows:<a href="#section-8.6-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.6-5">
+<pre>
+Track Namespace Field {
+  Track Namespace Field Length (vi64),
+  Track Namespace Field Value (..)
+}
+</pre><a href="#section-8.6-5" class="pilcrow">¶</a>
+</div>
+<ul class="normal">
+<li class="normal" id="section-8.6-6.1">
+            <p id="section-8.6-6.1.1">Track Namespace Field Length: A variable-length integer specifying the length
+of the Track Namespace Field in bytes.<a href="#section-8.6-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.6-6.2">
+            <p id="section-8.6-6.2.1">Track Namespace Field Value: A sequence of bytes that forms a Track Namespace
+Field.<a href="#section-8.6-6.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.6-7">Each Track Namespace Field Value <span class="bcp14">MUST</span> contain at least one byte. If an endpoint
+receives a Track Namespace Field with a Track Namespace Field Length of 0, it
+<span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-8.6-7" class="pilcrow">¶</a></p>
+<p id="section-8.6-8">If an endpoint receives a Track Namespace consisting of greater than 32 Track
+Namespace Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-8.6-8" class="pilcrow">¶</a></p>
+<p id="section-8.6-9">The maximum total length of a Full Track Name is 4,096 bytes. The length of a
+Full Track Name is computed as the sum of the Track Namespace Field Length
+fields and the Track Name Length field. The length of a Track Namespace is the
+sum of the Track Namespace Field Length fields. If an endpoint receives a Track
+Namespace or a Full Track Name exceeding 4,096 bytes, it <span class="bcp14">MUST</span> close the session
+with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-8.6-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="namespace-name-format">
+<section id="section-8.7">
+        <h3 id="name-representing-namespace-and-">
+<a href="#section-8.7" class="section-number selfRef">8.7. </a><a href="#name-representing-namespace-and-" class="section-name selfRef">Representing Namespace and Track Names</a>
+        </h3>
+<p id="section-8.7-1">There is often a need to render namespace tuples and track names for
+purposes such as logging, representing track filenames, or use in
+certain authorization verification schemes. The namespace and track name
+are binary and need to be converted to a safe form.<a href="#section-8.7-1" class="pilcrow">¶</a></p>
+<p id="section-8.7-2">The following format is <span class="bcp14">RECOMMENDED</span>:<a href="#section-8.7-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.7-3.1">
+            <p id="section-8.7-3.1.1">Each of the namespace tuples are rendered in order with a hyphen (-)
+between them followed by the track name with a double hyphen (--)
+between the last namespace and track name.<a href="#section-8.7-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.7-3.2">
+            <p id="section-8.7-3.2.1">Bytes in the range a-z, A-Z, 0-9 as well as _ (0x5f) are output verbatim,
+while all other bytes are encoded as a period (.) symbol followed by
+exactly two lowercase hexadecimal digits.<a href="#section-8.7-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.7-4">This format allows many common names to be rendered in an easily human readable
 form while still supporting binary values.  Note that while the character set
 is chosen to be generally both filename and URL safe, filename safety is
 platform specific; for instance, on case-insensitive filesystems, track names
-can collide.<a href="#section-8.6-4" class="pilcrow">¶</a></p>
+can collide.<a href="#section-8.7-4" class="pilcrow">¶</a></p>
 <div id="parsing-serialized-names">
-<section id="section-8.6.1">
+<section id="section-8.7.1">
           <h4 id="name-parsing-serialized-names">
-<a href="#section-8.6.1" class="section-number selfRef">8.6.1. </a><a href="#name-parsing-serialized-names" class="section-name selfRef">Parsing Serialized Names</a>
+<a href="#section-8.7.1" class="section-number selfRef">8.7.1. </a><a href="#name-parsing-serialized-names" class="section-name selfRef">Parsing Serialized Names</a>
           </h4>
-<p id="section-8.6.1-1">When parsing a serialized namespace or track name back to its binary form,
-implementations <span class="bcp14">MUST</span> apply the following rules to ensure a canonical encoding:<a href="#section-8.6.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.7.1-1">When parsing a serialized namespace or track name back to its binary form,
+implementations <span class="bcp14">MUST</span> apply the following rules to ensure a canonical encoding:<a href="#section-8.7.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.6.1-2.1">
-              <p id="section-8.6.1-2.1.1">A period (.) <span class="bcp14">MUST</span> be followed by exactly two hexadecimal digits. A trailing period
-or a period followed by fewer than two hexadecimal digits is invalid.<a href="#section-8.6.1-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.7.1-2.1">
+              <p id="section-8.7.1-2.1.1">A period (.) <span class="bcp14">MUST</span> be followed by exactly two hexadecimal digits. A trailing period
+or a period followed by fewer than two hexadecimal digits is invalid.<a href="#section-8.7.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.6.1-2.2">
-              <p id="section-8.6.1-2.2.1">The hexadecimal digits following a period (.) <span class="bcp14">MUST</span> be lowercase (a-f). Uppercase
-hexadecimal digits (A-F) are invalid and <span class="bcp14">MUST</span> cause parsing to fail.<a href="#section-8.6.1-2.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-8.7.1-2.2">
+              <p id="section-8.7.1-2.2.1">The hexadecimal digits following a period (.) <span class="bcp14">MUST</span> be lowercase (a-f). Uppercase
+hexadecimal digits (A-F) are invalid and <span class="bcp14">MUST</span> cause parsing to fail.<a href="#section-8.7.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.6.1-2.3">
-              <p id="section-8.6.1-2.3.1">Bytes that can be represented literally (a-z, A-Z, 0-9, _) <span class="bcp14">MUST NOT</span> appear
+            <li class="normal" id="section-8.7.1-2.3">
+              <p id="section-8.7.1-2.3.1">Bytes that can be represented literally (a-z, A-Z, 0-9, _) <span class="bcp14">MUST NOT</span> appear
 in their hex-encoded form. For example, <code>.61</code> is invalid because <code>a</code> must
 be represented as the literal character <code>a</code>. A parser <span class="bcp14">MUST</span> reject such
-redundant encodings.<a href="#section-8.6.1-2.3.1" class="pilcrow">¶</a></p>
+redundant encodings.<a href="#section-8.7.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-8.6.1-3">These rules ensure that the encoding is bijective: every binary value has
+<p id="section-8.7.1-3">These rules ensure that the encoding is bijective: every binary value has
 exactly one valid serialized representation, and every valid serialized
 string maps to exactly one binary value. This property simplifies comparison
-of serialized names without requiring full deserialization.<a href="#section-8.6.1-3" class="pilcrow">¶</a></p>
-<p id="section-8.6.1-4">Implementations that receive an invalid serialized name <span class="bcp14">SHOULD</span> treat it as
-an error. The specific error handling behavior is application-defined.<a href="#section-8.6.1-4" class="pilcrow">¶</a></p>
-<p id="section-8.6.1-5">Example:<a href="#section-8.6.1-5" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-8.6.1-6">
+of serialized names without requiring full deserialization.<a href="#section-8.7.1-3" class="pilcrow">¶</a></p>
+<p id="section-8.7.1-4">Implementations that receive an invalid serialized name <span class="bcp14">SHOULD</span> treat it as
+an error. The specific error handling behavior is application-defined.<a href="#section-8.7.1-4" class="pilcrow">¶</a></p>
+<p id="section-8.7.1-5">Example:<a href="#section-8.7.1-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.7.1-6">
 <pre>
 example.2enet-team2-project_x--report
   Namespace tuples: (example.net, team2, project_x)
   Track name: report
-</pre><a href="#section-8.6.1-6" class="pilcrow">¶</a>
+</pre><a href="#section-8.7.1-6" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
 </section>
 </div>
 <div id="auth-token-compression">
-<section id="section-8.7">
+<section id="section-8.8">
         <h3 id="name-authorization-token-compres">
-<a href="#section-8.7" class="section-number selfRef">8.7. </a><a href="#name-authorization-token-compres" class="section-name selfRef">Authorization Token Compression</a>
+<a href="#section-8.8" class="section-number selfRef">8.8. </a><a href="#name-authorization-token-compres" class="section-name selfRef">Authorization Token Compression</a>
         </h3>
-<p id="section-8.7-1">Authorization tokens are carried in the AUTHORIZATION TOKEN message parameter
+<p id="section-8.8-1">Authorization tokens are carried in the AUTHORIZATION TOKEN message parameter
 (see <a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>) and the AUTHORIZATION TOKEN Setup Option (see
 <a href="#setup-auth-token" class="auto internal xref">Section 9.1.1.4</a>).  Both use the wire format and semantics defined in this
-section.<a href="#section-8.7-1" class="pilcrow">¶</a></p>
-<p id="section-8.7-2">The value is a Token structure containing an optional Session-specific
+section.<a href="#section-8.8-1" class="pilcrow">¶</a></p>
+<p id="section-8.8-2">The value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
 Type and Token Value in future messages. The Token structure is serialized as
-follows:<a href="#section-8.7-2" class="pilcrow">¶</a></p>
+follows:<a href="#section-8.8-2" class="pilcrow">¶</a></p>
 <span id="name-token-structure"></span><div id="moq-token">
 <figure id="figure-3">
-          <div class="alignLeft art-text artwork" id="section-8.7-3.1">
+          <div class="alignLeft art-text artwork" id="section-8.8-3.1">
 <pre>
 Token {
   Alias Type (vi64),
@@ -4636,68 +4647,68 @@ Token {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-8.7-4.1">
-            <p id="section-8.7-4.1.1">Alias Type - an integer defining both the serialization and the processing
-behavior of the receiver. This Alias type has the following code points:<a href="#section-8.7-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.8-4.1">
+            <p id="section-8.8-4.1.1">Alias Type - an integer defining both the serialization and the processing
+behavior of the receiver. This Alias type has the following code points:<a href="#section-8.8-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<span class="break"></span><dl class="dlParallel" id="section-8.7-5">
-          <dt id="section-8.7-5.1">DELETE (0x0):</dt>
-          <dd style="margin-left: 1.5em" id="section-8.7-5.2">
-            <p id="section-8.7-5.2.1">There is an Alias but no Type or Value. This Alias and the Token Value it was
+<span class="break"></span><dl class="dlParallel" id="section-8.8-5">
+          <dt id="section-8.8-5.1">DELETE (0x0):</dt>
+          <dd style="margin-left: 1.5em" id="section-8.8-5.2">
+            <p id="section-8.8-5.2.1">There is an Alias but no Type or Value. This Alias and the Token Value it was
 previously associated with <span class="bcp14">MUST</span> be retired. Retiring removes them from the pool
-of actively registered tokens.<a href="#section-8.7-5.2.1" class="pilcrow">¶</a></p>
+of actively registered tokens.<a href="#section-8.8-5.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-8.7-5.3">REGISTER (0x1):</dt>
-          <dd style="margin-left: 1.5em" id="section-8.7-5.4">
-            <p id="section-8.7-5.4.1">There is an Alias, a Type and a Value. This Alias <span class="bcp14">MUST</span> be associated with the
+<dt id="section-8.8-5.3">REGISTER (0x1):</dt>
+          <dd style="margin-left: 1.5em" id="section-8.8-5.4">
+            <p id="section-8.8-5.4.1">There is an Alias, a Type and a Value. This Alias <span class="bcp14">MUST</span> be associated with the
 Token Value for the duration of the Session or it is deleted. This action is
-termed "registering" the Token.<a href="#section-8.7-5.4.1" class="pilcrow">¶</a></p>
+termed "registering" the Token.<a href="#section-8.8-5.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-8.7-5.5">USE_ALIAS (0x2):</dt>
-          <dd style="margin-left: 1.5em" id="section-8.7-5.6">
-            <p id="section-8.7-5.6.1">There is an Alias but no Type or Value. Use the Token Type and Value
-previously registered with this Alias.<a href="#section-8.7-5.6.1" class="pilcrow">¶</a></p>
+<dt id="section-8.8-5.5">USE_ALIAS (0x2):</dt>
+          <dd style="margin-left: 1.5em" id="section-8.8-5.6">
+            <p id="section-8.8-5.6.1">There is an Alias but no Type or Value. Use the Token Type and Value
+previously registered with this Alias.<a href="#section-8.8-5.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-8.7-5.7">USE_VALUE (0x3):</dt>
-          <dd style="margin-left: 1.5em" id="section-8.7-5.8">
-            <p id="section-8.7-5.8.1">There is no Alias and there is a Type and Value. Use the Token Value as
-provided. The Token Value <span class="bcp14">MAY</span> be discarded after processing.<a href="#section-8.7-5.8.1" class="pilcrow">¶</a></p>
+<dt id="section-8.8-5.7">USE_VALUE (0x3):</dt>
+          <dd style="margin-left: 1.5em" id="section-8.8-5.8">
+            <p id="section-8.8-5.8.1">There is no Alias and there is a Type and Value. Use the Token Value as
+provided. The Token Value <span class="bcp14">MAY</span> be discarded after processing.<a href="#section-8.8-5.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
 <ul class="normal">
-<li class="normal" id="section-8.7-6.1">
-            <p id="section-8.7-6.1.1">Token Alias - a Session-specific integer identifier that references a Token
+<li class="normal" id="section-8.8-6.1">
+            <p id="section-8.8-6.1.1">Token Alias - a Session-specific integer identifier that references a Token
 Type and Token Value. There are separate Alias spaces for the client and server (e.g.: they
 can each register Alias=1). Once a Token Alias has been registered, it cannot
 be re-registered by the same endpoint in the Session without first being
-deleted. Use of the Token Alias is optional.<a href="#section-8.7-6.1.1" class="pilcrow">¶</a></p>
+deleted. Use of the Token Alias is optional.<a href="#section-8.8-6.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-6.2">
-            <p id="section-8.7-6.2.1">Token Type - a numeric identifier for the type of Token payload being
+          <li class="normal" id="section-8.8-6.2">
+            <p id="section-8.8-6.2.1">Token Type - a numeric identifier for the type of Token payload being
 transmitted. This type is defined by the IANA table "MOQT Auth Token Type" (see
 <a href="#iana" class="auto internal xref">Section 16</a>). Type 0 is reserved to indicate that the type is not defined in the
-table and is negotiated out-of-band between client and receiver.<a href="#section-8.7-6.2.1" class="pilcrow">¶</a></p>
+table and is negotiated out-of-band between client and receiver.<a href="#section-8.8-6.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-6.3">
-            <p id="section-8.7-6.3.1">Token Value - the payload of the Token. The contents and serialization of this
-payload are defined by the Token Type.<a href="#section-8.7-6.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.8-6.3">
+            <p id="section-8.8-6.3.1">Token Value - the payload of the Token. The contents and serialization of this
+payload are defined by the Token Type.<a href="#section-8.8-6.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.7-7">If the Token structure cannot be decoded, the receiver <span class="bcp14">MUST</span> close the Session
+<p id="section-8.8-7">If the Token structure cannot be decoded, the receiver <span class="bcp14">MUST</span> close the Session
 with <code>KEY_VALUE_FORMATTING_ERROR</code>.  The receiver of a message attempting to
 register an Alias which is already registered <span class="bcp14">MUST</span> close the Session with
 <code>DUPLICATE_AUTH_TOKEN_ALIAS</code>. The receiver of a message referencing an Alias
 that is not currently registered <span class="bcp14">MUST</span> reject the message with
-<code>UNKNOWN_AUTH_TOKEN_ALIAS</code>.<a href="#section-8.7-7" class="pilcrow">¶</a></p>
-<p id="section-8.7-8">The receiver of a message containing a well-formed Token structure that is
+<code>UNKNOWN_AUTH_TOKEN_ALIAS</code>.<a href="#section-8.8-7" class="pilcrow">¶</a></p>
+<p id="section-8.8-8">The receiver of a message containing a well-formed Token structure that is
 otherwise invalid <span class="bcp14">MUST</span> reject that message with an <code>MALFORMED_AUTH_TOKEN</code>
-error.<a href="#section-8.7-8" class="pilcrow">¶</a></p>
-<p id="section-8.7-9">The receiver of a message carrying an Authorization Token with Alias Type
+error.<a href="#section-8.8-8" class="pilcrow">¶</a></p>
+<p id="section-8.8-9">The receiver of a message carrying an Authorization Token with Alias Type
 REGISTER that does not result in a Session error <span class="bcp14">MUST</span> register the Token Alias
 in the token cache, even if the message fails for other reasons, including
 <code>Unauthorized</code>.  This allows senders to pipeline messages that refer to
@@ -4708,39 +4719,39 @@ message referencing the Token Alias will result in that error. However, it is
 important to not store an error code for a token that might be valid in the
 future or due to some other property becoming fulfilled which currently
 isn't. The size of a registered cache entry includes the length of the Token
-Value, regardless of whether it is stored.<a href="#section-8.7-9" class="pilcrow">¶</a></p>
-<p id="section-8.7-10">If a receiver detects that an authorization token has expired, it <span class="bcp14">MUST</span> retain
+Value, regardless of whether it is stored.<a href="#section-8.8-9" class="pilcrow">¶</a></p>
+<p id="section-8.8-10">If a receiver detects that an authorization token has expired, it <span class="bcp14">MUST</span> retain
 the registered Alias until it is deleted by the sender, though it <span class="bcp14">MAY</span> discard
 other state associated with the token that is no longer needed.  Expiration does
 not affect the size occupied by a token in the token cache.  Any message that
-references an expired token with Alias Type USE_ALIAS fails with <code>EXPIRED_AUTH_TOKEN</code>.<a href="#section-8.7-10" class="pilcrow">¶</a></p>
-<p id="section-8.7-11">Using an Alias to refer to a previously registered Token Type and Value is for
+references an expired token with Alias Type USE_ALIAS fails with <code>EXPIRED_AUTH_TOKEN</code>.<a href="#section-8.8-10" class="pilcrow">¶</a></p>
+<p id="section-8.8-11">Using an Alias to refer to a previously registered Token Type and Value is for
 efficiency only and has the same effect as if the Token Type and Value was
 included directly.  Retiring an Alias that was previously used to authorize a
 message has no retroactive effect on the original authorization, nor does it
-prevent that same Token Type and Value from being re-registered.<a href="#section-8.7-11" class="pilcrow">¶</a></p>
-<p id="section-8.7-12">Senders of tokens <span class="bcp14">SHOULD</span> only register tokens which they intend to re-use during
+prevent that same Token Type and Value from being re-registered.<a href="#section-8.8-11" class="pilcrow">¶</a></p>
+<p id="section-8.8-12">Senders of tokens <span class="bcp14">SHOULD</span> only register tokens which they intend to re-use during
 the Session and <span class="bcp14">SHOULD</span> retire previously registered tokens once their utility
-has passed.<a href="#section-8.7-12" class="pilcrow">¶</a></p>
-<p id="section-8.7-13">By registering a Token, the sender is requiring the receiver to store the Token
+has passed.<a href="#section-8.8-12" class="pilcrow">¶</a></p>
+<p id="section-8.8-13">By registering a Token, the sender is requiring the receiver to store the Token
 Alias and Token Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a Setup Option defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see <a href="#max-auth-token-cache-size" class="auto internal xref">Section 9.1.1.3</a>) it is
 willing to accept. If a registration is attempted which would cause this limit
 to be exceeded, the receiver <span class="bcp14">MUST</span> terminate the Session with a
-<code>AUTH_TOKEN_CACHE_OVERFLOW</code> error.<a href="#section-8.7-13" class="pilcrow">¶</a></p>
-<p id="section-8.7-14">An Authorization Token <span class="bcp14">MAY</span> be repeated within a message as long as the
+<code>AUTH_TOKEN_CACHE_OVERFLOW</code> error.<a href="#section-8.8-13" class="pilcrow">¶</a></p>
+<p id="section-8.8-14">An Authorization Token <span class="bcp14">MAY</span> be repeated within a message as long as the
 combination of Token Type and Token Value are unique after resolving any
-aliases.<a href="#section-8.7-14" class="pilcrow">¶</a></p>
-<p id="section-8.7-15">Messages carrying an Authorization Token can appear on different
+aliases.<a href="#section-8.8-14" class="pilcrow">¶</a></p>
+<p id="section-8.8-15">Messages carrying an Authorization Token can appear on different
 control streams. Because stream processing order can be different than send order, the
-receiver and sender can have inconsistent views of the token cache state.<a href="#section-8.7-15" class="pilcrow">¶</a></p>
-<p id="section-8.7-16">Senders <span class="bcp14">MUST NOT</span> send USE_ALIAS on one control stream for an alias registered on a
+receiver and sender can have inconsistent views of the token cache state.<a href="#section-8.8-15" class="pilcrow">¶</a></p>
+<p id="section-8.8-16">Senders <span class="bcp14">MUST NOT</span> send USE_ALIAS on one control stream for an alias registered on a
 different stream until the sender has received a response to the message
 containing the REGISTER. Senders <span class="bcp14">MAY</span> use USE_ALIAS on the same control stream as the
-REGISTER without waiting for a response.<a href="#section-8.7-16" class="pilcrow">¶</a></p>
-<p id="section-8.7-17">Senders <span class="bcp14">MUST NOT</span> send DELETE for an alias while any message using USE_ALIAS with
-that alias has not received a response.<a href="#section-8.7-17" class="pilcrow">¶</a></p>
+REGISTER without waiting for a response.<a href="#section-8.8-16" class="pilcrow">¶</a></p>
+<p id="section-8.8-17">Senders <span class="bcp14">MUST NOT</span> send DELETE for an alias while any message using USE_ALIAS with
+that alias has not received a response.<a href="#section-8.8-17" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -5023,7 +5034,7 @@ equivalent to the AUTHORIZATION TOKEN message parameter, see <a href="#authoriza
 The endpoint can specify one or more tokens in SETUP
 that the peer can use to authorize MOQT session establishment.<a href="#section-9.1.1.4-1" class="pilcrow">¶</a></p>
 <p id="section-9.1.1.4-2">The option value is a Token structure, whose wire format and semantics are
-defined in <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>.<a href="#section-9.1.1.4-2" class="pilcrow">¶</a></p>
+defined in <a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>.<a href="#section-9.1.1.4-2" class="pilcrow">¶</a></p>
 <p id="section-9.1.1.4-3">If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
 message, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.1.1.4-3" class="pilcrow">¶</a></p>
 <p id="section-9.1.1.4-4">If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with Alias
@@ -5450,7 +5461,7 @@ SUBSCRIBE Message {
 </li>
           <li class="normal" id="section-9.6-4.2">
             <p id="section-9.6-4.2.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-9.6-4.2.1" class="pilcrow">¶</a></p>
+(<a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a>).<a href="#section-9.6-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.6-4.3">
             <p id="section-9.6-4.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-9.6-4.3.1" class="pilcrow">¶</a></p>
@@ -5538,7 +5549,8 @@ PUBLISH Message {
             <p id="section-9.8-3.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 6.4.2.1</a>.<a href="#section-9.8-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.8-3.2">
-            <p id="section-9.8-3.2.1">Track Namespace: Identifies a track's namespace as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>)<a href="#section-9.8-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.8-3.2.1">Track Namespace: Identifies a track's namespace as defined in
+(<a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a>)<a href="#section-9.8-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.8-3.3">
             <p id="section-9.8-3.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-9.8-3.3.1" class="pilcrow">¶</a></p>
@@ -5736,7 +5748,7 @@ FETCH Message {
 </li>
           <li class="normal" id="section-9.11-4.2">
             <p id="section-9.11-4.2.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-9.11-4.2.1" class="pilcrow">¶</a></p>
+(<a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a>).<a href="#section-9.11-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.11-4.3">
             <p id="section-9.11-4.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-9.11-4.3.1" class="pilcrow">¶</a></p>
@@ -5896,7 +5908,7 @@ PUBLISH_NAMESPACE Message {
 </li>
           <li class="normal" id="section-9.14-3.2">
             <p id="section-9.14-3.2.1">Track Namespace: Identifies a track's namespace as defined in
-<a href="#track-name" class="auto internal xref">Section 2.4.1</a>.<a href="#section-9.14-3.2.1" class="pilcrow">¶</a></p>
+<a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a>.<a href="#section-9.14-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.14-3.3">
             <p id="section-9.14-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.<a href="#section-9.14-3.3.1" class="pilcrow">¶</a></p>
@@ -5936,14 +5948,12 @@ SUBSCRIBE_NAMESPACE Message {
 </li>
           <li class="normal" id="section-9.15-3.2">
             <p id="section-9.15-3.2.1">Track Namespace Prefix: A Track Namespace structure as described in
-<a href="#track-name" class="auto internal xref">Section 2.4.1</a> with between 0 and 32 Track Namespace Fields.  This prefix is
-matched against track namespaces known to the publisher.  For example, using
-the serialized format from <a href="#namespace-name-format" class="auto internal xref">Section 8.6</a>, if the publisher is a
-relay that has received PUBLISH_NAMESPACE messages for namespaces
-<code>example.2ecom-123-100</code> and <code>example.2ecom-123-200</code>, a SUBSCRIBE_NAMESPACE for
-<code>example.2ecom-123</code> would match both.  If an endpoint receives a
-Track Namespace Prefix consisting of greater than 32 Track Namespace
-Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.15-3.2.1" class="pilcrow">¶</a></p>
+<a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a>.  This prefix is matched against track
+namespaces known to the publisher.  For example, using the serialized format
+from <a href="#namespace-name-format" class="auto internal xref">Section 8.7</a>, if the publisher is a relay that has received
+PUBLISH_NAMESPACE messages for namespaces <code>example.2ecom-123-100</code> and
+<code>example.2ecom-123-200</code>, a SUBSCRIBE_NAMESPACE for <code>example.2ecom-123</code> would
+match both.<a href="#section-9.15-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.15-3.3">
             <p id="section-9.15-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.<a href="#section-9.15-3.3.1" class="pilcrow">¶</a></p>
@@ -6005,8 +6015,9 @@ NAMESPACE Message {
 <ul class="normal">
 <li class="normal" id="section-9.16-3.1">
             <p id="section-9.16-3.1.1">Track Namespace Suffix: Specifies the final portion of a track's
-namespace as defined in <a href="#track-name" class="auto internal xref">Section 2.4.1</a> after removing namespace tuples included in
-'Track Namespace Prefix' <a href="#message-subscribe-ns" class="auto internal xref">Section 9.15</a>.<a href="#section-9.16-3.1.1" class="pilcrow">¶</a></p>
+namespace as defined in <a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a> after removing
+namespace tuples included in 'Track Namespace Prefix'
+<a href="#message-subscribe-ns" class="auto internal xref">Section 9.15</a>.<a href="#section-9.16-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -6039,8 +6050,8 @@ NAMESPACE_DONE Message {
 <ul class="normal">
 <li class="normal" id="section-9.17-3.1">
             <p id="section-9.17-3.1.1">Track Namespace Suffix: Specifies the final portion of a track's
-namespace as defined in <a href="#track-name" class="auto internal xref">Section 2.4.1</a>. The namespace begins with the
-'Track Namespace Prefix' specified in <a href="#message-subscribe-ns" class="auto internal xref">Section 9.15</a>.<a href="#section-9.17-3.1.1" class="pilcrow">¶</a></p>
+namespace as defined in <a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a>. The namespace begins
+with the 'Track Namespace Prefix' specified in <a href="#message-subscribe-ns" class="auto internal xref">Section 9.15</a>.<a href="#section-9.17-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -6077,10 +6088,8 @@ SUBSCRIBE_TRACKS Message {
 </li>
           <li class="normal" id="section-9.18-3.2">
             <p id="section-9.18-3.2.1">Track Namespace Prefix: A Track Namespace structure as described in
-<a href="#track-name" class="auto internal xref">Section 2.4.1</a> with between 0 and 32 Track Namespace Fields.  This prefix is
-matched against track namespaces known to the publisher.  If an endpoint
-receives a Track Namespace Prefix consisting of greater than 32 Track
-Namespace Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.18-3.2.1" class="pilcrow">¶</a></p>
+<a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a>.  This prefix is matched against track
+namespaces known to the publisher.<a href="#section-9.18-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.18-3.3">
             <p id="section-9.18-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>, though they
@@ -6151,8 +6160,8 @@ PUBLISH_SKIPPED Message {
 <ul class="normal">
 <li class="normal" id="section-9.19-3.1">
             <p id="section-9.19-3.1.1">Track Namespace Suffix: Specifies the final portion of a track's
-namespace as defined in <a href="#track-name" class="auto internal xref">Section 2.4.1</a>. The namespace begins with the
-'Track Namespace Prefix' specified in <a href="#message-subscribe-tracks" class="auto internal xref">Section 9.18</a>.<a href="#section-9.19-3.1.1" class="pilcrow">¶</a></p>
+namespace as defined in <a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a>. The namespace begins
+with the 'Track Namespace Prefix' specified in <a href="#message-subscribe-tracks" class="auto internal xref">Section 9.18</a>.<a href="#section-9.19-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.19-3.2">
             <p id="section-9.19-3.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-9.19-3.2.1" class="pilcrow">¶</a></p>
@@ -6262,7 +6271,7 @@ parameter conveys information to authorize the sender to perform the operation
 carrying the parameter. This Parameter <span class="bcp14">MUST NOT</span> be copied from a SUBSCRIBE_TRACKS
 to the resulting PUBLISH message Parameters.<a href="#section-9.20.3-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.3-2">The parameter value is a Token structure, whose wire format and semantics are
-defined in <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>.<a href="#section-9.20.3-2" class="pilcrow">¶</a></p>
+defined in <a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>.<a href="#section-9.20.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subgroup-delivery-timeout">
@@ -6657,11 +6666,12 @@ outstanding until the Largest Group increases.<a href="#section-9.20.20-8" class
 <a href="#section-9.20.21" class="section-number selfRef">9.20.21. </a><a href="#name-track_namespace_prefix-para" class="section-name selfRef">TRACK_NAMESPACE_PREFIX Parameter</a>
           </h4>
 <p id="section-9.20.21-1">The TRACK_NAMESPACE_PREFIX parameter (Parameter Type 0x34) uses the Track
-Namespace encoding described in <a href="#track-name" class="auto internal xref">Section 2.4.1</a>.  It <span class="bcp14">MAY</span> appear in REQUEST_UPDATE
-for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It updates the Track
-Namespace Prefix for that subscription.  If the new prefix would share a common prefix with
-another active subscription of the same type in the same session, the receiver
-<span class="bcp14">MUST</span> respond with REQUEST_ERROR with error code <code>PREFIX_OVERLAP</code>.<a href="#section-9.20.21-1" class="pilcrow">¶</a></p>
+Namespace encoding described in <a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a>.  It <span class="bcp14">MAY</span> appear in
+REQUEST_UPDATE for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It
+updates the Track Namespace Prefix for that subscription.  If the new prefix
+would share a common prefix with another active subscription of the same type
+in the same session, the receiver <span class="bcp14">MUST</span> respond with REQUEST_ERROR with error
+code <code>PREFIX_OVERLAP</code>.<a href="#section-9.20.21-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="include-properties-param">
@@ -8175,24 +8185,24 @@ registered Authorization tokens has been exceeded.<a href="#section-14.2-2.26.1"
 <dt id="section-14.2-2.27">DUPLICATE_AUTH_TOKEN_ALIAS (0x14):</dt>
           <dd style="margin-left: 1.5em" id="section-14.2-2.28">
             <p id="section-14.2-2.28.1">Authorization Token attempted to register an Alias that was in use (see
-<a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>).<a href="#section-14.2-2.28.1" class="pilcrow">¶</a></p>
+<a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>).<a href="#section-14.2-2.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-14.2-2.29">MALFORMED_AUTH_TOKEN (0x16):</dt>
           <dd style="margin-left: 1.5em" id="section-14.2-2.30">
             <p id="section-14.2-2.30.1">Invalid Auth Token serialization during registration (see
-<a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>).<a href="#section-14.2-2.30.1" class="pilcrow">¶</a></p>
+<a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>).<a href="#section-14.2-2.30.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-14.2-2.31">UNKNOWN_AUTH_TOKEN_ALIAS (0x17):</dt>
           <dd style="margin-left: 1.5em" id="section-14.2-2.32">
             <p id="section-14.2-2.32.1">No registered token found for the provided Alias (see
-<a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>).<a href="#section-14.2-2.32.1" class="pilcrow">¶</a></p>
+<a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>).<a href="#section-14.2-2.32.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-14.2-2.33">EXPIRED_AUTH_TOKEN (0x18):</dt>
           <dd style="margin-left: 1.5em" id="section-14.2-2.34">
-            <p id="section-14.2-2.34.1">Authorization token has expired (<a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>).<a href="#section-14.2-2.34.1" class="pilcrow">¶</a></p>
+            <p id="section-14.2-2.34.1">Authorization token has expired (<a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>).<a href="#section-14.2-2.34.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-14.2-2.35">INVALID_AUTHORITY (0x19):</dt>
@@ -8252,12 +8262,12 @@ within the timeout.<a href="#section-14.3-2.6.1" class="pilcrow">¶</a></p>
 <dt id="section-14.3-2.9">MALFORMED_AUTH_TOKEN:</dt>
           <dd style="margin-left: 1.5em" id="section-14.3-2.10">
             <p id="section-14.3-2.10.1">Invalid Auth Token serialization during registration (see
-<a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>).<a href="#section-14.3-2.10.1" class="pilcrow">¶</a></p>
+<a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>).<a href="#section-14.3-2.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-14.3-2.11">EXPIRED_AUTH_TOKEN:</dt>
           <dd style="margin-left: 1.5em" id="section-14.3-2.12">
-            <p id="section-14.3-2.12.1">Authorization token has expired (<a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>).<a href="#section-14.3-2.12.1" class="pilcrow">¶</a></p>
+            <p id="section-14.3-2.12.1">Authorization token has expired (<a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>).<a href="#section-14.3-2.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-14.3-2.13">GOING_AWAY:</dt>
@@ -8718,28 +8728,28 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
               <td class="text-right" rowspan="1" colspan="1">0x0</td>
               <td class="text-left" rowspan="1" colspan="1">DELETE</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>
+                <a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>
 </td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x1</td>
               <td class="text-left" rowspan="1" colspan="1">REGISTER</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>
+                <a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>
 </td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x2</td>
               <td class="text-left" rowspan="1" colspan="1">USE_ALIAS</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>
+                <a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>
 </td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x3</td>
               <td class="text-left" rowspan="1" colspan="1">USE_VALUE</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>
+                <a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>
 </td>
             </tr>
           </tbody>
@@ -8765,7 +8775,7 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
               <td class="text-right" rowspan="1" colspan="1">0x0</td>
               <td class="text-left" rowspan="1" colspan="1">Reserved</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>
+                <a href="#auth-token-compression" class="auto internal xref">Section 8.8</a>
 </td>
             </tr>
             <tr>
