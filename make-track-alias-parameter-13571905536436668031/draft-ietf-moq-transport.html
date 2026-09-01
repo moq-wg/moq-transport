@@ -7022,7 +7022,7 @@ least significant bit. If a publisher provides a TRACK_ALIAS with the wrong
 parity, the session <span class="bcp14">MUST</span> be closed with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.1-3" class="pilcrow">¶</a></p>
 <p id="section-11.1-4">The same Track Alias <span class="bcp14">MUST NOT</span> be used by a publisher to refer to two different
 Tracks simultaneously in the same session. If a subscriber receives a
-PUBLISH or SUBSCRIBE_OK that specifies a Track Alias already in use by a different Track
+PUBLISH or SUBSCRIBE_OK that uses the same Track Alias as a different Track
 with an <code>Established</code> subscription, it <span class="bcp14">MUST</span> close the session with error
 <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-11.1-4" class="pilcrow">¶</a></p>
 <p id="section-11.1-5">Objects can be sent before the Subscriber knows the Track Alias, requiring
