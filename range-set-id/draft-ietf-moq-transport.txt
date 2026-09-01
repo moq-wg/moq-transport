@@ -1060,13 +1060,10 @@ Table of Contents
 
 3.3.3.  Filter Sets
 
-   A subscriber often needs to express a Range Filter as a boolean
-   expression over several Track or Object properties, or header fields
-   such as Subgroup ID or Publisher Priority.  For example, "objects
-   with Subgroup ID 1 AND Publisher Priority 0..10", or "Publisher
-   Priority 0..10 OR Publisher Priority 200..255".  Range Filters
-   express these combinations using filter sets, identified by an 8-bit
-   SetID (0-255) carried on each Range Filter parameter.
+   A Range Filter can express boolean combinations across Track or
+   Object properties and Object header fields using filter sets.  Each
+   Range Filter parameter carries an 8-bit SetID (0-255) that identifies
+   the set it belongs to.
 
    The evaluation rules are:
 
@@ -1084,65 +1081,42 @@ Table of Contents
    of every filter parameter tagged with SetID=i.  An Object matches the
    request if any one filter set matches.
 
-   A single SetID is sufficient when all conditions must hold together.
-   Multiple SetIDs are useful when a subscriber wants an OR of two or
-   more distinct conjunctions that cannot be expressed as simple OR'd
-   Ranges on a single field.
+   A single SetID suffices when all conditions must hold; multiple
+   SetIDs express an OR of distinct conjunctions that OR'd Ranges on a
+   single field cannot.
 
-   The examples below use the wire encoding from Section 8.6 and refer
-   to Range Filter parameter names from Section 9.20.
+   Examples use the wire encoding from Section 8.6 and Range Filter
+   parameters from Section 9.20.  Assume Track Property codec and Object
+   Property layer have even Property Types known to both endpoints.
 
-   In the examples below, assume the Track Property codec has been
-   assigned an even Property Type known to both endpoints, and the
-   Object Property layer likewise.
-
-   *Example 1 — AND across two fields.* "Objects with Subgroup ID 1 AND
-   Publisher Priority between 0 and 10":
+   Subgroup ID 1 AND Publisher Priority 0..10:
 
    SUBGROUP_FILTER  SetID=0  Range=1
    PRIORITY_FILTER  SetID=0  Range=0..10
 
-   Both parameters carry SetID=0, so their conditions are AND'd.
-
-   *Example 2 — OR across Ranges within one parameter.* "Objects with
-   Publisher Priority in 0..10, or Publisher Priority in 200..255":
+   Publisher Priority 0..10 OR 200..255:
 
    PRIORITY_FILTER  SetID=0  Range=0..10, Range=200..255
 
-   Multiple Ranges within one filter parameter are OR'd, so no
-   additional SetID is needed.
-
-   *Example 3 — OR across two distinct conjunctions.* "(Track Property
-   codec = 1 AND Object Property layer = 0) OR (Track Property codec = 2
-   AND Object Property layer in 0..1)":
+   (codec=1 AND layer=0) OR (codec=2 AND layer 0..1): match tracks
+   encoded with codec 1 but only their base layer, or tracks encoded
+   with codec 2 and their first two layers.  Two SetIDs are needed
+   because each codec pairs with a different set of valid layers.
 
    TRACK_PROPERTY_FILTER   SetID=0  Property=codec  Range=1
    OBJECT_PROPERTY_FILTER  SetID=0  Property=layer  Range=0
    TRACK_PROPERTY_FILTER   SetID=1  Property=codec  Range=2
    OBJECT_PROPERTY_FILTER  SetID=1  Property=layer  Range=0..1
 
-   Two filter sets are used because each conjunction pairs a specific
-   codec with the layers valid for that codec; a single set would
-   incorrectly match, for example, codec 1 objects with layer 1.
+   A relay aggregating downstream subscriptions can express the union of
+   their filters as multiple sets on a single upstream subscription.
+   Subscriber A wants Subgroup ID 1 with Priority 0..10; subscriber B
+   wants Subgroup ID 4 with Priority 200..255:
 
-   *Example 4 — Relay aggregating disjoint downstream filters.* A relay
-   aggregating downstream subscriptions for the same track can express
-   the union of their filters as multiple filter sets on a single
-   upstream subscription.  Suppose subscriber A wants Subgroup ID 1 with
-   Publisher Priority 0..10, and subscriber B wants Subgroup ID 4 with
-   Publisher Priority 200..255.  The relay issues one upstream
-   subscription using one filter set per downstream:
-
-   SUBGROUP_FILTER  SetID=0  Range=1        # for subscriber A
+   SUBGROUP_FILTER  SetID=0  Range=1        # subscriber A
    PRIORITY_FILTER  SetID=0  Range=0..10
-   SUBGROUP_FILTER  SetID=1  Range=4        # for subscriber B
+   SUBGROUP_FILTER  SetID=1  Range=4        # subscriber B
    PRIORITY_FILTER  SetID=1  Range=200..255
-
-   The upstream publisher forwards any Object matching either set, and
-   the relay demultiplexes each received Object to the downstream
-   subscribers whose filter it matches.  When a downstream subscriber
-   leaves or updates its filter, the relay can remove or replace just
-   that set via REQUEST_UPDATE without disturbing the others.
 
 3.3.4.  Combining Filters
 
