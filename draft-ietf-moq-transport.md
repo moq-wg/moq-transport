@@ -481,46 +481,6 @@ information in these fields, for example by restricting them to UTF-8. Any such
 specification needs to specify the canonicalization into the bytes in the Track
 Namespace Fields or Track Name such that exact comparison works.
 
-### Malformed Tracks
-
-There are multiple ways a publisher can transmit a Track that does not conform
-to MOQT constraints. Such a Track is considered malformed.  Some example
-conditions that constitute a malformed track when detected by a receiver
-include:
-
-1.  An Object with a particular Subgroup ID is received, but its
-     Publisher Priority is different from that of the previous Object with the same
-     Subgroup ID.
-2. An Object is received whose Object ID is larger than the final Object in the
-   Subgroup.  The final Object in a Subgroup is the last Object received on a
-   Subgroup stream before a FIN.
-3. A Subgroup is received over multiple transport streams terminated by FIN with
-   different final Objects.
-4. An Object is received in a Group whose Object
-   ID is larger than the final Object in the Group.  The final Object in a Group
-   is the Object with Status END_OF_GROUP, or the last Object before a FIN in a
-   Subgroup which has the END_OF_GROUP bit set.  If the end of a Group is
-   implicitly determined via a gap in a FETCH response, the final Object in the
-   Group remains unknown.
-5. An Object is received whose Group and Object ID are larger than
-   the final Object in the Track.  The final Object in a Track is the Object
-   with Status END_OF_TRACK or the last Object sent in a FETCH whose response
-   indicated End of Track.
-6. The same Object is received more than once with different Payload or
-   other immutable properties.
-7. An Object is received with a different Forwarding Preference than previously
-   observed.
-
-The above list of conditions is not considered exhaustive.
-
-When a subscriber detects a Malformed Track, it MUST cancel any corresponding
-subscription or fetches for that Track from that publisher
-(see {{request-cancellation}}), and SHOULD deliver an error to the application.
-If a relay detects a Malformed Track, it MUST immediately terminate downstream
-subscriptions with PUBLISH_DONE and reset any fetch streams with
-Status Code `MALFORMED_TRACK`. Object(s) triggering Malformed Track status
-MUST NOT be cached.
-
 ### Reserved Namespaces {#reserved-namespaces}
 
 MOQT reserves all Track Namespace values whose first tuple field begins with
@@ -1673,45 +1633,6 @@ extensions.
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
-
-### Stream Reset Error Codes {#stream-reset-codes}
-
-The application SHOULD use a relevant error code when resetting or sending
-STOP_SENDING on any stream.
-
-INTERNAL_ERROR (0x0):
-: An implementation specific error.
-
-CANCELLED (0x1):
-: The stream was cancelled by either endpoint. For Subscriptions,
-  PUBLISH_DONE ({{message-publish-done}}) may have a more detailed status code.
-
-DELIVERY_TIMEOUT (0x2):
-: A delivery timeout ({{delivery-timeouts}}) was exceeded for this stream.
-
-SESSION_CLOSED (0x3):
-: The session is being closed.
-
-GOING_AWAY (0x4):
-: The endpoint is rejecting this request because it has sent or received a GOAWAY.
-
-TOO_FAR_BEHIND (0x5):
-: The corresponding subscription has exceeded the publisher's resource limits and
-  is being terminated (see {{delivery-timeouts}}).
-
-UNKNOWN_OBJECT_STATUS (0x6):
-: In response to a FETCH, the publisher is unable to determine the status
-  of the next Object in the requested range.
-
-EXPIRED_AUTH_TOKEN (0x7):
-: The authorization token for the request has expired.
-
-EXCESSIVE_LOAD (0x9):
-: The endpoint is overloaded and is resetting this stream.
-
-MALFORMED_TRACK (0x12):
-: A relay publisher detected that the track was malformed (see
-  {{malformed-tracks}}).
 
 ## Stream Usage
 
@@ -5319,6 +5240,93 @@ to logs. Even though these fields are UTF-8 encoded, an endpoint that logs or
 renders them SHOULD sanitize them first (for example, by escaping bytes outside
 the printable ASCII range), since unsanitized values can enable log injection or
 terminal escape sequence injection.
+
+# Error Handling
+
+## Malformed Tracks
+
+There are multiple ways a publisher can transmit a Track that does not conform
+to MOQT constraints. Such a Track is considered malformed.  Some example
+conditions that constitute a malformed track when detected by a receiver
+include:
+
+1.  An Object with a particular Subgroup ID is received, but its
+     Publisher Priority is different from that of the previous Object with the same
+     Subgroup ID.
+2. An Object is received whose Object ID is larger than the final Object in the
+   Subgroup.  The final Object in a Subgroup is the last Object received on a
+   Subgroup stream before a FIN.
+3. A Subgroup is received over multiple transport streams terminated by FIN with
+   different final Objects.
+4. An Object is received in a Group whose Object
+   ID is larger than the final Object in the Group.  The final Object in a Group
+   is the Object with Status END_OF_GROUP, or the last Object before a FIN in a
+   Subgroup which has the END_OF_GROUP bit set.  If the end of a Group is
+   implicitly determined via a gap in a FETCH response, the final Object in the
+   Group remains unknown.
+5. An Object is received whose Group and Object ID are larger than
+   the final Object in the Track.  The final Object in a Track is the Object
+   with Status END_OF_TRACK or the last Object sent in a FETCH whose response
+   indicated End of Track.
+6. The same Object is received more than once with different Payload or
+   other immutable properties.
+7. An Object is received with a different Forwarding Preference than previously
+   observed.
+
+The above list of conditions is not considered exhaustive.
+
+When a subscriber detects a Malformed Track, it MUST cancel any corresponding
+subscription or fetches for that Track from that publisher
+(see {{request-cancellation}}), and SHOULD deliver an error to the application.
+If a relay detects a Malformed Track, it MUST immediately terminate downstream
+subscriptions with PUBLISH_DONE and reset any fetch streams with
+Status Code `MALFORMED_TRACK`. Object(s) triggering Malformed Track status
+MUST NOT be cached.
+
+## Session Termination Codes
+
+## Request Error Codes
+
+## Publish Done Codes
+
+## Stream Reset Error Codes {#stream-reset-codes}
+
+The application SHOULD use a relevant error code when resetting or sending
+STOP_SENDING on any stream.
+
+INTERNAL_ERROR (0x0):
+: An implementation specific error.
+
+CANCELLED (0x1):
+: The stream was cancelled by either endpoint. For Subscriptions,
+  PUBLISH_DONE ({{message-publish-done}}) may have a more detailed status code.
+
+DELIVERY_TIMEOUT (0x2):
+: A delivery timeout ({{delivery-timeouts}}) was exceeded for this stream.
+
+SESSION_CLOSED (0x3):
+: The session is being closed.
+
+GOING_AWAY (0x4):
+: The endpoint is rejecting this request because it has sent or received a GOAWAY.
+
+TOO_FAR_BEHIND (0x5):
+: The corresponding subscription has exceeded the publisher's resource limits and
+  is being terminated (see {{delivery-timeouts}}).
+
+UNKNOWN_OBJECT_STATUS (0x6):
+: In response to a FETCH, the publisher is unable to determine the status
+  of the next Object in the requested range.
+
+EXPIRED_AUTH_TOKEN (0x7):
+: The authorization token for the request has expired.
+
+EXCESSIVE_LOAD (0x9):
+: The endpoint is overloaded and is resetting this stream.
+
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
+  {{malformed-tracks}}).
 
 # Grease {#grease}
 
