@@ -542,13 +542,15 @@ ways, for example:
 
 # Publishing and Receiving Tracks
 
- A subscription is a stateful ongoing relationship between a Publisher and a Subscriber for
-delivering Objects from a single Track. It is established by either endpoint (via SUBSCRIBE or
-PUBLISH), can be updated by the subscriber via REQUEST_UPDATE, and remains active until either
- endpoint terminates it.
+A subscription is a stateful ongoing relationship in which the Publisher
+delivers newly-published Objects from a single Track to the Subscriber. It can
+be established by either endpoint, via either SUBSCRIBE or PUBLISH.  A
+subscription is active until either endpoint terminates it, and its parameters
+can be updated via REQUEST_UPDATE.
 
- A fetch is a one-shot request for a bounded set of Objects from a single Track. It carries no
- persistent state and cannot be updated; the response is delivered on a single stream.
+A fetch is a one-shot request for a bounded set of pre-existing Objects from a
+single Track.  It carries no persistent state and cannot be updated; the
+response is delivered on a single stream.
 
 ## Subscriptions {#subscriptions}
 
