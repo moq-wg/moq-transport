@@ -1089,29 +1089,28 @@ Table of Contents
    parameters from Section 9.20.  Assume Track Property codec and Object
    Property layer have even Property Types known to both endpoints.
 
-   Subgroup ID 1 AND Publisher Priority 0..10:
+   Subgroup ID 1 AND Publisher Priority 0..10: match Objects in Subgroup
+   1 with priority at most 10.
 
    SUBGROUP_FILTER  SetID=0  Range=1
    PRIORITY_FILTER  SetID=0  Range=0..10
 
-   Publisher Priority 0..10 OR 200..255:
+   Publisher Priority 0..10 OR 200..255: match Objects at the highest or
+   lowest priority bands.
 
    PRIORITY_FILTER  SetID=0  Range=0..10, Range=200..255
 
-   (codec=1 AND layer=0) OR (codec=2 AND layer 0..1): match tracks
-   encoded with codec 1 but only their base layer, or tracks encoded
-   with codec 2 and their first two layers.  Two SetIDs are needed
-   because each codec pairs with a different set of valid layers.
+   (codec=1 AND layer=0) OR (codec=2 AND layer 0..1): match codec 1 with
+   its base layer only, or codec 2 with its first two layers.
 
    TRACK_PROPERTY_FILTER   SetID=0  Property=codec  Range=1
    OBJECT_PROPERTY_FILTER  SetID=0  Property=layer  Range=0
    TRACK_PROPERTY_FILTER   SetID=1  Property=codec  Range=2
    OBJECT_PROPERTY_FILTER  SetID=1  Property=layer  Range=0..1
 
-   A relay aggregating downstream subscriptions can express the union of
-   their filters as multiple sets on a single upstream subscription.
-   Subscriber A wants Subgroup ID 1 with Priority 0..10; subscriber B
-   wants Subgroup ID 4 with Priority 200..255:
+   A relay aggregating two downstream subscriptions (subscriber A:
+   Subgroup 1, Priority 0..10; subscriber B: Subgroup 4, Priority
+   200..255) onto a single upstream, one set per downstream.
 
    SUBGROUP_FILTER  SetID=0  Range=1        # subscriber A
    PRIORITY_FILTER  SetID=0  Range=0..10
