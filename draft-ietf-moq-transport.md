@@ -751,6 +751,8 @@ The `Next Object` is the Location immediately following `Largest Object`, which
 is `{Largest Object.Group, Largest Object.Object + 1}`, or {0, 0} if no content
 has been delivered yet. The `Next Group` is the first Location of the Group
 following `Largest Object`, which is `{Largest Object.Group + 1, 0}`.
+`Next Object` and `Next Group` are Locations that do not necessarily
+refer to an Object that exists.
 
 ### Fill Semantics {#fill-semantics}
 
