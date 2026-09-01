@@ -296,6 +296,10 @@ identical sequence of bytes regardless of how or where it is retrieved.
 An Object can become unavailable, but its contents MUST NOT change over
 time.
 
+Every Object within a Group belongs to exactly one Subgroup or Datagram. An
+Original Publisher MAY use both Subgroups and Datagrams within a Group or
+Track.
+
 ### Canonical Object Fields
 
 Objects are comprised of two parts: metadata and a payload.  The metadata is
@@ -349,11 +353,6 @@ Streams offer in-order reliable delivery and the ability to cancel sending and
 retransmission of data. Furthermore, many QUIC and WebTransport implementations
 offer the ability to control the relative scheduling priority of pending stream
 data.
-
-Every Object within a Group belongs to exactly one Subgroup or Datagram. An
-Original Publisher MAY use both Subgroups and Datagrams within a Group or
-Track; each Object's `Object Forwarding Preference` (see {{object-header}})
-determines which is used.
 
 When Objects are sent in a subscription (see {{subscriptions}}),  Objects
 from two subgroups MUST NOT be sent on the same stream, and Objects from the
