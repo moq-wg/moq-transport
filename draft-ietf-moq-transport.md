@@ -296,8 +296,6 @@ identical sequence of bytes regardless of how or where it is retrieved.
 An Object can become unavailable, but its contents MUST NOT change over
 time.
 
-### Canonical Object Fields
-
 Objects are comprised of two parts: metadata and a payload.  The metadata is
 never encrypted and is always visible to relays (see {{relays-moq}}). The
 payload portion may be encrypted, in which case it is only visible to the
@@ -305,6 +303,30 @@ Original Publisher and End Subscribers. The Original Publisher is solely
 responsible for the content of the object payload. This includes the
 underlying encoding, compression, any end-to-end encryption, or
 authentication.
+
+### Canonical Object Fields
+
+A canonical MOQT Object has the following fields:
+
+Track Namespace and Track Name: The track this object belongs to.
+
+Group ID: The identifier of the Object's Group (see {{model-group}}) within the Track.
+
+Object ID: The order of the object within the group.
+
+Publisher Priority: An 8 bit integer indicating the publisher's priority for the Object ({{priorities}}).
+
+Object Forwarding Preference: An enumeration indicating how a publisher sends an object. The preferences are Subgroup and Datagram. Object Forwarding Preference is a property of an individual Object and can vary among Objects in the same Track. In a subscription, an Object MUST be sent according to its Object Forwarding Preference.
+
+Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}}) within the Group. This field is omitted if the Object Forwarding Preference is Datagram.
+
+Object Status: An enumeration used to indicate whether the Object is a normal Object or mark the end of a group or track. See {{object-status}} below.
+
+Object Properties : A sequence of Properties associated with the object. See {{object-properties}}.
+
+Object Payload: An opaque payload intended for an End Subscriber and SHOULD NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
+
+### Object States
 
 From the perspective of a subscriber or a cache, an Object can be in three
 possible states:
@@ -934,9 +956,8 @@ which pass the filter will be forwarded while those which do not pass it
 will not be forwarded nor will any Objects.
 
 The Object Property Filter can be used to filter Objects with required
-Object Property types and values.  It only filters Object Properties in
-the Object header, and does not evaluate Track Properties in PUBLISH
-messages.
+Object Property types and values.  It only filters Object Properties,
+and does not evaluate Track Properties in PUBLISH messages.
 
 ### Combining Filters
 
@@ -4300,39 +4321,6 @@ MAY use both Subgroups and Datagrams within a Group or Track.
 An Object contains a range of contiguous bytes from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it.  Objects are sent by publishers.
-
-### Object Header {#object-header}
-
-A canonical MOQT Object has the following fields:
-
-* Track Namespace and Track Name: The track this object belongs to.
-
-* Group ID: The identifier of the Object's Group (see {{model-group}}) within
-  the Track.
-
-* Object ID: The order of the object within the group.
-
-* Publisher Priority: An 8 bit integer indicating the publisher's priority for
-the Object ({{priorities}}).
-
-* Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Subgroup and Datagram.  `Object Forwarding
-Preference` is a property of an individual Object and can vary among
-Objects in the same Track.  In a subscription, an Object MUST be sent
-according to its `Object Forwarding Preference`.
-
-* Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}})
-  within the Group. This field is omitted if the `Object Forwarding Preference`
-  is Datagram.
-
-* Object Status: An enumeration used to indicate whether the Object is a normal Object
-  or mark the end of a group or track. See {{object-status}} below.
-
-* Object Properties : A sequence of Properties associated with the object.
-  See {{object-properties}}.
-
-* Object Payload: An opaque payload intended for an End Subscriber and SHOULD
-NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
 
 ### Object Status {#object-status}
 
