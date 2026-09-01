@@ -843,43 +843,6 @@ applications using the same code point in these ranges may assign different
 meanings; the interpretation depends on the track or application
 context known to the publisher and subscriber.
 
-### Mandatory Track Properties {#mandatory-track-properties}
-
-Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
-Properties. These properties MUST have Track scope. Mandatory Track Properties
-have special handling rules that prevent tracks with required properties from
-being forwarded to or processed by endpoints that do not understand them.
-
-An Object received with a Mandatory Track Property as an Object Property is
-malformed (see {{malformed-tracks}}).
-
-When an endpoint receives a Mandatory Track Property in PUBLISH,
-SUBSCRIBE_OK, or FETCH_OK that it does not
-understand, it MUST NOT process or forward that track:
-
-* For PUBLISH messages: the subscriber MUST respond with REQUEST_ERROR with
-  error code UNSUPPORTED_EXTENSION.
-
-* For SUBSCRIBE_OK messages: the subscriber MUST cancel the subscription
-  (see {{request-cancellation}}).  If the subscriber is a relay with pending
-  downstream subscribers, it MUST send REQUEST_ERROR with error code
-  UNSUPPORTED_EXTENSION to the downstream subscribers.
-
-* For FETCH_OK messages: the subscriber MUST cancel the fetch
-  (see {{request-cancellation}}).  If the subscriber is a relay and has not yet
-  sent a FETCH_OK or REQUEST_ERROR downstream, it MUST send REQUEST_ERROR with
-  error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
-  relay has already forwarded data on a fetch stream, it MUST reset the stream.
-
-A publisher that knows a subscriber does not support a Mandatory Track Property
-SHOULD take the following action:
-
-* For SUBSCRIBE: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
-
-* For FETCH: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
-
-* For PUBLISH: do not publish the track to that subscriber.
-
 # Publishing and Receiving Tracks
 
 ## Subscriptions {#subscriptions}
@@ -996,6 +959,41 @@ PUBLISH_DONE, but MUST NOT send it until it has closed all related streams.
 A REQUEST_ERROR indicates no objects will be delivered, and both endpoints can
 immediately remove relevant state. Objects MUST NOT be sent for requests that
 end with an error.
+
+
+### Track Alias {#track-alias}
+
+To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
+numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
+the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}) or PUBLISH
+({{message-publish}}).
+
+The same Track Alias MUST NOT be used by a publisher to refer to two different
+Tracks simultaneously in the same session. If a subscriber receives a
+PUBLISH or SUBSCRIBE_OK that uses the same Track Alias as a different Track
+with an `Established` subscription, it MUST close the session with error
+`DUPLICATE_TRACK_ALIAS`.
+
+Objects can be sent before the Subscriber knows the Track Alias, requiring
+buffering Objects with an unknown Track Alias. If a Track Alias
+is used for two concurrent subscriptions to the same Track, an
+Object that arrives with the Track Alias could be for either
+Subscription. Reusing the same Track Alias for concurrent
+subscriptions to the same Track can lead to missed delivery
+if objects for the new subscription arrive
+before the control message establishing the shared Alias.
+The Subscriber can assume the Track Alias is reused until
+told otherwise, in order to avoid missing Objects.
+
+To avoid a protocol violation and to ensure the Subscriber knows which Track
+Objects are from, Publishers SHOULD NOT reuse a Track Alias for different Tracks
+within a session, unless it is certain the prior Subscription has been
+completely closed and no Objects are scheduled to be sent or in flight.
+
+Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
+retain sufficient state to quickly discard these unwanted Objects, rather than
+treating them as belonging to an unknown Track Alias.
+
 
 ### Location Filters {#location-filters}
 
@@ -1325,6 +1323,44 @@ A REQUEST_ERROR indicates that both endpoints can immediately remove state.
 Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
 results in error.
+
+
+## Mandatory Track Properties {#mandatory-track-properties}
+
+Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
+Properties. These properties MUST have Track scope. Mandatory Track Properties
+have special handling rules that prevent tracks with required properties from
+being forwarded to or processed by endpoints that do not understand them.
+
+An Object received with a Mandatory Track Property as an Object Property is
+malformed (see {{malformed-tracks}}).
+
+When an endpoint receives a Mandatory Track Property in PUBLISH,
+SUBSCRIBE_OK, or FETCH_OK that it does not
+understand, it MUST NOT process or forward that track:
+
+* For PUBLISH messages: the subscriber MUST respond with REQUEST_ERROR with
+  error code UNSUPPORTED_EXTENSION.
+
+* For SUBSCRIBE_OK messages: the subscriber MUST cancel the subscription
+  (see {{request-cancellation}}).  If the subscriber is a relay with pending
+  downstream subscribers, it MUST send REQUEST_ERROR with error code
+  UNSUPPORTED_EXTENSION to the downstream subscribers.
+
+* For FETCH_OK messages: the subscriber MUST cancel the fetch
+  (see {{request-cancellation}}).  If the subscriber is a relay and has not yet
+  sent a FETCH_OK or REQUEST_ERROR downstream, it MUST send REQUEST_ERROR with
+  error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
+  relay has already forwarded data on a fetch stream, it MUST reset the stream.
+
+A publisher that knows a subscriber does not support a Mandatory Track Property
+SHOULD take the following action:
+
+* For SUBSCRIBE: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+
+* For FETCH: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+
+* For PUBLISH: do not publish the track to that subscriber.
 
 # Namespace Discovery {#track-discovery}
 
@@ -4180,40 +4216,6 @@ An endpoint that receives an unknown datagram type MUST close the session.
 
 Every Object has a 'Object Forwarding Preference' and the Original Publisher
 MAY use both Subgroups and Datagrams within a Group or Track.
-
-## Track Alias {#track-alias}
-
-To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
-numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
-the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}) or PUBLISH
-({{message-publish}}).
-
-The same Track Alias MUST NOT be used by a publisher to refer to two different
-Tracks simultaneously in the same session. If a subscriber receives a
-PUBLISH or SUBSCRIBE_OK that uses the same Track Alias as a different Track
-with an `Established` subscription, it MUST close the session with error
-`DUPLICATE_TRACK_ALIAS`.
-
-Objects can be sent before the Subscriber knows the Track Alias, requiring
-buffering Objects with an unknown Track Alias. If a Track Alias
-is used for two concurrent subscriptions to the same Track, an
-Object that arrives with the Track Alias could be for either
-Subscription. Reusing the same Track Alias for concurrent
-subscriptions to the same Track can lead to missed delivery
-if objects for the new subscription arrive
-before the control message establishing the shared Alias.
-The Subscriber can assume the Track Alias is reused until
-told otherwise, in order to avoid missing Objects.
-
-To avoid a protocol violation and to ensure the Subscriber knows which Track
-Objects are from, Publishers SHOULD NOT reuse a Track Alias for different Tracks
-within a session, unless it is certain the prior Subscription has been
-completely closed and no Objects are scheduled to be sent or in flight.
-
-Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
-retain sufficient state to quickly discard these unwanted Objects, rather than
-treating them as belonging to an unknown Track Alias.
-
 
 ## Objects {#message-object}
 
