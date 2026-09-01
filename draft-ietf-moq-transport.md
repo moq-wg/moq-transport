@@ -253,6 +253,18 @@ When this document says an endpoint "resets" a stream, it means the endpoint
 sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
 {{closing-subgroup-streams}} for considerations on choosing between them).
 
+## Modularity
+
+MOQT defines all messages necessary to implement both simple publishing or
+subscribing endpoints as well as fully capable Relays.  Non-Relay endpoints
+MAY implement only the subset of functionality required to perform necessary
+tasks.  For example, a limited media player could operate using only SUBSCRIBE
+related messages.  Limited endpoints SHOULD respond to any unsupported messages
+with the appropriate `NOT_SUPPORTED` error code, rather than ignoring them.
+
+Relays MUST implement all MOQT messages defined in this document, as well as
+processing rules described in {{relays-moq}}.
+
 ## Notational Conventions
 
 This document uses the conventions detailed in ({{?RFC9000, Section 1.3}})
@@ -852,569 +864,7 @@ SHOULD take the following action:
 
 * For PUBLISH: do not publish the track to that subscriber.
 
-# Sessions {#session}
-
-## Session establishment {#session-establishment}
-
-This document defines a protocol that can be used interchangeably both
-over a QUIC connection directly [QUIC], and over WebTransport
-[WebTransport].  Both provide streams and datagrams with similar
-semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
-main difference lies in how the servers are identified and how the
-connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
-MUST be supported and negotiated in the QUIC connection used for MOQT,
-which is already a requirement for WebTransport over HTTP/3.
-
-There is no definition of the protocol over other transports,
-such as TCP, and applications using MOQT might need to fallback to
-another protocol when QUIC or WebTransport aren't available.
-
-MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-({{WebTransport, Section 3.3}}) to perform version negotiation.
-
-The ALPN value {{!RFC7301}} for the final version of this specification
-is `moqt`.
-
-\[\[RFC editor: please remove the remainder of this section before publication.]]
-
-ALPNs used to identify IETF drafts are created by appending
-the draft number to "moqt-". For example, draft-ietf-moq-transport-13
-would be identified as "moqt-13".
-
-Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
-negotiation in the SETUP messages.
-
-### MOQT URI Scheme {#moqt-uri-scheme}
-
-An MOQT server is identified using a URI with the "moqt" scheme.  The "moqt"
-URI scheme is defined as follows, using definitions from {{!RFC3986}}:
-
-~~~~~~~~~~~~~~~
-moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
-~~~~~~~~~~~~~~~
-
-The `authority` portion MUST NOT contain an empty `host` portion.
-The `moqt` URI scheme supports the `/.well-known/` path prefix defined in
-{{!RFC8615}}.
-
-The `moqt` URI scheme follows the generic URI syntax of {{!RFC3986}} for
-the `authority`, `path-abempty`, and `query` components, including the
-use of reserved characters and percent-encoding defined therein.  A `moqt`
-URI can be converted to an `https` URI by replacing the scheme (see
-{{webtransport}}), so the `path-abempty` and `query` components use the same
-syntax as `https` URIs.
-
-### Fragment Identifiers {#moqt-fragment}
-
-The media type for resources identified by `moqt` URIs is
-`application/moqt` (see {{iana-media-type}}).
-
-Fragment identifiers MAY be used with `moqt` URIs. The fragment is not
-transmitted to the server; it is processed locally by the client after
-establishing the MOQT session.
-
-A `moqt` URI fragment MUST begin with a registered fragment type
-identifier, followed by a colon (`:`), followed by a type-specific value:
-
-~~~
-moqt://example.com/app#<type>:<value>
-~~~
-
-Fragment type identifiers MUST consist of ASCII lowercase letters,
-digits, and hyphens (`a-z`, `0-9`, `-`). The
-semantics of the value after the colon are defined by the specification
-that registers the fragment type.
-
-Fragment type identifiers are registered in the "MOQT URI Fragment
-Types" registry ({{iana-fragment-types}}).
-
-### Dereferencing a MOQT URI
-
-The default operation for dereferencing a `moqt` URI is to establish a
-MOQT session to the identified server.
-
-The `moqt` URI scheme has the following security considerations:
-
-- The `authority` component is sent in the TLS SNI extension during
-  connection establishment, exposing the target server identity to
-  on-path observers. Encrypted Client Hello (ECH) {{?RFC9580}} can
-  mitigate this exposure.
-
-- The `path-abempty` and `query` components are visible to the relay
-  that terminates the client's connection.
-
-TODO: Add internationalization statement per RFC 7595 Section 3.6.
-
-The client resolves the `host` subcomponent of the `authority` to one or
-more network addresses, most commonly using DNS A {{?RFC1035}} and AAAA {{?RFC3596}} records.
-
-When SVCB-compatible records {{?RFC9460}} are published for the `authority`,
-a client MAY use them to learn the server's endpoints and supported ALPN
-protocols before connecting. A client using WebTransport resolves the
-`https` URI derived in {{webtransport}} using HTTPS resource records as for
-any `https` origin.
-TODO: reference moqt SVCB record draft once available.
-
-If the port is omitted in the URI, a default port of 443 is used.
-
-The client MAY use either native QUIC or WebTransport. On a QUIC connection,
-the client offers any combination of MOQT ALPNs (e.g. `moqt-1`, `moqt-2`)
-and `h3` that it supports in its TLS ClientHello, in preference order. If the
-server selects an MOQT ALPN, the session proceeds as described in
-{{native-quic}}. If the server selects `h3`, the client establishes a
-WebTransport session as described in {{webtransport}}. On a TCP+TLS
-connection, the client offers `h2` in its TLS ClientHello and establishes a
-WebTransport session as described in {{webtransport}}.
-
-### WebTransport {#webtransport}
-
-When the client uses WebTransport, it constructs an `https` URI from the `moqt`
-URI by replacing the scheme with `https`.
-For example, `moqt://example.com/path` becomes
-`https://example.com/path`. The client sends an extended CONNECT request to this
-URI to establish a WebTransport session, as described in
-({{WebTransport, Section 3}}). The client includes MOQT protocol identifiers in
-the WT-Available-Protocols header ({{WebTransport, Section 3.3}}).
-
-### Native QUIC {#native-quic}
-
-The client establishes a QUIC connection to the host and port identified by the
-`authority` section of the URI.
-When the client uses native QUIC, the `authority`, `path-abempty` and `query`
-portions of the URI are transmitted in Setup Options (see {{setup-options}}).
-
-### Connection URL
-
-Each track MAY have one or more associated connection URLs specifying
-network hosts through which a track may be accessed. The syntax of the
-Connection URL and the associated connection setup procedures are
-specific to the underlying transport protocol usage (see {{session}}).
-
-## Extension Negotiation {#extension-negotiation}
-
-Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
-Extensions can define new Message types, new Parameters, new Properties,
-new Parameter values, or new framing for Streams and Datagrams.
-
-The client and server MUST include all Setup Options {{setup-options}}
-required for the negotiated MOQT version in SETUP.
-
-Each endpoint declares the extensions it supports and provides any initial
-values required by those extensions as Setup Options in SETUP. Once an endpoint
-has both sent and received SETUP messages, it determines the set of negotiated
-extensions.
-
-New versions of MOQT MUST specify which existing extensions can be used with
-that version. New extensions MUST specify the existing versions with which they
-can be used.
-
-### Reserved Namespaces {#reserved-namespaces}
-
-MOQT reserves all Track Namespace values whose first tuple field begins with
-a period (0x2e, `.`). These namespaces MUST NOT be used unless their meaning
-is defined through IANA registration. Unless otherwise specified, an
-endpoint that receives a request for an unrecognized reserved namespace MUST
-pass it to the Application, so that future extensions can define new reserved
-namespaces without breaking older implementations.
-
-A Track Namespace whose first field is exactly `.` (a single period, 0x2e)
-is reserved and MUST NOT be used for any purpose; endpoints MUST NOT publish
-tracks or namespaces under it and MUST reject requests referencing it with
-DOES_NOT_EXIST.
-
-### Session-Level Tracks and Namespaces {#session-level-tracks}
-
-MOQT defines the `.session` namespace (the bytes 0x2e, 0x73, 0x65, 0x73,
-0x73, 0x69, 0x6f, 0x6e) in the first position of the Track Namespace for
-session-level tracks and namespaces. Session-level tracks and namespaces are
-managed by the MOQT implementation, not the Application. They provide a
-mechanism for extending MOQT transport functionality using existing
-subscription and object delivery machinery, without defining new control
-messages or stream types.
-
-The Application MUST NOT publish tracks or namespaces whose first
-field is `.session`. Relays MUST NOT forward requests for session-level
-tracks and namespaces to other sessions.
-
-The empty track name in the `.session` namespace is defined to not exist.
-A request with a Track Namespace whose first field is `.session` and an
-empty Track Name MUST be rejected with DOES_NOT_EXIST.
-
-An endpoint that receives a request for an unrecognized session-level track
-or namespace MUST reject it with REQUEST_ERROR using error code
-DOES_NOT_EXIST rather than passing it to the Application.
-
-The track names and namespaces available under the `.session` namespace are
-defined by extensions to this specification and registered with IANA (see
-{{iana-session-level-tracks}}).
-
-## Session initialization {#session-init}
-
-MOQT uses a pair of unidirectional streams for creating the session and
-exchanging control messages. Each peer opens one control stream beginning with
-a SETUP message. Using a pair of unidirectional streams rather than a single
-bidirectional stream allows either peer to send data as soon as it is able.
-Depending on whether 0-RTT is available on the QUIC connection, either the client or
-the server might be able to send stream data first.
-
-In addition to the control streams, this specification uses bidirectional streams
-to carry requests.  A request stream begins with one of these seven message types:
-TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
-SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Bidirectional streams MUST NOT
-begin with any other message type unless negotiated. If they do, the peer MUST
-close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
-streams.
-
-As such, a client can initiate a MOQT session, subscribe, and
-start publishing Objects all in parallel. When this is done before the
-handshake completes using 0-RTT, the security implications described in
-{{zero-rtt}} apply.
-
-Unidirectional streams containing Objects or bidirectional stream(s) beginning
-with a request message could arrive prior to the control streams, in which case
-the data SHOULD be buffered until both control streams arrive and setup is
-complete. If an implementation does not want to buffer or if the message type is
-not supported, it MAY reset such bidirectional streams before the session and
-control streams are established.
-
-A control stream MUST NOT be closed at the underlying transport layer during the
-session's lifetime.  Doing so results in the session being closed as a
-`PROTOCOL_VIOLATION`.
-
-Prior to receiving the peer's SETUP message, it's unknown what extensions
-a peer will support. Message Parameters requiring negotiation SHOULD NOT
-be used prior to receiving the peer's SETUP message unless the application
-requires the extension or the endpoint knows the peer supports the
-extension. If an unsupported Message Parameter is used, the peer will be
-unable to process it and the session will be terminated. See {{message-params}}.
-
-### 0-RTT {#zero-rtt}
-
-QUIC supports 0-RTT ({{Section 2.3 of ?RFC8446}}), but WebTransport over QUIC
-is not expected to use 0-RTT, because initializing a WebTransport session
-uses CONNECT, which is not a safe method. {{?RFC8470}} describes the use of
-0-RTT with HTTP in more detail. If 0-RTT is used with an existing or future
-version of WebTransport, the following would apply to it as well as QUIC.
-
-MOQT Messages and Objects as defined in this draft are safe to replay in most
-circumstances.
-
-* TRACK_STATUS gets the Largest Object and Track Properties, but does not
-  change the state of a Track or any Object in the Track.
-* SUBSCRIBE requests Objects be delivered, but does not change the Objects
-  being requested.
-* PUBLISH initiates a Subscription. Objects can be immediately sent to
-  the Subscriber. Processing the same Objects multiple times is
-  idempotent, as the subscriber or relay can identify and discard
-  duplicates based on the Group ID and Object ID.
-* SUBSCRIBE_NAMESPACE requests a list of namespaces and the establishment
-  of new subscriptions, but does not change the available Namespaces,
-  Tracks, or Objects contained within a Track.
-* PUBLISH_NAMESPACE requests that Subscriptions under the namespace be sent
-  to that Publisher. If a Subscription was sent to the replaying endpoint, it
-  would fail because the endpoint cannot complete the handshake.
-
-Some potential side effects of replay are:
-
-* Publishing Objects that were previously published could cause those
-  Objects to be distributed to active Subscriptions if the relays do
-  not identify them as already having been published. This re-distribution could
-  also make them available in cache again after they previously expired.
-
-Replays could increase load on the MOQT network. For relay to client
-traffic, this is no worse than 0-RTT in HTTP/3, since the server is limited by
-the amplification factor until address validation. However, it could cause
-the relay to initiate new upstream Subscriptions. For a SUBSCRIBE_TRACKS
-request, sending that upstream could cause the Relay to receive a number of new
-Subscriptions on the replaying client's behalf.
-
-Relays MAY defer initiating upstream subscriptions until the handshake is complete
-or reject 0-RTT entirely to mitigate resource exhaustion from replayed packets.
-
-### Graceful Request Stream Closure {#graceful-request-closure}
-
-A request stream is bidirectional and each direction is closed independently,
-either gracefully with a FIN or abruptly with RESET_STREAM.
-
-A FIN only indicates that an endpoint will send no further messages in that
-direction; it is not a request cancellation. An endpoint MUST NOT send a FIN on
-a direction of a request stream until it has sent all required messages on that
-direction for its request type. In particular, an endpoint sending a response to
-a request MUST send the corresponding response message, and the publisher of an
-`Established` subscription MUST send PUBLISH_DONE, before sending a FIN. A FIN
-sent by the responder after its response and any subsequent messages for the
-request signals that the request is complete; if it has not already done so, the
-requester SHOULD then send a FIN on its direction, gracefully closing the stream.
-An endpoint that receives a FIN before all required messages have arrived treats
-the request as failed.
-
-An endpoint SHOULD send a FIN promptly after a message when it has nothing
-further to send on that direction and will not need to respond to a future
-REQUEST_UPDATE. A requester, with the exception of the sender of PUBLISH,
-MAY FIN immediately after sending a message if it will not send a
-REQUEST_UPDATE.
-
-### Request Cancellation and Rejection {#request-cancellation}
-
-Once a request stream has been opened, the request MAY be cancelled by either
-endpoint. Senders cancel requests if the response is no longer of interest;
-Receivers cancel requests if they are unable to or choose not to respond.
-Implementations cancel a request by abruptly terminating any directions of the
-stream that are still open, using RESET_STREAM for a direction they are sending
-and STOP_SENDING for a direction they are receiving. An endpoint that has
-already sent a FIN on its sending direction and subsequently wishes to cancel
-sends STOP_SENDING on the receiving direction.
-
-When an endpoint rejects a request without performing any application
-processing, it SHOULD send a REQUEST_ERROR and FIN the stream.
-
-### Stream Reset Error Codes {#stream-reset-codes}
-
-The application SHOULD use a relevant error code when resetting or sending
-STOP_SENDING on any stream.
-
-INTERNAL_ERROR (0x0):
-: An implementation specific error.
-
-CANCELLED (0x1):
-: The stream was cancelled by either endpoint. For Subscriptions,
-  PUBLISH_DONE ({{message-publish-done}}) may have a more detailed status code.
-
-DELIVERY_TIMEOUT (0x2):
-: A delivery timeout ({{delivery-timeouts}}) was exceeded for this stream.
-
-SESSION_CLOSED (0x3):
-: The session is being closed.
-
-GOING_AWAY (0x4):
-: The endpoint is rejecting this request because it has sent or received a GOAWAY.
-
-TOO_FAR_BEHIND (0x5):
-: The corresponding subscription has exceeded the publisher's resource limits and
-  is being terminated (see {{delivery-timeouts}}).
-
-UNKNOWN_OBJECT_STATUS (0x6):
-: In response to a FETCH, the publisher is unable to determine the status
-  of the next Object in the requested range.
-
-EXPIRED_AUTH_TOKEN (0x7):
-: The authorization token for the request has expired.
-
-EXCESSIVE_LOAD (0x9):
-: The endpoint is overloaded and is resetting this stream.
-
-MALFORMED_TRACK (0x12):
-: A relay publisher detected that the track was malformed (see
-  {{malformed-tracks}}).
-
-## Unidirectional Stream Types {#stream-types}
-
-All unidirectional MOQT streams start with a variable-length integer indicating
-the type of the stream.
-
-|-------------|-------------------------------------------------|
-| ID          | Type                                            |
-|------------:|:------------------------------------------------|
-| 0x05        | FETCH_HEADER  ({{fetch-header}})                |
-|-------------|-------------------------------------------------|
-| 0b0XX1XXXX  | SUBGROUP_HEADER  ({{subgroup-header}})          |
-|-------------|-------------------------------------------------|
-| 0x2F00      | SETUP ({{message-setup}})                       |
-|-------------|-------------------------------------------------|
-| 0x132B3E28  | PADDING  ({{padding-streams}})                  |
-|-------------|-------------------------------------------------|
-
-An endpoint that receives an unknown stream type MUST close the session.
-
-Control streams (SETUP) are described in {{session-init}}.
-Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
-Padding streams are described in {{padding}}.
-
-## Termination  {#session-termination}
-
-The Transport Session can be terminated at any point.  When native QUIC
-is used, the session is closed using the CONNECTION\_CLOSE frame
-({{QUIC, Section 19.19}}).  When WebTransport is used, the session is
-closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
-Section 6}}).
-
-When terminating the Session, the application MAY use any error message
-and SHOULD use a relevant code, as defined below:
-
-NO_ERROR (0x0):
-: The session is being terminated without an error.
-
-INTERNAL_ERROR (0x1):
-: An implementation specific error occurred.
-
-UNAUTHORIZED (0x2):
-: The client is not authorized to establish a session.
-
-PROTOCOL_VIOLATION (0x3):
-: The remote endpoint performed an action that was disallowed by the
-  specification.
-
-INVALID_REQUEST_ID (0x4):
-: The endpoint received a Request ID with an incorrect least significant
-  bit for the sender, or a duplicate Request ID. See {{request-id}}.
-
-DUPLICATE_TRACK_ALIAS (0x5):
-: The endpoint attempted to use a Track Alias that was already in use.
-
-KEY_VALUE_FORMATTING_ERROR (0x6):
-: The key-value pair has a formatting error.
-
-INVALID_PATH (0x8):
-: The PATH parameter was used by a server, on a WebTransport session, or the
-  server does not support the path.
-
-MALFORMED_PATH (0x9):
-: The PATH parameter does not conform to the rules in {{path}}.
-
-GOAWAY_TIMEOUT (0x10):
-: The session was closed because the peer took too long to close the session
-  in response to a GOAWAY ({{message-goaway}}) message. See session migration
-  ({{session-migration}}).
-
-CONTROL_MESSAGE_TIMEOUT (0x11):
-: The session was closed because the peer took too long to respond to a
-  control message.
-
-DATA_STREAM_TIMEOUT (0x12):
-: The session was closed because the peer took too long to send data expected
-  on an open Data Stream (see {{data-streams}}). This includes fields of a
-  stream header or an object header within a data stream. If an endpoint
-  times out waiting for a new object header on an open subgroup stream, it
-  MAY send a STOP_SENDING on that stream or terminate the subscription.
-
-AUTH_TOKEN_CACHE_OVERFLOW (0x13):
-: The Session limit {{max-auth-token-cache-size}} of the size of all
-  registered Authorization tokens has been exceeded.
-
-DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
-: Authorization Token attempted to register an Alias that was in use (see
-  {{authorization-token}}).
-
-MALFORMED_AUTH_TOKEN (0x16):
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-UNKNOWN_AUTH_TOKEN_ALIAS (0x17):
-: No registered token found for the provided Alias (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN (0x18):
-: Authorization token has expired ({{authorization-token}}).
-
-INVALID_AUTHORITY (0x19):
-: The specified AUTHORITY does not correspond to this server or cannot be
-  used in this context.
-
-MALFORMED_AUTHORITY (0x1A):
-: The AUTHORITY value is syntactically invalid.
-
-TOO_MANY_REQUEST_UPDATES (0x1B):
-: The endpoint received a REQUEST_UPDATE that exceeded the per-stream limit
-  communicated via the MAX_REQUEST_UPDATES Setup Option
-  ({{max-request-updates}}).
-
-An endpoint MAY choose to treat a subscription or request specific error as a
-session error under certain circumstances, closing the entire session in
-response to a condition with a single subscription or message. Implementations
-need to consider the impact on other outstanding subscriptions before making
-this choice.
-
-## Session Migration {#session-migration}
-
-MOQT requires a long-lived and stateful session. However, a service
-provider needs the ability to shutdown/restart a server without waiting for all
-sessions to drain naturally, as that can take days for long-form media.
-MOQT enables proactively draining sessions via the GOAWAY message ({{message-goaway}}).
-
-A GOAWAY on the control stream migrates the entire session, as described in
-this section. A GOAWAY on a single request stream instead migrates only that
-request, leaving the rest of the session in place; see {{message-goaway}}.
-
-The server sends a GOAWAY message, signaling the client to establish a new
-session and migrate any `Established` subscriptions. The GOAWAY message optionally
-contains a new URI for the new session, otherwise the current URI is
-reused. The GOAWAY message contains a Timeout indicating how long, in
-milliseconds, the sender intends to wait before closing the session. The sender
-SHOULD close the session with `GOAWAY_TIMEOUT` after the indicated timeout if
-there are still open subscriptions or fetches on a connection.
-
-When the server is a subscriber, it SHOULD send a GOAWAY message to downstream
-subscribers prior to unsubscribing from upstream publishers.
-
-After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
-there are no more `Established` subscriptions before closing the session with NO_ERROR.
-Ideally this is transparent to the application using MOQT, which involves
-establishing a new session in the background and migrating `Established` subscriptions
-and published namespaces. The client can choose to delay closing the session if
-it expects more OBJECTs to be delivered. The sender closes the session with a
-`GOAWAY_TIMEOUT` if the peer doesn't close the session within the
-indicated Timeout.
-
-## Congestion Control
-
-MOQT does not specify a congestion controller, but there are important attributes
-to consider when selecting a congestion controller for use with an application
-built on top of MOQT.
-
-### Bufferbloat
-
-Traditional AIMD congestion controllers (ex. CUBIC {{?RFC9438}} and Reno {{?RFC6582}})
-are prone to Bufferbloat. Bufferbloat occurs when elements along the path build up
-a substantial queue of packets, commonly more than doubling the round trip time.
-These queued packets cause head-of-line blocking and latency, even when there is
-no packet loss.
-
-### Application-Limited
-
-The average bitrate for latency sensitive content needs to be less than the available
-bandwidth, otherwise data will be queued and/or dropped. As such,
-many MOQT applications will typically be limited by the available data to send, and
-not the congestion controller. Many congestion control algorithms
-only increase the congestion window or bandwidth estimate if fully utilized. This
-combination can lead to underestimating the available network bandwidth. As a result,
-applications might need to periodically ensure the congestion controller is not
-app-limited for at least a full round trip to ensure the available bandwidth can be
-measured.
-
-Some applications might have APIs to allow sending duplicate data or forward error
-correction to probe for more bandwidth while also limiting the impact of probing
-in case it causes packet loss. Subscribers wanting to switch to an alternate
-representation of a Track can subscribe to it at a lower priority, or subscribe
-to additional Tracks at the lowest (255) priority to fill the congestion window
-during probing intervals while minimizing the impact on higher priority
-media. Publishers can send padding ({{padding}}) to probe for additional
-bandwidth without requiring additional subscriptions.
-Network-assisted bandwidth estimation mechanisms such as SCONE
-{{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
-which subscribers can use to inform track selection decisions and potentially avoid
-unnecessary probing.
-
-### Consistent Throughput
-
-Congestion control algorithms are commonly optimized for throughput, not consistency.
-For example, BBR's PROBE_RTT state halves the sending rate for more than a round trip
-in order to obtain an accurate minimum RTT. Similarly, Reno halves its congestion
-window upon detecting loss.  In both cases, the large reduction in sending rate might
-cause issues with latency sensitive applications.
-
-# Extensibility
-
-MOQT defines all messages necessary to implement both simple publishing or
-subscribing endpoints as well as fully capable Relays.  Non-Relay endpoints
-MAY implement only the subset of functionality required to perform necessary
-tasks.  For example, a limited media player could operate using only SUBSCRIBE
-related messages.  Limited endpoints SHOULD respond to any unsupported messages
-with the appropriate `NOT_SUPPORTED` error code, rather than ignoring them.
-
-Relays MUST implement all MOQT messages defined in this document, as well as
-processing rules described in {{relays-moq}}.
-
-# Publishing and Retrieving Tracks
+# Publishing and Receiving Tracks
 
 ## Subscriptions {#subscriptions}
 
@@ -1993,13 +1443,16 @@ CONFLICTING_FILTERS if too many disjoint filters are requested on downstream
 subscriptions across a large number of subscribers, or PREFIX_OVERLAP if different
 subscribers force an aggregated upstream subscription to overlap.
 
-# Priorities {#priorities}
+
+# Object Transmission
+
+## Priorities {#priorities}
 
 MOQT priorities allow a subscriber and original publisher to influence
 the transmission order of Objects within a session in the presence of
 congestion.
 
-## Definitions
+### Definitions
 
 MOQT maintains priorities between different schedulable objects.
 A schedulable object in MOQT is either:
@@ -2046,7 +1499,7 @@ DEFAULT_PUBLISHER_GROUP_ORDER Track Property ({{group-order-pref}}), is used if
 the subscriber did not express one (by omitting the Group Order parameter). The
 group order of an existing subscription cannot be changed.
 
-## Scheduling Algorithm
+### Scheduling Algorithm
 
 When an MOQT publisher has multiple schedulable objects it can choose between,
 the objects SHOULD be selected as follows:
@@ -2096,7 +1549,7 @@ small size, the control streams SHOULD be prioritized highest, followed by the
 bidi request streams and then all Objects. Bidi request streams MAY be
 prioritized within themselves by Subscriber Priority if specified.
 
-## Considerations for Setting Priorities
+### Considerations for Setting Priorities
 
 For downstream subscriptions, relays SHOULD respect the subscriber and original
 publisher's priorities.  Relays can receive subscriptions with conflicting
@@ -2120,7 +1573,7 @@ Implementations that have a default priority SHOULD set it to a value in
 the middle of the range (eg: 128) to allow non-default priorities to be
 set either higher or lower.
 
-# Delivery Timeouts and Data Reliability {#delivery-timeouts}
+## Delivery Timeouts and Data Reliability {#delivery-timeouts}
 
 Each MOQT subscription has two timeout values associated with it: a
 SUBGROUP_DELIVERY_TIMEOUT and an OBJECT_DELIVERY_TIMEOUT.  Both of those values
@@ -2192,6 +1645,556 @@ subscription filter are delivered as indicated by their Group Order and
 Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher MAY
 terminate the subscription using PUBLISH_DONE with error `TOO_FAR_BEHIND`.
+
+# Sessions {#session}
+
+## Session establishment {#session-establishment}
+
+This document defines a protocol that can be used interchangeably both
+over a QUIC connection directly [QUIC], and over WebTransport
+[WebTransport].  Both provide streams and datagrams with similar
+semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
+main difference lies in how the servers are identified and how the
+connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
+MUST be supported and negotiated in the QUIC connection used for MOQT,
+which is already a requirement for WebTransport over HTTP/3.
+
+There is no definition of the protocol over other transports,
+such as TCP, and applications using MOQT might need to fallback to
+another protocol when QUIC or WebTransport aren't available.
+
+MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
+({{WebTransport, Section 3.3}}) to perform version negotiation.
+
+The ALPN value {{!RFC7301}} for the final version of this specification
+is `moqt`.
+
+\[\[RFC editor: please remove the remainder of this section before publication.]]
+
+ALPNs used to identify IETF drafts are created by appending
+the draft number to "moqt-". For example, draft-ietf-moq-transport-13
+would be identified as "moqt-13".
+
+Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
+negotiation in the SETUP messages.
+
+### MOQT URI Scheme {#moqt-uri-scheme}
+
+An MOQT server is identified using a URI with the "moqt" scheme.  The "moqt"
+URI scheme is defined as follows, using definitions from {{!RFC3986}}:
+
+~~~~~~~~~~~~~~~
+moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
+~~~~~~~~~~~~~~~
+
+The `authority` portion MUST NOT contain an empty `host` portion.
+The `moqt` URI scheme supports the `/.well-known/` path prefix defined in
+{{!RFC8615}}.
+
+The `moqt` URI scheme follows the generic URI syntax of {{!RFC3986}} for
+the `authority`, `path-abempty`, and `query` components, including the
+use of reserved characters and percent-encoding defined therein.  A `moqt`
+URI can be converted to an `https` URI by replacing the scheme (see
+{{webtransport}}), so the `path-abempty` and `query` components use the same
+syntax as `https` URIs.
+
+### Fragment Identifiers {#moqt-fragment}
+
+The media type for resources identified by `moqt` URIs is
+`application/moqt` (see {{iana-media-type}}).
+
+Fragment identifiers MAY be used with `moqt` URIs. The fragment is not
+transmitted to the server; it is processed locally by the client after
+establishing the MOQT session.
+
+A `moqt` URI fragment MUST begin with a registered fragment type
+identifier, followed by a colon (`:`), followed by a type-specific value:
+
+~~~
+moqt://example.com/app#<type>:<value>
+~~~
+
+Fragment type identifiers MUST consist of ASCII lowercase letters,
+digits, and hyphens (`a-z`, `0-9`, `-`). The
+semantics of the value after the colon are defined by the specification
+that registers the fragment type.
+
+Fragment type identifiers are registered in the "MOQT URI Fragment
+Types" registry ({{iana-fragment-types}}).
+
+### Dereferencing a MOQT URI
+
+The default operation for dereferencing a `moqt` URI is to establish a
+MOQT session to the identified server.
+
+The `moqt` URI scheme has the following security considerations:
+
+- The `authority` component is sent in the TLS SNI extension during
+  connection establishment, exposing the target server identity to
+  on-path observers. Encrypted Client Hello (ECH) {{?RFC9580}} can
+  mitigate this exposure.
+
+- The `path-abempty` and `query` components are visible to the relay
+  that terminates the client's connection.
+
+TODO: Add internationalization statement per RFC 7595 Section 3.6.
+
+The client resolves the `host` subcomponent of the `authority` to one or
+more network addresses, most commonly using DNS A {{?RFC1035}} and AAAA {{?RFC3596}} records.
+
+When SVCB-compatible records {{?RFC9460}} are published for the `authority`,
+a client MAY use them to learn the server's endpoints and supported ALPN
+protocols before connecting. A client using WebTransport resolves the
+`https` URI derived in {{webtransport}} using HTTPS resource records as for
+any `https` origin.
+TODO: reference moqt SVCB record draft once available.
+
+If the port is omitted in the URI, a default port of 443 is used.
+
+The client MAY use either native QUIC or WebTransport. On a QUIC connection,
+the client offers any combination of MOQT ALPNs (e.g. `moqt-1`, `moqt-2`)
+and `h3` that it supports in its TLS ClientHello, in preference order. If the
+server selects an MOQT ALPN, the session proceeds as described in
+{{native-quic}}. If the server selects `h3`, the client establishes a
+WebTransport session as described in {{webtransport}}. On a TCP+TLS
+connection, the client offers `h2` in its TLS ClientHello and establishes a
+WebTransport session as described in {{webtransport}}.
+
+### WebTransport {#webtransport}
+
+When the client uses WebTransport, it constructs an `https` URI from the `moqt`
+URI by replacing the scheme with `https`.
+For example, `moqt://example.com/path` becomes
+`https://example.com/path`. The client sends an extended CONNECT request to this
+URI to establish a WebTransport session, as described in
+({{WebTransport, Section 3}}). The client includes MOQT protocol identifiers in
+the WT-Available-Protocols header ({{WebTransport, Section 3.3}}).
+
+### Native QUIC {#native-quic}
+
+The client establishes a QUIC connection to the host and port identified by the
+`authority` section of the URI.
+When the client uses native QUIC, the `authority`, `path-abempty` and `query`
+portions of the URI are transmitted in Setup Options (see {{setup-options}}).
+
+### Connection URL
+
+Each track MAY have one or more associated connection URLs specifying
+network hosts through which a track may be accessed. The syntax of the
+Connection URL and the associated connection setup procedures are
+specific to the underlying transport protocol usage (see {{session}}).
+
+## Extension Negotiation {#extension-negotiation}
+
+Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
+Extensions can define new Message types, new Parameters, new Properties,
+new Parameter values, or new framing for Streams and Datagrams.
+
+The client and server MUST include all Setup Options {{setup-options}}
+required for the negotiated MOQT version in SETUP.
+
+Each endpoint declares the extensions it supports and provides any initial
+values required by those extensions as Setup Options in SETUP. Once an endpoint
+has both sent and received SETUP messages, it determines the set of negotiated
+extensions.
+
+New versions of MOQT MUST specify which existing extensions can be used with
+that version. New extensions MUST specify the existing versions with which they
+can be used.
+
+### Reserved Namespaces {#reserved-namespaces}
+
+MOQT reserves all Track Namespace values whose first tuple field begins with
+a period (0x2e, `.`). These namespaces MUST NOT be used unless their meaning
+is defined through IANA registration. Unless otherwise specified, an
+endpoint that receives a request for an unrecognized reserved namespace MUST
+pass it to the Application, so that future extensions can define new reserved
+namespaces without breaking older implementations.
+
+A Track Namespace whose first field is exactly `.` (a single period, 0x2e)
+is reserved and MUST NOT be used for any purpose; endpoints MUST NOT publish
+tracks or namespaces under it and MUST reject requests referencing it with
+DOES_NOT_EXIST.
+
+### Session-Level Tracks and Namespaces {#session-level-tracks}
+
+MOQT defines the `.session` namespace (the bytes 0x2e, 0x73, 0x65, 0x73,
+0x73, 0x69, 0x6f, 0x6e) in the first position of the Track Namespace for
+session-level tracks and namespaces. Session-level tracks and namespaces are
+managed by the MOQT implementation, not the Application. They provide a
+mechanism for extending MOQT transport functionality using existing
+subscription and object delivery machinery, without defining new control
+messages or stream types.
+
+The Application MUST NOT publish tracks or namespaces whose first
+field is `.session`. Relays MUST NOT forward requests for session-level
+tracks and namespaces to other sessions.
+
+The empty track name in the `.session` namespace is defined to not exist.
+A request with a Track Namespace whose first field is `.session` and an
+empty Track Name MUST be rejected with DOES_NOT_EXIST.
+
+An endpoint that receives a request for an unrecognized session-level track
+or namespace MUST reject it with REQUEST_ERROR using error code
+DOES_NOT_EXIST rather than passing it to the Application.
+
+The track names and namespaces available under the `.session` namespace are
+defined by extensions to this specification and registered with IANA (see
+{{iana-session-level-tracks}}).
+
+## Session initialization {#session-init}
+
+MOQT uses a pair of unidirectional streams for creating the session and
+exchanging control messages. Each peer opens one control stream beginning with
+a SETUP message. Using a pair of unidirectional streams rather than a single
+bidirectional stream allows either peer to send data as soon as it is able.
+Depending on whether 0-RTT is available on the QUIC connection, either the client or
+the server might be able to send stream data first.
+
+In addition to the control streams, this specification uses bidirectional streams
+to carry requests.  A request stream begins with one of these seven message types:
+TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
+SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Bidirectional streams MUST NOT
+begin with any other message type unless negotiated. If they do, the peer MUST
+close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
+streams.
+
+As such, a client can initiate a MOQT session, subscribe, and
+start publishing Objects all in parallel. When this is done before the
+handshake completes using 0-RTT, the security implications described in
+{{zero-rtt}} apply.
+
+Unidirectional streams containing Objects or bidirectional stream(s) beginning
+with a request message could arrive prior to the control streams, in which case
+the data SHOULD be buffered until both control streams arrive and setup is
+complete. If an implementation does not want to buffer or if the message type is
+not supported, it MAY reset such bidirectional streams before the session and
+control streams are established.
+
+A control stream MUST NOT be closed at the underlying transport layer during the
+session's lifetime.  Doing so results in the session being closed as a
+`PROTOCOL_VIOLATION`.
+
+Prior to receiving the peer's SETUP message, it's unknown what extensions
+a peer will support. Message Parameters requiring negotiation SHOULD NOT
+be used prior to receiving the peer's SETUP message unless the application
+requires the extension or the endpoint knows the peer supports the
+extension. If an unsupported Message Parameter is used, the peer will be
+unable to process it and the session will be terminated. See {{message-params}}.
+
+### 0-RTT {#zero-rtt}
+
+QUIC supports 0-RTT ({{Section 2.3 of ?RFC8446}}), but WebTransport over QUIC
+is not expected to use 0-RTT, because initializing a WebTransport session
+uses CONNECT, which is not a safe method. {{?RFC8470}} describes the use of
+0-RTT with HTTP in more detail. If 0-RTT is used with an existing or future
+version of WebTransport, the following would apply to it as well as QUIC.
+
+MOQT Messages and Objects as defined in this draft are safe to replay in most
+circumstances.
+
+* TRACK_STATUS gets the Largest Object and Track Properties, but does not
+  change the state of a Track or any Object in the Track.
+* SUBSCRIBE requests Objects be delivered, but does not change the Objects
+  being requested.
+* PUBLISH initiates a Subscription. Objects can be immediately sent to
+  the Subscriber. Processing the same Objects multiple times is
+  idempotent, as the subscriber or relay can identify and discard
+  duplicates based on the Group ID and Object ID.
+* SUBSCRIBE_NAMESPACE requests a list of namespaces and the establishment
+  of new subscriptions, but does not change the available Namespaces,
+  Tracks, or Objects contained within a Track.
+* PUBLISH_NAMESPACE requests that Subscriptions under the namespace be sent
+  to that Publisher. If a Subscription was sent to the replaying endpoint, it
+  would fail because the endpoint cannot complete the handshake.
+
+Some potential side effects of replay are:
+
+* Publishing Objects that were previously published could cause those
+  Objects to be distributed to active Subscriptions if the relays do
+  not identify them as already having been published. This re-distribution could
+  also make them available in cache again after they previously expired.
+
+Replays could increase load on the MOQT network. For relay to client
+traffic, this is no worse than 0-RTT in HTTP/3, since the server is limited by
+the amplification factor until address validation. However, it could cause
+the relay to initiate new upstream Subscriptions. For a SUBSCRIBE_TRACKS
+request, sending that upstream could cause the Relay to receive a number of new
+Subscriptions on the replaying client's behalf.
+
+Relays MAY defer initiating upstream subscriptions until the handshake is complete
+or reject 0-RTT entirely to mitigate resource exhaustion from replayed packets.
+
+### Graceful Request Stream Closure {#graceful-request-closure}
+
+A request stream is bidirectional and each direction is closed independently,
+either gracefully with a FIN or abruptly with RESET_STREAM.
+
+A FIN only indicates that an endpoint will send no further messages in that
+direction; it is not a request cancellation. An endpoint MUST NOT send a FIN on
+a direction of a request stream until it has sent all required messages on that
+direction for its request type. In particular, an endpoint sending a response to
+a request MUST send the corresponding response message, and the publisher of an
+`Established` subscription MUST send PUBLISH_DONE, before sending a FIN. A FIN
+sent by the responder after its response and any subsequent messages for the
+request signals that the request is complete; if it has not already done so, the
+requester SHOULD then send a FIN on its direction, gracefully closing the stream.
+An endpoint that receives a FIN before all required messages have arrived treats
+the request as failed.
+
+An endpoint SHOULD send a FIN promptly after a message when it has nothing
+further to send on that direction and will not need to respond to a future
+REQUEST_UPDATE. A requester, with the exception of the sender of PUBLISH,
+MAY FIN immediately after sending a message if it will not send a
+REQUEST_UPDATE.
+
+### Request Cancellation and Rejection {#request-cancellation}
+
+Once a request stream has been opened, the request MAY be cancelled by either
+endpoint. Senders cancel requests if the response is no longer of interest;
+Receivers cancel requests if they are unable to or choose not to respond.
+Implementations cancel a request by abruptly terminating any directions of the
+stream that are still open, using RESET_STREAM for a direction they are sending
+and STOP_SENDING for a direction they are receiving. An endpoint that has
+already sent a FIN on its sending direction and subsequently wishes to cancel
+sends STOP_SENDING on the receiving direction.
+
+When an endpoint rejects a request without performing any application
+processing, it SHOULD send a REQUEST_ERROR and FIN the stream.
+
+### Stream Reset Error Codes {#stream-reset-codes}
+
+The application SHOULD use a relevant error code when resetting or sending
+STOP_SENDING on any stream.
+
+INTERNAL_ERROR (0x0):
+: An implementation specific error.
+
+CANCELLED (0x1):
+: The stream was cancelled by either endpoint. For Subscriptions,
+  PUBLISH_DONE ({{message-publish-done}}) may have a more detailed status code.
+
+DELIVERY_TIMEOUT (0x2):
+: A delivery timeout ({{delivery-timeouts}}) was exceeded for this stream.
+
+SESSION_CLOSED (0x3):
+: The session is being closed.
+
+GOING_AWAY (0x4):
+: The endpoint is rejecting this request because it has sent or received a GOAWAY.
+
+TOO_FAR_BEHIND (0x5):
+: The corresponding subscription has exceeded the publisher's resource limits and
+  is being terminated (see {{delivery-timeouts}}).
+
+UNKNOWN_OBJECT_STATUS (0x6):
+: In response to a FETCH, the publisher is unable to determine the status
+  of the next Object in the requested range.
+
+EXPIRED_AUTH_TOKEN (0x7):
+: The authorization token for the request has expired.
+
+EXCESSIVE_LOAD (0x9):
+: The endpoint is overloaded and is resetting this stream.
+
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
+  {{malformed-tracks}}).
+
+## Unidirectional Stream Types {#stream-types}
+
+All unidirectional MOQT streams start with a variable-length integer indicating
+the type of the stream.
+
+|-------------|-------------------------------------------------|
+| ID          | Type                                            |
+|------------:|:------------------------------------------------|
+| 0x05        | FETCH_HEADER  ({{fetch-header}})                |
+|-------------|-------------------------------------------------|
+| 0b0XX1XXXX  | SUBGROUP_HEADER  ({{subgroup-header}})          |
+|-------------|-------------------------------------------------|
+| 0x2F00      | SETUP ({{message-setup}})                       |
+|-------------|-------------------------------------------------|
+| 0x132B3E28  | PADDING  ({{padding-streams}})                  |
+|-------------|-------------------------------------------------|
+
+An endpoint that receives an unknown stream type MUST close the session.
+
+Control streams (SETUP) are described in {{session-init}}.
+Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
+Padding streams are described in {{padding}}.
+
+## Termination  {#session-termination}
+
+The Transport Session can be terminated at any point.  When native QUIC
+is used, the session is closed using the CONNECTION\_CLOSE frame
+({{QUIC, Section 19.19}}).  When WebTransport is used, the session is
+closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
+Section 6}}).
+
+When terminating the Session, the application MAY use any error message
+and SHOULD use a relevant code, as defined below:
+
+NO_ERROR (0x0):
+: The session is being terminated without an error.
+
+INTERNAL_ERROR (0x1):
+: An implementation specific error occurred.
+
+UNAUTHORIZED (0x2):
+: The client is not authorized to establish a session.
+
+PROTOCOL_VIOLATION (0x3):
+: The remote endpoint performed an action that was disallowed by the
+  specification.
+
+INVALID_REQUEST_ID (0x4):
+: The endpoint received a Request ID with an incorrect least significant
+  bit for the sender, or a duplicate Request ID. See {{request-id}}.
+
+DUPLICATE_TRACK_ALIAS (0x5):
+: The endpoint attempted to use a Track Alias that was already in use.
+
+KEY_VALUE_FORMATTING_ERROR (0x6):
+: The key-value pair has a formatting error.
+
+INVALID_PATH (0x8):
+: The PATH parameter was used by a server, on a WebTransport session, or the
+  server does not support the path.
+
+MALFORMED_PATH (0x9):
+: The PATH parameter does not conform to the rules in {{path}}.
+
+GOAWAY_TIMEOUT (0x10):
+: The session was closed because the peer took too long to close the session
+  in response to a GOAWAY ({{message-goaway}}) message. See session migration
+  ({{session-migration}}).
+
+CONTROL_MESSAGE_TIMEOUT (0x11):
+: The session was closed because the peer took too long to respond to a
+  control message.
+
+DATA_STREAM_TIMEOUT (0x12):
+: The session was closed because the peer took too long to send data expected
+  on an open Data Stream (see {{data-streams}}). This includes fields of a
+  stream header or an object header within a data stream. If an endpoint
+  times out waiting for a new object header on an open subgroup stream, it
+  MAY send a STOP_SENDING on that stream or terminate the subscription.
+
+AUTH_TOKEN_CACHE_OVERFLOW (0x13):
+: The Session limit {{max-auth-token-cache-size}} of the size of all
+  registered Authorization tokens has been exceeded.
+
+DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
+: Authorization Token attempted to register an Alias that was in use (see
+  {{authorization-token}}).
+
+MALFORMED_AUTH_TOKEN (0x16):
+: Invalid Auth Token serialization during registration (see
+  {{authorization-token}}).
+
+UNKNOWN_AUTH_TOKEN_ALIAS (0x17):
+: No registered token found for the provided Alias (see
+  {{authorization-token}}).
+
+EXPIRED_AUTH_TOKEN (0x18):
+: Authorization token has expired ({{authorization-token}}).
+
+INVALID_AUTHORITY (0x19):
+: The specified AUTHORITY does not correspond to this server or cannot be
+  used in this context.
+
+MALFORMED_AUTHORITY (0x1A):
+: The AUTHORITY value is syntactically invalid.
+
+TOO_MANY_REQUEST_UPDATES (0x1B):
+: The endpoint received a REQUEST_UPDATE that exceeded the per-stream limit
+  communicated via the MAX_REQUEST_UPDATES Setup Option
+  ({{max-request-updates}}).
+
+An endpoint MAY choose to treat a subscription or request specific error as a
+session error under certain circumstances, closing the entire session in
+response to a condition with a single subscription or message. Implementations
+need to consider the impact on other outstanding subscriptions before making
+this choice.
+
+## Session Migration {#session-migration}
+
+MOQT requires a long-lived and stateful session. However, a service
+provider needs the ability to shutdown/restart a server without waiting for all
+sessions to drain naturally, as that can take days for long-form media.
+MOQT enables proactively draining sessions via the GOAWAY message ({{message-goaway}}).
+
+A GOAWAY on the control stream migrates the entire session, as described in
+this section. A GOAWAY on a single request stream instead migrates only that
+request, leaving the rest of the session in place; see {{message-goaway}}.
+
+The server sends a GOAWAY message, signaling the client to establish a new
+session and migrate any `Established` subscriptions. The GOAWAY message optionally
+contains a new URI for the new session, otherwise the current URI is
+reused. The GOAWAY message contains a Timeout indicating how long, in
+milliseconds, the sender intends to wait before closing the session. The sender
+SHOULD close the session with `GOAWAY_TIMEOUT` after the indicated timeout if
+there are still open subscriptions or fetches on a connection.
+
+When the server is a subscriber, it SHOULD send a GOAWAY message to downstream
+subscribers prior to unsubscribing from upstream publishers.
+
+After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
+there are no more `Established` subscriptions before closing the session with NO_ERROR.
+Ideally this is transparent to the application using MOQT, which involves
+establishing a new session in the background and migrating `Established` subscriptions
+and published namespaces. The client can choose to delay closing the session if
+it expects more OBJECTs to be delivered. The sender closes the session with a
+`GOAWAY_TIMEOUT` if the peer doesn't close the session within the
+indicated Timeout.
+
+## Congestion Control
+
+MOQT does not specify a congestion controller, but there are important attributes
+to consider when selecting a congestion controller for use with an application
+built on top of MOQT.
+
+### Bufferbloat
+
+Traditional AIMD congestion controllers (ex. CUBIC {{?RFC9438}} and Reno {{?RFC6582}})
+are prone to Bufferbloat. Bufferbloat occurs when elements along the path build up
+a substantial queue of packets, commonly more than doubling the round trip time.
+These queued packets cause head-of-line blocking and latency, even when there is
+no packet loss.
+
+### Application-Limited
+
+The average bitrate for latency sensitive content needs to be less than the available
+bandwidth, otherwise data will be queued and/or dropped. As such,
+many MOQT applications will typically be limited by the available data to send, and
+not the congestion controller. Many congestion control algorithms
+only increase the congestion window or bandwidth estimate if fully utilized. This
+combination can lead to underestimating the available network bandwidth. As a result,
+applications might need to periodically ensure the congestion controller is not
+app-limited for at least a full round trip to ensure the available bandwidth can be
+measured.
+
+Some applications might have APIs to allow sending duplicate data or forward error
+correction to probe for more bandwidth while also limiting the impact of probing
+in case it causes packet loss. Subscribers wanting to switch to an alternate
+representation of a Track can subscribe to it at a lower priority, or subscribe
+to additional Tracks at the lowest (255) priority to fill the congestion window
+during probing intervals while minimizing the impact on higher priority
+media. Publishers can send padding ({{padding}}) to probe for additional
+bandwidth without requiring additional subscriptions.
+Network-assisted bandwidth estimation mechanisms such as SCONE
+{{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
+which subscribers can use to inform track selection decisions and potentially avoid
+unnecessary probing.
+
+### Consistent Throughput
+
+Congestion control algorithms are commonly optimized for throughput, not consistency.
+For example, BBR's PROBE_RTT state halves the sending rate for more than a round trip
+in order to obtain an accurate minimum RTT. Similarly, Reno halves its congestion
+window upon detecting loss.  In both cases, the large reduction in sending rate might
+cause issues with latency sensitive applications.
 
 # Relays {#relays-moq}
 
