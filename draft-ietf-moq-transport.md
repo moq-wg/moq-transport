@@ -1122,18 +1122,23 @@ whether to try other publishers.
 ## Subscribing to Tracks by Prefix {#subscribing-to-tracks-by-prefix}
 
 A subscriber sends `SUBSCRIBE_TRACKS` on a new bidirectional stream to
-ask the publisher to forward every `PUBLISH` for tracks whose namespace
+request forwarding of `PUBLISH` messages for tracks whose namespace
 matches the given prefix. The publisher MUST respond with a single
 `REQUEST_OK` or `REQUEST_ERROR`, and then sends a `PUBLISH` on the same
 stream for each matching track it currently has or subsequently learns
-about. `PUBLISH`es for tracks the subscriber itself is publishing on
-this session are excluded. Whether each `PUBLISH` becomes an active
-subscription depends on the normal `PUBLISH` acceptance flow
-(see {{message-publish}}).
+about, subject to the filters described below. `PUBLISH`es for tracks
+the subscriber itself is publishing on this session are excluded.
+Whether each `PUBLISH` becomes an active subscription depends on the
+normal `PUBLISH` acceptance flow (see {{message-publish}}).
 
-Range Filters ({{range-filters}}) MAY be included in `SUBSCRIBE_TRACKS` to
-narrow the set of tracks (via the Track Property Filter) and to constrain
-Objects on the resulting subscriptions (via any Range Filter).
+The subscriber MAY narrow the set of forwarded `PUBLISH`es by including
+Range Filters ({{range-filters}}) in `SUBSCRIBE_TRACKS`. A
+`TRACK_PROPERTY_FILTER` matches Track Properties in each candidate
+`PUBLISH`; tracks whose Track Properties do not pass the filter are
+not advertised via `PUBLISH`, and no Objects are forwarded for them.
+Other Range Filters (and any Location Filter) do not suppress `PUBLISH`
+messages; instead, they are carried into each resulting subscription and
+constrain the Objects the publisher forwards on it.
 
 If a publisher cannot create a subscription for a particular track (for
 example, because bidirectional stream credit is exhausted), it sends
