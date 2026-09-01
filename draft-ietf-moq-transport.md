@@ -449,51 +449,13 @@ In MOQT, every track is identified by a Full Track Name, consisting of a Track
 Namespace and a Track Name.
 
 Track Namespace is an ordered set of between 0 and 32 Track Namespace Fields,
-encoded as follows:
-
-~~~
-Track Namespace {
-  Number of Track Namespace Fields (vi64),
-  Track Namespace Field (..) ...
-}
-~~~
-
-*  Number of Track Namespace Fields: A variable-length integer specifying
-   the number of Track Namespace Fields in the Track Namespace.
-
-Each Track Namespace Field is encoded as follows:
-
-~~~
-Track Namespace Field {
-  Track Namespace Field Length (vi64),
-  Track Namespace Field Value (..)
-}
-~~~
-
-* Track Namespace Field Length: A variable-length integer specifying the length
-  of the Track Namespace Field in bytes.
-
-* Track Namespace Field Value: A sequence of bytes that forms a Track Namespace
-  Field.
-
-Each Track Namespace Field Value MUST contain at least one byte. If an endpoint
-receives a Track Namespace Field with a Track Namespace Field Length of 0, it
-MUST close the session with a `PROTOCOL_VIOLATION`.
+encoded as described in {{track-namespace-structure}}.
 
 The structured nature of Track Namespace allows relays and applications to
-manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
-consisting of greater than 32 Track Namespace Fields, it MUST close the
-session with a `PROTOCOL_VIOLATION`.
+manipulate prefixes of a namespace.
 
 Track Name is a sequence of bytes, possibly empty, that identifies an individual
 track within the namespace.
-
-The maximum total length of a Full Track Name is 4,096 bytes. The length of a
-Full Track Name is computed as the sum of the Track Namespace Field Length
-fields and the Track Name Length field. The length of a Track Namespace is the
-sum of the Track Namespace Field Length fields. If an endpoint receives a Track
-Namespace or a Full Track Name exceeding 4,096 bytes, it MUST close the session
-with a `PROTOCOL_VIOLATION`.
 
 In this specification, both the Track Namespace Fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -2302,6 +2264,49 @@ Reason Phrase {
   such as language tags, that would aid comprehension by any entity other than
   the one that created the text.
 
+## Track Namespace Structure {#track-namespace-structure}
+
+Track Namespace ({{track-name}}) is encoded as follows:
+
+~~~
+Track Namespace {
+  Number of Track Namespace Fields (vi64),
+  Track Namespace Field (..) ...
+}
+~~~
+
+*  Number of Track Namespace Fields: A variable-length integer specifying
+   the number of Track Namespace Fields in the Track Namespace.
+
+Each Track Namespace Field is encoded as follows:
+
+~~~
+Track Namespace Field {
+  Track Namespace Field Length (vi64),
+  Track Namespace Field Value (..)
+}
+~~~
+
+* Track Namespace Field Length: A variable-length integer specifying the length
+  of the Track Namespace Field in bytes.
+
+* Track Namespace Field Value: A sequence of bytes that forms a Track Namespace
+  Field.
+
+Each Track Namespace Field Value MUST contain at least one byte. If an endpoint
+receives a Track Namespace Field with a Track Namespace Field Length of 0, it
+MUST close the session with a `PROTOCOL_VIOLATION`.
+
+If an endpoint receives a Track Namespace consisting of greater than 32 Track
+Namespace Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
+
+The maximum total length of a Full Track Name is 4,096 bytes. The length of a
+Full Track Name is computed as the sum of the Track Namespace Field Length
+fields and the Track Name Length field. The length of a Track Namespace is the
+sum of the Track Namespace Field Length fields. If an endpoint receives a Track
+Namespace or a Full Track Name exceeding 4,096 bytes, it MUST close the session
+with a `PROTOCOL_VIOLATION`.
+
 ## Representing Namespace and Track Names {#namespace-name-format}
 
 There is often a need to render namespace tuples and track names for
@@ -2996,7 +3001,7 @@ SUBSCRIBE Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies the namespace of the track as defined in
-  ({{track-name}}).
+  ({{track-namespace-structure}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
@@ -3054,7 +3059,8 @@ PUBLISH Message {
 
 * Request ID: See {{request-id}}.
 
-* Track Namespace: Identifies a track's namespace as defined in ({{track-name}})
+* Track Namespace: Identifies a track's namespace as defined in
+  ({{track-namespace-structure}})
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
@@ -3223,7 +3229,7 @@ FETCH Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
+({{track-namespace-structure}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
@@ -3359,7 +3365,7 @@ PUBLISH_NAMESPACE Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in
-  {{track-name}}.
+  {{track-namespace-structure}}.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -3384,14 +3390,12 @@ SUBSCRIBE_NAMESPACE Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
-  {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
-  matched against track namespaces known to the publisher.  For example, using
-  the serialized format from {{namespace-name-format}}, if the publisher is a
-  relay that has received PUBLISH_NAMESPACE messages for namespaces
-  `example.2ecom-123-100` and `example.2ecom-123-200`, a SUBSCRIBE_NAMESPACE for
-  `example.2ecom-123` would match both.  If an endpoint receives a
-  Track Namespace Prefix consisting of greater than 32 Track Namespace
-  Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
+  {{track-namespace-structure}}.  This prefix is matched against track
+  namespaces known to the publisher.  For example, using the serialized format
+  from {{namespace-name-format}}, if the publisher is a relay that has received
+  PUBLISH_NAMESPACE messages for namespaces `example.2ecom-123-100` and
+  `example.2ecom-123-200`, a SUBSCRIBE_NAMESPACE for `example.2ecom-123` would
+  match both.
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -3444,8 +3448,9 @@ NAMESPACE Message {
 {: #moq-transport-ns-format title="MOQT NAMESPACE Message"}
 
 * Track Namespace Suffix: Specifies the final portion of a track's
-  namespace as defined in {{track-name}} after removing namespace tuples included in
-  'Track Namespace Prefix' {{message-subscribe-ns}}.
+  namespace as defined in {{track-namespace-structure}} after removing
+  namespace tuples included in 'Track Namespace Prefix'
+  {{message-subscribe-ns}}.
 
 ## NAMESPACE_DONE {#message-namespace-done}
 
@@ -3465,8 +3470,8 @@ NAMESPACE_DONE Message {
 {: #moq-transport-ns-done-format title="MOQT NAMESPACE_DONE Message"}
 
 * Track Namespace Suffix: Specifies the final portion of a track's
-  namespace as defined in {{track-name}}. The namespace begins with the
-  'Track Namespace Prefix' specified in {{message-subscribe-ns}}.
+  namespace as defined in {{track-namespace-structure}}. The namespace begins
+  with the 'Track Namespace Prefix' specified in {{message-subscribe-ns}}.
 
 ## SUBSCRIBE_TRACKS {#message-subscribe-tracks}
 
@@ -3489,10 +3494,8 @@ SUBSCRIBE_TRACKS Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
-  {{track-name}} with between 0 and 32 Track Namespace Fields.  This prefix is
-  matched against track namespaces known to the publisher.  If an endpoint
-  receives a Track Namespace Prefix consisting of greater than 32 Track
-  Namespace Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
+  {{track-namespace-structure}}.  This prefix is matched against track
+  namespaces known to the publisher.
 
 * Parameters: The parameters are defined in {{message-params}}, though they
   are handled differently from the same Parameters on Subscriptions, as outlined
@@ -3550,8 +3553,8 @@ PUBLISH_SKIPPED Message {
 {: #moq-transport-publish-blocked-format title="MOQT PUBLISH_SKIPPED Message"}
 
 * Track Namespace Suffix: Specifies the final portion of a track's
-  namespace as defined in {{track-name}}. The namespace begins with the
-  'Track Namespace Prefix' specified in {{message-subscribe-tracks}}.
+  namespace as defined in {{track-namespace-structure}}. The namespace begins
+  with the 'Track Namespace Prefix' specified in {{message-subscribe-tracks}}.
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
@@ -3922,11 +3925,12 @@ outstanding until the Largest Group increases.
 ### TRACK_NAMESPACE_PREFIX Parameter {#track-namespace-prefix-param}
 
 The TRACK_NAMESPACE_PREFIX parameter (Parameter Type 0x34) uses the Track
-Namespace encoding described in {{track-name}}.  It MAY appear in REQUEST_UPDATE
-for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It updates the Track
-Namespace Prefix for that subscription.  If the new prefix would share a common prefix with
-another active subscription of the same type in the same session, the receiver
-MUST respond with REQUEST_ERROR with error code `PREFIX_OVERLAP`.
+Namespace encoding described in {{track-namespace-structure}}.  It MAY appear in
+REQUEST_UPDATE for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It
+updates the Track Namespace Prefix for that subscription.  If the new prefix
+would share a common prefix with another active subscription of the same type
+in the same session, the receiver MUST respond with REQUEST_ERROR with error
+code `PREFIX_OVERLAP`.
 
 ### INCLUDE_PROPERTIES Parameter {#include-properties-param}
 
