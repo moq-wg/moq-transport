@@ -2157,8 +2157,8 @@ Table of Contents
        the constraints of the specific property.
 
    An endpoint that receives a duplicate Object with a different
-   Forwarding Preference, Subgroup ID, Priority or Payload MUST treat
-   the track as Malformed.
+   Delivery Mode, Subgroup ID, Priority or Payload MUST treat the track
+   as Malformed.
 
    For ranges of objects that do not exist, relays MAY change the
    representation of a missing range to a semantically equivalent one.
@@ -4699,8 +4699,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    (Section 3.1.2) indicates the track this Datagram belongs to; see
    Section 3.1.2.1 for handling of unknown Track Aliases.
 
-   An Object received in an OBJECT_DATAGRAM message has an Object
-   Forwarding Preference = Datagram.
+   An Object received in an OBJECT_DATAGRAM message has a Delivery Mode
+   = Datagram.
 
    To send an Object with Delivery Mode = Datagram, determine the length
    of the header and payload and send the Object as datagram.  When the
