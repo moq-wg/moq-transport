@@ -1194,21 +1194,6 @@ the `PUBLISH_NAMESPACE`. `PUBLISH_NAMESPACE` is a discovery hint, not a
 routing protocol: it does not guard against loops and SHOULD NOT be used
 to compute paths through richly connected relay networks.
 
-## Relay Considerations {#large-namespaces}
-
-Relays SHOULD aggregate subscriptions (particularly namespace
-subscriptions) and propagate filters upstream to protect their own
-resources and those of their upstream peers. When aggregation is not
-sufficient, a relay MAY reject or close namespace subscriptions using:
-
-* `NAMESPACE_TOO_LARGE` — the matching namespace population is beyond
-  what the relay is willing to serve.
-* `CONFLICTING_FILTERS` — too many disjoint filters are being demanded
-  across downstream subscribers to aggregate efficiently.
-* `PREFIX_OVERLAP` — different subscribers' prefixes would force an
-  aggregated upstream subscription to overlap in a way the relay cannot
-  reconcile.
-
 
 # Object Transmission
 
@@ -1947,6 +1932,22 @@ response to the subscribes and if they are successful, the subscriptions
 to the old relay can be cancelled (see {{request-cancellation}}).
 
 
+## Aggregating Namespace Subscriptions {#large-namespaces}
+
+Relays SHOULD aggregate subscriptions (particularly namespace
+subscriptions) and propagate filters upstream to protect their own
+resources and those of their upstream peers. When aggregation is not
+sufficient, a relay MAY reject or close namespace subscriptions using:
+
+* `NAMESPACE_TOO_LARGE` — the matching namespace population is beyond
+  what the relay is willing to serve.
+* `CONFLICTING_FILTERS` — too many disjoint filters are being demanded
+  across downstream subscribers to aggregate efficiently.
+* `PREFIX_OVERLAP` — different subscribers' prefixes would force an
+  aggregated upstream subscription to overlap in a way the relay cannot
+  reconcile.
+
+
 ## Publisher Interactions
 
 There are two ways to publish through a relay:
@@ -1978,12 +1979,13 @@ A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
 Track Name is matched exactly against existing upstream subscriptions.
 
-Namespace Prefix Matching is further used to decide which publishers receive a
+### Namespace Prefix Matching {#namespace-prefix-matching}
+
+Namespace Prefix Matching is used to decide which publishers receive a
 SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the fields
 in the Track Namespace are matched sequentially, requiring an exact match for
 each field. If the published or subscribed Track Namespace has the same or fewer
 fields than the Track Namespace in the message, it qualifies as a match.
-{: #namespace-prefix-matching}
 
 For example:
 A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
