@@ -2700,105 +2700,13 @@ REQUEST_ERROR Message {
 * Redirect: Present only when Error Code is REDIRECT. See
   {{redirect-structure}}.
 
-The application SHOULD use a relevant error code in REQUEST_ERROR,
-as defined below and assigned in {{iana-request-error}}. Most codepoints have
-identical meanings for various request types, but some have request-specific
-meanings.
-
 If a request is retryable with the same parameters at a later time, the sender
 of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
 the risk of synchronized retry storms, the sender can apply randomization to
 each retry interval so that retries are spread out over time.  A Retry Interval
 value of 1 indicates the request can be retried immediately.
 
-INTERNAL_ERROR:
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED:
-: The subscriber is not authorized to perform the requested action on the given
-track.  This might be retryable if the authorization token is not yet valid.
-
-TIMEOUT:
-: The subscription could not be completed before an implementation specific
-  timeout. For example, a relay could not establish an upstream subscription
-  within the timeout.
-
-NOT_SUPPORTED:
-: The endpoint does not support the type of request.
-
-MALFORMED_AUTH_TOKEN:
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN:
-: Authorization token has expired ({{authorization-token}}).
-
-GOING_AWAY:
-: The endpoint has received a GOAWAY and MAY reject new requests.
-
-EXCESSIVE_LOAD:
-: The responder is overloaded and cannot process the request at this time. The
-sender SHOULD use the Retry Interval to indicate when the request can be retried.
-
-UNSUPPORTED_EXTENSION:
-: The track contains a Mandatory Track Property
-(see {{mandatory-track-properties}}) that the endpoint does not understand.
-
-REDIRECT:
-: The request cannot be fulfilled by this endpoint, but could succeed at the
-location specified in the Redirect structure. The requester SHOULD establish a
-new session to the provided URI (if present) and retry the request using the
-Redirect target. A Retry Interval of 0 indicates the original request SHOULD NOT be retried as sent;
-it does not prevent the requester from following a Redirect to a different
-URI or Redirect target. This error code can appear in
-response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
-SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
-redirects from upstream
-and MAY forward a REDIRECT response to matching downstream requests. A relay
-MAY cache a REDIRECT response for up to Retry Interval
-milliseconds and use it to respond to subsequent matching requests without
-forwarding them upstream.
-
-Below are errors for use by the publisher. They can appear in response to
-SUBSCRIBE, FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS,
-unless otherwise noted.
-
-DOES_NOT_EXIST:
-: The track or namespace is not available at the publisher.
-
-INVALID_RANGE:
-: In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
-cannot be satisfied.
-
-INVALID_FILTER:
-: A filter parameter is invalid.
-
-MALFORMED_TRACK:
-: In response to a FETCH, a relay publisher detected the track was
-malformed (see {{malformed-tracks}}).
-
-The following are errors for use by the subscriber. They can appear in response
-to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
-
-UNINTERESTED:
-: The subscriber is not interested in the track or namespace.
-
-Errors below can only be used in response to one message type.
-
-PREFIX_OVERLAP:
-: In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
-shares a common prefix with another subscription of the same type in the same session.
-SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have independent overlap spaces, so a
-SUBSCRIBE_NAMESPACE and a SUBSCRIBE_TRACKS may share the same prefix.
-
-NAMESPACE_TOO_LARGE:
-: In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
-matches more publishers than the relay is willing to enumerate.
-
-CONFLICTING_FILTERS:
-: In response to SUBSCRIBE_TRACKS, the filter parameters conflict among
-too many subscribers to aggregate the subscription upstream or otherwise
-efficiently service it.
+The error codes used in REQUEST_ERROR are defined in {{request-error-codes}}.
 
 ## REQUEST_UPDATE {#message-request-update}
 
@@ -5290,7 +5198,101 @@ TOO_MANY_REQUEST_UPDATES (0x1B):
   communicated via the MAX_REQUEST_UPDATES Setup Option
   ({{max-request-updates}}).
 
-## Request Error Codes
+## Request Error Codes {#request-error-codes}
+
+The application SHOULD use a relevant error code in REQUEST_ERROR
+({{message-request-error}}), as defined below and assigned in
+{{iana-request-error}}. Most codepoints have identical meanings for various
+request types, but some have request-specific meanings.
+
+INTERNAL_ERROR:
+: An implementation specific or generic error occurred.
+
+UNAUTHORIZED:
+: The subscriber is not authorized to perform the requested action on the given
+track.  This might be retryable if the authorization token is not yet valid.
+
+TIMEOUT:
+: The subscription could not be completed before an implementation specific
+  timeout. For example, a relay could not establish an upstream subscription
+  within the timeout.
+
+NOT_SUPPORTED:
+: The endpoint does not support the type of request.
+
+MALFORMED_AUTH_TOKEN:
+: Invalid Auth Token serialization during registration (see
+  {{authorization-token}}).
+
+EXPIRED_AUTH_TOKEN:
+: Authorization token has expired ({{authorization-token}}).
+
+GOING_AWAY:
+: The endpoint has received a GOAWAY and MAY reject new requests.
+
+EXCESSIVE_LOAD:
+: The responder is overloaded and cannot process the request at this time. The
+sender SHOULD use the Retry Interval to indicate when the request can be retried.
+
+UNSUPPORTED_EXTENSION:
+: The track contains a Mandatory Track Property
+(see {{mandatory-track-properties}}) that the endpoint does not understand.
+
+REDIRECT:
+: The request cannot be fulfilled by this endpoint, but could succeed at the
+location specified in the Redirect structure. The requester SHOULD establish a
+new session to the provided URI (if present) and retry the request using the
+Redirect target. A Retry Interval of 0 indicates the original request SHOULD NOT be retried as sent;
+it does not prevent the requester from following a Redirect to a different
+URI or Redirect target. This error code can appear in
+response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
+SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
+redirects from upstream
+and MAY forward a REDIRECT response to matching downstream requests. A relay
+MAY cache a REDIRECT response for up to Retry Interval
+milliseconds and use it to respond to subsequent matching requests without
+forwarding them upstream.
+
+Below are errors for use by the publisher. They can appear in response to
+SUBSCRIBE, FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS,
+unless otherwise noted.
+
+DOES_NOT_EXIST:
+: The track or namespace is not available at the publisher.
+
+INVALID_RANGE:
+: In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
+cannot be satisfied.
+
+INVALID_FILTER:
+: A filter parameter is invalid.
+
+MALFORMED_TRACK:
+: In response to a FETCH, a relay publisher detected the track was
+malformed (see {{malformed-tracks}}).
+
+The following are errors for use by the subscriber. They can appear in response
+to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
+
+UNINTERESTED:
+: The subscriber is not interested in the track or namespace.
+
+Errors below can only be used in response to one message type.
+
+PREFIX_OVERLAP:
+: In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
+shares a common prefix with another subscription of the same type in the same session.
+SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have independent overlap spaces, so a
+SUBSCRIBE_NAMESPACE and a SUBSCRIBE_TRACKS may share the same prefix.
+
+NAMESPACE_TOO_LARGE:
+: In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
+matches more publishers than the relay is willing to enumerate.
+
+CONFLICTING_FILTERS:
+: In response to SUBSCRIBE_TRACKS, the filter parameters conflict among
+too many subscribers to aggregate the subscription upstream or otherwise
+efficiently service it.
 
 ## Publish Done Codes
 
@@ -5635,24 +5637,24 @@ This document does not define any initial entries.
 
 | Name                       | Code | Specification              |
 |:---------------------------|:----:|:--------------------------|
-| INTERNAL_ERROR             | 0x0  | {{message-request-error}} |
-| UNAUTHORIZED               | 0x1  | {{message-request-error}} |
-| TIMEOUT                    | 0x2  | {{message-request-error}} |
-| NOT_SUPPORTED              | 0x3  | {{message-request-error}} |
-| MALFORMED_AUTH_TOKEN       | 0x4  | {{message-request-error}} |
-| EXPIRED_AUTH_TOKEN         | 0x5  | {{message-request-error}} |
-| GOING_AWAY                 | 0x6  | {{message-request-error}} |
-| EXCESSIVE_LOAD             | 0x9  | {{message-request-error}} |
-| DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
-| INVALID_RANGE              | 0x11 | {{message-request-error}} |
-| MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
-| UNINTERESTED               | 0x20 | {{message-request-error}} |
-| PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
-| NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
-| UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
-| REDIRECT                   | 0x34 | {{message-request-error}} |
-| CONFLICTING_FILTERS        | 0x35 | {{message-request-error}} |
-| INVALID_FILTER             | 0x36 | {{message-request-error}} |
+| INTERNAL_ERROR             | 0x0  | {{request-error-codes}} |
+| UNAUTHORIZED               | 0x1  | {{request-error-codes}} |
+| TIMEOUT                    | 0x2  | {{request-error-codes}} |
+| NOT_SUPPORTED              | 0x3  | {{request-error-codes}} |
+| MALFORMED_AUTH_TOKEN       | 0x4  | {{request-error-codes}} |
+| EXPIRED_AUTH_TOKEN         | 0x5  | {{request-error-codes}} |
+| GOING_AWAY                 | 0x6  | {{request-error-codes}} |
+| EXCESSIVE_LOAD             | 0x9  | {{request-error-codes}} |
+| DOES_NOT_EXIST             | 0x10 | {{request-error-codes}} |
+| INVALID_RANGE              | 0x11 | {{request-error-codes}} |
+| MALFORMED_TRACK            | 0x12 | {{request-error-codes}} |
+| UNINTERESTED               | 0x20 | {{request-error-codes}} |
+| PREFIX_OVERLAP             | 0x30 | {{request-error-codes}} |
+| NAMESPACE_TOO_LARGE        | 0x31 | {{request-error-codes}} |
+| UNSUPPORTED_EXTENSION      | 0x33 | {{request-error-codes}} |
+| REDIRECT                   | 0x34 | {{request-error-codes}} |
+| CONFLICTING_FILTERS        | 0x35 | {{request-error-codes}} |
+| INVALID_FILTER             | 0x36 | {{request-error-codes}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
