@@ -365,7 +365,7 @@ stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups in the Group,
 typically with a one-to-one mapping between Subgroups and streams.
 
-When an Object's delivery mode (see {{object-properties}}) is
+When an Object's Delivery Mode (see {{object-properties}}) is
 "Datagram", it is not sent in Subgroups, does not belong to a Subgroup in any
 way, and the description in the remainder of this section does not apply.
 
