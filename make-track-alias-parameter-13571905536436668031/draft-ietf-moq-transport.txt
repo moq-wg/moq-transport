@@ -3451,9 +3451,9 @@ Table of Contents
 10.2.22.  TRACK_ALIAS Parameter
 
    The TRACK_ALIAS parameter (Parameter Type 0x36) is a variable-length
-   integer.  It MAY appear in SUBSCRIBE_OK.  It provides a publisher
-   specified identifier for delivering Objects from this track in
-   Subgroups or Datagrams (see Section 11.1).
+   integer.  It MAY appear in SUBSCRIBE_OK.  It specifies a publisher
+   identifier for delivering Objects from this track in Subgroups or
+   Datagrams (see Section 11.1).
 
 10.3.  SETUP
 
