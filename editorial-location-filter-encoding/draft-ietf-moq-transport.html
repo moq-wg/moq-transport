@@ -2694,7 +2694,9 @@ a subscription.<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.1.3-2">The <code>Next Object</code> is the Location immediately following <code>Largest Object</code>, which
 is <code>{Largest Object.Group, Largest Object.Object + 1}</code>, or {0, 0} if no content
 has been delivered yet. The <code>Next Group</code> is the first Location of the Group
-following <code>Largest Object</code>, which is <code>{Largest Object.Group + 1, 0}</code>.<a href="#section-3.1.3-2" class="pilcrow">¶</a></p>
+following <code>Largest Object</code>, which is <code>{Largest Object.Group + 1, 0}</code>.
+<code>Next Object</code> and <code>Next Group</code> are Locations that do not necessarily
+refer to an Object that exists.<a href="#section-3.1.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="fill-semantics">
