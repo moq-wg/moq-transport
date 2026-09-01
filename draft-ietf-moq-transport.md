@@ -1826,8 +1826,8 @@ fields that can be updated are the following:
 2. Object Properties can be added, removed or updated, subject
    to the constraints of the specific property.
 
-An endpoint that receives a duplicate Object with a different Forwarding
-Preference, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
+An endpoint that receives a duplicate Object with a different Delivery
+Mode, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
 
 For ranges of objects that do not exist, relays MAY change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
@@ -4223,8 +4223,8 @@ A single object can be conveyed in a datagram.  The Track Alias field
 ({{track-alias}}) indicates the track this Datagram belongs to; see
 {{unknown-track-alias}} for handling of unknown Track Aliases.
 
-An Object received in an `OBJECT_DATAGRAM` message has an `Object Forwarding
-Preference` = `Datagram`.
+An Object received in an `OBJECT_DATAGRAM` message has a `Delivery Mode` =
+`Datagram`.
 
 To send an Object with `Delivery Mode` = `Datagram`, determine
 the length of the header and payload and send the Object as datagram.  When the
