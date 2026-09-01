@@ -1309,8 +1309,8 @@ the objects SHOULD be selected as follows:
    and publisher priority and belong to the same group of the same track, and
    one is delivered by the fill fetch stream while the other is
    subscription-delivered, the fill-delivered object is scheduled first. Otherwise,
-   the one with **the lowest Subgroup ID** (for objects with delivery mode
-   Subgroup), or **the lowest Object ID** (for objects with delivery mode
+   the one with **the lowest Subgroup ID** (for objects with Delivery Mode
+   Subgroup), or **the lowest Object ID** (for objects with Delivery Mode
    Datagram) is scheduled to be sent first.  If the two objects have
    different Delivery Modes the datagram is sent first.
 
