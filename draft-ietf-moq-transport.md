@@ -1083,10 +1083,10 @@ publisher advertise what it has:
 
 | Message                | Direction              | Purpose                                                       |
 |------------------------|------------------------|---------------------------------------------------------------|
-| `SUBSCRIBE_NAMESPACE`  | subscriber → publisher | "Tell me which namespaces you know that match this prefix."   |
-| `PUBLISH_NAMESPACE`    | publisher → subscriber | "I have tracks in this namespace."                            |
-| `SUBSCRIBE_TRACKS`     | subscriber → publisher | "Forward every `PUBLISH` you have or receive for namespaces matching this prefix." |
-| `NAMESPACE` / `NAMESPACE_DONE` | publisher → subscriber | Announce (and later withdraw) each matching namespace on a `SUBSCRIBE_NAMESPACE` stream. |
+| `SUBSCRIBE_NAMESPACE`  | subscriber → publisher | Request advertisements of namespaces matching a given prefix. |
+| `PUBLISH_NAMESPACE`    | publisher → subscriber | Announce that the publisher offers tracks in a namespace.     |
+| `SUBSCRIBE_TRACKS`     | subscriber → publisher | Request forwarding of every `PUBLISH` for tracks whose namespace matches a given prefix. |
+| `NAMESPACE` / `NAMESPACE_DONE` | publisher → subscriber | Announce, and later withdraw, each matching namespace on a `SUBSCRIBE_NAMESPACE` stream. |
 
 None of these are required to move data. A subscriber that already knows a
 Full Track Name MAY send `SUBSCRIBE` or `FETCH` directly, without any prior
