@@ -5940,14 +5940,12 @@ SUBSCRIBE_NAMESPACE Message {
 </li>
           <li class="normal" id="section-9.15-3.2">
             <p id="section-9.15-3.2.1">Track Namespace Prefix: A Track Namespace structure as described in
-<a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a> with between 0 and 32 Track Namespace Fields.
-This prefix is matched against track namespaces known to the publisher.  For
-example, using the serialized format from <a href="#namespace-name-format" class="auto internal xref">Section 8.7</a>, if the
-publisher is a relay that has received PUBLISH_NAMESPACE messages for
-namespaces <code>example.2ecom-123-100</code> and <code>example.2ecom-123-200</code>, a
-SUBSCRIBE_NAMESPACE for <code>example.2ecom-123</code> would match both.  If an endpoint
-receives a Track Namespace Prefix consisting of greater than 32 Track
-Namespace Fields, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.15-3.2.1" class="pilcrow">¶</a></p>
+<a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a>.  This prefix is matched against track
+namespaces known to the publisher.  For example, using the serialized format
+from <a href="#namespace-name-format" class="auto internal xref">Section 8.7</a>, if the publisher is a relay that has received
+PUBLISH_NAMESPACE messages for namespaces <code>example.2ecom-123-100</code> and
+<code>example.2ecom-123-200</code>, a SUBSCRIBE_NAMESPACE for <code>example.2ecom-123</code> would
+match both.<a href="#section-9.15-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.15-3.3">
             <p id="section-9.15-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.<a href="#section-9.15-3.3.1" class="pilcrow">¶</a></p>
@@ -6082,11 +6080,8 @@ SUBSCRIBE_TRACKS Message {
 </li>
           <li class="normal" id="section-9.18-3.2">
             <p id="section-9.18-3.2.1">Track Namespace Prefix: A Track Namespace structure as described in
-<a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a> with between 0 and 32 Track Namespace Fields.
-This prefix is matched against track namespaces known to the publisher.  If
-an endpoint receives a Track Namespace Prefix consisting of greater than 32
-Track Namespace Fields, it <span class="bcp14">MUST</span> close the session with a
-<code>PROTOCOL_VIOLATION</code>.<a href="#section-9.18-3.2.1" class="pilcrow">¶</a></p>
+<a href="#track-namespace-structure" class="auto internal xref">Section 8.6</a>.  This prefix is matched against track
+namespaces known to the publisher.<a href="#section-9.18-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.18-3.3">
             <p id="section-9.18-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>, though they
