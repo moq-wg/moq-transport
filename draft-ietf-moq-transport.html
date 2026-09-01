@@ -1207,7 +1207,10 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.2.2.1.1"><a href="#section-2.1" class="auto internal xref">2.1</a>.  <a href="#name-objects" class="internal xref">Objects</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1.2.1">
-                    <p id="section-toc.1-1.2.2.1.2.1.1"><a href="#section-2.1.1" class="auto internal xref">2.1.1</a>.  <a href="#name-canonical-object-fields" class="internal xref">Canonical Object Fields</a></p>
+                    <p id="section-toc.1-1.2.2.1.2.1.1"><a href="#section-2.1.1" class="auto internal xref">2.1.1</a>.  <a href="#name-object-fields" class="internal xref">Object Fields</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1.2.2">
+                    <p id="section-toc.1-1.2.2.1.2.2.1"><a href="#section-2.1.2" class="auto internal xref">2.1.2</a>.  <a href="#name-object-states" class="internal xref">Object States</a></p>
 </li>
                 </ul>
 </li>
@@ -1644,13 +1647,10 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-objects-2" class="internal xref">Objects</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1.2.1">
-                    <p id="section-toc.1-1.11.2.1.2.1.1"><a href="#section-11.1.1" class="auto internal xref">11.1.1</a>.  <a href="#name-object-header" class="internal xref">Object Header</a></p>
+                    <p id="section-toc.1-1.11.2.1.2.1.1"><a href="#section-11.1.1" class="auto internal xref">11.1.1</a>.  <a href="#name-object-status" class="internal xref">Object Status</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1.2.2">
-                    <p id="section-toc.1-1.11.2.1.2.2.1"><a href="#section-11.1.2" class="auto internal xref">11.1.2</a>.  <a href="#name-object-status" class="internal xref">Object Status</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1.2.3">
-                    <p id="section-toc.1-1.11.2.1.2.3.1"><a href="#section-11.1.3" class="auto internal xref">11.1.3</a>.  <a href="#name-object-properties" class="internal xref">Object Properties</a></p>
+                    <p id="section-toc.1-1.11.2.1.2.2.1"><a href="#section-11.1.2" class="auto internal xref">11.1.2</a>.  <a href="#name-object-properties" class="internal xref">Object Properties</a></p>
 </li>
                 </ul>
 </li>
@@ -2207,47 +2207,63 @@ time.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
 <p id="section-2.1-2">Every Object within a Group belongs to exactly one Subgroup or Datagram. An
 Original Publisher <span class="bcp14">MAY</span> use both Subgroups and Datagrams within a Group or
 Track.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
-<div id="canonical-object-fields">
-<section id="section-2.1.1">
-          <h4 id="name-canonical-object-fields">
-<a href="#section-2.1.1" class="section-number selfRef">2.1.1. </a><a href="#name-canonical-object-fields" class="section-name selfRef">Canonical Object Fields</a>
-          </h4>
-<p id="section-2.1.1-1">Objects are comprised of two parts: metadata and a payload.  The metadata is
+<p id="section-2.1-3">Objects are comprised of two parts: metadata and a payload.  The metadata is
 never encrypted and is always visible to relays (see <a href="#relays-moq" class="auto internal xref">Section 7</a>). The
 payload portion may be encrypted, in which case it is only visible to the
 Original Publisher and End Subscribers. The Original Publisher is solely
 responsible for the content of the object payload. This includes the
 underlying encoding, compression, any end-to-end encryption, or
-authentication.<a href="#section-2.1.1-1" class="pilcrow">¶</a></p>
-<p id="section-2.1.1-2">From the perspective of a subscriber or a cache, an Object can be in three
-possible states:<a href="#section-2.1.1-2" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-2.1.1-3">
-<li id="section-2.1.1-3.1">
-              <p id="section-2.1.1-3.1.1">The Object is known to not exist. This state is permanent.  All signals
-that an Object does not exist are authoritative.<a href="#section-2.1.1-3.1.1" class="pilcrow">¶</a></p>
+authentication.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
+<div id="object-header">
+<section id="section-2.1.1">
+          <h4 id="name-object-fields">
+<a href="#section-2.1.1" class="section-number selfRef">2.1.1. </a><a href="#name-object-fields" class="section-name selfRef">Object Fields</a>
+          </h4>
+<p id="section-2.1.1-1">A MOQT Object has the following fields:<a href="#section-2.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-2">Track Namespace and Track Name: The track this object belongs to.<a href="#section-2.1.1-2" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-3">Group ID: The identifier of the Object's Group (see <a href="#model-group" class="auto internal xref">Section 2.3</a>) within the Track.<a href="#section-2.1.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-4">Object ID: The order of the object within the group.<a href="#section-2.1.1-4" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-5">Publisher Priority: An integer indicating the publisher's priority for the Object (<a href="#priorities" class="auto internal xref">Section 5.1</a>).<a href="#section-2.1.1-5" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-6">Object Forwarding Preference: An enumeration indicating how a publisher sends an object. The preferences are Subgroup and Datagram. In a subscription, an Object <span class="bcp14">MUST</span> be sent according to its Object Forwarding Preference.<a href="#section-2.1.1-6" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-7">Subgroup ID: The identifier of the Object's Subgroup (see <a href="#model-subgroup" class="auto internal xref">Section 2.2</a>) within the Group. Objects sent in Datagrams do not have a Subgroup ID.<a href="#section-2.1.1-7" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-8">Object Properties : A sequence of key-value pairs associated with the object. See <a href="#object-properties" class="auto internal xref">Section 11.1.2</a>.<a href="#section-2.1.1-8" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-9">Object Payload: A possibly empty sequence of bytes.<a href="#section-2.1.1-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="object-states">
+<section id="section-2.1.2">
+          <h4 id="name-object-states">
+<a href="#section-2.1.2" class="section-number selfRef">2.1.2. </a><a href="#name-object-states" class="section-name selfRef">Object States</a>
+          </h4>
+<p id="section-2.1.2-1">From the perspective of a subscriber or a cache, an Object can be in three
+possible states:<a href="#section-2.1.2-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-2.1.2-2">
+<li id="section-2.1.2-2.1">
+              <p id="section-2.1.2-2.1.1">The Object is known to not exist. This state is permanent.  All signals
+that an Object does not exist are authoritative.<a href="#section-2.1.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.1.1-3.2">
-              <p id="section-2.1.1-3.2.1">The Object is known to exist. From this state, it can transition to not
-existing, but not vice versa.<a href="#section-2.1.1-3.2.1" class="pilcrow">¶</a></p>
+            <li id="section-2.1.2-2.2">
+              <p id="section-2.1.2-2.2.1">The Object is known to exist. From this state, it can transition to not
+existing, but not vice versa.<a href="#section-2.1.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-2.1.1-3.3">
-              <p id="section-2.1.1-3.3.1">The state of the Object is unknown, either because it has not yet been
-received, or it has not yet been produced.<a href="#section-2.1.1-3.3.1" class="pilcrow">¶</a></p>
+            <li id="section-2.1.2-2.3">
+              <p id="section-2.1.2-2.3.1">The state of the Object is unknown, either because it has not yet been
+received, or it has not yet been produced.<a href="#section-2.1.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-2.1.1-4">A gap in the observed Object IDs does not by itself convey any information about
+<p id="section-2.1.2-3">A gap in the observed Object IDs does not by itself convey any information about
 the skipped Objects. Skipped Objects remain in the unknown state until they are
 received or their non-existence is signalled, for example in a FETCH stream (see
-<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>) or via a Prior Object ID Gap (see <a href="#prior-object-id-gap" class="auto internal xref">Section 10.9</a>).<a href="#section-2.1.1-4" class="pilcrow">¶</a></p>
-<p id="section-2.1.1-5">Since Objects can be delivered out of order, an endpoint can receive an Object
+<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>) or via a Prior Object ID Gap (see <a href="#prior-object-id-gap" class="auto internal xref">Section 10.9</a>).<a href="#section-2.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-2.1.2-4">Since Objects can be delivered out of order, an endpoint can receive an Object
 after it has already recorded that the Object does not exist (e.g., via a FETCH
 gap from one source and delayed delivery via a subscription).  This is not a
-protocol error and the Track is not malformed.<a href="#section-2.1.1-5" class="pilcrow">¶</a></p>
-<p id="section-2.1.1-6">Whenever the publisher communicates that certain objects do not exist, this
+protocol error and the Track is not malformed.<a href="#section-2.1.2-4" class="pilcrow">¶</a></p>
+<p id="section-2.1.2-5">Whenever the publisher communicates that certain objects do not exist, this
 fact is expressed as a contiguous range of non-existent objects and
 by including Properties indicating the group/object gaps; MOQT
 implementers should take that into account when selecting appropriate data
-structures.<a href="#section-2.1.1-6" class="pilcrow">¶</a></p>
+structures.<a href="#section-2.1.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2263,7 +2279,7 @@ have a dependency and priority relationship consistent with sharing a
 stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups in the Group,
 typically with a one-to-one mapping between Subgroups and streams.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
-<p id="section-2.2-2">When an Object's forwarding preference (see <a href="#object-properties" class="auto internal xref">Section 11.1.3</a>) is
+<p id="section-2.2-2">When an Object's forwarding preference (see <a href="#object-properties" class="auto internal xref">Section 11.1.2</a>) is
 "Datagram", it is not sent in Subgroups, does not belong to a Subgroup in any
 way, and the description in the remainder of this section does not apply.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
 <p id="section-2.2-3">Streams offer in-order reliable delivery and the ability to cancel sending and
@@ -2881,9 +2897,8 @@ messages with required Track Property types and values.  PUBLISH messages
 which pass the filter will be forwarded while those which do not pass it
 will not be forwarded nor will any Objects.<a href="#section-3.1.5-10" class="pilcrow">¶</a></p>
 <p id="section-3.1.5-11">The Object Property Filter can be used to filter Objects with required
-Object Property types and values.  It only filters Object Properties in
-the Object header, and does not evaluate Track Properties in PUBLISH
-messages.<a href="#section-3.1.5-11" class="pilcrow">¶</a></p>
+Object Property types and values.  It only filters Object Properties,
+and does not evaluate Track Properties in PUBLISH messages.<a href="#section-3.1.5-11" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="combining-filters">
@@ -3928,8 +3943,8 @@ where it's redundant.<a href="#section-7.1-5" class="pilcrow">¶</a></p>
 <p id="section-7.1-6">As described in <a href="#model-object" class="auto internal xref">Section 2.1</a>, an endpoint can receive an Object after it has
 already recorded that the Object does not exist.  A caching relay <span class="bcp14">SHOULD NOT</span>
 cache or forward the Object in this case.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
-<p id="section-7.1-7">A cache <span class="bcp14">MUST</span> store all fields of an Object defined in <a href="#object-header" class="auto internal xref">Section 11.1.1</a>,
-with the exception of any Object Properties (<a href="#object-properties" class="auto internal xref">Section 11.1.3</a>)
+<p id="section-7.1-7">A cache <span class="bcp14">MUST</span> store all fields of an Object defined in <a href="#object-header" class="auto internal xref">Section 2.1.1</a>,
+with the exception of any Object Properties (<a href="#object-properties" class="auto internal xref">Section 11.1.2</a>)
 that specify otherwise.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -4155,7 +4170,7 @@ allowed by the property's specification (see <a href="#properties" class="auto i
         <h3 id="name-relay-object-handling">
 <a href="#section-7.7" class="section-number selfRef">7.7. </a><a href="#name-relay-object-handling" class="section-name selfRef">Relay Object Handling</a>
         </h3>
-<p id="section-7.7-1">MOQT encodes the delivery information in the Object header (<a href="#object-header" class="auto internal xref">Section 11.1.1</a>).
+<p id="section-7.7-1">MOQT encodes the delivery information in the Object header (<a href="#object-header" class="auto internal xref">Section 2.1.1</a>).
 A relay <span class="bcp14">MUST NOT</span> modify Object fields when forwarding, except for
 Object Properties as specified in <a href="#properties" class="auto internal xref">Section 8.4</a>.<a href="#section-7.7-1" class="pilcrow">¶</a></p>
 <p id="section-7.7-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
@@ -4438,7 +4453,7 @@ cached.<a href="#section-8.4-4" class="pilcrow">¶</a></p>
 <p id="section-8.4-5">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).
 Track Properties always appear as the final field in the messages that
 carry them; their length is the remaining bytes of the message after all
-preceding fields have been consumed. Object Properties (<a href="#object-properties" class="auto internal xref">Section 11.1.3</a>)
+preceding fields have been consumed. Object Properties (<a href="#object-properties" class="auto internal xref">Section 11.1.2</a>)
 are preceded by an explicit length field.<a href="#section-8.4-5" class="pilcrow">¶</a></p>
 <p id="section-8.4-6">Property types are registered in the IANA table 'MOQ Properties'.
 See <a href="#iana" class="auto internal xref">Section 16</a>.<a href="#section-8.4-6" class="pilcrow">¶</a></p>
@@ -6900,117 +6915,70 @@ the datagram.  See <a href="#object-datagram" class="auto internal xref">Section
 <p id="section-11.1-1">An Object contains a range of contiguous bytes from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it.  Objects are sent by publishers.<a href="#section-11.1-1" class="pilcrow">¶</a></p>
-<div id="object-header">
-<section id="section-11.1.1">
-          <h4 id="name-object-header">
-<a href="#section-11.1.1" class="section-number selfRef">11.1.1. </a><a href="#name-object-header" class="section-name selfRef">Object Header</a>
-          </h4>
-<p id="section-11.1.1-1">A canonical MOQT Object has the following fields:<a href="#section-11.1.1-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-11.1.1-2.1">
-              <p id="section-11.1.1-2.1.1">Track Namespace and Track Name: The track this object belongs to.<a href="#section-11.1.1-2.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-11.1.1-2.2">
-              <p id="section-11.1.1-2.2.1">Group ID: The identifier of the Object's Group (see <a href="#model-group" class="auto internal xref">Section 2.3</a>) within
-the Track.<a href="#section-11.1.1-2.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-11.1.1-2.3">
-              <p id="section-11.1.1-2.3.1">Object ID: The order of the object within the group.<a href="#section-11.1.1-2.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-11.1.1-2.4">
-              <p id="section-11.1.1-2.4.1">Publisher Priority: An 8 bit integer indicating the publisher's priority for
-the Object (<a href="#priorities" class="auto internal xref">Section 5.1</a>).<a href="#section-11.1.1-2.4.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-11.1.1-2.5">
-              <p id="section-11.1.1-2.5.1">Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Subgroup and Datagram.  <code>Object Forwarding
-Preference</code> is a property of an individual Object and can vary among
-Objects in the same Track.  In a subscription, an Object <span class="bcp14">MUST</span> be sent
-according to its <code>Object Forwarding Preference</code>.<a href="#section-11.1.1-2.5.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-11.1.1-2.6">
-              <p id="section-11.1.1-2.6.1">Subgroup ID: The identifier of the Object's Subgroup (see <a href="#model-subgroup" class="auto internal xref">Section 2.2</a>)
-within the Group. This field is omitted if the <code>Object Forwarding Preference</code>
-is Datagram.<a href="#section-11.1.1-2.6.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-11.1.1-2.7">
-              <p id="section-11.1.1-2.7.1">Object Status: An enumeration used to indicate whether the Object is a normal Object
-or mark the end of a group or track. See <a href="#object-status" class="auto internal xref">Section 11.1.2</a> below.<a href="#section-11.1.1-2.7.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-11.1.1-2.8">
-              <p id="section-11.1.1-2.8.1">Object Properties: A sequence of Properties associated with the object.
-See <a href="#object-properties" class="auto internal xref">Section 11.1.3</a>.<a href="#section-11.1.1-2.8.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-11.1.1-2.9">
-              <p id="section-11.1.1-2.9.1">Object Payload: An opaque payload intended for an End Subscriber and <span class="bcp14">SHOULD NOT</span> be processed by a relay. Only present when 'Object Status' is Normal (0x0).<a href="#section-11.1.1-2.9.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-</section>
-</div>
 <div id="object-status">
-<section id="section-11.1.2">
+<section id="section-11.1.1">
           <h4 id="name-object-status">
-<a href="#section-11.1.2" class="section-number selfRef">11.1.2. </a><a href="#name-object-status" class="section-name selfRef">Object Status</a>
+<a href="#section-11.1.1" class="section-number selfRef">11.1.1. </a><a href="#name-object-status" class="section-name selfRef">Object Status</a>
           </h4>
-<p id="section-11.1.2-1">The Object Status is a field that is only present in objects that are delivered
+<p id="section-11.1.1-1">The Object Status is a field that is only present in objects that are delivered
 via a SUBSCRIPTION, and is absent in Objects delivered via a FETCH.  It allows
 the publisher to explicitly communicate that a specific range of objects does
-not exist.<a href="#section-11.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-11.1.2-2"><code>Status</code> can have the following values:<a href="#section-11.1.2-2" class="pilcrow">¶</a></p>
+not exist.<a href="#section-11.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-11.1.1-2"><code>Status</code> can have the following values:<a href="#section-11.1.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.1.2-3.1">
-              <p id="section-11.1.2-3.1.1">0x0 := Normal object. This status is implicit for any non-zero length object.
-       Zero-length objects explicitly encode the Normal status.<a href="#section-11.1.2-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.1.1-3.1">
+              <p id="section-11.1.1-3.1.1">0x0 := Normal object. This status is implicit for any non-zero length object.
+       Zero-length objects explicitly encode the Normal status.<a href="#section-11.1.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.1.2-3.2">
-              <p id="section-11.1.2-3.2.1">0x3 := Indicates End of Group. Indicates that no objects with the specified
+            <li class="normal" id="section-11.1.1-3.2">
+              <p id="section-11.1.1-3.2.1">0x3 := Indicates End of Group. Indicates that no objects with the specified
        Group ID and the Object ID that is greater than or equal to the one
-       specified exist in the group identified by the Group ID.<a href="#section-11.1.2-3.2.1" class="pilcrow">¶</a></p>
+       specified exist in the group identified by the Group ID.<a href="#section-11.1.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.1.2-3.3">
-              <p id="section-11.1.2-3.3.1">0x4 := Indicates End of Track. Indicates that no objects with the Location
-       that is equal to or greater than the one specified exist.<a href="#section-11.1.2-3.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.1.1-3.3">
+              <p id="section-11.1.1-3.3.1">0x4 := Indicates End of Track. Indicates that no objects with the Location
+       that is equal to or greater than the one specified exist.<a href="#section-11.1.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-11.1.2-4">All of those <span class="bcp14">SHOULD</span> be cached.<a href="#section-11.1.2-4" class="pilcrow">¶</a></p>
-<p id="section-11.1.2-5">There is no Object Status value indicating the end of a Subgroup. The end of a
+<p id="section-11.1.1-4">All of those <span class="bcp14">SHOULD</span> be cached.<a href="#section-11.1.1-4" class="pilcrow">¶</a></p>
+<p id="section-11.1.1-5">There is no Object Status value indicating the end of a Subgroup. The end of a
 Subgroup is signaled by closing its stream with a FIN
-(see <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.3.3</a>).<a href="#section-11.1.2-5" class="pilcrow">¶</a></p>
-<p id="section-11.1.2-6">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and the session <span class="bcp14">SHOULD</span>
+(see <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.3.3</a>).<a href="#section-11.1.1-5" class="pilcrow">¶</a></p>
+<p id="section-11.1.1-6">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and the session <span class="bcp14">SHOULD</span>
 be closed with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination-codes" class="auto internal xref">Section 14.2</a>).
 An Object <span class="bcp14">MUST</span> have an empty payload unless its Object Status value is
 registered as permitting a payload in the Object Status registry
 (<a href="#iana-object-status" class="auto internal xref">Section 16.9</a>). Of the values defined in this document, only Normal
-(0x0) permits a payload.<a href="#section-11.1.2-6" class="pilcrow">¶</a></p>
+(0x0) permits a payload.<a href="#section-11.1.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="object-properties">
-<section id="section-11.1.3">
+<section id="section-11.1.2">
           <h4 id="name-object-properties">
-<a href="#section-11.1.3" class="section-number selfRef">11.1.3. </a><a href="#name-object-properties" class="section-name selfRef">Object Properties</a>
+<a href="#section-11.1.2" class="section-number selfRef">11.1.2. </a><a href="#name-object-properties" class="section-name selfRef">Object Properties</a>
           </h4>
-<p id="section-11.1.3-1">Any Object with status Normal can have properties (<a href="#properties" class="auto internal xref">Section 8.4</a>).
+<p id="section-11.1.2-1">Any Object with status Normal can have properties (<a href="#properties" class="auto internal xref">Section 8.4</a>).
 If an endpoint receives properties on an Object with status that is
-not Normal, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-11.1.3-2">Object Properties are visible to relays and are intended to be relevant
+not Normal, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-11.1.2-2">Object Properties are visible to relays and are intended to be relevant
 to MOQT Object distribution. Any Object metadata never intended to be accessed
 by the transport or Relays <span class="bcp14">SHOULD</span> be serialized as part of the Object payload
-and not as an Object Property.<a href="#section-11.1.3-2" class="pilcrow">¶</a></p>
-<p id="section-11.1.3-3">Object Properties set by the Original Publisher that are intended to be visible
+and not as an Object Property.<a href="#section-11.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-11.1.2-3">Object Properties set by the Original Publisher that are intended to be visible
 to relays, but not modified by them, <span class="bcp14">SHOULD</span> be placed in Immutable Properties
-(<a href="#immutable-properties" class="auto internal xref">Section 10.7</a>), which enables end-to-end authentication schemes.<a href="#section-11.1.3-3" class="pilcrow">¶</a></p>
-<p id="section-11.1.3-4">Object Properties are serialized as a length in bytes followed by
-Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-11.1.3-4" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-11.1.3-5">
+(<a href="#immutable-properties" class="auto internal xref">Section 10.7</a>), which enables end-to-end authentication schemes.<a href="#section-11.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-11.1.2-4">Object Properties are serialized as a length in bytes followed by
+Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-11.1.2-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-11.1.2-5">
 <pre>
 Object Properties {
   Properties Length (vi64),
   Properties (..),
 }
-</pre><a href="#section-11.1.3-5" class="pilcrow">¶</a>
+</pre><a href="#section-11.1.2-5" class="pilcrow">¶</a>
 </div>
-<p id="section-11.1.3-6">Object Property types are registered in the IANA table
-'MOQ Properties'. See <a href="#iana" class="auto internal xref">Section 16</a>.<a href="#section-11.1.3-6" class="pilcrow">¶</a></p>
+<p id="section-11.1.2-6">Object Property types are registered in the IANA table
+'MOQ Properties'. See <a href="#iana" class="auto internal xref">Section 16</a>.<a href="#section-11.1.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -7031,7 +6999,7 @@ total size is larger than the maximum datagram size for the session, the Object
 will be dropped without any explicit notification.<a href="#section-11.2-3" class="pilcrow">¶</a></p>
 <p id="section-11.2-4">Each session along the path between the Original Publisher and End Subscriber
 might have different maximum datagram sizes. Additionally, Object Properties
-(<a href="#object-properties" class="auto internal xref">Section 11.1.3</a>) can be added to Objects as they pass
+(<a href="#object-properties" class="auto internal xref">Section 11.1.2</a>) can be added to Objects as they pass
 through the MOQT network, increasing the size of the Object and the chances it
 will exceed the maximum datagram size of a downstream session and be dropped.<a href="#section-11.2-4" class="pilcrow">¶</a></p>
 <div id="object-datagram">
@@ -7071,7 +7039,7 @@ are present in the datagram:<a href="#section-11.2.1-4" class="pilcrow">¶</a></
 <li class="normal" id="section-11.2.1-5.1">
               <p id="section-11.2.1-5.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is
 present. When set to 1, the Object Properties structure defined in
-<a href="#object-properties" class="auto internal xref">Section 11.1.3</a> is present. When set to 0, the field is absent.
+<a href="#object-properties" class="auto internal xref">Section 11.1.2</a> is present. When set to 0, the field is absent.
 If an endpoint receives a datagram with the PROPERTIES bit set and an
 Properties Length of 0, it <span class="bcp14">MUST</span> close the session with a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-11.2.1-5.1.1" class="pilcrow">¶</a></p>
@@ -7183,7 +7151,7 @@ fields are present in the header:<a href="#section-11.3.2-6" class="pilcrow">¶<
 <li class="normal" id="section-11.3.2-7.1">
               <p id="section-11.3.2-7.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is present
 in all Objects in this Subgroup. When set to 1, the Object Properties structure
-defined in <a href="#object-properties" class="auto internal xref">Section 11.1.3</a> is present in all Objects; Objects with no
+defined in <a href="#object-properties" class="auto internal xref">Section 11.1.2</a> is present in all Objects; Objects with no
 properties set Properties Length to 0. When set to 0, the field is never present.<a href="#section-11.3.2-7.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-11.3.2-7.2">
@@ -7554,9 +7522,9 @@ plus the Object ID Delta if present. If Object ID Delta is not present, the Obje
 prior Object's ID plus one, regardless of which group it belongs to. If the computed Object ID
 would be greater than 2^64-1, the Subscriber <span class="bcp14">MUST</span> close the Session with error
 'PROTOCOL_VIOLATION'.<a href="#section-11.4.1.1-7" class="pilcrow">¶</a></p>
-<p id="section-11.4.1.1-8">The Object Properties structure is defined in <a href="#object-properties" class="auto internal xref">Section 11.1.3</a>.<a href="#section-11.4.1.1-8" class="pilcrow">¶</a></p>
+<p id="section-11.4.1.1-8">The Object Properties structure is defined in <a href="#object-properties" class="auto internal xref">Section 11.1.2</a>.<a href="#section-11.4.1.1-8" class="pilcrow">¶</a></p>
 <p id="section-11.4.1.1-9">When encoding an Object with a Forwarding Preference of "Datagram" (see
-<a href="#object-properties" class="auto internal xref">Section 11.1.3</a>), the object has no Subgroup ID. The publisher <span class="bcp14">MUST</span> SET bit 0x40 to '1'.
+<a href="#object-properties" class="auto internal xref">Section 11.1.2</a>), the object has no Subgroup ID. The publisher <span class="bcp14">MUST</span> SET bit 0x40 to '1'.
 When 0x40 is set, it <span class="bcp14">SHOULD</span> set the two least significant bits to zero and the subscriber
 <span class="bcp14">MUST</span> ignore the bits.<a href="#section-11.4.1.1-9" class="pilcrow">¶</a></p>
 </section>
@@ -9233,7 +9201,7 @@ collision risks.<a href="#section-16.8-5.1.3" class="pilcrow">¶</a></p>
 <a href="#section-16.9" class="section-number selfRef">16.9. </a><a href="#name-object-status-2" class="section-name selfRef">Object Status</a>
         </h3>
 <p id="section-16.9-1">This document establishes a registry for Object Status values (see
-<a href="#object-status" class="auto internal xref">Section 11.1.2</a>). The "Payload" column indicates whether an Object with that
+<a href="#object-status" class="auto internal xref">Section 11.1.1</a>). The "Payload" column indicates whether an Object with that
 status is permitted to carry a non-empty payload.<a href="#section-16.9-1" class="pilcrow">¶</a></p>
 <table class="center" id="table-16">
           <caption><a href="#table-16" class="selfRef">Table 16</a></caption>
@@ -9251,7 +9219,7 @@ status is permitted to carry a non-empty payload.<a href="#section-16.9-1" class
               <td class="text-left" rowspan="1" colspan="1">Normal</td>
               <td class="text-left" rowspan="1" colspan="1">Yes</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#object-status" class="auto internal xref">Section 11.1.2</a>
+                <a href="#object-status" class="auto internal xref">Section 11.1.1</a>
 </td>
             </tr>
             <tr>
@@ -9259,7 +9227,7 @@ status is permitted to carry a non-empty payload.<a href="#section-16.9-1" class
               <td class="text-left" rowspan="1" colspan="1">End of Group</td>
               <td class="text-left" rowspan="1" colspan="1">No</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#object-status" class="auto internal xref">Section 11.1.2</a>
+                <a href="#object-status" class="auto internal xref">Section 11.1.1</a>
 </td>
             </tr>
             <tr>
@@ -9267,7 +9235,7 @@ status is permitted to carry a non-empty payload.<a href="#section-16.9-1" class
               <td class="text-left" rowspan="1" colspan="1">End of Track</td>
               <td class="text-left" rowspan="1" colspan="1">No</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#object-status" class="auto internal xref">Section 11.1.2</a>
+                <a href="#object-status" class="auto internal xref">Section 11.1.1</a>
 </td>
             </tr>
           </tbody>
