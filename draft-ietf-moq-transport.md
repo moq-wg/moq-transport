@@ -3050,7 +3050,7 @@ session with `PROTOCOL_VIOLATION`.
 ### TRACK_ALIAS Parameter {#track-alias-param}
 
 The TRACK_ALIAS parameter (Parameter Type 0x36) is a variable-length integer. It MAY appear
-in SUBSCRIBE_OK. It provides the numeric identifier used for this track in
+in SUBSCRIBE_OK. It provides a publisher specified identifier for delivering Objects from this track in
 Subgroups or Datagrams (see {{track-alias}}).
 
 ## SETUP {#message-setup}
@@ -3933,7 +3933,7 @@ The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
 TRACK_STATUS_OK with the same parameters and Track Properties it would have
-set in a SUBSCRIBE_OK. The TRACK_ALIAS parameter is not used.  A publisher responds to a
+set in a SUBSCRIBE_OK. A publisher responds to a
 failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
 TRACK_STATUS_OK or REQUEST_ERROR are sent.
@@ -4185,7 +4185,7 @@ numeric identifier, rather than the Full Track Name.  This numeric identifier
 is either the Track Alias or the Request ID ({{request-id}}).
 
 If the publisher provides the TRACK_ALIAS parameter ({{track-alias-param}}) in
-SUBSCRIBE_OK, or the Track Alias field in PUBLISH, that value is the Track Alias.
+SUBSCRIBE_OK, or the Track Alias field in PUBLISH, that value can be the Track Alias.
 Otherwise, the numeric identifier is the Request ID of the corresponding SUBSCRIBE
 or PUBLISH message.
 
@@ -4199,7 +4199,7 @@ parity, the session MUST be closed with a `PROTOCOL_VIOLATION`.
 
 The same Track Alias MUST NOT be used by a publisher to refer to two different
 Tracks simultaneously in the same session. If a subscriber receives a
-PUBLISH or SUBSCRIBE_OK that provides a Track Alias that is already in use by a different Track
+PUBLISH or SUBSCRIBE_OK that specifies a Track Alias already in use by a different Track
 with an `Established` subscription, it MUST close the session with error
 `DUPLICATE_TRACK_ALIAS`.
 
