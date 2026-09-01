@@ -672,6 +672,9 @@ with REQUEST_ERROR or sets Forward=0 in REQUEST_UPDATE. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 {{datagrams}} and {{subgroup-header}}).
 
+An object published or received in a subgroup or datagram is
+**subscription-delivered**.
+
 ### Subscription State Management
 
 A subscriber keeps subscription state until it cancels the request
@@ -888,42 +891,35 @@ groups. A publisher that does will begin the next group as soon as practical.
 
 ### Location Filters {#location-filters}
 
-Subscribers can specify a Location filter on a subscription indicating to the publisher
-which Objects to send.  Subscriptions without a filter pass all Objects
-published or received via upstream subscriptions.
-
-Fetch requests can also specify a Location filter.  Fetch requests without a filter
-include all Locations from {0, 0} up to `Largest Object` ({{largest-object}}).
-
 A Location filter specifies an inclusive range of Locations.  Only objects
-with Locations within the inclusive range pass the filter.
+with Locations within the inclusive range pass the filter.  A Location filter
+is encoded as specified in {{location-filter}}.
 
-An object published or received in a subgroup or datagram is
-**subscription-delivered**.  Objects delivered via a fill fetch stream (see
-{{fill-semantics}}) are **fill-delivered**.
+Subscribers can specify a Location filter on a subscription indicating to the
+publisher which Objects to send.  Subscriptions without a filter pass all
+Objects published or received via upstream subscriptions.
+
+Fetch requests can also specify a Location filter.  Fetch requests without a
+filter include all Locations from {0, 0} up to `Largest Object`
+({{largest-object}}).
 
 Some Location filters are defined to be relative to the `Largest Object`
 ({{largest-object}}).
+
+A Location Filter on a subscription is always valid, even if it specifies a
+range entirely before Largest Object.
 
 Note that due to network reordering or prioritization, relays can receive
 Objects with Locations smaller than `Largest Object` after the filter is
 processed, but these Objects do not pass a filter that starts at the Next
 Object.
 
-A Location filter is encoded as specified in {{location-filter}}.
+A publisher MUST NOT send objects from outside the requested range.  Because
+updating filters is asynchronous, subscribers can receive objects outside the
+current filter.
 
-A Location Filter on a subscription is always valid, even if it specifies a range
-entirely before Largest Object.
-
-A publisher MUST NOT send subscription-delivered objects from outside the
-requested range.  Because updating filters is asynchronous,
-subscribers can receive objects outside the current filter.
-
-A publisher does not end a subscription solely because the Largest Object advances
-past the end of the current Location Filter.
-
-Fill-delivered objects are governed by the Location filter in
-FILL_PARAMETERS (see {{fill-semantics}}).
+A publisher does not end a subscription solely because the Largest Object
+advances past the end of the current Location Filter.
 
 ### Range Filters {#range-filters}
 
