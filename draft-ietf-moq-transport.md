@@ -296,6 +296,10 @@ identical sequence of bytes regardless of how or where it is retrieved.
 An Object can become unavailable, but its contents MUST NOT change over
 time.
 
+Every Object within a Group belongs to exactly one Subgroup or Datagram. An
+Original Publisher MAY use both Subgroups and Datagrams within a Group or
+Track.
+
 ### Canonical Object Fields
 
 Objects are comprised of two parts: metadata and a payload.  The metadata is
@@ -349,8 +353,6 @@ Streams offer in-order reliable delivery and the ability to cancel sending and
 retransmission of data. Furthermore, many QUIC and WebTransport implementations
 offer the ability to control the relative scheduling priority of pending stream
 data.
-
-Every Object within a Group belongs to exactly one Subgroup or Datagram.
 
 When Objects are sent in a subscription (see {{subscriptions}}),  Objects
 from two subgroups MUST NOT be sent on the same stream, and Objects from the
@@ -690,6 +692,19 @@ completely closed and no Objects are scheduled to be sent or in flight.
 Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
 retain sufficient state to quickly discard these unwanted Objects, rather than
 treating them as belonging to an unknown Track Alias.
+
+#### Unknown Track Alias {#unknown-track-alias}
+
+When an endpoint receives a datagram or a new stream with a Track Alias that
+is not yet associated with an `Established` subscription, it MAY drop the
+data or buffer it briefly to handle reordering with the control message that
+establishes the Track Alias. For streams, the endpoint MAY withhold stream
+flow control beyond the stream header until the Track Alias has been
+established. To prevent deadlocks, endpoints MUST allocate connection flow
+control to control streams before allocating it to any data streams;
+otherwise a receiver might wait for a control message containing a Track
+Alias to release flow control, while the sender waits for flow control to
+send the message.
 
 
 ### Location Filters {#location-filters}
@@ -1746,85 +1761,8 @@ is used, the session is closed using the CONNECTION\_CLOSE frame
 closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
 Section 6}}).
 
-When terminating the Session, the application MAY use any error message
-and SHOULD use a relevant code, as defined below:
-
-NO_ERROR (0x0):
-: The session is being terminated without an error.
-
-INTERNAL_ERROR (0x1):
-: An implementation specific error occurred.
-
-UNAUTHORIZED (0x2):
-: The client is not authorized to establish a session.
-
-PROTOCOL_VIOLATION (0x3):
-: The remote endpoint performed an action that was disallowed by the
-  specification.
-
-INVALID_REQUEST_ID (0x4):
-: The endpoint received a Request ID with an incorrect least significant
-  bit for the sender, or a duplicate Request ID. See {{request-id}}.
-
-DUPLICATE_TRACK_ALIAS (0x5):
-: The endpoint attempted to use a Track Alias that was already in use.
-
-KEY_VALUE_FORMATTING_ERROR (0x6):
-: The key-value pair has a formatting error.
-
-INVALID_PATH (0x8):
-: The PATH parameter was used by a server, on a WebTransport session, or the
-  server does not support the path.
-
-MALFORMED_PATH (0x9):
-: The PATH parameter does not conform to the rules in {{path}}.
-
-GOAWAY_TIMEOUT (0x10):
-: The session was closed because the peer took too long to close the session
-  in response to a GOAWAY ({{message-goaway}}) message. See session migration
-  ({{session-migration}}).
-
-CONTROL_MESSAGE_TIMEOUT (0x11):
-: The session was closed because the peer took too long to respond to a
-  control message.
-
-DATA_STREAM_TIMEOUT (0x12):
-: The session was closed because the peer took too long to send data expected
-  on an open Data Stream (see {{data-streams}}). This includes fields of a
-  stream header or an object header within a data stream. If an endpoint
-  times out waiting for a new object header on an open subgroup stream, it
-  MAY send a STOP_SENDING on that stream or terminate the subscription.
-
-AUTH_TOKEN_CACHE_OVERFLOW (0x13):
-: The Session limit {{max-auth-token-cache-size}} of the size of all
-  registered Authorization tokens has been exceeded.
-
-DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
-: Authorization Token attempted to register an Alias that was in use (see
-  {{authorization-token}}).
-
-MALFORMED_AUTH_TOKEN (0x16):
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-UNKNOWN_AUTH_TOKEN_ALIAS (0x17):
-: No registered token found for the provided Alias (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN (0x18):
-: Authorization token has expired ({{authorization-token}}).
-
-INVALID_AUTHORITY (0x19):
-: The specified AUTHORITY does not correspond to this server or cannot be
-  used in this context.
-
-MALFORMED_AUTHORITY (0x1A):
-: The AUTHORITY value is syntactically invalid.
-
-TOO_MANY_REQUEST_UPDATES (0x1B):
-: The endpoint received a REQUEST_UPDATE that exceeded the per-stream limit
-  communicated via the MAX_REQUEST_UPDATES Setup Option
-  ({{max-request-updates}}).
+The error codes used when terminating a Session are defined in
+{{session-termination-codes}}.
 
 An endpoint MAY choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
@@ -2383,7 +2321,126 @@ example.2enet-team2-project_x--report
   Track name: report
 ~~~
 
-## Authorization Token Compression
+## Authorization Token Compression {#auth-token-compression}
+
+Authorization tokens are carried in the AUTHORIZATION TOKEN message parameter
+(see {{authorization-token}}) and the AUTHORIZATION TOKEN Setup Option (see
+{{setup-auth-token}}).  Both use the wire format and semantics defined in this
+section.
+
+The value is a Token structure containing an optional Session-specific
+Alias. The Alias allows the sender to reference a previously transmitted Token
+Type and Token Value in future messages. The Token structure is serialized as
+follows:
+
+~~~
+Token {
+  Alias Type (vi64),
+  [Token Alias (vi64),]
+  [Token Type (vi64),]
+  [Token Value (..)]
+}
+~~~
+{: #moq-token format title="Token structure"}
+
+* Alias Type - an integer defining both the serialization and the processing
+  behavior of the receiver. This Alias type has the following code points:
+
+DELETE (0x0):
+: There is an Alias but no Type or Value. This Alias and the Token Value it was
+previously associated with MUST be retired. Retiring removes them from the pool
+of actively registered tokens.
+
+REGISTER (0x1):
+: There is an Alias, a Type and a Value. This Alias MUST be associated with the
+Token Value for the duration of the Session or it is deleted. This action is
+termed "registering" the Token.
+
+USE_ALIAS (0x2):
+: There is an Alias but no Type or Value. Use the Token Type and Value
+previously registered with this Alias.
+
+USE_VALUE (0x3):
+: There is no Alias and there is a Type and Value. Use the Token Value as
+provided. The Token Value MAY be discarded after processing.
+
+* Token Alias - a Session-specific integer identifier that references a Token
+  Type and Token Value. There are separate Alias spaces for the client and server (e.g.: they
+  can each register Alias=1). Once a Token Alias has been registered, it cannot
+  be re-registered by the same endpoint in the Session without first being
+  deleted. Use of the Token Alias is optional.
+
+* Token Type - a numeric identifier for the type of Token payload being
+  transmitted. This type is defined by the IANA table "MOQT Auth Token Type" (see
+  {{iana}}). Type 0 is reserved to indicate that the type is not defined in the
+  table and is negotiated out-of-band between client and receiver.
+
+* Token Value - the payload of the Token. The contents and serialization of this
+  payload are defined by the Token Type.
+
+If the Token structure cannot be decoded, the receiver MUST close the Session
+with `KEY_VALUE_FORMATTING_ERROR`.  The receiver of a message attempting to
+register an Alias which is already registered MUST close the Session with
+`DUPLICATE_AUTH_TOKEN_ALIAS`. The receiver of a message referencing an Alias
+that is not currently registered MUST reject the message with
+`UNKNOWN_AUTH_TOKEN_ALIAS`.
+
+The receiver of a message containing a well-formed Token structure that is
+otherwise invalid MUST reject that message with an `MALFORMED_AUTH_TOKEN`
+error.
+
+The receiver of a message carrying an Authorization Token with Alias Type
+REGISTER that does not result in a Session error MUST register the Token Alias
+in the token cache, even if the message fails for other reasons, including
+`Unauthorized`.  This allows senders to pipeline messages that refer to
+previously registered tokens without potentially terminating the entire Session.
+A receiver MAY store an error code (eg: `UNAUTHORIZED` or
+`MALFORMED_AUTH_TOKEN`) in place of the Token Type and Token Alias if any future
+message referencing the Token Alias will result in that error. However, it is
+important to not store an error code for a token that might be valid in the
+future or due to some other property becoming fulfilled which currently
+isn't. The size of a registered cache entry includes the length of the Token
+Value, regardless of whether it is stored.
+
+If a receiver detects that an authorization token has expired, it MUST retain
+the registered Alias until it is deleted by the sender, though it MAY discard
+other state associated with the token that is no longer needed.  Expiration does
+not affect the size occupied by a token in the token cache.  Any message that
+references an expired token with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_TOKEN`.
+
+Using an Alias to refer to a previously registered Token Type and Value is for
+efficiency only and has the same effect as if the Token Type and Value was
+included directly.  Retiring an Alias that was previously used to authorize a
+message has no retroactive effect on the original authorization, nor does it
+prevent that same Token Type and Value from being re-registered.
+
+Senders of tokens SHOULD only register tokens which they intend to re-use during
+the Session and SHOULD retire previously registered tokens once their utility
+has passed.
+
+By registering a Token, the sender is requiring the receiver to store the Token
+Alias and Token Value until they are deleted, or the Session ends. The receiver
+can protect its resources by sending a Setup Option defining the
+MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
+willing to accept. If a registration is attempted which would cause this limit
+to be exceeded, the receiver MUST terminate the Session with a
+`AUTH_TOKEN_CACHE_OVERFLOW` error.
+
+An Authorization Token MAY be repeated within a message as long as the
+combination of Token Type and Token Value are unique after resolving any
+aliases.
+
+Messages carrying an Authorization Token can appear on different
+control streams. Because stream processing order can be different than send order, the
+receiver and sender can have inconsistent views of the token cache state.
+
+Senders MUST NOT send USE_ALIAS on one control stream for an alias registered on a
+different stream until the sender has received a response to the message
+containing the REGISTER. Senders MAY use USE_ALIAS on the same control stream as the
+REGISTER without waiting for a response.
+
+Senders MUST NOT send DELETE for an alias while any message using USE_ALIAS with
+that alias has not received a response.
 
 # Control Messages {#message}
 
@@ -2556,6 +2613,12 @@ equivalent to the AUTHORIZATION TOKEN message parameter, see {{authorization-tok
 The endpoint can specify one or more tokens in SETUP
 that the peer can use to authorize MOQT session establishment.
 
+The option value is a Token structure, whose wire format and semantics are
+defined in {{auth-token-compression}}.
+
+If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
+message, it MUST close the session with a `PROTOCOL_VIOLATION`.
+
 If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
 the session with `AUTH_TOKEN_CACHE_OVERFLOW`.  Instead, it MUST treat the
@@ -2645,7 +2708,7 @@ An endpoint that receives a GOAWAY MAY reject new requests with an appropriate
 error code (e.g., REQUEST_ERROR with error code GOING_AWAY).
 
 The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
-({{session-termination}}) if it receives more than one GOAWAY on the
+({{session-termination-codes}}) if it receives more than one GOAWAY on the
 control stream or on a single request stream.
 
 ~~~
@@ -2770,105 +2833,13 @@ REQUEST_ERROR Message {
 * Redirect: Present only when Error Code is REDIRECT. See
   {{redirect-structure}}.
 
-The application SHOULD use a relevant error code in REQUEST_ERROR,
-as defined below and assigned in {{iana-request-error}}. Most codepoints have
-identical meanings for various request types, but some have request-specific
-meanings.
-
 If a request is retryable with the same parameters at a later time, the sender
 of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
 the risk of synchronized retry storms, the sender can apply randomization to
 each retry interval so that retries are spread out over time.  A Retry Interval
 value of 1 indicates the request can be retried immediately.
 
-INTERNAL_ERROR:
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED:
-: The subscriber is not authorized to perform the requested action on the given
-track.  This might be retryable if the authorization token is not yet valid.
-
-TIMEOUT:
-: The subscription could not be completed before an implementation specific
-  timeout. For example, a relay could not establish an upstream subscription
-  within the timeout.
-
-NOT_SUPPORTED:
-: The endpoint does not support the type of request.
-
-MALFORMED_AUTH_TOKEN:
-: Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
-
-EXPIRED_AUTH_TOKEN:
-: Authorization token has expired ({{authorization-token}}).
-
-GOING_AWAY:
-: The endpoint has received a GOAWAY and MAY reject new requests.
-
-EXCESSIVE_LOAD:
-: The responder is overloaded and cannot process the request at this time. The
-sender SHOULD use the Retry Interval to indicate when the request can be retried.
-
-UNSUPPORTED_EXTENSION:
-: The track contains a Mandatory Track Property
-(see {{mandatory-track-properties}}) that the endpoint does not understand.
-
-REDIRECT:
-: The request cannot be fulfilled by this endpoint, but could succeed at the
-location specified in the Redirect structure. The requester SHOULD establish a
-new session to the provided URI (if present) and retry the request using the
-Redirect target. A Retry Interval of 0 indicates the original request SHOULD NOT be retried as sent;
-it does not prevent the requester from following a Redirect to a different
-URI or Redirect target. This error code can appear in
-response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
-SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
-redirects from upstream
-and MAY forward a REDIRECT response to matching downstream requests. A relay
-MAY cache a REDIRECT response for up to Retry Interval
-milliseconds and use it to respond to subsequent matching requests without
-forwarding them upstream.
-
-Below are errors for use by the publisher. They can appear in response to
-SUBSCRIBE, FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS,
-unless otherwise noted.
-
-DOES_NOT_EXIST:
-: The track or namespace is not available at the publisher.
-
-INVALID_RANGE:
-: In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
-cannot be satisfied.
-
-INVALID_FILTER:
-: A filter parameter is invalid.
-
-MALFORMED_TRACK:
-: In response to a FETCH, a relay publisher detected the track was
-malformed (see {{malformed-tracks}}).
-
-The following are errors for use by the subscriber. They can appear in response
-to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
-
-UNINTERESTED:
-: The subscriber is not interested in the track or namespace.
-
-Errors below can only be used in response to one message type.
-
-PREFIX_OVERLAP:
-: In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
-shares a common prefix with another subscription of the same type in the same session.
-SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have independent overlap spaces, so a
-SUBSCRIBE_NAMESPACE and a SUBSCRIBE_TRACKS may share the same prefix.
-
-NAMESPACE_TOO_LARGE:
-: In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
-matches more publishers than the relay is willing to enumerate.
-
-CONFLICTING_FILTERS:
-: In response to SUBSCRIBE_TRACKS, the filter parameters conflict among
-too many subscribers to aggregate the subscription upstream or otherwise
-efficiently service it.
+The error codes used in REQUEST_ERROR are defined in {{request-error-codes}}.
 
 ## REQUEST_UPDATE {#message-request-update}
 
@@ -3147,38 +3118,7 @@ subscription than specified in Stream Count, it MAY close the session with a
 
 * Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
 
-The application SHOULD use a relevant status code in PUBLISH_DONE, as defined
-below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The subscriber is no longer authorized to subscribe to the given track.
-
-TRACK_ENDED (0x2):
-: The track is no longer being published.
-
-GOING_AWAY (0x4):
-: The subscriber or publisher issued a GOAWAY message.
-
-TOO_FAR_BEHIND (0x5):
-: The publisher's queue of objects to be sent to the given subscriber exceeds
-  its implementation defined limit.
-
-EXPIRED (0x6):
-: The publisher reached the timeout specified in SUBSCRIBE_OK.
-
-MALFORMED_TRACK (0x12):
-: A relay publisher detected that the track was malformed (see
-  {{malformed-tracks}}).
-
-UPDATE_FAILED (0x8):
-: REQUEST_UPDATE failed on this subscription (see
-  {{message-request-update}}).
-
-EXCESSIVE_LOAD (0x9):
-: The publisher is overloaded and is terminating the subscription.
+The status codes used in PUBLISH_DONE are defined in {{publish-done-codes}}.
 
 ## PUBLISH_STATE_NOTIFY {#ps-notify}
 
@@ -3658,122 +3598,8 @@ parameter conveys information to authorize the sender to perform the operation
 carrying the parameter. This Parameter MUST NOT be copied from a SUBSCRIBE_TRACKS
 to the resulting PUBLISH message Parameters.
 
-The parameter value is a Token structure containing an optional Session-specific
-Alias. The Alias allows the sender to reference a previously transmitted Token
-Type and Token Value in future messages. The Token structure is serialized as
-follows:
-
-~~~
-Token {
-  Alias Type (vi64),
-  [Token Alias (vi64),]
-  [Token Type (vi64),]
-  [Token Value (..)]
-}
-~~~
-{: #moq-token format title="Token structure"}
-
-* Alias Type - an integer defining both the serialization and the processing
-  behavior of the receiver. This Alias type has the following code points:
-
-DELETE (0x0):
-: There is an Alias but no Type or Value. This Alias and the Token Value it was
-previously associated with MUST be retired. Retiring removes them from the pool
-of actively registered tokens.
-
-REGISTER (0x1):
-: There is an Alias, a Type and a Value. This Alias MUST be associated with the
-Token Value for the duration of the Session or it is deleted. This action is
-termed "registering" the Token.
-
-USE_ALIAS (0x2):
-: There is an Alias but no Type or Value. Use the Token Type and Value
-previously registered with this Alias.
-
-USE_VALUE (0x3):
-: There is no Alias and there is a Type and Value. Use the Token Value as
-provided. The Token Value MAY be discarded after processing.
-
-If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
-message, it MUST close the session with a `PROTOCOL_VIOLATION`.
-
-* Token Alias - a Session-specific integer identifier that references a Token
-  Type and Token Value. There are separate Alias spaces for the client and server (e.g.: they
-  can each register Alias=1). Once a Token Alias has been registered, it cannot
-  be re-registered by the same endpoint in the Session without first being
-  deleted. Use of the Token Alias is optional.
-
-* Token Type - a numeric identifier for the type of Token payload being
-  transmitted. This type is defined by the IANA table "MOQT Auth Token Type" (see
-  {{iana}}). Type 0 is reserved to indicate that the type is not defined in the
-  table and is negotiated out-of-band between client and receiver.
-
-* Token Value - the payload of the Token. The contents and serialization of this
-  payload are defined by the Token Type.
-
-If the Token structure cannot be decoded, the receiver MUST close the Session
-with `KEY_VALUE_FORMATTING_ERROR`.  The receiver of a message attempting to
-register an Alias which is already registered MUST close the Session with
-`DUPLICATE_AUTH_TOKEN_ALIAS`. The receiver of a message referencing an Alias
-that is not currently registered MUST reject the message with
-`UNKNOWN_AUTH_TOKEN_ALIAS`.
-
-The receiver of a message containing a well-formed Token structure but otherwise
-invalid AUTHORIZATION TOKEN parameter MUST reject that message with an
-`MALFORMED_AUTH_TOKEN` error.
-
-The receiver of a message carrying an AUTHORIZATION TOKEN with Alias Type
-REGISTER that does not result in a Session error MUST register the Token Alias
-in the token cache, even if the message fails for other reasons, including
-`Unauthorized`.  This allows senders to pipeline messages that refer to
-previously registered tokens without potentially terminating the entire Session.
-A receiver MAY store an error code (eg: `UNAUTHORIZED` or
-`MALFORMED_AUTH_TOKEN`) in place of the Token Type and Token Alias if any future
-message referencing the Token Alias will result in that error. However, it is
-important to not store an error code for a token that might be valid in the
-future or due to some other property becoming fulfilled which currently
-isn't. The size of a registered cache entry includes the length of the Token
-Value, regardless of whether it is stored.
-
-If a receiver detects that an authorization token has expired, it MUST retain
-the registered Alias until it is deleted by the sender, though it MAY discard
-other state associated with the token that is no longer needed.  Expiration does
-not affect the size occupied by a token in the token cache.  Any message that
-references an expired token with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_TOKEN`.
-
-Using an Alias to refer to a previously registered Token Type and Value is for
-efficiency only and has the same effect as if the Token Type and Value was
-included directly.  Retiring an Alias that was previously used to authorize a
-message has no retroactive effect on the original authorization, nor does it
-prevent that same Token Type and Value from being re-registered.
-
-Senders of tokens SHOULD only register tokens which they intend to re-use during
-the Session and SHOULD retire previously registered tokens once their utility
-has passed.
-
-By registering a Token, the sender is requiring the receiver to store the Token
-Alias and Token Value until they are deleted, or the Session ends. The receiver
-can protect its resources by sending a Setup Option defining the
-MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
-willing to accept. If a registration is attempted which would cause this limit
-to be exceeded, the receiver MUST terminate the Session with a
-`AUTH_TOKEN_CACHE_OVERFLOW` error.
-
-The AUTHORIZATION TOKEN parameter MAY be repeated within a message as long as
-the combination of Token Type and Token Value are unique after resolving any
-aliases.
-
-Messages carrying the AUTHORIZATION TOKEN parameter can appear on different
-control streams. Because stream processing order can be different than send order, the
-receiver and sender can have inconsistent views of the token cache state.
-
-Senders MUST NOT send USE_ALIAS on one control stream for an alias registered on a
-different stream until the sender has received a response to the message
-containing the REGISTER. Senders MAY use USE_ALIAS on the same control stream as the
-REGISTER without waiting for a response.
-
-Senders MUST NOT send DELETE for an alias while any message using USE_ALIAS with
-that alias has not received a response.
+The parameter value is a Token structure, whose wire format and semantics are
+defined in {{auth-token-compression}}.
 
 ### SUBGROUP_DELIVERY_TIMEOUT Parameter {#subgroup-delivery-timeout}
 
@@ -4285,9 +4111,6 @@ the datagram.  See {{object-datagram}}.
 
 An endpoint that receives an unknown datagram type MUST close the session.
 
-Every Object has a 'Object Forwarding Preference' and the Original Publisher
-MAY use both Subgroups and Datagrams within a Group or Track.
-
 ## Objects {#message-object}
 
 An Object contains a range of contiguous bytes from the
@@ -4321,7 +4144,7 @@ according to its `Object Forwarding Preference`.
 * Object Status: An enumeration used to indicate whether the Object is a normal Object
   or mark the end of a group or track. See {{object-status}} below.
 
-* Object Properties : A sequence of Properties associated with the object.
+* Object Properties: A sequence of Properties associated with the object.
   See {{object-properties}}.
 
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
@@ -4334,7 +4157,7 @@ via a SUBSCRIPTION, and is absent in Objects delivered via a FETCH.  It allows
 the publisher to explicitly communicate that a specific range of objects does
 not exist.
 
-`Status` can have following values:
+`Status` can have the following values:
 
 * 0x0 := Normal object. This status is implicit for any non-zero length object.
          Zero-length objects explicitly encode the Normal status.
@@ -4343,7 +4166,7 @@ not exist.
          Group ID and the Object ID that is greater than or equal to the one
          specified exist in the group identified by the Group ID.
 
-* 0x4 := Indicates End of Track. Indicates that no objects with the location
+* 0x4 := Indicates End of Track. Indicates that no objects with the Location
          that is equal to or greater than the one specified exist.
 
 All of those SHOULD be cached.
@@ -4353,7 +4176,7 @@ Subgroup is signaled by closing its stream with a FIN
 (see {{closing-subgroup-streams}}).
 
 Any other value SHOULD be treated as a protocol error and the session SHOULD
-be closed with a `PROTOCOL_VIOLATION` ({{session-termination}}).
+be closed with a `PROTOCOL_VIOLATION` ({{session-termination-codes}}).
 An Object MUST have an empty payload unless its Object Status value is
 registered as permitting a payload in the Object Status registry
 ({{iana-object-status}}). Of the values defined in this document, only Normal
@@ -4390,10 +4213,8 @@ Object Property types are registered in the IANA table
 ## Datagrams
 
 A single object can be conveyed in a datagram.  The Track Alias field
-({{track-alias}}) indicates the track this Datagram belongs to.  If an endpoint
-receives a datagram with an unknown Track Alias, it MAY drop the datagram or
-choose to buffer it for a brief period to handle reordering with the control
-message that establishes the Track Alias.
+({{track-alias}}) indicates the track this Datagram belongs to; see
+{{unknown-track-alias}} for handling of unknown Track Aliases.
 
 An Object received in an `OBJECT_DATAGRAM` message has an `Object Forwarding
 Preference` = `Datagram`.
@@ -4488,20 +4309,14 @@ middle of a serialized Object, the session SHOULD be closed with a
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
 Header field values.
 
-### Subgroup Header
+### Subgroup Header {#subgroup-header}
 
-All Objects on a Subgroup stream belong to the track identified by `Track Alias`
-(see {{track-alias}}) and the Subgroup indicated by 'Group ID' and `Subgroup
-ID` indicated by the SUBGROUP_HEADER.
+All Objects on a Subgroup stream belong to the track identified by
+`Track Alias` (see {{track-alias}}) and the Subgroup indicated by `Group ID`
+and `Subgroup ID` in the SUBGROUP_HEADER.
 
-If an endpoint receives a subgroup with an unknown Track Alias, it MAY abandon
-the stream, or choose to buffer it for a brief period to handle reordering with
-the control message that establishes the Track Alias.  The endpoint MAY withhold
-stream flow control beyond the SUBGROUP_HEADER until the Track Alias has been
-established.  To prevent deadlocks, endpoints MUST allocate connection flow
-control to the control streams before allocating it to any data streams. Otherwise,
-a receiver might wait for a control message containing a Track Alias to release
-flow control, while the sender waits for flow control to send the message.
+See {{unknown-track-alias}} for handling of subgroups with unknown Track
+Aliases.
 
 ~~~
 SUBGROUP_HEADER {
@@ -4597,7 +4412,7 @@ unless there is a Prior Object ID Gap property (see
 {: #object-subgroup-format title="MOQT Subgroup Object Fields"}
 
 
-### Closing Subgroup Streams
+### Closing Subgroup Streams {#closing-subgroup-streams}
 
 Subscribers will often need to know if they have received all objects in a
 Subgroup, particularly if they serve as a relay or cache. QUIC and Webtransport
@@ -4663,14 +4478,13 @@ Group boundaries to avoid doing so.
 An MOQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
 can forward stream FINs to its own subscribers once those objects have been
-sent. A relay MAY treat receipt of EndOfGroup or EndOfTrack objects as a signal
-to close corresponding streams even if the FIN has not arrived, as further
-objects on the stream would be a protocol violation.
+sent. A relay MAY treat receipt of End of Group or End of Track objects as a
+signal to close corresponding streams even if the FIN has not arrived, as
+further objects on the stream would be a protocol violation.
 
-Similarly, an EndOfGroup message indicates the maximum Object ID in the
-Group, so if all Objects in the Group have been received, a FIN can be sent on
-any stream where the entire subgroup has been sent. This might be complex to
-implement.
+Similarly, an End of Group Object indicates the maximum Object ID in the
+Group, so if all Objects in the Group have been received, a FIN can be sent
+on any stream where the entire subgroup has been sent.
 
 Processing a reset means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
@@ -4680,10 +4494,10 @@ It also might send RESET_STREAM_AT with reliable_size set to the last Object it
 has, so as to reliably deliver the Objects it has while signaling that other
 Objects might exist.
 
-A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the Group
-or Subgroup is no longer of interest to it. The publisher SHOULD respond with
-a reset. If RESET_STREAM_AT is sent, note that the receiver
-has indicated no interest in the objects, so setting a reliable_size beyond the
+A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the
+Group or Subgroup is no longer of interest to it. The publisher SHOULD
+respond with a reset. If RESET_STREAM_AT is sent, note that the receiver has
+indicated no interest in the objects, so setting a reliable_size beyond the
 stream header is of questionable utility.
 
 Resets and STOP_SENDING on SUBSCRIBE data streams have no impact on other
@@ -4732,32 +4546,34 @@ format:
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
 
-The Serialization Flags field defines the serialization of the Object.  It is
-a variable-length integer.  When less than 128, the bits represent flags described
-below.  The following additional values are defined:
+The Serialization Flags field defines the serialization of the Object. It is
+a variable-length integer. When less than 128, the bits represent flags
+described in {{fetch-serialization-flags}}. When 128 or greater, the value
+signals a range indicator; the defined values are:
+
+**Reserved Serialization Flags values:**
 
 Value | Meaning
-0x8C | End of Non-Existent Range
+0x8C  | End of Non-Existent Range
 0x10C | End of Unknown Range
 0x20C | End of Timed-Out Range
 
-Any other value is a `PROTOCOL_VIOLATION`.
+Any other value 128 or greater is a `PROTOCOL_VIOLATION`.
 
-#### Flags
+#### Flags {#fetch-serialization-flags}
 
-The two least significant bits (LSBs) of the Serialization Flags form a two-bit
-field that defines the encoding of the Subgroup.  To extract this value, the
-Subscriber performs a bitwise AND operation with the mask 0x03.
+**Subgroup ID encoding (bits 0-1, mask 0x03):** The two least significant
+bits of the Serialization Flags form a two-bit field that defines the
+encoding of the Subgroup ID.
 
-Bitmask Result (Serialization Flags & 0x03) | Meaning
+Value | Meaning
 0x00 | Subgroup ID is zero
 0x01 | Subgroup ID is the prior Object's Subgroup ID
 0x02 | Subgroup ID is the prior Object's Subgroup ID plus one
 0x03 | The Subgroup ID field is present
 
-The following table defines additional flags within the Serialization Flags
-field. Each flag is an independent boolean value, where a set bit (1) indicates
-the corresponding condition is true.
+**Independent flag bits:** Each of the following is an independent boolean;
+a set bit (1) indicates the corresponding condition is true.
 
 Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
@@ -5208,11 +5024,218 @@ subscriptions with PUBLISH_DONE and reset any fetch streams with
 Status Code `MALFORMED_TRACK`. Object(s) triggering Malformed Track status
 MUST NOT be cached.
 
-## Session Termination Codes
+## Session Termination Codes {#session-termination-codes}
 
-## Request Error Codes
+When terminating the Session ({{session-termination}}), the application MAY use
+any error message and SHOULD use a relevant code, as defined below:
 
-## Publish Done Codes
+NO_ERROR (0x0):
+: The session is being terminated without an error.
+
+INTERNAL_ERROR (0x1):
+: An implementation specific error occurred.
+
+UNAUTHORIZED (0x2):
+: The client is not authorized to establish a session.
+
+PROTOCOL_VIOLATION (0x3):
+: The remote endpoint performed an action that was disallowed by the
+  specification.
+
+INVALID_REQUEST_ID (0x4):
+: The endpoint received a Request ID with an incorrect least significant
+  bit for the sender, or a duplicate Request ID. See {{request-id}}.
+
+DUPLICATE_TRACK_ALIAS (0x5):
+: The endpoint attempted to use a Track Alias that was already in use.
+
+KEY_VALUE_FORMATTING_ERROR (0x6):
+: The key-value pair has a formatting error.
+
+INVALID_PATH (0x8):
+: The PATH parameter was used by a server, on a WebTransport session, or the
+  server does not support the path.
+
+MALFORMED_PATH (0x9):
+: The PATH parameter does not conform to the rules in {{path}}.
+
+GOAWAY_TIMEOUT (0x10):
+: The session was closed because the peer took too long to close the session
+  in response to a GOAWAY ({{message-goaway}}) message. See session migration
+  ({{session-migration}}).
+
+CONTROL_MESSAGE_TIMEOUT (0x11):
+: The session was closed because the peer took too long to respond to a
+  control message.
+
+DATA_STREAM_TIMEOUT (0x12):
+: The session was closed because the peer took too long to send data expected
+  on an open Data Stream (see {{data-streams}}). This includes fields of a
+  stream header or an object header within a data stream. If an endpoint
+  times out waiting for a new object header on an open subgroup stream, it
+  MAY send a STOP_SENDING on that stream or terminate the subscription.
+
+AUTH_TOKEN_CACHE_OVERFLOW (0x13):
+: The Session limit {{max-auth-token-cache-size}} of the size of all
+  registered Authorization tokens has been exceeded.
+
+DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
+: Authorization Token attempted to register an Alias that was in use (see
+  {{auth-token-compression}}).
+
+MALFORMED_AUTH_TOKEN (0x16):
+: Invalid Auth Token serialization during registration (see
+  {{auth-token-compression}}).
+
+UNKNOWN_AUTH_TOKEN_ALIAS (0x17):
+: No registered token found for the provided Alias (see
+  {{auth-token-compression}}).
+
+EXPIRED_AUTH_TOKEN (0x18):
+: Authorization token has expired ({{auth-token-compression}}).
+
+INVALID_AUTHORITY (0x19):
+: The specified AUTHORITY does not correspond to this server or cannot be
+  used in this context.
+
+MALFORMED_AUTHORITY (0x1A):
+: The AUTHORITY value is syntactically invalid.
+
+TOO_MANY_REQUEST_UPDATES (0x1B):
+: The endpoint received a REQUEST_UPDATE that exceeded the per-stream limit
+  communicated via the MAX_REQUEST_UPDATES Setup Option
+  ({{max-request-updates}}).
+
+## Request Error Codes {#request-error-codes}
+
+The application SHOULD use a relevant error code in REQUEST_ERROR
+({{message-request-error}}), as defined below and assigned in
+{{iana-request-error}}. Most codepoints have identical meanings for various
+request types, but some have request-specific meanings.
+
+INTERNAL_ERROR:
+: An implementation specific or generic error occurred.
+
+UNAUTHORIZED:
+: The subscriber is not authorized to perform the requested action on the given
+track.  This might be retryable if the authorization token is not yet valid.
+
+TIMEOUT:
+: The subscription could not be completed before an implementation specific
+  timeout. For example, a relay could not establish an upstream subscription
+  within the timeout.
+
+NOT_SUPPORTED:
+: The endpoint does not support the type of request.
+
+MALFORMED_AUTH_TOKEN:
+: Invalid Auth Token serialization during registration (see
+  {{auth-token-compression}}).
+
+EXPIRED_AUTH_TOKEN:
+: Authorization token has expired ({{auth-token-compression}}).
+
+GOING_AWAY:
+: The endpoint has received a GOAWAY and MAY reject new requests.
+
+EXCESSIVE_LOAD:
+: The responder is overloaded and cannot process the request at this time. The
+sender SHOULD use the Retry Interval to indicate when the request can be retried.
+
+UNSUPPORTED_EXTENSION:
+: The track contains a Mandatory Track Property
+(see {{mandatory-track-properties}}) that the endpoint does not understand.
+
+REDIRECT:
+: The request cannot be fulfilled by this endpoint, but could succeed at the
+location specified in the Redirect structure. The requester SHOULD establish a
+new session to the provided URI (if present) and retry the request using the
+Redirect target. A Retry Interval of 0 indicates the original request SHOULD NOT be retried as sent;
+it does not prevent the requester from following a Redirect to a different
+URI or Redirect target. This error code can appear in
+response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
+SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
+redirects from upstream
+and MAY forward a REDIRECT response to matching downstream requests. A relay
+MAY cache a REDIRECT response for up to Retry Interval
+milliseconds and use it to respond to subsequent matching requests without
+forwarding them upstream.
+
+Below are errors for use by the publisher. They can appear in response to
+SUBSCRIBE, FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS,
+unless otherwise noted.
+
+DOES_NOT_EXIST:
+: The track or namespace is not available at the publisher.
+
+INVALID_RANGE:
+: In response to SUBSCRIBE or FETCH, specified Filter or range of Locations
+cannot be satisfied.
+
+INVALID_FILTER:
+: A filter parameter is invalid.
+
+MALFORMED_TRACK:
+: In response to a FETCH, a relay publisher detected the track was
+malformed (see {{malformed-tracks}}).
+
+The following are errors for use by the subscriber. They can appear in response
+to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
+
+UNINTERESTED:
+: The subscriber is not interested in the track or namespace.
+
+Errors below can only be used in response to one message type.
+
+PREFIX_OVERLAP:
+: In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
+shares a common prefix with another subscription of the same type in the same session.
+SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have independent overlap spaces, so a
+SUBSCRIBE_NAMESPACE and a SUBSCRIBE_TRACKS may share the same prefix.
+
+NAMESPACE_TOO_LARGE:
+: In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
+matches more publishers than the relay is willing to enumerate.
+
+CONFLICTING_FILTERS:
+: In response to SUBSCRIBE_TRACKS, the filter parameters conflict among
+too many subscribers to aggregate the subscription upstream or otherwise
+efficiently service it.
+
+## Publish Done Codes {#publish-done-codes}
+
+The application SHOULD use a relevant status code in PUBLISH_DONE
+({{message-publish-done}}), as defined below:
+
+INTERNAL_ERROR (0x0):
+: An implementation specific or generic error occurred.
+
+UNAUTHORIZED (0x1):
+: The subscriber is no longer authorized to subscribe to the given track.
+
+TRACK_ENDED (0x2):
+: The track is no longer being published.
+
+GOING_AWAY (0x4):
+: The subscriber or publisher issued a GOAWAY message.
+
+TOO_FAR_BEHIND (0x5):
+: The publisher's queue of objects to be sent to the given subscriber exceeds
+  its implementation defined limit.
+
+EXPIRED (0x6):
+: The publisher reached the timeout specified in SUBSCRIBE_OK.
+
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
+  {{malformed-tracks}}).
+
+UPDATE_FAILED (0x8):
+: REQUEST_UPDATE failed on this subscription (see
+  {{message-request-update}}).
+
+EXCESSIVE_LOAD (0x9):
+: The publisher is overloaded and is terminating the subscription.
 
 ## Stream Reset Error Codes {#stream-reset-codes}
 
@@ -5397,16 +5420,16 @@ Setup Options SHOULD request a provisional registration.
 
 | Code | Name       | Specification
 |-----:|:-----------|------------------------|
-| 0x0  | DELETE     | {{authorization-token}}
-| 0x1  | REGISTER   | {{authorization-token}}
-| 0x2  | USE_ALIAS  | {{authorization-token}}
-| 0x3  | USE_VALUE  | {{authorization-token}}
+| 0x0  | DELETE     | {{auth-token-compression}}
+| 0x1  | REGISTER   | {{auth-token-compression}}
+| 0x2  | USE_ALIAS  | {{auth-token-compression}}
+| 0x3  | USE_VALUE  | {{auth-token-compression}}
 
 ## MOQT Auth Token Type {#iana-auth-token-type}
 
 | Code | Name       | Specification |
 |-----:|:-----------|:--------------|
-| 0x0  | Reserved   | {{authorization-token}} |
+| 0x0  | Reserved   | {{auth-token-compression}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 ## Message Parameters
@@ -5529,65 +5552,65 @@ This document does not define any initial entries.
 
 | Name                       | Code | Specification           |
 |:---------------------------|:----:|:------------------------|
-| NO_ERROR                   | 0x0  | {{session-termination}} |
-| INTERNAL_ERROR             | 0x1  | {{session-termination}} |
-| UNAUTHORIZED               | 0x2  | {{session-termination}} |
-| PROTOCOL_VIOLATION         | 0x3  | {{session-termination}} |
-| INVALID_REQUEST_ID         | 0x4  | {{session-termination}} |
-| DUPLICATE_TRACK_ALIAS      | 0x5  | {{session-termination}} |
-| KEY_VALUE_FORMATTING_ERROR | 0x6  | {{session-termination}} |
-| INVALID_PATH               | 0x8  | {{session-termination}} |
-| MALFORMED_PATH             | 0x9  | {{session-termination}} |
-| GOAWAY_TIMEOUT             | 0x10 | {{session-termination}} |
-| CONTROL_MESSAGE_TIMEOUT    | 0x11 | {{session-termination}} |
-| DATA_STREAM_TIMEOUT        | 0x12 | {{session-termination}} |
-| AUTH_TOKEN_CACHE_OVERFLOW  | 0x13 | {{session-termination}} |
-| DUPLICATE_AUTH_TOKEN_ALIAS | 0x14 | {{session-termination}} |
-| MALFORMED_AUTH_TOKEN       | 0x16 | {{session-termination}} |
-| UNKNOWN_AUTH_TOKEN_ALIAS   | 0x17 | {{session-termination}} |
-| EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
-| INVALID_AUTHORITY          | 0x19 | {{session-termination}} |
-| MALFORMED_AUTHORITY        | 0x1A | {{session-termination}} |
-| TOO_MANY_REQUEST_UPDATES   | 0x1B | {{session-termination}} |
+| NO_ERROR                   | 0x0  | {{session-termination-codes}} |
+| INTERNAL_ERROR             | 0x1  | {{session-termination-codes}} |
+| UNAUTHORIZED               | 0x2  | {{session-termination-codes}} |
+| PROTOCOL_VIOLATION         | 0x3  | {{session-termination-codes}} |
+| INVALID_REQUEST_ID         | 0x4  | {{session-termination-codes}} |
+| DUPLICATE_TRACK_ALIAS      | 0x5  | {{session-termination-codes}} |
+| KEY_VALUE_FORMATTING_ERROR | 0x6  | {{session-termination-codes}} |
+| INVALID_PATH               | 0x8  | {{session-termination-codes}} |
+| MALFORMED_PATH             | 0x9  | {{session-termination-codes}} |
+| GOAWAY_TIMEOUT             | 0x10 | {{session-termination-codes}} |
+| CONTROL_MESSAGE_TIMEOUT    | 0x11 | {{session-termination-codes}} |
+| DATA_STREAM_TIMEOUT        | 0x12 | {{session-termination-codes}} |
+| AUTH_TOKEN_CACHE_OVERFLOW  | 0x13 | {{session-termination-codes}} |
+| DUPLICATE_AUTH_TOKEN_ALIAS | 0x14 | {{session-termination-codes}} |
+| MALFORMED_AUTH_TOKEN       | 0x16 | {{session-termination-codes}} |
+| UNKNOWN_AUTH_TOKEN_ALIAS   | 0x17 | {{session-termination-codes}} |
+| EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination-codes}} |
+| INVALID_AUTHORITY          | 0x19 | {{session-termination-codes}} |
+| MALFORMED_AUTHORITY        | 0x1A | {{session-termination-codes}} |
+| TOO_MANY_REQUEST_UPDATES   | 0x1B | {{session-termination-codes}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### REQUEST_ERROR Codes {#iana-request-error}
 
 | Name                       | Code | Specification              |
 |:---------------------------|:----:|:--------------------------|
-| INTERNAL_ERROR             | 0x0  | {{message-request-error}} |
-| UNAUTHORIZED               | 0x1  | {{message-request-error}} |
-| TIMEOUT                    | 0x2  | {{message-request-error}} |
-| NOT_SUPPORTED              | 0x3  | {{message-request-error}} |
-| MALFORMED_AUTH_TOKEN       | 0x4  | {{message-request-error}} |
-| EXPIRED_AUTH_TOKEN         | 0x5  | {{message-request-error}} |
-| GOING_AWAY                 | 0x6  | {{message-request-error}} |
-| EXCESSIVE_LOAD             | 0x9  | {{message-request-error}} |
-| DOES_NOT_EXIST             | 0x10 | {{message-request-error}} |
-| INVALID_RANGE              | 0x11 | {{message-request-error}} |
-| MALFORMED_TRACK            | 0x12 | {{message-request-error}} |
-| UNINTERESTED               | 0x20 | {{message-request-error}} |
-| PREFIX_OVERLAP             | 0x30 | {{message-request-error}} |
-| NAMESPACE_TOO_LARGE        | 0x31 | {{message-request-error}} |
-| UNSUPPORTED_EXTENSION      | 0x33 | {{message-request-error}} |
-| REDIRECT                   | 0x34 | {{message-request-error}} |
-| CONFLICTING_FILTERS        | 0x35 | {{message-request-error}} |
-| INVALID_FILTER             | 0x36 | {{message-request-error}} |
+| INTERNAL_ERROR             | 0x0  | {{request-error-codes}} |
+| UNAUTHORIZED               | 0x1  | {{request-error-codes}} |
+| TIMEOUT                    | 0x2  | {{request-error-codes}} |
+| NOT_SUPPORTED              | 0x3  | {{request-error-codes}} |
+| MALFORMED_AUTH_TOKEN       | 0x4  | {{request-error-codes}} |
+| EXPIRED_AUTH_TOKEN         | 0x5  | {{request-error-codes}} |
+| GOING_AWAY                 | 0x6  | {{request-error-codes}} |
+| EXCESSIVE_LOAD             | 0x9  | {{request-error-codes}} |
+| DOES_NOT_EXIST             | 0x10 | {{request-error-codes}} |
+| INVALID_RANGE              | 0x11 | {{request-error-codes}} |
+| MALFORMED_TRACK            | 0x12 | {{request-error-codes}} |
+| UNINTERESTED               | 0x20 | {{request-error-codes}} |
+| PREFIX_OVERLAP             | 0x30 | {{request-error-codes}} |
+| NAMESPACE_TOO_LARGE        | 0x31 | {{request-error-codes}} |
+| UNSUPPORTED_EXTENSION      | 0x33 | {{request-error-codes}} |
+| REDIRECT                   | 0x34 | {{request-error-codes}} |
+| CONFLICTING_FILTERS        | 0x35 | {{request-error-codes}} |
+| INVALID_FILTER             | 0x36 | {{request-error-codes}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
 | Name               | Code | Specification            |
 |:-------------------|:----:|:-------------------------|
-| INTERNAL_ERROR     | 0x0  | {{message-publish-done}} |
-| UNAUTHORIZED       | 0x1  | {{message-publish-done}} |
-| TRACK_ENDED        | 0x2  | {{message-publish-done}} |
-| GOING_AWAY         | 0x4  | {{message-publish-done}} |
-| TOO_FAR_BEHIND     | 0x5  | {{message-publish-done}} |
-| EXPIRED            | 0x6  | {{message-publish-done}} |
-| UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
-| EXCESSIVE_LOAD     | 0x9  | {{message-publish-done}} |
-| MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
+| INTERNAL_ERROR     | 0x0  | {{publish-done-codes}} |
+| UNAUTHORIZED       | 0x1  | {{publish-done-codes}} |
+| TRACK_ENDED        | 0x2  | {{publish-done-codes}} |
+| GOING_AWAY         | 0x4  | {{publish-done-codes}} |
+| TOO_FAR_BEHIND     | 0x5  | {{publish-done-codes}} |
+| EXPIRED            | 0x6  | {{publish-done-codes}} |
+| UPDATE_FAILED      | 0x8  | {{publish-done-codes}} |
+| EXCESSIVE_LOAD     | 0x9  | {{publish-done-codes}} |
+| MALFORMED_TRACK    | 0x12 | {{publish-done-codes}} |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
 ### Stream Reset Error Codes {#iana-reset-stream}
