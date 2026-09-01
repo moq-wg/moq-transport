@@ -2039,8 +2039,8 @@ to the old relay can be cancelled (see {{request-cancellation}}).
 There are two ways to publish through a relay:
 
 1. Send a PUBLISH message for a specific Track to the relay. The relay MAY
-respond with PUBLISH_OK in a paused state (see {{pausing-subscriptions}}) until
-there are known subscribers for new Tracks.
+accept the PUBLISH and then pause the subscription via REQUEST_UPDATE (see
+{{pausing-subscriptions}}) until there are known subscribers for new Tracks.
 
 2. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
 enables the relay to send SUBSCRIBE or FETCH messages to publishers for Tracks
@@ -2110,9 +2110,10 @@ When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it MUST
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
 matching subscription.  When it receives an authorized PUBLISH message for a
-Track that has `Established` downstream subscriptions, it MUST respond with
-PUBLISH_OK.  If at least one downstream subscriber for the Track has
-a non-paused subscription, the Relay MUST NOT pause in the reply.
+Track that has `Established` downstream subscriptions, it MUST accept the
+PUBLISH.  If at least one downstream subscriber for the Track has a
+non-paused subscription, the Relay MUST NOT subsequently pause the upstream
+subscription.
 
 If a Session is closed due to an unknown or invalid control message or Object,
 the Relay MUST NOT propagate that message or Object to another Session, because
@@ -3911,13 +3912,13 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 ### LOCATION FILTER Parameter {#location-filter}
 
 The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It MAY appear in a FETCH, SUBSCRIBE, PUBLISH, PUBLISH_OK,
+encoding. It MAY appear in a FETCH, SUBSCRIBE, PUBLISH,
 SUBSCRIBE_TRACKS, REQUEST_UPDATE (for a subscription), or
 PUBLISH_STATE_NOTIFY message. It is a Location Filter
 (see {{location-filters}}).
 
 If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
-unfiltered.  If omitted from PUBLISH, PUBLISH_OK, or SUBSCRIBE_TRACKS, the
+unfiltered.  If omitted from PUBLISH or SUBSCRIBE_TRACKS, the
 subscription is not paused.  If omitted from REQUEST_UPDATE or
 PUBLISH_STATE_NOTIFY, the value is unchanged.  When sent in
 PUBLISH_STATE_NOTIFY, it reports the Location Filter now in effect at the
@@ -3997,11 +3998,12 @@ FILL_PARAMETERS is not retained as subscription state. It applies only to the
 message that carries it, so the sticky-parameter rules in
 {{message-request-update}} do not apply to it.
 
-To fill-join a track initiated via PUBLISH, the subscriber SHOULD respond with
-PUBLISH_OK that pauses the subscription (see {{pausing-subscriptions}}), then
-send REQUEST_UPDATE that resumes the subscription and carries FILL_PARAMETERS.
+To fill-join a track initiated via PUBLISH, the subscriber SHOULD send
+REQUEST_UPDATE carrying FILL_PARAMETERS as soon as it accepts the PUBLISH.
 The REQUEST_UPDATE_OK will contain a fresh LARGEST_OBJECT establishing the
-correct fill range.
+correct fill range. Objects delivered on the subscription before the
+publisher processes the REQUEST_UPDATE are outside the fill range and are
+delivered as ordinary subscription Objects.
 
 ### EXPIRES Parameter {#expires}
 
