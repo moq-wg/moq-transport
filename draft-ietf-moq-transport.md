@@ -4184,9 +4184,9 @@ numeric identifier, rather than the Full Track Name.  This numeric identifier
 is either the Track Alias or the Request ID ({{request-id}}).
 
 If the publisher provides the TRACK_ALIAS parameter ({{track-alias-param}}) in
-SUBSCRIBE_OK, or the Track Alias field in PUBLISH, that value can be the Track Alias.
-Otherwise, the numeric identifier is the Request ID of the corresponding SUBSCRIBE
-or PUBLISH message.
+SUBSCRIBE_OK, or the Track Alias field in PUBLISH, that can used as the ID when
+sending Objects. Otherwise, only the Request ID of the corresponding SUBSCRIBE
+can be used when sending Objects.
 
 A Track Alias MUST have the parity (least significant bit) of the Publisher
 (i.e., the sender of the PUBLISH or SUBSCRIBE_OK). Because a Request ID always
