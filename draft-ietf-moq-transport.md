@@ -1982,28 +1982,27 @@ Track Name is matched exactly against existing upstream subscriptions.
 ### Namespace Prefix Matching {#namespace-prefix-matching}
 
 Namespace Prefix Matching is used to decide which publishers receive a
-SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the fields
-in the Track Namespace are matched sequentially, requiring an exact match for
-each field. If the published or subscribed Track Namespace has the same or fewer
-fields than the Track Namespace in the message, it qualifies as a match.
+SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the
+fields in the Track Namespace are matched sequentially, requiring an
+exact match for each field. Two namespaces match if either is a
+field-wise prefix of the other; that is, one has the same or fewer
+fields than the other and all of its fields are equal.
 
-Using `(a, b)` to denote a Track Namespace with fields `a` then `b`, and
-`x` for a Track Name:
+The following examples use the serialization from
+{{namespace-name-format}}. Rows compare a Track Namespace (announced in
+PUBLISH_NAMESPACE or subscribed to in SUBSCRIBE_NAMESPACE) against
+either a Full Track Name (in SUBSCRIBE) or another Track Namespace.
 
-* PUBLISH_NAMESPACE announced with a prefix of a SUBSCRIBE's namespace: a
-  publisher that sent PUBLISH_NAMESPACE for `(foo)` matches a SUBSCRIBE for
-  track `(foo, bar)/x`. A publisher that sent PUBLISH_NAMESPACE for `(foo,
-  bar)` also matches. A publisher that sent PUBLISH_NAMESPACE for `(foobar)`
-  does not match, because matching is per field, not per byte.
-* SUBSCRIBE_NAMESPACE prefix against PUBLISH_NAMESPACE: a subscriber that
-  sent SUBSCRIBE_NAMESPACE with prefix `(foo)` matches publishers that
-  announced `(foo)`, `(foo, bar)`, or `(foo, bar, baz)`. It does not match a
-  publisher that announced `(fo)` or `(foobar)`.
-* Empty prefix: a namespace prefix with zero fields matches every namespace
-  the peer has announced or subscribed to.
-* Longer prefix than announcement: a SUBSCRIBE_NAMESPACE with prefix `(foo,
-  bar)` does not match a publisher that only announced `(foo)`; matching
-  requires the announced namespace to have the same or fewer fields.
+| Namespace | Namespace or Full Track Name | Match? | Why                     |
+|-----------|------------------------------|--------|-------------------------|
+| `foo`     | `foo`                        | Yes    | identical               |
+| `foo`     | `foo-bar`                    | Yes    | prefix by field         |
+| `foo`     | `foo-bar-baz`                | Yes    | prefix by field         |
+| `foo`     | `foo-bar--x`                 | Yes    | matches Full Track Name |
+| `foo`     | `foobar`                     | No     | first fields differ     |
+| `foo`     | `fo`                         | No     | first fields differ     |
+| `foo-bar` | `foo`                        | No     | additional field `bar`  |
+| (empty)   | anything                     | Yes    | zero-field prefix       |
 
 Relays MUST send SUBSCRIBE messages to all matching publishers. This includes
 matching both Established subscriptions on the Full Track Name and Namespace
