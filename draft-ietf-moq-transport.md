@@ -3154,38 +3154,7 @@ subscription than specified in Stream Count, it MAY close the session with a
 
 * Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
 
-The application SHOULD use a relevant status code in PUBLISH_DONE, as defined
-below:
-
-INTERNAL_ERROR (0x0):
-: An implementation specific or generic error occurred.
-
-UNAUTHORIZED (0x1):
-: The subscriber is no longer authorized to subscribe to the given track.
-
-TRACK_ENDED (0x2):
-: The track is no longer being published.
-
-GOING_AWAY (0x4):
-: The subscriber or publisher issued a GOAWAY message.
-
-TOO_FAR_BEHIND (0x5):
-: The publisher's queue of objects to be sent to the given subscriber exceeds
-  its implementation defined limit.
-
-EXPIRED (0x6):
-: The publisher reached the timeout specified in SUBSCRIBE_OK.
-
-MALFORMED_TRACK (0x12):
-: A relay publisher detected that the track was malformed (see
-  {{malformed-tracks}}).
-
-UPDATE_FAILED (0x8):
-: REQUEST_UPDATE failed on this subscription (see
-  {{message-request-update}}).
-
-EXCESSIVE_LOAD (0x9):
-: The publisher is overloaded and is terminating the subscription.
+The status codes used in PUBLISH_DONE are defined in {{publish-done-codes}}.
 
 ## PUBLISH_STATE_NOTIFY {#ps-notify}
 
@@ -5289,7 +5258,40 @@ MUST NOT be cached.
 
 ## Request Error Codes
 
-## Publish Done Codes
+## Publish Done Codes {#publish-done-codes}
+
+The application SHOULD use a relevant status code in PUBLISH_DONE
+({{message-publish-done}}), as defined below:
+
+INTERNAL_ERROR (0x0):
+: An implementation specific or generic error occurred.
+
+UNAUTHORIZED (0x1):
+: The subscriber is no longer authorized to subscribe to the given track.
+
+TRACK_ENDED (0x2):
+: The track is no longer being published.
+
+GOING_AWAY (0x4):
+: The subscriber or publisher issued a GOAWAY message.
+
+TOO_FAR_BEHIND (0x5):
+: The publisher's queue of objects to be sent to the given subscriber exceeds
+  its implementation defined limit.
+
+EXPIRED (0x6):
+: The publisher reached the timeout specified in SUBSCRIBE_OK.
+
+MALFORMED_TRACK (0x12):
+: A relay publisher detected that the track was malformed (see
+  {{malformed-tracks}}).
+
+UPDATE_FAILED (0x8):
+: REQUEST_UPDATE failed on this subscription (see
+  {{message-request-update}}).
+
+EXCESSIVE_LOAD (0x9):
+: The publisher is overloaded and is terminating the subscription.
 
 ## Stream Reset Error Codes {#stream-reset-codes}
 
@@ -5656,15 +5658,15 @@ This document does not define any initial entries.
 
 | Name               | Code | Specification            |
 |:-------------------|:----:|:-------------------------|
-| INTERNAL_ERROR     | 0x0  | {{message-publish-done}} |
-| UNAUTHORIZED       | 0x1  | {{message-publish-done}} |
-| TRACK_ENDED        | 0x2  | {{message-publish-done}} |
-| GOING_AWAY         | 0x4  | {{message-publish-done}} |
-| TOO_FAR_BEHIND     | 0x5  | {{message-publish-done}} |
-| EXPIRED            | 0x6  | {{message-publish-done}} |
-| UPDATE_FAILED      | 0x8  | {{message-publish-done}} |
-| EXCESSIVE_LOAD     | 0x9  | {{message-publish-done}} |
-| MALFORMED_TRACK    | 0x12 | {{message-publish-done}} |
+| INTERNAL_ERROR     | 0x0  | {{publish-done-codes}} |
+| UNAUTHORIZED       | 0x1  | {{publish-done-codes}} |
+| TRACK_ENDED        | 0x2  | {{publish-done-codes}} |
+| GOING_AWAY         | 0x4  | {{publish-done-codes}} |
+| TOO_FAR_BEHIND     | 0x5  | {{publish-done-codes}} |
+| EXPIRED            | 0x6  | {{publish-done-codes}} |
+| UPDATE_FAILED      | 0x8  | {{publish-done-codes}} |
+| EXCESSIVE_LOAD     | 0x9  | {{publish-done-codes}} |
+| MALFORMED_TRACK    | 0x12 | {{publish-done-codes}} |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
 ### Stream Reset Error Codes {#iana-reset-stream}
