@@ -241,6 +241,11 @@ Track:
 
 : A track is a collection of groups. See ({{model-track}}).
 
+Subscription:
+
+: The logical context within which the publisher sends the subscriber new
+  objects for a single track.  See {{subscriptions}}.
+
 ## Stream Management Terms
 
 This document uses stream management terms described in {{?RFC9000, Section
@@ -541,6 +546,13 @@ ways, for example:
    determine the largest published Group ID.
 
 # Publishing and Receiving Tracks
+
+MOQT provides two mechanisms for exchanging objects: subscriptions and fetches.
+A subscription is a context within which the publisher sends the subscriber new
+objects belonging to a single track; it can be established by either the
+subscriber (using a SUBSCRIBE message) or the publisher (using a PUBLISH
+message).  A fetch is a request from the subscriber to retrieve pre-existing
+objects on the specified track.
 
 ## Subscriptions {#subscriptions}
 
