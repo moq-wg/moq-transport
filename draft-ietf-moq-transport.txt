@@ -153,10 +153,11 @@ Table of Contents
      8.3.  Key-Value-Pair Structure
      8.4.  Track and Object Properties
      8.5.  Reason Phrase Structure
-     8.6.  Track Namespace Structure
-     8.7.  Representing Namespace and Track Names
-       8.7.1.  Parsing Serialized Names
-     8.8.  Authorization Token Compression
+     8.6.  Range Filter Structure
+     8.7.  Track Namespace Structure
+     8.8.  Representing Namespace and Track Names
+       8.8.1.  Parsing Serialized Names
+     8.9.  Authorization Token Compression
    9.  Control Messages
      9.1.  SETUP
        9.1.1.  Setup Options
@@ -667,7 +668,7 @@ Table of Contents
    of a Track Namespace and a Track Name.
 
    Track Namespace is an ordered set of between 0 and 32 Track Namespace
-   Fields, encoded as described in Section 8.6.
+   Fields, encoded as described in Section 8.7.
 
    The structured nature of Track Namespace allows relays and
    applications to manipulate prefixes of a namespace.
@@ -1138,70 +1139,16 @@ Table of Contents
    are specified as ranges of integer values in Track and Object
    Properties and other Object header fields (Subgroup ID, Object ID,
    and Publisher Priority).  There are five Range Filter parameter
-   types, 0x25-0x29, as shown below.
+   types, 0x25-0x29.  They share the encoding specified in Section 8.6.
 
-   SUBGROUP_FILTER {
-     Type (vi64) = 0x25,
-     Length (vi64),
-     [SetID (8)],
-     [Range (..) ...]
-   }
+   An object matches the filter if its value falls within any Range
+   (i.e., Ranges are OR'd within a filter parameter).
 
-   OBJECTID_FILTER {
-     Type (vi64) = 0x26,
-     Length (vi64),
-     [SetID (8)],
-     [Range (..) ...]
-   }
-
-   PRIORITY_FILTER {
-     Type (vi64) = 0x27,
-     Length (vi64),
-     [SetID (8)],
-     [Range (..) ...]
-   }
-
-   OBJECT_PROPERTY_FILTER {
-     Type (vi64) = 0x28,
-     Length (vi64),
-     [SetID (8)],
-     [Property Type (vi64)],
-     [Range (..) ...]
-   }
-
-   TRACK_PROPERTY_FILTER {
-     Type (vi64) = 0x29,
-     Length (vi64),
-     [SetID (8)],
-     [Property Type (vi64)],
-     [Range (..) ...]
-   }
-
-   Range {
-     Start (vi64),
-     [End (vi64)]
-   }
-
-   Length (vi64) is the byte count of all fields after itself.  When
-   Length is 0, there is no filter and no further fields are present.
-   This can be used in REQUEST_UPDATE to remove a filter.  The Object
-   Property and Track Property Filters include a Property Type (vi64)
-   which follows SetID.
-
-   Each Range is an inclusive Start/End pair.  End is optional in the
-   last pair; if omitted it indicates the last Range is open-ended.  An
-   object matches the filter if its value falls within any Range (i.e.,
-   Ranges are OR'd within a filter parameter).
-
-   Each Start is delta encoded from the prior Range's End (or from 0 for
-   the first Range), and End is delta encoded from its own Start.  If
-   adding the delta would exceed 2^64-1, the request MUST be rejected
-   with INVALID_FILTER.  For example, ranges 3-5 and 10-15 encode as:
-   Start=3, End=2, Start=5, End=5.
-
-   Filter parameters with the same SetID are AND'd; distinct SetIDs are
-   OR'd.  The final result is SetID=0 OR SetID=1 OR ... SetID=255, where
-   each SetID=i is the AND of all filter parameters carrying that SetID.
+   Each Range Filter parameter carries a SetID, which identifies the set
+   of filters it belongs to.  Filter parameters with the same SetID are
+   AND'd; distinct SetIDs are OR'd.  The final result is SetID=0 OR
+   SetID=1 OR ... SetID=255, where each SetID=i is the AND of all filter
+   parameters carrying that SetID.
 
    The Track Property filter parameter MAY appear multiple times in a
    SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.  All other filter
@@ -2591,7 +2538,30 @@ Table of Contents
       would aid comprehension by any entity other than the one that
       created the text.
 
-8.6.  Track Namespace Structure
+8.6.  Range Filter Structure
+
+   Each Range Filter parameter (see Section 3.4.2) carries a sequence of
+   Ranges, encoded as follows:
+
+   Range {
+     Start (vi64),
+     [End (vi64)]
+   }
+
+   Length (vi64) is the byte count of all fields after itself.  When
+   Length is 0, there is no filter and no further fields are present.
+   This can be used in REQUEST_UPDATE to remove a filter.
+
+   Each Range is an inclusive Start/End pair.  End is optional in the
+   last pair; if omitted it indicates the last Range is open-ended.
+
+   Each Start is delta encoded from the prior Range's End (or from 0 for
+   the first Range), and End is delta encoded from its own Start.  If
+   adding the delta would exceed 2^64-1, the request MUST be rejected
+   with INVALID_FILTER.  For example, ranges 3-5 and 10-15 encode as:
+   Start=3, End=2, Start=5, End=5.
+
+8.7.  Track Namespace Structure
 
    Track Namespace (Section 2.4.1) is encoded as follows:
 
@@ -2634,7 +2604,7 @@ Table of Contents
    Track Name exceeding 4,096 bytes, it MUST close the session with a
    PROTOCOL_VIOLATION.
 
-8.7.  Representing Namespace and Track Names
+8.8.  Representing Namespace and Track Names
 
    There is often a need to render namespace tuples and track names for
    purposes such as logging, representing track filenames, or use in
@@ -2657,7 +2627,7 @@ Table of Contents
    URL safe, filename safety is platform specific; for instance, on
    case-insensitive filesystems, track names can collide.
 
-8.7.1.  Parsing Serialized Names
+8.8.1.  Parsing Serialized Names
 
    When parsing a serialized namespace or track name back to its binary
    form, implementations MUST apply the following rules to ensure a
@@ -2692,7 +2662,7 @@ Table of Contents
      Namespace tuples: (example.net, team2, project_x)
      Track name: report
 
-8.8.  Authorization Token Compression
+8.9.  Authorization Token Compression
 
    Authorization tokens are carried in the AUTHORIZATION TOKEN message
    parameter (see Section 9.20.3) and the AUTHORIZATION TOKEN Setup
@@ -2996,7 +2966,7 @@ Table of Contents
    SETUP that the peer can use to authorize MOQT session establishment.
 
    The option value is a Token structure, whose wire format and
-   semantics are defined in Section 8.8.
+   semantics are defined in Section 8.9.
 
    If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a
    SETUP message, it MUST close the session with a PROTOCOL_VIOLATION.
@@ -3357,7 +3327,7 @@ Table of Contents
    *  Request ID: See Section 6.4.2.1.
 
    *  Track Namespace: Identifies the namespace of the track as defined
-      in (Section 8.6).
+      in (Section 8.7).
 
    *  Track Name: Identifies the track name as defined in
       (Section 2.4.1).
@@ -3415,7 +3385,7 @@ Table of Contents
    *  Request ID: See Section 6.4.2.1.
 
    *  Track Namespace: Identifies a track's namespace as defined in
-      (Section 8.6)
+      (Section 8.7)
 
    *  Track Name: Identifies the track name as defined in
       (Section 2.4.1).
@@ -3595,7 +3565,7 @@ Table of Contents
    *  Request ID: See Section 6.4.2.1.
 
    *  Track Namespace: Identifies the namespace of the track as defined
-      in (Section 8.6).
+      in (Section 8.7).
 
    *  Track Name: Identifies the track name as defined in
       (Section 2.4.1).
@@ -3738,7 +3708,7 @@ Table of Contents
    *  Request ID: See Section 6.4.2.1.
 
    *  Track Namespace: Identifies a track's namespace as defined in
-      Section 8.6.
+      Section 8.7.
 
    *  Parameters: The parameters are defined in Section 9.20.
 
@@ -3762,9 +3732,9 @@ Table of Contents
    *  Request ID: See Section 6.4.2.1.
 
    *  Track Namespace Prefix: A Track Namespace structure as described
-      in Section 8.6.  This prefix is matched against track namespaces
+      in Section 8.7.  This prefix is matched against track namespaces
       known to the publisher.  For example, using the serialized format
-      from Section 8.7, if the publisher is a relay that has received
+      from Section 8.8, if the publisher is a relay that has received
       PUBLISH_NAMESPACE messages for namespaces example.2ecom-123-100
       and example.2ecom-123-200, a SUBSCRIBE_NAMESPACE for
       example.2ecom-123 would match both.
@@ -3823,7 +3793,7 @@ Table of Contents
                      Figure 19: MOQT NAMESPACE Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
-      namespace as defined in Section 8.6 after removing namespace
+      namespace as defined in Section 8.7 after removing namespace
       tuples included in 'Track Namespace Prefix' Section 9.15.
 
 9.17.  NAMESPACE_DONE
@@ -3844,7 +3814,7 @@ Table of Contents
                    Figure 20: MOQT NAMESPACE_DONE Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
-      namespace as defined in Section 8.6.  The namespace begins with
+      namespace as defined in Section 8.7.  The namespace begins with
       the 'Track Namespace Prefix' specified in Section 9.15.
 
 9.18.  SUBSCRIBE_TRACKS
@@ -3868,7 +3838,7 @@ Table of Contents
    *  Request ID: See Section 6.4.2.1.
 
    *  Track Namespace Prefix: A Track Namespace structure as described
-      in Section 8.6.  This prefix is matched against track namespaces
+      in Section 8.7.  This prefix is matched against track namespaces
       known to the publisher.
 
    *  Parameters: The parameters are defined in Section 9.20, though
@@ -3931,7 +3901,7 @@ Table of Contents
                   Figure 22: MOQT PUBLISH_SKIPPED Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
-      namespace as defined in Section 8.6.  The namespace begins with
+      namespace as defined in Section 8.7.  The namespace begins with
       the 'Track Namespace Prefix' specified in Section 9.18.
 
    *  Track Name: Identifies the track name as defined in
@@ -4022,7 +3992,7 @@ Table of Contents
    SUBSCRIBE_TRACKS to the resulting PUBLISH message Parameters.
 
    The parameter value is a Token structure, whose wire format and
-   semantics are defined in Section 8.8.
+   semantics are defined in Section 8.9.
 
 9.20.4.  SUBGROUP_DELIVERY_TIMEOUT Parameter
 
@@ -4194,20 +4164,41 @@ Table of Contents
 9.20.11.  SUBGROUP FILTER Parameter
 
    The SUBGROUP_FILTER parameter (Type 0x25) selects objects with
-   specified Ranges of Subgroup ID.  See Section 3.4.2.
+   specified Ranges of Subgroup ID.  See Section 3.4.2 and Section 8.6.
+
+   SUBGROUP_FILTER {
+     Type (vi64) = 0x25,
+     Length (vi64),
+     [SetID (8)],
+     [Range (..) ...]
+   }
 
 9.20.12.  OBJECTID FILTER Parameter
 
    The OBJECTID_FILTER parameter (Type 0x26) selects objects with
-   specified Ranges of Object ID.  See Section 3.4.2.
+   specified Ranges of Object ID.  See Section 3.4.2 and Section 8.6.
+
+   OBJECTID_FILTER {
+     Type (vi64) = 0x26,
+     Length (vi64),
+     [SetID (8)],
+     [Range (..) ...]
+   }
 
 9.20.13.  PRIORITY FILTER Parameter
 
    The PRIORITY_FILTER parameter (Type 0x27) selects objects with
-   specified Ranges of Publisher Priority.  See Section 3.4.2.  If a
-   decoded value exceeds 255, the endpoint MUST reject this with
-   REQUEST_ERROR with error code INVALID_FILTER since Publisher Priority
-   is an 8-bit field.
+   specified Ranges of Publisher Priority.  See Section 3.4.2 and
+   Section 8.6.  If a decoded value exceeds 255, the endpoint MUST
+   reject this with REQUEST_ERROR with error code INVALID_FILTER since
+   Publisher Priority is an 8-bit field.
+
+   PRIORITY_FILTER {
+     Type (vi64) = 0x27,
+     Length (vi64),
+     [SetID (8)],
+     [Range (..) ...]
+   }
 
 9.20.14.  OBJECT PROPERTY FILTER Parameter
 
@@ -4215,7 +4206,15 @@ Table of Contents
    required Ranges of Property Value for a required Object Property Type
    which MUST be even, i.e. a single integer value (see Figure 2),
    otherwise the endpoint MUST reject this with REQUEST_ERROR with error
-   code INVALID_FILTER.  See Section 3.4.2.
+   code INVALID_FILTER.  See Section 3.4.2 and Section 8.6.
+
+   OBJECT_PROPERTY_FILTER {
+     Type (vi64) = 0x28,
+     Length (vi64),
+     [SetID (8)],
+     [Property Type (vi64)],
+     [Range (..) ...]
+   }
 
 9.20.15.  TRACK PROPERTY FILTER Parameter
 
@@ -4223,7 +4222,15 @@ Table of Contents
    required Ranges of Property Value for a required Track Property Type
    which MUST be even, i.e. a single integer value (see Figure 2),
    otherwise the endpoint MUST reject this with REQUEST_ERROR with error
-   code INVALID_FILTER.  See Section 3.4.2.
+   code INVALID_FILTER.  See Section 3.4.2 and Section 8.6.
+
+   TRACK_PROPERTY_FILTER {
+     Type (vi64) = 0x29,
+     Length (vi64),
+     [SetID (8)],
+     [Property Type (vi64)],
+     [Range (..) ...]
+   }
 
 9.20.16.  FILL PARAMETERS Parameter
 
@@ -4389,7 +4396,7 @@ Table of Contents
 9.20.21.  TRACK_NAMESPACE_PREFIX Parameter
 
    The TRACK_NAMESPACE_PREFIX parameter (Parameter Type 0x34) uses the
-   Track Namespace encoding described in Section 8.6.  It MAY appear in
+   Track Namespace encoding described in Section 8.7.  It MAY appear in
    REQUEST_UPDATE for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.
    It updates the Track Namespace Prefix for that subscription.  If the
    new prefix would share a common prefix with another active
@@ -5641,16 +5648,16 @@ EXT 1 and EXT N can be modified or removed by Relays
       exceeded.
 
    DUPLICATE_AUTH_TOKEN_ALIAS (0x14):  Authorization Token attempted to
-      register an Alias that was in use (see Section 8.8).
+      register an Alias that was in use (see Section 8.9).
 
    MALFORMED_AUTH_TOKEN (0x16):  Invalid Auth Token serialization during
-      registration (see Section 8.8).
+      registration (see Section 8.9).
 
    UNKNOWN_AUTH_TOKEN_ALIAS (0x17):  No registered token found for the
-      provided Alias (see Section 8.8).
+      provided Alias (see Section 8.9).
 
    EXPIRED_AUTH_TOKEN (0x18):  Authorization token has expired
-      (Section 8.8).
+      (Section 8.9).
 
    INVALID_AUTHORITY (0x19):  The specified AUTHORITY does not
       correspond to this server or cannot be used in this context.
@@ -5683,9 +5690,9 @@ EXT 1 and EXT N can be modified or removed by Relays
    NOT_SUPPORTED:  The endpoint does not support the type of request.
 
    MALFORMED_AUTH_TOKEN:  Invalid Auth Token serialization during
-      registration (see Section 8.8).
+      registration (see Section 8.9).
 
-   EXPIRED_AUTH_TOKEN:  Authorization token has expired (Section 8.8).
+   EXPIRED_AUTH_TOKEN:  Authorization token has expired (Section 8.9).
 
    GOING_AWAY:  The endpoint has received a GOAWAY and MAY reject new
       requests.
@@ -5984,13 +5991,13 @@ EXT 1 and EXT N can be modified or removed by Relays
                    +======+===========+===============+
                    | Code | Name      | Specification |
                    +======+===========+===============+
-                   |  0x0 | DELETE    | Section 8.8   |
+                   |  0x0 | DELETE    | Section 8.9   |
                    +------+-----------+---------------+
-                   |  0x1 | REGISTER  | Section 8.8   |
+                   |  0x1 | REGISTER  | Section 8.9   |
                    +------+-----------+---------------+
-                   |  0x2 | USE_ALIAS | Section 8.8   |
+                   |  0x2 | USE_ALIAS | Section 8.9   |
                    +------+-----------+---------------+
-                   |  0x3 | USE_VALUE | Section 8.8   |
+                   |  0x3 | USE_VALUE | Section 8.9   |
                    +------+-----------+---------------+
 
                                  Table 11
@@ -6000,7 +6007,7 @@ EXT 1 and EXT N can be modified or removed by Relays
         +=================+=======================+===============+
         |            Code | Name                  | Specification |
         +=================+=======================+===============+
-        |             0x0 | Reserved              | Section 8.8   |
+        |             0x0 | Reserved              | Section 8.9   |
         +-----------------+-----------------------+---------------+
         | 0x7f * N + 0x9D | Reserved for greasing | Section 15    |
         +-----------------+-----------------------+---------------+
