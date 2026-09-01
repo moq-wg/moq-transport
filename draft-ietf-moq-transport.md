@@ -598,12 +598,10 @@ a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK
 ({{message-request-ok}}) or REQUEST_ERROR in response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
-All `Established` subscriptions have a Forward State which is either 0 or 1.
-The publisher does not send Objects if the Forward State is 0, and does send them
-if the Forward State is 1.  The initiator of the subscription sets the initial
-Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send
-REQUEST_UPDATE to update the Forward State. Control messages, such as
-PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
+A subscription can be paused, which blocks all Objects from being sent (see
+{{pausing-subscriptions}}). Control messages, such as PUBLISH_DONE
+({{message-publish-done}}) are sent regardless of whether the subscription is
+paused.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -636,7 +634,7 @@ incurring additional latency.
 Publishers MAY start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with REQUEST_ERROR or sets Forward=0 in REQUEST_UPDATE. It can also result in
+with REQUEST_ERROR or pauses the subscription in REQUEST_UPDATE. It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 {{datagrams}} and {{subgroup-header}}).
 
@@ -760,6 +758,12 @@ When EndGroupDelta and EndObject are omitted from a subscription filter, the
 subscription is open-ended. When they are omitted from a Fetch, the
 EndGroup and EndObject are `Largest Object`.
 
+A Location Filter where the End Location is strictly less than the Start
+Location matches no objects and pauses the subscription (see
+{{pausing-subscriptions}}).  The recommended encoding for a paused filter is
+StartGroup=0, StartObject=1, EndGroupDelta=0, EndObject=0, which represents the
+empty range [{0,1}, {0,0}].
+
 When EndObject is omitted, the filter includes all objects in the End Group.
 
 A Location Filter on a subscription is always valid, even if it specifies a range
@@ -819,11 +823,12 @@ with an open-ended fill range, which the publisher will end at Largest Object.
 #### Opening and Closing Fill Fetch Streams
 
 A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
-REQUEST_UPDATE that carries FILL_PARAMETERS while Forward State is 1.
+REQUEST_UPDATE that carries FILL_PARAMETERS while the subscription is not
+paused (see {{pausing-subscriptions}}).
 
-- FILL_PARAMETERS carried while Forward State is 0 opens no fill fetch stream.
-  Transitioning to Forward State 1 without re-sending FILL_PARAMETERS does not
-  open one either.
+- FILL_PARAMETERS carried while the subscription is paused opens no fill fetch
+  stream.  Resuming the subscription without re-sending FILL_PARAMETERS does
+  not open one either.
 - A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open a new fill
   fetch stream.
 - When the subscription is cancelled, the publisher MUST reset any open fill fetch streams.
@@ -938,18 +943,38 @@ Object Property types and values.  It only filters Object Properties in
 the Object header, and does not evaluate Track Properties in PUBLISH
 messages.
 
-### Combining Filters
+### Combining Filters {#combining-filters}
 
 All filter types are combined using logical "AND" operations
 to further restrict which tracks and objects pass all filter criteria.
 This includes all Range Filters {{range-filters}} and Location
 Filters {{location-filters}}, which can be evaluated in any order.
-The Forward parameter is also a type of filter.  The publisher MUST
-forward only objects that pass all filters.
+The publisher MUST forward only objects that pass all filters.
 
 ~~~
-Pass = Forward AND Location Filters AND Range Filters
+Pass = Location Filters AND Range Filters
 ~~~
+
+### Pausing Subscriptions {#pausing-subscriptions}
+
+A subscription is paused if it contains a filter that cannot match any Objects. The
+recommended pausing filter is a Location Filter with StartGroup=0,
+StartObject=1, EndGroupDelta=0, EndObject=0, representing the empty range
+[{0,1}, {0,0}]. When multiple filter SetIDs are in use (see
+{{combining-filters}}), the pausing filter MUST be present in every SetID;
+otherwise Objects can pass via an unpaused SetID.
+
+An endpoint pauses a subscription by including a pausing Location Filter in
+SUBSCRIBE, PUBLISH, or REQUEST_UPDATE, and resumes it by sending a
+REQUEST_UPDATE that removes the Location Filter (Length=0) or replaces it with
+a non-pausing filter.
+
+Endpoints SHOULD NOT use Range Filters to pause a subscription, because Range
+Filters are optional and MAX_FILTER_RANGES can be zero.
+
+A pausing Location Filter in SUBSCRIBE_TRACKS does not pause any existing
+subscription; it sets the initial paused state for future subscriptions that
+match the prefix (see {{parameters-on-subscribe-tracks}}).
 
 ### Joining an Ongoing Track {#joining-tracks}
 
@@ -972,6 +997,7 @@ FILL_PARAMETERS parameter whose Location filter selects the intended Groups,
 which can be relative.  The publisher delivers the fill range on a fill fetch
 stream and subscription-delivered Objects in subgroups or
 datagrams (see {{fill-semantics}}).
+
 
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
 a Location Filter {{location-filters}} that starts at the Next Group.
@@ -1837,20 +1863,21 @@ A cache MUST store all fields of an Object defined in {{object-header}},
 with the exception of any Object Properties ({{object-properties}})
 that specify otherwise.
 
-## Forward Handling
+## Paused Subscription Handling
 
-If one or more downstream subscribers to a track have Forward=1, the relay
-MUST set Forward=1 upstream in order to receive and forward the requested
-Objects. When no downstream subscriber has Forward=1, the relay chooses the
-upstream Forward value at its discretion, considering the following
-tradeoffs and deployment considerations:
+If one or more downstream subscribers to a track are not paused, the relay
+MUST ensure the upstream subscription is not paused in order to receive and
+forward the requested Objects. When all downstream subscribers are paused,
+the relay chooses the upstream paused state at its discretion, considering the
+following tradeoffs and deployment considerations:
 
-  - Setting Forward=1 upstream starts object delivery and pre-warms the
-    relay's cache, so objects are available when a downstream subscriber
-    sets Forward=1. This reduces latency but consumes upstream and publisher
-    resources for content no downstream subscriber is currently receiving.
-  - Setting Forward=0 upstream avoids that work, at the cost of higher
-    latency when forwarding is later enabled.
+  - Keeping the upstream subscription active starts object delivery and
+    pre-warms the relay's cache, so objects are available when a downstream
+    subscriber resumes. This reduces latency but consumes upstream and
+    publisher resources for content no downstream subscriber is currently
+    receiving.
+  - Pausing the upstream subscription avoids that work, at the cost of
+    higher latency when delivery is later resumed.
 
 ## Multiple Publishers
 
@@ -1935,8 +1962,8 @@ to the old relay can be cancelled (see {{request-cancellation}}).
 There are two ways to publish through a relay:
 
 1. Send a PUBLISH message for a specific Track to the relay. The relay MAY
-pause the Subscription with REQUEST_UPDATE in Forward State=0 until there are
-known subscribers for new Tracks.
+accept the PUBLISH and then pause the subscription via REQUEST_UPDATE (see
+{{pausing-subscriptions}}) until there are known subscribers for new Tracks.
 
 2. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
 enables the relay to send SUBSCRIBE or FETCH messages to publishers for Tracks
@@ -1988,12 +2015,12 @@ a SUBSCRIBE with FILL_PARAMETERS or FETCHes (see {{fill-semantics}}).
 
 When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 `Established` upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
-SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
-State=0, the Relay MUST send REQUEST_UPDATE with Forward=1 to all publishers.
+SUBSCRIBE is not paused and the upstream subscriptions are paused, the Relay
+MUST send REQUEST_UPDATE to resume all upstream subscriptions.
 If there are no `Established` upstream subscriptions for the requested Track, the Relay
 MUST send a SUBSCRIBE request to each publisher that has published the
-subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
-then the Relay MUST use Forward=1 when subscribing upstream.
+subscription's namespace or prefix thereof.  If the SUBSCRIBE is not paused,
+the Relay MUST NOT pause when subscribing upstream.
 
 When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
 request to each subscriber that has sent SUBSCRIBE_TRACKS for the Track's
@@ -2006,10 +2033,10 @@ When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it MUST
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
 matching subscription.  When it receives an authorized PUBLISH message for a
-Track that has `Established` downstream subscriptions, it MUST respond with
-PUBLISH_OK.  If at least one downstream subscriber for the Track has
-Forward State=1, the Relay MUST change the Forward State to 1 with
-REQUEST_UPDATE.
+Track that has `Established` downstream subscriptions, it MUST accept the
+PUBLISH.  If at least one downstream subscriber for the Track has a
+non-paused subscription, the Relay MUST NOT subsequently pause the upstream
+subscription.
 
 If a Session is closed due to an unknown or invalid control message or Object,
 the Relay MUST NOT propagate that message or Object to another Session, because
@@ -3018,8 +3045,8 @@ PUBLISH Message {
   {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}. Parameters such
-  as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY, SUBGROUP_DELIVERY_TIMEOUT,
-  OBJECT_DELIVERY_TIMEOUT, and LOCATION FILTER can appear in the Parameters
+  as GROUP_ORDER, SUBSCRIBER_PRIORITY, SUBGROUP_DELIVERY_TIMEOUT,
+  OBJECT_DELIVERY_TIMEOUT, and LOCATION_FILTER can appear in the Parameters
   of a PUBLISH to inform the Subscriber of the initial Subscription parameters.
   If the PUBLISH is the result of a SUBSCRIBE_TRACKS, the parameters are handled
   as described in {{parameters-on-subscribe-tracks}}, otherwise, they represent
@@ -3033,9 +3060,9 @@ send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.
 
-A publisher that sends the FORWARD parameter ({{forward-parameter}}) equal to 0
-indicates that it will not transmit any objects until the subscriber sets the
-Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
+A publisher that pauses the subscription (see {{pausing-subscriptions}})
+indicates that it will not transmit any objects until the subscriber resumes it
+via REQUEST_UPDATE. If the subscription is not paused, the
 publisher will start transmitting objects immediately, possibly before
 PUBLISH_OK. Delivery starts at the Next Object relative to the Largest Object
 at the time the publisher begins sending.
@@ -3561,7 +3588,7 @@ if found.
 The number of Message Parameters is not specifically limited, but the total
 length of a control message is limited to 2^16-1 bytes.
 
-Message Parameters in SUBSCRIBE and FETCH MUST NOT cause the
+Message Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
 publisher to alter the payload of the objects it sends, as that would violate
 the track uniqueness guarantee described in {{track-scope}}.
 
@@ -3596,7 +3623,7 @@ defined in {{auth-token-compression}}.
 ### SUBGROUP_DELIVERY_TIMEOUT Parameter {#subgroup-delivery-timeout}
 
 The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a varint. It
-MAY appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
+MAY appear in a SUBSCRIBE, PUBLISH, PUBLISH_OK, or REQUEST_UPDATE message.  Its
 semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
@@ -3606,7 +3633,7 @@ for the same track.
 ### OBJECT_DELIVERY_TIMEOUT Parameter {#object-delivery-timeout}
 
 The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a varint. It
-MAY appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
+MAY appear in a SUBSCRIBE, PUBLISH, PUBLISH_OK, or REQUEST_UPDATE message.  Its
 semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
@@ -3668,12 +3695,13 @@ If RENDEZVOUS_TIMEOUT is absent, the default is 0.
 ### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It MAY
-appear in a SUBSCRIBE, PUBLISH, FETCH, or REQUEST_UPDATE
+appear in a SUBSCRIBE, PUBLISH, PUBLISH_OK, FETCH, or REQUEST_UPDATE
 (for a subscription or FETCH). It is an integer expressing the priority of a
 subscription relative to other subscriptions and fetch responses in the same
 session. Lower numbers get higher priority. See {{priorities}}.
 
-If omitted from SUBSCRIBE or FETCH, the publisher uses the value 128.
+If omitted from SUBSCRIBE, PUBLISH_OK or FETCH, the publisher uses
+the value 128.
 
 ### GROUP ORDER Parameter {#group-order}
 
@@ -3695,14 +3723,17 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 ### LOCATION FILTER Parameter {#location-filter}
 
 The LOCATION_FILTER parameter (Parameter Type 0x21) uses length-prefixed
-encoding. It MAY appear in a FETCH, SUBSCRIBE, PUBLISH, REQUEST_UPDATE
-(for a subscription) or PUBLISH_STATE_NOTIFY message. It is a Location
-Filter (see {{location-filters}}).
+encoding. It MAY appear in a FETCH, SUBSCRIBE, PUBLISH,
+SUBSCRIBE_TRACKS, REQUEST_UPDATE (for a subscription), or
+PUBLISH_STATE_NOTIFY message. It is a Location Filter
+(see {{location-filters}}).
 
 If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
-unfiltered.  If omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY, the
-value is unchanged.  When sent in PUBLISH_STATE_NOTIFY, it reports the
-Location Filter now in effect at the publisher.
+unfiltered.  If omitted from PUBLISH or SUBSCRIBE_TRACKS, the
+subscription is not paused.  If omitted from REQUEST_UPDATE or
+PUBLISH_STATE_NOTIFY, the value is unchanged.  When sent in
+PUBLISH_STATE_NOTIFY, it reports the Location Filter now in effect at the
+publisher.
 
 ### SUBGROUP FILTER Parameter {#subgroup-filter}
 
@@ -3778,6 +3809,13 @@ FILL_PARAMETERS is not retained as subscription state. It applies only to the
 message that carries it, so the sticky-parameter rules in
 {{message-request-update}} do not apply to it.
 
+To fill-join a track initiated via PUBLISH, the subscriber SHOULD send
+REQUEST_UPDATE carrying FILL_PARAMETERS as soon as it accepts the PUBLISH.
+The REQUEST_UPDATE_OK will contain a fresh LARGEST_OBJECT establishing the
+correct fill range. Objects delivered on the subscription before the
+publisher processes the REQUEST_UPDATE are outside the fill range and are
+delivered as ordinary subscription Objects.
+
 ### EXPIRES Parameter {#expires}
 
 The EXPIRES parameter (Parameter Type 0x8) is a varint. It MAY appear in
@@ -3816,25 +3854,6 @@ A relay MUST set LARGEST_OBJECT to the largest of the following:
 1. Any LARGEST_OBJECT value received from the upstream publisher in SUBSCRIBE_OK,
 PUBLISH, or REQUEST_UPDATE_OK
 2. The largest Location of an Object received on an upstream subscription
-
-### FORWARD Parameter {#forward-parameter}
-
-The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
-SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
-PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
-specifies the Forwarding State on affected subscriptions (see {{subscriptions}}).
-The allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives
-a value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
-
-In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies the
-Forwarding State on future subscriptions that match the prefix. Existing
-subscriptions are unaffected.
-
-If the parameter is omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY,
-the value for the subscription remains unchanged.  If the parameter is omitted
-from any other message, the default value is 1.  When sent in
-PUBLISH_STATE_NOTIFY, it reports the Forwarding State now in effect at the
-publisher.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
@@ -4444,7 +4463,7 @@ not limited to:
 * A publisher's decision to end the subscription early
 * A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
   the Start Location to a larger Location
-* Omitting a Subgroup Object due to the subscriber's Forward State
+* Omitting a Subgroup Object due to the subscription being paused
 
 When RESET_STREAM_AT is used, the
 reliable_size SHOULD include the stream header so the receiver can identify the
@@ -4518,9 +4537,9 @@ Subgroups in a Group at once.
 
 A publisher that receives a STOP_SENDING on a Subgroup stream SHOULD NOT attempt
 to open a new stream to deliver additional Objects in that Subgroup.  However,
-if the publisher subsequently receives a REQUEST_UPDATE that changes the Forward
-State from 0 to 1, it MAY open a new stream to deliver Objects in that Subgroup,
-as the update indicates the subscriber has renewed interest in forwarded Objects.
+if the publisher subsequently receives a REQUEST_UPDATE that resumes a paused
+subscription, it MAY open a new stream to deliver Objects in that Subgroup,
+as the update indicates the subscriber has renewed interest in receiving Objects.
 
 The application SHOULD use a relevant error code when resetting a stream,
 as defined in {{stream-reset-codes}}.
@@ -5515,7 +5534,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
 | 0x0A | FILL_TIMEOUT | {{fill-timeout}} |
-| 0x10 | FORWARD | {{forward-parameter}} |
+| 0x10 | Reserved (Formerly FORWARD) | N/A |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | LOCATION_FILTER | {{location-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
