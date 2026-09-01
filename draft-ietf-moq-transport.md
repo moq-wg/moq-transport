@@ -545,7 +545,7 @@ ways, for example:
 MOQT provides two mechanisms for retrieving objects: subscriptions and fetches.
 
 A subscription is a long-lived association allowing the subscriber to receive
-newly-published objects for a signle track.  It can be established either by the
+newly-published objects for a single track.  It can be established either by the
 subscriber (using a SUBSCRIBE message) or the publisher (using a PUBLISH
 message).
 
