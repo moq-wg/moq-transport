@@ -100,16 +100,17 @@ Table of Contents
        3.1.1.  Subscription State Management
        3.1.2.  Track Alias
        3.1.3.  Largest Object
-       3.1.4.  Fill Semantics
      3.2.  Fetch
        3.2.1.  Fetch State Management
-     3.3.  Joining an Ongoing Track
-       3.3.1.  Dynamically Starting New Groups
-     3.4.  Filtering Tracks and Objects
-       3.4.1.  Location Filters
-       3.4.2.  Range Filters
-       3.4.3.  Combining Filters
-     3.5.  Mandatory Track Properties
+     3.3.  Filtering Tracks and Objects
+       3.3.1.  Location Filters
+       3.3.2.  Range Filters
+       3.3.3.  Combining Filters
+     3.4.  Fill Semantics
+       3.4.1.  Opening and Closing Fill Fetch Streams
+     3.5.  Joining an Ongoing Track
+       3.5.1.  Dynamically Starting New Groups
+     3.6.  Mandatory Track Properties
    4.  Namespace Discovery
      4.1.  Subscribing to Namespaces
      4.2.  Publishing Namespaces
@@ -946,78 +947,6 @@ Table of Contents
    Object.Group + 1, 0}. Next Object and Next Group are Locations that
    do not necessarily refer to an Object that exists.
 
-3.1.4.  Fill Semantics
-
-   A subscription that carries a FILL_PARAMETERS parameter (see
-   Section 9.20.16) causes the publisher to open a unidirectional stream
-   beginning with a FETCH_HEADER (see Section 11.4.1) and delivered as a
-   FETCH response (see Section 9.11).  This is called a fill fetch
-   stream.
-
-   The *fill range* is the range of Locations selected by the Location
-   filter inside FILL_PARAMETERS, or the subscription's Location filter
-   if it is omitted.  The filter is evaluated using the rules for a
-   Fetch in Section 3.4.1, so the fill range never extends beyond
-   Largest Object.  When the subscription has no Location filter, or the
-   LOCATION_FILTER inside FILL_PARAMETERS is zero-length, the fill range
-   is the entire track up to Largest Object.  The subscriber learns the
-   Largest Object from the LARGEST_OBJECT parameter in SUBSCRIBE_OK or
-   REQUEST_UPDATE_OK.
-
-   Because the fill range is specified independently of the
-   subscription's Location filter, a subscriber can retrieve a range of
-   Groups prior to the live edge while the subscription itself starts at
-   the Next Group.  If the fill range is empty, or starts after Largest
-   Object, the publisher does not open a fill fetch stream.
-
-   The fill fetch stream inherits the subscription's parameters,
-   including subscriber priority, range filters and authorization;
-   parameters carried inside FILL_PARAMETERS override them for the fill
-   fetch stream.  FILL_TIMEOUT (see Section 9.20.6) applies to fill
-   fetch streams in the same way it applies to a FETCH.
-
-   The FETCH_HEADER on the fill fetch stream carries the Request ID of
-   the message that initiated it: the SUBSCRIBE Request ID for the
-   initial fill, or the REQUEST_UPDATE Request ID for a subsequent fill.
-   As a result of REQUEST_UPDATE, a subscription can have multiple fill
-   fetch streams open at once, each identified by its Request ID;
-   opening a new fill fetch stream does not implicitly cancel any
-   previously opened fill fetch streams.
-
-   An object delivered on the fill fetch stream is *fill-delivered*.
-   When the fill range overlaps the subscription's Location filter, an
-   object can be both fill-delivered and subscription-delivered.  A
-   subscriber that wants each Object delivered exactly once uses the
-   Next Object Subscription Location Filter coupled with an open-ended
-   fill range, which the publisher will end at Largest Object.
-
-3.1.4.1.  Opening and Closing Fill Fetch Streams
-
-   A publisher opens a fill fetch stream when it processes a SUBSCRIBE
-   or REQUEST_UPDATE that carries FILL_PARAMETERS while Forward State is
-   1.
-
-   *  FILL_PARAMETERS carried while Forward State is 0 opens no fill
-      fetch stream.  Transitioning to Forward State 1 without re-sending
-      FILL_PARAMETERS does not open one either.
-
-   *  A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open
-      a new fill fetch stream.
-
-   *  When the subscription is cancelled, the publisher MUST reset any
-      open fill fetch streams.
-
-   The publisher signals that the fill is complete by closing the stream
-   with a FIN once all objects in the fill range have been delivered.
-   Because there is no REQUEST_ERROR associated with a fill fetch
-   stream, the publisher signals a fill failure by resetting the stream;
-   it MUST open a fill fetch stream and reset it immediately after the
-   FETCH_HEADER if necessary.  A subscriber can cancel a fill fetch
-   stream independently using STOP_SENDING.  Resetting or cancelling a
-   fill fetch stream, by either endpoint, does not affect the
-   subscription, which continues to deliver objects using subscribe
-   subgroups and datagrams.
-
 3.2.  Fetch
 
 3.2.1.  Fetch State Management
@@ -1045,59 +974,9 @@ Table of Contents
    before determining the result of the request, some Objects could be
    received even if the FETCH results in error.
 
-3.3.  Joining an Ongoing Track
+3.3.  Filtering Tracks and Objects
 
-   The MOQT Object model is designed with the concept that the beginning
-   of a Group is a join point, so in order for a subscriber to join a
-   Track, it needs to request an existing Group or wait for a future
-   Group.  Different applications will have different approaches for
-   when to begin a new Group.
-
-   To join a Track immediately, the subscriber sends a SUBSCRIBE with a
-   Location Filter Section 3.4.1 that starts at the Next Object.
-   Delivery begins with the next Object and can begin mid-group.
-
-   To join a Track at the current Group, the subscriber sends a
-   SUBSCRIBE with a Location Filter that starts at the Next Object and a
-   FILL_PARAMETERS parameter (see Section 9.20.16) whose Location filter
-   has StartGroup=1, which fills the current Group from its start.
-
-   To join a Track at a past Group, the subscriber sends a SUBSCRIBE
-   with a FILL_PARAMETERS parameter whose Location filter selects the
-   intended Groups, which can be relative.  The publisher delivers the
-   fill range on a fill fetch stream and subscription-delivered Objects
-   in subgroups or datagrams (see Section 3.1.4).
-
-   To join a Track at the next Group, the subscriber sends a SUBSCRIBE
-   with a Location Filter Section 3.4.1 that starts at the Next Group.
-
-3.3.1.  Dynamically Starting New Groups
-
-   While some publishers will deterministically create new Groups, other
-   applications might want to only begin a new Group when needed.  A
-   subscriber joining a Track might detect that it is more efficient to
-   request the Original Publisher create a new group than to fill the
-   current group.  Publishers indicate a Track supports dynamic group
-   creation using the DYNAMIC_GROUPS Track Property (Section 10.6).
-
-   One possible subscriber pattern is to SUBSCRIBE to a Track using a
-   Location Filter that starts at the Next Object and observe the
-   Largest Object in the response.  If the Object ID is below the
-   application's threshold, the subscriber sends a FETCH for the
-   beginning of the Group.  If the Object ID is above the threshold and
-   the Track supports dynamic groups, the subscriber sends a
-   REQUEST_UPDATE message with the NEW_GROUP_REQUEST parameter equal to
-   the Next Group (see Section 9.20.20).
-
-   Another possible subscriber pattern is to send a SUBSCRIBE with a
-   Location Filter that starts at the Next Group and NEW_GROUP_REQUEST
-   equal to 0.  The value of DYNAMIC_GROUPS in SUBSCRIBE_OK will
-   indicate if the publisher supports dynamic groups.  A publisher that
-   does will begin the next group as soon as practical.
-
-3.4.  Filtering Tracks and Objects
-
-3.4.1.  Location Filters
+3.3.1.  Location Filters
 
    A Location filter specifies an inclusive range of Locations or an
    inclusive start Location and an open-ended end location.  Only
@@ -1131,7 +1010,7 @@ Table of Contents
    A publisher does not end a subscription solely because the Largest
    Object advances past the end of the current Location Filter.
 
-3.4.2.  Range Filters
+3.3.2.  Range Filters
 
    Range Filters are parameters in SUBSCRIBE, FETCH, or SUBSCRIBE_TRACKS
    that tell a publisher to filter tracks (via TRACK PROPERTY FILTER)
@@ -1180,18 +1059,140 @@ Table of Contents
    Properties, and does not evaluate Track Properties in PUBLISH
    messages.
 
-3.4.3.  Combining Filters
+3.3.3.  Combining Filters
 
    All filter types are combined using logical "AND" operations to
    further restrict which tracks and objects pass all filter criteria.
-   This includes all Range Filters Section 3.4.2 and Location Filters
-   Section 3.4.1, which can be evaluated in any order.  The Forward
+   This includes all Range Filters Section 3.3.2 and Location Filters
+   Section 3.3.1, which can be evaluated in any order.  The Forward
    parameter is also a type of filter.  The publisher MUST forward only
    objects that pass all filters.
 
    Pass = Forward AND Location Filters AND Range Filters
 
-3.5.  Mandatory Track Properties
+3.4.  Fill Semantics
+
+   A subscription that carries a FILL_PARAMETERS parameter (see
+   Section 9.20.16) causes the publisher to open a unidirectional stream
+   beginning with a FETCH_HEADER (see Section 11.4.1) and delivered as a
+   FETCH response (see Section 9.11).  This is called a fill fetch
+   stream.
+
+   The *fill range* is the range of Locations selected by the Location
+   filter inside FILL_PARAMETERS, or the subscription's Location filter
+   if it is omitted.  The filter is evaluated using the rules for a
+   Fetch in Section 3.3.1, so the fill range never extends beyond
+   Largest Object.  When the subscription has no Location filter, or the
+   LOCATION_FILTER inside FILL_PARAMETERS is zero-length, the fill range
+   is the entire track up to Largest Object.  The subscriber learns the
+   Largest Object from the LARGEST_OBJECT parameter in SUBSCRIBE_OK or
+   REQUEST_UPDATE_OK.
+
+   Because the fill range is specified independently of the
+   subscription's Location filter, a subscriber can retrieve a range of
+   Groups prior to the live edge while the subscription itself starts at
+   the Next Group.  If the fill range is empty, or starts after Largest
+   Object, the publisher does not open a fill fetch stream.
+
+   The fill fetch stream inherits the subscription's parameters,
+   including subscriber priority, range filters and authorization;
+   parameters carried inside FILL_PARAMETERS override them for the fill
+   fetch stream.  FILL_TIMEOUT (see Section 9.20.6) applies to fill
+   fetch streams in the same way it applies to a FETCH.
+
+   The FETCH_HEADER on the fill fetch stream carries the Request ID of
+   the message that initiated it: the SUBSCRIBE Request ID for the
+   initial fill, or the REQUEST_UPDATE Request ID for a subsequent fill.
+   As a result of REQUEST_UPDATE, a subscription can have multiple fill
+   fetch streams open at once, each identified by its Request ID;
+   opening a new fill fetch stream does not implicitly cancel any
+   previously opened fill fetch streams.
+
+   An object delivered on the fill fetch stream is *fill-delivered*.
+   When the fill range overlaps the subscription's Location filter, an
+   object can be both fill-delivered and subscription-delivered.  A
+   subscriber that wants each Object delivered exactly once uses the
+   Next Object Subscription Location Filter coupled with an open-ended
+   fill range, which the publisher will end at Largest Object.
+
+3.4.1.  Opening and Closing Fill Fetch Streams
+
+   A publisher opens a fill fetch stream when it processes a SUBSCRIBE
+   or REQUEST_UPDATE that carries FILL_PARAMETERS while Forward State is
+   1.
+
+   *  FILL_PARAMETERS carried while Forward State is 0 opens no fill
+      fetch stream.  Transitioning to Forward State 1 without re-sending
+      FILL_PARAMETERS does not open one either.
+
+   *  A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open
+      a new fill fetch stream.
+
+   *  When the subscription is cancelled, the publisher MUST reset any
+      open fill fetch streams.
+
+   The publisher signals that the fill is complete by closing the stream
+   with a FIN once all objects in the fill range have been delivered.
+   Because there is no REQUEST_ERROR associated with a fill fetch
+   stream, the publisher signals a fill failure by resetting the stream;
+   it MUST open a fill fetch stream and reset it immediately after the
+   FETCH_HEADER if necessary.  A subscriber can cancel a fill fetch
+   stream independently using STOP_SENDING.  Resetting or cancelling a
+   fill fetch stream, by either endpoint, does not affect the
+   subscription, which continues to deliver objects using subscribe
+   subgroups and datagrams.
+
+3.5.  Joining an Ongoing Track
+
+   The MOQT Object model is designed with the concept that the beginning
+   of a Group is a join point, so in order for a subscriber to join a
+   Track, it needs to request an existing Group or wait for a future
+   Group.  Different applications will have different approaches for
+   when to begin a new Group.
+
+   To join a Track immediately, the subscriber sends a SUBSCRIBE with a
+   Location Filter Section 3.3.1 that starts at the Next Object.
+   Delivery begins with the next Object and can begin mid-group.
+
+   To join a Track at the current Group, the subscriber sends a
+   SUBSCRIBE with a Location Filter that starts at the Next Object and a
+   FILL_PARAMETERS parameter (see Section 9.20.16) whose Location filter
+   has StartGroup=1, which fills the current Group from its start.
+
+   To join a Track at a past Group, the subscriber sends a SUBSCRIBE
+   with a FILL_PARAMETERS parameter whose Location filter selects the
+   intended Groups, which can be relative.  The publisher delivers the
+   fill range on a fill fetch stream and subscription-delivered Objects
+   in subgroups or datagrams (see Section 3.4).
+
+   To join a Track at the next Group, the subscriber sends a SUBSCRIBE
+   with a Location Filter Section 3.3.1 that starts at the Next Group.
+
+3.5.1.  Dynamically Starting New Groups
+
+   While some publishers will deterministically create new Groups, other
+   applications might want to only begin a new Group when needed.  A
+   subscriber joining a Track might detect that it is more efficient to
+   request the Original Publisher create a new group than to fill the
+   current group.  Publishers indicate a Track supports dynamic group
+   creation using the DYNAMIC_GROUPS Track Property (Section 10.6).
+
+   One possible subscriber pattern is to SUBSCRIBE to a Track using a
+   Location Filter that starts at the Next Object and observe the
+   Largest Object in the response.  If the Object ID is below the
+   application's threshold, the subscriber sends a FETCH for the
+   beginning of the Group.  If the Object ID is above the threshold and
+   the Track supports dynamic groups, the subscriber sends a
+   REQUEST_UPDATE message with the NEW_GROUP_REQUEST parameter equal to
+   the Next Group (see Section 9.20.20).
+
+   Another possible subscriber pattern is to send a SUBSCRIBE with a
+   Location Filter that starts at the Next Group and NEW_GROUP_REQUEST
+   equal to 0.  The value of DYNAMIC_GROUPS in SUBSCRIBE_OK will
+   indicate if the publisher supports dynamic groups.  A publisher that
+   does will begin the next group as soon as practical.
+
+3.6.  Mandatory Track Properties
 
    Property types in the range 0x4000-0x7FFF are designated as Mandatory
    Track Properties.  These properties MUST have Track scope.  Mandatory
@@ -1358,7 +1359,7 @@ Table of Contents
 
 4.3.  Filtering SUBSCRIBE_TRACKS
 
-   Range Filters Section 3.4.2 can be used in SUBSCRIBE_TRACKS to filter
+   Range Filters Section 3.3.2 can be used in SUBSCRIBE_TRACKS to filter
    Tracks in a namespace using the Track Property Filter.  Objects
    published in the resulting Subscriptions can be filtered by any Range
    Filter.
@@ -2240,8 +2241,7 @@ Table of Contents
 
    When a Relay receives a SUBSCRIBE with FILL_PARAMETERS, it serves the
    fill range from its cache and retrieves any missing objects upstream
-   using a SUBSCRIBE with FILL_PARAMETERS or FETCHes (see
-   Section 3.1.4).
+   using a SUBSCRIBE with FILL_PARAMETERS or FETCHes (see Section 3.4).
 
    When a Relay receives an authorized SUBSCRIBE for a Track with one or
    more Established upstream subscriptions, it MUST reply with
@@ -2474,7 +2474,7 @@ Table of Contents
 
    If a Relay does not support a Property, it MUST NOT be modified, MUST
    be forwarded, and MUST be cached with the Track or Object, unless it
-   is a Mandatory Track Property as described in Section 3.5.  If a
+   is a Mandatory Track Property as described in Section 3.6.  If a
    Track or Object arrives with a different set of unknown properties
    than previously cached, the most recent set SHOULD replace any cached
    values, removing any unknown values not present in the new set.
@@ -2540,7 +2540,7 @@ Table of Contents
 
 8.6.  Range Filter Structure
 
-   Each Range Filter parameter (see Section 3.4.2) carries a sequence of
+   Each Range Filter parameter (see Section 3.3.2) carries a sequence of
    Ranges, encoded as follows:
 
    Range {
@@ -3004,7 +3004,7 @@ Table of Contents
 
    The MAX_FILTER_RANGES option (Type 0x06) limits the peer's total
    number of Ranges (Start/End pairs) allowed concurrently in all Range
-   filter Section 3.4.2 parameters for a given subscription or fetch.
+   filter Section 3.3.2 parameters for a given subscription or fetch.
    The default value is 0, so if not specified, the peer MUST NOT send
    any such filter parameters.  If this limit is exceeded, an endpoint
    MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
@@ -3249,11 +3249,11 @@ Table of Contents
 9.5.1.  Updating Subscriptions
 
    When a subscriber decreases the Start Location of the Location Filter
-   (see Section 3.4.1), the Start Location can be smaller than the
+   (see Section 3.3.1), the Start Location can be smaller than the
    Track's Largest Location, similar to a new Subscription.  Including
    FILL_PARAMETERS (see Section 9.20.16) in the REQUEST_UPDATE causes
    the publisher to deliver the new fill range by opening a new fill
-   fetch stream (see Section 3.1.4).  FETCH can also be used to retrieve
+   fetch stream (see Section 3.4).  FETCH can also be used to retrieve
    any necessary Objects smaller than the current Largest Location.
 
    When a subscriber increases the End Location, the Largest Object at
@@ -3305,9 +3305,9 @@ Table of Contents
 
    SUBSCRIBE initiates a subscription to a track.  The associated
    parameters determine the range and mechanism of object delivery; the
-   Location Filter (see Section 3.4.1) selects which Objects are sent,
+   Location Filter (see Section 3.3.1) selects which Objects are sent,
    and a FILL_PARAMETERS parameter (see Section 9.20.16) additionally
-   retrieves the fill range on a fill fetch stream (see Section 3.1.4).
+   retrieves the fill range on a fill fetch stream (see Section 3.4).
 
    The format of SUBSCRIBE is as follows:
 
@@ -3476,7 +3476,7 @@ Table of Contents
    *  Stream Count: An integer indicating the number of data streams the
       publisher opened for this subscription, including streams that
       contained no Objects (e.g., an empty Subgroup) and including any
-      fill fetch streams (see Section 3.1.4).  This helps the subscriber
+      fill fetch streams (see Section 3.4).  This helps the subscriber
       know if it has received all of the data published in this
       subscription by comparing the number of streams received.  The
       subscriber can immediately remove all subscription state once the
@@ -3879,7 +3879,7 @@ Table of Contents
 
    To join Tracks initiated via the resulting PUBLISHes, the subscriber
    can specify a Location Filter and optionally include FILL_PARAMETERS,
-   as described in Section 3.3.
+   as described in Section 3.5.
 
 9.19.  PUBLISH_SKIPPED
 
@@ -4106,7 +4106,7 @@ Table of Contents
    The LOCATION_FILTER parameter (Parameter Type 0x21) MAY appear in a
    FETCH, SUBSCRIBE, PUBLISH, REQUEST_UPDATE (for a subscription) or
    PUBLISH_STATE_NOTIFY message.  It is a Location Filter (see
-   Section 3.4.1).
+   Section 3.3.1).
 
    A Location filter parameter has the following length-prefixed
    structure:
@@ -4164,7 +4164,7 @@ Table of Contents
 9.20.11.  SUBGROUP FILTER Parameter
 
    The SUBGROUP_FILTER parameter (Type 0x25) selects objects with
-   specified Ranges of Subgroup ID.  See Section 3.4.2 and Section 8.6.
+   specified Ranges of Subgroup ID.  See Section 3.3.2 and Section 8.6.
 
    SUBGROUP_FILTER {
      Type (vi64) = 0x25,
@@ -4176,7 +4176,7 @@ Table of Contents
 9.20.12.  OBJECTID FILTER Parameter
 
    The OBJECTID_FILTER parameter (Type 0x26) selects objects with
-   specified Ranges of Object ID.  See Section 3.4.2 and Section 8.6.
+   specified Ranges of Object ID.  See Section 3.3.2 and Section 8.6.
 
    OBJECTID_FILTER {
      Type (vi64) = 0x26,
@@ -4188,7 +4188,7 @@ Table of Contents
 9.20.13.  PRIORITY FILTER Parameter
 
    The PRIORITY_FILTER parameter (Type 0x27) selects objects with
-   specified Ranges of Publisher Priority.  See Section 3.4.2 and
+   specified Ranges of Publisher Priority.  See Section 3.3.2 and
    Section 8.6.  If a decoded value exceeds 255, the endpoint MUST
    reject this with REQUEST_ERROR with error code INVALID_FILTER since
    Publisher Priority is an 8-bit field.
@@ -4206,7 +4206,7 @@ Table of Contents
    required Ranges of Property Value for a required Object Property Type
    which MUST be even, i.e. a single integer value (see Figure 2),
    otherwise the endpoint MUST reject this with REQUEST_ERROR with error
-   code INVALID_FILTER.  See Section 3.4.2 and Section 8.6.
+   code INVALID_FILTER.  See Section 3.3.2 and Section 8.6.
 
    OBJECT_PROPERTY_FILTER {
      Type (vi64) = 0x28,
@@ -4222,7 +4222,7 @@ Table of Contents
    required Ranges of Property Value for a required Track Property Type
    which MUST be even, i.e. a single integer value (see Figure 2),
    otherwise the endpoint MUST reject this with REQUEST_ERROR with error
-   code INVALID_FILTER.  See Section 3.4.2 and Section 8.6.
+   code INVALID_FILTER.  See Section 3.3.2 and Section 8.6.
 
    TRACK_PROPERTY_FILTER {
      Type (vi64) = 0x29,
@@ -4237,10 +4237,10 @@ Table of Contents
    The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-
    prefixed encoding.  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE
    (for a subscription) message.  Its value is a sequence of Parameters
-   that apply to the fill fetch stream (see Section 3.1.4), encoded as
-   if they were Parameters for a separate message (see Section 16.7).
-   Its presence is what requests a fill fetch stream; a subscription
-   with no FILL_PARAMETERS opens none.
+   that apply to the fill fetch stream (see Section 3.4), encoded as if
+   they were Parameters for a separate message (see Section 16.7).  Its
+   presence is what requests a fill fetch stream; a subscription with no
+   FILL_PARAMETERS opens none.
 
    The following parameters MAY appear inside FILL_PARAMETERS:
 
@@ -4255,13 +4255,13 @@ Table of Contents
        +----------------+------------------------+-----------------+
        | 0x22           | GROUP_ORDER            | Section 9.20.9  |
        +----------------+------------------------+-----------------+
-       | 0x25           | SUBGROUP_FILTER        | Section 3.4.2   |
+       | 0x25           | SUBGROUP_FILTER        | Section 3.3.2   |
        +----------------+------------------------+-----------------+
-       | 0x26           | OBJECTID_FILTER        | Section 3.4.2   |
+       | 0x26           | OBJECTID_FILTER        | Section 3.3.2   |
        +----------------+------------------------+-----------------+
-       | 0x27           | PRIORITY_FILTER        | Section 3.4.2   |
+       | 0x27           | PRIORITY_FILTER        | Section 3.3.2   |
        +----------------+------------------------+-----------------+
-       | 0x28           | OBJECT_PROPERTY_FILTER | Section 3.4.2   |
+       | 0x28           | OBJECT_PROPERTY_FILTER | Section 3.3.2   |
        +----------------+------------------------+-----------------+
 
                                   Table 6
@@ -4314,7 +4314,7 @@ Table of Contents
    MAY appear in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK,
    TRACK_STATUS_OK, or PUBLISH_STATE_NOTIFY.  It contains the largest
    Location (see Section 8.2) in the Track observed by the sending
-   endpoint (see Section 3.4.1).  If Objects have been published on this
+   endpoint (see Section 3.3.1).  If Objects have been published on this
    Track the Publisher MUST include this parameter.
 
    If omitted from a message, the sending endpoint has not published or
@@ -5702,7 +5702,7 @@ EXT 1 and EXT N can be modified or removed by Relays
       indicate when the request can be retried.
 
    UNSUPPORTED_EXTENSION:  The track contains a Mandatory Track Property
-      (see Section 3.5) that the endpoint does not understand.
+      (see Section 3.6) that the endpoint does not understand.
 
    REDIRECT:  The request cannot be fulfilled by this endpoint, but
       could succeed at the location specified in the Redirect structure.
@@ -6146,7 +6146,7 @@ EXT 1 and EXT N can be modified or removed by Relays
          encoding, no registration permitted)
 
       -  0x4000 to 0x7FFF: Reserved for Mandatory Track Properties (see
-         Section 3.5).  Properties registered in this range MUST have
+         Section 3.6).  Properties registered in this range MUST have
          Track scope; Object scope properties MUST NOT be registered in
          this range.
 
