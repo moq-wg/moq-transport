@@ -350,7 +350,10 @@ retransmission of data. Furthermore, many QUIC and WebTransport implementations
 offer the ability to control the relative scheduling priority of pending stream
 data.
 
-Every Object within a Group belongs to exactly one Subgroup or Datagram.
+Every Object within a Group belongs to exactly one Subgroup or Datagram. An
+Original Publisher MAY use both Subgroups and Datagrams within a Group or
+Track; each Object's `Object Forwarding Preference` (see {{object-header}})
+determines which is used.
 
 When Objects are sent in a subscription (see {{subscriptions}}),  Objects
 from two subgroups MUST NOT be sent on the same stream, and Objects from the
@@ -693,7 +696,7 @@ treating them as belonging to an unknown Track Alias.
 
 #### Unknown Track Alias {#unknown-track-alias}
 
-When an endpoint receives a datagram or opens a stream with a Track Alias that
+When an endpoint receives a datagram or a new stream with a Track Alias that
 is not yet associated with an `Established` subscription, it MAY drop the
 data or buffer it briefly to handle reordering with the control message that
 establishes the Track Alias. For streams, the endpoint MAY withhold stream
@@ -4305,10 +4308,6 @@ the datagram.  See {{object-datagram}}.
 
 An endpoint that receives an unknown datagram type MUST close the session.
 
-An Original Publisher MAY use both Subgroups and Datagrams within a Group
-or Track; each Object's `Object Forwarding Preference` (see
-{{object-header}}) determines which is used.
-
 ## Objects {#message-object}
 
 An Object contains a range of contiguous bytes from the
@@ -4702,9 +4701,9 @@ Objects might exist.
 
 A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the
 Group or Subgroup is no longer of interest to it. The publisher SHOULD
-respond with a reset. If RESET_STREAM_AT is sent, the publisher SHOULD NOT
-set reliable_size beyond the stream header, as the receiver has indicated no
-interest in the objects.
+respond with a reset. If RESET_STREAM_AT is sent, note that the receiver has
+indicated no interest in the objects, so setting a reliable_size beyond the
+stream header is of questionable utility.
 
 Resets and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
@@ -4772,7 +4771,7 @@ Any other value 128 or greater is a `PROTOCOL_VIOLATION`.
 bits of the Serialization Flags form a two-bit field that defines the
 encoding of the Subgroup ID.
 
-Bitmask Result (Serialization Flags & 0x03) | Meaning
+Value | Meaning
 0x00 | Subgroup ID is zero
 0x01 | Subgroup ID is the prior Object's Subgroup ID
 0x02 | Subgroup ID is the prior Object's Subgroup ID plus one
