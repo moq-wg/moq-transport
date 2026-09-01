@@ -4543,11 +4543,141 @@ example.2enet-team2-project_x--report
 </div>
 </section>
 </div>
-<div id="authorization-token-compression">
+<div id="auth-token-compression">
 <section id="section-8.7">
         <h3 id="name-authorization-token-compres">
 <a href="#section-8.7" class="section-number selfRef">8.7. </a><a href="#name-authorization-token-compres" class="section-name selfRef">Authorization Token Compression</a>
-      </h3>
+        </h3>
+<p id="section-8.7-1">Authorization tokens are carried in the AUTHORIZATION TOKEN message parameter
+(see <a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>) and the AUTHORIZATION TOKEN Setup Option (see
+<a href="#setup-auth-token" class="auto internal xref">Section 9.1.1.4</a>).  Both use the wire format and semantics defined in this
+section.<a href="#section-8.7-1" class="pilcrow">¶</a></p>
+<p id="section-8.7-2">The value is a Token structure containing an optional Session-specific
+Alias. The Alias allows the sender to reference a previously transmitted Token
+Type and Token Value in future messages. The Token structure is serialized as
+follows:<a href="#section-8.7-2" class="pilcrow">¶</a></p>
+<span id="name-token-structure"></span><div id="moq-token">
+<figure id="figure-3">
+          <div class="alignLeft art-text artwork" id="section-8.7-3.1">
+<pre>
+Token {
+  Alias Type (vi64),
+  [Token Alias (vi64),]
+  [Token Type (vi64),]
+  [Token Value (..)]
+}
+</pre>
+</div>
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<a href="#name-token-structure" class="selfRef">Token structure</a>
+          </figcaption></figure>
+</div>
+<ul class="normal">
+<li class="normal" id="section-8.7-4.1">
+            <p id="section-8.7-4.1.1">Alias Type - an integer defining both the serialization and the processing
+behavior of the receiver. This Alias type has the following code points:<a href="#section-8.7-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<span class="break"></span><dl class="dlParallel" id="section-8.7-5">
+          <dt id="section-8.7-5.1">DELETE (0x0):</dt>
+          <dd style="margin-left: 1.5em" id="section-8.7-5.2">
+            <p id="section-8.7-5.2.1">There is an Alias but no Type or Value. This Alias and the Token Value it was
+previously associated with <span class="bcp14">MUST</span> be retired. Retiring removes them from the pool
+of actively registered tokens.<a href="#section-8.7-5.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-8.7-5.3">REGISTER (0x1):</dt>
+          <dd style="margin-left: 1.5em" id="section-8.7-5.4">
+            <p id="section-8.7-5.4.1">There is an Alias, a Type and a Value. This Alias <span class="bcp14">MUST</span> be associated with the
+Token Value for the duration of the Session or it is deleted. This action is
+termed "registering" the Token.<a href="#section-8.7-5.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-8.7-5.5">USE_ALIAS (0x2):</dt>
+          <dd style="margin-left: 1.5em" id="section-8.7-5.6">
+            <p id="section-8.7-5.6.1">There is an Alias but no Type or Value. Use the Token Type and Value
+previously registered with this Alias.<a href="#section-8.7-5.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-8.7-5.7">USE_VALUE (0x3):</dt>
+          <dd style="margin-left: 1.5em" id="section-8.7-5.8">
+            <p id="section-8.7-5.8.1">There is no Alias and there is a Type and Value. Use the Token Value as
+provided. The Token Value <span class="bcp14">MAY</span> be discarded after processing.<a href="#section-8.7-5.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<ul class="normal">
+<li class="normal" id="section-8.7-6.1">
+            <p id="section-8.7-6.1.1">Token Alias - a Session-specific integer identifier that references a Token
+Type and Token Value. There are separate Alias spaces for the client and server (e.g.: they
+can each register Alias=1). Once a Token Alias has been registered, it cannot
+be re-registered by the same endpoint in the Session without first being
+deleted. Use of the Token Alias is optional.<a href="#section-8.7-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.7-6.2">
+            <p id="section-8.7-6.2.1">Token Type - a numeric identifier for the type of Token payload being
+transmitted. This type is defined by the IANA table "MOQT Auth Token Type" (see
+<a href="#iana" class="auto internal xref">Section 16</a>). Type 0 is reserved to indicate that the type is not defined in the
+table and is negotiated out-of-band between client and receiver.<a href="#section-8.7-6.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.7-6.3">
+            <p id="section-8.7-6.3.1">Token Value - the payload of the Token. The contents and serialization of this
+payload are defined by the Token Type.<a href="#section-8.7-6.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.7-7">If the Token structure cannot be decoded, the receiver <span class="bcp14">MUST</span> close the Session
+with <code>KEY_VALUE_FORMATTING_ERROR</code>.  The receiver of a message attempting to
+register an Alias which is already registered <span class="bcp14">MUST</span> close the Session with
+<code>DUPLICATE_AUTH_TOKEN_ALIAS</code>. The receiver of a message referencing an Alias
+that is not currently registered <span class="bcp14">MUST</span> reject the message with
+<code>UNKNOWN_AUTH_TOKEN_ALIAS</code>.<a href="#section-8.7-7" class="pilcrow">¶</a></p>
+<p id="section-8.7-8">The receiver of a message containing a well-formed Token structure that is
+otherwise invalid <span class="bcp14">MUST</span> reject that message with an <code>MALFORMED_AUTH_TOKEN</code>
+error.<a href="#section-8.7-8" class="pilcrow">¶</a></p>
+<p id="section-8.7-9">The receiver of a message carrying an Authorization Token with Alias Type
+REGISTER that does not result in a Session error <span class="bcp14">MUST</span> register the Token Alias
+in the token cache, even if the message fails for other reasons, including
+<code>Unauthorized</code>.  This allows senders to pipeline messages that refer to
+previously registered tokens without potentially terminating the entire Session.
+A receiver <span class="bcp14">MAY</span> store an error code (eg: <code>UNAUTHORIZED</code> or
+<code>MALFORMED_AUTH_TOKEN</code>) in place of the Token Type and Token Alias if any future
+message referencing the Token Alias will result in that error. However, it is
+important to not store an error code for a token that might be valid in the
+future or due to some other property becoming fulfilled which currently
+isn't. The size of a registered cache entry includes the length of the Token
+Value, regardless of whether it is stored.<a href="#section-8.7-9" class="pilcrow">¶</a></p>
+<p id="section-8.7-10">If a receiver detects that an authorization token has expired, it <span class="bcp14">MUST</span> retain
+the registered Alias until it is deleted by the sender, though it <span class="bcp14">MAY</span> discard
+other state associated with the token that is no longer needed.  Expiration does
+not affect the size occupied by a token in the token cache.  Any message that
+references an expired token with Alias Type USE_ALIAS fails with <code>EXPIRED_AUTH_TOKEN</code>.<a href="#section-8.7-10" class="pilcrow">¶</a></p>
+<p id="section-8.7-11">Using an Alias to refer to a previously registered Token Type and Value is for
+efficiency only and has the same effect as if the Token Type and Value was
+included directly.  Retiring an Alias that was previously used to authorize a
+message has no retroactive effect on the original authorization, nor does it
+prevent that same Token Type and Value from being re-registered.<a href="#section-8.7-11" class="pilcrow">¶</a></p>
+<p id="section-8.7-12">Senders of tokens <span class="bcp14">SHOULD</span> only register tokens which they intend to re-use during
+the Session and <span class="bcp14">SHOULD</span> retire previously registered tokens once their utility
+has passed.<a href="#section-8.7-12" class="pilcrow">¶</a></p>
+<p id="section-8.7-13">By registering a Token, the sender is requiring the receiver to store the Token
+Alias and Token Value until they are deleted, or the Session ends. The receiver
+can protect its resources by sending a Setup Option defining the
+MAX_AUTH_TOKEN_CACHE_SIZE limit (see <a href="#max-auth-token-cache-size" class="auto internal xref">Section 9.1.1.3</a>) it is
+willing to accept. If a registration is attempted which would cause this limit
+to be exceeded, the receiver <span class="bcp14">MUST</span> terminate the Session with a
+<code>AUTH_TOKEN_CACHE_OVERFLOW</code> error.<a href="#section-8.7-13" class="pilcrow">¶</a></p>
+<p id="section-8.7-14">An Authorization Token <span class="bcp14">MAY</span> be repeated within a message as long as the
+combination of Token Type and Token Value are unique after resolving any
+aliases.<a href="#section-8.7-14" class="pilcrow">¶</a></p>
+<p id="section-8.7-15">Messages carrying an Authorization Token can appear on different
+control streams. Because stream processing order can be different than send order, the
+receiver and sender can have inconsistent views of the token cache state.<a href="#section-8.7-15" class="pilcrow">¶</a></p>
+<p id="section-8.7-16">Senders <span class="bcp14">MUST NOT</span> send USE_ALIAS on one control stream for an alias registered on a
+different stream until the sender has received a response to the message
+containing the REGISTER. Senders <span class="bcp14">MAY</span> use USE_ALIAS on the same control stream as the
+REGISTER without waiting for a response.<a href="#section-8.7-16" class="pilcrow">¶</a></p>
+<p id="section-8.7-17">Senders <span class="bcp14">MUST NOT</span> send DELETE for an alias while any message using USE_ALIAS with
+that alias has not received a response.<a href="#section-8.7-17" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4561,7 +4691,7 @@ example.2enet-team2-project_x--report
 defined in <a href="#session-init" class="auto internal xref">Section 6.3</a>.  Every message on a control or request stream is
 formatted as follows:<a href="#section-9-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-control-message"></span><div id="moq-transport-message-format">
-<figure id="figure-3">
+<figure id="figure-4">
         <div class="alignLeft art-text artwork" id="section-9-2.1">
 <pre>
 MOQT Control Message {
@@ -4571,7 +4701,7 @@ MOQT Control Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
 <a href="#name-moqt-control-message" class="selfRef">MOQT Control Message</a>
         </figcaption></figure>
 </div>
@@ -4739,7 +4869,7 @@ sending.  To ensure future extensibility of MOQT, endpoints <span class="bcp14">
 Setup Options.<a href="#section-9.1-2" class="pilcrow">¶</a></p>
 <p id="section-9.1-3">The wire format of the Setup message is as follows:<a href="#section-9.1-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-setup-message"></span><div id="moq-transport-setup-format">
-<figure id="figure-4">
+<figure id="figure-5">
           <div class="alignLeft art-text artwork" id="section-9.1-4.1">
 <pre>
 SETUP Message {
@@ -4749,7 +4879,7 @@ SETUP Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
+<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
 <a href="#name-moqt-setup-message" class="selfRef">MOQT SETUP Message</a>
           </figcaption></figure>
 </div>
@@ -4813,7 +4943,7 @@ maximum size in bytes of all actively registered Authorization tokens that the
 endpoint is willing to store per Session. This option is optional. The default
 value is 0 which prohibits the use of token Aliases.<a href="#section-9.1.1.3-1" class="pilcrow">¶</a></p>
 <p id="section-9.1.1.3-2">The token size is calculated as 16 bytes + the size of the Token Value field
-(see <a href="#moq-token" class="auto internal xref">Figure 23</a>). The total size as restricted by the
+(see <a href="#moq-token" class="auto internal xref">Figure 3</a>). The total size as restricted by the
 MAX_AUTH_TOKEN_CACHE_SIZE option is calculated as the sum of the token sizes
 for all registered tokens (Alias Type value of 0x01) minus the sum of the token
 sizes for all deregistered tokens (Alias Type value of 0x00), since Session
@@ -4829,13 +4959,17 @@ initiation.<a href="#section-9.1.1.3-2" class="pilcrow">¶</a></p>
 equivalent to the AUTHORIZATION TOKEN message parameter, see <a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>.
 The endpoint can specify one or more tokens in SETUP
 that the peer can use to authorize MOQT session establishment.<a href="#section-9.1.1.4-1" class="pilcrow">¶</a></p>
-<p id="section-9.1.1.4-2">If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with Alias
+<p id="section-9.1.1.4-2">The option value is a Token structure, whose wire format and semantics are
+defined in <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>.<a href="#section-9.1.1.4-2" class="pilcrow">¶</a></p>
+<p id="section-9.1.1.4-3">If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
+message, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.1.1.4-3" class="pilcrow">¶</a></p>
+<p id="section-9.1.1.4-4">If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it <span class="bcp14">MUST NOT</span> fail
 the session with <code>AUTH_TOKEN_CACHE_OVERFLOW</code>.  Instead, it <span class="bcp14">MUST</span> treat the
 option as Alias Type USE_VALUE.  Since each endpoint's SETUP may be sent before
 the peer's SETUP is received, the sender <span class="bcp14">MUST</span> handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
-peer's MAX_AUTH_TOKEN_CACHE_SIZE option in SETUP (or the default value of 0).<a href="#section-9.1.1.4-2" class="pilcrow">¶</a></p>
+peer's MAX_AUTH_TOKEN_CACHE_SIZE option in SETUP (or the default value of 0).<a href="#section-9.1.1.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="moqt-implementation">
@@ -4930,7 +5064,7 @@ error code (e.g., REQUEST_ERROR with error code GOING_AWAY).<a href="#section-9.
 (<a href="#session-termination-codes" class="auto internal xref">Section 14.2</a>) if it receives more than one GOAWAY on the
 control stream or on a single request stream.<a href="#section-9.2-6" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
-<figure id="figure-5">
+<figure id="figure-6">
           <div class="alignLeft art-text artwork" id="section-9.2-7.1">
 <pre>
 GOAWAY Message {
@@ -4942,7 +5076,7 @@ GOAWAY Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
+<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
 <a href="#name-moqt-goaway-message" class="selfRef">MOQT GOAWAY Message</a>
           </figcaption></figure>
 </div>
@@ -4985,7 +5119,7 @@ TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
 PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
 corresponding request type.<a href="#section-9.3-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_ok-message"></span><div id="moq-transport-request-ok">
-<figure id="figure-6">
+<figure id="figure-7">
           <div class="alignLeft art-text artwork" id="section-9.3-3.1">
 <pre>
 REQUEST_OK Message {
@@ -4997,7 +5131,7 @@ REQUEST_OK Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
+<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
 <a href="#name-moqt-request_ok-message" class="selfRef">MOQT REQUEST_OK Message</a>
           </figcaption></figure>
 </div>
@@ -5068,7 +5202,7 @@ namespace-scoped request <span class="bcp14">MUST</span> close the session with 
 <a href="#section-9.4.2" class="section-number selfRef">9.4.2. </a><a href="#name-request_error-message-forma" class="section-name selfRef">REQUEST_ERROR Message Format</a>
           </h4>
 <span id="name-moqt-request_error-message"></span><div id="moq-transport-request-error">
-<figure id="figure-7">
+<figure id="figure-8">
             <div class="alignLeft art-text artwork" id="section-9.4.2-1.1">
 <pre>
 REQUEST_ERROR Message {
@@ -5081,7 +5215,7 @@ REQUEST_ERROR Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
+<figcaption><a href="#figure-8" class="selfRef">Figure 8</a>:
 <a href="#name-moqt-request_error-message" class="selfRef">MOQT REQUEST_ERROR Message</a>
             </figcaption></figure>
 </div>
@@ -5134,7 +5268,7 @@ limited by the MAX_REQUEST_UPDATES Setup Option (<a href="#max-request-updates" 
 <p id="section-9.5-6">There is no mechanism to remove a parameter from a request.<a href="#section-9.5-6" class="pilcrow">¶</a></p>
 <p id="section-9.5-7">The format of REQUEST_UPDATE is as follows:<a href="#section-9.5-7" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_update-message"></span><div id="moq-transport-request-update-format">
-<figure id="figure-8">
+<figure id="figure-9">
           <div class="alignLeft art-text artwork" id="section-9.5-8.1">
 <pre>
 REQUEST_UPDATE Message {
@@ -5146,7 +5280,7 @@ REQUEST_UPDATE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-8" class="selfRef">Figure 8</a>:
+<figcaption><a href="#figure-9" class="selfRef">Figure 9</a>:
 <a href="#name-moqt-request_update-message" class="selfRef">MOQT REQUEST_UPDATE Message</a>
           </figcaption></figure>
 </div>
@@ -5228,7 +5362,7 @@ FILL_PARAMETERS parameter (see <a href="#fill-parameters" class="auto internal x
 fill range on a fill fetch stream (see <a href="#fill-semantics" class="auto internal xref">Section 3.1.4</a>).<a href="#section-9.6-1" class="pilcrow">¶</a></p>
 <p id="section-9.6-2">The format of SUBSCRIBE is as follows:<a href="#section-9.6-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-message"></span><div id="moq-transport-subscribe-format">
-<figure id="figure-9">
+<figure id="figure-10">
           <div class="alignLeft art-text artwork" id="section-9.6-3.1">
 <pre>
 SUBSCRIBE Message {
@@ -5243,7 +5377,7 @@ SUBSCRIBE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-9" class="selfRef">Figure 9</a>:
+<figcaption><a href="#figure-10" class="selfRef">Figure 10</a>:
 <a href="#name-moqt-subscribe-message" class="selfRef">MOQT SUBSCRIBE Message</a>
           </figcaption></figure>
 </div>
@@ -5275,7 +5409,7 @@ specified, and start sending objects.<a href="#section-9.6-5" class="pilcrow">¶
 <p id="section-9.7-1">A publisher sends a SUBSCRIBE_OK as the first response message on the
 bidi stream for successful subscriptions.<a href="#section-9.7-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_ok-message"></span><div id="moq-transport-subscribe-ok">
-<figure id="figure-10">
+<figure id="figure-11">
           <div class="alignLeft art-text artwork" id="section-9.7-2.1">
 <pre>
 SUBSCRIBE_OK Message {
@@ -5288,7 +5422,7 @@ SUBSCRIBE_OK Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-10" class="selfRef">Figure 10</a>:
+<figcaption><a href="#figure-11" class="selfRef">Figure 11</a>:
 <a href="#name-moqt-subscribe_ok-message" class="selfRef">MOQT SUBSCRIBE_OK Message</a>
           </figcaption></figure>
 </div>
@@ -5315,7 +5449,7 @@ SUBSCRIBE_OK Message {
 to initiate a subscription for a Track. The receiver verifies the publisher is
 authorized to publish this track.<a href="#section-9.8-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish-message"></span><div id="moq-transport-publish-format">
-<figure id="figure-11">
+<figure id="figure-12">
           <div class="alignLeft art-text artwork" id="section-9.8-2.1">
 <pre>
 PUBLISH Message {
@@ -5332,7 +5466,7 @@ PUBLISH Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-11" class="selfRef">Figure 11</a>:
+<figcaption><a href="#figure-12" class="selfRef">Figure 12</a>:
 <a href="#name-moqt-publish-message" class="selfRef">MOQT PUBLISH Message</a>
           </figcaption></figure>
 </div>
@@ -5411,7 +5545,7 @@ subscriber <span class="bcp14">SHOULD</span> send STOP_SENDING on all streams re
 when it deletes subscription state.<a href="#section-9.9-5" class="pilcrow">¶</a></p>
 <p id="section-9.9-6">The format of <code>PUBLISH_DONE</code> is as follows:<a href="#section-9.9-6" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_done-message"></span><div id="moq-transport-subscribe-fin-format">
-<figure id="figure-12">
+<figure id="figure-13">
           <div class="alignLeft art-text artwork" id="section-9.9-7.1">
 <pre>
 PUBLISH_DONE Message {
@@ -5423,7 +5557,7 @@ PUBLISH_DONE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-12" class="selfRef">Figure 12</a>:
+<figcaption><a href="#figure-13" class="selfRef">Figure 13</a>:
 <a href="#name-moqt-publish_done-message" class="selfRef">MOQT PUBLISH_DONE Message</a>
           </figcaption></figure>
 </div>
@@ -5483,7 +5617,7 @@ Track at which the change took effect.<a href="#section-9.10-5" class="pilcrow">
 <p id="section-9.10-6">This message is informative and no action is required by the recipient.<a href="#section-9.10-6" class="pilcrow">¶</a></p>
 <p id="section-9.10-7">The format of PUBLISH_STATE_NOTIFY is as follows:<a href="#section-9.10-7" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_state_notify-m"></span><div id="moq-transport-ps-notify-format">
-<figure id="figure-13">
+<figure id="figure-14">
           <div class="alignLeft art-text artwork" id="section-9.10-8.1">
 <pre>
 PUBLISH_STATE_NOTIFY Message {
@@ -5494,7 +5628,7 @@ PUBLISH_STATE_NOTIFY Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-13" class="selfRef">Figure 13</a>:
+<figcaption><a href="#figure-14" class="selfRef">Figure 14</a>:
 <a href="#name-moqt-publish_state_notify-m" class="selfRef">MOQT PUBLISH_STATE_NOTIFY Message</a>
           </figcaption></figure>
 </div>
@@ -5514,7 +5648,7 @@ PUBLISH_STATE_NOTIFY Message {
 publisher to request a range of already published objects within a track.<a href="#section-9.11-1" class="pilcrow">¶</a></p>
 <p id="section-9.11-2">The format of FETCH is as follows:<a href="#section-9.11-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-message"></span><div id="moq-transport-fetch-format">
-<figure id="figure-14">
+<figure id="figure-15">
           <div class="alignLeft art-text artwork" id="section-9.11-3.1">
 <pre>
 FETCH Message {
@@ -5529,7 +5663,7 @@ FETCH Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-14" class="selfRef">Figure 14</a>:
+<figcaption><a href="#figure-15" class="selfRef">Figure 15</a>:
 <a href="#name-moqt-fetch-message" class="selfRef">MOQT FETCH Message</a>
           </figcaption></figure>
 </div>
@@ -5601,7 +5735,7 @@ to a successful fetch. A publisher <span class="bcp14">MAY</span> send Objects i
 the FETCH_OK message is sent, but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the
 End Location is known.<a href="#section-9.12-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_ok-message"></span><div id="moq-transport-fetch-ok">
-<figure id="figure-15">
+<figure id="figure-16">
           <div class="alignLeft art-text artwork" id="section-9.12-2.1">
 <pre>
 FETCH_OK Message {
@@ -5615,7 +5749,7 @@ FETCH_OK Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-15" class="selfRef">Figure 15</a>:
+<figcaption><a href="#figure-16" class="selfRef">Figure 16</a>:
 <a href="#name-moqt-fetch_ok-message" class="selfRef">MOQT FETCH_OK Message</a>
           </figcaption></figure>
 </div>
@@ -5676,7 +5810,7 @@ new bidi stream to advertise that it has tracks available within a Track Namespa
 The receiver verifies the publisher is authorized to publish tracks under this
 namespace.<a href="#section-9.14-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_namespace-mess"></span><div id="moq-transport-pub-ns-format">
-<figure id="figure-16">
+<figure id="figure-17">
           <div class="alignLeft art-text artwork" id="section-9.14-2.1">
 <pre>
 PUBLISH_NAMESPACE Message {
@@ -5689,7 +5823,7 @@ PUBLISH_NAMESPACE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-16" class="selfRef">Figure 16</a>:
+<figcaption><a href="#figure-17" class="selfRef">Figure 17</a>:
 <a href="#name-moqt-publish_namespace-mess" class="selfRef">MOQT PUBLISH_NAMESPACE Message</a>
           </figcaption></figure>
 </div>
@@ -5716,7 +5850,7 @@ PUBLISH_NAMESPACE Message {
 bidirectional stream to a publisher to request the current set of matching
 published namespaces, as well as future updates to the set.<a href="#section-9.15-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_namespace-me"></span><div id="moq-transport-subscribe-ns-format">
-<figure id="figure-17">
+<figure id="figure-18">
           <div class="alignLeft art-text artwork" id="section-9.15-2.1">
 <pre>
 SUBSCRIBE_NAMESPACE Message {
@@ -5729,7 +5863,7 @@ SUBSCRIBE_NAMESPACE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-17" class="selfRef">Figure 17</a>:
+<figcaption><a href="#figure-18" class="selfRef">Figure 18</a>:
 <a href="#name-moqt-subscribe_namespace-me" class="selfRef">MOQT SUBSCRIBE_NAMESPACE Message</a>
           </figcaption></figure>
 </div>
@@ -5791,7 +5925,7 @@ All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.<a href="#section-9.16-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-namespace-message"></span><div id="moq-transport-ns-format">
-<figure id="figure-18">
+<figure id="figure-19">
           <div class="alignLeft art-text artwork" id="section-9.16-2.1">
 <pre>
 NAMESPACE Message {
@@ -5801,7 +5935,7 @@ NAMESPACE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-18" class="selfRef">Figure 18</a>:
+<figcaption><a href="#figure-19" class="selfRef">Figure 19</a>:
 <a href="#name-moqt-namespace-message" class="selfRef">MOQT NAMESPACE Message</a>
           </figcaption></figure>
 </div>
@@ -5825,7 +5959,7 @@ Namespace. All NAMESPACE_DONE messages are in response to a SUBSCRIBE_NAMESPACE,
 so only the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.<a href="#section-9.17-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-namespace_done-message"></span><div id="moq-transport-ns-done-format">
-<figure id="figure-19">
+<figure id="figure-20">
           <div class="alignLeft art-text artwork" id="section-9.17-2.1">
 <pre>
 NAMESPACE_DONE Message {
@@ -5835,7 +5969,7 @@ NAMESPACE_DONE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-19" class="selfRef">Figure 19</a>:
+<figcaption><a href="#figure-20" class="selfRef">Figure 20</a>:
 <a href="#name-moqt-namespace_done-message" class="selfRef">MOQT NAMESPACE_DONE Message</a>
           </figcaption></figure>
 </div>
@@ -5857,7 +5991,7 @@ namespace as defined in <a href="#track-name" class="auto internal xref">Section
 stream to a publisher to request PUBLISH messages for all tracks within matching
 namespaces, as well as future track publications within those namespaces.<a href="#section-9.18-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_tracks-messa"></span><div id="moq-transport-subscribe-tracks-format">
-<figure id="figure-20">
+<figure id="figure-21">
           <div class="alignLeft art-text artwork" id="section-9.18-2.1">
 <pre>
 SUBSCRIBE_TRACKS Message {
@@ -5870,7 +6004,7 @@ SUBSCRIBE_TRACKS Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-20" class="selfRef">Figure 20</a>:
+<figcaption><a href="#figure-21" class="selfRef">Figure 21</a>:
 <a href="#name-moqt-subscribe_tracks-messa" class="selfRef">MOQT SUBSCRIBE_TRACKS Message</a>
           </figcaption></figure>
 </div>
@@ -5935,7 +6069,7 @@ SUBSCRIBE_TRACKS's Track Namespace. All PUBLISH_SKIPPED messages are in
 response to a SUBSCRIBE_TRACKS, so only the namespace tuples after the
 'Track Namespace Prefix' are included in the 'Track Namespace Suffix'.<a href="#section-9.19-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_skipped-messag"></span><div id="moq-transport-publish-blocked-format">
-<figure id="figure-21">
+<figure id="figure-22">
           <div class="alignLeft art-text artwork" id="section-9.19-2.1">
 <pre>
 PUBLISH_SKIPPED Message {
@@ -5947,7 +6081,7 @@ PUBLISH_SKIPPED Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-21" class="selfRef">Figure 21</a>:
+<figcaption><a href="#figure-22" class="selfRef">Figure 22</a>:
 <a href="#name-moqt-publish_skipped-messag" class="selfRef">MOQT PUBLISH_SKIPPED Message</a>
           </figcaption></figure>
 </div>
@@ -5971,7 +6105,7 @@ namespace as defined in <a href="#track-name" class="auto internal xref">Section
 <p id="section-9.20-1">Some control messages include a field that encodes optional Message Parameters.
 Message Parameters are serialized as follows:<a href="#section-9.20-1" class="pilcrow">¶</a></p>
 <span id="name-message-parameter"></span><div id="moq-message-param">
-<figure id="figure-22">
+<figure id="figure-23">
           <div class="alignLeft art-text artwork" id="section-9.20-2.1">
 <pre>
 Message Parameter {
@@ -5980,7 +6114,7 @@ Message Parameter {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-22" class="selfRef">Figure 22</a>:
+<figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
 <a href="#name-message-parameter" class="selfRef">Message Parameter</a>
           </figcaption></figure>
 </div>
@@ -6064,134 +6198,8 @@ SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH 
 parameter conveys information to authorize the sender to perform the operation
 carrying the parameter. This Parameter <span class="bcp14">MUST NOT</span> be copied from a SUBSCRIBE_TRACKS
 to the resulting PUBLISH message Parameters.<a href="#section-9.20.3-1" class="pilcrow">¶</a></p>
-<p id="section-9.20.3-2">The parameter value is a Token structure containing an optional Session-specific
-Alias. The Alias allows the sender to reference a previously transmitted Token
-Type and Token Value in future messages. The Token structure is serialized as
-follows:<a href="#section-9.20.3-2" class="pilcrow">¶</a></p>
-<span id="name-token-structure"></span><div id="moq-token">
-<figure id="figure-23">
-            <div class="alignLeft art-text artwork" id="section-9.20.3-3.1">
-<pre>
-Token {
-  Alias Type (vi64),
-  [Token Alias (vi64),]
-  [Token Type (vi64),]
-  [Token Value (..)]
-}
-</pre>
-</div>
-<figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
-<a href="#name-token-structure" class="selfRef">Token structure</a>
-            </figcaption></figure>
-</div>
-<ul class="normal">
-<li class="normal" id="section-9.20.3-4.1">
-              <p id="section-9.20.3-4.1.1">Alias Type - an integer defining both the serialization and the processing
-behavior of the receiver. This Alias type has the following code points:<a href="#section-9.20.3-4.1.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<span class="break"></span><dl class="dlParallel" id="section-9.20.3-5">
-            <dt id="section-9.20.3-5.1">DELETE (0x0):</dt>
-            <dd style="margin-left: 1.5em" id="section-9.20.3-5.2">
-              <p id="section-9.20.3-5.2.1">There is an Alias but no Type or Value. This Alias and the Token Value it was
-previously associated with <span class="bcp14">MUST</span> be retired. Retiring removes them from the pool
-of actively registered tokens.<a href="#section-9.20.3-5.2.1" class="pilcrow">¶</a></p>
-</dd>
-            <dd class="break"></dd>
-<dt id="section-9.20.3-5.3">REGISTER (0x1):</dt>
-            <dd style="margin-left: 1.5em" id="section-9.20.3-5.4">
-              <p id="section-9.20.3-5.4.1">There is an Alias, a Type and a Value. This Alias <span class="bcp14">MUST</span> be associated with the
-Token Value for the duration of the Session or it is deleted. This action is
-termed "registering" the Token.<a href="#section-9.20.3-5.4.1" class="pilcrow">¶</a></p>
-</dd>
-            <dd class="break"></dd>
-<dt id="section-9.20.3-5.5">USE_ALIAS (0x2):</dt>
-            <dd style="margin-left: 1.5em" id="section-9.20.3-5.6">
-              <p id="section-9.20.3-5.6.1">There is an Alias but no Type or Value. Use the Token Type and Value
-previously registered with this Alias.<a href="#section-9.20.3-5.6.1" class="pilcrow">¶</a></p>
-</dd>
-            <dd class="break"></dd>
-<dt id="section-9.20.3-5.7">USE_VALUE (0x3):</dt>
-            <dd style="margin-left: 1.5em" id="section-9.20.3-5.8">
-              <p id="section-9.20.3-5.8.1">There is no Alias and there is a Type and Value. Use the Token Value as
-provided. The Token Value <span class="bcp14">MAY</span> be discarded after processing.<a href="#section-9.20.3-5.8.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-</dl>
-<p id="section-9.20.3-6">If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
-message, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.3-6" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-9.20.3-7.1">
-              <p id="section-9.20.3-7.1.1">Token Alias - a Session-specific integer identifier that references a Token
-Type and Token Value. There are separate Alias spaces for the client and server (e.g.: they
-can each register Alias=1). Once a Token Alias has been registered, it cannot
-be re-registered by the same endpoint in the Session without first being
-deleted. Use of the Token Alias is optional.<a href="#section-9.20.3-7.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.20.3-7.2">
-              <p id="section-9.20.3-7.2.1">Token Type - a numeric identifier for the type of Token payload being
-transmitted. This type is defined by the IANA table "MOQT Auth Token Type" (see
-<a href="#iana" class="auto internal xref">Section 16</a>). Type 0 is reserved to indicate that the type is not defined in the
-table and is negotiated out-of-band between client and receiver.<a href="#section-9.20.3-7.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.20.3-7.3">
-              <p id="section-9.20.3-7.3.1">Token Value - the payload of the Token. The contents and serialization of this
-payload are defined by the Token Type.<a href="#section-9.20.3-7.3.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-9.20.3-8">If the Token structure cannot be decoded, the receiver <span class="bcp14">MUST</span> close the Session
-with <code>KEY_VALUE_FORMATTING_ERROR</code>.  The receiver of a message attempting to
-register an Alias which is already registered <span class="bcp14">MUST</span> close the Session with
-<code>DUPLICATE_AUTH_TOKEN_ALIAS</code>. The receiver of a message referencing an Alias
-that is not currently registered <span class="bcp14">MUST</span> reject the message with
-<code>UNKNOWN_AUTH_TOKEN_ALIAS</code>.<a href="#section-9.20.3-8" class="pilcrow">¶</a></p>
-<p id="section-9.20.3-9">The receiver of a message containing a well-formed Token structure but otherwise
-invalid AUTHORIZATION TOKEN parameter <span class="bcp14">MUST</span> reject that message with an
-<code>MALFORMED_AUTH_TOKEN</code> error.<a href="#section-9.20.3-9" class="pilcrow">¶</a></p>
-<p id="section-9.20.3-10">The receiver of a message carrying an AUTHORIZATION TOKEN with Alias Type
-REGISTER that does not result in a Session error <span class="bcp14">MUST</span> register the Token Alias
-in the token cache, even if the message fails for other reasons, including
-<code>Unauthorized</code>.  This allows senders to pipeline messages that refer to
-previously registered tokens without potentially terminating the entire Session.
-A receiver <span class="bcp14">MAY</span> store an error code (eg: <code>UNAUTHORIZED</code> or
-<code>MALFORMED_AUTH_TOKEN</code>) in place of the Token Type and Token Alias if any future
-message referencing the Token Alias will result in that error. However, it is
-important to not store an error code for a token that might be valid in the
-future or due to some other property becoming fulfilled which currently
-isn't. The size of a registered cache entry includes the length of the Token
-Value, regardless of whether it is stored.<a href="#section-9.20.3-10" class="pilcrow">¶</a></p>
-<p id="section-9.20.3-11">If a receiver detects that an authorization token has expired, it <span class="bcp14">MUST</span> retain
-the registered Alias until it is deleted by the sender, though it <span class="bcp14">MAY</span> discard
-other state associated with the token that is no longer needed.  Expiration does
-not affect the size occupied by a token in the token cache.  Any message that
-references an expired token with Alias Type USE_ALIAS fails with <code>EXPIRED_AUTH_TOKEN</code>.<a href="#section-9.20.3-11" class="pilcrow">¶</a></p>
-<p id="section-9.20.3-12">Using an Alias to refer to a previously registered Token Type and Value is for
-efficiency only and has the same effect as if the Token Type and Value was
-included directly.  Retiring an Alias that was previously used to authorize a
-message has no retroactive effect on the original authorization, nor does it
-prevent that same Token Type and Value from being re-registered.<a href="#section-9.20.3-12" class="pilcrow">¶</a></p>
-<p id="section-9.20.3-13">Senders of tokens <span class="bcp14">SHOULD</span> only register tokens which they intend to re-use during
-the Session and <span class="bcp14">SHOULD</span> retire previously registered tokens once their utility
-has passed.<a href="#section-9.20.3-13" class="pilcrow">¶</a></p>
-<p id="section-9.20.3-14">By registering a Token, the sender is requiring the receiver to store the Token
-Alias and Token Value until they are deleted, or the Session ends. The receiver
-can protect its resources by sending a Setup Option defining the
-MAX_AUTH_TOKEN_CACHE_SIZE limit (see <a href="#max-auth-token-cache-size" class="auto internal xref">Section 9.1.1.3</a>) it is
-willing to accept. If a registration is attempted which would cause this limit
-to be exceeded, the receiver <span class="bcp14">MUST</span> terminate the Session with a
-<code>AUTH_TOKEN_CACHE_OVERFLOW</code> error.<a href="#section-9.20.3-14" class="pilcrow">¶</a></p>
-<p id="section-9.20.3-15">The AUTHORIZATION TOKEN parameter <span class="bcp14">MAY</span> be repeated within a message as long as
-the combination of Token Type and Token Value are unique after resolving any
-aliases.<a href="#section-9.20.3-15" class="pilcrow">¶</a></p>
-<p id="section-9.20.3-16">Messages carrying the AUTHORIZATION TOKEN parameter can appear on different
-control streams. Because stream processing order can be different than send order, the
-receiver and sender can have inconsistent views of the token cache state.<a href="#section-9.20.3-16" class="pilcrow">¶</a></p>
-<p id="section-9.20.3-17">Senders <span class="bcp14">MUST NOT</span> send USE_ALIAS on one control stream for an alias registered on a
-different stream until the sender has received a response to the message
-containing the REGISTER. Senders <span class="bcp14">MAY</span> use USE_ALIAS on the same control stream as the
-REGISTER without waiting for a response.<a href="#section-9.20.3-17" class="pilcrow">¶</a></p>
-<p id="section-9.20.3-18">Senders <span class="bcp14">MUST NOT</span> send DELETE for an alias while any message using USE_ALIAS with
-that alias has not received a response.<a href="#section-9.20.3-18" class="pilcrow">¶</a></p>
+<p id="section-9.20.3-2">The parameter value is a Token structure, whose wire format and semantics are
+defined in <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>.<a href="#section-9.20.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subgroup-delivery-timeout">
@@ -8240,24 +8248,24 @@ registered Authorization tokens has been exceeded.<a href="#section-14.2-2.26.1"
 <dt id="section-14.2-2.27">DUPLICATE_AUTH_TOKEN_ALIAS (0x14):</dt>
           <dd style="margin-left: 1.5em" id="section-14.2-2.28">
             <p id="section-14.2-2.28.1">Authorization Token attempted to register an Alias that was in use (see
-<a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>).<a href="#section-14.2-2.28.1" class="pilcrow">¶</a></p>
+<a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>).<a href="#section-14.2-2.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-14.2-2.29">MALFORMED_AUTH_TOKEN (0x16):</dt>
           <dd style="margin-left: 1.5em" id="section-14.2-2.30">
             <p id="section-14.2-2.30.1">Invalid Auth Token serialization during registration (see
-<a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>).<a href="#section-14.2-2.30.1" class="pilcrow">¶</a></p>
+<a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>).<a href="#section-14.2-2.30.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-14.2-2.31">UNKNOWN_AUTH_TOKEN_ALIAS (0x17):</dt>
           <dd style="margin-left: 1.5em" id="section-14.2-2.32">
             <p id="section-14.2-2.32.1">No registered token found for the provided Alias (see
-<a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>).<a href="#section-14.2-2.32.1" class="pilcrow">¶</a></p>
+<a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>).<a href="#section-14.2-2.32.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-14.2-2.33">EXPIRED_AUTH_TOKEN (0x18):</dt>
           <dd style="margin-left: 1.5em" id="section-14.2-2.34">
-            <p id="section-14.2-2.34.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>).<a href="#section-14.2-2.34.1" class="pilcrow">¶</a></p>
+            <p id="section-14.2-2.34.1">Authorization token has expired (<a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>).<a href="#section-14.2-2.34.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-14.2-2.35">INVALID_AUTHORITY (0x19):</dt>
@@ -8317,12 +8325,12 @@ within the timeout.<a href="#section-14.3-2.6.1" class="pilcrow">¶</a></p>
 <dt id="section-14.3-2.9">MALFORMED_AUTH_TOKEN:</dt>
           <dd style="margin-left: 1.5em" id="section-14.3-2.10">
             <p id="section-14.3-2.10.1">Invalid Auth Token serialization during registration (see
-<a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>).<a href="#section-14.3-2.10.1" class="pilcrow">¶</a></p>
+<a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>).<a href="#section-14.3-2.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-14.3-2.11">EXPIRED_AUTH_TOKEN:</dt>
           <dd style="margin-left: 1.5em" id="section-14.3-2.12">
-            <p id="section-14.3-2.12.1">Authorization token has expired (<a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>).<a href="#section-14.3-2.12.1" class="pilcrow">¶</a></p>
+            <p id="section-14.3-2.12.1">Authorization token has expired (<a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>).<a href="#section-14.3-2.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-14.3-2.13">GOING_AWAY:</dt>
@@ -8783,28 +8791,28 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
               <td class="text-right" rowspan="1" colspan="1">0x0</td>
               <td class="text-left" rowspan="1" colspan="1">DELETE</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>
+                <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>
 </td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x1</td>
               <td class="text-left" rowspan="1" colspan="1">REGISTER</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>
+                <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>
 </td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x2</td>
               <td class="text-left" rowspan="1" colspan="1">USE_ALIAS</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>
+                <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>
 </td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x3</td>
               <td class="text-left" rowspan="1" colspan="1">USE_VALUE</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>
+                <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>
 </td>
             </tr>
           </tbody>
@@ -8830,7 +8838,7 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
               <td class="text-right" rowspan="1" colspan="1">0x0</td>
               <td class="text-left" rowspan="1" colspan="1">Reserved</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#authorization-token" class="auto internal xref">Section 9.20.3</a>
+                <a href="#auth-token-compression" class="auto internal xref">Section 8.7</a>
 </td>
             </tr>
             <tr>
