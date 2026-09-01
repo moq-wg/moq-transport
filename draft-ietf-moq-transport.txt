@@ -3378,34 +3378,7 @@ Table of Contents
    *  Error Reason: Provides the reason for subscription error.  See
       Section 8.5.
 
-   The application SHOULD use a relevant status code in PUBLISH_DONE, as
-   defined below:
-
-   INTERNAL_ERROR (0x0):  An implementation specific or generic error
-      occurred.
-
-   UNAUTHORIZED (0x1):  The subscriber is no longer authorized to
-      subscribe to the given track.
-
-   TRACK_ENDED (0x2):  The track is no longer being published.
-
-   GOING_AWAY (0x4):  The subscriber or publisher issued a GOAWAY
-      message.
-
-   TOO_FAR_BEHIND (0x5):  The publisher's queue of objects to be sent to
-      the given subscriber exceeds its implementation defined limit.
-
-   EXPIRED (0x6):  The publisher reached the timeout specified in
-      SUBSCRIBE_OK.
-
-   MALFORMED_TRACK (0x12):  A relay publisher detected that the track
-      was malformed (see Section 14.1).
-
-   UPDATE_FAILED (0x8):  REQUEST_UPDATE failed on this subscription (see
-      Section 9.5).
-
-   EXCESSIVE_LOAD (0x9):  The publisher is overloaded and is terminating
-      the subscription.
+   The status codes used in PUBLISH_DONE are defined in Section 14.4.
 
 9.10.  PUBLISH_STATE_NOTIFY
 
@@ -5837,6 +5810,35 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 14.4.  Publish Done Codes
 
+   The application SHOULD use a relevant status code in PUBLISH_DONE
+   (Section 9.9), as defined below:
+
+   INTERNAL_ERROR (0x0):  An implementation specific or generic error
+      occurred.
+
+   UNAUTHORIZED (0x1):  The subscriber is no longer authorized to
+      subscribe to the given track.
+
+   TRACK_ENDED (0x2):  The track is no longer being published.
+
+   GOING_AWAY (0x4):  The subscriber or publisher issued a GOAWAY
+      message.
+
+   TOO_FAR_BEHIND (0x5):  The publisher's queue of objects to be sent to
+      the given subscriber exceeds its implementation defined limit.
+
+   EXPIRED (0x6):  The publisher reached the timeout specified in
+      SUBSCRIBE_OK.
+
+   MALFORMED_TRACK (0x12):  A relay publisher detected that the track
+      was malformed (see Section 14.1).
+
+   UPDATE_FAILED (0x8):  REQUEST_UPDATE failed on this subscription (see
+      Section 9.5).
+
+   EXCESSIVE_LOAD (0x9):  The publisher is overloaded and is terminating
+      the subscription.
+
 14.5.  Stream Reset Error Codes
 
    The application SHOULD use a relevant error code when resetting or
@@ -6363,23 +6365,23 @@ EXT 1 and EXT N can be modified or removed by Relays
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
         +=======================+=================+===============+
-        | INTERNAL_ERROR        |       0x0       | Section 9.9   |
+        | INTERNAL_ERROR        |       0x0       | Section 14.4  |
         +-----------------------+-----------------+---------------+
-        | UNAUTHORIZED          |       0x1       | Section 9.9   |
+        | UNAUTHORIZED          |       0x1       | Section 14.4  |
         +-----------------------+-----------------+---------------+
-        | TRACK_ENDED           |       0x2       | Section 9.9   |
+        | TRACK_ENDED           |       0x2       | Section 14.4  |
         +-----------------------+-----------------+---------------+
-        | GOING_AWAY            |       0x4       | Section 9.9   |
+        | GOING_AWAY            |       0x4       | Section 14.4  |
         +-----------------------+-----------------+---------------+
-        | TOO_FAR_BEHIND        |       0x5       | Section 9.9   |
+        | TOO_FAR_BEHIND        |       0x5       | Section 14.4  |
         +-----------------------+-----------------+---------------+
-        | EXPIRED               |       0x6       | Section 9.9   |
+        | EXPIRED               |       0x6       | Section 14.4  |
         +-----------------------+-----------------+---------------+
-        | UPDATE_FAILED         |       0x8       | Section 9.9   |
+        | UPDATE_FAILED         |       0x8       | Section 14.4  |
         +-----------------------+-----------------+---------------+
-        | EXCESSIVE_LOAD        |       0x9       | Section 9.9   |
+        | EXCESSIVE_LOAD        |       0x9       | Section 14.4  |
         +-----------------------+-----------------+---------------+
-        | MALFORMED_TRACK       |       0x12      | Section 9.9   |
+        | MALFORMED_TRACK       |       0x12      | Section 14.4  |
         +-----------------------+-----------------+---------------+
         | Reserved for greasing | 0x7f * N + 0x9D | Section 15    |
         +-----------------------+-----------------+---------------+
