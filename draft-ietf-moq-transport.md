@@ -1870,53 +1870,6 @@ it expects more OBJECTs to be delivered. The sender closes the session with a
 `GOAWAY_TIMEOUT` if the peer doesn't close the session within the
 indicated Timeout.
 
-## Congestion Control
-
-MOQT does not specify a congestion controller, but there are important attributes
-to consider when selecting a congestion controller for use with an application
-built on top of MOQT.
-
-### Bufferbloat
-
-Traditional AIMD congestion controllers (ex. CUBIC {{?RFC9438}} and Reno {{?RFC6582}})
-are prone to Bufferbloat. Bufferbloat occurs when elements along the path build up
-a substantial queue of packets, commonly more than doubling the round trip time.
-These queued packets cause head-of-line blocking and latency, even when there is
-no packet loss.
-
-### Application-Limited
-
-The average bitrate for latency sensitive content needs to be less than the available
-bandwidth, otherwise data will be queued and/or dropped. As such,
-many MOQT applications will typically be limited by the available data to send, and
-not the congestion controller. Many congestion control algorithms
-only increase the congestion window or bandwidth estimate if fully utilized. This
-combination can lead to underestimating the available network bandwidth. As a result,
-applications might need to periodically ensure the congestion controller is not
-app-limited for at least a full round trip to ensure the available bandwidth can be
-measured.
-
-Some applications might have APIs to allow sending duplicate data or forward error
-correction to probe for more bandwidth while also limiting the impact of probing
-in case it causes packet loss. Subscribers wanting to switch to an alternate
-representation of a Track can subscribe to it at a lower priority, or subscribe
-to additional Tracks at the lowest (255) priority to fill the congestion window
-during probing intervals while minimizing the impact on higher priority
-media. Publishers can send padding ({{padding}}) to probe for additional
-bandwidth without requiring additional subscriptions.
-Network-assisted bandwidth estimation mechanisms such as SCONE
-{{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
-which subscribers can use to inform track selection decisions and potentially avoid
-unnecessary probing.
-
-### Consistent Throughput
-
-Congestion control algorithms are commonly optimized for throughput, not consistency.
-For example, BBR's PROBE_RTT state halves the sending rate for more than a round trip
-in order to obtain an accurate minimum RTT. Similarly, Reno halves its congestion
-window upon detecting loss.  In both cases, the large reduction in sending rate might
-cause issues with latency sensitive applications.
-
 # Relays {#relays-moq}
 
 Relays are leveraged to enable distribution scale in the MOQT
@@ -4985,6 +4938,55 @@ SUBGROUP_HEADER {
 }
 
 ~~~
+
+# Transport Considerations
+
+## Congestion Control Considerations
+
+MOQT does not specify a congestion controller, but there are important attributes
+to consider when selecting a congestion controller for use with an application
+built on top of MOQT.
+
+### Bufferbloat
+
+Traditional AIMD congestion controllers (ex. CUBIC {{?RFC9438}} and Reno {{?RFC6582}})
+are prone to Bufferbloat. Bufferbloat occurs when elements along the path build up
+a substantial queue of packets, commonly more than doubling the round trip time.
+These queued packets cause head-of-line blocking and latency, even when there is
+no packet loss.
+
+### Application-Limited
+
+The average bitrate for latency sensitive content needs to be less than the available
+bandwidth, otherwise data will be queued and/or dropped. As such,
+many MOQT applications will typically be limited by the available data to send, and
+not the congestion controller. Many congestion control algorithms
+only increase the congestion window or bandwidth estimate if fully utilized. This
+combination can lead to underestimating the available network bandwidth. As a result,
+applications might need to periodically ensure the congestion controller is not
+app-limited for at least a full round trip to ensure the available bandwidth can be
+measured.
+
+Some applications might have APIs to allow sending duplicate data or forward error
+correction to probe for more bandwidth while also limiting the impact of probing
+in case it causes packet loss. Subscribers wanting to switch to an alternate
+representation of a Track can subscribe to it at a lower priority, or subscribe
+to additional Tracks at the lowest (255) priority to fill the congestion window
+during probing intervals while minimizing the impact on higher priority
+media. Publishers can send padding ({{padding}}) to probe for additional
+bandwidth without requiring additional subscriptions.
+Network-assisted bandwidth estimation mechanisms such as SCONE
+{{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
+which subscribers can use to inform track selection decisions and potentially avoid
+unnecessary probing.
+
+### Consistent Throughput
+
+Congestion control algorithms are commonly optimized for throughput, not consistency.
+For example, BBR's PROBE_RTT state halves the sending rate for more than a round trip
+in order to obtain an accurate minimum RTT. Similarly, Reno halves its congestion
+window upon detecting loss.  In both cases, the large reduction in sending rate might
+cause issues with latency sensitive applications.
 
 # Security Considerations {#security}
 
