@@ -7009,9 +7009,9 @@ the datagram.  See <a href="#object-datagram" class="auto internal xref">Section
 numeric identifier, rather than the Full Track Name.  This numeric identifier
 is either the Track Alias or the Request ID (<a href="#request-id" class="auto internal xref">Section 10.1</a>).<a href="#section-11.1-1" class="pilcrow">¶</a></p>
 <p id="section-11.1-2">If the publisher provides the TRACK_ALIAS parameter (<a href="#track-alias-param" class="auto internal xref">Section 10.2.22</a>) in
-SUBSCRIBE_OK, or the Track Alias field in PUBLISH, that value can be the Track Alias.
-Otherwise, the numeric identifier is the Request ID of the corresponding SUBSCRIBE
-or PUBLISH message.<a href="#section-11.1-2" class="pilcrow">¶</a></p>
+SUBSCRIBE_OK, or the Track Alias field in PUBLISH, that can used as the ID when
+sending Objects. Otherwise, only the Request ID of the corresponding SUBSCRIBE
+can be used when sending Objects.<a href="#section-11.1-2" class="pilcrow">¶</a></p>
 <p id="section-11.1-3">A Track Alias <span class="bcp14">MUST</span> have the parity (least significant bit) of the Publisher
 (i.e., the sender of the PUBLISH or SUBSCRIBE_OK). Because a Request ID always
 has the parity of the Subscriber, this ensures the numeric identifier is
