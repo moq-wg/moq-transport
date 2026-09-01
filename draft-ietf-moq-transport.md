@@ -2313,7 +2313,126 @@ example.2enet-team2-project_x--report
   Track name: report
 ~~~
 
-## Authorization Token Compression
+## Authorization Token Compression {#auth-token-compression}
+
+Authorization tokens are carried in the AUTHORIZATION TOKEN message parameter
+(see {{authorization-token}}) and the AUTHORIZATION TOKEN Setup Option (see
+{{setup-auth-token}}).  Both use the wire format and semantics defined in this
+section.
+
+The value is a Token structure containing an optional Session-specific
+Alias. The Alias allows the sender to reference a previously transmitted Token
+Type and Token Value in future messages. The Token structure is serialized as
+follows:
+
+~~~
+Token {
+  Alias Type (vi64),
+  [Token Alias (vi64),]
+  [Token Type (vi64),]
+  [Token Value (..)]
+}
+~~~
+{: #moq-token format title="Token structure"}
+
+* Alias Type - an integer defining both the serialization and the processing
+  behavior of the receiver. This Alias type has the following code points:
+
+DELETE (0x0):
+: There is an Alias but no Type or Value. This Alias and the Token Value it was
+previously associated with MUST be retired. Retiring removes them from the pool
+of actively registered tokens.
+
+REGISTER (0x1):
+: There is an Alias, a Type and a Value. This Alias MUST be associated with the
+Token Value for the duration of the Session or it is deleted. This action is
+termed "registering" the Token.
+
+USE_ALIAS (0x2):
+: There is an Alias but no Type or Value. Use the Token Type and Value
+previously registered with this Alias.
+
+USE_VALUE (0x3):
+: There is no Alias and there is a Type and Value. Use the Token Value as
+provided. The Token Value MAY be discarded after processing.
+
+* Token Alias - a Session-specific integer identifier that references a Token
+  Type and Token Value. There are separate Alias spaces for the client and server (e.g.: they
+  can each register Alias=1). Once a Token Alias has been registered, it cannot
+  be re-registered by the same endpoint in the Session without first being
+  deleted. Use of the Token Alias is optional.
+
+* Token Type - a numeric identifier for the type of Token payload being
+  transmitted. This type is defined by the IANA table "MOQT Auth Token Type" (see
+  {{iana}}). Type 0 is reserved to indicate that the type is not defined in the
+  table and is negotiated out-of-band between client and receiver.
+
+* Token Value - the payload of the Token. The contents and serialization of this
+  payload are defined by the Token Type.
+
+If the Token structure cannot be decoded, the receiver MUST close the Session
+with `KEY_VALUE_FORMATTING_ERROR`.  The receiver of a message attempting to
+register an Alias which is already registered MUST close the Session with
+`DUPLICATE_AUTH_TOKEN_ALIAS`. The receiver of a message referencing an Alias
+that is not currently registered MUST reject the message with
+`UNKNOWN_AUTH_TOKEN_ALIAS`.
+
+The receiver of a message containing a well-formed Token structure that is
+otherwise invalid MUST reject that message with an `MALFORMED_AUTH_TOKEN`
+error.
+
+The receiver of a message carrying an Authorization Token with Alias Type
+REGISTER that does not result in a Session error MUST register the Token Alias
+in the token cache, even if the message fails for other reasons, including
+`Unauthorized`.  This allows senders to pipeline messages that refer to
+previously registered tokens without potentially terminating the entire Session.
+A receiver MAY store an error code (eg: `UNAUTHORIZED` or
+`MALFORMED_AUTH_TOKEN`) in place of the Token Type and Token Alias if any future
+message referencing the Token Alias will result in that error. However, it is
+important to not store an error code for a token that might be valid in the
+future or due to some other property becoming fulfilled which currently
+isn't. The size of a registered cache entry includes the length of the Token
+Value, regardless of whether it is stored.
+
+If a receiver detects that an authorization token has expired, it MUST retain
+the registered Alias until it is deleted by the sender, though it MAY discard
+other state associated with the token that is no longer needed.  Expiration does
+not affect the size occupied by a token in the token cache.  Any message that
+references an expired token with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_TOKEN`.
+
+Using an Alias to refer to a previously registered Token Type and Value is for
+efficiency only and has the same effect as if the Token Type and Value was
+included directly.  Retiring an Alias that was previously used to authorize a
+message has no retroactive effect on the original authorization, nor does it
+prevent that same Token Type and Value from being re-registered.
+
+Senders of tokens SHOULD only register tokens which they intend to re-use during
+the Session and SHOULD retire previously registered tokens once their utility
+has passed.
+
+By registering a Token, the sender is requiring the receiver to store the Token
+Alias and Token Value until they are deleted, or the Session ends. The receiver
+can protect its resources by sending a Setup Option defining the
+MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
+willing to accept. If a registration is attempted which would cause this limit
+to be exceeded, the receiver MUST terminate the Session with a
+`AUTH_TOKEN_CACHE_OVERFLOW` error.
+
+An Authorization Token MAY be repeated within a message as long as the
+combination of Token Type and Token Value are unique after resolving any
+aliases.
+
+Messages carrying an Authorization Token can appear on different
+control streams. Because stream processing order can be different than send order, the
+receiver and sender can have inconsistent views of the token cache state.
+
+Senders MUST NOT send USE_ALIAS on one control stream for an alias registered on a
+different stream until the sender has received a response to the message
+containing the REGISTER. Senders MAY use USE_ALIAS on the same control stream as the
+REGISTER without waiting for a response.
+
+Senders MUST NOT send DELETE for an alias while any message using USE_ALIAS with
+that alias has not received a response.
 
 # Control Messages {#message}
 
@@ -2485,6 +2604,12 @@ The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is functionally
 equivalent to the AUTHORIZATION TOKEN message parameter, see {{authorization-token}}.
 The endpoint can specify one or more tokens in SETUP
 that the peer can use to authorize MOQT session establishment.
+
+The option value is a Token structure, whose wire format and semantics are
+defined in {{auth-token-compression}}.
+
+If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
+message, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
@@ -3465,122 +3590,8 @@ parameter conveys information to authorize the sender to perform the operation
 carrying the parameter. This Parameter MUST NOT be copied from a SUBSCRIBE_TRACKS
 to the resulting PUBLISH message Parameters.
 
-The parameter value is a Token structure containing an optional Session-specific
-Alias. The Alias allows the sender to reference a previously transmitted Token
-Type and Token Value in future messages. The Token structure is serialized as
-follows:
-
-~~~
-Token {
-  Alias Type (vi64),
-  [Token Alias (vi64),]
-  [Token Type (vi64),]
-  [Token Value (..)]
-}
-~~~
-{: #moq-token format title="Token structure"}
-
-* Alias Type - an integer defining both the serialization and the processing
-  behavior of the receiver. This Alias type has the following code points:
-
-DELETE (0x0):
-: There is an Alias but no Type or Value. This Alias and the Token Value it was
-previously associated with MUST be retired. Retiring removes them from the pool
-of actively registered tokens.
-
-REGISTER (0x1):
-: There is an Alias, a Type and a Value. This Alias MUST be associated with the
-Token Value for the duration of the Session or it is deleted. This action is
-termed "registering" the Token.
-
-USE_ALIAS (0x2):
-: There is an Alias but no Type or Value. Use the Token Type and Value
-previously registered with this Alias.
-
-USE_VALUE (0x3):
-: There is no Alias and there is a Type and Value. Use the Token Value as
-provided. The Token Value MAY be discarded after processing.
-
-If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
-message, it MUST close the session with a `PROTOCOL_VIOLATION`.
-
-* Token Alias - a Session-specific integer identifier that references a Token
-  Type and Token Value. There are separate Alias spaces for the client and server (e.g.: they
-  can each register Alias=1). Once a Token Alias has been registered, it cannot
-  be re-registered by the same endpoint in the Session without first being
-  deleted. Use of the Token Alias is optional.
-
-* Token Type - a numeric identifier for the type of Token payload being
-  transmitted. This type is defined by the IANA table "MOQT Auth Token Type" (see
-  {{iana}}). Type 0 is reserved to indicate that the type is not defined in the
-  table and is negotiated out-of-band between client and receiver.
-
-* Token Value - the payload of the Token. The contents and serialization of this
-  payload are defined by the Token Type.
-
-If the Token structure cannot be decoded, the receiver MUST close the Session
-with `KEY_VALUE_FORMATTING_ERROR`.  The receiver of a message attempting to
-register an Alias which is already registered MUST close the Session with
-`DUPLICATE_AUTH_TOKEN_ALIAS`. The receiver of a message referencing an Alias
-that is not currently registered MUST reject the message with
-`UNKNOWN_AUTH_TOKEN_ALIAS`.
-
-The receiver of a message containing a well-formed Token structure but otherwise
-invalid AUTHORIZATION TOKEN parameter MUST reject that message with an
-`MALFORMED_AUTH_TOKEN` error.
-
-The receiver of a message carrying an AUTHORIZATION TOKEN with Alias Type
-REGISTER that does not result in a Session error MUST register the Token Alias
-in the token cache, even if the message fails for other reasons, including
-`Unauthorized`.  This allows senders to pipeline messages that refer to
-previously registered tokens without potentially terminating the entire Session.
-A receiver MAY store an error code (eg: `UNAUTHORIZED` or
-`MALFORMED_AUTH_TOKEN`) in place of the Token Type and Token Alias if any future
-message referencing the Token Alias will result in that error. However, it is
-important to not store an error code for a token that might be valid in the
-future or due to some other property becoming fulfilled which currently
-isn't. The size of a registered cache entry includes the length of the Token
-Value, regardless of whether it is stored.
-
-If a receiver detects that an authorization token has expired, it MUST retain
-the registered Alias until it is deleted by the sender, though it MAY discard
-other state associated with the token that is no longer needed.  Expiration does
-not affect the size occupied by a token in the token cache.  Any message that
-references an expired token with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_TOKEN`.
-
-Using an Alias to refer to a previously registered Token Type and Value is for
-efficiency only and has the same effect as if the Token Type and Value was
-included directly.  Retiring an Alias that was previously used to authorize a
-message has no retroactive effect on the original authorization, nor does it
-prevent that same Token Type and Value from being re-registered.
-
-Senders of tokens SHOULD only register tokens which they intend to re-use during
-the Session and SHOULD retire previously registered tokens once their utility
-has passed.
-
-By registering a Token, the sender is requiring the receiver to store the Token
-Alias and Token Value until they are deleted, or the Session ends. The receiver
-can protect its resources by sending a Setup Option defining the
-MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
-willing to accept. If a registration is attempted which would cause this limit
-to be exceeded, the receiver MUST terminate the Session with a
-`AUTH_TOKEN_CACHE_OVERFLOW` error.
-
-The AUTHORIZATION TOKEN parameter MAY be repeated within a message as long as
-the combination of Token Type and Token Value are unique after resolving any
-aliases.
-
-Messages carrying the AUTHORIZATION TOKEN parameter can appear on different
-control streams. Because stream processing order can be different than send order, the
-receiver and sender can have inconsistent views of the token cache state.
-
-Senders MUST NOT send USE_ALIAS on one control stream for an alias registered on a
-different stream until the sender has received a response to the message
-containing the REGISTER. Senders MAY use USE_ALIAS on the same control stream as the
-REGISTER without waiting for a response.
-
-Senders MUST NOT send DELETE for an alias while any message using USE_ALIAS with
-that alias has not received a response.
+The parameter value is a Token structure, whose wire format and semantics are
+defined in {{auth-token-compression}}.
 
 ### SUBGROUP_DELIVERY_TIMEOUT Parameter {#subgroup-delivery-timeout}
 
@@ -5142,18 +5153,18 @@ AUTH_TOKEN_CACHE_OVERFLOW (0x13):
 
 DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
 : Authorization Token attempted to register an Alias that was in use (see
-  {{authorization-token}}).
+  {{auth-token-compression}}).
 
 MALFORMED_AUTH_TOKEN (0x16):
 : Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
+  {{auth-token-compression}}).
 
 UNKNOWN_AUTH_TOKEN_ALIAS (0x17):
 : No registered token found for the provided Alias (see
-  {{authorization-token}}).
+  {{auth-token-compression}}).
 
 EXPIRED_AUTH_TOKEN (0x18):
-: Authorization token has expired ({{authorization-token}}).
+: Authorization token has expired ({{auth-token-compression}}).
 
 INVALID_AUTHORITY (0x19):
 : The specified AUTHORITY does not correspond to this server or cannot be
@@ -5191,10 +5202,10 @@ NOT_SUPPORTED:
 
 MALFORMED_AUTH_TOKEN:
 : Invalid Auth Token serialization during registration (see
-  {{authorization-token}}).
+  {{auth-token-compression}}).
 
 EXPIRED_AUTH_TOKEN:
-: Authorization token has expired ({{authorization-token}}).
+: Authorization token has expired ({{auth-token-compression}}).
 
 GOING_AWAY:
 : The endpoint has received a GOAWAY and MAY reject new requests.
@@ -5481,16 +5492,16 @@ Setup Options SHOULD request a provisional registration.
 
 | Code | Name       | Specification
 |-----:|:-----------|------------------------|
-| 0x0  | DELETE     | {{authorization-token}}
-| 0x1  | REGISTER   | {{authorization-token}}
-| 0x2  | USE_ALIAS  | {{authorization-token}}
-| 0x3  | USE_VALUE  | {{authorization-token}}
+| 0x0  | DELETE     | {{auth-token-compression}}
+| 0x1  | REGISTER   | {{auth-token-compression}}
+| 0x2  | USE_ALIAS  | {{auth-token-compression}}
+| 0x3  | USE_VALUE  | {{auth-token-compression}}
 
 ## MOQT Auth Token Type {#iana-auth-token-type}
 
 | Code | Name       | Specification |
 |-----:|:-----------|:--------------|
-| 0x0  | Reserved   | {{authorization-token}} |
+| 0x0  | Reserved   | {{auth-token-compression}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 ## Message Parameters
