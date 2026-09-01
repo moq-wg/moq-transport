@@ -3933,8 +3933,7 @@ The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
 TRACK_STATUS_OK with the same parameters and Track Properties it would have
-set in a SUBSCRIBE_OK. A publisher responds to a
-failed TRACK_STATUS with an
+set in a SUBSCRIBE_OK. A publisher responds to a failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
 TRACK_STATUS_OK or REQUEST_ERROR are sent.
 
