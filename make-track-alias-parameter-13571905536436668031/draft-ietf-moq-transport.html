@@ -6677,8 +6677,7 @@ delivery (e.g. SUBSCRIBER_PRIORITY) are not included.<a href="#section-10.15-2" 
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
 TRACK_STATUS_OK with the same parameters and Track Properties it would have
-set in a SUBSCRIBE_OK. A publisher responds to a
-failed TRACK_STATUS with an
+set in a SUBSCRIBE_OK. A publisher responds to a failed TRACK_STATUS with an
 appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
 TRACK_STATUS_OK or REQUEST_ERROR are sent.<a href="#section-10.15-3" class="pilcrow">¶</a></p>
 <p id="section-10.15-4">Relays without an <code>Established</code> subscription <span class="bcp14">MAY</span> forward TRACK_STATUS to one or more
