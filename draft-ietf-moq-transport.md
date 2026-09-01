@@ -542,7 +542,7 @@ ways, for example:
 
 # Publishing and Receiving Tracks
 
-MOQT provides two mechanisms for exchanging objects: subscriptions and fetches.
+MOQT provides two mechanisms for retrieving objects: subscriptions and fetches.
 
 A subscription is a long-lived association allowing the subscriber to receive
 newly-published objects for a signle track.  It can be established either by the
