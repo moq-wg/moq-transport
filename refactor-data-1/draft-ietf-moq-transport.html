@@ -2267,7 +2267,10 @@ way, and the description in the remainder of this section does not apply.<a href
 retransmission of data. Furthermore, many QUIC and WebTransport implementations
 offer the ability to control the relative scheduling priority of pending stream
 data.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
-<p id="section-2.2-4">Every Object within a Group belongs to exactly one Subgroup or Datagram.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
+<p id="section-2.2-4">Every Object within a Group belongs to exactly one Subgroup or Datagram. An
+Original Publisher <span class="bcp14">MAY</span> use both Subgroups and Datagrams within a Group or
+Track; each Object's <code>Object Forwarding Preference</code> (see <a href="#object-header" class="auto internal xref">Section 11.1.1</a>)
+determines which is used.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
 <p id="section-2.2-5">When Objects are sent in a subscription (see <a href="#subscriptions" class="auto internal xref">Section 3.1</a>),  Objects
 from two subgroups <span class="bcp14">MUST NOT</span> be sent on the same stream, and Objects from the
 same Subgroup <span class="bcp14">MUST NOT</span> be sent on different streams, unless one of the streams
@@ -2630,7 +2633,7 @@ treating them as belonging to an unknown Track Alias.<a href="#section-3.1.2-5" 
             <h5 id="name-unknown-track-alias">
 <a href="#section-3.1.2.1" class="section-number selfRef">3.1.2.1. </a><a href="#name-unknown-track-alias" class="section-name selfRef">Unknown Track Alias</a>
             </h5>
-<p id="section-3.1.2.1-1">When an endpoint receives a datagram or opens a stream with a Track Alias that
+<p id="section-3.1.2.1-1">When an endpoint receives a datagram or a new stream with a Track Alias that
 is not yet associated with an <code>Established</code> subscription, it <span class="bcp14">MAY</span> drop the
 data or buffer it briefly to handle reordering with the control message that
 establishes the Track Alias. For streams, the endpoint <span class="bcp14">MAY</span> withhold stream
@@ -7185,9 +7188,6 @@ use SUBGROUP_HEADER or FETCH_HEADER types.<a href="#section-11-2" class="pilcrow
 <p id="section-11-3">All MOQT datagrams start with a variable-length integer indicating the type of
 the datagram.  See <a href="#object-datagram" class="auto internal xref">Section 11.2.1</a>.<a href="#section-11-3" class="pilcrow">¶</a></p>
 <p id="section-11-4">An endpoint that receives an unknown datagram type <span class="bcp14">MUST</span> close the session.<a href="#section-11-4" class="pilcrow">¶</a></p>
-<p id="section-11-5">An Original Publisher <span class="bcp14">MAY</span> use both Subgroups and Datagrams within a Group
-or Track; each Object's <code>Object Forwarding Preference</code> (see
-<a href="#object-header" class="auto internal xref">Section 11.1.1</a>) determines which is used.<a href="#section-11-5" class="pilcrow">¶</a></p>
 <div id="message-object">
 <section id="section-11.1">
         <h3 id="name-objects-2">
@@ -7665,9 +7665,9 @@ has, so as to reliably deliver the Objects it has while signaling that other
 Objects might exist.<a href="#section-11.3.3-14" class="pilcrow">¶</a></p>
 <p id="section-11.3.3-15">A subscriber <span class="bcp14">MAY</span> send a QUIC STOP_SENDING frame for a subgroup stream if the
 Group or Subgroup is no longer of interest to it. The publisher <span class="bcp14">SHOULD</span>
-respond with a reset. If RESET_STREAM_AT is sent, the publisher <span class="bcp14">SHOULD NOT</span>
-set reliable_size beyond the stream header, as the receiver has indicated no
-interest in the objects.<a href="#section-11.3.3-15" class="pilcrow">¶</a></p>
+respond with a reset. If RESET_STREAM_AT is sent, note that the receiver has
+indicated no interest in the objects, so setting a reliable_size beyond the
+stream header is of questionable utility.<a href="#section-11.3.3-15" class="pilcrow">¶</a></p>
 <p id="section-11.3.3-16">Resets and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
 Subgroups in a Group at once.<a href="#section-11.3.3-16" class="pilcrow">¶</a></p>
@@ -7771,7 +7771,7 @@ encoding of the Subgroup ID.<a href="#section-11.4.1.1-1" class="pilcrow">¶</a>
               <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
 <thead>
                 <tr>
-                  <th class="text-left" rowspan="1" colspan="1">Bitmask Result (Serialization Flags &amp; 0x03)</th>
+                  <th class="text-left" rowspan="1" colspan="1">Value</th>
                   <th class="text-left" rowspan="1" colspan="1">Meaning</th>
                 </tr>
               </thead>
