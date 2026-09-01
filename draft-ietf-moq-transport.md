@@ -726,89 +726,13 @@ otherwise a receiver might wait for a control message containing a Track
 Alias to release flow control, while the sender waits for flow control to
 send the message.
 
+### Largest Object {#largest-object}
 
-### Location Filters {#location-filters}
-
-Subscribers can specify a Location filter on a subscription indicating to the publisher
-which Objects to send.  Subscriptions without a filter pass all Objects
-published or received via upstream subscriptions.
-
-Fetch requests can also specify a Location filter.  Fetch requests without a filter
-include all Locations from {0, 0} up to `Largest Object` (defined below).
-
-A Location filter specifies an inclusive range of Locations.  Only objects
-with Locations within the inclusive range pass the filter.
-
-An object published or received in a subgroup or datagram is
-**subscription-delivered**.  Objects delivered via a fill fetch stream (see
-{{fill-semantics}}) are **fill-delivered**.
-
-Some Location filters are defined to be relative to the `Largest Object`. The `Largest
-Object` is the Object with the largest Location ({{location-structure}}) in the
-Track from the perspective of the publisher processing the message. Largest
-Object updates when the first byte of an Object with a Location larger than the
-previous value is published or received through a subscription.
-
-A Location filter parameter has the following length-prefixed structure:
-
-~~~
-LOCATION_FILTER Parameter {
-  Parameter Type (vi64) = 0x21,
-  Length (vi64),
-  [StartGroup (vi64),]
-  [StartObject (vi64),]
-  [EndGroupDelta (vi64),]
-  [EndObject (vi64),]
-}
-~~~
-
-Length (in bytes) determines how many optional vi64 fields are present.
-A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
-  * If only one field is present, it is StartGroup.
-  * If only two fields are present, they are StartGroup and StartObject.
-  * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
-
-If only StartGroup is present, it is a relative number of groups prior to the Next Group,
-hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
-  * StartGroup=0 will start at the Next Group
-  * StartGroup=1 will start at the current group
-  * StartGroup=2 will start at 1 group prior to the current group
-  * StartGroup=N will start at N-1 groups prior to the current group
-
-If only StartGroup and StartObject are present and both 0, the start Location
-is the Next Object which is `{Largest Object.Group, Largest Object.Object + 1}`,
-or {0, 0} if no content has been delivered yet.  An open-ended filter that starts at absolute
-Location {0, 0} is equivalent to unfiltered, so the subscriber need not include a Location filter.
-Note that due to network reordering or prioritization, relays can receive Objects with
-Locations smaller than `Largest Object` after the SUBSCRIBE is processed, but
-these Objects do not pass this filter.
-
-If a relative start group results in a computed absolute group less than 0, the
-computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
-
-Otherwise, all fields are absolute.  EndGroupDelta is delta
-encoded from StartGroup, but both the start and end groups are absolute, not
-relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
-the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
-
-When EndGroupDelta and EndObject are omitted from a subscription filter, the
-subscription is open-ended. When they are omitted from a Fetch, the
-EndGroup and EndObject are `Largest Object`.
-
-When EndObject is omitted, the filter includes all objects in the End Group.
-
-A Location Filter on a subscription is always valid, even if it specifies a range
-entirely before Largest Object.
-
-A publisher MUST NOT send subscription-delivered objects from outside the
-requested range.  Because updating filters is asynchronous,
-subscribers can receive objects outside the current filter.
-
-A publisher does not end a subscription solely because the Largest Object advances
-past the end of the current Location Filter.
-
-Fill-delivered objects are governed by the Location filter in
-FILL_PARAMETERS (see {{fill-semantics}}).
+The `Largest Object` is the Object with the largest Location
+({{location-structure}}) in the Track from the perspective of the publisher
+processing the message. Largest Object updates when the first byte of an Object
+with a Location larger than the previous value is published or received through
+a subscription.
 
 ### Fill Semantics {#fill-semantics}
 
@@ -872,6 +796,160 @@ fill fetch stream independently using STOP_SENDING.  Resetting or
 cancelling a fill fetch stream, by either endpoint, does not affect the
 subscription, which continues to deliver objects using subscribe subgroups and
 datagrams.
+
+## Fetch
+
+### Fetch State Management
+
+The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
+FETCH.
+
+A subscriber keeps FETCH state until it cancels the request
+(see {{request-cancellation}}), receives REQUEST_ERROR, or the FETCH data stream
+receives a FIN or is reset. If the data stream is already open,
+the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
+data stream as well as the bidi request stream. It MUST send STOP_SENDING
+for the bidi request stream.
+
+The Publisher can remove fetch state as soon as it has received a
+STOP_SENDING. It MUST reset the bidi request stream and unidirectional
+data stream associated with the FETCH. It can also remove state after closing
+the FETCH data stream.
+
+It can remove all FETCH state after closing the data stream with a FIN.
+
+A REQUEST_ERROR indicates that both endpoints can immediately remove state.
+Since a relay can start delivering FETCH Objects from cache before determining
+the result of the request, some Objects could be received even if the FETCH
+results in error.
+
+## Joining an Ongoing Track {#joining-tracks}
+
+The MOQT Object model is designed with the concept that the beginning of a Group
+is a join point, so in order for a subscriber to join a Track, it needs to
+request an existing Group or wait for a future Group.  Different applications
+will have different approaches for when to begin a new Group.
+
+To join a Track immediately, the subscriber sends a SUBSCRIBE with a Location
+Filter {{location-filters}} that starts at the Next Object.  Delivery begins
+with the next Object and can begin mid-group.
+
+To join a Track at the current Group, the subscriber sends a SUBSCRIBE with a
+Location Filter that starts at the Next Object and a FILL_PARAMETERS parameter
+(see {{fill-parameters}}) whose Location filter has StartGroup=1, which fills
+the current Group from its start.
+
+To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a
+FILL_PARAMETERS parameter whose Location filter selects the intended Groups,
+which can be relative.  The publisher delivers the fill range on a fill fetch
+stream and subscription-delivered Objects in subgroups or
+datagrams (see {{fill-semantics}}).
+
+To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
+a Location Filter {{location-filters}} that starts at the Next Group.
+
+### Dynamically Starting New Groups
+
+While some publishers will deterministically create new Groups, other
+applications might want to only begin a new Group when needed.  A subscriber
+joining a Track might detect that it is more efficient to request the Original
+Publisher create a new group than to fill the current group.  Publishers
+indicate a Track supports dynamic group creation using the DYNAMIC_GROUPS
+Track Property ({{dynamic-groups}}).
+
+One possible subscriber pattern is to SUBSCRIBE to a Track using a Location Filter
+that starts at the Next Object and observe the `Largest Object` in the response.  If the
+Object ID is below the application's threshold, the subscriber sends a FETCH for
+the beginning of the Group.  If the Object ID is above the threshold and the
+Track supports dynamic groups, the subscriber sends a REQUEST_UPDATE message with the
+NEW_GROUP_REQUEST parameter equal to the Next Group (see {{new-group-request}}).
+
+Another possible subscriber pattern is to send a SUBSCRIBE with a Location Filter
+that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
+DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
+groups. A publisher that does will begin the next group as soon as practical.
+
+## Filtering Tracks and Objects
+
+### Location Filters {#location-filters}
+
+Subscribers can specify a Location filter on a subscription indicating to the publisher
+which Objects to send.  Subscriptions without a filter pass all Objects
+published or received via upstream subscriptions.
+
+Fetch requests can also specify a Location filter.  Fetch requests without a filter
+include all Locations from {0, 0} up to `Largest Object` ({{largest-object}}).
+
+A Location filter specifies an inclusive range of Locations.  Only objects
+with Locations within the inclusive range pass the filter.
+
+An object published or received in a subgroup or datagram is
+**subscription-delivered**.  Objects delivered via a fill fetch stream (see
+{{fill-semantics}}) are **fill-delivered**.
+
+Some Location filters are defined to be relative to the `Largest Object`
+({{largest-object}}).
+
+A Location filter parameter has the following length-prefixed structure:
+
+~~~
+LOCATION_FILTER Parameter {
+  Parameter Type (vi64) = 0x21,
+  Length (vi64),
+  [StartGroup (vi64),]
+  [StartObject (vi64),]
+  [EndGroupDelta (vi64),]
+  [EndObject (vi64),]
+}
+~~~
+
+Length (in bytes) determines how many optional vi64 fields are present.
+A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
+  * If only one field is present, it is StartGroup.
+  * If only two fields are present, they are StartGroup and StartObject.
+  * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
+
+If only StartGroup is present, it is a relative number of groups prior to the Next Group,
+hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
+  * StartGroup=0 will start at the Next Group
+  * StartGroup=1 will start at the current group
+  * StartGroup=2 will start at 1 group prior to the current group
+  * StartGroup=N will start at N-1 groups prior to the current group
+
+If only StartGroup and StartObject are present and both 0, the start Location
+is the Next Object which is `{Largest Object.Group, Largest Object.Object + 1}`,
+or {0, 0} if no content has been delivered yet.  An open-ended filter that starts at absolute
+Location {0, 0} is equivalent to unfiltered, so the subscriber need not include a Location filter.
+Note that due to network reordering or prioritization, relays can receive Objects with
+Locations smaller than `Largest Object` after the SUBSCRIBE is processed, but
+these Objects do not pass this filter.
+
+If a relative start group results in a computed absolute group less than 0, the
+computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
+
+Otherwise, all fields are absolute.  EndGroupDelta is delta
+encoded from StartGroup, but both the start and end groups are absolute, not
+relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
+the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
+
+When EndGroupDelta and EndObject are omitted from a subscription filter, the
+subscription is open-ended. When they are omitted from a Fetch, the
+EndGroup and EndObject are `Largest Object`.
+
+When EndObject is omitted, the filter includes all objects in the End Group.
+
+A Location Filter on a subscription is always valid, even if it specifies a range
+entirely before Largest Object.
+
+A publisher MUST NOT send subscription-delivered objects from outside the
+requested range.  Because updating filters is asynchronous,
+subscribers can receive objects outside the current filter.
+
+A publisher does not end a subscription solely because the Largest Object advances
+past the end of the current Location Filter.
+
+Fill-delivered objects are governed by the Location filter in
+FILL_PARAMETERS (see {{fill-semantics}}).
 
 ### Range Filters {#range-filters}
 
@@ -984,77 +1062,6 @@ forward only objects that pass all filters.
 ~~~
 Pass = Forward AND Location Filters AND Range Filters
 ~~~
-
-### Joining an Ongoing Track {#joining-tracks}
-
-The MOQT Object model is designed with the concept that the beginning of a Group
-is a join point, so in order for a subscriber to join a Track, it needs to
-request an existing Group or wait for a future Group.  Different applications
-will have different approaches for when to begin a new Group.
-
-To join a Track immediately, the subscriber sends a SUBSCRIBE with a Location
-Filter {{location-filters}} that starts at the Next Object.  Delivery begins
-with the next Object and can begin mid-group.
-
-To join a Track at the current Group, the subscriber sends a SUBSCRIBE with a
-Location Filter that starts at the Next Object and a FILL_PARAMETERS parameter
-(see {{fill-parameters}}) whose Location filter has StartGroup=1, which fills
-the current Group from its start.
-
-To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a
-FILL_PARAMETERS parameter whose Location filter selects the intended Groups,
-which can be relative.  The publisher delivers the fill range on a fill fetch
-stream and subscription-delivered Objects in subgroups or
-datagrams (see {{fill-semantics}}).
-
-To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
-a Location Filter {{location-filters}} that starts at the Next Group.
-
-#### Dynamically Starting New Groups
-
-While some publishers will deterministically create new Groups, other
-applications might want to only begin a new Group when needed.  A subscriber
-joining a Track might detect that it is more efficient to request the Original
-Publisher create a new group than to fill the current group.  Publishers
-indicate a Track supports dynamic group creation using the DYNAMIC_GROUPS
-Track Property ({{dynamic-groups}}).
-
-One possible subscriber pattern is to SUBSCRIBE to a Track using a Location Filter
-that starts at the Next Object and observe the `Largest Object` in the response.  If the
-Object ID is below the application's threshold, the subscriber sends a FETCH for
-the beginning of the Group.  If the Object ID is above the threshold and the
-Track supports dynamic groups, the subscriber sends a REQUEST_UPDATE message with the
-NEW_GROUP_REQUEST parameter equal to the Next Group (see {{new-group-request}}).
-
-Another possible subscriber pattern is to send a SUBSCRIBE with a Location Filter
-that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
-DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
-groups. A publisher that does will begin the next group as soon as practical.
-
-## Fetch State Management
-
-The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
-FETCH.
-
-A subscriber keeps FETCH state until it cancels the request
-(see {{request-cancellation}}), receives REQUEST_ERROR, or the FETCH data stream
-receives a FIN or is reset. If the data stream is already open,
-the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
-data stream as well as the bidi request stream. It MUST send STOP_SENDING
-for the bidi request stream.
-
-The Publisher can remove fetch state as soon as it has received a
-STOP_SENDING. It MUST reset the bidi request stream and unidirectional
-data stream associated with the FETCH. It can also remove state after closing
-the FETCH data stream.
-
-It can remove all FETCH state after closing the data stream with a FIN.
-
-A REQUEST_ERROR indicates that both endpoints can immediately remove state.
-Since a relay can start delivering FETCH Objects from cache before determining
-the result of the request, some Objects could be received even if the FETCH
-results in error.
-
 
 ## Mandatory Track Properties {#mandatory-track-properties}
 
