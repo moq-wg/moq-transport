@@ -542,7 +542,7 @@ ways, for example:
 
 # Publishing and Receiving Tracks
 
- A subscription is a authorized and stateful ongoing relationship between a Publisher and a Subscriber for
+ A subscription is a stateful ongoing relationship between a Publisher and a Subscriber for
 delivering Objects from a single Track. It is established by either endpoint (via SUBSCRIBE or
 PUBLISH), can be updated by the subscriber via REQUEST_UPDATE, and remains active until either
  endpoint terminates it.
