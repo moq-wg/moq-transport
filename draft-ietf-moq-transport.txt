@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 5 March 2027                                      I. Swett, Ed.
+Expires: 6 March 2027                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        1 September 2026
+                                                        2 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 March 2027.
+   This Internet-Draft will expire on 6 March 2027.
 
 Copyright Notice
 
@@ -161,7 +161,13 @@ Table of Contents
      8.9.  Authorization Token Compression
    9.  Control Messages
      9.1.  SETUP
-       9.1.1.  Setup Options
+       9.1.1.  AUTHORITY
+       9.1.2.  PATH
+       9.1.3.  MAX_AUTH_TOKEN_CACHE_SIZE
+       9.1.4.  AUTHORIZATION TOKEN
+       9.1.5.  MOQT IMPLEMENTATION
+       9.1.6.  MAX FILTER RANGES
+       9.1.7.  MAX_REQUEST_UPDATES
      9.2.  GOAWAY
      9.3.  REQUEST_OK
      9.4.  REQUEST_ERROR
@@ -1744,7 +1750,7 @@ Table of Contents
    The client establishes a QUIC connection to the host and port
    identified by the authority section of the URI.  When the client uses
    native QUIC, the authority, path-abempty and query portions of the
-   URI are transmitted in Setup Options (see Section 9.1.1).
+   URI are transmitted in Setup Options (see Section 9.1).
 
 6.3.  Session initialization
 
@@ -1849,7 +1855,7 @@ Table of Contents
    new Properties, new Parameter values, or new framing for Streams and
    Datagrams.
 
-   The client and server MUST include all Setup Options Section 9.1.1
+   The client and server MUST include all Setup Options Section 9.1
    required for the negotiated MOQT version in SETUP.
 
    Each endpoint declares the extensions it supports and provides any
@@ -2666,7 +2672,7 @@ Table of Contents
 
    Authorization tokens are carried in the AUTHORIZATION TOKEN message
    parameter (see Section 9.20.3) and the AUTHORIZATION TOKEN Setup
-   Option (see Section 9.1.1.4).  Both use the wire format and semantics
+   Option (see Section 9.1.4).  Both use the wire format and semantics
    defined in this section.
 
    The value is a Token structure containing an optional Session-
@@ -2767,7 +2773,7 @@ Table of Contents
    the Token Alias and Token Value until they are deleted, or the
    Session ends.  The receiver can protect its resources by sending a
    Setup Option defining the MAX_AUTH_TOKEN_CACHE_SIZE limit (see
-   Section 9.1.1.3) it is willing to accept.  If a registration is
+   Section 9.1.3) it is willing to accept.  If a registration is
    attempted which would cause this limit to be exceeded, the receiver
    MUST terminate the Session with a AUTH_TOKEN_CACHE_OVERFLOW error.
 
@@ -2907,9 +2913,7 @@ Table of Contents
 
    The available Setup Options are detailed in the next sections.
 
-9.1.1.  Setup Options
-
-9.1.1.1.  AUTHORITY
+9.1.1.  AUTHORITY
 
    The AUTHORITY option (Option Type 0x05) allows the client to specify
    the authority component of the MoQ URI when using native QUIC
@@ -2926,7 +2930,7 @@ Table of Contents
    URI.  If an AUTHORITY option does not conform to these rules, the
    session MUST be closed with MALFORMED_AUTHORITY.
 
-9.1.1.2.  PATH
+9.1.2.  PATH
 
    The PATH option (Option Type 0x01) allows the client to specify the
    path of the MoQ URI when using native QUIC (Section 6.2.2).  It MUST
@@ -2943,7 +2947,7 @@ Table of Contents
    query portion of the URI to the option.  If a PATH does not conform
    to these rules, the session MUST be closed with MALFORMED_PATH.
 
-9.1.1.3.  MAX_AUTH_TOKEN_CACHE_SIZE
+9.1.3.  MAX_AUTH_TOKEN_CACHE_SIZE
 
    The MAX_AUTH_TOKEN_CACHE_SIZE option (Option Type 0x04) communicates
    the maximum size in bytes of all actively registered Authorization
@@ -2958,7 +2962,7 @@ Table of Contents
    minus the sum of the token sizes for all deregistered tokens (Alias
    Type value of 0x00), since Session initiation.
 
-9.1.1.4.  AUTHORIZATION TOKEN
+9.1.4.  AUTHORIZATION TOKEN
 
    The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is
    functionally equivalent to the AUTHORIZATION TOKEN message parameter,
@@ -2981,7 +2985,7 @@ Table of Contents
    MAX_AUTH_TOKEN_CACHE_SIZE option in SETUP (or the default value of
    0).
 
-9.1.1.5.  MOQT IMPLEMENTATION
+9.1.5.  MOQT IMPLEMENTATION
 
    The MOQT_IMPLEMENTATION option (Option Type 0x07) identifies the name
    and version of the sender's MOQT implementation.  This SHOULD be a
@@ -3000,7 +3004,7 @@ Table of Contents
    implementations to declare compatibility, as this undermines the
    usefulness of implementation identification for debugging.
 
-9.1.1.6.  MAX FILTER RANGES
+9.1.6.  MAX FILTER RANGES
 
    The MAX_FILTER_RANGES option (Type 0x06) limits the peer's total
    number of Ranges (Start/End pairs) allowed concurrently in all Range
@@ -3009,7 +3013,7 @@ Table of Contents
    any such filter parameters.  If this limit is exceeded, an endpoint
    MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
 
-9.1.1.7.  MAX_REQUEST_UPDATES
+9.1.7.  MAX_REQUEST_UPDATES
 
    The MAX_REQUEST_UPDATES option (Option Type 0x08) communicates the
    maximum number of unacknowledged REQUEST_UPDATE messages per request
@@ -3223,7 +3227,7 @@ Table of Contents
    one REQUEST_ERROR for multiple REQUEST_UPDATE messages.
 
    The number of outstanding REQUEST_UPDATEs on a single request stream
-   is limited by the MAX_REQUEST_UPDATES Setup Option (Section 9.1.1.7).
+   is limited by the MAX_REQUEST_UPDATES Setup Option (Section 9.1.7).
 
    If a parameter previously set on the request is not present in
    REQUEST_UPDATE, its value remains unchanged.
@@ -3504,7 +3508,7 @@ Table of Contents
    REQUEST_UPDATE.  Unlike REQUEST_UPDATE (Section 9.5), it is a
    unilateral notification: the receiver does not respond with
    REQUEST_OK or REQUEST_ERROR, and the message is not subject to the
-   MAX_REQUEST_UPDATES limit (Section 9.1.1.7).
+   MAX_REQUEST_UPDATES limit (Section 9.1.7).
 
    PUBLISH_STATE_NOTIFY applies only to subscriptions, and is sent only
    by the publisher.  An endpoint that receives a PUBLISH_STATE_NOTIFY
@@ -5508,10 +5512,10 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 13.8.  Implementation Identification Fingerprinting
 
-   The MOQT_IMPLEMENTATION option (Section 9.1.1.5) can reveal
-   information that contributes to fingerprinting, a set of techniques
-   for identifying a specific endpoint over time through its unique set
-   of characteristics.
+   The MOQT_IMPLEMENTATION option (Section 9.1.5) can reveal information
+   that contributes to fingerprinting, a set of techniques for
+   identifying a specific endpoint over time through its unique set of
+   characteristics.
 
    Detailed implementation information, including specific version
    numbers, build identifiers, or platform details, can create a unique
@@ -5543,12 +5547,12 @@ EXT 1 and EXT N can be modified or removed by Relays
 13.9.  Logging of Untrusted String Fields
 
    The Reason Phrase (Section 8.5) and MOQT_IMPLEMENTATION option
-   (Section 9.1.1.5) carry sender-controlled text that is commonly
-   written to logs.  Even though these fields are UTF-8 encoded, an
-   endpoint that logs or renders them SHOULD sanitize them first (for
-   example, by escaping bytes outside the printable ASCII range), since
-   unsanitized values can enable log injection or terminal escape
-   sequence injection.
+   (Section 9.1.5) carry sender-controlled text that is commonly written
+   to logs.  Even though these fields are UTF-8 encoded, an endpoint
+   that logs or renders them SHOULD sanitize them first (for example, by
+   escaping bytes outside the printable ASCII range), since unsanitized
+   values can enable log injection or terminal escape sequence
+   injection.
 
 14.  Error Handling
 
@@ -5627,7 +5631,7 @@ EXT 1 and EXT N can be modified or removed by Relays
       WebTransport session, or the server does not support the path.
 
    MALFORMED_PATH (0x9):  The PATH parameter does not conform to the
-      rules in Section 9.1.1.2.
+      rules in Section 9.1.2.
 
    GOAWAY_TIMEOUT (0x10):  The session was closed because the peer took
       too long to close the session in response to a GOAWAY
@@ -5643,9 +5647,8 @@ EXT 1 and EXT N can be modified or removed by Relays
       a new object header on an open subgroup stream, it MAY send a
       STOP_SENDING on that stream or terminate the subscription.
 
-   AUTH_TOKEN_CACHE_OVERFLOW (0x13):  The Session limit Section 9.1.1.3
-      of the size of all registered Authorization tokens has been
-      exceeded.
+   AUTH_TOKEN_CACHE_OVERFLOW (0x13):  The Session limit Section 9.1.3 of
+      the size of all registered Authorization tokens has been exceeded.
 
    DUPLICATE_AUTH_TOKEN_ALIAS (0x14):  Authorization Token attempted to
       register an Alias that was in use (see Section 8.9).
@@ -5667,7 +5670,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    TOO_MANY_REQUEST_UPDATES (0x1B):  The endpoint received a
       REQUEST_UPDATE that exceeded the per-stream limit communicated via
-      the MAX_REQUEST_UPDATES Setup Option (Section 9.1.1.7).
+      the MAX_REQUEST_UPDATES Setup Option (Section 9.1.7).
 
 14.3.  Request Error Codes
 
@@ -5954,25 +5957,25 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 16.4.  Setup Options
 
-     +=================+===========================+=================+
-     |            Type | Name                      | Specification   |
-     +=================+===========================+=================+
-     |            0x01 | PATH                      | Section 9.1.1.2 |
-     +-----------------+---------------------------+-----------------+
-     |            0x03 | AUTHORIZATION_TOKEN       | Section 9.1.1.4 |
-     +-----------------+---------------------------+-----------------+
-     |            0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | Section 9.1.1.3 |
-     +-----------------+---------------------------+-----------------+
-     |            0x05 | AUTHORITY                 | Section 9.1.1.1 |
-     +-----------------+---------------------------+-----------------+
-     |            0x06 | MAX_FILTER_RANGES         | Section 9.1.1.6 |
-     +-----------------+---------------------------+-----------------+
-     |            0x07 | MOQT_IMPLEMENTATION       | Section 9.1.1.5 |
-     +-----------------+---------------------------+-----------------+
-     |            0x08 | MAX_REQUEST_UPDATES       | Section 9.1.1.7 |
-     +-----------------+---------------------------+-----------------+
-     | 0x7f * N + 0x9D | Reserved for greasing     | Section 15      |
-     +-----------------+---------------------------+-----------------+
+      +=================+===========================+===============+
+      |            Type | Name                      | Specification |
+      +=================+===========================+===============+
+      |            0x01 | PATH                      | Section 9.1.2 |
+      +-----------------+---------------------------+---------------+
+      |            0x03 | AUTHORIZATION_TOKEN       | Section 9.1.4 |
+      +-----------------+---------------------------+---------------+
+      |            0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | Section 9.1.3 |
+      +-----------------+---------------------------+---------------+
+      |            0x05 | AUTHORITY                 | Section 9.1.1 |
+      +-----------------+---------------------------+---------------+
+      |            0x06 | MAX_FILTER_RANGES         | Section 9.1.6 |
+      +-----------------+---------------------------+---------------+
+      |            0x07 | MOQT_IMPLEMENTATION       | Section 9.1.5 |
+      +-----------------+---------------------------+---------------+
+      |            0x08 | MAX_REQUEST_UPDATES       | Section 9.1.7 |
+      +-----------------+---------------------------+---------------+
+      | 0x7f * N + 0x9D | Reserved for greasing     | Section 15    |
+      +-----------------+---------------------------+---------------+
 
                                   Table 10
 
