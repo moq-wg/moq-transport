@@ -999,16 +999,16 @@ Table of Contents
 
    For Ascending Group Order, and Descending Group Order where Start and
    End Location are in the same group, gaps include ranges between the
-   first requested object and the first object in the stream; between
-   objects in the stream; and between the last object in the stream and
-   the End Location indicated in FETCH_OK.
+   Start Location and the first object in the stream; between objects in
+   the stream; and between the last object in the stream and the End
+   Location indicated in FETCH_OK.
 
    For Descending Group Order where Start and End Location are in
    different groups, the first expected Object in the stream is {End
    Location.Group, 0} and the last expected Object in the stream is
    {Start Location.Group, 2^64-1}.  When two consecutive objects A and B
-   are in different groups it represents multiple logical gaps: the tail
-   of A.Group; all skipped groups; and {B.Group, 0} through B,
+   are in different groups, a gap represents multiple logical gaps: the
+   tail of A.Group; all skipped groups; and {B.Group, 0} through B,
    exclusive.
 
    Gaps at the end of a stream are only detectable when the stream is
