@@ -716,64 +716,81 @@ following `Largest Object`, which is `{Largest Object.Group + 1, 0}`.
 `Next Object` and `Next Group` are Locations that do not necessarily
 refer to an Object that exists.
 
-## Fetch
+## Fetch {#fetch}
 
-A publisher responds to a FETCH request with either a FETCH_OK or a REQUEST_ERROR
-message.  The publisher creates a new unidirectional stream that is used to send the
-Objects.  The FETCH_OK or REQUEST_ERROR can come at any time relative to object
+A FETCH requests pre-existing Objects from a Track between a Start Location and
+an End Location, inclusive.  These are set from a Location Filter (see
+{{location-filters}}) when present, or default to {0, 0} and `Largest Object`
+({{largest-object}}) respectively.
+
+Objects with Locations larger than the `Largest Object` at the time the request
+is processed will not be retrieved by a FETCH.  The actual end of the FETCH
+response is indicated in the FETCH_OK End Location (see {{message-fetch-ok}}).
+
+A publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
+FETCH.
+The FETCH_OK or REQUEST_ERROR can come at any time relative to object
 delivery. A publisher MAY send Objects in response to a FETCH before
 the FETCH_OK message is sent, but the FETCH_OK MUST NOT be sent until the
 End Location is known.
 
+If no Objects have been published for the track or Start Location is greater
+than the `Largest Object` ({{largest-object}}) the publisher MUST return
+REQUEST_ERROR with error code `INVALID_RANGE`.
+
+The Object Delivery Mode does not apply to fetches.
+
+The publisher creates a single unidirectional stream that is used to send the
+Objects.  If no Objects exist in the requested range, the publisher opens the
+unidirectional stream, sends the FETCH_HEADER (see {{fetch-header}}) and closes
+the stream with a FIN.
+
+A publisher MUST send fetched groups in the requested group order
+(see {{group-order}}). Within each group, objects are sent in Object ID order;
+subgroup ID is not used for ordering.
+
 The publisher responding to a FETCH is
-responsible for delivering all available Objects in the requested range in the
-requested order (see {{group-order}}). The Objects in the response are delivered on a single
-unidirectional stream. Any gaps in the Group and Object IDs in the response
-stream indicate objects that do not exist unless filters were requested.  For Ascending Group Order this
-includes ranges between the first requested object and the first object in the
+responsible for delivering all available Objects in the requested range.
+Unless the request included Range Filters (see {{range-filters}}),
+any gaps in the Group and Object IDs in the response
+stream indicate objects that do not exist (see {{object-state}}).
+When one or more Range Filters are
+present, gaps indicate objects in the unknown state.
+For Ascending Group Order, gaps
+include ranges between the first requested object and the first object in the
 stream; between objects in the stream; and between the last object in the
-stream and the Largest Group/Object indicated in FETCH_OK, so long as the fetch
-stream is terminated by a FIN.  If no Objects exist in the requested range, the
-publisher opens the unidirectional stream, sends the FETCH_HEADER (see
-{{fetch-header}}) and closes the stream with a FIN.
+stream and the End Location indicated in FETCH_OK, so long as the fetch
+stream is terminated by a FIN.
+
+Rather than leaving a gap, a publisher can mark a range of Objects it will not
+serialize with an End of Range indicator (see {{end-of-range}}), identifying
+those Objects as non-existent, unknown, or timed out.  A publisher SHOULD NOT
+use `End of Non-Existent Range` in a FETCH response except to split a range of
+Objects that will not be serialized into those that are known not to exist and
+those with unknown or timed out status.
 
 A relay that has cached objects from the beginning of the range MAY start
-sending objects immediately in response to a FETCH.  If it encounters an object
-in the requested range that is not cached and has unknown status, the relay MUST
-pause subsequent delivery until it has confirmed the object's status upstream.
+sending objects immediately in response to a FETCH.
 If the upstream FETCH fails, the relay sends a REQUEST_ERROR and can reset the
 unidirectional stream.  It can choose to do so immediately or wait until the
 cached objects have been delivered before resetting the stream.
 
-The Object Delivery Mode does not apply to fetches.
-
-Fetch can include a Location Filter parameter (see {{location-filter}})
-which specifies an inclusive range of Objects starting at Start Location and
-ending at End Location.
-
-Objects with Locations larger than the `Largest Object` at the time the request
-is processed will not be retrieved by a FETCH.  If the
-requested End Location exceeds the `Largest Object`, the actual end of
-the FETCH response is indicated in the FETCH_OK End Location.
-
-If no Objects have been published for the track or Start Location is greater
-than the `Largest Object` ({{message-subscribe-req}}) the publisher MUST return
-REQUEST_ERROR with error code `INVALID_RANGE`.
-
-A publisher MUST send fetched groups in the requested group order, either
-ascending or descending. Within each group, objects are sent in Object ID order;
-subgroup ID is not used for ordering.
+When a relay encounters Objects within the requested range that are not
+immediately available and have unknown status, it issues upstream FETCHes to
+retrieve them. The Fill Timeout (see {{fill-timeout}}) represents a total budget
+for all such upstream FETCHes generated by this request. If the budget is
+exhausted, the relay reports any remaining unavailable Objects as Timed-Out gaps
+(`End of Timed-Out Range`, see {{end-of-range}}) and continues delivering
+available Objects in the range.
 
 If a Publisher receives a FETCH with a range that includes one or more Objects with
 unknown status (e.g. a Relay has temporarily lost contact with the Original
 Publisher and does not have the Object in cache), it can choose to reset the
 FETCH data stream with UNKNOWN_OBJECT_STATUS ({{stream-reset-codes}}), or indicate
-the range of unknown Objects and continue serving other known Objects.
+the range of unknown Objects (`End of Unknown Range`, see {{end-of-range}}) and
+continue serving other known Objects.
 
 ### Fetch State Management
-
-The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
-FETCH.
 
 A subscriber keeps FETCH state until it cancels the request
 (see {{request-cancellation}}), receives REQUEST_ERROR, or the FETCH data stream
@@ -807,9 +824,7 @@ Subscribers can specify a Location filter on a subscription to indicate to the
 publisher which Objects to send.  Subscriptions without a filter pass all
 Objects published or received via upstream subscriptions.
 
-Fetch requests can also specify a Location filter.  Fetch requests without a
-filter include all Locations from {0, 0} up to `Largest Object`
-({{largest-object}}).
+Fetch requests can also specify a Location filter (see {{fetch}}).
 
 Some Location filters are defined to be relative to the `Largest Object`
 ({{largest-object}}).
@@ -3603,13 +3618,7 @@ stream.
 
 It is the maximum total duration in milliseconds a relay SHOULD spend waiting
 for upstream sources to provide Objects that are not immediately available
-before reporting them as Timed-Out gaps in the FETCH response. When a relay
-encounters Objects within the requested range that are not immediately available
-and have unknown status, it issues upstream FETCHes to retrieve them. The Fill
-Timeout represents a total budget for all such upstream FETCHes generated by
-this request. If the budget is exhausted, the relay reports any remaining
-unavailable Objects as Timed-Out gaps (`End of Timed-Out Range`, see
-{{end-of-range}}) and continues delivering available Objects in the range.
+before reporting them as Timed-Out gaps in the FETCH response (see {{fetch}}).
 
 A value of 0 indicates the subscriber only wants Objects that are immediately
 available; the relay MUST NOT wait for upstream delivery and MUST report any
@@ -4652,10 +4661,7 @@ When Serialization Flags indicates an End of Range (e.g. values 0x8C, 0x10C, or
 0x20C), the Group ID and Object ID fields are present.  Subgroup ID, Priority and
 Properties are not present. All Objects with Locations between the last
 serialized Object, if any, and this Location, inclusive, either do not exist
-(when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).  A
-publisher SHOULD NOT use `End of Non-Existent Range` in a FETCH response except to
-split a range of Objects that will not be serialized into those that are known
-not to exist and those with unknown or timed out status.
+(when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).
 
 When an Object follows an End of Range indicator and uses flags that reference
 the "prior Object", the prior Object fields are determined as follows:
