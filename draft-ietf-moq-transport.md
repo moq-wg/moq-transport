@@ -1447,7 +1447,7 @@ the WT-Available-Protocols header ({{WebTransport, Section 3.3}}).
 The client establishes a QUIC connection to the host and port identified by the
 `authority` section of the URI.
 When the client uses native QUIC, the `authority`, `path-abempty` and `query`
-portions of the URI are transmitted in Setup Options (see {{setup-options}}).
+portions of the URI are transmitted in Setup Options (see {{message-setup}}).
 
 ## Session initialization {#session-init}
 
@@ -1538,7 +1538,7 @@ Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
 Extensions can define new Message types, new Parameters, new Properties,
 new Parameter values, or new framing for Streams and Datagrams.
 
-The client and server MUST include all Setup Options {{setup-options}}
+The client and server MUST include all Setup Options {{message-setup}}
 required for the negotiated MOQT version in SETUP.
 
 Each endpoint declares the extensions it supports and provides any initial
@@ -2533,9 +2533,7 @@ allow duplicates of unknown Setup Options.
 
 The available Setup Options are detailed in the next sections.
 
-### Setup Options {#setup-options}
-
-#### AUTHORITY {#authority}
+### AUTHORITY {#authority}
 
 The AUTHORITY option (Option Type 0x05) allows the client to specify the
 authority component of the MoQ URI when using native QUIC ({{native-quic}}).  It MUST
@@ -2551,7 +2549,7 @@ client MUST set the AUTHORITY option to the `authority` portion of the
 URI. If an AUTHORITY option does not conform to
 these rules, the session MUST be closed with `MALFORMED_AUTHORITY`.
 
-#### PATH {#path}
+### PATH {#path}
 
 The PATH option (Option Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC ({{native-quic}}).  It MUST NOT be used by
@@ -2567,7 +2565,7 @@ URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the option. If a PATH does not conform to
 these rules, the session MUST be closed with `MALFORMED_PATH`.
 
-#### MAX_AUTH_TOKEN_CACHE_SIZE {#max-auth-token-cache-size}
+### MAX_AUTH_TOKEN_CACHE_SIZE {#max-auth-token-cache-size}
 
 The MAX_AUTH_TOKEN_CACHE_SIZE option (Option Type 0x04) communicates the
 maximum size in bytes of all actively registered Authorization tokens that the
@@ -2581,7 +2579,7 @@ for all registered tokens (Alias Type value of 0x01) minus the sum of the token
 sizes for all deregistered tokens (Alias Type value of 0x00), since Session
 initiation.
 
-#### AUTHORIZATION TOKEN {#setup-auth-token}
+### AUTHORIZATION TOKEN {#setup-auth-token}
 
 The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is functionally
 equivalent to the AUTHORIZATION TOKEN message parameter, see {{authorization-token}}.
@@ -2602,7 +2600,7 @@ the peer's SETUP is received, the sender MUST handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
 peer's MAX_AUTH_TOKEN_CACHE_SIZE option in SETUP (or the default value of 0).
 
-#### MOQT IMPLEMENTATION {#moqt-implementation}
+### MOQT IMPLEMENTATION {#moqt-implementation}
 
 The MOQT_IMPLEMENTATION option (Option Type 0x07) identifies the name and
 version of the sender's MOQT implementation.  This SHOULD be a UTF-8 encoded
@@ -2619,7 +2617,7 @@ advertising or other nonessential information. Implementations SHOULD NOT use
 the identifiers of other implementations to declare compatibility, as this
 undermines the usefulness of implementation identification for debugging.
 
-#### MAX FILTER RANGES
+### MAX FILTER RANGES
 
 The MAX_FILTER_RANGES option (Type 0x06) limits the peer's total number of Ranges
 (Start/End pairs) allowed concurrently in all Range filter {{range-filters}}
@@ -2627,7 +2625,7 @@ parameters for a given subscription or fetch.  The default value is 0, so if not
 specified, the peer MUST NOT send any such filter parameters.  If this limit is
 exceeded, an endpoint MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
 
-#### MAX_REQUEST_UPDATES {#max-request-updates}
+### MAX_REQUEST_UPDATES {#max-request-updates}
 
 The MAX_REQUEST_UPDATES option (Option Type 0x08) communicates the maximum
 number of unacknowledged REQUEST_UPDATE messages per request stream that
