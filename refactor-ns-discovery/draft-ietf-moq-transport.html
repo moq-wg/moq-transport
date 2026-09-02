@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 5 March 2027</td>
+<td class="center">Expires 6 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-01" class="published">1 September 2026</time>
+<time datetime="2026-09-02" class="published">2 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-05">5 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-06">6 March 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 5 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 6 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2973,10 +2973,13 @@ relay has already forwarded data on a fetch stream, it <span class="bcp14">MUST<
       <h2 id="name-namespace-discovery">
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-namespace-discovery" class="section-name selfRef">Namespace Discovery</a>
       </h2>
-<p id="section-4-1">MOQT does not define how endpoints find each other in the first place;
-the initial server connection is always established out of band. Once a
-session exists, the two peers still have to converge on what tracks are
-available and what a subscriber wants to receive.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-1">Namespace Discovery in MOQT enables Subscribers to discover what
+Namespaces and Tracks are available for subscriptions, as well as the
+ability to Subscribe to changes in those Namespaces and the Tracks
+themselves. MOQT does not define how endpoints find each other in the
+first place; the initial server connection is always established out of
+band. Once a session exists, the two peers still have to converge on
+what tracks are available and what a subscriber wants to receive.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <p id="section-4-2">Discovery in MOQT covers three exchanges:<a href="#section-4-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4-3.1">
@@ -2985,16 +2988,16 @@ subscribers can find its tracks without prior knowledge of them.<a href="#sectio
 </li>
         <li class="normal" id="section-4-3.2">
           <p id="section-4-3.2.1"><strong>Enumeration.</strong> A subscriber asks a peer which namespaces it currently
-knows under a given prefix, including both namespaces the peer
+knows under a given prefix, including both namespaces the publisher
 originates and those it has learned from upstream.<a href="#section-4-3.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-4-3.3">
-          <p id="section-4-3.3.1"><strong>Prefix subscription.</strong> A subscriber requests forwarding of every
-track under a prefix as those tracks appear, without naming each one
+          <p id="section-4-3.3.1"><strong>Prefix subscription.</strong> A subscriber requests the publisher establish
+a subscription for every track under a prefix, without naming each one
 individually.<a href="#section-4-3.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-4-4">Four in-band messages implement these three flows:<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-4">Five in-band messages implement these three flows:<a href="#section-4-4" class="pilcrow">¶</a></p>
 <table class="center" id="table-1">
         <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
 <thead>
@@ -3039,52 +3042,46 @@ individually.<a href="#section-4-3.3.1" class="pilcrow">¶</a></p>
 (<a href="#namespace-prefix-matching" class="auto internal xref">Section 7.6.1</a>) to identify the set of namespaces it
 applies to. A prefix with zero Track Namespace fields matches everything
 the receiver knows or produces. None of these exchanges are required to
-move data: a subscriber that already knows a Full Track Name <span class="bcp14">MAY</span> send
-<code>SUBSCRIBE</code> or <code>FETCH</code> directly. Discovery is a convenience for the case
-where the subscriber does not yet know the exact name, or wants to react
-as publishers come and go.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">Message syntax is defined in <a href="#message" class="auto internal xref">Section 9</a>. The rest of this section
-describes how each message is used.<a href="#section-4-7" class="pilcrow">¶</a></p>
+retrieve Objects: a subscriber that already knows a Full Track Name <span class="bcp14">MAY</span>
+send <code>SUBSCRIBE</code> or <code>FETCH</code> directly. Discovery is a convenience for
+the case where the subscriber does not yet know the exact name, or
+wants to react as publishers come and go.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-7">Discovery is a hint, not a routing protocol: PUBLISH_NAMESPACE does not
+guard against loops and <span class="bcp14">SHOULD NOT</span> be used to compute paths through
+richly connected relay networks.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">Message syntax is defined in <a href="#message" class="auto internal xref">Section 9</a>. The rest of this section
+describes how each message is used.<a href="#section-4-8" class="pilcrow">¶</a></p>
 <div id="advertising-namespaces">
 <section id="section-4.1">
         <h3 id="name-advertising-namespaces">
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-advertising-namespaces" class="section-name selfRef">Advertising Namespaces</a>
         </h3>
-<p id="section-4.1-1">A publisher makes its namespaces reachable by advertising them. An
-Original Publisher typically advertises to an upstream relay to signal
-that it has content to offer, and a relay may in turn re-advertise those
-namespaces to interested subscribers.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
-<p id="section-4.1-2">A publisher advertises a namespace by sending <code>PUBLISH_NAMESPACE</code> on a new
-bidirectional stream. Advertisement is optional — a subscriber <span class="bcp14">MAY</span> send
-<code>SUBSCRIBE</code> or <code>FETCH</code> for a namespace it never received a
-<code>PUBLISH_NAMESPACE</code> for — but it is how publishers signal availability
-in the absence of out-of-band information.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
-<p id="section-4.1-3">The subscriber <span class="bcp14">MUST</span> send exactly one <code>REQUEST_OK</code> or <code>REQUEST_ERROR</code> as
+<p id="section-4.1-1">A publisher advertises a namespace by sending <code>PUBLISH_NAMESPACE</code> on a new
+bidirectional stream. An Original Publisher typically advertises to an
+upstream relay to signal that it has content to offer, and a relay may in
+turn re-advertise those namespaces to interested subscribers.
+Advertisement is optional — a subscriber <span class="bcp14">MAY</span> send <code>SUBSCRIBE</code> or <code>FETCH</code>
+for a namespace it never received a <code>PUBLISH_NAMESPACE</code> for — but it is
+how publishers signal availability in the absence of out-of-band
+information.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">The subscriber <span class="bcp14">MUST</span> send exactly one <code>REQUEST_OK</code> or <code>REQUEST_ERROR</code> as
 the first message on the response stream. The publisher <span class="bcp14">SHOULD</span> close the
 session with a protocol error if it receives more than one. Endpoints
 <span class="bcp14">SHOULD</span> forward the outcome to the application so it can look for other
-subscribers or abandon the attempt.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
-<p id="section-4.1-4">A publisher that is the Original Publisher for a track in a given
+subscribers or abandon the attempt.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1-3">An Original Publisher for a track in a given
 namespace, or a relay that has accepted a <code>PUBLISH_NAMESPACE</code> for that
 namespace from upstream, <span class="bcp14">MUST</span> send a <code>NAMESPACE</code> message for it to every
-subscriber with an active <code>SUBSCRIBE_NAMESPACE</code> whose prefix matches. In
-addition, <code>PUBLISH_NAMESPACE</code> can arrive independently on its own request
-stream even while a <code>SUBSCRIBE_NAMESPACE</code> for a matching prefix is
-active — for example when the two are in flight concurrently, or when an
-Original Publisher advertises during the discovery window. Such a
-<code>PUBLISH_NAMESPACE</code> is valid, <span class="bcp14">MAY</span> carry an <code>AUTHORIZATION_TOKEN</code>, and has
-a lifetime independent of the <code>SUBSCRIBE_NAMESPACE</code> stream.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
-<p id="section-4.1-5">A <code>PUBLISH_NAMESPACE</code> is withdrawn by cancelling its request
+subscriber with an active <code>SUBSCRIBE_NAMESPACE</code> whose prefix matches.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">A <code>PUBLISH_NAMESPACE</code> is withdrawn by cancelling its request
 (<a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>). Cancellation from the subscriber side revokes
 acceptance; if the reason is expiration of authorization credentials, the
 publisher <span class="bcp14">MAY</span> re-advertise on a new stream with refreshed authorization.
 It is not a protocol error for a subscriber to <code>SUBSCRIBE</code> or <code>FETCH</code> a
-track under a withdrawn namespace, but the publisher <span class="bcp14">MAY</span> reject it.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
-<p id="section-4.1-6">If a subscriber has accepted a <code>PUBLISH_NAMESPACE</code> whose namespace exactly
+track under a withdrawn namespace, but the publisher <span class="bcp14">MAY</span> reject it.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-5">If a subscriber has accepted a <code>PUBLISH_NAMESPACE</code> whose namespace exactly
 matches a track it wants, it <span class="bcp14">SHOULD</span> request that track from the sender of
-the <code>PUBLISH_NAMESPACE</code>. <code>PUBLISH_NAMESPACE</code> is a discovery hint, not a
-routing protocol: it does not guard against loops and <span class="bcp14">SHOULD NOT</span> be used
-to compute paths through richly connected relay networks.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
+the <code>PUBLISH_NAMESPACE</code>.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscribing-to-namespaces">
@@ -3108,9 +3105,7 @@ treats the peer as authoritative for namespaces matching the prefix. As
 a consequence, <code>NAMESPACE</code> messages carried on the response stream inherit
 that trust and do not independently carry authorization credentials.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
 <p id="section-4.2-4">A <code>SUBSCRIBE_NAMESPACE</code> is cancelled per <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a> (reset
-the stream or send <code>STOP_SENDING</code>). The endpoint <span class="bcp14">SHOULD</span> forward
-<code>REQUEST_OK</code> and <code>REQUEST_ERROR</code> to the application, so it can decide
-whether to try other publishers.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+the stream or send <code>STOP_SENDING</code>).<a href="#section-4.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscribing-to-tracks-by-prefix">
@@ -3118,32 +3113,24 @@ whether to try other publishers.<a href="#section-4.2-4" class="pilcrow">¶</a><
         <h3 id="name-subscribing-to-tracks-by-pr">
 <a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-subscribing-to-tracks-by-pr" class="section-name selfRef">Subscribing to Tracks by Prefix</a>
         </h3>
-<p id="section-4.3-1">Once a subscriber knows which namespaces exist, it may want to learn
-about every track those namespaces contain in order to start receiving
-Objects, without having to name each track individually.
-<code>SUBSCRIBE_TRACKS</code> takes a Track Namespace Prefix, and the publisher
-sends a <code>PUBLISH</code> message for each track whose namespace matches, both
-for tracks it already knows and for tracks it subsequently learns about.
-Each such <code>PUBLISH</code> is handled via the normal acceptance flow (see
-<a href="#message-publish" class="auto internal xref">Section 9.8</a>) before it becomes an active subscription.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
-<p id="section-4.3-2">A subscriber sends <code>SUBSCRIBE_TRACKS</code> on a new bidirectional stream to
-request forwarding of <code>PUBLISH</code> messages for tracks whose namespace
-matches the given prefix. The publisher <span class="bcp14">MUST</span> respond with a single
-<code>REQUEST_OK</code> or <code>REQUEST_ERROR</code>, and then sends a <code>PUBLISH</code> on the same
-stream for each matching track it currently has or subsequently learns
+<p id="section-4.3-1">A subscriber sends <code>SUBSCRIBE_TRACKS</code> on a new bidirectional stream.
+<code>SUBSCRIBE_TRACKS</code> specifies a Track Namespace Prefix, and the publisher
+<span class="bcp14">MUST</span> respond with a single <code>REQUEST_OK</code> or <code>REQUEST_ERROR</code>. <code>PUBLISH</code>es
+for tracks whose namespace matches the given prefix follow, both for
+tracks the publisher already has and for tracks it subsequently learns
 about, subject to the filters described below. <code>PUBLISH</code>es for tracks
-the subscriber itself is publishing on this session are excluded.
-Whether each <code>PUBLISH</code> becomes an active subscription depends on the
-normal <code>PUBLISH</code> acceptance flow (see <a href="#message-publish" class="auto internal xref">Section 9.8</a>).<a href="#section-4.3-2" class="pilcrow">¶</a></p>
-<p id="section-4.3-3">The subscriber <span class="bcp14">MAY</span> narrow the set of forwarded <code>PUBLISH</code>es by including
-Range Filters (<a href="#range-filters" class="auto internal xref">Section 3.3.2</a>) in <code>SUBSCRIBE_TRACKS</code>. A
+the subscriber itself is publishing on this session are excluded. Each
+such <code>PUBLISH</code> is handled via the normal <code>PUBLISH</code> acceptance flow (see
+<a href="#message-publish" class="auto internal xref">Section 9.8</a>) before it becomes an active subscription.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">The subscriber <span class="bcp14">MAY</span> narrow the set of forwarded <code>PUBLISH</code>es by including
+a <code>TRACK_PROPERTY_FILTER</code> (<a href="#range-filters" class="auto internal xref">Section 3.3.2</a>) in <code>SUBSCRIBE_TRACKS</code>. A
 <code>TRACK_PROPERTY_FILTER</code> matches Track Properties in each candidate
 <code>PUBLISH</code>; tracks whose Track Properties do not pass the filter are
 not advertised via <code>PUBLISH</code>, and no Objects are forwarded for them.
 Other Range Filters (and any Location Filter) do not suppress <code>PUBLISH</code>
 messages; instead, they are carried into each resulting subscription and
-constrain the Objects the publisher forwards on it.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
-<p id="section-4.3-4">If a publisher cannot create a subscription for a particular track (for
+filter the Objects the publisher forwards on it.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">If a publisher cannot create a subscription for a particular track (for
 example, because bidirectional stream credit is exhausted), it sends
 <code>PUBLISH_SKIPPED</code> on the response stream carrying the Full Track Name that
 was skipped. Once <code>PUBLISH_SKIPPED</code> has been sent for a track under a given
@@ -3152,11 +3139,11 @@ under the same <code>SUBSCRIBE_TRACKS</code>. This restriction is per-track: an
 upstream original publisher may still reconnect and re-advertise the same
 track later, in which case the relay <span class="bcp14">MAY</span> forward the new <code>PUBLISH</code>
 downstream. A subscriber that wants a skipped track anyway can issue a
-direct <code>SUBSCRIBE</code> for it.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
-<p id="section-4.3-5">A <code>SUBSCRIBE_TRACKS</code> is cancelled per <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>. Cancellation
+direct <code>SUBSCRIBE</code> for it.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">A <code>SUBSCRIBE_TRACKS</code> is cancelled per <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>. Cancellation
 does not stop original publishers from continuing to send <code>PUBLISH</code>
 messages, but a relay <span class="bcp14">MUST NOT</span> deliver further <code>PUBLISH</code> messages to a
-client that no longer holds an active subscription authorizing them.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+client that no longer holds an active subscription authorizing them.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4030,10 +4017,11 @@ to the old relay can be cancelled (see <a href="#request-cancellation" class="au
         <h3 id="name-aggregating-namespace-subsc">
 <a href="#section-7.5" class="section-number selfRef">7.5. </a><a href="#name-aggregating-namespace-subsc" class="section-name selfRef">Aggregating Namespace Subscriptions</a>
         </h3>
-<p id="section-7.5-1">Relays <span class="bcp14">SHOULD</span> aggregate subscriptions (particularly namespace
-subscriptions) and propagate filters upstream to protect their own
-resources and those of their upstream peers. When aggregation is not
-sufficient, a relay <span class="bcp14">MAY</span> reject or close namespace subscriptions using:<a href="#section-7.5-1" class="pilcrow">¶</a></p>
+<p id="section-7.5-1">This section applies to namespace subscriptions (<code>SUBSCRIBE_NAMESPACE</code>
+and <code>SUBSCRIBE_TRACKS</code>). Relays <span class="bcp14">SHOULD</span> aggregate these subscriptions
+and propagate filters upstream to protect their own resources and those
+of their upstream peers. When aggregation is not sufficient, a relay
+<span class="bcp14">MAY</span> reject or close namespace subscriptions using:<a href="#section-7.5-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-7.5-2.1">
             <p id="section-7.5-2.1.1"><code>NAMESPACE_TOO_LARGE</code> — the matching namespace population is beyond
@@ -4090,15 +4078,15 @@ Track Name is matched exactly against existing upstream subscriptions.<a href="#
           <h4 id="name-namespace-prefix-matching">
 <a href="#section-7.6.1" class="section-number selfRef">7.6.1. </a><a href="#name-namespace-prefix-matching" class="section-name selfRef">Namespace Prefix Matching</a>
           </h4>
-<p id="section-7.6.1-1">Namespace Prefix Matching is used to decide which publishers receive a
-SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the
+<p id="section-7.6.1-1">Namespace Prefix Matching is used to route subscriptions and namespace
+announcements. In this process, the
 fields in the Track Namespace are matched sequentially, requiring an
 exact match for each field. Two namespaces match if either is a
 field-wise prefix of the other; that is, one has the same or fewer
 fields than the other and all of its fields are equal.<a href="#section-7.6.1-1" class="pilcrow">¶</a></p>
-<p id="section-7.6.1-2">The following examples use the serialization from
-<a href="#namespace-name-format" class="auto internal xref">Section 8.8</a>. Each row compares a Prefix (the Track
-Namespace announced in PUBLISH_NAMESPACE or subscribed to in
+<p id="section-7.6.1-2">Examples follow, using the canonical encoding from
+<a href="#namespace-name-format" class="auto internal xref">Section 8.8</a> for 'Candidate'. Each row compares a Prefix
+(the Track Namespace announced in PUBLISH_NAMESPACE or subscribed to in
 SUBSCRIBE_NAMESPACE) against a Candidate (either another Track
 Namespace or a Full Track Name in SUBSCRIBE).<a href="#section-7.6.1-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-4">
