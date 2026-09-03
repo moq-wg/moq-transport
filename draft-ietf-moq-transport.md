@@ -111,7 +111,6 @@ This document describes the MOQT protocol and is structured as follows:
   * Section 14 {{transport-considerations}} Discusses transport related considerations, including congestion control
   * Section 15 {{security}} Discusses security considerations, including denial-of-service and authentication
 
-
 ## Motivation
 
 The development of MOQT is driven by goals in a number of areas -
