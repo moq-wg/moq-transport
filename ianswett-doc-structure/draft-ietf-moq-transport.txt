@@ -355,7 +355,7 @@ Table of Contents
       -  Section 9 Section 9 Control Messages details how Control
          Messages are sent, including their wire encoding
 
-      -  Section 10 Section 10 MoQT Properties describes Track and
+      -  Section 10 Section 10 MOQT Properties describes Track and
          Object properties defined in the core protocol
 
       -  Section 11 Section 11 Data streams describes the mapping and
