@@ -87,7 +87,7 @@ with policies for discovery and subscription.
 
 ## Document Structure
 
-This document describes the core MOQT protocol and is structured as follows:
+This document describes the MOQT protocol and is structured as follows:
 
 * The core concepts and functionality are described first
   * Section 2 {{model}} Object Data Model describes how Objects, Tracks and Namespaces relate
