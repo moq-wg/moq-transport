@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-01T04:16:10.329074+00:00",
+  "timestamp": "2026-09-03T03:38:23.910619+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -50904,7 +50904,7 @@
       ],
       "body": "The draft says \n\n> If\n> the subscriber specifies a Fill Timeout larger than the relay is\n> willing to wait, the relay MAY use a shorter timeout without\n> informing the subscriber.\n\nI don't like the idea that relay can use a shorter time, perhaps 0, without the subscriber knowing that happened. Could we design a way to inform what was used, or negotiate a lower bound that will not be shortened, or return an error when this happens. \n\nClients will need this information to be able to sort out why a request failed and what to do about it. \n\n",
       "createdAt": "2026-06-14T19:53:10Z",
-      "updatedAt": "2026-08-03T23:08:02Z",
+      "updatedAt": "2026-09-03T01:15:07Z",
       "closedAt": null,
       "comments": [
         {
@@ -50927,6 +50927,34 @@
           "body": "@fluffy do you have a specific use case that is going to break in mind, or are you arguing based on experiences of things going badly in other protocols?  It would really help me understand if you can give concrete flows and negative outcomes if a client issues a FILL_FETCH timeout of 5s and the relay times out after 1s instead, with no notification?  I can't see one.\n\nLet's walk through the options:\n\nCurrent draft:\n\n```\nC->S:  FETCH FILL_TIMEOUT=5s\nS->C:  FETCH_OK, data, data, TIMEOUT (after 1s), data.\n```\n\n> relay rejecting the request because the fill time is too long\n\n\n```\nC->S:  FETCH FILL_TIMEOUT=5s\nS->C: REQUEST_ERROR FILL_TIMEOUT_TOO_LONG, MAX_FILL_TIMEOUT=1s\nC->S: FETCH FILL_TIMEOUT=1s\nS->C:  FETCH_OK, data, data, TIMEOUT (after 1s), data.\n```\n\nThis is the **same outcome** as the current draft, with additional complexity, **1 RTT later**.\n\n>  add a setup parameter that indicates the relay's max\n\nS->C: SETUP MAX_FILL_TIMEOUT 1s\nC->S: FETCH FILL_TIMEOUT 1s\nS->C:  FETCH_OK, data, data, TIMEOUT (after 1s), data.\n\nThis is the **same outcome** as above, with additional complexity.\n\nIt also seems inconsistent because every publisher has 12 _other_ internal timeouts (see IETF 126 slides) it didn't broadcast to the subscriber.\n\nI see only complexity downsides and no problems being solved here.",
           "createdAt": "2026-08-03T23:07:46Z",
           "updatedAt": "2026-08-03T23:07:46Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm saying the client needs to know what happened and what timeout would be acceptable to retry. \n\nThe relay is offering a service and this is no different than just deciding not to get the file and not say why. Any applications that is going to use fetch to reliably get data, vs just opportunistic, is going to need to know what to do when it gets this error. ",
+          "createdAt": "2026-09-01T16:48:23Z",
+          "updatedAt": "2026-09-01T16:48:23Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think when I wrote this, the draft did not have way to communicate the max fill time in the error, if that is there, that solves the problem ",
+          "createdAt": "2026-09-01T16:49:53Z",
+          "updatedAt": "2026-09-01T16:49:53Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I'm saying the client needs to know what happened and what timeout would be acceptable to retry.\n\nMaybe this is the disconnect:\n\nThe client **does** know what happened (TIMEOUT).  It didn't fail because the client specified a timeout the relay thought was too large, it failed because something inside the relay took longer than the relay was willing to wait.  **There is no value the client can retry with to make this succeed**.\n\n> I think when I wrote this, the draft did not have way to communicate the max fill time in the error, if that is there, that solves the problem\n\nAdding this as a setup option to broadcast the relay's value to clients is acceptable to me, but distasteful because 1) it doesn't provide the thing you are asking for and 2) it's inconsistent with the other 12 internal timeouts a relay also has.",
+          "createdAt": "2026-09-01T17:24:55Z",
+          "updatedAt": "2026-09-01T17:24:55Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think we are talking past each other. Lets find some time to  discuss this on one of the calls ",
+          "createdAt": "2026-09-03T01:14:52Z",
+          "updatedAt": "2026-09-03T01:15:07Z"
         }
       ]
     },
@@ -51358,7 +51386,7 @@
       ],
       "body": "The draft says\n\n> Replay protection for authorization tokens is the responsibility of\n> the specific token scheme used. Token schemes such as [CAT] and\n> [PPA] include requirements for relays when processing tokens and\n> requests.\n\nI would like this to push specific requirements on the token schemes.  In the case where the applications is running in web browser and the token will be visible to javascript and any browser extensions, we should require that the token can not be cut and paste to another browser and replayed by an entity that did not have the credentials to get a new token. \n\nWithout this we have a risk of token being widely distributed across and attacker network and used to DDoS the relay or get unauthorized access to content. \n",
       "createdAt": "2026-06-15T00:58:42Z",
-      "updatedAt": "2026-06-16T18:06:06Z",
+      "updatedAt": "2026-09-03T01:21:52Z",
       "closedAt": null,
       "comments": [
         {
@@ -51381,6 +51409,13 @@
           "body": "Ok, expressing the importance of addressing the threat replay vector up front seems doable.  I just didn't think it made sense to say something like \"Every token scheme transported in MOQT_AUTHENTICATION parameters MUST prevent token replay attacks\".",
           "createdAt": "2026-06-16T18:06:06Z",
           "updatedAt": "2026-06-16T18:06:06Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "We often put in the security section requirements on extensible security mechanisms. None of it is enforceable, I am sure there are HTTP servers using RC4 even though IETS says you MUST NOT do that. The point is this spec, should say what properties we need to have from security tokens to meet the security claims of MoQ. We will get pushed to have that in security review. \n\nI would propose something like the security section says roughly. \n\nAny tokens specified for use in MOQT_AUTHENTICATION parameters MUST be capable of preventing replay attacks.   ",
+          "createdAt": "2026-09-03T01:21:52Z",
+          "updatedAt": "2026-09-03T01:21:52Z"
         }
       ]
     },
@@ -51400,7 +51435,7 @@
       ],
       "body": "\nThe draft mentions various E2EE schemes but I think it should add that a key part of the design is to work with the existing DRM schemes widely deployed for HLS and DASH.  This is a pretty key part of meeting the security requirements of some of the main uses case. ",
       "createdAt": "2026-06-15T01:02:09Z",
-      "updatedAt": "2026-06-15T18:43:38Z",
+      "updatedAt": "2026-09-03T01:28:31Z",
       "closedAt": null,
       "comments": [
         {
@@ -51423,6 +51458,13 @@
           "body": "I'm disinclined to add such a reference -- for example, HLS and DASH work fine without HTTP making a reference to their DRM schemes.  I'm not sure how this would add any value to the spec.",
           "createdAt": "2026-06-15T18:43:37Z",
           "updatedAt": "2026-06-15T18:43:37Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm trying to avoid a security review comment that says \"all the objects handed to relays need to be end to end encrypted\". There is a significant portion of the IETF that believes encryption should not be optional in new protocols. ",
+          "createdAt": "2026-09-03T01:28:31Z",
+          "updatedAt": "2026-09-03T01:28:31Z"
         }
       ]
     },
@@ -52791,7 +52833,7 @@
       ],
       "body": "The draft says \n\n> When SVCB-compatible records {{?RFC9460}} are published for the `authority`,\n> a client MAY use them to learn the server's endpoints and supported ALPN\n> protocols before connecting. \n> \n\nI don't think this is anywhere near specific enough.  The base draft needs to say how URI resolution works and how this ties to TLS certs. I can't deploy a load balancing  and HA strategy for relays unless I know what clients will do. The TLS does not provide much security unless we say how it relates to the URI. ",
       "createdAt": "2026-08-03T16:29:28Z",
-      "updatedAt": "2026-08-03T22:45:02Z",
+      "updatedAt": "2026-09-01T16:54:04Z",
       "closedAt": null,
       "comments": [
         {
@@ -52800,6 +52842,13 @@
           "body": "@fluffy I'm assigning this to you - please put up a PR that addresses your concerns and I will review.  I think you have specifics in mind that you aren't communicating clearly enough for me to action them.  Having glanced over RFC 9110 section section 4.3.3, perhaps that is what you are thinking?  However, if we also need 1800 words to describe this, I'm going to suggest we split our URI definition to a document other than transport (see also RFC 9110 [semantics] / 9114 [wire protocol] split).",
           "createdAt": "2026-08-03T22:44:55Z",
           "updatedAt": "2026-08-03T22:44:55Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think the URI should be in the base draft. Having how domain names resolution for https be separate from how TLS cert name matching works is a security problem waiting to happen AFAIC. ",
+          "createdAt": "2026-09-01T16:54:04Z",
+          "updatedAt": "2026-09-01T16:54:04Z"
         }
       ]
     },
@@ -53187,7 +53236,59 @@
       "labels": [],
       "body": "Since we originally discussed using Subscribe ID or Track Alias, Parameters and Track Properties were created.\n\nThere are some known problems with using Track Alias in SUBSCRIBE:\n1) It delays Object delivery if the SUBSCRIBE_OK arrives after the first Object.\n2) In cases when a Track Alias might be reused, it creates complexity, see PR #1856 \n3) It makes resource management of unknown tracks more complex, see https://github.com/englishm/moq-relay-dos/issues/29\n\nMaking Track Alias a Parameter is a fairly straightforward change.",
       "createdAt": "2026-09-01T02:13:17Z",
-      "updatedAt": "2026-09-01T02:54:21Z",
+      "updatedAt": "2026-09-01T13:21:48Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Track alias has zero benefit (it can't be guaranteed end-to-end) and only causes problems.\n\nBut I think making it optional also causes a bunch of problems?",
+          "createdAt": "2026-09-01T04:44:23Z",
+          "updatedAt": "2026-09-01T04:48:55Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Since we originally discussed using Subscribe ID or Track Alias, Parameters and Track Properties were created.\n> \n> There are some known problems with using Track Alias in SUBSCRIBE:\n> \n> 1. It delays Object delivery if the SUBSCRIBE_OK arrives after the first Object.\nthis is not true , since publisher choose the track alias and it can send the objects immediately .\n\n> 3. In cases when a Track Alias might be reused, it creates complexity, see PR [Beware re-using a Track Alias\u00a0#1856](https://github.com/moq-wg/moq-transport/pull/1856)\n  \n> 4. It makes resource management of unknown tracks more complex, see [Buffering data for unknown Track Aliases\u00a0englishm/moq-relay-dos#29](https://github.com/englishm/moq-relay-dos/issues/29)>\n \nBuffering data is needed regardless of track alias if there is no downward subscriptions and cached\n\n> Making Track Alias a Parameter is a fairly straightforward change.\nthis makes it optional and goes back on consensus from ietf 116. \n",
+          "createdAt": "2026-09-01T13:21:48Z",
+          "updatedAt": "2026-09-01T13:21:48Z"
+        }
+      ]
+    },
+    {
+      "number": 1889,
+      "id": "I_kwDOG2Ho4M8AAAABPMbU2g",
+      "title": "Document how multiple mechanisms for pausing subscriptions can interact",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1889",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "suhasHere"
+      ],
+      "labels": [],
+      "body": "There are currently at least three ways a subscription can be paused:\n\n1. Explicit request from the subscriber.\n2. Top-N filters.\n3. SSTS.\n\nWe should define how those interact. I believe we currently do that by having all of them change a single FORWARD flag.  If I manually pause all tracks in an SSTS set, will one of them unpause if the best selected track changes?  That would be weird.\n\nRelated PR: #1825\n",
+      "createdAt": "2026-09-01T17:04:55Z",
+      "updatedAt": "2026-09-01T17:04:55Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 1897,
+      "id": "I_kwDOG2Ho4M8AAAABPVcs5Q",
+      "title": "FETCH doesn't need an End Location or End of Track",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1897",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Wire Format",
+        "Fetch"
+      ],
+      "body": "Especially now that Fill-Fetch has landed (#1673), it's odd to have an End Location in FETCH_OK.\n\nThe End Location is the end of the specified range, unless it's relative or the end of the Fetch goes past Largest Object, in which case you end at Largest Object.\n\nIt's also odd to have 'End Of Track' IMO, because it's another difference with Fill-Fetch and it's not clear it's always necessary and might cause the FETCH_OK to take longer.  ie: Say I receive a FETCH for a single Group in the past, and I'm not currently subscribed to the Track, I don't know whether it has ended yet or not, so I'd need to figure that out.\n\nObservation from reviewing #1895",
+      "createdAt": "2026-09-02T12:48:45Z",
+      "updatedAt": "2026-09-02T12:48:45Z",
       "closedAt": null,
       "comments": []
     }
@@ -214173,13 +214274,13 @@
       ],
       "body": "Fixes #1352 ",
       "createdAt": "2026-07-22T08:25:26Z",
-      "updatedAt": "2026-08-31T20:47:58Z",
+      "updatedAt": "2026-09-01T18:28:31Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "38afc1081693bab71250c5434e56cc007d6ec23c",
+      "baseRefOid": "887309d12e5db97fea50cbb7ea7ab0ab30f752dc",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "remove-forward-parameter",
-      "headRefOid": "a4a460219ded857b885fb72c20b425d821baf006",
+      "headRefOid": "9d00590bd30b897e93d239d0c2f82b701d50d9a2",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -214375,6 +214476,318 @@
               "body": "I agree. I would only describe pause in terms of (mandatory) location filters not (optional) range filters. It is impossible in general to determine if a range filter guarantees no matching objects, so the intent to pause is impossible for the publisher to discern. Also consider the mess it causes for upstream aggregation if each downstream subscriber tried to pause using different random range filters. Pause should be a well specified, deterministic mechanism that can be aggregated upstream unambiguously. ",
               "createdAt": "2026-08-31T18:40:20Z",
               "updatedAt": "2026-08-31T18:40:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsPpcA",
+          "commit": {
+            "abbreviatedOid": "eb20d30"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:52:59Z",
+          "updatedAt": "2026-09-01T14:52:59Z",
+          "comments": [
+            {
+              "originalPosition": 27,
+              "body": "Applied in eb20d309.",
+              "createdAt": "2026-09-01T14:52:59Z",
+              "updatedAt": "2026-09-01T14:52:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsPq1Q",
+          "commit": {
+            "abbreviatedOid": "eb20d30"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:53:00Z",
+          "updatedAt": "2026-09-01T14:53:00Z",
+          "comments": [
+            {
+              "originalPosition": 83,
+              "body": "Applied in eb20d309.",
+              "createdAt": "2026-09-01T14:53:00Z",
+              "updatedAt": "2026-09-01T14:53:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsPsDg",
+          "commit": {
+            "abbreviatedOid": "eb20d30"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:53:01Z",
+          "updatedAt": "2026-09-01T14:53:01Z",
+          "comments": [
+            {
+              "originalPosition": 88,
+              "body": "Added a SHOULD NOT paragraph in eb20d309.",
+              "createdAt": "2026-09-01T14:53:01Z",
+              "updatedAt": "2026-09-01T14:53:01Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsPs3A",
+          "commit": {
+            "abbreviatedOid": "eb20d30"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:53:03Z",
+          "updatedAt": "2026-09-01T14:53:03Z",
+          "comments": [
+            {
+              "originalPosition": 91,
+              "body": "Applied in eb20d309.",
+              "createdAt": "2026-09-01T14:53:03Z",
+              "updatedAt": "2026-09-01T14:53:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsPtwg",
+          "commit": {
+            "abbreviatedOid": "eb20d30"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:53:04Z",
+          "updatedAt": "2026-09-01T14:53:04Z",
+          "comments": [
+            {
+              "originalPosition": 384,
+              "body": "Applied in eb20d309.",
+              "createdAt": "2026-09-01T14:53:04Z",
+              "updatedAt": "2026-09-01T14:53:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsPurw",
+          "commit": {
+            "abbreviatedOid": "eb20d30"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:53:05Z",
+          "updatedAt": "2026-09-01T14:53:05Z",
+          "comments": [
+            {
+              "originalPosition": 375,
+              "body": "Already applied in origin/main after rebase.",
+              "createdAt": "2026-09-01T14:53:05Z",
+              "updatedAt": "2026-09-01T14:53:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsPvjg",
+          "commit": {
+            "abbreviatedOid": "eb20d30"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:53:07Z",
+          "updatedAt": "2026-09-01T14:53:07Z",
+          "comments": [
+            {
+              "originalPosition": 336,
+              "body": "Already applied in origin/main (#1869) after rebase.",
+              "createdAt": "2026-09-01T14:53:07Z",
+              "updatedAt": "2026-09-01T14:53:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsPwmw",
+          "commit": {
+            "abbreviatedOid": "eb20d30"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:53:08Z",
+          "updatedAt": "2026-09-01T14:53:08Z",
+          "comments": [
+            {
+              "originalPosition": 318,
+              "body": "Applied in eb20d309.",
+              "createdAt": "2026-09-01T14:53:08Z",
+              "updatedAt": "2026-09-01T14:53:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsPyCA",
+          "commit": {
+            "abbreviatedOid": "eb20d30"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:53:09Z",
+          "updatedAt": "2026-09-01T14:53:10Z",
+          "comments": [
+            {
+              "originalPosition": 294,
+              "body": "Applied in eb20d309.",
+              "createdAt": "2026-09-01T14:53:09Z",
+              "updatedAt": "2026-09-01T14:53:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsPzcw",
+          "commit": {
+            "abbreviatedOid": "eb20d30"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:53:11Z",
+          "updatedAt": "2026-09-01T14:53:11Z",
+          "comments": [
+            {
+              "originalPosition": 290,
+              "body": "Applied in eb20d309.",
+              "createdAt": "2026-09-01T14:53:11Z",
+              "updatedAt": "2026-09-01T14:53:11Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLtp7UA",
+          "commit": {
+            "abbreviatedOid": "9d00590"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "There are a few more PUBLISH_OKs that need to be removed, but looking good.",
+          "createdAt": "2026-09-01T17:23:33Z",
+          "updatedAt": "2026-09-01T17:28:19Z",
+          "comments": [
+            {
+              "originalPosition": 214,
+              "body": "```suggestion\nMessage Parameters in SUBSCRIBE and FETCH MUST NOT cause the\n```",
+              "createdAt": "2026-09-01T17:23:34Z",
+              "updatedAt": "2026-09-01T17:28:19Z"
+            },
+            {
+              "originalPosition": 223,
+              "body": "```suggestion\nMAY appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its\n```",
+              "createdAt": "2026-09-01T17:23:45Z",
+              "updatedAt": "2026-09-01T17:28:19Z"
+            },
+            {
+              "originalPosition": 232,
+              "body": "```suggestion\nMAY appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its\n```",
+              "createdAt": "2026-09-01T17:23:53Z",
+              "updatedAt": "2026-09-01T17:28:19Z"
+            },
+            {
+              "originalPosition": 241,
+              "body": "```suggestion\nappear in a SUBSCRIBE, PUBLISH, FETCH, or REQUEST_UPDATE\n```",
+              "createdAt": "2026-09-01T17:24:01Z",
+              "updatedAt": "2026-09-01T17:28:19Z"
+            },
+            {
+              "originalPosition": 247,
+              "body": "```suggestion\nIf omitted from SUBSCRIBE or FETCH, the publisher uses\n```",
+              "createdAt": "2026-09-01T17:24:25Z",
+              "updatedAt": "2026-09-01T17:28:20Z"
+            },
+            {
+              "originalPosition": 280,
+              "body": "I think this paragraph got moved to 'Joining a Track' and updated?",
+              "createdAt": "2026-09-01T17:27:53Z",
+              "updatedAt": "2026-09-01T17:28:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLuBlBA",
+          "commit": {
+            "abbreviatedOid": "9d00590"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T18:08:46Z",
+          "updatedAt": "2026-09-01T18:28:30Z",
+          "comments": [
+            {
+              "originalPosition": 32,
+              "body": "recommended is a keyword?",
+              "createdAt": "2026-09-01T18:08:46Z",
+              "updatedAt": "2026-09-01T18:28:31Z"
+            },
+            {
+              "originalPosition": 79,
+              "body": "recommeded is a keyword",
+              "createdAt": "2026-09-01T18:13:28Z",
+              "updatedAt": "2026-09-01T18:28:31Z"
+            },
+            {
+              "originalPosition": 80,
+              "body": "This is a wire encoding detail?  Can you give it canonical coordinates {0,1} - {0,0}?",
+              "createdAt": "2026-09-01T18:14:23Z",
+              "updatedAt": "2026-09-01T18:28:31Z"
+            },
+            {
+              "originalPosition": 82,
+              "body": "This is more a statement of fact than a normative requirement; we can drop MUST.\r\n\r\n```suggestion\r\n{{combining-filters}}), the subscriber adds the pausing filter to every SetID;\r\n```",
+              "createdAt": "2026-09-01T18:15:56Z",
+              "updatedAt": "2026-09-01T18:28:31Z"
+            },
+            {
+              "originalPosition": 104,
+              "body": "delete?",
+              "createdAt": "2026-09-01T18:19:21Z",
+              "updatedAt": "2026-09-01T18:28:31Z"
+            },
+            {
+              "originalPosition": 166,
+              "body": "This is just a little awkward -- you want to say that the upstream subscribe must not start the subscription paused.  I can live with this though.",
+              "createdAt": "2026-09-01T18:22:59Z",
+              "updatedAt": "2026-09-01T18:28:31Z"
+            },
+            {
+              "originalPosition": 180,
+              "body": "non-paused?",
+              "createdAt": "2026-09-01T18:24:43Z",
+              "updatedAt": "2026-09-01T18:28:31Z"
+            },
+            {
+              "originalPosition": 343,
+              "body": "Don't need to reserve the code point with ALPN?",
+              "createdAt": "2026-09-01T18:28:14Z",
+              "updatedAt": "2026-09-01T18:28:31Z"
             }
           ]
         }
@@ -216353,7 +216766,7 @@
       "labels": [],
       "body": "",
       "createdAt": "2026-08-31T15:26:51Z",
-      "updatedAt": "2026-08-31T15:28:05Z",
+      "updatedAt": "2026-09-01T19:56:45Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d92ccef327b045fd3c1536c9edf8e1ace0877175",
@@ -216365,7 +216778,21 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLvBxEg",
+          "commit": {
+            "abbreviatedOid": "31e2ba6"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "I'm not sure this diagram makes clear what is confusing about scope - the hierarchal nature of namespaces and tracks within a single scope seems pretty straightforward.  The important bit is that two scopes can use the same name to refer to different tracks.  What confuses people is \"how do I define a scope\".",
+          "createdAt": "2026-09-01T19:56:45Z",
+          "updatedAt": "2026-09-01T19:56:45Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 1866,
@@ -216379,7 +216806,7 @@
       "labels": [],
       "body": "",
       "createdAt": "2026-08-31T17:10:31Z",
-      "updatedAt": "2026-08-31T18:17:20Z",
+      "updatedAt": "2026-09-01T19:54:08Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "527686bc5f37fd9f6dcac20eddc8e30f67018718",
@@ -216449,6 +216876,26 @@
               "body": "agreed, but I was wondering if we need a version that combines both ?",
               "createdAt": "2026-08-31T18:17:19Z",
               "updatedAt": "2026-08-31T18:17:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLvAMhA",
+          "commit": {
+            "abbreviatedOid": "bb9d3f4"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T19:54:07Z",
+          "updatedAt": "2026-09-01T19:54:08Z",
+          "comments": [
+            {
+              "originalPosition": 36,
+              "body": "Including the subgroup bit encodings in the object model section runs counter to our new layout.  We could make this more abstract and keep it here, or move it to an appendix?",
+              "createdAt": "2026-09-01T19:54:08Z",
+              "updatedAt": "2026-09-01T19:54:08Z"
             }
           ]
         }
@@ -216915,33 +217362,222 @@
     {
       "number": 1874,
       "id": "PR_kwDOG2Ho4M8AAAABBp5n5w",
-      "title": "Editorial update on section 11",
+      "title": "Editorial updates on datagram/object header sections",
       "url": "https://github.com/moq-wg/moq-transport/pull/1874",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial"
+      ],
       "body": "Remove redundancy, refactor common text and simplify text",
       "createdAt": "2026-08-31T20:28:53Z",
-      "updatedAt": "2026-08-31T20:29:53Z",
+      "updatedAt": "2026-09-01T15:25:34Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d1004ff53bfd7cc8e04a9ce60e21f44f3341c0f7",
+      "baseRefOid": "887309d12e5db97fea50cbb7ea7ab0ab30f752dc",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "refactor-data-1",
-      "headRefOid": "ca3a8cac6fd7f4942e266b59468fc4e02d322420",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "46759c4095d296a1385f43a010902a6854a0ef18",
+      "closedAt": "2026-09-01T15:25:34Z",
+      "mergedAt": "2026-09-01T15:25:34Z",
+      "mergedBy": "suhasHere",
+      "mergeCommit": {
+        "oid": "0049159d4b01eb3fbf682b7f8755cca0bf72b685"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsCFjw",
+          "commit": {
+            "abbreviatedOid": "af775ab"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:32:35Z",
+          "updatedAt": "2026-09-01T14:47:59Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "don't think \"opens a stream\" is right - this is the receive path",
+              "createdAt": "2026-09-01T14:32:35Z",
+              "updatedAt": "2026-09-01T14:47:59Z"
+            },
+            {
+              "originalPosition": 26,
+              "body": "This belongs in object model?",
+              "createdAt": "2026-09-01T14:35:23Z",
+              "updatedAt": "2026-09-01T14:47:59Z"
+            },
+            {
+              "originalPosition": 115,
+              "body": "Some of these may belong in the relay section",
+              "createdAt": "2026-09-01T14:39:39Z",
+              "updatedAt": "2026-09-01T14:47:59Z"
+            },
+            {
+              "originalPosition": 140,
+              "body": "This is introducing a normative SHOULD NOT... are we ok marking editorial?",
+              "createdAt": "2026-09-01T14:42:00Z",
+              "updatedAt": "2026-09-01T14:47:59Z"
+            },
+            {
+              "originalPosition": 179,
+              "body": "Maybe we don't need to call this `Bitmask Result (Serialization Flags & 0x03)`",
+              "createdAt": "2026-09-01T14:46:20Z",
+              "updatedAt": "2026-09-01T14:47:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsUY-g",
+          "commit": {
+            "abbreviatedOid": "af775ab"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:59:51Z",
+          "updatedAt": "2026-09-01T14:59:51Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "Fixed in d7b152ac \u2014 changed to \"receives a datagram or a new stream\".",
+              "createdAt": "2026-09-01T14:59:51Z",
+              "updatedAt": "2026-09-01T14:59:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsUaPA",
+          "commit": {
+            "abbreviatedOid": "af775ab"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:59:53Z",
+          "updatedAt": "2026-09-01T14:59:53Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "Agreed \u2014 moved the sentence into `## Subgroups` (object model) in d7b152ac.",
+              "createdAt": "2026-09-01T14:59:53Z",
+              "updatedAt": "2026-09-01T14:59:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsUbJA",
+          "commit": {
+            "abbreviatedOid": "af775ab"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:59:54Z",
+          "updatedAt": "2026-09-01T14:59:54Z",
+          "comments": [
+            {
+              "originalPosition": 115,
+              "body": "Agreed some of this belongs in the relay section, but the relay-specific text is interleaved with generic stream FIN handling here. Leaving as-is in this PR and proposing to tackle the relay-section split as a follow-up so this PR stays purely editorial.",
+              "createdAt": "2026-09-01T14:59:54Z",
+              "updatedAt": "2026-09-01T14:59:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsUcNA",
+          "commit": {
+            "abbreviatedOid": "af775ab"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:59:55Z",
+          "updatedAt": "2026-09-01T14:59:56Z",
+          "comments": [
+            {
+              "originalPosition": 140,
+              "body": "Good catch \u2014 reverted to the pre-PR non-normative phrasing (\"note that \u2026 is of questionable utility\") in d7b152ac to keep this PR editorial.",
+              "createdAt": "2026-09-01T14:59:56Z",
+              "updatedAt": "2026-09-01T14:59:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsUdWg",
+          "commit": {
+            "abbreviatedOid": "af775ab"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:59:57Z",
+          "updatedAt": "2026-09-01T14:59:57Z",
+          "comments": [
+            {
+              "originalPosition": 179,
+              "body": "Simplified the column header to just `Value` in d7b152ac; the section text above already explains it's the result of `Serialization Flags & 0x03`.",
+              "createdAt": "2026-09-01T14:59:57Z",
+              "updatedAt": "2026-09-01T14:59:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsd4qQ",
+          "commit": {
+            "abbreviatedOid": "d7b152a"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T15:13:35Z",
+          "updatedAt": "2026-09-01T15:13:38Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "Can drop after semi and move both sentences up to Object?\r\n\r\n```suggestion\r\nTrack.\r\n```",
+              "createdAt": "2026-09-01T15:13:35Z",
+              "updatedAt": "2026-09-01T15:13:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsje9g",
+          "commit": {
+            "abbreviatedOid": "d7b152a"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T15:22:01Z",
+          "updatedAt": "2026-09-01T15:22:01Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "Done in 46759c40 \u2014 moved both sentences up to `## Objects` and dropped the `each Object's Object Forwarding Preference determines which is used` clause.",
+              "createdAt": "2026-09-01T15:22:01Z",
+              "updatedAt": "2026-09-01T15:22:02Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 1876,
       "id": "PR_kwDOG2Ho4M8AAAABBr7_MA",
-      "title": "Make Track Alias a Parameter returned in SUBSCRIBE_OK",
+      "title": "RFC: Make Track Alias a Parameter returned in SUBSCRIBE_OK",
       "url": "https://github.com/moq-wg/moq-transport/pull/1876",
       "state": "OPEN",
       "author": "ianswett",
@@ -216950,7 +217586,7 @@
       "labels": [],
       "body": "Create a new PR that makes Track Alias a Parameter returned in SUBSCRIBE_OK instead of a required field. When Track Alias isn't returned, the Request ID is used to associate Objects with the correct Subscription.\r\n\r\nThis adds `TRACK_ALIAS` to the IANA Message Parameters table, updates `SUBSCRIBE_OK`, adds a parity rule for `Track Alias`, and renames `Track Alias` to `Track Alias or Request ID` in the object headers.\r\n\r\nFixes #1875 \r\n\r\n---\r\n*PR created automatically by Jules for task [13571905536436668031](https://jules.google.com/task/13571905536436668031) started by @ianswett*",
       "createdAt": "2026-09-01T02:32:09Z",
-      "updatedAt": "2026-09-01T03:01:27Z",
+      "updatedAt": "2026-09-02T15:19:51Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d1004ff53bfd7cc8e04a9ce60e21f44f3341c0f7",
@@ -216961,7 +217597,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I like the idea, but this seems to be contingent on request IDs and track aliases not conflicting, which is slightly challenging since both are effectively arbitrary, but request IDs are at least always picked by the publisher.",
+          "createdAt": "2026-09-01T18:15:27Z",
+          "updatedAt": "2026-09-01T18:15:27Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M8AAAABLmZhKw",
@@ -217060,6 +217704,1977 @@
               "updatedAt": "2026-09-01T03:01:20Z"
             }
           ]
+        }
+      ]
+    },
+    {
+      "number": 1877,
+      "id": "PR_kwDOG2Ho4M8AAAABBwIpvw",
+      "title": "Draft Restructuring Phase I: move-only edits",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1877",
+      "state": "MERGED",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Checked that it does not alter any individual paragraphs via https://gist.github.com/vasilvv/94a3c58f1545fd08e17c3c12f29bfeb4\r\n\r\nNew Table of Contents:\r\n\r\n```\r\nTable of Contents\r\n\r\n   1.  Introduction\r\n     1.1.  Motivation\r\n       1.1.1.  Latency\r\n       1.1.2.  Leveraging QUIC\r\n       1.1.3.  Convergence\r\n       1.1.4.  Relays\r\n     1.2.  Terms and Definitions\r\n     1.3.  Stream Management Terms\r\n     1.4.  Modularity\r\n   2.  Object Data Model\r\n     2.1.  Objects\r\n       2.1.1.  Canonical Object Fields\r\n     2.2.  Subgroups\r\n     2.3.  Groups\r\n       2.3.1.  Group IDs\r\n     2.4.  Track\r\n       2.4.1.  Track Naming\r\n       2.4.2.  Reserved Namespaces\r\n     2.5.  Scope\r\n   3.  Publishing and Receiving Tracks\r\n     3.1.  Subscriptions\r\n       3.1.1.  Subscription State Management\r\n       3.1.2.  Track Alias\r\n       3.1.3.  Location Filters\r\n       3.1.4.  Fill Semantics\r\n       3.1.5.  Range Filters\r\n       3.1.6.  Combining Filters\r\n       3.1.7.  Joining an Ongoing Track\r\n     3.2.  Fetch State Management\r\n     3.3.  Mandatory Track Properties\r\n   4.  Namespace Discovery\r\n     4.1.  Subscribing to Namespaces\r\n     4.2.  Publishing Namespaces\r\n     4.3.  Filtering SUBSCRIBE_TRACKS\r\n       4.3.1.  Relay Resource Protection in Large Namespaces\r\n   5.  Object Transmission\r\n     5.1.  Priorities\r\n       5.1.1.  Definitions\r\n       5.1.2.  Scheduling Algorithm\r\n       5.1.3.  Considerations for Setting Priorities\r\n     5.2.  Delivery Timeouts and Data Reliability\r\n   6.  Sessions\r\n     6.1.  MOQT URI Scheme\r\n       6.1.1.  Fragment Identifiers\r\n       6.1.2.  Dereferencing a MOQT URI\r\n     6.2.  Session establishment\r\n       6.2.1.  WebTransport\r\n       6.2.2.  Native QUIC\r\n       6.2.3.  Connection URL\r\n     6.3.  Session initialization\r\n       6.3.1.  0-RTT\r\n       6.3.2.  Extension Negotiation\r\n     6.4.  Stream Usage\r\n       6.4.1.  Unidirectional Streams\r\n       6.4.2.  Bidirectional Request Streams\r\n     6.5.  Session-Level Tracks and Namespaces\r\n     6.6.  Termination\r\n       6.6.1.  Graceful Session Migration\r\n   7.  Relays\r\n     7.1.  Caching Relays\r\n     7.2.  Forward Handling\r\n     7.3.  Multiple Publishers\r\n     7.4.  Subscriber Interactions\r\n       7.4.1.  Graceful Subscriber Relay Switchover\r\n     7.5.  Publisher Interactions\r\n       7.5.1.  Graceful Publisher Relay Switchover\r\n     7.6.  Relay Track Handling\r\n     7.7.  Relay Object Handling\r\n   8.  Notational Conventions and Common Structures\r\n     8.1.  Variable-Length Integers\r\n     8.2.  Location Structure\r\n     8.3.  Key-Value-Pair Structure\r\n     8.4.  Track and Object Properties\r\n     8.5.  Reason Phrase Structure\r\n     8.6.  Representing Namespace and Track Names\r\n       8.6.1.  Parsing Serialized Names\r\n     8.7.  Authorization Token Compression\r\n   9.  Control Messages\r\n     9.1.  SETUP\r\n       9.1.1.  Setup Options\r\n     9.2.  GOAWAY\r\n     9.3.  REQUEST_OK\r\n     9.4.  REQUEST_ERROR\r\n       9.4.1.  Redirect Structure\r\n       9.4.2.  REQUEST_ERROR Message Format\r\n     9.5.  REQUEST_UPDATE\r\n       9.5.1.  Updating Subscriptions\r\n       9.5.2.  Updating Namespace Subscriptions\r\n     9.6.  SUBSCRIBE\r\n     9.7.  SUBSCRIBE_OK\r\n     9.8.  PUBLISH\r\n     9.9.  PUBLISH_DONE\r\n     9.10. PUBLISH_STATE_NOTIFY\r\n     9.11. FETCH\r\n     9.12. FETCH_OK\r\n     9.13. TRACK_STATUS\r\n     9.14. PUBLISH_NAMESPACE\r\n     9.15. SUBSCRIBE_NAMESPACE\r\n     9.16. NAMESPACE\r\n     9.17. NAMESPACE_DONE\r\n     9.18. SUBSCRIBE_TRACKS\r\n       9.18.1.  Parameters on SUBSCRIBE_TRACKS\r\n     9.19. PUBLISH_SKIPPED\r\n     9.20. Control Message Parameters\r\n       9.20.1.  Parameter Scope\r\n       9.20.2.  Allowed Parameters By Control Message\r\n       9.20.3.  AUTHORIZATION TOKEN Parameter\r\n       9.20.4.  SUBGROUP_DELIVERY_TIMEOUT Parameter\r\n       9.20.5.  OBJECT_DELIVERY_TIMEOUT Parameter\r\n       9.20.6.  FILL TIMEOUT Parameter\r\n       9.20.7.  RENDEZVOUS TIMEOUT Parameter\r\n       9.20.8.  SUBSCRIBER PRIORITY Parameter\r\n       9.20.9.  GROUP ORDER Parameter\r\n       9.20.10. LOCATION FILTER Parameter\r\n       9.20.11. SUBGROUP FILTER Parameter\r\n       9.20.12. OBJECTID FILTER Parameter\r\n       9.20.13. PRIORITY FILTER Parameter\r\n       9.20.14. OBJECT PROPERTY FILTER Parameter\r\n       9.20.15. TRACK PROPERTY FILTER Parameter\r\n       9.20.16. FILL PARAMETERS Parameter\r\n       9.20.17. EXPIRES Parameter\r\n       9.20.18. LARGEST OBJECT Parameter\r\n       9.20.19. FORWARD Parameter\r\n       9.20.20. NEW GROUP REQUEST Parameter\r\n       9.20.21. TRACK_NAMESPACE_PREFIX Parameter\r\n       9.20.22. INCLUDE_PROPERTIES Parameter\r\n   10. MOQT Properties\r\n     10.1.  SUBGROUP_DELIVERY_TIMEOUT\r\n     10.2.  OBJECT_DELIVERY_TIMEOUT\r\n     10.3.  MAX CACHE DURATION\r\n     10.4.  DEFAULT PUBLISHER PRIORITY\r\n     10.5.  DEFAULT PUBLISHER GROUP ORDER\r\n     10.6.  DYNAMIC GROUPS\r\n     10.7.  Immutable Properties\r\n     10.8.  Prior Group ID Gap\r\n     10.9.  Prior Object ID Gap\r\n   11. Data Streams and Datagrams\r\n     11.1.  Objects\r\n       11.1.1.  Object Header\r\n       11.1.2.  Object Status\r\n       11.1.3.  Object Properties\r\n     11.2.  Datagrams\r\n       11.2.1.  Object Datagram\r\n     11.3.  Subgroup Streams\r\n       11.3.1.  Stream Cancellation\r\n       11.3.2.  Subgroup Header\r\n       11.3.3.  Closing Subgroup Streams\r\n     11.4.  Fetch Streams\r\n       11.4.1.  Fetch Header\r\n     11.5.  Padding\r\n       11.5.1.  Padding Streams\r\n       11.5.2.  Padding Datagrams\r\n     11.6.  Examples\r\n   12. Transport Considerations\r\n     12.1.  Congestion Control Considerations\r\n       12.1.1.  Bufferbloat\r\n       12.1.2.  Application-Limited\r\n       12.1.3.  Consistent Throughput\r\n   13. Security Considerations\r\n     13.1.  Subscription Amplification\r\n     13.2.  Communication Security\r\n     13.3.  Authorization\r\n       13.3.1.  Mutual TLS\r\n       13.3.2.  Replay Attacks\r\n       13.3.3.  Preventing Impersonation\r\n     13.4.  Media Security\r\n     13.5.  Resource Exhaustion\r\n     13.6.  Timeouts\r\n       13.6.1.  Idle Connection Handling\r\n     13.7.  Relay security considerations\r\n       13.7.1.  State maintenance\r\n       13.7.2.  SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS with short\r\n               prefixes\r\n     13.8.  Implementation Identification Fingerprinting\r\n     13.9.  Logging of Untrusted String Fields\r\n   14. Error Handling\r\n     14.1.  Malformed Tracks\r\n     14.2.  Session Termination Codes\r\n     14.3.  Request Error Codes\r\n     14.4.  Publish Done Codes\r\n     14.5.  Stream Reset Error Codes\r\n   15. Grease\r\n   16. IANA Considerations\r\n     16.1.  URI Scheme Registrations\r\n       16.1.1.  \"moqt\" URI Scheme Registration\r\n     16.2.  Media Type Registration\r\n     16.3.  MOQT URI Fragment Types\r\n     16.4.  Setup Options\r\n     16.5.  Authorization Token Alias Type\r\n     16.6.  MOQT Auth Token Type\r\n     16.7.  Message Parameters\r\n     16.8.  Properties\r\n     16.9.  Object Status\r\n     16.10. Session-Level Track Names\r\n     16.11. Error Codes\r\n       16.11.1.  Session Termination Error Codes\r\n       16.11.2.  REQUEST_ERROR Codes\r\n       16.11.3.  PUBLISH_DONE Codes\r\n       16.11.4.  Stream Reset Error Codes\r\n   Contributors\r\n   Use of Generative AI\r\n   References\r\n     Normative References\r\n     Informative References\r\n   Appendix A.  Change Log\r\n     A.1.  Since draft-ietf-moq-transport-19\r\n     A.2.  Since draft-ietf-moq-transport-18\r\n     A.3.  Since draft-ietf-moq-transport-17\r\n     A.4.  Since draft-ietf-moq-transport-16\r\n     A.5.  Since draft-ietf-moq-transport-15\r\n     A.6.  Since draft-ietf-moq-transport-14\r\n     A.7.  Since draft-ietf-moq-transport-13\r\n     A.8.  Since draft-ietf-moq-transport-12\r\n     A.9.  Since draft-ietf-moq-transport-11\r\n     A.10. Since draft-ietf-moq-transport-10\r\n   Authors' Addresses\r\n```",
+      "createdAt": "2026-09-01T13:21:08Z",
+      "updatedAt": "2026-09-01T14:12:38Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "d1004ff53bfd7cc8e04a9ce60e21f44f3341c0f7",
+      "headRepository": "vasilvv/warp-draft",
+      "headRefName": "restruct",
+      "headRefOid": "f3ca0a10edd83bd2cd1786175aa8e30dae31c93b",
+      "closedAt": "2026-09-01T14:12:38Z",
+      "mergedAt": "2026-09-01T14:12:37Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "887309d12e5db97fea50cbb7ea7ab0ab30f752dc"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLrpqng",
+          "commit": {
+            "abbreviatedOid": "f3ca0a1"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T13:56:22Z",
+          "updatedAt": "2026-09-01T13:56:22Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLrsAxQ",
+          "commit": {
+            "abbreviatedOid": "f3ca0a1"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T13:59:47Z",
+          "updatedAt": "2026-09-01T13:59:47Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLr0W_A",
+          "commit": {
+            "abbreviatedOid": "f3ca0a1"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Looks fine to me.\n\nFew outstanding work\n- mvoe wire format details out of section 3\n- section 8.4 has relay text, move it to relay specific sections\n\nPlease squash it a single commit ..",
+          "createdAt": "2026-09-01T14:12:01Z",
+          "updatedAt": "2026-09-01T14:12:01Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1878,
+      "id": "PR_kwDOG2Ho4M8AAAABBwl8AQ",
+      "title": "Remove stale sections",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1878",
+      "state": "MERGED",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "\"Connection URL\" is not referenced anywhere and redundant with the MOQT Schema definition.\r\n\r\n\"Stream Cancellation\" is redundant with Stream Usage section.\r\n\r\n\"Examples\" contains stale examples that are not as helpful as they were when they were added years ago.",
+      "createdAt": "2026-09-01T14:14:04Z",
+      "updatedAt": "2026-09-01T15:48:27Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "0049159d4b01eb3fbf682b7f8755cca0bf72b685",
+      "headRepository": "vasilvv/warp-draft",
+      "headRefName": "restruct2",
+      "headRefOid": "63000e5de771363abd4e1ff861099cd2d481a445",
+      "closedAt": "2026-09-01T15:48:27Z",
+      "mergedAt": "2026-09-01T15:48:27Z",
+      "mergedBy": "vasilvv",
+      "mergeCommit": {
+        "oid": "241b4e9e449f87b0f496c8df5cbcfaa79aabc089"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsMMjg",
+          "commit": {
+            "abbreviatedOid": "a7e0ed8"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T14:47:46Z",
+          "updatedAt": "2026-09-01T14:47:46Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLswVag",
+          "commit": {
+            "abbreviatedOid": "a7e0ed8"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T15:43:37Z",
+          "updatedAt": "2026-09-01T15:43:37Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1879,
+      "id": "PR_kwDOG2Ho4M8AAAABBw2EkQ",
+      "title": "Move Session Termination Codes into Error Handling",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1879",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Move the session error code list and its lead-in verbatim from the Termination section to the empty Session Termination Codes subsection under Error Handling, matching Stream Reset Error Codes. Termination keeps the transport-level close mechanics and gains a pointer.\r\n\r\nRetarget the IANA Session Termination Error Codes rows and the two in-text PROTOCOL_VIOLATION citations to the new anchor.",
+      "createdAt": "2026-09-01T14:43:25Z",
+      "updatedAt": "2026-09-01T14:49:54Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "887309d12e5db97fea50cbb7ea7ab0ab30f752dc",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "session-termination-codes",
+      "headRefOid": "06cb9f36e581c92be8e71bdf323358768eafe8bb",
+      "closedAt": "2026-09-01T14:49:51Z",
+      "mergedAt": "2026-09-01T14:49:51Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "5ffeeca6c854fb54ccf4a3d94fdb2c4942a84426"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsKNPA",
+          "commit": {
+            "abbreviatedOid": "06cb9f3"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T14:44:46Z",
+          "updatedAt": "2026-09-01T14:44:46Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1880,
+      "id": "PR_kwDOG2Ho4M8AAAABBw2I6w",
+      "title": "Move Request Error Codes into Error Handling",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1880",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Move the REQUEST_ERROR code list, its lead-in, and the paragraphs that scope codes to publisher, subscriber, and single-message use into the empty Request Error Codes subsection under Error Handling. The message format section keeps the field descriptions and the Retry Interval guidance, and gains a pointer.\r\n\r\nThe lead-in picks up a back-reference to the REQUEST_ERROR message. Retarget the IANA REQUEST_ERROR Codes rows to the new anchor.",
+      "createdAt": "2026-09-01T14:43:33Z",
+      "updatedAt": "2026-09-01T14:50:20Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "887309d12e5db97fea50cbb7ea7ab0ab30f752dc",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "request-error-codes",
+      "headRefOid": "764fac6f781171fd46863df4a8406afbb93c6343",
+      "closedAt": "2026-09-01T14:50:16Z",
+      "mergedAt": "2026-09-01T14:50:16Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "356b6c3c43e18597fb48b4965e2a7ddf3bfa1ec5"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsKk8A",
+          "commit": {
+            "abbreviatedOid": "764fac6"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T14:45:21Z",
+          "updatedAt": "2026-09-01T14:45:21Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1881,
+      "id": "PR_kwDOG2Ho4M8AAAABBw2NoA",
+      "title": "Move Publish Done Codes into Error Handling",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1881",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Move the PUBLISH_DONE status code list and its lead-in into the empty Publish Done Codes subsection under Error Handling. The message section keeps the format and field descriptions, and gains a pointer.\r\n\r\nThe lead-in picks up a back-reference to the PUBLISH_DONE message. Retarget the IANA PUBLISH_DONE Codes rows to the new anchor.",
+      "createdAt": "2026-09-01T14:43:42Z",
+      "updatedAt": "2026-09-01T14:50:39Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "887309d12e5db97fea50cbb7ea7ab0ab30f752dc",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "publish-done-codes",
+      "headRefOid": "93464ccbd7bb58139b547a5a92be2cd6b1cb5013",
+      "closedAt": "2026-09-01T14:50:35Z",
+      "mergedAt": "2026-09-01T14:50:35Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "9e1817d21171c9b9b48368da2be11f78e1319e7f"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsKx5Q",
+          "commit": {
+            "abbreviatedOid": "93464cc"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T14:45:40Z",
+          "updatedAt": "2026-09-01T14:45:40Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1882,
+      "id": "PR_kwDOG2Ho4M8AAAABBw2SDw",
+      "title": "Extract Authorization Token Compression to a common section",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1882",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Move the Token wire format and alias semantics out of the AUTHORIZATION TOKEN parameter into the Authorization Token Compression section, leaving the parameter and the Setup Option to reference it. The SETUP-specific PROTOCOL_VIOLATION rule moves to the Setup Option.\r\n\r\nFive sentences drop their parameter-specific framing (\"the AUTHORIZATION TOKEN parameter\" -> \"an Authorization Token\") now that they also govern the Setup Option. No normative changes.",
+      "createdAt": "2026-09-01T14:43:50Z",
+      "updatedAt": "2026-09-01T14:58:09Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "9e1817d21171c9b9b48368da2be11f78e1319e7f",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "auth-token-compression",
+      "headRefOid": "4dcdcb28756fa53572a0b6ded59e67f21708cd11",
+      "closedAt": "2026-09-01T14:58:05Z",
+      "mergedAt": "2026-09-01T14:58:05Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "fa7a7420da59f56a2b5315265a5cabcbc4f257a7"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsLIZA",
+          "commit": {
+            "abbreviatedOid": "9e0eaeb"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T14:46:12Z",
+          "updatedAt": "2026-09-01T14:46:12Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1883,
+      "id": "PR_kwDOG2Ho4M8AAAABBw3Rug",
+      "title": "Move Canonical Object Properties into Object Model",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1883",
+      "state": "MERGED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "",
+      "createdAt": "2026-09-01T14:45:45Z",
+      "updatedAt": "2026-09-01T15:47:30Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "0049159d4b01eb3fbf682b7f8755cca0bf72b685",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-canonical-object-properties",
+      "headRefOid": "5d045e4095de49623b731b4302b2b1c0a5da3fcb",
+      "closedAt": "2026-09-01T15:47:30Z",
+      "mergedAt": "2026-09-01T15:47:30Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "2a48caa53a4e73853b45648dfd8d3a50742e4a42"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsN24A",
+          "commit": {
+            "abbreviatedOid": "7847892"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T14:50:21Z",
+          "updatedAt": "2026-09-01T14:50:21Z",
+          "comments": [
+            {
+              "originalPosition": 34,
+              "body": "i think we agreed to keep this at high-level and use the actual wire-format details elsewhere ?",
+              "createdAt": "2026-09-01T14:50:21Z",
+              "updatedAt": "2026-09-01T14:50:21Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsgi2A",
+          "commit": {
+            "abbreviatedOid": "7846ef7"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T15:17:23Z",
+          "updatedAt": "2026-09-01T15:23:59Z",
+          "comments": [
+            {
+              "originalPosition": 15,
+              "body": "```suggestion\r\n### Object Fields {#object-header}\r\n\r\nA MOQT Object has the following fields:\r\n```",
+              "createdAt": "2026-09-01T15:17:24Z",
+              "updatedAt": "2026-09-01T15:24:00Z"
+            },
+            {
+              "originalPosition": 23,
+              "body": "```suggestion\r\nPublisher Priority: An integer indicating the publisher's priority for the Object ({{priorities}}).\r\n```",
+              "createdAt": "2026-09-01T15:18:51Z",
+              "updatedAt": "2026-09-01T15:24:00Z"
+            },
+            {
+              "originalPosition": 25,
+              "body": "Rename to Delivery Mode in sep PR",
+              "createdAt": "2026-09-01T15:19:46Z",
+              "updatedAt": "2026-09-01T15:24:00Z"
+            },
+            {
+              "originalPosition": 25,
+              "body": "```suggestion\r\nObject Forwarding Preference: An enumeration indicating how a publisher sends an object. The preferences are Subgroup and Datagram. In a subscription, an Object MUST be sent according to its Object Forwarding Preference.\r\n```",
+              "createdAt": "2026-09-01T15:20:55Z",
+              "updatedAt": "2026-09-01T15:24:00Z"
+            },
+            {
+              "originalPosition": 27,
+              "body": "This does not exist for datagrams",
+              "createdAt": "2026-09-01T15:21:28Z",
+              "updatedAt": "2026-09-01T15:24:00Z"
+            },
+            {
+              "originalPosition": 29,
+              "body": "```suggestion\r\nObject Properties : A sequence of key-value pairs associated with the object. See {{object-properties}}.\r\n```",
+              "createdAt": "2026-09-01T15:22:18Z",
+              "updatedAt": "2026-09-01T15:24:00Z"
+            },
+            {
+              "originalPosition": 31,
+              "body": "```suggestion\r\nObject Payload: A possibly empty sequence of bytes.\r\n```",
+              "createdAt": "2026-09-01T15:23:04Z",
+              "updatedAt": "2026-09-01T15:24:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsmycQ",
+          "commit": {
+            "abbreviatedOid": "7846ef7"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T15:27:29Z",
+          "updatedAt": "2026-09-01T15:27:30Z",
+          "comments": [
+            {
+              "originalPosition": 27,
+              "body": "```suggestion\nSubgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}}) within the Group. Objects sent in Datagrams do not have a Subgroup ID.\n```",
+              "createdAt": "2026-09-01T15:27:29Z",
+              "updatedAt": "2026-09-01T15:27:47Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsu3BA",
+          "commit": {
+            "abbreviatedOid": "feb76c9"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T15:41:03Z",
+          "updatedAt": "2026-09-01T15:41:03Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1884,
+      "id": "PR_kwDOG2Ho4M8AAAABBw77lw",
+      "title": "Define the term \"subscription\"",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1884",
+      "state": "MERGED",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-09-01T14:54:17Z",
+      "updatedAt": "2026-09-01T16:08:24Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "9e1817d21171c9b9b48368da2be11f78e1319e7f",
+      "headRepository": "vasilvv/warp-draft",
+      "headRefName": "subdef",
+      "headRefOid": "4ae418953738d6e520f46099fadd7e1502ef5392",
+      "closedAt": "2026-09-01T16:08:24Z",
+      "mergedAt": "2026-09-01T16:08:24Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "b602851da4e326ba0c0a73dff94d48f4d650c255"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsWJ2w",
+          "commit": {
+            "abbreviatedOid": "24dc52a"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T15:02:35Z",
+          "updatedAt": "2026-09-01T15:07:32Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "```suggestion\nMOQT provides two mechanisms for retrieving objects: subscriptions and fetches.\n```",
+              "createdAt": "2026-09-01T15:02:35Z",
+              "updatedAt": "2026-09-01T15:07:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsaHwA",
+          "commit": {
+            "abbreviatedOid": "24dc52a"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "This is ok.  I'm unsure if \"logical context\" is what we want to say, though it's not incorrect.\r\n\r\nWe should also make sure our terminology is consistent with 'subscription-delivered' objects, and possibly hoist into this section?",
+          "createdAt": "2026-09-01T15:08:08Z",
+          "updatedAt": "2026-09-01T15:08:08Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsbtmw",
+          "commit": {
+            "abbreviatedOid": "24dc52a"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T15:10:39Z",
+          "updatedAt": "2026-09-01T15:10:40Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "```suggestion\n : A stateful relationship between a Publisher and a Subscriber for delivering Objects from a\n  single Track, subject to negotiated filters. Either endpoint can update or terminate it. See\n  {{subscriptions}}\n```",
+              "createdAt": "2026-09-01T15:10:40Z",
+              "updatedAt": "2026-09-01T15:10:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsnN5Q",
+          "commit": {
+            "abbreviatedOid": "3696101"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T15:28:13Z",
+          "updatedAt": "2026-09-01T15:28:13Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "```suggestion\n A subscription is a authorized and stateful ongoing relationship between a Publisher and a Subscriber for\ndelivering Objects from a single Track. It is established by either endpoint (via SUBSCRIBE or\nPUBLISH), can be updated by the subscriber via REQUEST_UPDATE, and remains active until either\n endpoint terminates it.\n\n A fetch is a one-shot request for a bounded set of Objects from a single Track. It carries no\n persistent state and cannot be updated; the response is delivered on a single stream.\n```",
+              "createdAt": "2026-09-01T15:28:13Z",
+              "updatedAt": "2026-09-01T15:33:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsyxZA",
+          "commit": {
+            "abbreviatedOid": "3696101"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T15:47:49Z",
+          "updatedAt": "2026-09-01T15:47:49Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "```suggestion\r\nnewly-published objects for a single track.  It can be established either by the\r\n```",
+              "createdAt": "2026-09-01T15:47:49Z",
+              "updatedAt": "2026-09-01T15:47:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsz1hg",
+          "commit": {
+            "abbreviatedOid": "1edb855"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T15:49:26Z",
+          "updatedAt": "2026-09-01T15:49:36Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "```suggestion\n A subscription is a stateful ongoing relationship between a Publisher and a Subscriber for\n```",
+              "createdAt": "2026-09-01T15:49:26Z",
+              "updatedAt": "2026-09-01T15:49:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLs5aRQ",
+          "commit": {
+            "abbreviatedOid": "690c5f9"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T15:58:42Z",
+          "updatedAt": "2026-09-01T15:58:42Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLs65SA",
+          "commit": {
+            "abbreviatedOid": "690c5f9"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T16:01:10Z",
+          "updatedAt": "2026-09-01T16:03:22Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "```suggestion\r\nA fetch is a request for a bounded set of pre-existing Objects from a\r\n```",
+              "createdAt": "2026-09-01T16:01:10Z",
+              "updatedAt": "2026-09-01T16:03:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLs-73g",
+          "commit": {
+            "abbreviatedOid": "4ae4189"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T16:08:16Z",
+          "updatedAt": "2026-09-01T16:08:16Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1885,
+      "id": "PR_kwDOG2Ho4M8AAAABBxVjIw",
+      "title": "Restructure Publishing and Receiving Tracks",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1885",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Give Fetch its own section with Fetch State Management under it, promote Joining an Ongoing Track alongside it, and group Location, Range, and Combining Filters under a new Filtering Tracks and Objects section. Fill Semantics stays under Subscriptions, since it describes a subscription carrying FILL_PARAMETERS.\r\n\r\nAlso hoist the Largest Object definition out of the middle of Location Filters into its own subsection after Track Alias. The two Location Filters references to it now point at the new section; one had said \"defined below\", which the move made wrong.\r\n\r\nSection bodies are otherwise moved verbatim; only heading levels change.",
+      "createdAt": "2026-09-01T15:42:23Z",
+      "updatedAt": "2026-09-01T15:51:49Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "241b4e9e449f87b0f496c8df5cbcfaa79aabc089",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "editorial-restructure-subscriptions",
+      "headRefOid": "e0f063275e6fb881ccdf426014eeb0207580f5e9",
+      "closedAt": "2026-09-01T15:51:45Z",
+      "mergedAt": "2026-09-01T15:51:45Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "2a83a201a33f83c9ff4734359753ea2c7856b92b"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLsxlng",
+          "commit": {
+            "abbreviatedOid": "e0f0632"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T15:45:48Z",
+          "updatedAt": "2026-09-01T15:50:27Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1886,
+      "id": "PR_kwDOG2Ho4M8AAAABBxdZhQ",
+      "title": "Rename 'Forwarding Preference' to 'Delivery Mode'",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1886",
+      "state": "MERGED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "",
+      "createdAt": "2026-09-01T15:57:52Z",
+      "updatedAt": "2026-09-01T16:55:15Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "b602851da4e326ba0c0a73dff94d48f4d650c255",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-delivery-mode",
+      "headRefOid": "852718140e91a1109398e9a834580786129231b7",
+      "closedAt": "2026-09-01T16:55:11Z",
+      "mergedAt": "2026-09-01T16:55:11Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "2e5712c9ec9b0b6ef92b159b961645792acb9fba"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLs5jlw",
+          "commit": {
+            "abbreviatedOid": "8489a91"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T15:58:55Z",
+          "updatedAt": "2026-09-01T15:58:56Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "```suggestion\nDelivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram. In a subscription, an Object MUST be sent according to its Delivery Mode.\n```",
+              "createdAt": "2026-09-01T15:58:55Z",
+              "updatedAt": "2026-09-01T15:58:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLtS9eA",
+          "commit": {
+            "abbreviatedOid": "85b58d0"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T16:40:28Z",
+          "updatedAt": "2026-09-01T16:40:28Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLtYdSg",
+          "commit": {
+            "abbreviatedOid": "85b58d0"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T16:50:27Z",
+          "updatedAt": "2026-09-01T16:50:27Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLtY0EA",
+          "commit": {
+            "abbreviatedOid": "85b58d0"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T16:51:05Z",
+          "updatedAt": "2026-09-01T16:51:05Z",
+          "comments": [
+            {
+              "originalPosition": 34,
+              "body": "```suggestion\n   the one with **the lowest Subgroup ID** (for objects with Delivery Mode\n   Subgroup), or **the lowest Object ID** (for objects with Delivery Mode\n```",
+              "createdAt": "2026-09-01T16:51:05Z",
+              "updatedAt": "2026-09-01T16:51:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLtZDhg",
+          "commit": {
+            "abbreviatedOid": "04f62aa"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T16:51:28Z",
+          "updatedAt": "2026-09-01T16:51:28Z",
+          "comments": [
+            {
+              "originalPosition": 14,
+              "body": "```suggestion\nWhen an Object's Delivery Mode (see {{object-properties}}) is\n```",
+              "createdAt": "2026-09-01T16:51:28Z",
+              "updatedAt": "2026-09-01T16:51:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLtbGhw",
+          "commit": {
+            "abbreviatedOid": "8527181"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T16:55:03Z",
+          "updatedAt": "2026-09-01T16:55:03Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1887,
+      "id": "PR_kwDOG2Ho4M8AAAABBxxGsQ",
+      "title": "Extract Track Namespace wire format to a common section",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1887",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Move the Track Namespace encoding, its field descriptions, and the size limits out of Track Naming and into a new Track Namespace Structure section under Notational Conventions and Common Structures. Track Naming keeps the model-level definition and cross-references the new section.\r\n\r\nRetarget the Track Namespace, Track Namespace Prefix, and Track Namespace Suffix references in the control message sections at the new structure section. Track Name references continue to point at Track Naming, since each is paired with a namespace field in the same message and the wire section does not define a Track Name encoding.",
+      "createdAt": "2026-09-01T16:38:30Z",
+      "updatedAt": "2026-09-01T17:37:24Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "b602851da4e326ba0c0a73dff94d48f4d650c255",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "editorial-track-namespace-structure",
+      "headRefOid": "6ac2eac57c52f695207e301e5995e4b7ba60a4da",
+      "closedAt": "2026-09-01T17:37:21Z",
+      "mergedAt": "2026-09-01T17:37:20Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "f00a572ebcc21479d0e9e40d06bdf5e5466fbbeb"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLtXPgg",
+          "commit": {
+            "abbreviatedOid": "4ccb250"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T16:48:27Z",
+          "updatedAt": "2026-09-01T16:48:27Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLtZW3Q",
+          "commit": {
+            "abbreviatedOid": "4ccb250"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T16:51:57Z",
+          "updatedAt": "2026-09-01T16:51:57Z",
+          "comments": [
+            {
+              "originalPosition": 217,
+              "body": "i see the mention of 0 and 32 is repeated. may be push it all in one place",
+              "createdAt": "2026-09-01T16:51:57Z",
+              "updatedAt": "2026-09-01T16:51:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLtfIXw",
+          "commit": {
+            "abbreviatedOid": "6ac2eac"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T17:02:46Z",
+          "updatedAt": "2026-09-01T17:02:46Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1888,
+      "id": "PR_kwDOG2Ho4M8AAAABBx4chg",
+      "title": "Move Location Filter wire encoding to its parameter section",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1888",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Move the LOCATION_FILTER diagram, the field presence rules keyed off Length, the relative StartGroup computation, the clamping rule, the EndGroupDelta delta encoding, and the end field omission rules out of Location Filters and into the LOCATION FILTER Parameter section. Location Filters keeps the semantics and cross-references the encoding.\r\n\r\nDefine Next Object and Next Group in the Largest Object section. Both terms are used throughout the semantics sections but were previously defined only in the Location Filter encoding text, which now refers to the definitions rather than restating them.\r\n\r\nRetarget the FETCH and FILL PARAMETERS references at the parameter section. References from the semantics sections continue to point at Location Filters.",
+      "createdAt": "2026-09-01T16:54:14Z",
+      "updatedAt": "2026-09-01T17:53:26Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "2e5712c9ec9b0b6ef92b159b961645792acb9fba",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "editorial-location-filter-encoding",
+      "headRefOid": "66c6c2a7ac5f75b6bf8e8c1af1f4300f2e003ed5",
+      "closedAt": "2026-09-01T17:53:22Z",
+      "mergedAt": "2026-09-01T17:53:22Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "8aa7669932d66d6a4e2e2cb936369a66fd37a798"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLtbxyQ",
+          "commit": {
+            "abbreviatedOid": "0426dbf"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T16:56:18Z",
+          "updatedAt": "2026-09-01T16:56:18Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "```suggestion\nSome Location filters ((see {{location-filter}}) are defined to be relative to the `Largest Object`\n```",
+              "createdAt": "2026-09-01T16:56:18Z",
+              "updatedAt": "2026-09-01T16:56:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLteTSQ",
+          "commit": {
+            "abbreviatedOid": "0426dbf"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T17:01:09Z",
+          "updatedAt": "2026-09-01T17:01:09Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLtxstA",
+          "commit": {
+            "abbreviatedOid": "f6a9703"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T17:38:31Z",
+          "updatedAt": "2026-09-01T17:38:31Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLty8pg",
+          "commit": {
+            "abbreviatedOid": "f6a9703"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-01T17:40:38Z",
+          "updatedAt": "2026-09-01T17:40:38Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "```suggestion\r\nfollowing `Largest Object`, which is `{Largest Object.Group + 1, 0}`.\r\n`Next Object` and `Next Group` are Locations that do not necessarily\r\nrefer to an Object that exists.\r\n```",
+              "createdAt": "2026-09-01T17:40:38Z",
+              "updatedAt": "2026-09-01T17:40:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLtzxcA",
+          "commit": {
+            "abbreviatedOid": "f8c5290"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T17:42:17Z",
+          "updatedAt": "2026-09-01T17:49:16Z",
+          "comments": [
+            {
+              "originalPosition": 44,
+              "body": "This sentence is a bit awkward, maybe this suggestion is better?\n\n```suggestion\nSubscribers can specify a Location filter on a subscription to indicate to the\npublisher which Objects to send.  Subscriptions without a filter pass all\n```",
+              "createdAt": "2026-09-01T17:42:17Z",
+              "updatedAt": "2026-09-01T17:49:16Z"
+            },
+            {
+              "originalPosition": 35,
+              "body": "```suggestion\nA Location filter specifies an inclusive range of Locations or an inclusive start\nLocation and an open-ended end location.  Only objects\n```",
+              "createdAt": "2026-09-01T17:49:12Z",
+              "updatedAt": "2026-09-01T17:49:16Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 1890,
+      "id": "PR_kwDOG2Ho4M8AAAABByBH_w",
+      "title": "Refactor Namespace Discovery section",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1890",
+      "state": "OPEN",
+      "author": "suhasHere",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This is a rewrite of namespace discovery section that is more reflective of latest changes and better organizaton of the content. ",
+      "createdAt": "2026-09-01T17:13:17Z",
+      "updatedAt": "2026-09-03T00:07:59Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7ee597838d926f8189a1f88e442802d435324a1e",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "refactor-ns-discovery",
+      "headRefOid": "3d3ab84142a58b17677058c14f9b7710d0e44832",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL2a2cw",
+          "commit": {
+            "abbreviatedOid": "9e35aed"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "I had a lot of comments, but I realize this section was in rough shape.  Hopefully we can make it a bit shorter as well.",
+          "createdAt": "2026-09-02T13:28:54Z",
+          "updatedAt": "2026-09-02T15:07:45Z",
+          "comments": [
+            {
+              "originalPosition": 19,
+              "body": "One sentence about the purpose of Namespace Discovery would be helpful.  I took a stab at that, but feel free to rewrite\n\n```suggestion\nNamespace Discovery in MoQT enables Subscribers to discover what\nNamespaces and Tracks are available for subscriptions, as well as the\nability to Subscribe to changes in those Namespaces and the Tracks\nthemselves.\n```",
+              "createdAt": "2026-09-02T13:28:54Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 26,
+              "body": "```suggestion\n  knows under a given prefix, including both namespaces the publisher\n```",
+              "createdAt": "2026-09-02T14:10:49Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 30,
+              "body": "```suggestion\n* **Prefix subscription.** A subscriber requests the publisher establish\n  a subscription for every track under a prefix, without naming each one\n  individually.\n```",
+              "createdAt": "2026-09-02T14:11:59Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 32,
+              "body": "nit: it's technically 5 message types",
+              "createdAt": "2026-09-02T14:34:01Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 45,
+              "body": "```suggestion\nretrieve Objects: a subscriber that already knows a Full Track Name MAY send\n```",
+              "createdAt": "2026-09-02T14:36:02Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 64,
+              "body": "This is repeating a sentence above, so maybe remove it here, since this section is I believe only about SUBSCRIBE_NAMESPACE.\n\nThen you can merge the first two paragraphs I think, since they're a bit redundant.",
+              "createdAt": "2026-09-02T14:37:40Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 94,
+              "body": "I think we might want to put the part about routing loops up above in the high level intro, since it explains why there's no loop prevention/etc hee.",
+              "createdAt": "2026-09-02T14:39:24Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 70,
+              "body": "Ideally we shouldn't need to repeat this everywhere, but probably better in a different PR.",
+              "createdAt": "2026-09-02T14:42:01Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 81,
+              "body": "I'm confused about what this is trying to say?  Maybe we can just delete it?",
+              "createdAt": "2026-09-02T14:47:17Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 72,
+              "body": "```suggestion\nAn Original Publisher for a track in a given\n```",
+              "createdAt": "2026-09-02T14:47:28Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 234,
+              "body": "This last sentence seems like it's in the wrong spot?",
+              "createdAt": "2026-09-02T14:52:30Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 240,
+              "body": "I was going to reword this, but I think we'd be better off deleting it.\n\n```suggestion\n```",
+              "createdAt": "2026-09-02T14:54:39Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 241,
+              "body": "```suggestion\n`SUBSCRIBE_TRACKS` specifies a Track Namespace Prefix, and the publisher\n```",
+              "createdAt": "2026-09-02T14:55:48Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 252,
+              "body": "I think the second half must be old, because it definitely doesn't go on the same stream.\n\n```suggestion\n`REQUEST_OK` or `REQUEST_ERROR`. `PUBLISH`es for tracks\n```",
+              "createdAt": "2026-09-02T14:57:29Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 254,
+              "body": "You say this in the last paragraph, so maybe combine the two?",
+              "createdAt": "2026-09-02T14:57:56Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 258,
+              "body": "```suggestion\na 'TRACK_PROPERTY_FILTER'  ({{range-filters}}) in `SUBSCRIBE_TRACKS`. A\n```",
+              "createdAt": "2026-09-02T14:59:41Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 264,
+              "body": "```suggestion\nfilter the Objects the publisher forwards on it.\n```",
+              "createdAt": "2026-09-02T15:00:36Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 288,
+              "body": "Is this section about aggregating subscriptions in general or only namespace subscriptions?",
+              "createdAt": "2026-09-02T15:02:25Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 325,
+              "body": "Doesn't this also decide which NAMESPACE messages you get for SUBSCRIBE_NAMESPACE?",
+              "createdAt": "2026-09-02T15:03:52Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 325,
+              "body": "```suggestion\nNamespace Prefix Matching is used to route subscriptions and namespace\nannouncements. In this process, the\n```",
+              "createdAt": "2026-09-02T15:05:07Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            },
+            {
+              "originalPosition": 336,
+              "body": "```suggestion\nExamples follow, using the canonical encoding for 'Candidate':\n\n```",
+              "createdAt": "2026-09-02T15:06:42Z",
+              "updatedAt": "2026-09-02T15:07:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pY9g",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 72,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pY-w",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 94,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pY_A",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 240,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pY_g",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 32,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZAQ",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 64,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZBA",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 252,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZBQ",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZCg",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 254,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZCw",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 258,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZDQ",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 336,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZDg",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZEA",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 325,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZFA",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:19Z",
+          "comments": [
+            {
+              "originalPosition": 325,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZFg",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:19Z",
+          "comments": [
+            {
+              "originalPosition": 264,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZFw",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:18Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZGg",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:19Z",
+          "comments": [
+            {
+              "originalPosition": 19,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZGw",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:19Z",
+          "comments": [
+            {
+              "originalPosition": 234,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZHQ",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:19Z",
+          "comments": [
+            {
+              "originalPosition": 241,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZHg",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:19Z",
+          "comments": [
+            {
+              "originalPosition": 81,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL6pZIA",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T20:19:18Z",
+          "updatedAt": "2026-09-02T20:19:19Z",
+          "comments": [
+            {
+              "originalPosition": 288,
+              "body": "Applied in 3d3ab841.",
+              "createdAt": "2026-09-02T20:19:18Z",
+              "updatedAt": "2026-09-02T20:19:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL8VISw",
+          "commit": {
+            "abbreviatedOid": "3d3ab84"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "A few more suggestions, but this is looking a lot better.",
+          "createdAt": "2026-09-02T23:57:18Z",
+          "updatedAt": "2026-09-03T00:07:59Z",
+          "comments": [
+            {
+              "originalPosition": 22,
+              "body": "```suggestion\nthemselves. MOQT does not define how endpoints find each other.\n```",
+              "createdAt": "2026-09-02T23:57:18Z",
+              "updatedAt": "2026-09-03T00:07:59Z"
+            },
+            {
+              "originalPosition": 53,
+              "body": "```suggestion\nNamespace Discovery is a hint, not a routing protocol: PUBLISH_NAMESPACE and NAMESPACE do not\n```",
+              "createdAt": "2026-09-02T23:58:38Z",
+              "updatedAt": "2026-09-03T00:07:59Z"
+            },
+            {
+              "originalPosition": 229,
+              "body": "```suggestion\nA `SUBSCRIBE_NAMESPACE` is cancelled per {{request-cancellation}}.\n```",
+              "createdAt": "2026-09-03T00:04:09Z",
+              "updatedAt": "2026-09-03T00:07:59Z"
+            },
+            {
+              "originalPosition": 277,
+              "body": "```suggestion\nRelays SHOULD aggregate namespace subscriptions\n(`SUBSCRIBE_NAMESPACE` and `SUBSCRIBE_TRACKS`)\n```",
+              "createdAt": "2026-09-03T00:06:07Z",
+              "updatedAt": "2026-09-03T00:07:59Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 1891,
+      "id": "PR_kwDOG2Ho4M8AAAABByRqPw",
+      "title": "Remove leftover Forwarding Preference mentions",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1891",
+      "state": "MERGED",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-09-01T17:49:31Z",
+      "updatedAt": "2026-09-01T17:50:37Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "f00a572ebcc21479d0e9e40d06bdf5e5466fbbeb",
+      "headRepository": "vasilvv/warp-draft",
+      "headRefName": "no-pref",
+      "headRefOid": "781593211ffcdef3d76934afd9ee547d292bbb40",
+      "closedAt": "2026-09-01T17:50:37Z",
+      "mergedAt": "2026-09-01T17:50:37Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "53bea50ff733960f54ea7c5307855fa2ad87a7a9"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLt31zA",
+          "commit": {
+            "abbreviatedOid": "7815932"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T17:50:13Z",
+          "updatedAt": "2026-09-01T17:50:13Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLt38pg",
+          "commit": {
+            "abbreviatedOid": "7815932"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T17:50:26Z",
+          "updatedAt": "2026-09-01T17:50:26Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1892,
+      "id": "PR_kwDOG2Ho4M8AAAABByU2rQ",
+      "title": "Move Range Filter wire format into the wire format sections",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1892",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Move the five Range Filter parameter diagrams into their respective parameter sections, matching how LOCATION_FILTER is specified.\r\n\r\nAdd a Range Filter Structure section under Notational Conventions and Common Structures holding the encoding the five parameters share: the Range structure, the Length field, the inclusive Start/End pair with an optional trailing End, and the delta encoding.\r\n\r\nRange Filters keeps the semantics and cross-references the encoding. It now introduces SetID, which was previously only implied by the diagrams.",
+      "createdAt": "2026-09-01T17:56:35Z",
+      "updatedAt": "2026-09-01T18:29:05Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "8aa7669932d66d6a4e2e2cb936369a66fd37a798",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "editorial-range-filter-encoding",
+      "headRefOid": "bebe58f6e19e74705bb43d6be4a35a9963a2ba68",
+      "closedAt": "2026-09-01T18:28:57Z",
+      "mergedAt": "2026-09-01T18:28:57Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "de0fa62405a73bced13ebf8b5917444610c62475"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLt7eVQ",
+          "commit": {
+            "abbreviatedOid": "bebe58f"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T17:57:27Z",
+          "updatedAt": "2026-09-01T17:57:27Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1893,
+      "id": "PR_kwDOG2Ho4M8AAAABBymanQ",
+      "title": "Reorder Publishing and Receiving Tracks",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1893",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Order the sections as Subscriptions, Fetch, Filtering Tracks and Objects, Fill Semantics, Joining an Ongoing Track, and Mandatory Track Properties, so that filters are specified before the fill semantics that rely on them.\r\n\r\nPromote Fill Semantics from a child of Subscriptions to a peer section, and its Opening and Closing Fill Fetch Streams subsection with it. No prose was changed.",
+      "createdAt": "2026-09-01T18:34:56Z",
+      "updatedAt": "2026-09-01T18:36:36Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "de0fa62405a73bced13ebf8b5917444610c62475",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "editorial-reorder-publishing",
+      "headRefOid": "7956000ef12c4549ae1eb78418d4e4b886fb841b",
+      "closedAt": "2026-09-01T18:36:32Z",
+      "mergedAt": "2026-09-01T18:36:32Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "7ee597838d926f8189a1f88e442802d435324a1e"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLuQJ1A",
+          "commit": {
+            "abbreviatedOid": "7956000"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-01T18:36:06Z",
+          "updatedAt": "2026-09-01T18:36:06Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1894,
+      "id": "PR_kwDOG2Ho4M8AAAABBz3OTg",
+      "title": "Add Filter Sets subsection with SetID examples",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1894",
+      "state": "OPEN",
+      "author": "suhasHere",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Extracts the SetID evaluation rules into a dedicated Filter Sets subsection under Range Filters and adds worked examples of AND, OR, mixed conjunctions, and relay aggregation.",
+      "createdAt": "2026-09-01T21:26:41Z",
+      "updatedAt": "2026-09-02T14:03:01Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7ee597838d926f8189a1f88e442802d435324a1e",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "range-set-id",
+      "headRefOid": "c5c9ea4da39a2b92ef6deaa9f79803bd210bca9f",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL2tUjA",
+          "commit": {
+            "abbreviatedOid": "c5c9ea4"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Thanks, this is definitely helpful.  I left some suggestions and I'd still like to see a subsection on updating Range Filters.\n\nie:\n1) Add a second set\n2) Remove one of two sets\n3) Update a Property Filter within a set",
+          "createdAt": "2026-09-02T13:51:59Z",
+          "updatedAt": "2026-09-02T14:03:01Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "I don't think we need to talk about SetID here.  Here's a suggestion on something more functionally oriented, but feel free to write something different.\n\n```suggestion\nOne or more Range filters can be grouped into a FilterSet, and\nan Object passes the Range filters if they pass through\nany FilterSet.  For more details on how FilterSets filter Objects\nand how they can be updated, see {{filter-sets}}.\n```",
+              "createdAt": "2026-09-02T13:51:59Z",
+              "updatedAt": "2026-09-02T14:03:01Z"
+            },
+            {
+              "originalPosition": 22,
+              "body": "I'm wondering if we should use FilterSet in this section, since you mean a specific thing in this context?",
+              "createdAt": "2026-09-02T13:54:39Z",
+              "updatedAt": "2026-09-02T14:03:01Z"
+            },
+            {
+              "originalPosition": 22,
+              "body": "I think SetID can't span Track Property Filters and Object Filters, correct?\n\n```suggestion\nFilterSets allow Range Filters to match boolean combinations of Track\nproperties or combinations of Object properties and Object header\nfields using filter sets.  SetIDs are not shared between Object Property\nFilters and Range Filters on Objects. Each Range\n```",
+              "createdAt": "2026-09-02T13:58:30Z",
+              "updatedAt": "2026-09-02T14:03:01Z"
+            },
+            {
+              "originalPosition": 38,
+              "body": "I'd move this above \"The evaluation rules are:\" because I think it's a nice clarification.",
+              "createdAt": "2026-09-02T14:00:36Z",
+              "updatedAt": "2026-09-02T14:03:01Z"
+            },
+            {
+              "originalPosition": 42,
+              "body": "Examples might be useful, but I'm inclined to skip them for now.\n\nI would like a subsection on updating Range Filters",
+              "createdAt": "2026-09-02T14:01:21Z",
+              "updatedAt": "2026-09-02T14:03:01Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 1895,
+      "id": "PR_kwDOG2Ho4M8AAAABB1RfYg",
+      "title": "Add FETCH semantics section",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1895",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Hoisted non-wire format concepts from FETCH Message, FETCH_OK Message, FILL_TIMEOUT and Fetch Streams into a 3.2 Fetch.  Reordered the sentences so they flow logically, and added interior sections:\r\n\r\nFetch Object Delivery\r\nGaps in a Fetch Stream\r\nRelay Fetch Handling\r\n\r\nEditorial wordsmithing throughout, with a notable new paragraph explaining how to figure out descending fetch gaps -- previously I'd been too chicken to attempt this.\r\n\r\nI removed a stale MUST regarding relay behavior for unknown state objects that contradicted FILL_TIMEOUT and UNKNOWN elsewhere.\r\n\r\nNo other normative language was changed.",
+      "createdAt": "2026-09-02T01:57:13Z",
+      "updatedAt": "2026-09-02T13:17:16Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7ee597838d926f8189a1f88e442802d435324a1e",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "editorial-hoist-fetch-semantics",
+      "headRefOid": "e5e86b1cdaa14134036cfa99b96c7e4e170e02d3",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABLxSmUA",
+          "commit": {
+            "abbreviatedOid": "4a00809"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T01:58:25Z",
+          "updatedAt": "2026-09-02T02:00:54Z",
+          "comments": [
+            {
+              "originalPosition": 55,
+              "body": "```suggestion\r\nFor Ascending Group Order, and Descending Group Order where Start and End\r\nLocation are in the same group, gaps include ranges between the Start\r\nLocation and the first object in the stream; between objects in the stream; and\r\nbetween the last object in the stream and the End Location indicated in\r\nFETCH_OK.\r\n```",
+              "createdAt": "2026-09-02T01:58:25Z",
+              "updatedAt": "2026-09-02T02:00:54Z"
+            },
+            {
+              "originalPosition": 62,
+              "body": "```suggestion\r\ntwo consecutive objects A and B are in different groups, a gap represents\r\nmultiple logical gaps: the tail of `A.Group`; all skipped groups; and `{B.Group,\r\n0}` through B, exclusive.\r\n```",
+              "createdAt": "2026-09-02T01:59:45Z",
+              "updatedAt": "2026-09-02T02:00:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL144Ug",
+          "commit": {
+            "abbreviatedOid": "e5e86b1"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "It's great to move this text, some suggestions/comments, probably mostly on existing text.",
+          "createdAt": "2026-09-02T12:36:45Z",
+          "updatedAt": "2026-09-02T13:17:15Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "```suggestion\nan End Location, inclusive.  The range is specified by a Location Filter (see\n```",
+              "createdAt": "2026-09-02T12:36:46Z",
+              "updatedAt": "2026-09-02T13:17:16Z"
+            },
+            {
+              "originalPosition": 15,
+              "body": "Why do we have End Location if FETCH returns Largest Object?  We don't have an option for the publisher to truncate earlier, do we?  Having both seems like it's bound to cause confusion about what the actual end is.\n\nIn cases the Fetch can be fully satisfied by the cache and there's no need to return Largest Object, then presumably the publisher can satisfy the full range.\n\nI filed #1897 ",
+              "createdAt": "2026-09-02T12:38:30Z",
+              "updatedAt": "2026-09-02T13:17:16Z"
+            },
+            {
+              "originalPosition": 30,
+              "body": "```suggestion\nFetch delivers Objects ordered by their Location and the Object Delivery Mode does not apply.\n```",
+              "createdAt": "2026-09-02T12:57:27Z",
+              "updatedAt": "2026-09-02T13:17:16Z"
+            },
+            {
+              "originalPosition": 41,
+              "body": "Especially with the caveat of Filters and FILL_TIMEOUT, this is a bit nuanced.  Is this trying to say something important or can it be removed?",
+              "createdAt": "2026-09-02T13:01:33Z",
+              "updatedAt": "2026-09-02T13:17:16Z"
+            },
+            {
+              "originalPosition": 48,
+              "body": "What about FILL_TIMEOUT?",
+              "createdAt": "2026-09-02T13:02:40Z",
+              "updatedAt": "2026-09-02T13:17:16Z"
+            },
+            {
+              "originalPosition": 51,
+              "body": "This paragraph and the next are complicated, can we say something simpler?\n\nWe're basically saying \"Treat any gaps between the start and the first Object as a gap in the same way you would a gap between two Objects.  Same for the last Object and the end Location.\"",
+              "createdAt": "2026-09-02T13:06:56Z",
+              "updatedAt": "2026-09-02T13:17:16Z"
+            },
+            {
+              "originalPosition": 67,
+              "body": "This paragraph feels like it could be more proscriptive, because there's not really an option here, correct?  If you have a timed out gap, you need to use the End of Range indicator?\n\n\"When serializing a gap because an Object has status unknown or timed out, an explicit End Of Range indicator () is serialized...",
+              "createdAt": "2026-09-02T13:10:44Z",
+              "updatedAt": "2026-09-02T13:17:16Z"
+            },
+            {
+              "originalPosition": 68,
+              "body": "End of Range indicator is a weird name.  Object Range Gap?",
+              "createdAt": "2026-09-02T13:12:06Z",
+              "updatedAt": "2026-09-02T13:17:16Z"
+            },
+            {
+              "originalPosition": 70,
+              "body": "Does this change with Range Filters, which leave all unspecified Objects in the Unknown state?",
+              "createdAt": "2026-09-02T13:12:54Z",
+              "updatedAt": "2026-09-02T13:17:16Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 1896,
+      "id": "PR_kwDOG2Ho4M8AAAABB1gHBQ",
+      "title": "Promote Setup Options to their own sections",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1896",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Remove the \"Setup Options\" wrapper section and promote each option to a top-level subsection of SETUP.  Retarget the two references to the removed {#setup-options} anchor at the SETUP message section instead.",
+      "createdAt": "2026-09-02T02:45:52Z",
+      "updatedAt": "2026-09-02T16:13:25Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7ee597838d926f8189a1f88e442802d435324a1e",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "editorial-setup-options-headings",
+      "headRefOid": "739634c6d41d23937f82f0f6c99d0f9a6ae149a0",
+      "closedAt": "2026-09-02T16:13:22Z",
+      "mergedAt": "2026-09-02T16:13:22Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "01d03e875d4d5503ef93e36e2651b7ea92d9fdda"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABL2b-fg",
+          "commit": {
+            "abbreviatedOid": "739634c"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-02T13:30:33Z",
+          "updatedAt": "2026-09-02T13:30:33Z",
+          "comments": []
         }
       ]
     }
