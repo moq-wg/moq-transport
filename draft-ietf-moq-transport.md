@@ -1854,8 +1854,8 @@ to the old relay can be cancelled (see {{request-cancellation}}).
 
 ## Aggregating Namespace Subscriptions {#large-namespaces}
 
-This section applies to namespace subscriptions (`SUBSCRIBE_NAMESPACE`
-and `SUBSCRIBE_TRACKS`). Relays SHOULD aggregate these subscriptions
+Relays SHOULD aggregate namespace subscriptions
+(`SUBSCRIBE_NAMESPACE` and `SUBSCRIBE_TRACKS`)
 and propagate filters upstream to protect their own resources and those
 of their upstream peers. When aggregation is not sufficient, a relay
 MAY reject or close namespace subscriptions using:
