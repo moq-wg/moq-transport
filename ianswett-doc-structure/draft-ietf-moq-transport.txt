@@ -320,7 +320,7 @@ Table of Contents
 
 1.1.  Document Structure
 
-   This document describes the core MOQT protocol and is structured as
+   This document describes the MOQT protocol and is structured as
    follows:
 
    *  The core concepts and functionality are described first
