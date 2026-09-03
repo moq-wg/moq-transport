@@ -1081,8 +1081,7 @@ treats the peer as authoritative for namespaces matching the prefix. As
 a consequence, `NAMESPACE` messages carried on the response stream inherit
 that trust and do not independently carry authorization credentials.
 
-A `SUBSCRIBE_NAMESPACE` is cancelled per {{request-cancellation}} (reset
-the stream or send `STOP_SENDING`).
+A `SUBSCRIBE_NAMESPACE` is cancelled per {{request-cancellation}}.
 
 ## Subscribing to Tracks by Prefix {#subscribing-to-tracks-by-prefix}
 
