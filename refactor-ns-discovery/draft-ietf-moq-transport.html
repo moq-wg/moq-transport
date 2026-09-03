@@ -3046,7 +3046,7 @@ retrieve Objects: a subscriber that already knows a Full Track Name <span class=
 send <code>SUBSCRIBE</code> or <code>FETCH</code> directly. Discovery is a convenience for
 the case where the subscriber does not yet know the exact name, or
 wants to react as publishers come and go.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">Discovery is a hint, not a routing protocol: PUBLISH_NAMESPACE does not
+<p id="section-4-7">Namespace Discovery is a hint, not a routing protocol: PUBLISH_NAMESPACE and NAMESPACE do not
 guard against loops and <span class="bcp14">SHOULD NOT</span> be used to compute paths through
 richly connected relay networks.<a href="#section-4-7" class="pilcrow">¶</a></p>
 <p id="section-4-8">Message syntax is defined in <a href="#message" class="auto internal xref">Section 9</a>. The rest of this section
@@ -3104,8 +3104,7 @@ upstream <code>PUBLISH_NAMESPACE</code> messages.<a href="#section-4.2-2" class=
 treats the peer as authoritative for namespaces matching the prefix. As
 a consequence, <code>NAMESPACE</code> messages carried on the response stream inherit
 that trust and do not independently carry authorization credentials.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.2-4">A <code>SUBSCRIBE_NAMESPACE</code> is cancelled per <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a> (reset
-the stream or send <code>STOP_SENDING</code>).<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.2-4">A <code>SUBSCRIBE_NAMESPACE</code> is cancelled per <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscribing-to-tracks-by-prefix">

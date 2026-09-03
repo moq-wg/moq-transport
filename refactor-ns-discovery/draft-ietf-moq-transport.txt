@@ -1294,9 +1294,9 @@ Table of Contents
    the case where the subscriber does not yet know the exact name, or
    wants to react as publishers come and go.
 
-   Discovery is a hint, not a routing protocol: PUBLISH_NAMESPACE does
-   not guard against loops and SHOULD NOT be used to compute paths
-   through richly connected relay networks.
+   Namespace Discovery is a hint, not a routing protocol:
+   PUBLISH_NAMESPACE and NAMESPACE do not guard against loops and SHOULD
+   NOT be used to compute paths through richly connected relay networks.
 
    Message syntax is defined in Section 9.  The rest of this section
    describes how each message is used.
@@ -1357,8 +1357,7 @@ Table of Contents
    inherit that trust and do not independently carry authorization
    credentials.
 
-   A SUBSCRIBE_NAMESPACE is cancelled per Section 6.4.2.3 (reset the
-   stream or send STOP_SENDING).
+   A SUBSCRIBE_NAMESPACE is cancelled per Section 6.4.2.3.
 
 4.3.  Subscribing to Tracks by Prefix
 
