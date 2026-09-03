@@ -1240,11 +1240,7 @@ Table of Contents
    Namespace Discovery in MOQT enables Subscribers to discover what
    Namespaces and Tracks are available for subscriptions, as well as the
    ability to Subscribe to changes in those Namespaces and the Tracks
-   themselves.  MOQT does not define how endpoints find each other in
-   the first place; the initial server connection is always established
-   out of band.  Once a session exists, the two peers still have to
-   converge on what tracks are available and what a subscriber wants to
-   receive.
+   themselves.  MOQT does not define how endpoints find each other.
 
    Discovery in MOQT covers three exchanges:
 
