@@ -107,7 +107,7 @@ This document describes the core MoQ protocol and is structured as follows:
 
 * Finally, the document discusses deployment related considerations
   * Section 12 {{transport-considerations}} Discusses transport related considerations, including congestion control
-  * Section 13 {{security-considerations}} Discusses security considerations, including denial-of-service and authentication
+  * Section 13 {{security}} Discusses security considerations, including denial-of-service and authentication
   * Section 14 {{error-handling}} Discusses MoQ errors and how to best handle them
   * Section 15 {{grease}} Describes how to utilize unspecified codepoints to prevent protocol ossification.
 
