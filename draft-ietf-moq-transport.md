@@ -102,7 +102,7 @@ This document describes the core MoQ protocol and is structured as follows:
 * Then the document describes how Control Messages and Objects are serialized and sent
   * Section 8 {{notational-conventions-and-common-structures}} Notational Conventions and Common Structures details structures used by subsequent sections
   * Section 9 {{message}} Control Messages details how Control Messages are sent, including their wire encoding
-  * Section 10 {{moqt-properties}} MoQT Properties describes Track and Object properties defined in the core protocol
+  * Section 10 {{moqt-properties}} MOQT Properties describes Track and Object properties defined in the core protocol
   * Section 11 {{data-streams}} Data streams describes the mapping and serialization of Objects onto streams and datagrams
 
 * Finally, the document discusses deployment related considerations
