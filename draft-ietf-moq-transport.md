@@ -4712,310 +4712,6 @@ PADDING DATAGRAM {
 
 The receiver MUST discard all data received in a padding datagram.
 
-# Transport Considerations
-
-## Congestion Control Considerations
-
-MOQT does not specify a congestion controller, but there are important attributes
-to consider when selecting a congestion controller for use with an application
-built on top of MOQT.
-
-### Bufferbloat
-
-Traditional AIMD congestion controllers (ex. CUBIC {{?RFC9438}} and Reno {{?RFC6582}})
-are prone to Bufferbloat. Bufferbloat occurs when elements along the path build up
-a substantial queue of packets, commonly more than doubling the round trip time.
-These queued packets cause head-of-line blocking and latency, even when there is
-no packet loss.
-
-### Application-Limited
-
-The average bitrate for latency sensitive content needs to be less than the available
-bandwidth, otherwise data will be queued and/or dropped. As such,
-many MOQT applications will typically be limited by the available data to send, and
-not the congestion controller. Many congestion control algorithms
-only increase the congestion window or bandwidth estimate if fully utilized. This
-combination can lead to underestimating the available network bandwidth. As a result,
-applications might need to periodically ensure the congestion controller is not
-app-limited for at least a full round trip to ensure the available bandwidth can be
-measured.
-
-Some applications might have APIs to allow sending duplicate data or forward error
-correction to probe for more bandwidth while also limiting the impact of probing
-in case it causes packet loss. Subscribers wanting to switch to an alternate
-representation of a Track can subscribe to it at a lower priority, or subscribe
-to additional Tracks at the lowest (255) priority to fill the congestion window
-during probing intervals while minimizing the impact on higher priority
-media. Publishers can send padding ({{padding}}) to probe for additional
-bandwidth without requiring additional subscriptions.
-Network-assisted bandwidth estimation mechanisms such as SCONE
-{{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
-which subscribers can use to inform track selection decisions and potentially avoid
-unnecessary probing.
-
-### Consistent Throughput
-
-Congestion control algorithms are commonly optimized for throughput, not consistency.
-For example, BBR's PROBE_RTT state halves the sending rate for more than a round trip
-in order to obtain an accurate minimum RTT. Similarly, Reno halves its congestion
-window upon detecting loss.  In both cases, the large reduction in sending rate might
-cause issues with latency sensitive applications.
-
-# Security Considerations {#security}
-
-MOQT is a protocol used hop-by-hop between original
-publishers to relay, (possibly) relay to relay, and relay to end
-subscribers. Thus, the security considerations need to consider first
-what happens between two Endpoints, but also consider the impacts end to
-end over several hops of MOQT.
-
-MOQT uses a trust model where on each hop the Endpoints need to be
-securely identified, authorized to use resources of the peer, provide
-confidentiality and integrity to prevent third party attacks and limit
-monitoring and leakage of privacy sensitive information. The relays
-within the chain from original publisher to end subscribers will have
-access to Track names, Track Properties, Object Properties, as well as the object's content
-unless it is end-to-end encrypted {{sec-media}}.
-
-Publishers, including Relays, require authorization to prevent unauthorized
-subscriptions to content. Subscription requests can carry
-authorization tokens (see {{sec-authorization}}) to prove the
-subscriber's right to access specific tracks or namespaces. Relays
-that aggregate subscriptions from multiple downstream subscribers MUST
-ensure each subscriber is independently authorized.
-
-## Subscription Amplification
-
-A malicious subscriber could attempt to overwhelm a publisher or relay
-by requesting subscriptions to many tracks simultaneously. Relays
-SHOULD implement rate limiting on subscription requests and MAY reject
-excessive subscriptions with REQUEST_ERROR using the EXCESSIVE_LOAD error code.
-Publishers SHOULD monitor
-the number of active subscriptions and enforce limits to prevent
-resource exhaustion from a single subscriber or session.
-
-TODO: Describe Cache Poisoning attacks
-
-## Communication Security
-
-MOQT depends on a secure transport to provide confidentiality,
-integrity and endpoint authentication between subscriber and
-publisher. Implementations use QUIC or WebTransport to fulfill
-the basic communication security requirements and these
-implementations SHOULD follow best practices for TLS 1.3 and QUIC.
-Relays MUST use authentication to prevent impersonation
-({{preventing-impersonation}}).
-
-Note that the basic security protection offered by QUIC or TCP/TLS
-does not prevent traffic pattern analysis. Object sizes, sizes of
-request messages, etc can make it possible for a third party observer
-to identify media content, user patterns and media stream origin.
-
-## Authorization {#sec-authorization}
-
-MOQT supports authorization via mutual TLS (mTLS) for endpoint
-identification and via token-based schemes for fine-grained,
-application-defined access control. The two mechanisms can be used together.
-
-### Mutual TLS {#sec-mtls}
-
-In mutual TLS, both peers present an X.509 certificate during the TLS 1.3
-handshake ({{?RFC8446}}), carried in the underlying transport. An endpoint that
-verifies a server certificate does so following {{?RFC9525}}.  An application
-that authenticates clients via mTLS defines how a client certificate maps to
-identity.
-
-Once a peer is authenticated, an application MAY use attributes in the peer's
-certificate as an input to authorization decisions; the granularity and policy
-of such authorization is out of scope for this document.
-### Authorization Tokens {#sec-tokens}
-
-MOQT has functionality to carry Authorization tokens as message
-parameters. These tokens can vary based on the application
-requirements. Two variants of authorization tokens have already
-been defined for MOQT, and more are expected in the future. The
-current tokens are Privacy Pass Authentication for Media over QUIC
-{{PPA}} and Authentication scheme for MOQT using Common Access Tokens
-{{CAT}}.
-
-Tokens are expected to contain information about which actions and
-which resources the endpoint providing the token is authorized to
-perform and access. Relays will verify the
-token to ensure that the request is authorized.
-
-### Replay Attacks
-
-Replay protection for authorization tokens is the responsibility of
-the specific token scheme used. Token schemes such as {{CAT}} and
-{{PPA}} include requirements for relays when processing tokens and
-requests.
-
-### Preventing Impersonation {#preventing-impersonation}
-
-A relay MUST ensure that a client cannot publish to namespaces or
-tracks belonging to another identity. Impersonation occurs when a
-client publishes objects that appear to originate from a different
-publisher — for example, by targeting a namespace containing another
-user's identifier.
-
-To prevent impersonation, a relay MUST verify that the
-authenticated identity or token scope permits publishing to the
-specific namespace. The mapping from authenticated identity to
-permitted namespaces is determined by the authorization framework
-in use.
-
-When using bearer token-based authentication (e.g., {{CAT}}), a token
-that is bound to a client-held key via a confirmation claim prevents
-a stolen token from being replayed by a different party.
-
-When unlinkable access is used (e.g., {{PPA}}), the token's scope
-extensions determine which namespaces the bearer can publish to.
-Impersonation is still prevented because the token does not grant
-access beyond its defined scope.
-
-A relay that does not enforce these checks allows any connected
-client to inject content into arbitrary namespaces, breaking the
-integrity of content delivery.
-
-## Media Security  {#sec-media}
-
-MOQT uses secure transports that provide confidentiality and integrity
-protection. However, media objects are accessible to relays,
-and are subject to both intentional and accidental modification,
-unless they are additionally end-to-end protected.
-
-The media objects transported by MOQT in various tracks from various
-original publishers are subject to several considerations. The first
-is source authenticity, i.e. to know that the received media objects
-are what the original publisher actually published. In addition to
-the media objects, it can also be important to authenticate some
-Track and Object Properties. For example, timestamps are crucial to
-understand where on the timeline this media fragment belongs.
-
-The second aspect is content confidentiality. Beyond direct relay
-access to media objects, object sizes and traffic patterns enable
-analysis of content. Track namespace and track name can also be
-analyzed and correlated between end subscribers by relays.
-
-Consistent with the principle of confidential operation by default,
-publishers can apply end-to-end object encryption, for example using Secure Objects
-({{I-D.ietf-moq-secure-objects}}), so that relays retain access only to
-the metadata required for forwarding. Such end-to-end security
-mechanisms are external to this specification and additionally provide
-source authenticity. MOQT's object model enables both the object data
-and Object Properties to be confidentiality and integrity protected, or
-integrity protected only.
-
-Secure key distribution for end-to-end encryption is specific to the
-encryption system and deployment, and outside the scope of this document.
-
-## Resource Exhaustion
-
-Live content requires significant bandwidth and resources.  Failure to
-set limits will quickly cause resource exhaustion.
-
-MOQT uses stream limits and flow control to impose resource limits at
-the network layer.  Endpoints SHOULD set flow control limits based on the
-anticipated bitrate.
-
-Endpoints MAY impose a MAX STREAM count limit which would restrict the
-number of concurrent streams which an application could have in
-flight.
-
-The publisher prioritizes and transmits streams out of order.  Streams
-might be starved indefinitely during congestion.  The publisher and
-subscriber MUST cancel a stream, preferably the one with the lowest
-priority, after reaching a resource limit.
-
-
-## Timeouts  {#security-timeouts}
-
-Implementations are advised to use timeouts to prevent resource
-exhaustion attacks by a peer that does not send expected data within
-an expected time.  Each implementation is expected to set its own timeouts.
-
-### Idle Connection Handling
-
-The transport connection (e.g., QUIC) underlying a MOQT session can close due to
-idle timeout if no data is exchanged, either because there are no established
-subscriptions or the established subscriptions are not publishing Objects
-frequently.  This includes publisher sessions that have issued a
-PUBLISH_NAMESPACE and are waiting for subscribers.
-
-Implementations that want to keep idle sessions open have several options:
-
-* Use transport-layer keep-alive mechanisms, such as QUIC PING frames, to
-  prevent idle timeout closure.
-
-* Send periodic control messages, for example REQUEST_UPDATE with no
-  modified Message Parameters.
-
-* Accept that idle connections can close and implement reconnection logic when
-  needed.
-
-The choice of mechanism is implementation-specific.
-
-## Relay security considerations
-
-### State maintenance
-
-A Relay SHOULD have mechanisms to prevent malicious endpoints from flooding it
-with PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE, or SUBSCRIBE_TRACKS requests that
-could bloat data structures. It could use QUIC stream limits to limit the number
-of such requests, or could have application-specific policies that can reject
-incoming requests that cause the state maintenance for the session to be
-excessive.
-
-### SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS with short prefixes
-
-A Relay can use authorization rules in order to prevent subscriptions closer
-to the root of a large prefix tree. Otherwise, if an entity sends a relay a
-SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS message with a short prefix, it can
-cause the relay to send a large volume of NAMESPACE or PUBLISH messages. As
-changes occur in the tree of namespaces, the relay would have to send matching
-NAMESPACE/NAMESPACE_DONE messages or initiate new PUBLISH streams.
-
-## Implementation Identification Fingerprinting {#impl-fingerprinting}
-
-The MOQT_IMPLEMENTATION option ({{moqt-implementation}}) can reveal information
-that contributes to fingerprinting, a set of techniques for identifying a
-specific endpoint over time through its unique set of characteristics.
-
-Detailed implementation information, including specific version numbers,
-build identifiers, or platform details, can create a unique fingerprint that
-enables tracking endpoints across sessions without their awareness. When
-combined with other session characteristics, even minimal implementation
-identification can contribute to distinguishing one endpoint from another.
-
-To mitigate fingerprinting risks:
-
-* Implementations SHOULD send only the minimum information necessary for
-  interoperability debugging. A short implementation name and major version
-  number are typically sufficient.
-
-* Implementations SHOULD NOT include detailed system information, build
-  numbers, or other attributes that could uniquely identify a specific
-  instance or user.
-
-* Privacy-conscious deployments MAY omit the MOQT_IMPLEMENTATION option
-  entirely or send a generic value.
-
-* Implementations MAY provide users with the ability to configure or disable
-  the MOQT_IMPLEMENTATION option.
-
-Operators are advised that detailed implementation identification
-facilitates the same privacy concerns as persistent identifiers, since it
-enables correlation of sessions across time.
-
-## Logging of Untrusted String Fields {#logging-untrusted-strings}
-
-The Reason Phrase ({{reason-phrase}}) and MOQT_IMPLEMENTATION option
-({{moqt-implementation}}) carry sender-controlled text that is commonly written
-to logs. Even though these fields are UTF-8 encoded, an endpoint that logs or
-renders them SHOULD sanitize them first (for example, by escaping bytes outside
-the printable ASCII range), since unsanitized values can enable log injection or
-terminal escape sequence injection.
-
 # Error Handling
 
 ## Malformed Tracks
@@ -5345,6 +5041,311 @@ REQUEST_ERROR, PUBLISH_DONE, or Data Stream Reset) MUST be treated as
 equivalent to `INTERNAL_ERROR` for that context. An endpoint MUST NOT close
 the session because it received an unknown error code in a REQUEST_ERROR
 or PUBLISH_DONE.
+
+# Transport Considerations
+
+## Congestion Control Considerations
+
+MOQT does not specify a congestion controller, but there are important attributes
+to consider when selecting a congestion controller for use with an application
+built on top of MOQT.
+
+### Bufferbloat
+
+Traditional AIMD congestion controllers (ex. CUBIC {{?RFC9438}} and Reno {{?RFC6582}})
+are prone to Bufferbloat. Bufferbloat occurs when elements along the path build up
+a substantial queue of packets, commonly more than doubling the round trip time.
+These queued packets cause head-of-line blocking and latency, even when there is
+no packet loss.
+
+### Application-Limited
+
+The average bitrate for latency sensitive content needs to be less than the available
+bandwidth, otherwise data will be queued and/or dropped. As such,
+many MOQT applications will typically be limited by the available data to send, and
+not the congestion controller. Many congestion control algorithms
+only increase the congestion window or bandwidth estimate if fully utilized. This
+combination can lead to underestimating the available network bandwidth. As a result,
+applications might need to periodically ensure the congestion controller is not
+app-limited for at least a full round trip to ensure the available bandwidth can be
+measured.
+
+Some applications might have APIs to allow sending duplicate data or forward error
+correction to probe for more bandwidth while also limiting the impact of probing
+in case it causes packet loss. Subscribers wanting to switch to an alternate
+representation of a Track can subscribe to it at a lower priority, or subscribe
+to additional Tracks at the lowest (255) priority to fill the congestion window
+during probing intervals while minimizing the impact on higher priority
+media. Publishers can send padding ({{padding}}) to probe for additional
+bandwidth without requiring additional subscriptions.
+Network-assisted bandwidth estimation mechanisms such as SCONE
+{{?I-D.ietf-scone-protocol}} can provide receivers with sustainable bandwidth hints,
+which subscribers can use to inform track selection decisions and potentially avoid
+unnecessary probing.
+
+### Consistent Throughput
+
+Congestion control algorithms are commonly optimized for throughput, not consistency.
+For example, BBR's PROBE_RTT state halves the sending rate for more than a round trip
+in order to obtain an accurate minimum RTT. Similarly, Reno halves its congestion
+window upon detecting loss.  In both cases, the large reduction in sending rate might
+cause issues with latency sensitive applications.
+
+# Security Considerations {#security}
+
+MOQT is a protocol used hop-by-hop between original
+publishers to relay, (possibly) relay to relay, and relay to end
+subscribers. Thus, the security considerations need to consider first
+what happens between two Endpoints, but also consider the impacts end to
+end over several hops of MOQT.
+
+MOQT uses a trust model where on each hop the Endpoints need to be
+securely identified, authorized to use resources of the peer, provide
+confidentiality and integrity to prevent third party attacks and limit
+monitoring and leakage of privacy sensitive information. The relays
+within the chain from original publisher to end subscribers will have
+access to Track names, Track Properties, Object Properties, as well as the object's content
+unless it is end-to-end encrypted {{sec-media}}.
+
+Publishers, including Relays, require authorization to prevent unauthorized
+subscriptions to content. Subscription requests can carry
+authorization tokens (see {{sec-authorization}}) to prove the
+subscriber's right to access specific tracks or namespaces. Relays
+that aggregate subscriptions from multiple downstream subscribers MUST
+ensure each subscriber is independently authorized.
+
+## Subscription Amplification
+
+A malicious subscriber could attempt to overwhelm a publisher or relay
+by requesting subscriptions to many tracks simultaneously. Relays
+SHOULD implement rate limiting on subscription requests and MAY reject
+excessive subscriptions with REQUEST_ERROR using the EXCESSIVE_LOAD error code.
+Publishers SHOULD monitor
+the number of active subscriptions and enforce limits to prevent
+resource exhaustion from a single subscriber or session.
+
+TODO: Describe Cache Poisoning attacks
+
+## Communication Security
+
+MOQT depends on a secure transport to provide confidentiality,
+integrity and endpoint authentication between subscriber and
+publisher. Implementations use QUIC or WebTransport to fulfill
+the basic communication security requirements and these
+implementations SHOULD follow best practices for TLS 1.3 and QUIC.
+Relays MUST use authentication to prevent impersonation
+({{preventing-impersonation}}).
+
+Note that the basic security protection offered by QUIC or TCP/TLS
+does not prevent traffic pattern analysis. Object sizes, sizes of
+request messages, etc can make it possible for a third party observer
+to identify media content, user patterns and media stream origin.
+
+## Authorization {#sec-authorization}
+
+MOQT supports authorization via mutual TLS (mTLS) for endpoint
+identification and via token-based schemes for fine-grained,
+application-defined access control. The two mechanisms can be used together.
+
+### Mutual TLS {#sec-mtls}
+
+In mutual TLS, both peers present an X.509 certificate during the TLS 1.3
+handshake ({{?RFC8446}}), carried in the underlying transport. An endpoint that
+verifies a server certificate does so following {{?RFC9525}}.  An application
+that authenticates clients via mTLS defines how a client certificate maps to
+identity.
+
+Once a peer is authenticated, an application MAY use attributes in the peer's
+certificate as an input to authorization decisions; the granularity and policy
+of such authorization is out of scope for this document.
+### Authorization Tokens {#sec-tokens}
+
+MOQT has functionality to carry Authorization tokens as message
+parameters. These tokens can vary based on the application
+requirements. Two variants of authorization tokens have already
+been defined for MOQT, and more are expected in the future. The
+current tokens are Privacy Pass Authentication for Media over QUIC
+{{PPA}} and Authentication scheme for MOQT using Common Access Tokens
+{{CAT}}.
+
+Tokens are expected to contain information about which actions and
+which resources the endpoint providing the token is authorized to
+perform and access. Relays will verify the
+token to ensure that the request is authorized.
+
+### Replay Attacks
+
+Replay protection for authorization tokens is the responsibility of
+the specific token scheme used. Token schemes such as {{CAT}} and
+{{PPA}} include requirements for relays when processing tokens and
+requests.
+
+### Preventing Impersonation {#preventing-impersonation}
+
+A relay MUST ensure that a client cannot publish to namespaces or
+tracks belonging to another identity. Impersonation occurs when a
+client publishes objects that appear to originate from a different
+publisher — for example, by targeting a namespace containing another
+user's identifier.
+
+To prevent impersonation, a relay MUST verify that the
+authenticated identity or token scope permits publishing to the
+specific namespace. The mapping from authenticated identity to
+permitted namespaces is determined by the authorization framework
+in use.
+
+When using bearer token-based authentication (e.g., {{CAT}}), a token
+that is bound to a client-held key via a confirmation claim prevents
+a stolen token from being replayed by a different party.
+
+When unlinkable access is used (e.g., {{PPA}}), the token's scope
+extensions determine which namespaces the bearer can publish to.
+Impersonation is still prevented because the token does not grant
+access beyond its defined scope.
+
+A relay that does not enforce these checks allows any connected
+client to inject content into arbitrary namespaces, breaking the
+integrity of content delivery.
+
+## Media Security  {#sec-media}
+
+MOQT uses secure transports that provide confidentiality and integrity
+protection. However, media objects are accessible to relays,
+and are subject to both intentional and accidental modification,
+unless they are additionally end-to-end protected.
+
+The media objects transported by MOQT in various tracks from various
+original publishers are subject to several considerations. The first
+is source authenticity, i.e. to know that the received media objects
+are what the original publisher actually published. In addition to
+the media objects, it can also be important to authenticate some
+Track and Object Properties. For example, timestamps are crucial to
+understand where on the timeline this media fragment belongs.
+
+The second aspect is content confidentiality. Beyond direct relay
+access to media objects, object sizes and traffic patterns enable
+analysis of content. Track namespace and track name can also be
+analyzed and correlated between end subscribers by relays.
+
+Consistent with the principle of confidential operation by default,
+publishers can apply end-to-end object encryption, for example using Secure Objects
+({{I-D.ietf-moq-secure-objects}}), so that relays retain access only to
+the metadata required for forwarding. Such end-to-end security
+mechanisms are external to this specification and additionally provide
+source authenticity. MOQT's object model enables both the object data
+and Object Properties to be confidentiality and integrity protected, or
+integrity protected only.
+
+Secure key distribution for end-to-end encryption is specific to the
+encryption system and deployment, and outside the scope of this document.
+
+## Resource Exhaustion
+
+Live content requires significant bandwidth and resources.  Failure to
+set limits will quickly cause resource exhaustion.
+
+MOQT uses stream limits and flow control to impose resource limits at
+the network layer.  Endpoints SHOULD set flow control limits based on the
+anticipated bitrate.
+
+Endpoints MAY impose a MAX STREAM count limit which would restrict the
+number of concurrent streams which an application could have in
+flight.
+
+The publisher prioritizes and transmits streams out of order.  Streams
+might be starved indefinitely during congestion.  The publisher and
+subscriber MUST cancel a stream, preferably the one with the lowest
+priority, after reaching a resource limit.
+
+
+## Timeouts  {#security-timeouts}
+
+Implementations are advised to use timeouts to prevent resource
+exhaustion attacks by a peer that does not send expected data within
+an expected time.  Each implementation is expected to set its own timeouts.
+
+### Idle Connection Handling
+
+The transport connection (e.g., QUIC) underlying a MOQT session can close due to
+idle timeout if no data is exchanged, either because there are no established
+subscriptions or the established subscriptions are not publishing Objects
+frequently.  This includes publisher sessions that have issued a
+PUBLISH_NAMESPACE and are waiting for subscribers.
+
+Implementations that want to keep idle sessions open have several options:
+
+* Use transport-layer keep-alive mechanisms, such as QUIC PING frames, to
+  prevent idle timeout closure.
+
+* Send periodic control messages, for example REQUEST_UPDATE with no
+  modified Message Parameters.
+
+* Accept that idle connections can close and implement reconnection logic when
+  needed.
+
+The choice of mechanism is implementation-specific.
+
+## Relay security considerations
+
+### State maintenance
+
+A Relay SHOULD have mechanisms to prevent malicious endpoints from flooding it
+with PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE, or SUBSCRIBE_TRACKS requests that
+could bloat data structures. It could use QUIC stream limits to limit the number
+of such requests, or could have application-specific policies that can reject
+incoming requests that cause the state maintenance for the session to be
+excessive.
+
+### SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS with short prefixes
+
+A Relay can use authorization rules in order to prevent subscriptions closer
+to the root of a large prefix tree. Otherwise, if an entity sends a relay a
+SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS message with a short prefix, it can
+cause the relay to send a large volume of NAMESPACE or PUBLISH messages. As
+changes occur in the tree of namespaces, the relay would have to send matching
+NAMESPACE/NAMESPACE_DONE messages or initiate new PUBLISH streams.
+
+## Implementation Identification Fingerprinting {#impl-fingerprinting}
+
+The MOQT_IMPLEMENTATION option ({{moqt-implementation}}) can reveal information
+that contributes to fingerprinting, a set of techniques for identifying a
+specific endpoint over time through its unique set of characteristics.
+
+Detailed implementation information, including specific version numbers,
+build identifiers, or platform details, can create a unique fingerprint that
+enables tracking endpoints across sessions without their awareness. When
+combined with other session characteristics, even minimal implementation
+identification can contribute to distinguishing one endpoint from another.
+
+To mitigate fingerprinting risks:
+
+* Implementations SHOULD send only the minimum information necessary for
+  interoperability debugging. A short implementation name and major version
+  number are typically sufficient.
+
+* Implementations SHOULD NOT include detailed system information, build
+  numbers, or other attributes that could uniquely identify a specific
+  instance or user.
+
+* Privacy-conscious deployments MAY omit the MOQT_IMPLEMENTATION option
+  entirely or send a generic value.
+
+* Implementations MAY provide users with the ability to configure or disable
+  the MOQT_IMPLEMENTATION option.
+
+Operators are advised that detailed implementation identification
+facilitates the same privacy concerns as persistent identifiers, since it
+enables correlation of sessions across time.
+
+## Logging of Untrusted String Fields {#logging-untrusted-strings}
+
+The Reason Phrase ({{reason-phrase}}) and MOQT_IMPLEMENTATION option
+({{moqt-implementation}}) carry sender-controlled text that is commonly written
+to logs. Even though these fields are UTF-8 encoded, an endpoint that logs or
+renders them SHOULD sanitize them first (for example, by escaping bytes outside
+the printable ASCII range), since unsanitized values can enable log injection or
+terminal escape sequence injection.
+
 
 # IANA Considerations {#iana}
 
