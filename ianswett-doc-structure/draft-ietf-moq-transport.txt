@@ -337,7 +337,7 @@ Table of Contents
    *  Next, the document describes how Objects are transmitted and MoQ
       Sessions
 
-      -  Section 5 Section 5 Describes ways MoQ allows a subscriber to
+      -  Section 5 Section 5 Describes ways MOTQ allows a subscriber to
          influence Object transmission order
 
       -  Section 6 Section 6.3 Describes how to initiate a session and
@@ -363,17 +363,17 @@ Table of Contents
 
    *  Finally, the document discusses deployment related considerations
 
-      -  Section 12 Section 12 Discusses transport related
-         considerations, including congestion control
-
-      -  Section 13 Section 13 Discusses security considerations,
-         including denial-of-service and authentication
-
-      -  Section 14 Section 14 Discusses MoQ errors and how to best
+      -  Section 12 Section 14 Discusses MOQT errors and how to best
          handle them
 
-      -  Section 15 Section 15 Describes how to utilize unspecified
+      -  Section 13 Section 15 Describes how to utilize unspecified
          codepoints to prevent protocol ossification.
+
+      -  Section 14 Section 12 Discusses transport related
+         considerations, including congestion control
+
+      -  Section 15 Section 13 Discusses security considerations,
+         including denial-of-service and authentication
 
 1.2.  Motivation
 
