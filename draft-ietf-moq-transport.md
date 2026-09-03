@@ -87,17 +87,17 @@ with policies for discovery and subscription.
 
 ## Document Structure
 
-This document describes the core MoQ protocol and is structured as follows:
+This document describes the core MOQT protocol and is structured as follows:
 
 * The core concepts and functionality are described first
   * Section 2 {{model}} Object Data Model describes how Objects, Tracks and Namespaces relate
   * Section 3 {{publishing-and-receiving-tracks}} Describes how Objects in Tracks are Published and Retrieved.
   * Section 4 {{track-discovery}} Describes mechanisms for discovering Namespaces and Tracks
 
-* Next, the document describes how Objects are transmitted and MoQ Sessions
+* Next, the document describes how Objects are transmitted and MOQT Sessions
   * Section 5 {{object-transmission}} Describes ways MOTQ allows a subscriber to influence Object transmission order
   * Section 6 {{session-init}} Describes how to initiate a session and key properties of a session, such as extensibility.
-  * Section 7 {{relays-moq}} Describes key properties and requirements of MoQ relays
+  * Section 7 {{relays-moq}} Describes key properties and requirements of MOQT relays
 
 * Then the document describes how Control Messages and Objects are serialized and sent
   * Section 8 {{notational-conventions-and-common-structures}} Notational Conventions and Common Structures details structures used by subsequent sections
