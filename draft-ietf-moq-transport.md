@@ -95,7 +95,7 @@ This document describes the core MoQ protocol and is structured as follows:
   * Section 4 {{track-discovery}} Describes mechanisms for discovering Namespaces and Tracks
 
 * Next, the document describes how Objects are transmitted and MoQ Sessions
-  * Section 5 {{object-transmission}} Describes ways MoQ allows a subscriber to influence Object transmission order
+  * Section 5 {{object-transmission}} Describes ways MOTQ allows a subscriber to influence Object transmission order
   * Section 6 {{session-init}} Describes how to initiate a session and key properties of a session, such as extensibility.
   * Section 7 {{relays-moq}} Describes key properties and requirements of MoQ relays
 
@@ -106,10 +106,10 @@ This document describes the core MoQ protocol and is structured as follows:
   * Section 11 {{data-streams}} Data streams describes the mapping and serialization of Objects onto streams and datagrams
 
 * Finally, the document discusses deployment related considerations
-  * Section 12 {{transport-considerations}} Discusses transport related considerations, including congestion control
-  * Section 13 {{security}} Discusses security considerations, including denial-of-service and authentication
-  * Section 14 {{error-handling}} Discusses MoQ errors and how to best handle them
-  * Section 15 {{grease}} Describes how to utilize unspecified codepoints to prevent protocol ossification.
+  * Section 12 {{error-handling}} Discusses MOQT errors and how to best handle them
+  * Section 13 {{grease}} Describes how to utilize unspecified codepoints to prevent protocol ossification.
+  * Section 14 {{transport-considerations}} Discusses transport related considerations, including congestion control
+  * Section 15 {{security}} Discusses security considerations, including denial-of-service and authentication
 
 
 ## Motivation
