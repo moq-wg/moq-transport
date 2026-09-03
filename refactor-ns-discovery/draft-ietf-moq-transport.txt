@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 6 March 2027                                      I. Swett, Ed.
+Expires: 7 March 2027                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        2 September 2026
+                                                        3 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 March 2027.
+   This Internet-Draft will expire on 7 March 2027.
 
 Copyright Notice
 
@@ -2206,11 +2206,11 @@ Table of Contents
 
 7.5.  Aggregating Namespace Subscriptions
 
-   This section applies to namespace subscriptions (SUBSCRIBE_NAMESPACE
-   and SUBSCRIBE_TRACKS).  Relays SHOULD aggregate these subscriptions
-   and propagate filters upstream to protect their own resources and
-   those of their upstream peers.  When aggregation is not sufficient, a
-   relay MAY reject or close namespace subscriptions using:
+   Relays SHOULD aggregate namespace subscriptions (SUBSCRIBE_NAMESPACE
+   and SUBSCRIBE_TRACKS) and propagate filters upstream to protect their
+   own resources and those of their upstream peers.  When aggregation is
+   not sufficient, a relay MAY reject or close namespace subscriptions
+   using:
 
    *  NAMESPACE_TOO_LARGE — the matching namespace population is beyond
       what the relay is willing to serve.
