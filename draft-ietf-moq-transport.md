@@ -1021,7 +1021,7 @@ send `SUBSCRIBE` or `FETCH` directly. Discovery is a convenience for
 the case where the subscriber does not yet know the exact name, or
 wants to react as publishers come and go.
 
-Discovery is a hint, not a routing protocol: PUBLISH_NAMESPACE does not
+Namespace Discovery is a hint, not a routing protocol: PUBLISH_NAMESPACE and NAMESPACE do not
 guard against loops and SHOULD NOT be used to compute paths through
 richly connected relay networks.
 
