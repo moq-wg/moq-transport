@@ -945,7 +945,7 @@ that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
 groups. A publisher that does will begin the next group as soon as practical.
 
-## Mandatory Track Properties {#mandatory-track-properties}
+## Mandatory to understand Track Properties {#mandatory-track-properties}
 
 Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
 Properties. These properties MUST have Track scope. Mandatory Track Properties
