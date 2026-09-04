@@ -719,7 +719,7 @@ refer to an Object that exists.
 ## Fetch {#fetch}
 
 A FETCH requests pre-existing Objects from a Track between a Start Location and
-an End Location, inclusive.  These range is specified by a Location Filter (see
+an End Location, inclusive.  This range is specified by a Location Filter (see
 {{location-filters}}) when present, or default to {0, 0} and `Largest Object`
 ({{largest-object}}) respectively.
 
