@@ -719,7 +719,7 @@ refer to an Object that exists.
 ## Fetch {#fetch}
 
 A FETCH requests pre-existing Objects from a Track between a Start Location and
-an End Location, inclusive.  These are set from a Location Filter (see
+an End Location, inclusive.  These range is specified by a Location Filter (see
 {{location-filters}}) when present, or default to {0, 0} and `Largest Object`
 ({{largest-object}}) respectively.
 
@@ -748,17 +748,21 @@ the publisher opens the unidirectional stream, sends the FETCH_HEADER (see
 
 A publisher MUST send fetched groups in the requested group order (see
 {{group-order}}). Within each group, objects are sent in Object ID order;
-subgroup ID is not used for ordering.
-
-The publisher is responsible for delivering all available Objects in the
-requested range.
+subgroup ID is not used for ordering.  The Object Delivery Mode does not
+apply.
 
 ### Gaps in a Fetch Stream
 
+A gap in a fetch stream occurs when the publisher has no object for the next
+ordered Location.  A gap can occur because the object does not exist, the object
+was filtered out by the subscriber, or the object state cannot be determined
+(e.g. a Relay has temporarily lost contact with the Original Publisher and does
+not have the Object in cache).
+
 Unless the request included Range Filters (see {{range-filters}}), any gaps in
-the Group and Object IDs in the response stream indicate objects that do not
-exist (see {{object-states}}).  When one or more Range Filters are present, gaps
-indicate objects in the unknown state.
+the Group and Object IDs in the response stream that are not otherwise marked
+indicate objects that do not exist (see {{object-states}}).  When one or more
+Range Filters are present, unmarked gaps indicate objects in the unknown state.
 
 For Ascending Group Order, and Descending Group Order where Start and End
 Location are in the same group, gaps include ranges between the Start
@@ -776,19 +780,18 @@ multiple logical gaps: the tail of `A.Group`; all skipped groups; and `{B.Group,
 Gaps at the end of a stream are only detectable when the stream is terminated
 by a FIN.
 
-Rather than leaving a gap, a publisher can mark a range of Objects it will not
-serialize with an End of Range indicator (see {{end-of-range}}), identifying
-those Objects as non-existent, unknown, or timed out.  A publisher SHOULD NOT
-use `End of Non-Existent Range` in a FETCH response except to split a range of
-Objects that will not be serialized into those that are known not to exist and
-those with unknown or timed out status.
+When the cause of the gap differs from the default, the publisher marks the range
+of Objects it will not serialize with an End of Range indicator (see
+{{end-of-range}}), identifying those Objects as non-existent, unknown, or timed
+out.  A publisher SHOULD NOT use `End of Non-Existent Range` in a FETCH response
+except to split a range of Objects that will not be serialized into those that are
+known not to exist and those with unknown or timed out status.
 
 If a Publisher receives a FETCH with a range that includes one or more Objects
-with unknown state (e.g. a Relay has temporarily lost contact with the Original
-Publisher and does not have the Object in cache), it can choose to reset the
-FETCH data stream with UNKNOWN_OBJECT_STATUS ({{stream-reset-codes}}), or
-indicate the range of unknown Objects (`End of Unknown Range`, see
-{{end-of-range}}) and continue serving other known Objects.
+with unknown state, it can choose to reset the FETCH data stream with
+UNKNOWN_OBJECT_STATUS ({{stream-reset-codes}}), or indicate the range of unknown
+Objects (`End of Unknown Range`, see {{end-of-range}}) and continue serving other
+known Objects.
 
 ### Relay Fetch Handling
 
