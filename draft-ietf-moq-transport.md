@@ -85,17 +85,31 @@ Despite its name, MOQT is content agnostic. MoQ Streaming Formats define how
 specific content types are encoded, packaged, and mapped to MOQT objects, along
 with policies for discovery and subscription.
 
-* {{model}} describes the data model employed by MOQT.
+## Document Structure
 
-* {{session}} covers aspects of setting up an MOQT session.
+This document describes the MOQT protocol and is structured as follows:
 
-* {{priorities}} covers mechanisms for prioritizing subscriptions.
+* The core concepts and functionality are described first
+  * Section 2 {{model}} Object Data Model describes how Objects, Tracks and Namespaces relate
+  * Section 3 {{publishing-and-receiving-tracks}} Describes how Objects in Tracks are Published and Retrieved.
+  * Section 4 {{track-discovery}} Describes mechanisms for discovering Namespaces and Tracks
 
-* {{relays-moq}} covers behavior at the relay entities.
+* Next, the document describes how Objects are transmitted and MOQT Sessions
+  * Section 5 {{object-transmission}} Describes ways MOTQ allows a subscriber to influence Object transmission order
+  * Section 6 {{session-init}} Describes how to initiate a session and key properties of a session, such as extensibility.
+  * Section 7 {{relays-moq}} Describes key properties and requirements of MOQT relays
 
-* {{message}} covers how control messages are encoded on the wire.
+* Then the document describes how Control Messages and Objects are serialized and sent
+  * Section 8 {{notational-conventions-and-common-structures}} Notational Conventions and Common Structures details structures used by subsequent sections
+  * Section 9 {{message}} Control Messages details how Control Messages are sent, including their wire encoding
+  * Section 10 {{moqt-properties}} MOQT Properties describes Track and Object properties defined in the core protocol
+  * Section 11 {{data-streams}} Data streams describes the mapping and serialization of Objects onto streams and datagrams
 
-* {{data-streams}} covers how data messages are encoded on the wire.
+* Finally, the document discusses deployment related considerations
+  * Section 12 {{error-handling}} Discusses MOQT errors and how to best handle them
+  * Section 13 {{grease}} Describes how to utilize unspecified codepoints to prevent protocol ossification.
+  * Section 14 {{transport-considerations}} Discusses transport related considerations, including congestion control
+  * Section 15 {{security}} Discusses security considerations, including denial-of-service and authentication
 
 
 ## Motivation
