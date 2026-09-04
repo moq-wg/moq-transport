@@ -76,14 +76,15 @@ Copyright Notice
 Table of Contents
 
    1.  Introduction
-     1.1.  Motivation
-       1.1.1.  Latency
-       1.1.2.  Leveraging QUIC
-       1.1.3.  Convergence
-       1.1.4.  Relays
-     1.2.  Terms and Definitions
-     1.3.  Stream Management Terms
-     1.4.  Modularity
+     1.1.  Document Structure
+     1.2.  Motivation
+       1.2.1.  Latency
+       1.2.2.  Leveraging QUIC
+       1.2.3.  Convergence
+       1.2.4.  Relays
+     1.3.  Terms and Definitions
+     1.4.  Stream Management Terms
+     1.5.  Modularity
    2.  Object Data Model
      2.1.  Objects
        2.1.1.  Object Fields
@@ -317,25 +318,70 @@ Table of Contents
    define how specific content types are encoded, packaged, and mapped
    to MOQT objects, along with policies for discovery and subscription.
 
-   *  Section 2 describes the data model employed by MOQT.
+1.1.  Document Structure
 
-   *  Section 6 covers aspects of setting up an MOQT session.
+   This document describes the MOQT protocol and is structured as
+   follows:
 
-   *  Section 5.1 covers mechanisms for prioritizing subscriptions.
+   *  The core concepts and functionality are described first
 
-   *  Section 7 covers behavior at the relay entities.
+      -  Section 2 Section 2 Object Data Model describes how Objects,
+         Tracks and Namespaces relate
 
-   *  Section 9 covers how control messages are encoded on the wire.
+      -  Section 3 Section 3 Describes how Objects in Tracks are
+         Published and Retrieved.
 
-   *  Section 11 covers how data messages are encoded on the wire.
+      -  Section 4 Section 4 Describes mechanisms for discovering
+         Namespaces and Tracks
 
-1.1.  Motivation
+   *  Next, the document describes how Objects are transmitted and MOQT
+      Sessions
+
+      -  Section 5 Section 5 Describes ways MOTQ allows a subscriber to
+         influence Object transmission order
+
+      -  Section 6 Section 6.3 Describes how to initiate a session and
+         key properties of a session, such as extensibility.
+
+      -  Section 7 Section 7 Describes key properties and requirements
+         of MOQT relays
+
+   *  Then the document describes how Control Messages and Objects are
+      serialized and sent
+
+      -  Section 8 Section 8 Notational Conventions and Common
+         Structures details structures used by subsequent sections
+
+      -  Section 9 Section 9 Control Messages details how Control
+         Messages are sent, including their wire encoding
+
+      -  Section 10 Section 10 MOQT Properties describes Track and
+         Object properties defined in the core protocol
+
+      -  Section 11 Section 11 Data streams describes the mapping and
+         serialization of Objects onto streams and datagrams
+
+   *  Finally, the document discusses deployment related considerations
+
+      -  Section 12 Section 12 Discusses MOQT errors and how to best
+         handle them
+
+      -  Section 13 Section 13 Describes how to utilize unspecified
+         codepoints to prevent protocol ossification.
+
+      -  Section 14 Section 14 Discusses transport related
+         considerations, including congestion control
+
+      -  Section 15 Section 15 Discusses security considerations,
+         including denial-of-service and authentication
+
+1.2.  Motivation
 
    The development of MOQT is driven by goals in a number of areas -
    specifically latency, the robust feature set of QUIC and relay
    support.
 
-1.1.1.  Latency
+1.2.1.  Latency
 
    Latency is necessary to correct for variable network throughput.
    Ideally live content is consumed at the same bitrate it is produced.
@@ -354,14 +400,14 @@ Table of Contents
    features of QUIC to create a simple yet flexible low latency protocol
    that can rapidly detect and respond to congestion.
 
-1.1.2.  Leveraging QUIC
+1.2.2.  Leveraging QUIC
 
    The parallel nature of QUIC streams can provide improvements in the
    face of loss.  A goal of MOQT is to design a streaming protocol to
    leverage the transmission benefits afforded by parallel QUIC streams
    as well as exercising options for flexible loss recovery.
 
-1.1.3.  Convergence
+1.2.3.  Convergence
 
    Some live media architectures today have separate protocols for
    ingest and distribution, for example RTMP and HTTP based HLS or DASH.
@@ -374,7 +420,7 @@ Table of Contents
    packaging schemas, both for backwards compatibility and for
    interoperability with the established content preparation ecosystem.
 
-1.1.4.  Relays
+1.2.4.  Relays
 
    An integral feature of a protocol being successful is its ability to
    deliver media at scale.  Greatest scale is achieved when third-party
@@ -387,7 +433,7 @@ Table of Contents
    necessary for distribution is available to relays while the media
    content itself remains opaque and private.
 
-1.2.  Terms and Definitions
+1.3.  Terms and Definitions
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
@@ -446,7 +492,7 @@ Table of Contents
 
    Track:  A track is a collection of groups.  See (Section 2.4).
 
-1.3.  Stream Management Terms
+1.4.  Stream Management Terms
 
    This document uses stream management terms described in [RFC9000],
    Section 1.3 including STOP_SENDING, RESET_STREAM, and FIN.  It also
@@ -459,7 +505,7 @@ Table of Contents
    endpoint sends a RESET_STREAM or RESET_STREAM_AT frame on that stream
    (see Section 11.3.2 for considerations on choosing between them).
 
-1.4.  Modularity
+1.5.  Modularity
 
    MOQT defines all messages necessary to implement both simple
    publishing or subscribing endpoints as well as fully capable Relays.
