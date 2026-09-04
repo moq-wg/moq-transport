@@ -1480,10 +1480,10 @@ begin with any other message type unless negotiated. If they do, the peer MUST
 close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
 streams.
 
-As such, a client can initiate a MOQT session, subscribe, and
-start publishing Objects all in parallel. When this is done before the
-handshake completes using 0-RTT, the security implications described in
-{{zero-rtt}} apply.
+As such, a client can initiate a MOQT session and requests all in parallel.
+However, there are restrictions on these requests as described in {{setup-message}}.
+When this is done before the handshake completes using 0-RTT, the security
+implications described in {{zero-rtt}} apply.
 
 Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
