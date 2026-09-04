@@ -3607,12 +3607,6 @@ control streams are established.<a href="#section-6.3-4" class="pilcrow">¶</a><
 <p id="section-6.3-5">A control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-6.3-5" class="pilcrow">¶</a></p>
-<p id="section-6.3-6">Prior to receiving the peer's SETUP message, it's unknown what extensions
-a peer will support. Message Parameters requiring negotiation <span class="bcp14">SHOULD NOT</span>
-be used prior to receiving the peer's SETUP message unless the application
-requires the extension or the endpoint knows the peer supports the
-extension. If an unsupported Message Parameter is used, the peer will be
-unable to process it and the session will be terminated. See <a href="#message-params" class="auto internal xref">Section 9.20</a>.<a href="#section-6.3-6" class="pilcrow">¶</a></p>
 <div id="zero-rtt">
 <section id="section-6.3.1">
           <h4 id="name-0-rtt">
