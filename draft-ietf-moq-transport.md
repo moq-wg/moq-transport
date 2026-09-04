@@ -85,6 +85,7 @@ Despite its name, MOQT is content agnostic. MoQ Streaming Formats define how
 specific content types are encoded, packaged, and mapped to MOQT objects, along
 with policies for discovery and subscription.
 
+
 ## Document Structure
 
 This document describes the MOQT protocol and is structured as follows:
