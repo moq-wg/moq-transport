@@ -739,8 +739,6 @@ REQUEST_ERROR with error code `INVALID_RANGE`.
 
 ### Fetch Object Delivery
 
-The Object Delivery Mode does not apply to fetches.
-
 The publisher creates a single unidirectional stream (see {{fetch-streams}})
 that is used to send the Objects.  If no Objects exist in the requested range,
 the publisher opens the unidirectional stream, sends the FETCH_HEADER (see
