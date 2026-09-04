@@ -790,11 +790,9 @@ encoding specified in {{range-filter-structure}}.
 An object matches the filter if its value falls within any Range (i.e., Ranges
 are OR'd within a filter parameter).
 
-Each Range Filter parameter carries a SetID, which identifies the set of
-filters it belongs to.  Filter parameters with the same SetID are AND'd;
-distinct SetIDs are OR'd.  The final result is SetID=0 OR SetID=1 OR
-... SetID=255, where each SetID=i is the AND of all filter parameters
-carrying that SetID.
+Each Range Filter parameter carries a SetID, which identifies the filter
+set it belongs to.  Filter sets combine parameters into boolean
+expressions; see {{filter-sets}}.
 
 The Track Property filter parameter MAY appear multiple times in a
 SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
@@ -822,6 +820,70 @@ will not be forwarded nor will any Objects.
 The Object Property Filter can be used to filter Objects with required
 Object Property types and values.  It only filters Object Properties,
 and does not evaluate Track Properties in PUBLISH messages.
+
+### Filter Sets {#filter-sets}
+
+A Range Filter can express boolean combinations across Track or Object
+properties and Object header fields using filter sets.  Each Range
+Filter parameter carries an 8-bit SetID (0-255) that identifies the set
+it belongs to.
+
+The evaluation rules are:
+
+* Ranges within a single filter parameter are combined with logical OR.
+* Filter parameters carrying the same SetID are combined with logical AND.
+* Filter sets (parameters carrying different SetIDs) are combined with
+  logical OR.
+
+The overall match condition for a request is therefore an OR of ANDs:
+`(set 0) OR (set 1) OR ... OR (set 255)`, where each `set i` is the AND
+of every filter parameter tagged with SetID=i.  An Object matches the
+request if any one filter set matches.
+
+A single SetID suffices when all conditions must hold; multiple SetIDs
+express an OR of distinct conjunctions that OR'd Ranges on a single
+field cannot.
+
+Examples use the wire encoding from {{range-filter-structure}} and
+Range Filter parameters from {{message-params}}.  Assume Track Property
+`codec` and Object Property `layer` have even Property Types known to
+both endpoints.
+
+Subgroup ID 1 AND Publisher Priority 0..10: match Objects in Subgroup 1
+with priority at most 10.
+
+~~~
+SUBGROUP_FILTER  SetID=0  Range=1
+PRIORITY_FILTER  SetID=0  Range=0..10
+~~~
+
+Publisher Priority 0..10 OR 200..255: match Objects at the highest or
+lowest priority bands.
+
+~~~
+PRIORITY_FILTER  SetID=0  Range=0..10, Range=200..255
+~~~
+
+(codec=1 AND layer=0) OR (codec=2 AND layer 0..1): match codec 1 with
+its base layer only, or codec 2 with its first two layers.
+
+~~~
+TRACK_PROPERTY_FILTER   SetID=0  Property=codec  Range=1
+OBJECT_PROPERTY_FILTER  SetID=0  Property=layer  Range=0
+TRACK_PROPERTY_FILTER   SetID=1  Property=codec  Range=2
+OBJECT_PROPERTY_FILTER  SetID=1  Property=layer  Range=0..1
+~~~
+
+A relay aggregating two downstream subscriptions (subscriber A: Subgroup
+1, Priority 0..10; subscriber B: Subgroup 4, Priority 200..255) onto a
+single upstream, one set per downstream.
+
+~~~
+SUBGROUP_FILTER  SetID=0  Range=1        # subscriber A
+PRIORITY_FILTER  SetID=0  Range=0..10
+SUBGROUP_FILTER  SetID=1  Range=4        # subscriber B
+PRIORITY_FILTER  SetID=1  Range=200..255
+~~~
 
 ### Combining Filters
 
