@@ -111,7 +111,7 @@ Table of Contents
        3.4.1.  Opening and Closing Fill Fetch Streams
      3.5.  Joining an Ongoing Track
        3.5.1.  Dynamically Starting New Groups
-     3.6.  Mandatory Track Properties
+     3.6.  Mandatory to Understand Track Properties
    4.  Namespace Discovery
      4.1.  Subscribing to Namespaces
      4.2.  Publishing Namespaces
@@ -1244,7 +1244,7 @@ Table of Contents
    indicate if the publisher supports dynamic groups.  A publisher that
    does will begin the next group as soon as practical.
 
-3.6.  Mandatory Track Properties
+3.6.  Mandatory to Understand Track Properties
 
    Property types in the range 0x4000-0x7FFF are designated as Mandatory
    Track Properties.  These properties MUST have Track scope.  Mandatory
