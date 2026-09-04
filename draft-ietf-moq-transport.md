@@ -1489,8 +1489,8 @@ Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
 the data SHOULD be buffered until both control streams arrive and setup is
 complete. If an implementation does not want to buffer or if the message type is
-not supported, it MAY reset such bidirectional streams before the session and
-control streams are established.
+not supported, it MAY reset such streams before the session and control streams
+are established.
 
 A control stream MUST NOT be closed at the underlying transport layer during the
 session's lifetime.  Doing so results in the session being closed as a
