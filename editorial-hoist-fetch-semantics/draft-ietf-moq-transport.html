@@ -2702,15 +2702,14 @@ REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-3.2-4
           <h4 id="name-fetch-object-delivery">
 <a href="#section-3.2.1" class="section-number selfRef">3.2.1. </a><a href="#name-fetch-object-delivery" class="section-name selfRef">Fetch Object Delivery</a>
           </h4>
-<p id="section-3.2.1-1">The Object Delivery Mode does not apply to fetches.<a href="#section-3.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.2.1-2">The publisher creates a single unidirectional stream (see <a href="#fetch-streams" class="auto internal xref">Section 11.4</a>)
+<p id="section-3.2.1-1">The publisher creates a single unidirectional stream (see <a href="#fetch-streams" class="auto internal xref">Section 11.4</a>)
 that is used to send the Objects.  If no Objects exist in the requested range,
 the publisher opens the unidirectional stream, sends the FETCH_HEADER (see
-<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>) and closes the stream with a FIN.<a href="#section-3.2.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.2.1-3">A publisher <span class="bcp14">MUST</span> send fetched groups in the requested group order (see
+<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>) and closes the stream with a FIN.<a href="#section-3.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.1-2">A publisher <span class="bcp14">MUST</span> send fetched groups in the requested group order (see
 <a href="#group-order" class="auto internal xref">Section 9.20.9</a>). Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.  The Object Delivery Mode does not
-apply.<a href="#section-3.2.1-3" class="pilcrow">¶</a></p>
+apply.<a href="#section-3.2.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="gaps-in-a-fetch-stream">
