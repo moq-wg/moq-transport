@@ -1463,6 +1463,44 @@ The client establishes a QUIC connection to the host and port identified by the
 When the client uses native QUIC, the `authority`, `path-abempty` and `query`
 portions of the URI are transmitted in Setup Options (see {{message-setup}}).
 
+REMOVE PARA: This PR is setting up the design for the URI
+resolution. The goals right now is to get high level feedback before crafting the
+detail text of the PR.
+
+TODO: Decide what DNS records a client MUST support. Propose AAAA, A,
+CNAME, and SVCB. Could also consider if we should use SRV, URI and DNAME.
+
+REMOVE NOTE: It is very hard to migrate an eco system to use use a new type
+once there are many clients deployed. SIP required SRV and this turned
+out to be powerful in allowing complex server deployments. SVCB is
+even more powerful. It is easier to be able to use this if clients are required support
+from the start rather than trying to migrate to it later.
+
+TODO: Decide what Cert name fields clients look at. Propose only SAN.
+
+REMOVE NOTE: CN is very hard to define and use in a secure way. There is no
+need to support it as SAN certificates are widely available at this
+point in time.
+
+TODO: Decide what types of SAN names that clients MUST support. Propose dNSName,
+uniformResourceIdentifier, and iPAddress. Could consider SRVName.
+
+REMOVE NOTE: uniformResourceIdentifier allows narrowing of scope when deploying
+certs on cloud servers and is considered a better security practice in
+some situations. Direct IP address are common in some IOT and high
+security networks as well as testing.
+
+TODO: Decide how to canonicalize the name in URI and the name in the SAN for
+matching.
+
+TODO: Decide if wildcard matching is allowed. Propose No.
+
+TODO: Decide how much of this we match as a requirement for WebTransport
+session. Question, if a WebTransport client did all of the above, would
+it still be a valid WebTransport client.
+
+
+
 ## Session initialization {#session-init}
 
 MOQT uses a pair of unidirectional streams for creating the session and
