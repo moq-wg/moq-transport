@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 8 March 2027                                      I. Swett, Ed.
+Expires: 9 March 2027                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        4 September 2026
+                                                        5 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 March 2027.
+   This Internet-Draft will expire on 9 March 2027.
 
 Copyright Notice
 
@@ -1032,7 +1032,8 @@ Table of Contents
    Section 11.4.1.2) and continue serving other known Objects.  When
    resetting the stream, the publisher can do so immediately or after
    previously sent objects are delivered.  If it has not yet sent
-   FETCH_OK, it can also send REQUEST_ERROR.
+   FETCH_OK, it can send REQUEST_ERROR in addition to resetting the
+   stream.
 
 3.2.3.  Relay Fetch Handling
 
