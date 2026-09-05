@@ -53,6 +53,7 @@ author:
 normative:
   QUIC: RFC9000
   WebTransport: I-D.ietf-webtrans-http3
+  URI-RESOLV: I-D.jennings-moq-discovery
 
 informative:
   CAT: I-D.ietf-moq-c4m
@@ -1383,27 +1384,8 @@ Types" registry ({{iana-fragment-types}}).
 The default operation for dereferencing a `moqt` URI is to establish a
 MOQT session to the identified server.
 
-The `moqt` URI scheme has the following security considerations:
-
-- The `authority` component is sent in the TLS SNI extension during
-  connection establishment, exposing the target server identity to
-  on-path observers. Encrypted Client Hello (ECH) {{?RFC9580}} can
-  mitigate this exposure.
-
-- The `path-abempty` and `query` components are visible to the relay
-  that terminates the client's connection.
-
-TODO: Add internationalization statement per RFC 7595 Section 3.6.
-
-The client resolves the `host` subcomponent of the `authority` to one or
-more network addresses, most commonly using DNS A {{?RFC1035}} and AAAA {{?RFC3596}} records.
-
-When SVCB-compatible records {{?RFC9460}} are published for the `authority`,
-a client MAY use them to learn the server's endpoints and supported ALPN
-protocols before connecting. A client using WebTransport resolves the
-`https` URI derived in {{webtransport}} using HTTPS resource records as for
-any `https` origin.
-TODO: reference moqt SVCB record draft once available.
+The DNS resolution of the URI and the matching to the TLS certificate
+are specified in {{URI-RESOLV}}.
 
 If the port is omitted in the URI, a default port of 443 is used.
 
@@ -5127,6 +5109,12 @@ authorization tokens (see {{sec-authorization}}) to prove the
 subscriber's right to access specific tracks or namespaces. Relays
 that aggregate subscriptions from multiple downstream subscribers MUST
 ensure each subscriber is independently authorized.
+
+The `authority` component of the MOQT URI is sent in the TLS SNI
+extension during connection establishment, exposing the target server
+identity to on-path observers. Encrypted Client Hello (ECH) {{?RFC9580}}
+can mitigate this exposure.
+
 
 ## Subscription Amplification
 
