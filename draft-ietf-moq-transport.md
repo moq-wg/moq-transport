@@ -791,7 +791,7 @@ UNKNOWN_OBJECT_STATUS ({{stream-reset-codes}}), or indicate the range of unknown
 Objects (`End of Unknown Range`, see {{end-of-range}}) and continue serving
 other known Objects.  When resetting the stream, the publisher can do so
 immediately or after previously sent objects are delivered.  If it has not yet
-sent FETCH_OK, it can also send REQUEST_ERROR.
+sent FETCH_OK, it can send REQUEST_ERROR in addition to resetting the stream.
 
 ### Relay Fetch Handling
 
