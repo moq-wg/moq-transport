@@ -3402,7 +3402,6 @@ NAMESPACE Message {
   namespace as defined in {{track-namespace-structure}} after removing
   namespace tuples included in 'Track Namespace Prefix'
   {{message-subscribe-ns}}.
-  
 * Parameters: The parameters are defined in {{message-params}}.
 
 ## NAMESPACE_DONE {#message-namespace-done}
