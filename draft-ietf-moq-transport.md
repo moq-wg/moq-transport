@@ -3384,11 +3384,16 @@ All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.
 
+When Parameters of a NAMESPACE change, the NAMESPACE message is sent again
+with the updated Parameters.
+
 ~~~
 NAMESPACE Message {
   Type (vi64) = 0x8,
   Length (16),
   Track Namespace Suffix (..),
+  Number of Parameters (vi64),
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-ns-format title="MOQT NAMESPACE Message"}
@@ -3397,6 +3402,8 @@ NAMESPACE Message {
   namespace as defined in {{track-namespace-structure}} after removing
   namespace tuples included in 'Track Namespace Prefix'
   {{message-subscribe-ns}}.
+
+* Parameters: The parameters are defined in {{message-params}}.
 
 ## NAMESPACE_DONE {#message-namespace-done}
 
