@@ -946,7 +946,7 @@ response (see {{message-fetch}}).  This is called a fill fetch stream.
 The **fill range** is the range of Locations selected by the Location filter
 inside FILL_PARAMETERS, or the subscription's Location filter if it is
 omitted. The filter is evaluated using the rules for a Fetch in
-{{location-filters}}, so the fill range never extends beyond `Largest
+{{location-filter}}, so the fill range never extends beyond `Largest
 Object`. When the subscription has no Location filter, or the LOCATION_FILTER
 inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
 `Largest Object`.  The subscriber learns the `Largest Object` from the
@@ -2935,7 +2935,7 @@ limited by the MAX_REQUEST_UPDATES Setup Option ({{max-request-updates}}).
 If a parameter previously set on the request is not present in
 `REQUEST_UPDATE`, its value remains unchanged.
 
-There is no mechanism to remove a parameter from a request.
+There is no generic mechanism to remove a parameter from a request.
 
 The format of REQUEST_UPDATE is as follows:
 
@@ -3733,11 +3733,35 @@ LOCATION_FILTER Parameter {
 }
 ~~~
 
-Length (in bytes) determines how many optional vi64 fields are present.
-A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
+The optional fields are decoded in the order shown until Length bytes have been
+consumed.  How many fields are decoded determines which fields they are, and how
+the filter is interpreted:
   * If only one field is present, it is StartGroup.
   * If only two fields are present, they are StartGroup and StartObject.
   * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
+
+The table below summarizes the resulting forms, which are specified in detail in
+the remainder of this section.
+
+| Fields present | Start Location | End Location |
+|:---------------|:---------------|:-------------|
+| none (Length 0) | no filter | no filter |
+| StartGroup | relative: `{Largest Object.Group + 1 - StartGroup, 0}` | open-ended (Fetch: `Largest Object`) |
+| StartGroup, StartObject, both 0 | `Next Object` | open-ended (Fetch: `Largest Object`) |
+| StartGroup, StartObject, not both 0 | absolute: `{StartGroup, StartObject}` | open-ended (Fetch: `Largest Object`) |
+| StartGroup, StartObject, EndGroupDelta | absolute: `{StartGroup, StartObject}` | last Object of Group `StartGroup + EndGroupDelta` |
+| StartGroup, StartObject, EndGroupDelta, EndObject | absolute: `{StartGroup, StartObject}` | `{StartGroup + EndGroupDelta, EndObject}` |
+{: #location-filter-forms title="Location Filter forms"}
+
+Note that adding StartObject to a filter that carries only StartGroup changes
+the start Location from relative to absolute.  For example, `{StartGroup=1}`
+starts at the current Group, whereas `{StartGroup=1, StartObject=0}` starts at
+the first Object of Group 1.
+
+If a field extends beyond the end of the parameter, or more than four fields
+are present, the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
+
+A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
 
 If only StartGroup is present, it is a relative number of groups prior to the Next Group,
 hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
@@ -3757,7 +3781,10 @@ computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
 Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
 relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
-the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
+the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.  If
+EndGroupDelta is 0 and EndObject is less than StartObject, the filter selects no
+Objects; the receiver MUST reject the request with REQUEST_ERROR with error code
+`INVALID_RANGE`.
 
 When EndGroupDelta and EndObject are omitted from a subscription filter, the
 subscription is open-ended. When they are omitted from a Fetch, the
