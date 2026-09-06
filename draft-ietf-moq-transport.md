@@ -3740,8 +3740,7 @@ the filter is interpreted:
   * If only two fields are present, they are StartGroup and StartObject.
   * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
 
-The table below summarizes the resulting forms, which are specified in detail in
-the remainder of this section.
+The table below summarizes the encodings.
 
 | Fields present | Start Location | End Location |
 |:---------------|:---------------|:-------------|
