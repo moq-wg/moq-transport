@@ -2958,11 +2958,11 @@ REQUEST_UPDATE Message {
 
 When a subscriber decreases the Start Location of the Location Filter
 (see {{location-filters}}), the Start Location can be smaller than the Track's
-Largest Location, similar to a new Subscription. Including FILL_PARAMETERS
+Largest Object, similar to a new Subscription. Including FILL_PARAMETERS
 (see {{fill-parameters}}) in the REQUEST_UPDATE causes the publisher to deliver
 the new fill range by opening a new fill fetch stream (see
 {{fill-semantics}}).  FETCH can also be used to retrieve any necessary Objects
-smaller than the current Largest Location.
+with Locations less than or equal to the current Largest Object.
 
 When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
