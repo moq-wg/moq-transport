@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 9 March 2027</td>
+<td class="center">Expires 10 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-05" class="published">5 September 2026</time>
+<time datetime="2026-09-06" class="published">6 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-09">9 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-10">10 March 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 9 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 10 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1265,7 +1265,16 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-fetch" class="internal xref">Fetch</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.1">
-                    <p id="section-toc.1-1.3.2.2.2.1.1"><a href="#section-3.2.1" class="auto internal xref">3.2.1</a>.  <a href="#name-fetch-state-management" class="internal xref">Fetch State Management</a></p>
+                    <p id="section-toc.1-1.3.2.2.2.1.1"><a href="#section-3.2.1" class="auto internal xref">3.2.1</a>.  <a href="#name-fetch-object-delivery" class="internal xref">Fetch Object Delivery</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.2">
+                    <p id="section-toc.1-1.3.2.2.2.2.1"><a href="#section-3.2.2" class="auto internal xref">3.2.2</a>.  <a href="#name-gaps-in-a-fetch-stream" class="internal xref">Gaps in a Fetch Stream</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.3">
+                    <p id="section-toc.1-1.3.2.2.2.3.1"><a href="#section-3.2.3" class="auto internal xref">3.2.3</a>.  <a href="#name-relay-fetch-handling" class="internal xref">Relay Fetch Handling</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.4">
+                    <p id="section-toc.1-1.3.2.2.2.4.1"><a href="#section-3.2.4" class="auto internal xref">3.2.4</a>.  <a href="#name-fetch-state-management" class="internal xref">Fetch State Management</a></p>
 </li>
                 </ul>
 </li>
@@ -2746,28 +2755,116 @@ refer to an Object that exists.<a href="#section-3.1.3-2" class="pilcrow">¶</a>
         <h3 id="name-fetch">
 <a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-fetch" class="section-name selfRef">Fetch</a>
         </h3>
-<div id="fetch-state-management">
+<p id="section-3.2-1">A FETCH requests pre-existing Objects from a Track between a Start Location and
+an End Location, inclusive.  This range is specified by a Location Filter (see
+<a href="#location-filters" class="auto internal xref">Section 3.3.1</a>) when present, or defaults to {0, 0} and <code>Largest Object</code>
+(<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>) respectively.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">Objects with Locations larger than the <code>Largest Object</code> at the time the request
+is processed will not be retrieved by a FETCH.  The actual end of the FETCH
+response is indicated in the FETCH_OK End Location (see <a href="#message-fetch-ok" class="auto internal xref">Section 9.12</a>).<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.2-3">The publisher <span class="bcp14">MUST</span> send exactly one FETCH_OK or REQUEST_ERROR in response to a
+FETCH.  The FETCH_OK or REQUEST_ERROR can come at any time relative to object
+delivery.  The publisher <span class="bcp14">MAY</span> send Objects in response to a FETCH before the
+FETCH_OK message is sent, but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the End
+Location is known.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2-4">If no Objects have been published for the track or Start Location is greater
+than the <code>Largest Object</code> (<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>) the publisher <span class="bcp14">MUST</span> return
+REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+<div id="fetch-object-delivery">
 <section id="section-3.2.1">
-          <h4 id="name-fetch-state-management">
-<a href="#section-3.2.1" class="section-number selfRef">3.2.1. </a><a href="#name-fetch-state-management" class="section-name selfRef">Fetch State Management</a>
+          <h4 id="name-fetch-object-delivery">
+<a href="#section-3.2.1" class="section-number selfRef">3.2.1. </a><a href="#name-fetch-object-delivery" class="section-name selfRef">Fetch Object Delivery</a>
           </h4>
-<p id="section-3.2.1-1">The publisher <span class="bcp14">MUST</span> send exactly one FETCH_OK or REQUEST_ERROR in response to a
-FETCH.<a href="#section-3.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.2.1-2">A subscriber keeps FETCH state until it cancels the request
+<p id="section-3.2.1-1">The publisher creates a single unidirectional stream (see <a href="#fetch-streams" class="auto internal xref">Section 11.4</a>)
+that is used to send the Objects.  If no Objects exist in the requested range,
+the publisher opens the unidirectional stream, sends the FETCH_HEADER (see
+<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>) and closes the stream with a FIN.<a href="#section-3.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.1-2">A publisher <span class="bcp14">MUST</span> send fetched groups in the requested group order (see
+<a href="#group-order" class="auto internal xref">Section 9.20.9</a>). Within each group, objects are sent in Object ID order;
+subgroup ID is not used for ordering.  The Object Delivery Mode does not
+apply.<a href="#section-3.2.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="gaps-in-a-fetch-stream">
+<section id="section-3.2.2">
+          <h4 id="name-gaps-in-a-fetch-stream">
+<a href="#section-3.2.2" class="section-number selfRef">3.2.2. </a><a href="#name-gaps-in-a-fetch-stream" class="section-name selfRef">Gaps in a Fetch Stream</a>
+          </h4>
+<p id="section-3.2.2-1">A gap in a fetch stream occurs when the publisher has no object for the next
+ordered Location.  A gap can occur because the object does not exist, the object
+was filtered out by the subscriber, or the object state cannot be determined
+(e.g. a Relay has temporarily lost contact with the Original Publisher and does
+not have the Object in cache).<a href="#section-3.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.2-2">Unless the request included Range Filters (see <a href="#range-filters" class="auto internal xref">Section 3.3.2</a>), any gaps in
+the Group and Object IDs in the response stream that are not otherwise marked
+indicate objects that do not exist (see <a href="#object-states" class="auto internal xref">Section 2.1.2</a>).  When one or more
+Range Filters are present, unmarked gaps indicate objects in the unknown state.<a href="#section-3.2.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.2.2-3">For Ascending Group Order, and Descending Group Order where Start and End
+Location are in the same group, gaps include ranges between the Start
+Location and the first object in the stream; between objects in the stream; and
+between the last object in the stream and the End Location indicated in
+FETCH_OK.<a href="#section-3.2.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2.2-4">For Descending Group Order where Start and End Location are in different groups,
+the first expected Object in the stream is <code>{End Location.Group, 0}</code> and the
+last expected Object in the stream is <code>{Start Location.Group, 2^64-1}</code>.  When
+two consecutive objects A and B are in different groups, a gap represents
+multiple logical gaps: the tail of <code>A.Group</code>; all skipped groups; and <code>{B.Group,
+0}</code> through B, exclusive.<a href="#section-3.2.2-4" class="pilcrow">¶</a></p>
+<p id="section-3.2.2-5">Gaps at the end of a stream are only detectable when the stream is terminated
+by a FIN.<a href="#section-3.2.2-5" class="pilcrow">¶</a></p>
+<p id="section-3.2.2-6">When the cause of the gap differs from the default, the publisher marks the range
+of Objects it will not serialize with an End of Range indicator (see
+<a href="#end-of-range" class="auto internal xref">Section 11.4.1.2</a>), identifying those Objects as non-existent, unknown, or timed
+out.  A publisher <span class="bcp14">SHOULD NOT</span> use <code>End of Non-Existent Range</code> in a FETCH response
+except to split a range of Objects that will not be serialized into those that are
+known not to exist and those with unknown or timed out status.<a href="#section-3.2.2-6" class="pilcrow">¶</a></p>
+<p id="section-3.2.2-7">If a Publisher receives a FETCH with a range that includes one or more Objects
+with unknown state, it can choose to reset the FETCH data stream with
+UNKNOWN_OBJECT_STATUS (<a href="#stream-reset-codes" class="auto internal xref">Section 12.5</a>), or indicate the range of unknown
+Objects (<code>End of Unknown Range</code>, see <a href="#end-of-range" class="auto internal xref">Section 11.4.1.2</a>) and continue serving
+other known Objects.  When resetting the stream, the publisher can do so
+immediately or after previously sent objects are delivered.  If it has not yet
+sent FETCH_OK, it can send REQUEST_ERROR in addition to resetting the stream.<a href="#section-3.2.2-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="relay-fetch-handling">
+<section id="section-3.2.3">
+          <h4 id="name-relay-fetch-handling">
+<a href="#section-3.2.3" class="section-number selfRef">3.2.3. </a><a href="#name-relay-fetch-handling" class="section-name selfRef">Relay Fetch Handling</a>
+          </h4>
+<p id="section-3.2.3-1">A relay that has cached objects from the beginning of the range <span class="bcp14">MAY</span> start
+sending objects immediately in response to a FETCH.  When a relay encounters
+Objects within the requested range that are not immediately available and have
+unknown status, it issues one or more upstream FETCHes to retrieve them.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.3-2">If an upstream FETCH fails, the relay indicates the range of unknown Objects or
+resets the FETCH data stream, as described above.<a href="#section-3.2.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.2.3-3">The Fill Timeout (see <a href="#fill-timeout" class="auto internal xref">Section 9.20.6</a>) represents a total budget
+for all upstream FETCHes generated by a single request. If the budget is
+exhausted, the relay reports any remaining unavailable Objects as Timed-Out gaps
+(<code>End of Timed-Out Range</code>, see <a href="#end-of-range" class="auto internal xref">Section 11.4.1.2</a>) and continues delivering
+available Objects in the range.<a href="#section-3.2.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="fetch-state-management">
+<section id="section-3.2.4">
+          <h4 id="name-fetch-state-management">
+<a href="#section-3.2.4" class="section-number selfRef">3.2.4. </a><a href="#name-fetch-state-management" class="section-name selfRef">Fetch State Management</a>
+          </h4>
+<p id="section-3.2.4-1">A subscriber keeps FETCH state until it cancels the request
 (see <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>), receives REQUEST_ERROR, or the FETCH data stream
 receives a FIN or is reset. If the data stream is already open,
 the subscriber wishing to cancel the FETCH <span class="bcp14">MAY</span> send STOP_SENDING for the
 data stream as well as the bidi request stream. It <span class="bcp14">MUST</span> send STOP_SENDING
-for the bidi request stream.<a href="#section-3.2.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.2.1-3">The Publisher can remove fetch state as soon as it has received a
+for the bidi request stream.<a href="#section-3.2.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.4-2">The Publisher can remove fetch state as soon as it has received a
 STOP_SENDING. It <span class="bcp14">MUST</span> reset the bidi request stream and unidirectional
 data stream associated with the FETCH. It can also remove state after closing
-the FETCH data stream.<a href="#section-3.2.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.2.1-4">It can remove all FETCH state after closing the data stream with a FIN.<a href="#section-3.2.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.2.1-5">A REQUEST_ERROR indicates that both endpoints can immediately remove state.
+the FETCH data stream.<a href="#section-3.2.4-2" class="pilcrow">¶</a></p>
+<p id="section-3.2.4-3">It can remove all FETCH state after closing the data stream with a FIN.<a href="#section-3.2.4-3" class="pilcrow">¶</a></p>
+<p id="section-3.2.4-4">A REQUEST_ERROR indicates that both endpoints can immediately remove state.
 Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
-results in error.<a href="#section-3.2.1-5" class="pilcrow">¶</a></p>
+results in error.<a href="#section-3.2.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2789,9 +2886,7 @@ is encoded as specified in <a href="#location-filter" class="auto internal xref"
 <p id="section-3.3.1-2">Subscribers can specify a Location filter on a subscription to indicate to the
 publisher which Objects to send.  Subscriptions without a filter pass all
 Objects published or received via upstream subscriptions.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-3">Fetch requests can also specify a Location filter.  Fetch requests without a
-filter include all Locations from {0, 0} up to <code>Largest Object</code>
-(<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>).<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-3">Fetch requests can also specify a Location filter (see <a href="#fetch" class="auto internal xref">Section 3.2</a>).<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
 <p id="section-3.3.1-4">Some Location filters are defined to be relative to the <code>Largest Object</code>
 (<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>).<a href="#section-3.3.1-4" class="pilcrow">¶</a></p>
 <p id="section-3.3.1-5">A Location Filter on a subscription is always valid, even if it specifies a
@@ -5774,47 +5869,6 @@ FETCH Message {
             <p id="section-9.11-4.4.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.<a href="#section-9.11-4.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-9.11-5">A publisher responds to a FETCH request with either a FETCH_OK or a REQUEST_ERROR
-message.  The publisher creates a new unidirectional stream that is used to send the
-Objects.  The FETCH_OK or REQUEST_ERROR can come at any time relative to object
-delivery.<a href="#section-9.11-5" class="pilcrow">¶</a></p>
-<p id="section-9.11-6">The publisher responding to a FETCH is
-responsible for delivering all available Objects in the requested range in the
-requested order (see <a href="#group-order" class="auto internal xref">Section 9.20.9</a>). The Objects in the response are delivered on a single
-unidirectional stream. Any gaps in the Group and Object IDs in the response
-stream indicate objects that do not exist unless filters were requested.  For Ascending Group Order this
-includes ranges between the first requested object and the first object in the
-stream; between objects in the stream; and between the last object in the
-stream and the Largest Group/Object indicated in FETCH_OK, so long as the fetch
-stream is terminated by a FIN.  If no Objects exist in the requested range, the
-publisher opens the unidirectional stream, sends the FETCH_HEADER (see
-<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>) and closes the stream with a FIN.<a href="#section-9.11-6" class="pilcrow">¶</a></p>
-<p id="section-9.11-7">A relay that has cached objects from the beginning of the range <span class="bcp14">MAY</span> start
-sending objects immediately in response to a FETCH.  If it encounters an object
-in the requested range that is not cached and has unknown status, the relay <span class="bcp14">MUST</span>
-pause subsequent delivery until it has confirmed the object's status upstream.
-If the upstream FETCH fails, the relay sends a REQUEST_ERROR and can reset the
-unidirectional stream.  It can choose to do so immediately or wait until the
-cached objects have been delivered before resetting the stream.<a href="#section-9.11-7" class="pilcrow">¶</a></p>
-<p id="section-9.11-8">The Object Delivery Mode does not apply to fetches.<a href="#section-9.11-8" class="pilcrow">¶</a></p>
-<p id="section-9.11-9">Fetch can include a Location Filter parameter (see <a href="#location-filter" class="auto internal xref">Section 9.20.10</a>)
-which specifies an inclusive range of Objects starting at Start Location and
-ending at End Location.<a href="#section-9.11-9" class="pilcrow">¶</a></p>
-<p id="section-9.11-10">Objects with Locations larger than the <code>Largest Object</code> at the time the request
-is processed will not be retrieved by a FETCH.  If the
-requested End Location exceeds the <code>Largest Object</code>, the actual end of
-the FETCH response is indicated in the FETCH_OK End Location.<a href="#section-9.11-10" class="pilcrow">¶</a></p>
-<p id="section-9.11-11">If no Objects have been published for the track or Start Location is greater
-than the <code>Largest Object</code> (<a href="#message-subscribe-req" class="auto internal xref">Section 9.6</a>) the publisher <span class="bcp14">MUST</span> return
-REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-9.11-11" class="pilcrow">¶</a></p>
-<p id="section-9.11-12">A publisher <span class="bcp14">MUST</span> send fetched groups in the requested group order, either
-ascending or descending. Within each group, objects are sent in Object ID order;
-subgroup ID is not used for ordering.<a href="#section-9.11-12" class="pilcrow">¶</a></p>
-<p id="section-9.11-13">If a Publisher receives a FETCH with a range that includes one or more Objects with
-unknown status (e.g. a Relay has temporarily lost contact with the Original
-Publisher and does not have the Object in cache), it can choose to reset the
-FETCH data stream with UNKNOWN_OBJECT_STATUS (<a href="#stream-reset-codes" class="auto internal xref">Section 12.5</a>), or indicate
-the range of unknown Objects and continue serving other known Objects.<a href="#section-9.11-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-fetch-ok">
@@ -5823,9 +5877,7 @@ the range of unknown Objects and continue serving other known Objects.<a href="#
 <a href="#section-9.12" class="section-number selfRef">9.12. </a><a href="#name-fetch_ok" class="section-name selfRef">FETCH_OK</a>
         </h3>
 <p id="section-9.12-1">A publisher sends a FETCH_OK as the first message on the bidi stream in response
-to a successful fetch. A publisher <span class="bcp14">MAY</span> send Objects in response to a FETCH before
-the FETCH_OK message is sent, but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the
-End Location is known.<a href="#section-9.12-1" class="pilcrow">¶</a></p>
+to a successful fetch.<a href="#section-9.12-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_ok-message"></span><div id="moq-transport-fetch-ok">
 <figure id="figure-16">
           <div class="alignLeft art-text artwork" id="section-9.12-2.1">
@@ -6328,13 +6380,7 @@ or REQUEST_UPDATE (for a subscription), where it applies to the fill fetch
 stream.<a href="#section-9.20.6-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.6-2">It is the maximum total duration in milliseconds a relay <span class="bcp14">SHOULD</span> spend waiting
 for upstream sources to provide Objects that are not immediately available
-before reporting them as Timed-Out gaps in the FETCH response. When a relay
-encounters Objects within the requested range that are not immediately available
-and have unknown status, it issues upstream FETCHes to retrieve them. The Fill
-Timeout represents a total budget for all such upstream FETCHes generated by
-this request. If the budget is exhausted, the relay reports any remaining
-unavailable Objects as Timed-Out gaps (<code>End of Timed-Out Range</code>, see
-<a href="#end-of-range" class="auto internal xref">Section 11.4.1.2</a>) and continues delivering available Objects in the range.<a href="#section-9.20.6-2" class="pilcrow">¶</a></p>
+before reporting them as Timed-Out gaps in the FETCH response (see <a href="#fetch" class="auto internal xref">Section 3.2</a>).<a href="#section-9.20.6-2" class="pilcrow">¶</a></p>
 <p id="section-9.20.6-3">A value of 0 indicates the subscriber only wants Objects that are immediately
 available; the relay <span class="bcp14">MUST NOT</span> wait for upstream delivery and <span class="bcp14">MUST</span> report any
 unavailable Objects as Timed-Out gaps.<a href="#section-9.20.6-3" class="pilcrow">¶</a></p>
@@ -7675,10 +7721,7 @@ When 0x40 is set, it <span class="bcp14">SHOULD</span> set the two least signifi
 0x20C), the Group ID and Object ID fields are present.  Subgroup ID, Priority and
 Properties are not present. All Objects with Locations between the last
 serialized Object, if any, and this Location, inclusive, either do not exist
-(when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).  A
-publisher <span class="bcp14">SHOULD NOT</span> use <code>End of Non-Existent Range</code> in a FETCH response except to
-split a range of Objects that will not be serialized into those that are known
-not to exist and those with unknown or timed out status.<a href="#section-11.4.1.2-1" class="pilcrow">¶</a></p>
+(when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).<a href="#section-11.4.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-11.4.1.2-2">When an Object follows an End of Range indicator and uses flags that reference
 the "prior Object", the prior Object fields are determined as follows:<a href="#section-11.4.1.2-2" class="pilcrow">¶</a></p>
 <ul class="normal">
