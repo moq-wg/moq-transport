@@ -1646,6 +1646,15 @@ values required by those extensions as Setup Options in SETUP. Once an endpoint
 has both sent and received SETUP messages, it determines the set of negotiated
 extensions.
 
+There is no generic format for declaring extension support. Each extension
+specification defines the Setup Option or Options used to declare support for
+that extension, the format of their values, and the rules for determining
+whether the extension is negotiated. For example, an extension could be
+declared by a zero length option, where presence alone indicates support, or
+by an option carrying a list of supported extension versions from which the
+endpoints select a common version. Setup Option types are registered with
+IANA; see {{iana-setup-options}}.
+
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
@@ -2630,6 +2639,9 @@ separate from Message Parameters.  Receivers MUST ignore unrecognized Setup
 Options.  Senders MUST NOT repeat the same Option Type in a message unless
 the option definition explicitly allows multiple instances. Receivers MUST
 allow duplicates of unknown Setup Options.
+
+Setup Options are also the mechanism by which endpoints declare support for
+MOQT extensions; see {{extension-negotiation}}.
 
 The available Setup Options are detailed in the next sections.
 
