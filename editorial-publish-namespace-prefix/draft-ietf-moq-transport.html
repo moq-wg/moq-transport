@@ -6074,7 +6074,10 @@ are not affected by closure of the SUBSCRIBE_NAMESPACE stream.<a href="#section-
 it is sent on the response stream of a SUBSCRIBE_NAMESPACE request.
 All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
-in the 'Track Namespace Suffix'.<a href="#section-9.16-1" class="pilcrow">¶</a></p>
+in the 'Track Namespace Suffix'.  The Track Namespace Prefix from the
+SUBSCRIBE_NAMESPACE followed by the Track Namespace Suffix is the Track
+Namespace Prefix the publisher advertised, so tracks can exist in
+namespaces matching that prefix (see <a href="#namespace-prefix-matching" class="auto internal xref">Section 7.5, Paragraph 6</a>).<a href="#section-9.16-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-namespace-message"></span><div id="moq-transport-ns-format">
 <figure id="figure-19">
           <div class="alignLeft art-text artwork" id="section-9.16-2.1">
