@@ -261,7 +261,7 @@ This document uses stream management terms described in {{?RFC9000, Section
 1.3}} including STOP_SENDING, RESET_STREAM, and FIN. It also uses
 RESET_STREAM_AT from {{!I-D.draft-ietf-quic-reliable-stream-reset}}.
 RESET_STREAM_AT can be used by MOQT, but the protocol is also designed to work
-correctly when the extension is not supported.
+correctly when the extension is not used or not supported.
 
 When this document says an endpoint "resets" a stream, it means the endpoint
 sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
