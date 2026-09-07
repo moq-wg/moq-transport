@@ -1193,10 +1193,15 @@ subscribers, it is not a full-fledged routing protocol and does not protect
 against loops and other phenomena. In particular, PUBLISH_NAMESPACE SHOULD NOT
 be used to find paths through richly connected networks of relays.
 
-A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
+An End Subscriber is not restricted in which publisher it contacts: it
+MAY send a SUBSCRIBE, FETCH or TRACK_STATUS for a track to any publisher,
+including one from which it has not received a PUBLISH_NAMESPACE. If it
 has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
 namespace for that track, it SHOULD only request it from the senders of those
 PUBLISH_NAMESPACE messages.
+
+A Relay is more restricted: it sends these requests only to matching
+publishers, as described in {{publisher-interactions}}.
 
 ## Filtering SUBSCRIBE_TRACKS
 
