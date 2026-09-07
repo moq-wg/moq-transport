@@ -721,7 +721,8 @@ The `Largest Object` is the Object with the largest Location
 ({{location-structure}}) in the Track from the perspective of the publisher
 processing the message. Largest Object updates when the first byte of an Object
 with a Location larger than the previous value is published or received through
-a subscription.
+a subscription.  `Largest Object` therefore identifies an Object that can still
+be arriving.
 
 The `Next Object` is the Location immediately following `Largest Object`, which
 is `{Largest Object.Group, Largest Object.Object + 1}`, or {0, 0} if no content
@@ -740,6 +741,10 @@ an End Location, inclusive.  This range is specified by a Location Filter (see
 Objects with Locations larger than the `Largest Object` at the time the request
 is processed will not be retrieved by a FETCH.  The actual end of the FETCH
 response is indicated in the FETCH_OK End Location (see {{message-fetch-ok}}).
+Because `Largest Object` can identify an Object that is still arriving
+({{largest-object}}), a FETCH whose range includes `Largest Object` includes
+that Object in full; the publisher delivers the remainder as it becomes
+available.
 
 The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
 FETCH.  The FETCH_OK or REQUEST_ERROR can come at any time relative to object
@@ -953,9 +958,10 @@ inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
 `LARGEST_OBJECT` parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.
 
 Because the fill range is specified independently of the subscription's
-Location filter, a subscriber can retrieve a range of Groups prior to the live
-edge while the subscription itself starts at the Next Group.  If the fill range
-is empty, or starts after Largest Object, the publisher does not open a fill fetch stream.
+Location filter, a subscriber can retrieve a range of Groups prior to
+`Largest Object` while the subscription itself starts at the Next Group.  If
+the fill range is empty, or starts after Largest Object, the publisher does not
+open a fill fetch stream.
 
 The fill fetch stream inherits the subscription's parameters, including
 subscriber priority, range filters and authorization; parameters carried inside
@@ -3919,9 +3925,9 @@ does not expire or expires at an unknown time.
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
 in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or
-PUBLISH_STATE_NOTIFY.  It contains the largest Location (see
-{{location-structure}}) in the Track observed by the sending endpoint (see
-{{location-filters}}). If Objects have been published on this Track the
+PUBLISH_STATE_NOTIFY.  It contains the `Largest Object`
+({{largest-object}}) in the Track from the perspective of the sending
+endpoint. If Objects have been published on this Track the
 Publisher MUST include this parameter.
 
 If omitted from a message, the sending endpoint has not published or received
