@@ -1509,13 +1509,19 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
+connection is established. When MOQT runs directly over QUIC or over
+WebTransport on HTTP/3, the QUIC DATAGRAM extension ({{!RFC9221}})
 MUST be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3.
 
-There is no definition of the protocol over other transports,
-such as TCP, and applications using MOQT might need to fallback to
-another protocol when QUIC or WebTransport aren't available.
+WebTransport can itself run over HTTP/2 ({{?I-D.ietf-webtrans-http2}}), in
+which case datagrams are reliable and ordered and TCP loss blocks delivery
+on every stream.  MOQT remains functional, but its latency behavior differs
+substantially from a deployment over QUIC.
+
+This document does not define how to run the protocol directly over other
+transports, such as TCP, and applications using MOQT might need to fallback
+to another protocol when QUIC or WebTransport aren't available.
 
 MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 ({{WebTransport, Section 3.3}}) to perform version negotiation.
