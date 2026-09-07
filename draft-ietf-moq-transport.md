@@ -267,6 +267,18 @@ When this document says an endpoint "resets" a stream, it means the endpoint
 sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
 {{closing-subgroup-streams}} for considerations on choosing between them).
 
+## Response Message Naming
+
+Most requests in MOQT are answered with a common REQUEST_OK
+({{message-request-ok}}) or REQUEST_ERROR ({{message-request-error}}) message.
+This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
+TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
+PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
+corresponding request type.  Likewise, it uses the shorthand SUBSCRIBE_ERROR,
+FETCH_ERROR, PUBLISH_ERROR, SUBSCRIBE_NAMESPACE_ERROR, SUBSCRIBE_TRACKS_ERROR,
+PUBLISH_NAMESPACE_ERROR, TRACK_STATUS_ERROR and REQUEST_UPDATE_ERROR to refer
+to a REQUEST_ERROR sent in response to the corresponding request type.
+
 ## Modularity
 
 MOQT defines all messages necessary to implement both simple publishing or
@@ -2822,11 +2834,6 @@ The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
 TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
 requests.
 
-This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
-TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
-PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
-corresponding request type.
-
 ~~~
 REQUEST_OK Message {
   Type (vi64) = 0x7,
@@ -2853,11 +2860,6 @@ REQUEST_OK Message {
 The REQUEST_ERROR message is sent in response to any request (SUBSCRIBE, FETCH,
 PUBLISH, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS,
 REQUEST_UPDATE).
-
-This document uses the shorthand SUBSCRIBE_ERROR, FETCH_ERROR, PUBLISH_ERROR,
-SUBSCRIBE_NAMESPACE_ERROR, SUBSCRIBE_TRACKS_ERROR, PUBLISH_NAMESPACE_ERROR,
-TRACK_STATUS_ERROR and REQUEST_UPDATE_ERROR to refer to a REQUEST_ERROR sent in
-response to the corresponding request type.
 
 ### Redirect Structure {#redirect-structure}
 
