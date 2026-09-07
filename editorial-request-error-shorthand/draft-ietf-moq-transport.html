@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 10 March 2027</td>
+<td class="center">Expires 11 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-06" class="published">6 September 2026</time>
+<time datetime="2026-09-07" class="published">7 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-10">10 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-11">11 March 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 10 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 11 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1199,7 +1199,10 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.1.2.4.1"><a href="#section-1.4" class="auto internal xref">1.4</a>.  <a href="#name-stream-management-terms" class="internal xref">Stream Management Terms</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.5">
-                <p id="section-toc.1-1.1.2.5.1"><a href="#section-1.5" class="auto internal xref">1.5</a>.  <a href="#name-modularity" class="internal xref">Modularity</a></p>
+                <p id="section-toc.1-1.1.2.5.1"><a href="#section-1.5" class="auto internal xref">1.5</a>.  <a href="#name-response-message-naming" class="internal xref">Response Message Naming</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.6">
+                <p id="section-toc.1-1.1.2.6.1"><a href="#section-1.6" class="auto internal xref">1.6</a>.  <a href="#name-modularity" class="internal xref">Modularity</a></p>
 </li>
             </ul>
 </li>
@@ -2255,19 +2258,35 @@ sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
 <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.3.2</a> for considerations on choosing between them).<a href="#section-1.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="modularity">
+<div id="response-message-naming">
 <section id="section-1.5">
-        <h3 id="name-modularity">
-<a href="#section-1.5" class="section-number selfRef">1.5. </a><a href="#name-modularity" class="section-name selfRef">Modularity</a>
+        <h3 id="name-response-message-naming">
+<a href="#section-1.5" class="section-number selfRef">1.5. </a><a href="#name-response-message-naming" class="section-name selfRef">Response Message Naming</a>
         </h3>
-<p id="section-1.5-1">MOQT defines all messages necessary to implement both simple publishing or
+<p id="section-1.5-1">Most requests in MOQT are answered with a common REQUEST_OK
+(<a href="#message-request-ok" class="auto internal xref">Section 9.3</a>) or REQUEST_ERROR (<a href="#message-request-error" class="auto internal xref">Section 9.4</a>) message.
+This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
+TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
+PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
+corresponding request type.  Likewise, it uses the shorthand SUBSCRIBE_ERROR,
+FETCH_ERROR, PUBLISH_ERROR, SUBSCRIBE_NAMESPACE_ERROR, SUBSCRIBE_TRACKS_ERROR,
+PUBLISH_NAMESPACE_ERROR, TRACK_STATUS_ERROR and REQUEST_UPDATE_ERROR to refer
+to a REQUEST_ERROR sent in response to the corresponding request type.<a href="#section-1.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="modularity">
+<section id="section-1.6">
+        <h3 id="name-modularity">
+<a href="#section-1.6" class="section-number selfRef">1.6. </a><a href="#name-modularity" class="section-name selfRef">Modularity</a>
+        </h3>
+<p id="section-1.6-1">MOQT defines all messages necessary to implement both simple publishing or
 subscribing endpoints as well as fully capable Relays.  Non-Relay endpoints
 <span class="bcp14">MAY</span> implement only the subset of functionality required to perform necessary
 tasks.  For example, a limited media player could operate using only SUBSCRIBE
 related messages.  Limited endpoints <span class="bcp14">SHOULD</span> respond to any unsupported messages
-with the appropriate <code>NOT_SUPPORTED</code> error code, rather than ignoring them.<a href="#section-1.5-1" class="pilcrow">¶</a></p>
-<p id="section-1.5-2">Relays <span class="bcp14">MUST</span> implement all MOQT messages defined in this document, as well as
-processing rules described in <a href="#relays-moq" class="auto internal xref">Section 7</a>.<a href="#section-1.5-2" class="pilcrow">¶</a></p>
+with the appropriate <code>NOT_SUPPORTED</code> error code, rather than ignoring them.<a href="#section-1.6-1" class="pilcrow">¶</a></p>
+<p id="section-1.6-2">Relays <span class="bcp14">MUST</span> implement all MOQT messages defined in this document, as well as
+processing rules described in <a href="#relays-moq" class="auto internal xref">Section 7</a>.<a href="#section-1.6-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -5301,13 +5320,9 @@ reset the request stream before the indicated timeout has elapsed.<a href="#sect
 <p id="section-9.3-1">The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
 TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
 requests.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
-<p id="section-9.3-2">This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
-TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
-PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
-corresponding request type.<a href="#section-9.3-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_ok-message"></span><div id="moq-transport-request-ok">
 <figure id="figure-7">
-          <div class="alignLeft art-text artwork" id="section-9.3-3.1">
+          <div class="alignLeft art-text artwork" id="section-9.3-2.1">
 <pre>
 REQUEST_OK Message {
   Type (vi64) = 0x7,
@@ -5323,17 +5338,17 @@ REQUEST_OK Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.3-4.1">
-            <p id="section-9.3-4.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.<a href="#section-9.3-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.3-3.1">
+            <p id="section-9.3-3.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.<a href="#section-9.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.3-4.2">
-            <p id="section-9.3-4.2.1">Track Properties : A sequence of Properties. See <a href="#properties" class="auto internal xref">Section 8.4</a>. The
+          <li class="normal" id="section-9.3-3.2">
+            <p id="section-9.3-3.2.1">Track Properties : A sequence of Properties. See <a href="#properties" class="auto internal xref">Section 8.4</a>. The
 length of Track Properties is the remaining length of the message
 after parsing all previous fields. Track Properties are populated in
 TRACK_STATUS_OK; they are empty in PUBLISH_OK, REQUEST_UPDATE_OK,
 SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
 receives Track Properties in one of these messages it <span class="bcp14">MUST</span> close the
-session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.3-4.2.1" class="pilcrow">¶</a></p>
+session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.3-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5346,10 +5361,6 @@ session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.3-4.2.1" clas
 <p id="section-9.4-1">The REQUEST_ERROR message is sent in response to any request (SUBSCRIBE, FETCH,
 PUBLISH, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS,
 REQUEST_UPDATE).<a href="#section-9.4-1" class="pilcrow">¶</a></p>
-<p id="section-9.4-2">This document uses the shorthand SUBSCRIBE_ERROR, FETCH_ERROR, PUBLISH_ERROR,
-SUBSCRIBE_NAMESPACE_ERROR, SUBSCRIBE_TRACKS_ERROR, PUBLISH_NAMESPACE_ERROR,
-TRACK_STATUS_ERROR and REQUEST_UPDATE_ERROR to refer to a REQUEST_ERROR sent in
-response to the corresponding request type.<a href="#section-9.4-2" class="pilcrow">¶</a></p>
 <div id="redirect-structure">
 <section id="section-9.4.1">
           <h4 id="name-redirect-structure">
