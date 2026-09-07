@@ -2332,7 +2332,7 @@ authentication.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
 <p id="section-2.1.1-3">Group ID: The identifier of the Object's Group (see <a href="#model-group" class="auto internal xref">Section 2.3</a>) within the Track.<a href="#section-2.1.1-3" class="pilcrow">¶</a></p>
 <p id="section-2.1.1-4">Object ID: The order of the object within the group.<a href="#section-2.1.1-4" class="pilcrow">¶</a></p>
 <p id="section-2.1.1-5">Publisher Priority: An integer indicating the publisher's priority for the Object (<a href="#priorities" class="auto internal xref">Section 5.1</a>).<a href="#section-2.1.1-5" class="pilcrow">¶</a></p>
-<p id="section-2.1.1-6">Delivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram. In a subscription, an Object <span class="bcp14">MUST</span> be sent according to its Delivery Mode.<a href="#section-2.1.1-6" class="pilcrow">¶</a></p>
+<p id="section-2.1.1-6">Delivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram. The Original Publisher establishes an Object's Delivery Mode by how it first transmits the Object. In a subscription, an Object <span class="bcp14">MUST</span> be sent according to its Delivery Mode.<a href="#section-2.1.1-6" class="pilcrow">¶</a></p>
 <p id="section-2.1.1-7">Subgroup ID: The identifier of the Object's Subgroup (see <a href="#model-subgroup" class="auto internal xref">Section 2.2</a>) within the Group. Objects sent in Datagrams do not have a Subgroup ID.<a href="#section-2.1.1-7" class="pilcrow">¶</a></p>
 <p id="section-2.1.1-8">Object Properties : A sequence of key-value pairs associated with the object. See <a href="#object-properties" class="auto internal xref">Section 11.1.2</a>.<a href="#section-2.1.1-8" class="pilcrow">¶</a></p>
 <p id="section-2.1.1-9">Object Payload: A possibly empty sequence of bytes.<a href="#section-2.1.1-9" class="pilcrow">¶</a></p>
@@ -3634,22 +3634,27 @@ over a QUIC connection directly <span>[<a href="#QUIC" class="cite xref">QUIC</a
 <span>[<a href="#WebTransport" class="cite xref">WebTransport</a>]</span>.  Both provide streams and datagrams with similar
 semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13#section-4" class="relref">Section 4</a></span>); thus, the
 main difference lies in how the servers are identified and how the
-connection is established. The QUIC DATAGRAM extension (<span>[<a href="#RFC9221" class="cite xref">RFC9221</a>]</span>)
+connection is established. When MOQT runs directly over QUIC or over
+WebTransport on HTTP/3, the QUIC DATAGRAM extension (<span>[<a href="#RFC9221" class="cite xref">RFC9221</a>]</span>)
 <span class="bcp14">MUST</span> be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.2-2">There is no definition of the protocol over other transports,
-such as TCP, and applications using MOQT might need to fallback to
-another protocol when QUIC or WebTransport aren't available.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
-<p id="section-6.2-3">MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-3.3" class="relref">Section 3.3</a></span>) to perform version negotiation.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
-<p id="section-6.2-4">The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> for the final version of this specification
-is <code>moqt</code>.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2-5">[[RFC editor: please remove the remainder of this section before publication.]]<a href="#section-6.2-5" class="pilcrow">¶</a></p>
-<p id="section-6.2-6">ALPNs used to identify IETF drafts are created by appending
+<p id="section-6.2-2">WebTransport can itself run over HTTP/2 (<span>[<a href="#I-D.ietf-webtrans-http2" class="cite xref">I-D.ietf-webtrans-http2</a>]</span>), in
+which case datagrams are reliable and ordered and TCP loss blocks delivery
+on every stream.  MOQT remains functional, but its latency behavior differs
+substantially from a deployment over QUIC.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+<p id="section-6.2-3">This document does not define how to run the protocol directly over other
+transports, such as TCP, and applications using MOQT might need to fallback
+to another protocol when QUIC or WebTransport aren't available.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.2-4">MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
+(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-3.3" class="relref">Section 3.3</a></span>) to perform version negotiation.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2-5">The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> for the final version of this specification
+is <code>moqt</code>.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.2-6">[[RFC editor: please remove the remainder of this section before publication.]]<a href="#section-6.2-6" class="pilcrow">¶</a></p>
+<p id="section-6.2-7">ALPNs used to identify IETF drafts are created by appending
 the draft number to "moqt-". For example, draft-ietf-moq-transport-13
-would be identified as "moqt-13".<a href="#section-6.2-6" class="pilcrow">¶</a></p>
-<p id="section-6.2-7">Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
-negotiation in the SETUP messages.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
+would be identified as "moqt-13".<a href="#section-6.2-7" class="pilcrow">¶</a></p>
+<p id="section-6.2-8">Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
+negotiation in the SETUP messages.<a href="#section-6.2-8" class="pilcrow">¶</a></p>
 <div id="webtransport">
 <section id="section-6.2.1">
           <h4 id="name-webtransport">
@@ -5491,11 +5496,11 @@ REQUEST_UPDATE Message {
           </h4>
 <p id="section-9.5.1-1">When a subscriber decreases the Start Location of the Location Filter
 (see <a href="#location-filters" class="auto internal xref">Section 3.3.1</a>), the Start Location can be smaller than the Track's
-Largest Location, similar to a new Subscription. Including FILL_PARAMETERS
+Largest Object, similar to a new Subscription. Including FILL_PARAMETERS
 (see <a href="#fill-parameters" class="auto internal xref">Section 9.20.16</a>) in the REQUEST_UPDATE causes the publisher to deliver
 the new fill range by opening a new fill fetch stream (see
 <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>).  FETCH can also be used to retrieve any necessary Objects
-smaller than the current Largest Location.<a href="#section-9.5.1-1" class="pilcrow">¶</a></p>
+with Locations less than or equal to the current Largest Object.<a href="#section-9.5.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.5.1-2">When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
 create a gap in the subscription. The REQUEST_UPDATE_OK will include the
@@ -10081,6 +10086,10 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
         <dd>
 <span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-07</span>, <time datetime="2026-08-20" class="refDate">20 August 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-07">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-07</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-webtrans-http2">[I-D.ietf-webtrans-http2]</dt>
+        <dd>
+<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, <span class="refAuthor">Pauly, T.</span>, <span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Vasiliev, V.</span>, and <span class="refAuthor">W. Xie</span>, <span class="refTitle">"WebTransport over HTTP/2"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http2-15</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http2-15">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http2-15</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PPA">[PPA]</dt>
         <dd>
