@@ -579,8 +579,9 @@ Table of Contents
    for the Object (Section 5.1).
 
    Delivery Mode: An enumeration indicating whether an Object is sent in
-   a Subgroup or Datagram.  In a subscription, an Object MUST be sent
-   according to its Delivery Mode.
+   a Subgroup or Datagram.  The Original Publisher establishes an
+   Object's Delivery Mode by how it first transmits the Object.  In a
+   subscription, an Object MUST be sent according to its Delivery Mode.
 
    Subgroup ID: The identifier of the Object's Subgroup (see
    Section 2.2) within the Group.  Objects sent in Datagrams do not have
