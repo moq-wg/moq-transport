@@ -1152,8 +1152,9 @@ interested in and authorized to receive the content.
 
 A publisher MAY send PUBLISH_NAMESPACE messages to any subscriber. A
 PUBLISH_NAMESPACE indicates to the subscriber that the publisher has tracks
-available in that namespace. A subscriber MAY send SUBSCRIBE or FETCH for tracks
-in a namespace without having received a PUBLISH_NAMESPACE for it.
+available in namespaces matching the Track Namespace Prefix it carries (see
+{{namespace-prefix-matching}}). A subscriber MAY send SUBSCRIBE or FETCH for
+tracks in a namespace without having received a PUBLISH_NAMESPACE for it.
 
 If a publisher is the Original Publisher for one or more tracks in a given
 namespace, or is a relay that has received an authorized PUBLISH_NAMESPACE for
@@ -1876,10 +1877,10 @@ tradeoffs and deployment considerations:
 
 ## Multiple Publishers
 
-A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or PUBLISH
-messages for the same Track from multiple publishers.  The following sections
-explain how Relays maintain subscriptions to all available publishers for a
-given Track.
+A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace Prefix or
+PUBLISH messages for the same Track from multiple publishers.  The following
+sections explain how Relays maintain subscriptions to all available publishers
+for a given Track.
 
 There is no specified limit to the number of publishers of a Track Namespace or
 Track.  An implementation can use mechanisms such as REQUEST_ERROR or
@@ -1960,14 +1961,15 @@ There are two ways to publish through a relay:
 pause the Subscription with REQUEST_UPDATE in Forward State=0 until there are
 known subscribers for new Tracks.
 
-2. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
-enables the relay to send SUBSCRIBE or FETCH messages to publishers for Tracks
-in this Namespace in response to requests received from subscribers.
+2. Send a PUBLISH_NAMESPACE message for a Track Namespace Prefix to the relay.
+This enables the relay to send SUBSCRIBE or FETCH messages to publishers for
+Tracks matching that prefix in response to requests received from subscribers.
 
 Relays MUST verify that publishers are authorized to publish the set of Tracks
-whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
-Track Name in PUBLISH. Relays MUST NOT assume that an authorized publisher of a single
-Track is implicitly authorized to publish any other Tracks or Track Namespaces.
+whose Track Namespace matches the Track Namespace Prefix in a
+PUBLISH_NAMESPACE, or the Full Track Name in PUBLISH. Relays MUST NOT assume
+that an authorized publisher of a single Track is implicitly authorized to
+publish any other Tracks or Track Namespaces.
 If a Publisher would like Subscriptions in a Namespace routed to it, it MUST send
 an explicit PUBLISH_NAMESPACE.
 The authorization and identification of the publisher depends on the way the
@@ -3332,16 +3334,17 @@ REQUEST_UPDATE.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 The publisher sends the PUBLISH_NAMESPACE message as the first message on a
-new bidi stream to advertise that it has tracks available within a Track Namespace.
+new bidi stream to advertise that it has tracks available in namespaces
+matching a Track Namespace Prefix.
 The receiver verifies the publisher is authorized to publish tracks under this
-namespace.
+prefix.
 
 ~~~
 PUBLISH_NAMESPACE Message {
   Type (vi64) = 0x6,
   Length (16),
   Request ID (vi64),
-  Track Namespace (..),
+  Track Namespace Prefix (..),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -3350,8 +3353,9 @@ PUBLISH_NAMESPACE Message {
 
 * Request ID: See {{request-id}}.
 
-* Track Namespace: Identifies a track's namespace as defined in
-  {{track-namespace-structure}}.
+* Track Namespace Prefix: A Track Namespace as defined in
+  {{track-namespace-structure}}, matched as a prefix (see
+  {{namespace-prefix-matching}}).
 
 * Parameters: The parameters are defined in {{message-params}}.
 
