@@ -1856,13 +1856,20 @@ Table of Contents
    [WebTransport].  Both provide streams and datagrams with similar
    semantics (see [I-D.ietf-webtrans-overview], Section 4); thus, the
    main difference lies in how the servers are identified and how the
-   connection is established.  The QUIC DATAGRAM extension ([RFC9221])
-   MUST be supported and negotiated in the QUIC connection used for
-   MOQT, which is already a requirement for WebTransport over HTTP/3.
+   connection is established.  When MOQT runs directly over QUIC or over
+   WebTransport on HTTP/3, the QUIC DATAGRAM extension ([RFC9221]) MUST
+   be supported and negotiated in the QUIC connection used for MOQT,
+   which is already a requirement for WebTransport over HTTP/3.
 
-   There is no definition of the protocol over other transports, such as
-   TCP, and applications using MOQT might need to fallback to another
-   protocol when QUIC or WebTransport aren't available.
+   WebTransport can itself run over HTTP/2 ([I-D.ietf-webtrans-http2]),
+   in which case datagrams are reliable and ordered and TCP loss blocks
+   delivery on every stream.  MOQT remains functional, but its latency
+   behavior differs substantially from a deployment over QUIC.
+
+   This document does not define how to run the protocol directly over
+   other transports, such as TCP, and applications using MOQT might need
+   to fallback to another protocol when QUIC or WebTransport aren't
+   available.
 
    MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
    ([WebTransport], Section 3.3) to perform version negotiation.
@@ -6613,6 +6620,13 @@ Informative References
               draft-ietf-scone-protocol-07, 20 August 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
               protocol-07>.
+
+   [I-D.ietf-webtrans-http2]
+              Frindell, A., Kinnear, E., Pauly, T., Thomson, M.,
+              Vasiliev, V., and W. Xie, "WebTransport over HTTP/2", Work
+              in Progress, Internet-Draft, draft-ietf-webtrans-http2-15,
+              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
+              ietf-webtrans-http2-15>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
