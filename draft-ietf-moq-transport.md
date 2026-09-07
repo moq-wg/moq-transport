@@ -3416,7 +3416,8 @@ The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
 it is sent on the response stream of a SUBSCRIBE_NAMESPACE request.
 All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
-in the 'Track Namespace Suffix'.
+in the 'Track Namespace Suffix'.  Each NAMESPACE message carries a single
+namespace; a publisher sends one NAMESPACE message per matching namespace.
 
 ~~~
 NAMESPACE Message {
@@ -3438,7 +3439,8 @@ The publisher sends the `NAMESPACE_DONE` control message to indicate its
 intent to stop serving new subscriptions for tracks within the provided Track
 Namespace. All NAMESPACE_DONE messages are in response to a SUBSCRIBE_NAMESPACE,
 so only the namespace tuples after the 'Track Namespace Prefix' are included
-in the 'Track Namespace Suffix'.
+in the 'Track Namespace Suffix'.  Each NAMESPACE_DONE message carries a single
+namespace.
 
 ~~~
 NAMESPACE_DONE Message {
