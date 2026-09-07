@@ -2837,7 +2837,15 @@ REQUEST_OK Message {
 ~~~
 {: #moq-transport-request-ok format title="MOQT REQUEST_OK Message"}
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The
+  parameters that can appear depend on the request being answered:
+
+  * PUBLISH_OK: EXPIRES
+  * REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT
+  * TRACK_STATUS_OK: LARGEST_OBJECT
+  * SUBSCRIBE_NAMESPACE_OK: EXPIRES
+  * SUBSCRIBE_TRACKS_OK: EXPIRES
+  * PUBLISH_NAMESPACE_OK: EXPIRES
 
 * Track Properties : A sequence of Properties. See {{properties}}. The
   length of Track Properties is the remaining length of the message
@@ -2952,7 +2960,20 @@ REQUEST_UPDATE Message {
 
 * Request ID: See {{request-id}}.
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The
+  parameters that can appear depend on the request being updated:
+
+  * Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
+    SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
+    FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
+    OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST
+  * FETCH: AUTHORIZATION_TOKEN, SUBSCRIBER_PRIORITY
+  * PUBLISH_NAMESPACE: AUTHORIZATION_TOKEN
+  * SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN, TRACK_NAMESPACE_PREFIX
+  * SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, FORWARD, TRACK_PROPERTY_FILTER,
+    TRACK_NAMESPACE_PREFIX
+
+  Range Filters are only allowed from the subscriber (see {{range-filters}}).
 
 ### Updating Subscriptions {#updating-subscriptions}
 
@@ -3037,7 +3058,12 @@ SUBSCRIBE Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The parameters
+  that can appear in a SUBSCRIBE are OBJECT_DELIVERY_TIMEOUT,
+  AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, FORWARD,
+  SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
+  SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
+  NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -3063,7 +3089,8 @@ SUBSCRIBE_OK Message {
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
   {{track-alias}}).
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The parameters
+  that can appear in a SUBSCRIBE_OK are EXPIRES and LARGEST_OBJECT.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
@@ -3099,10 +3126,13 @@ PUBLISH Message {
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
   {{track-alias}}).
 
-* Parameters: The parameters are defined in {{message-params}}. Parameters such
-  as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY, SUBGROUP_DELIVERY_TIMEOUT,
-  OBJECT_DELIVERY_TIMEOUT, and LOCATION FILTER can appear in the Parameters
-  of a PUBLISH to inform the Subscriber of the initial Subscription parameters.
+* Parameters: The parameters are defined in {{message-params}}. The parameters
+  that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
+  AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
+  FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
+  governing delivery, such as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY,
+  SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
+  inform the Subscriber of the initial Subscription parameters.
   If the PUBLISH is the result of a SUBSCRIBE_TRACKS, the parameters are handled
   as described in {{parameters-on-subscribe-tracks}}, otherwise, they represent
   the publisher's initial settings for the subscription, which the subscriber can
@@ -3235,7 +3265,9 @@ PUBLISH_STATE_NOTIFY Message {
 ~~~
 {: #moq-transport-ps-notify-format title="MOQT PUBLISH_STATE_NOTIFY Message"}
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The parameters
+  that can appear in a PUBLISH_STATE_NOTIFY are LARGEST_OBJECT, FORWARD and
+  LOCATION_FILTER.
 
 ## FETCH {#message-fetch}
 
@@ -3265,7 +3297,11 @@ FETCH Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The parameters
+  that can appear in a FETCH are AUTHORIZATION_TOKEN, FILL_TIMEOUT,
+  SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, SUBGROUP_FILTER,
+  OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER and
+  INCLUDE_PROPERTIES.
 
 ## FETCH_OK {#message-fetch-ok}
 
@@ -3295,7 +3331,8 @@ FETCH_OK Message {
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  No parameters
+  are currently defined for FETCH_OK.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
@@ -3307,7 +3344,8 @@ new bidi stream to obtain information about the current status of a given track.
 
 The TRACK_STATUS message format is identical to the SUBSCRIBE message
 ({{message-subscribe-req}}), but subscriber parameters related to Track
-delivery (e.g. SUBSCRIBER_PRIORITY) are not included.
+delivery (e.g. SUBSCRIBER_PRIORITY) are not included.  The parameters that can
+appear in a TRACK_STATUS are AUTHORIZATION_TOKEN and INCLUDE_PROPERTIES.
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
@@ -3347,7 +3385,8 @@ PUBLISH_NAMESPACE Message {
 * Track Namespace: Identifies a track's namespace as defined in
   {{track-namespace-structure}}.
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The only
+  parameter that can appear in a PUBLISH_NAMESPACE is AUTHORIZATION_TOKEN.
 
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
@@ -3377,7 +3416,8 @@ SUBSCRIBE_NAMESPACE Message {
   `example.2ecom-123-200`, a SUBSCRIBE_NAMESPACE for `example.2ecom-123` would
   match both.
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The only
+  parameter that can appear in a SUBSCRIBE_NAMESPACE is AUTHORIZATION_TOKEN.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream. If the subscriber receives any message other than a REQUEST_OK or a
@@ -3479,7 +3519,10 @@ SUBSCRIBE_TRACKS Message {
 
 * Parameters: The parameters are defined in {{message-params}}, though they
   are handled differently from the same Parameters on Subscriptions, as outlined
-  below.
+  below.  The parameters that can appear in a SUBSCRIBE_TRACKS are
+  AUTHORIZATION_TOKEN, FORWARD, GROUP_ORDER, SUBGROUP_FILTER, OBJECTID_FILTER,
+  PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER and
+  INCLUDE_PROPERTIES.
 
 The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
 of the stream. If the subscriber receives any message other than a REQUEST_OK or a
@@ -3601,12 +3644,11 @@ making a request. Track information not specific to the Message or Session
 is encoded in Track Properties. See {{properties}}.
 
 Each Message Parameter definition indicates the message types in which
-it can appear. If it appears in some other type of message, the receiving
+it can appear, and each control message definition lists the parameters it
+allows. If a parameter appears in some other type of message, the receiving
 endpoint MUST close the connection with a `PROTOCOL_VIOLATION`.
 Note that since Setup Options use a separate namespace, it is impossible for
 Message Parameters to appear in Setup messages.
-
-### Allowed Parameters By Control Message
 
 ### AUTHORIZATION TOKEN Parameter {#authorization-token}
 
