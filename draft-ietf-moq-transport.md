@@ -1997,8 +1997,7 @@ bar).  It will not match a session with namespace=(foobar).
 
 Relays MUST send SUBSCRIBE messages to all matching publishers. This includes
 matching both Established subscriptions on the Full Track Name and Namespace
-Prefix Matching against published Namespaces.  Relays MUST forward
-PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
+Prefix Matching against published Namespaces.
 
 When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
@@ -2024,14 +2023,18 @@ holding a downstream SUBSCRIBE awaiting a publisher for this Track (see
 {{rendezvous-timeout}}), it MUST proceed with the SUBSCRIBE and
 MUST NOT also forward the PUBLISH to that subscriber.
 
-When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
-matches one or more existing subscriptions to other upstream sessions, it MUST
-send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
-matching subscription.  When it receives an authorized PUBLISH message for a
+When a relay receives an authorized PUBLISH message for a
 Track that has `Established` downstream subscriptions, it MUST respond with
 PUBLISH_OK.  If at least one downstream subscriber for the Track has
 Forward State=1, the Relay MUST change the Forward State to 1 with
 REQUEST_UPDATE.
+
+When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
+matches one or more existing subscriptions to other upstream sessions, it MUST
+send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
+matching subscription. A Relay does not send PUBLISH_NAMESPACE to a subscriber;
+it advertises namespaces by sending NAMESPACE in response to a matching
+SUBSCRIBE_NAMESPACE (see {{subscribing-to-namespaces}}).
 
 If a Session is closed due to an unknown or invalid control message or Object,
 the Relay MUST NOT propagate that message or Object to another Session, because
