@@ -5485,11 +5485,11 @@ REQUEST_UPDATE Message {
           </h4>
 <p id="section-9.5.1-1">When a subscriber decreases the Start Location of the Location Filter
 (see <a href="#location-filters" class="auto internal xref">Section 3.3.1</a>), the Start Location can be smaller than the Track's
-Largest Location, similar to a new Subscription. Including FILL_PARAMETERS
+Largest Object, similar to a new Subscription. Including FILL_PARAMETERS
 (see <a href="#fill-parameters" class="auto internal xref">Section 9.20.16</a>) in the REQUEST_UPDATE causes the publisher to deliver
 the new fill range by opening a new fill fetch stream (see
 <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>).  FETCH can also be used to retrieve any necessary Objects
-smaller than the current Largest Location.<a href="#section-9.5.1-1" class="pilcrow">¶</a></p>
+with Locations less than or equal to the current Largest Object.<a href="#section-9.5.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.5.1-2">When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
 create a gap in the subscription. The REQUEST_UPDATE_OK will include the
