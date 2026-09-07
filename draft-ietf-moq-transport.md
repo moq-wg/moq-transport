@@ -339,7 +339,7 @@ Object ID: The order of the object within the group.
 
 Publisher Priority: An integer indicating the publisher's priority for the Object ({{priorities}}).
 
-Delivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram. In a subscription, an Object MUST be sent according to its Delivery Mode.
+Delivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram. The Original Publisher establishes an Object's Delivery Mode by how it first transmits the Object. In a subscription, an Object MUST be sent according to its Delivery Mode.
 
 Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}}) within the Group. Objects sent in Datagrams do not have a Subgroup ID.
 
@@ -1514,13 +1514,19 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
+connection is established. When MOQT runs directly over QUIC or over
+WebTransport on HTTP/3, the QUIC DATAGRAM extension ({{!RFC9221}})
 MUST be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3.
 
-There is no definition of the protocol over other transports,
-such as TCP, and applications using MOQT might need to fallback to
-another protocol when QUIC or WebTransport aren't available.
+WebTransport can itself run over HTTP/2 ({{?I-D.ietf-webtrans-http2}}), in
+which case datagrams are reliable and ordered and TCP loss blocks delivery
+on every stream.  MOQT remains functional, but its latency behavior differs
+substantially from a deployment over QUIC.
+
+This document does not define how to run the protocol directly over other
+transports, such as TCP, and applications using MOQT might need to fallback
+to another protocol when QUIC or WebTransport aren't available.
 
 MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 ({{WebTransport, Section 3.3}}) to perform version negotiation.
@@ -2963,11 +2969,11 @@ REQUEST_UPDATE Message {
 
 When a subscriber decreases the Start Location of the Location Filter
 (see {{location-filters}}), the Start Location can be smaller than the Track's
-Largest Location, similar to a new Subscription. Including FILL_PARAMETERS
+Largest Object, similar to a new Subscription. Including FILL_PARAMETERS
 (see {{fill-parameters}}) in the REQUEST_UPDATE causes the publisher to deliver
 the new fill range by opening a new fill fetch stream (see
 {{fill-semantics}}).  FETCH can also be used to retrieve any necessary Objects
-smaller than the current Largest Location.
+with Locations less than or equal to the current Largest Object.
 
 When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
