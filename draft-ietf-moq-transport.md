@@ -1901,6 +1901,13 @@ the content associated with the Track. The authorization information can be part
 of request itself or part of the encompassing session. The specifics of how a
 relay authorizes a user are outside the scope of this specification.
 
+A relay MUST NOT send PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE to a subscriber.
+Everything a relay sends downstream is solicited: it sends NAMESPACE and
+NAMESPACE_DONE on the response stream of a SUBSCRIBE_NAMESPACE
+({{subscribing-to-namespaces}}), and PUBLISH in response to a SUBSCRIBE_TRACKS
+({{message-subscribe-tracks}}).  A subscriber that has sent neither receives
+neither.
+
 The relay MUST have an `Established` upstream subscription before sending
 SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
@@ -1997,8 +2004,8 @@ bar).  It will not match a session with namespace=(foobar).
 
 Relays MUST send SUBSCRIBE messages to all matching publishers. This includes
 matching both Established subscriptions on the Full Track Name and Namespace
-Prefix Matching against published Namespaces.  Relays MUST forward
-PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
+Prefix Matching against published Namespaces.  Relays MUST send PUBLISH
+messages to all matching subscribers.
 
 When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
