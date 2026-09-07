@@ -448,12 +448,13 @@ Table of Contents
 
    Application:  The entity using MOQT to transmit and receive data.
 
-   Client:  The party initiating a Transport Session.
+   Client:  The party initiating a Transport Session.  A Client can be a
+      Publisher, a Subscriber, or both.
 
-   Server:  The party accepting an incoming Transport Session.
+   Server:  The party accepting an incoming Transport Session.  A Server
+      can be a Publisher, a Subscriber, or both.
 
-   Endpoint:  A Client or Server.  These are transport roles only:
-      either can be a Publisher, a Subscriber, or both.
+   Endpoint:  A Client or Server.
 
    Peer:  The other endpoint than the one being described.
 
