@@ -1096,6 +1096,17 @@ for a namespace.
 
 The syntax of these messages is described in {{message}}.
 
+## Namespace Prefix Matching {#namespace-prefix-matching}
+
+To perform a namespace prefix match, the fields in the Track Namespace are
+matched sequentially, requiring an exact match for each field. If the published
+or subscribed Track Namespace has the same or fewer fields than the Track
+Namespace in the message, it qualifies as a match.
+
+For example:
+A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
+that sent PUBLISH_NAMESPACE messages with namespace=(foo) or namespace=(foo,
+bar).  It will not match a session with namespace=(foobar).
 
 ## Subscribing to Namespaces {#subscribing-to-namespaces}
 
@@ -1983,17 +1994,9 @@ A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
 Track Name is matched exactly against existing upstream subscriptions.
 
-Namespace Prefix Matching is further used to decide which publishers receive a
-SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the fields
-in the Track Namespace are matched sequentially, requiring an exact match for
-each field. If the published or subscribed Track Namespace has the same or fewer
-fields than the Track Namespace in the message, it qualifies as a match.
-{: #namespace-prefix-matching}
-
-For example:
-A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
-that sent PUBLISH_NAMESPACE messages with namespace=(foo) or namespace=(foo,
-bar).  It will not match a session with namespace=(foobar).
+Namespace Prefix Matching ({{namespace-prefix-matching}}) is further used to
+decide which publishers receive a SUBSCRIBE and which subscribers receive a
+PUBLISH.
 
 Relays MUST send SUBSCRIBE messages to all matching publishers. This includes
 matching both Established subscriptions on the Full Track Name and Namespace
