@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 10 March 2027                                     I. Swett, Ed.
+Expires: 11 March 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        6 September 2026
+                                                        7 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 March 2027.
+   This Internet-Draft will expire on 11 March 2027.
 
 Copyright Notice
 
@@ -3740,13 +3740,13 @@ Table of Contents
    *  End Of Track: 1 if all Objects have been published on this Track,
       and the End Location is the final Object in the Track, 0 if not.
 
-   *  End Location: The end of the range covered by the FETCH response.
-      This is the End Location from the FETCH request Location Filter
-      parameter unless the requested range extends beyond Largest Object
-      at the time the request was processed, or the last Object in the
-      Track.  If End Location is smaller than the Start Location in the
-      corresponding FETCH the receiver MUST close the session with a
-      PROTOCOL_VIOLATION.
+   *  End Location: The end of the range covered by the FETCH response,
+      inclusive.  This is the End Location from the FETCH request
+      Location Filter parameter unless the requested range extends
+      beyond Largest Object at the time the request was processed, or
+      the last Object in the Track.  If End Location is smaller than the
+      Start Location in the corresponding FETCH the receiver MUST close
+      the session with a PROTOCOL_VIOLATION.
 
    *  Parameters: The parameters are defined in Section 9.20.
 
