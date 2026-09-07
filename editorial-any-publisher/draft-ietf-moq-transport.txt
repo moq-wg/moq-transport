@@ -1502,9 +1502,9 @@ Table of Contents
    PUBLISH_NAMESPACE SHOULD NOT be used to find paths through richly
    connected networks of relays.
 
-   A non-relay subscriber is not restricted in which publisher it
-   contacts: it MAY send a SUBSCRIBE, FETCH or TRACK_STATUS for a track
-   to any publisher, including one from which it has not received a
+   An End Subscriber is not restricted in which publisher it contacts:
+   it MAY send a SUBSCRIBE, FETCH or TRACK_STATUS for a track to any
+   publisher, including one from which it has not received a
    PUBLISH_NAMESPACE.  If it has accepted a PUBLISH_NAMESPACE with a
    namespace that exactly matches the namespace for that track, it
    SHOULD only request it from the senders of those PUBLISH_NAMESPACE
