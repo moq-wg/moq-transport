@@ -2503,9 +2503,10 @@ By registering a Token, the sender is requiring the receiver to store the Token
 Alias and Token Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a Setup Option defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
-willing to accept. If a registration is attempted which would cause this limit
-to be exceeded, the receiver MUST terminate the Session with a
-`AUTH_TOKEN_CACHE_OVERFLOW` error.
+willing to accept. If a registration outside of SETUP is attempted which would
+cause this limit to be exceeded, the receiver MUST terminate the Session with
+an `AUTH_TOKEN_CACHE_OVERFLOW` error.  Registrations in SETUP are handled as
+described in {{setup-auth-token}}.
 
 An Authorization Token MAY be repeated within a message as long as the
 combination of Token Type and Token Value are unique after resolving any
