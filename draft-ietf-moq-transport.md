@@ -179,11 +179,13 @@ Application:
 
 Client:
 
-: The party initiating a Transport Session.
+: The party initiating a Transport Session.  A Client can be a Publisher, a
+  Subscriber, or both.
 
 Server:
 
-: The party accepting an incoming Transport Session.
+: The party accepting an incoming Transport Session.  A Server can be a
+  Publisher, a Subscriber, or both.
 
 Endpoint:
 
