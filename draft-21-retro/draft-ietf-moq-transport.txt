@@ -6660,59 +6660,33 @@ Appendix A.  Change Log
 
 A.1.  Since draft-ietf-moq-transport-20
 
-   This revision reorganizes the document.  Text was moved, headings
-   were relevelled, and cross-references were retargeted at the new
-   locations.  Apart from the removals listed below, no change in
-   protocol behavior is intended.  Where a move required rewording, for
-   example to name a term that a relocated paragraph previously defined
-   inline, the surrounding requirements are unchanged.
+   *Notable Editorial Changes*
 
-   *Document structure*
+   *  Add a Document Structure section (#1903)
 
-   *  Add a Document Structure section describing how the document is
-      laid out (#1903)
+   *  Move-only restructuring across the document (#1877)
 
-   *  Restructure Publishing and Receiving Tracks and reorder it so that
-      subscriptions, fetches, and filtering each have their own section
-      (#1885, #1893)
+   *  Restructure and reorder Publishing and Receiving Tracks (#1885,
+      #1893)
 
    *  Move Error Handling and Grease ahead of the considerations
       sections (#1899)
 
-   *  Promote the individual Setup Options to their own sections (#1896)
+   *  Promote each Setup Option to its own section (#1896)
 
-   *  Move-only edits across the document (#1877)
+   *  Collect Session Termination, Request Error, and Publish Done codes
+      into Error Handling (#1879, #1880, #1881)
 
-   *Error and status codes*
-
-   *  Collect the Session Termination, Request Error, and Publish Done
-      code definitions into Error Handling.  The message sections cross-
-      reference them (#1879, #1880, #1881)
-
-   *Common wire format structures*
-
-   *  Extract Authorization Token Compression to a common section shared
-      by the AUTHORIZATION TOKEN message parameter and the AUTHORIZATION
-      TOKEN Setup Option.  Statements previously written in terms of the
-      parameter now apply to both (#1882)
-
-   *  Extract the Track Namespace encoding to a common Track Namespace
-      Structure section (#1887)
-
-   *  Move the LOCATION_FILTER encoding into the LOCATION FILTER
-      Parameter section (#1888)
-
-   *  Move the Range Filter diagrams into their respective parameter
-      sections and add a Range Filter Structure section for the encoding
-      they share (#1892)
-
-   *Removals*
+   *  Extract common wire format sections: Authorization Token
+      Compression, Track Namespace, Location Filter, and Range Filter
+      (#1882, #1887, #1888, #1892)
 
    *  Remove the Connection URL, Stream Cancellation, and Examples
       sections (#1878)
 
-   *  Remove a duplicate definition of fill-delivered; the term remains
-      defined in Fill Semantics (#1888)
+   *  Restructuring pull requests that also made editorial
+      clarifications are included as moves only; the clarifications are
+      deferred (#1887, #1888, #1892)
 
 A.2.  Since draft-ietf-moq-transport-19
 

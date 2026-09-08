@@ -10118,70 +10118,37 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
         <h3 id="name-since-draft-ietf-moq-transp">
 <a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-since-draft-ietf-moq-transp" class="section-name selfRef">Since draft-ietf-moq-transport-20</a>
         </h3>
-<p id="appendix-A.1-1">This revision reorganizes the document. Text was moved, headings were
-relevelled, and cross-references were retargeted at the new locations. Apart
-from the removals listed below, no change in protocol behavior is intended.
-Where a move required rewording, for example to name a term that a relocated
-paragraph previously defined inline, the surrounding requirements are
-unchanged.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
-<p id="appendix-A.1-2"><strong>Document structure</strong><a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-1"><strong>Notable Editorial Changes</strong><a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-A.1-3.1">
-            <p id="appendix-A.1-3.1.1">Add a Document Structure section describing how the document is laid out
-(#1903)<a href="#appendix-A.1-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.1-2.1">
+            <p id="appendix-A.1-2.1.1">Add a Document Structure section (#1903)<a href="#appendix-A.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.1-3.2">
-            <p id="appendix-A.1-3.2.1">Restructure Publishing and Receiving Tracks and reorder it so that
-subscriptions, fetches, and filtering each have their own section
-(#1885, #1893)<a href="#appendix-A.1-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-2.2">
+            <p id="appendix-A.1-2.2.1">Move-only restructuring across the document (#1877)<a href="#appendix-A.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.1-3.3">
-            <p id="appendix-A.1-3.3.1">Move Error Handling and Grease ahead of the considerations sections (#1899)<a href="#appendix-A.1-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-2.3">
+            <p id="appendix-A.1-2.3.1">Restructure and reorder Publishing and Receiving Tracks (#1885, #1893)<a href="#appendix-A.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.1-3.4">
-            <p id="appendix-A.1-3.4.1">Promote the individual Setup Options to their own sections (#1896)<a href="#appendix-A.1-3.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-2.4">
+            <p id="appendix-A.1-2.4.1">Move Error Handling and Grease ahead of the considerations sections (#1899)<a href="#appendix-A.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.1-3.5">
-            <p id="appendix-A.1-3.5.1">Move-only edits across the document (#1877)<a href="#appendix-A.1-3.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-2.5">
+            <p id="appendix-A.1-2.5.1">Promote each Setup Option to its own section (#1896)<a href="#appendix-A.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
-        </ul>
-<p id="appendix-A.1-4"><strong>Error and status codes</strong><a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="appendix-A.1-5.1">
-            <p id="appendix-A.1-5.1.1">Collect the Session Termination, Request Error, and Publish Done code
-definitions into Error Handling. The message sections cross-reference them
-(#1879, #1880, #1881)<a href="#appendix-A.1-5.1.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-2.6">
+            <p id="appendix-A.1-2.6.1">Collect Session Termination, Request Error, and Publish Done codes into
+Error Handling (#1879, #1880, #1881)<a href="#appendix-A.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
-        </ul>
-<p id="appendix-A.1-6"><strong>Common wire format structures</strong><a href="#appendix-A.1-6" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="appendix-A.1-7.1">
-            <p id="appendix-A.1-7.1.1">Extract Authorization Token Compression to a common section shared by the
-AUTHORIZATION TOKEN message parameter and the AUTHORIZATION TOKEN Setup
-Option. Statements previously written in terms of the parameter now apply to
-both (#1882)<a href="#appendix-A.1-7.1.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-2.7">
+            <p id="appendix-A.1-2.7.1">Extract common wire format sections: Authorization Token Compression, Track
+Namespace, Location Filter, and Range Filter (#1882, #1887, #1888, #1892)<a href="#appendix-A.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.1-7.2">
-            <p id="appendix-A.1-7.2.1">Extract the Track Namespace encoding to a common Track Namespace Structure
-section (#1887)<a href="#appendix-A.1-7.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-2.8">
+            <p id="appendix-A.1-2.8.1">Remove the Connection URL, Stream Cancellation, and Examples sections (#1878)<a href="#appendix-A.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.1-7.3">
-            <p id="appendix-A.1-7.3.1">Move the LOCATION_FILTER encoding into the LOCATION FILTER Parameter section
-(#1888)<a href="#appendix-A.1-7.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-A.1-7.4">
-            <p id="appendix-A.1-7.4.1">Move the Range Filter diagrams into their respective parameter sections and
-add a Range Filter Structure section for the encoding they share (#1892)<a href="#appendix-A.1-7.4.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="appendix-A.1-8"><strong>Removals</strong><a href="#appendix-A.1-8" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="appendix-A.1-9.1">
-            <p id="appendix-A.1-9.1.1">Remove the Connection URL, Stream Cancellation, and Examples sections (#1878)<a href="#appendix-A.1-9.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-A.1-9.2">
-            <p id="appendix-A.1-9.2.1">Remove a duplicate definition of fill-delivered; the term remains defined in
-Fill Semantics (#1888)<a href="#appendix-A.1-9.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.1-2.9">
+            <p id="appendix-A.1-2.9.1">Restructuring pull requests that also made editorial clarifications are
+included as moves only; the clarifications are deferred (#1887, #1888, #1892)<a href="#appendix-A.1-2.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
