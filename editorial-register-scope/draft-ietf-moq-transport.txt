@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 11 March 2027                                     I. Swett, Ed.
+Expires: 12 March 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        7 September 2026
+                                                        8 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 March 2027.
+   This Internet-Draft will expire on 12 March 2027.
 
 Copyright Notice
 
@@ -2925,7 +2925,7 @@ Table of Contents
    Session ends.  The receiver can protect its resources by sending a
    Setup Option defining the MAX_AUTH_TOKEN_CACHE_SIZE limit (see
    Section 9.1.3) it is willing to accept.  If a registration outside of
-   SETUP is attempted which would cause this limit to be exceeded, the
+   SETUP is attempted that would cause this limit to be exceeded, the
    receiver MUST terminate the Session with an AUTH_TOKEN_CACHE_OVERFLOW
    error.  Registrations in SETUP are handled as described in
    Section 9.1.4.
