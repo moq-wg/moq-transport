@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 4 March 2027                                      I. Swett, Ed.
+Expires: 12 March 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          31 August 2026
+                                                        8 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 March 2027.
+   This Internet-Draft will expire on 12 March 2027.
 
 Copyright Notice
 
@@ -2182,48 +2182,57 @@ Table of Contents
        ensures objects in Groups greater than or equal to the Largest
        Object's Group are not missed during the transition.
 
-   3.  Waits until it is ready to publish an object from the
-       LOCATION_FILTER's Start Location's Group (the Start Group; see
-       Section 5.1.2), computed from the activating track at the time
-       the request is received, while continuing to deliver objects on
-       the suspending subscription.  When GROUP_ORDER is Descending and
-       Start Group is before the Current Group, the publisher waits for
-       the first object in the largest group in the fill range instead.
+   3.  Responds on the activating subscription's control stream with
+       SUBSCRIBE_OK or REQUEST_OK as appropriate, as soon as Largest
+       Object for the activating track is known.  This response
+       indicates that the switch has been accepted; it does not indicate
+       that delivery on the activating subscription has begun.  If the
+       publisher times out before Largest Object is known, it MUST
+       respond with REQUEST_ERROR TIMEOUT.
 
-   4.  Stops delivery on the suspending subscription:
+   4.  Waits until it is ready to publish an object from the Start
+       Group, computed from the activating track at the time the request
+       is received, while continuing to deliver objects on the
+       suspending subscription.
+
+       When the activating subscription opens a fill fetch stream (see
+       Section 5.1.3), the Start Group is the first Group of the fill
+       range that the stream delivers: the Group of the fill range's
+       Start Location, or the largest Group in the fill range when
+       GROUP_ORDER inside FILL_PARAMETERS is Descending.  Otherwise the
+       Start Group is the Group of the Start Location of the activating
+       subscription's LOCATION_FILTER (see Section 5.1.2).
+
+   5.  Stops delivery on the suspending subscription:
 
        *  Mode Hard (0x0): sets Forward State 0 on the suspending
-          subscription.  If Publish Done is 1, the publisher also sends
-          PUBLISH_DONE with code SWITCHED_AWAY.
+          subscription.
 
        In all modes, the publisher also resets any outstanding streams
        (including fill fetch streams) on the suspending subscription;
        objects already in flight can still be received by the
        subscriber.
 
-       If Publish Done is 0, the suspending subscription remains
-       established.
+       The publisher then sends PUBLISH_STATE_NOTIFY (Section 10.10) on
+       the suspending subscription's stream, reporting the state now in
+       effect and including LARGEST_OBJECT.  If Publish Done is 1, the
+       publisher follows it with PUBLISH_DONE with code SWITCHED_AWAY;
+       otherwise the suspending subscription remains established.
 
-   5.  Begins delivery of activating subscription from Start Group.  If
-       FILL_PARAMETERS is present, opens a fill fetch stream using the
-       activating subscription's Request ID (see Section 5.1.3).
+   6.  Begins delivery of activating subscription from Start Group,
+       including any fill fetch stream (see Section 5.1.3), which uses
+       the activating subscription's Request ID.
 
-   6.  Responds on the activating subscription's control stream with
-       SUBSCRIBE_OK or REQUEST_OK as appropriate, including
-       LARGEST_OBJECT if FILL_PARAMETERS is present.
-
-   If the publisher times out waiting to publish an object from the
-   Start Group on the activating track, it MUST respond with
-   REQUEST_ERROR TIMEOUT.
+   If the publisher cannot begin delivery on the activating
+   subscription, it MUST leave the suspending subscription unchanged.
 
 5.3.1.  Relay Handling of SWITCH_FROM
 
    Relays ordinarily handle the switch locally, applying the start group
    computation from Section 5.3 using locally observed state for the
    activating track and servicing any fill fetch stream from cache and
-   upstream sources as described in Section 5.1.3.  When a relay
-   performs the switch operation, it MUST NOT forward the SWITCH_FROM
-   parameter upstream.
+   upstream sources.  When a relay performs the switch operation, it
+   MUST NOT forward the SWITCH_FROM parameter upstream.
 
 6.  Namespace Discovery
 
@@ -6583,9 +6592,9 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-10, 9 August 2026,
+              quic-reliable-stream-reset-11, 6 September 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-10>.
+              reliable-stream-reset-11>.
 
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
