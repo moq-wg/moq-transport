@@ -5749,6 +5749,23 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 
 Issue and pull request numbers are listed with a leading octothorp.
 
+## Since draft-ietf-moq-transport-20
+
+**Notable Editorial Changes**
+
+* Add a Document Structure section (#1903)
+* Move-only restructuring across the document (#1877)
+* Restructure and reorder Publishing and Receiving Tracks (#1885, #1893)
+* Move Error Handling and Grease ahead of the considerations sections (#1899)
+* Promote each Setup Option to its own section (#1896)
+* Collect Session Termination, Request Error, and Publish Done codes into
+  Error Handling (#1879, #1880, #1881)
+* Extract common wire format sections: Authorization Token Compression, Track
+  Namespace, Location Filter, and Range Filter (#1882, #1887, #1888, #1892)
+* Remove the Connection URL, Stream Cancellation, and Examples sections (#1878)
+* Restructuring pull requests that also made editorial clarifications are
+  included as moves only; the clarifications are deferred (#1887, #1888, #1892)
+
 ## Since draft-ietf-moq-transport-19
 
 **Session and Control Plane**
