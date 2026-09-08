@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 11 March 2027                                     I. Swett, Ed.
+Expires: 12 March 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        7 September 2026
+                                                        8 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 March 2027.
+   This Internet-Draft will expire on 12 March 2027.
 
 Copyright Notice
 
@@ -2200,9 +2200,10 @@ Table of Contents
    Relays are endpoints, which means they terminate Transport Sessions
    in order to have visibility of MOQT Object metadata.
 
-   For the purposes of this specification, a connected set of relays is
-   a single MOQT relay.  How relays within such a set interconnect, and
-   use cases built on relay to relay communication, are out of scope.
+   For the purposes of this specification, a coordinated set of relays
+   is a single MOQT relay.  How relays within such a set interconnect,
+   and use cases built on relay to relay communication, are out of
+   scope.
 
 7.1.  Caching Relays
 
