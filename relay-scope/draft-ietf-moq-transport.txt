@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 March 2027                                     I. Swett, Ed.
+Expires: 13 March 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        8 September 2026
+                                                        9 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 March 2027.
+   This Internet-Draft will expire on 13 March 2027.
 
 Copyright Notice
 
@@ -2201,9 +2201,9 @@ Table of Contents
    in order to have visibility of MOQT Object metadata.
 
    For the purposes of this specification, a coordinated set of relays
-   is a single MOQT relay.  How relays within such a set interconnect,
-   and use cases built on relay to relay communication, are out of
-   scope.
+   are treated as a single MOQT relay.  How relays within such a set
+   interconnect, and use cases built on relay to relay communication,
+   are out of scope.
 
 7.1.  Caching Relays
 
@@ -5702,7 +5702,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 15.  Security Considerations
 
    MOQT is a protocol used hop-by-hop between original publishers to
-   relay and relay to end subscribers.  Thus, the security
+   relays and relays to end subscribers.  Thus, the security
    considerations need to consider first what happens between two
    Endpoints, but also consider the impacts end to end over several hops
    of MOQT.
@@ -6622,9 +6622,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-07, 20 August 2026,
+              draft-ietf-scone-protocol-08, 8 September 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-07>.
+              protocol-08>.
 
    [I-D.ietf-webtrans-http2]
               Frindell, A., Kinnear, E., Pauly, T., Thomson, M.,
