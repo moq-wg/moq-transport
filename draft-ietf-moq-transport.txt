@@ -294,16 +294,17 @@ Table of Contents
      Normative References
      Informative References
    Appendix A.  Change Log
-     A.1.  Since draft-ietf-moq-transport-19
-     A.2.  Since draft-ietf-moq-transport-18
-     A.3.  Since draft-ietf-moq-transport-17
-     A.4.  Since draft-ietf-moq-transport-16
-     A.5.  Since draft-ietf-moq-transport-15
-     A.6.  Since draft-ietf-moq-transport-14
-     A.7.  Since draft-ietf-moq-transport-13
-     A.8.  Since draft-ietf-moq-transport-12
-     A.9.  Since draft-ietf-moq-transport-11
-     A.10. Since draft-ietf-moq-transport-10
+     A.1.  Since draft-ietf-moq-transport-20
+     A.2.  Since draft-ietf-moq-transport-19
+     A.3.  Since draft-ietf-moq-transport-18
+     A.4.  Since draft-ietf-moq-transport-17
+     A.5.  Since draft-ietf-moq-transport-16
+     A.6.  Since draft-ietf-moq-transport-15
+     A.7.  Since draft-ietf-moq-transport-14
+     A.8.  Since draft-ietf-moq-transport-13
+     A.9.  Since draft-ietf-moq-transport-12
+     A.10. Since draft-ietf-moq-transport-11
+     A.11. Since draft-ietf-moq-transport-10
    Authors' Addresses
 
 1.  Introduction
@@ -6621,9 +6622,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-07, 20 August 2026,
+              draft-ietf-scone-protocol-08, 8 September 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-07>.
+              protocol-08>.
 
    [I-D.ietf-webtrans-http2]
               Frindell, A., Kinnear, E., Pauly, T., Thomson, M.,
@@ -6695,7 +6696,37 @@ Appendix A.  Change Log
 
    Issue and pull request numbers are listed with a leading octothorp.
 
-A.1.  Since draft-ietf-moq-transport-19
+A.1.  Since draft-ietf-moq-transport-20
+
+   *Notable Editorial Changes*
+
+   *  Add a Document Structure section (#1903)
+
+   *  Move-only restructuring across the document (#1877)
+
+   *  Restructure and reorder Publishing and Receiving Tracks (#1885,
+      #1893)
+
+   *  Move Error Handling and Grease ahead of the considerations
+      sections (#1899)
+
+   *  Promote each Setup Option to its own section (#1896)
+
+   *  Collect Session Termination, Request Error, and Publish Done codes
+      into Error Handling (#1879, #1880, #1881)
+
+   *  Extract common wire format sections: Authorization Token
+      Compression, Track Namespace, Location Filter, and Range Filter
+      (#1882, #1887, #1888, #1892)
+
+   *  Remove the Connection URL, Stream Cancellation, and Examples
+      sections (#1878)
+
+   *  Restructuring pull requests that also made editorial
+      clarifications are included as moves only; the clarifications are
+      deferred (#1887, #1888, #1892)
+
+A.2.  Since draft-ietf-moq-transport-19
 
    *Session and Control Plane*
 
@@ -6796,7 +6827,7 @@ A.1.  Since draft-ietf-moq-transport-19
    *  Fix LOC and Secure Objects entries in the provisional Property
       registry (#1807, #1818, #1848)
 
-A.2.  Since draft-ietf-moq-transport-18
+A.3.  Since draft-ietf-moq-transport-18
 
    *Session and Control Plane*
 
@@ -6851,7 +6882,7 @@ A.2.  Since draft-ietf-moq-transport-18
 
    *  Clarify Group and Subgroup terminology and object model (#1708)
 
-A.3.  Since draft-ietf-moq-transport-17
+A.4.  Since draft-ietf-moq-transport-17
 
    *Session and Control Plane*
 
@@ -6958,7 +6989,7 @@ A.3.  Since draft-ietf-moq-transport-17
 
    *  Fix grease examples to match 0x7f multiplier (#1569)
 
-A.4.  Since draft-ietf-moq-transport-16
+A.5.  Since draft-ietf-moq-transport-16
 
    *Session and Control Plane*
 
@@ -7059,7 +7090,7 @@ A.4.  Since draft-ietf-moq-transport-16
 
    *  Add generative AI disclosure per IRTF guidelines
 
-A.5.  Since draft-ietf-moq-transport-15
+A.6.  Since draft-ietf-moq-transport-15
 
    *Setup and Control Plane*
 
@@ -7137,7 +7168,7 @@ A.5.  Since draft-ietf-moq-transport-15
 
    *  A Publisher might not use the congestion window (#1408)
 
-A.6.  Since draft-ietf-moq-transport-14
+A.7.  Since draft-ietf-moq-transport-14
 
    *Setup and Control Plane*
 
@@ -7200,7 +7231,7 @@ A.6.  Since draft-ietf-moq-transport-14
 
    *  Clarify joining fetch end location (#1286)
 
-A.7.  Since draft-ietf-moq-transport-13
+A.8.  Since draft-ietf-moq-transport-13
 
    *Setup and Control Plane*
 
@@ -7272,7 +7303,7 @@ A.7.  Since draft-ietf-moq-transport-13
 
    *  Reformat Error Codes (#1091)
 
-A.8.  Since draft-ietf-moq-transport-12
+A.9.  Since draft-ietf-moq-transport-12
 
    *  TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly
       mirror SUBSCRIBE/OK/ERROR (#1015)
@@ -7280,7 +7311,7 @@ A.8.  Since draft-ietf-moq-transport-12
    *  SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE
       (#1049)
 
-A.9.  Since draft-ietf-moq-transport-11
+A.10.  Since draft-ietf-moq-transport-11
 
    *  Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
 
@@ -7306,7 +7337,7 @@ A.9.  Since draft-ietf-moq-transport-11
    *  Add PUBLISH for publisher initiated subscriptions (#995) and fix
       the PUBLISH codepoints (#1048, #1051)
 
-A.10.  Since draft-ietf-moq-transport-10
+A.11.  Since draft-ietf-moq-transport-10
 
    *  Added Common Structure definitions - Location, Key-Value-Pair and
       Reason Phrase
