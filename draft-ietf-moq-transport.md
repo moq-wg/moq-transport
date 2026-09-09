@@ -4419,7 +4419,7 @@ fields are present in the header:
   in all Objects in this Subgroup. When set to 1, the Object Properties structure
   defined in {{object-properties}} is present in all Objects; Objects with no
   properties or non-Normal status set Properties Length to 0. When set to 0, the
-  field is never present.
+  field is never present in this Subgroup.
 
 * The **SUBGROUP_ID_MODE** field (bits 1-2, mask 0x06) is a two-bit field that
   determines the encoding of the Subgroup ID. To extract this value, perform a
