@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 11 March 2027                                     I. Swett, Ed.
+Expires: 13 March 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        7 September 2026
+                                                        9 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 March 2027.
+   This Internet-Draft will expire on 13 March 2027.
 
 Copyright Notice
 
@@ -4927,7 +4927,7 @@ EXT 1 and EXT N can be modified or removed by Relays
       Object Properties structure defined in Section 11.1.2 is present
       in all Objects; Objects with no properties or non-Normal status
       set Properties Length to 0.  When set to 0, the field is never
-      present.
+      present in this Subgroup.
 
    *  The *SUBGROUP_ID_MODE* field (bits 1-2, mask 0x06) is a two-bit
       field that determines the encoding of the Subgroup ID.  To extract
@@ -6609,9 +6609,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-07, 20 August 2026,
+              draft-ietf-scone-protocol-08, 8 September 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-07>.
+              protocol-08>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
