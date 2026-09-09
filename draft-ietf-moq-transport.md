@@ -2068,7 +2068,7 @@ The PROPERTIES bit in the SUBGROUP_HEADER ({{subgroup-header}}) applies to
 every Object on the stream, so a relay selects its value when it opens the
 stream downstream, before it has received the rest of the Subgroup. A relay
 that does not add Object Properties of its own SHOULD use the value it
-received from upstream. A relay that might add Object Properties MUST set the
+received from upstream. A relay that might add Object Properties needs to set the
 bit to 1; Objects with no Object Properties then encode a Properties Length
 of 0.
 
