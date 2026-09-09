@@ -6537,8 +6537,9 @@ the filter is interpreted:
 the start Location from relative to absolute.  For example, <code>{StartGroup=1}</code>
 starts at the current Group, whereas <code>{StartGroup=1, StartObject=0}</code> starts at
 the first Object of Group 1.<a href="#section-9.20.10-7" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-8">If a field extends beyond the end of the parameter, or more than four fields
-are present, the endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.10-8" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-8">If a field extends beyond the end of the parameter, more than four fields
+are present, or an integer field extends beyond the given Length, the
+endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.10-8" class="pilcrow">¶</a></p>
 <p id="section-9.20.10-9">A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.<a href="#section-9.20.10-9" class="pilcrow">¶</a></p>
 <p id="section-9.20.10-10">If only StartGroup is present, it is a relative number of groups prior to the Next Group,
 hence the start Location is <code>{Largest Object.Group + 1 - StartGroup, 0}</code>. For example:
