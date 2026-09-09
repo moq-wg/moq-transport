@@ -294,16 +294,17 @@ Table of Contents
      Normative References
      Informative References
    Appendix A.  Change Log
-     A.1.  Since draft-ietf-moq-transport-19
-     A.2.  Since draft-ietf-moq-transport-18
-     A.3.  Since draft-ietf-moq-transport-17
-     A.4.  Since draft-ietf-moq-transport-16
-     A.5.  Since draft-ietf-moq-transport-15
-     A.6.  Since draft-ietf-moq-transport-14
-     A.7.  Since draft-ietf-moq-transport-13
-     A.8.  Since draft-ietf-moq-transport-12
-     A.9.  Since draft-ietf-moq-transport-11
-     A.10. Since draft-ietf-moq-transport-10
+     A.1.  Since draft-ietf-moq-transport-20
+     A.2.  Since draft-ietf-moq-transport-19
+     A.3.  Since draft-ietf-moq-transport-18
+     A.4.  Since draft-ietf-moq-transport-17
+     A.5.  Since draft-ietf-moq-transport-16
+     A.6.  Since draft-ietf-moq-transport-15
+     A.7.  Since draft-ietf-moq-transport-14
+     A.8.  Since draft-ietf-moq-transport-13
+     A.9.  Since draft-ietf-moq-transport-12
+     A.10. Since draft-ietf-moq-transport-11
+     A.11. Since draft-ietf-moq-transport-10
    Authors' Addresses
 
 1.  Introduction
@@ -448,9 +449,11 @@ Table of Contents
 
    Application:  The entity using MOQT to transmit and receive data.
 
-   Client:  The party initiating a Transport Session.
+   Client:  The party initiating a Transport Session.  A Client can be a
+      Publisher, a Subscriber, or both.
 
-   Server:  The party accepting an incoming Transport Session.
+   Server:  The party accepting an incoming Transport Session.  A Server
+      can be a Publisher, a Subscriber, or both.
 
    Endpoint:  A Client or Server.
 
@@ -579,8 +582,9 @@ Table of Contents
    for the Object (Section 5.1).
 
    Delivery Mode: An enumeration indicating whether an Object is sent in
-   a Subgroup or Datagram.  In a subscription, an Object MUST be sent
-   according to its Delivery Mode.
+   a Subgroup or Datagram.  The Original Publisher establishes an
+   Object's Delivery Mode by how it first transmits the Object.  In a
+   subscription, an Object MUST be sent according to its Delivery Mode.
 
    Subgroup ID: The identifier of the Object's Subgroup (see
    Section 2.2) within the Group.  Objects sent in Datagrams do not have
@@ -1855,13 +1859,20 @@ Table of Contents
    [WebTransport].  Both provide streams and datagrams with similar
    semantics (see [I-D.ietf-webtrans-overview], Section 4); thus, the
    main difference lies in how the servers are identified and how the
-   connection is established.  The QUIC DATAGRAM extension ([RFC9221])
-   MUST be supported and negotiated in the QUIC connection used for
-   MOQT, which is already a requirement for WebTransport over HTTP/3.
+   connection is established.  When MOQT runs directly over QUIC or over
+   WebTransport on HTTP/3, the QUIC DATAGRAM extension ([RFC9221]) MUST
+   be supported and negotiated in the QUIC connection used for MOQT,
+   which is already a requirement for WebTransport over HTTP/3.
 
-   There is no definition of the protocol over other transports, such as
-   TCP, and applications using MOQT might need to fallback to another
-   protocol when QUIC or WebTransport aren't available.
+   WebTransport can itself run over HTTP/2 ([I-D.ietf-webtrans-http2]),
+   in which case datagrams are reliable and ordered and TCP loss blocks
+   delivery on every stream.  MOQT remains functional, but its latency
+   behavior differs substantially from a deployment over QUIC.
+
+   This document does not define how to run the protocol directly over
+   other transports, such as TCP, and applications using MOQT might need
+   to fallback to another protocol when QUIC or WebTransport aren't
+   available.
 
    MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
    ([WebTransport], Section 3.3) to perform version negotiation.
@@ -2005,6 +2016,16 @@ Table of Contents
    initial values required by those extensions as Setup Options in
    SETUP.  Once an endpoint has both sent and received SETUP messages,
    it determines the set of negotiated extensions.
+
+   There is no generic format for declaring extension support.  Each
+   extension specification defines the Setup Option or Options used to
+   declare support for that extension, the format of their values, and
+   the rules for determining whether the extension is negotiated.  For
+   example, an extension could be declared by a zero length option,
+   where presence alone indicates support, or by an option carrying a
+   list of supported extension versions from which the endpoints select
+   a common version.  Setup Option types are registered with IANA; see
+   Section 16.4.
 
    New versions of MOQT MUST specify which existing extensions can be
    used with that version.  New extensions MUST specify the existing
@@ -2916,9 +2937,11 @@ Table of Contents
    the Token Alias and Token Value until they are deleted, or the
    Session ends.  The receiver can protect its resources by sending a
    Setup Option defining the MAX_AUTH_TOKEN_CACHE_SIZE limit (see
-   Section 9.1.3) it is willing to accept.  If a registration is
-   attempted which would cause this limit to be exceeded, the receiver
-   MUST terminate the Session with a AUTH_TOKEN_CACHE_OVERFLOW error.
+   Section 9.1.3) it is willing to accept.  If a registration outside of
+   SETUP is attempted that would cause this limit to be exceeded, the
+   receiver MUST terminate the Session with an AUTH_TOKEN_CACHE_OVERFLOW
+   error.  Registrations in SETUP are handled as described in
+   Section 9.1.4.
 
    An Authorization Token MAY be repeated within a message as long as
    the combination of Token Type and Token Value are unique after
@@ -3053,6 +3076,9 @@ Table of Contents
    Type in a message unless the option definition explicitly allows
    multiple instances.  Receivers MUST allow duplicates of unknown Setup
    Options.
+
+   Setup Options are also the mechanism by which endpoints declare
+   support for MOQT extensions; see Section 6.3.2.
 
    The available Setup Options are detailed in the next sections.
 
@@ -3397,11 +3423,12 @@ Table of Contents
 
    When a subscriber decreases the Start Location of the Location Filter
    (see Section 3.3.1), the Start Location can be smaller than the
-   Track's Largest Location, similar to a new Subscription.  Including
+   Track's Largest Object, similar to a new Subscription.  Including
    FILL_PARAMETERS (see Section 9.20.16) in the REQUEST_UPDATE causes
    the publisher to deliver the new fill range by opening a new fill
    fetch stream (see Section 3.4).  FETCH can also be used to retrieve
-   any necessary Objects smaller than the current Largest Location.
+   any necessary Objects with Locations less than or equal to the
+   current Largest Object.
 
    When a subscriber increases the End Location, the Largest Object at
    the publisher might already be larger than the previous End Location.
@@ -6613,6 +6640,13 @@ Informative References
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
               protocol-08>.
 
+   [I-D.ietf-webtrans-http2]
+              Frindell, A., Kinnear, E., Pauly, T., Thomson, M.,
+              Vasiliev, V., and W. Xie, "WebTransport over HTTP/2", Work
+              in Progress, Internet-Draft, draft-ietf-webtrans-http2-15,
+              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
+              ietf-webtrans-http2-15>.
+
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
               Progress, Internet-Draft, draft-ietf-moq-privacy-pass-
@@ -6676,7 +6710,37 @@ Appendix A.  Change Log
 
    Issue and pull request numbers are listed with a leading octothorp.
 
-A.1.  Since draft-ietf-moq-transport-19
+A.1.  Since draft-ietf-moq-transport-20
+
+   *Notable Editorial Changes*
+
+   *  Add a Document Structure section (#1903)
+
+   *  Move-only restructuring across the document (#1877)
+
+   *  Restructure and reorder Publishing and Receiving Tracks (#1885,
+      #1893)
+
+   *  Move Error Handling and Grease ahead of the considerations
+      sections (#1899)
+
+   *  Promote each Setup Option to its own section (#1896)
+
+   *  Collect Session Termination, Request Error, and Publish Done codes
+      into Error Handling (#1879, #1880, #1881)
+
+   *  Extract common wire format sections: Authorization Token
+      Compression, Track Namespace, Location Filter, and Range Filter
+      (#1882, #1887, #1888, #1892)
+
+   *  Remove the Connection URL, Stream Cancellation, and Examples
+      sections (#1878)
+
+   *  Restructuring pull requests that also made editorial
+      clarifications are included as moves only; the clarifications are
+      deferred (#1887, #1888, #1892)
+
+A.2.  Since draft-ietf-moq-transport-19
 
    *Session and Control Plane*
 
@@ -6777,7 +6841,7 @@ A.1.  Since draft-ietf-moq-transport-19
    *  Fix LOC and Secure Objects entries in the provisional Property
       registry (#1807, #1818, #1848)
 
-A.2.  Since draft-ietf-moq-transport-18
+A.3.  Since draft-ietf-moq-transport-18
 
    *Session and Control Plane*
 
@@ -6832,7 +6896,7 @@ A.2.  Since draft-ietf-moq-transport-18
 
    *  Clarify Group and Subgroup terminology and object model (#1708)
 
-A.3.  Since draft-ietf-moq-transport-17
+A.4.  Since draft-ietf-moq-transport-17
 
    *Session and Control Plane*
 
@@ -6939,7 +7003,7 @@ A.3.  Since draft-ietf-moq-transport-17
 
    *  Fix grease examples to match 0x7f multiplier (#1569)
 
-A.4.  Since draft-ietf-moq-transport-16
+A.5.  Since draft-ietf-moq-transport-16
 
    *Session and Control Plane*
 
@@ -7040,7 +7104,7 @@ A.4.  Since draft-ietf-moq-transport-16
 
    *  Add generative AI disclosure per IRTF guidelines
 
-A.5.  Since draft-ietf-moq-transport-15
+A.6.  Since draft-ietf-moq-transport-15
 
    *Setup and Control Plane*
 
@@ -7118,7 +7182,7 @@ A.5.  Since draft-ietf-moq-transport-15
 
    *  A Publisher might not use the congestion window (#1408)
 
-A.6.  Since draft-ietf-moq-transport-14
+A.7.  Since draft-ietf-moq-transport-14
 
    *Setup and Control Plane*
 
@@ -7181,7 +7245,7 @@ A.6.  Since draft-ietf-moq-transport-14
 
    *  Clarify joining fetch end location (#1286)
 
-A.7.  Since draft-ietf-moq-transport-13
+A.8.  Since draft-ietf-moq-transport-13
 
    *Setup and Control Plane*
 
@@ -7253,7 +7317,7 @@ A.7.  Since draft-ietf-moq-transport-13
 
    *  Reformat Error Codes (#1091)
 
-A.8.  Since draft-ietf-moq-transport-12
+A.9.  Since draft-ietf-moq-transport-12
 
    *  TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly
       mirror SUBSCRIBE/OK/ERROR (#1015)
@@ -7261,7 +7325,7 @@ A.8.  Since draft-ietf-moq-transport-12
    *  SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE
       (#1049)
 
-A.9.  Since draft-ietf-moq-transport-11
+A.10.  Since draft-ietf-moq-transport-11
 
    *  Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
 
@@ -7287,7 +7351,7 @@ A.9.  Since draft-ietf-moq-transport-11
    *  Add PUBLISH for publisher initiated subscriptions (#995) and fix
       the PUBLISH codepoints (#1048, #1051)
 
-A.10.  Since draft-ietf-moq-transport-10
+A.11.  Since draft-ietf-moq-transport-10
 
    *  Added Common Structure definitions - Location, Key-Value-Pair and
       Reason Phrase
