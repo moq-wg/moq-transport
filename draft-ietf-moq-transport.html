@@ -2254,7 +2254,7 @@ bytes. Objects form the base element in the MOQT data model. See
 <p id="section-1.4-1">This document uses stream management terms described in <span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-1.3" class="relref">Section 1.3</a></span> including STOP_SENDING, RESET_STREAM, and FIN. It also uses
 RESET_STREAM_AT from <span>[<a href="#I-D.draft-ietf-quic-reliable-stream-reset" class="cite xref">I-D.draft-ietf-quic-reliable-stream-reset</a>]</span>.
 RESET_STREAM_AT can be used by MOQT, but the protocol is also designed to work
-correctly when the extension is not supported.<a href="#section-1.4-1" class="pilcrow">¶</a></p>
+correctly when the extension is not used or not supported.<a href="#section-1.4-1" class="pilcrow">¶</a></p>
 <p id="section-1.4-2">When this document says an endpoint "resets" a stream, it means the endpoint
 sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
 <a href="#closing-subgroup-streams" class="auto internal xref">Section 11.3.2</a> for considerations on choosing between them).<a href="#section-1.4-2" class="pilcrow">¶</a></p>
@@ -7356,7 +7356,8 @@ fields are present in the header:<a href="#section-11.3.1-6" class="pilcrow">¶<
               <p id="section-11.3.1-7.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is present
 in all Objects in this Subgroup. When set to 1, the Object Properties structure
 defined in <a href="#object-properties" class="auto internal xref">Section 11.1.2</a> is present in all Objects; Objects with no
-properties set Properties Length to 0. When set to 0, the field is never present.<a href="#section-11.3.1-7.1.1" class="pilcrow">¶</a></p>
+properties or non-Normal status set Properties Length to 0. When set to 0, the
+field is never present in this Subgroup.<a href="#section-11.3.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-11.3.1-7.2">
               <p id="section-11.3.1-7.2.1">The <strong>SUBGROUP_ID_MODE</strong> field (bits 1-2, mask 0x06) is a two-bit field that
