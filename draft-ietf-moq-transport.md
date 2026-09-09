@@ -3758,8 +3758,9 @@ the start Location from relative to absolute.  For example, `{StartGroup=1}`
 starts at the current Group, whereas `{StartGroup=1, StartObject=0}` starts at
 the first Object of Group 1.
 
-If a field extends beyond the end of the parameter, or more than four fields
-are present, the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
+If a field extends beyond the end of the parameter, more than four fields
+are present, or an integer field extends beyond the given Length, the
+endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
 A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
 
