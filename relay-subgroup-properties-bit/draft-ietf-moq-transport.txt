@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 10 March 2027                                     I. Swett, Ed.
+Expires: 13 March 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        6 September 2026
+                                                        9 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 March 2027.
+   This Internet-Draft will expire on 13 March 2027.
 
 Copyright Notice
 
@@ -2463,8 +2463,8 @@ Table of Contents
    opens the stream downstream, before it has received the rest of the
    Subgroup.  A relay that does not add Object Properties of its own
    SHOULD use the value it received from upstream.  A relay that might
-   add Object Properties MUST set the bit to 1; Objects with no Object
-   Properties then encode a Properties Length of 0.
+   add Object Properties needs to set the bit to 1; Objects with no
+   Object Properties then encode a Properties Length of 0.
 
    Relays prioritize forwarded Objects as described in Section 5.1.
 
@@ -6616,9 +6616,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-07, 20 August 2026,
+              draft-ietf-scone-protocol-08, 8 September 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-07>.
+              protocol-08>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
