@@ -179,11 +179,13 @@ Application:
 
 Client:
 
-: The party initiating a Transport Session.
+: The party initiating a Transport Session.  A Client can be a Publisher, a
+  Subscriber, or both.
 
 Server:
 
-: The party accepting an incoming Transport Session.
+: The party accepting an incoming Transport Session.  A Server can be a
+  Publisher, a Subscriber, or both.
 
 Endpoint:
 
@@ -334,7 +336,7 @@ Object ID: The order of the object within the group.
 
 Publisher Priority: An integer indicating the publisher's priority for the Object ({{priorities}}).
 
-Delivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram. In a subscription, an Object MUST be sent according to its Delivery Mode.
+Delivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram. The Original Publisher establishes an Object's Delivery Mode by how it first transmits the Object. In a subscription, an Object MUST be sent according to its Delivery Mode.
 
 Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}}) within the Group. Objects sent in Datagrams do not have a Subgroup ID.
 
@@ -1509,13 +1511,19 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established. The QUIC DATAGRAM extension ({{!RFC9221}})
+connection is established. When MOQT runs directly over QUIC or over
+WebTransport on HTTP/3, the QUIC DATAGRAM extension ({{!RFC9221}})
 MUST be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3.
 
-There is no definition of the protocol over other transports,
-such as TCP, and applications using MOQT might need to fallback to
-another protocol when QUIC or WebTransport aren't available.
+WebTransport can itself run over HTTP/2 ({{?I-D.ietf-webtrans-http2}}), in
+which case datagrams are reliable and ordered and TCP loss blocks delivery
+on every stream.  MOQT remains functional, but its latency behavior differs
+substantially from a deployment over QUIC.
+
+This document does not define how to run the protocol directly over other
+transports, such as TCP, and applications using MOQT might need to fallback
+to another protocol when QUIC or WebTransport aren't available.
 
 MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 ({{WebTransport, Section 3.3}}) to perform version negotiation.
@@ -1645,6 +1653,15 @@ Each endpoint declares the extensions it supports and provides any initial
 values required by those extensions as Setup Options in SETUP. Once an endpoint
 has both sent and received SETUP messages, it determines the set of negotiated
 extensions.
+
+There is no generic format for declaring extension support. Each extension
+specification defines the Setup Option or Options used to declare support for
+that extension, the format of their values, and the rules for determining
+whether the extension is negotiated. For example, an extension could be
+declared by a zero length option, where presence alone indicates support, or
+by an option carrying a list of supported extension versions from which the
+endpoints select a common version. Setup Option types are registered with
+IANA; see {{iana-setup-options}}.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
@@ -2497,9 +2514,10 @@ By registering a Token, the sender is requiring the receiver to store the Token
 Alias and Token Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a Setup Option defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
-willing to accept. If a registration is attempted which would cause this limit
-to be exceeded, the receiver MUST terminate the Session with a
-`AUTH_TOKEN_CACHE_OVERFLOW` error.
+willing to accept. If a registration outside of SETUP is attempted that would
+cause this limit to be exceeded, the receiver MUST terminate the Session with
+an `AUTH_TOKEN_CACHE_OVERFLOW` error.  Registrations in SETUP are handled as
+described in {{setup-auth-token}}.
 
 An Authorization Token MAY be repeated within a message as long as the
 combination of Token Type and Token Value are unique after resolving any
@@ -2630,6 +2648,9 @@ separate from Message Parameters.  Receivers MUST ignore unrecognized Setup
 Options.  Senders MUST NOT repeat the same Option Type in a message unless
 the option definition explicitly allows multiple instances. Receivers MUST
 allow duplicates of unknown Setup Options.
+
+Setup Options are also the mechanism by which endpoints declare support for
+MOQT extensions; see {{extension-negotiation}}.
 
 The available Setup Options are detailed in the next sections.
 
@@ -2958,11 +2979,11 @@ REQUEST_UPDATE Message {
 
 When a subscriber decreases the Start Location of the Location Filter
 (see {{location-filters}}), the Start Location can be smaller than the Track's
-Largest Location, similar to a new Subscription. Including FILL_PARAMETERS
+Largest Object, similar to a new Subscription. Including FILL_PARAMETERS
 (see {{fill-parameters}}) in the REQUEST_UPDATE causes the publisher to deliver
 the new fill range by opening a new fill fetch stream (see
 {{fill-semantics}}).  FETCH can also be used to retrieve any necessary Objects
-smaller than the current Largest Location.
+with Locations less than or equal to the current Largest Object.
 
 When a subscriber increases the End Location, the Largest Object at
 the publisher might already be larger than the previous End Location. This will
@@ -5743,6 +5764,23 @@ document. All AI-generated content was reviewed and approved by the editors.
 RFC Editor's Note: Please remove this section prior to publication of a final version of this document.
 
 Issue and pull request numbers are listed with a leading octothorp.
+
+## Since draft-ietf-moq-transport-20
+
+**Notable Editorial Changes**
+
+* Add a Document Structure section (#1903)
+* Move-only restructuring across the document (#1877)
+* Restructure and reorder Publishing and Receiving Tracks (#1885, #1893)
+* Move Error Handling and Grease ahead of the considerations sections (#1899)
+* Promote each Setup Option to its own section (#1896)
+* Collect Session Termination, Request Error, and Publish Done codes into
+  Error Handling (#1879, #1880, #1881)
+* Extract common wire format sections: Authorization Token Compression, Track
+  Namespace, Location Filter, and Range Filter (#1882, #1887, #1888, #1892)
+* Remove the Connection URL, Stream Cancellation, and Examples sections (#1878)
+* Restructuring pull requests that also made editorial clarifications are
+  included as moves only; the clarifications are deferred (#1887, #1888, #1892)
 
 ## Since draft-ietf-moq-transport-19
 
