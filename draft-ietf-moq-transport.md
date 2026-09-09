@@ -3733,10 +3733,11 @@ LOCATION_FILTER Parameter {
 }
 ~~~
 
-The optional fields are decoded in the order shown until Length bytes have been
-consumed.  How many fields are decoded determines which fields they are, and how
+The optional variable-length integer fields are decoded in the order shown until Length bytes have been
+consumed.  A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
+How many fields are decoded determines which fields they are, and how
 the filter is interpreted:
-  * If only one field is present, it is StartGroup.
+  * If only one field is present, it is a relative StartGroup.
   * If only two fields are present, they are StartGroup and StartObject.
   * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
 
@@ -3745,9 +3746,9 @@ The table below summarizes the encodings.
 | Fields present | Start Location | End Location |
 |:---------------|:---------------|:-------------|
 | none (Length 0) | no filter | no filter |
-| StartGroup | relative: `{Largest Object.Group + 1 - StartGroup, 0}` | open-ended (Fetch: `Largest Object`) |
-| StartGroup, StartObject, both 0 | `Next Object` | open-ended (Fetch: `Largest Object`) |
-| StartGroup, StartObject, not both 0 | absolute: `{StartGroup, StartObject}` | open-ended (Fetch: `Largest Object`) |
+| StartGroup | relative: `{Largest Object.Group + 1 - StartGroup, 0}` | open-ended |
+| StartGroup, StartObject, both 0 | `Next Object` | open-ended |
+| StartGroup, StartObject, not both 0 | absolute: `{StartGroup, StartObject}` | open-ended |
 | StartGroup, StartObject, EndGroupDelta | absolute: `{StartGroup, StartObject}` | last Object of Group `StartGroup + EndGroupDelta` |
 | StartGroup, StartObject, EndGroupDelta, EndObject | absolute: `{StartGroup, StartObject}` | `{StartGroup + EndGroupDelta, EndObject}` |
 {: #location-filter-forms title="Location Filter forms"}
@@ -3780,10 +3781,7 @@ computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
 Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
 relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
-the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.  If
-EndGroupDelta is 0 and EndObject is less than StartObject, the filter selects no
-Objects; the receiver MUST reject the request with REQUEST_ERROR with error code
-`INVALID_RANGE`.
+the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
 When EndGroupDelta and EndObject are omitted from a subscription filter, the
 subscription is open-ended. When they are omitted from a Fetch, the
