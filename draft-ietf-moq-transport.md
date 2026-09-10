@@ -2381,29 +2381,15 @@ is chosen to be generally both filename and URL safe, filename safety is
 platform specific; for instance, on case-insensitive filesystems, track names
 can collide.
 
-### Parsing Serialized Names
-
-When parsing a serialized namespace or track name back to its binary form,
-implementations MUST apply the following rules to ensure a canonical encoding:
-
-* A period (.) MUST be followed by exactly two hexadecimal digits. A trailing period
-  or a period followed by fewer than two hexadecimal digits is invalid.
-
-* The hexadecimal digits following a period (.) MUST be lowercase (a-f). Uppercase
-  hexadecimal digits (A-F) are invalid and MUST cause parsing to fail.
-
-* Bytes that can be represented literally (a-z, A-Z, 0-9, _) MUST NOT appear
-  in their hex-encoded form. For example, `.61` is invalid because `a` must
-  be represented as the literal character `a`. A parser MUST reject such
-  redundant encodings.
-
-These rules ensure that the encoding is bijective: every binary value has
-exactly one valid serialized representation, and every valid serialized
-string maps to exactly one binary value. This property simplifies comparison
-of serialized names without requiring full deserialization.
-
-Implementations that receive an invalid serialized name SHOULD treat it as
-an error. The specific error handling behavior is application-defined.
+Because this format produces exactly one rendering of any given binary value, it
+is bijective: every valid serialized name maps to exactly one binary value, so
+serialized names can be compared without deserializing them. To maintain this
+property, an implementation parsing this format MUST reject a name that does
+not follow the encoding rules exactly, including a period not followed by
+exactly two lowercase hexadecimal digits, or a byte that could have been
+represented literally but was hex-encoded.  For example, `.61` is invalid
+because `a` is represented as the literal character `a`. How an invalid name is
+handled is application-defined.
 
 Example:
 
