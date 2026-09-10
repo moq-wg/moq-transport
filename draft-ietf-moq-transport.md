@@ -3499,11 +3499,16 @@ SUBSCRIBE_NAMESPACE followed by the Track Namespace Suffix is the Track
 Namespace Prefix the publisher advertised, so tracks can exist in
 namespaces matching that prefix (see {{namespace-prefix-matching}}).
 
+When Parameters of a NAMESPACE change, the NAMESPACE message is sent again
+with the updated Parameters.
+
 ~~~
 NAMESPACE Message {
   Type (vi64) = 0x8,
   Length (16),
   Track Namespace Suffix (..),
+  Number of Parameters (vi64),
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-ns-format title="MOQT NAMESPACE Message"}
@@ -3512,6 +3517,8 @@ NAMESPACE Message {
   namespace as defined in {{track-namespace-structure}} after removing
   namespace tuples included in 'Track Namespace Prefix'
   {{message-subscribe-ns}}.
+
+* Parameters: The parameters are defined in {{message-params}}.
 
 ## NAMESPACE_DONE {#message-namespace-done}
 
