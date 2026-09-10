@@ -3757,8 +3757,6 @@ If a field extends beyond the end of the parameter, more than four fields
 are present, or an integer field extends beyond the given Length, the
 endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
-A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
-
 If only StartGroup is present, it is a relative number of groups prior to the Next Group,
 hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
   * StartGroup=0 will start at the Next Group
