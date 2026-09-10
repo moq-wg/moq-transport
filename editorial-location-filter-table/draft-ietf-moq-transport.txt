@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 March 2027                                     I. Swett, Ed.
+Expires: 14 March 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        9 September 2026
+                                                       10 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 March 2027.
+   This Internet-Draft will expire on 14 March 2027.
 
 Copyright Notice
 
@@ -4240,11 +4240,6 @@ Table of Contents
    +--------------------------+--------------------+------------------+
 
                       Table 6: Location Filter forms
-
-   Note that adding StartObject to a filter that carries only StartGroup
-   changes the start Location from relative to absolute.  For example,
-   {StartGroup=1} starts at the current Group, whereas {StartGroup=1,
-   StartObject=0} starts at the first Object of Group 1.
 
    If a field extends beyond the end of the parameter, more than four
    fields are present, or an integer field extends beyond the given

@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 13 March 2027</td>
+<td class="center">Expires 14 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-09" class="published">9 September 2026</time>
+<time datetime="2026-09-10" class="published">10 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-13">13 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-14">14 March 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 13 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 14 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -6533,38 +6533,34 @@ the filter is interpreted:
             </tbody>
           </table>
 </div>
-<p id="section-9.20.10-7">Note that adding StartObject to a filter that carries only StartGroup changes
-the start Location from relative to absolute.  For example, <code>{StartGroup=1}</code>
-starts at the current Group, whereas <code>{StartGroup=1, StartObject=0}</code> starts at
-the first Object of Group 1.<a href="#section-9.20.10-7" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-8">If a field extends beyond the end of the parameter, more than four fields
+<p id="section-9.20.10-7">If a field extends beyond the end of the parameter, more than four fields
 are present, or an integer field extends beyond the given Length, the
-endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.10-8" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-9">A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.<a href="#section-9.20.10-9" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-10">If only StartGroup is present, it is a relative number of groups prior to the Next Group,
+endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.10-7" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-8">A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.<a href="#section-9.20.10-8" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-9">If only StartGroup is present, it is a relative number of groups prior to the Next Group,
 hence the start Location is <code>{Largest Object.Group + 1 - StartGroup, 0}</code>. For example:
   * StartGroup=0 will start at the Next Group
   * StartGroup=1 will start at the current group
   * StartGroup=2 will start at 1 group prior to the current group
-  * StartGroup=N will start at N-1 groups prior to the current group<a href="#section-9.20.10-10" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-11">If only StartGroup and StartObject are present and both 0, the start Location
+  * StartGroup=N will start at N-1 groups prior to the current group<a href="#section-9.20.10-9" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-10">If only StartGroup and StartObject are present and both 0, the start Location
 is the Next Object (see <a href="#largest-object" class="auto internal xref">Section 3.1.3</a>).  An open-ended filter that starts
 at absolute Location {0, 0} is equivalent to unfiltered, so the subscriber need
-not include a Location filter.<a href="#section-9.20.10-11" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-12">If a relative start group results in a computed absolute group less than 0, the
-computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.<a href="#section-9.20.10-12" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-13">Otherwise, all fields are absolute.  EndGroupDelta is delta
+not include a Location filter.<a href="#section-9.20.10-10" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-11">If a relative start group results in a computed absolute group less than 0, the
+computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.<a href="#section-9.20.10-11" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-12">Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
 relative to <code>Largest Object</code>.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
-the endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.10-13" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-14">When EndGroupDelta and EndObject are omitted from a subscription filter, the
+the endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.10-12" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-13">When EndGroupDelta and EndObject are omitted from a subscription filter, the
 subscription is open-ended. When they are omitted from a Fetch, the
-EndGroup and EndObject are <code>Largest Object</code>.<a href="#section-9.20.10-14" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-15">When EndObject is omitted, the filter includes all objects in the End Group.<a href="#section-9.20.10-15" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-16">If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
+EndGroup and EndObject are <code>Largest Object</code>.<a href="#section-9.20.10-13" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-14">When EndObject is omitted, the filter includes all objects in the End Group.<a href="#section-9.20.10-14" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-15">If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
 unfiltered.  If omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY, the
 value is unchanged.  When sent in PUBLISH_STATE_NOTIFY, it reports the
-Location Filter now in effect at the publisher.<a href="#section-9.20.10-16" class="pilcrow">¶</a></p>
+Location Filter now in effect at the publisher.<a href="#section-9.20.10-15" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subgroup-filter">
