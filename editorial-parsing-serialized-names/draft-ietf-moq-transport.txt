@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 11 March 2027                                     I. Swett, Ed.
+Expires: 14 March 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        7 September 2026
+                                                       10 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 March 2027.
+   This Internet-Draft will expire on 14 March 2027.
 
 Copyright Notice
 
@@ -2782,8 +2782,9 @@ Table of Contents
    parsing this format MUST reject a name that does not follow the
    encoding rules exactly, including a period not followed by exactly
    two lowercase hexadecimal digits, or a byte that could have been
-   represented literally but was hex-encoded.  How an invalid name is
-   handled is application-defined.
+   represented literally but was hex-encoded.  For example, .61 is
+   invalid because a is represented as the literal character a.  How an
+   invalid name is handled is application-defined.
 
    Example:
 
@@ -6588,9 +6589,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-07, 20 August 2026,
+              draft-ietf-scone-protocol-08, 8 September 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-07>.
+              protocol-08>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
