@@ -257,6 +257,11 @@ Track:
 
 : A track is a collection of groups. See ({{model-track}}).
 
+Subscription:
+
+: An ongoing relationship in which a publisher delivers newly published
+  objects from a track to a subscriber. See ({{subscriptions}}).
+
 ## Stream Management Terms
 
 This document uses stream management terms described in {{?RFC9000, Section
