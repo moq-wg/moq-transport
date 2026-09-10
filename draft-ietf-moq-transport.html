@@ -3203,8 +3203,9 @@ interested in and authorized to receive the content.<a href="#section-4.1-9" cla
         </h3>
 <p id="section-4.2-1">A publisher <span class="bcp14">MAY</span> send PUBLISH_NAMESPACE messages to any subscriber. A
 PUBLISH_NAMESPACE indicates to the subscriber that the publisher has tracks
-available in that namespace. A subscriber <span class="bcp14">MAY</span> send SUBSCRIBE or FETCH for tracks
-in a namespace without having received a PUBLISH_NAMESPACE for it.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+available in namespaces matching the Track Namespace Prefix it carries (see
+<a href="#namespace-prefix-matching" class="auto internal xref">Section 7.5, Paragraph 6</a>). A subscriber <span class="bcp14">MAY</span> send SUBSCRIBE or FETCH for
+tracks in a namespace without having received a PUBLISH_NAMESPACE for it.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.2-2">If a publisher is the Original Publisher for one or more tracks in a given
 namespace, or is a relay that has received an authorized PUBLISH_NAMESPACE for
 that namespace from an upstream publisher, it <span class="bcp14">MUST</span> send a NAMESPACE message
@@ -4071,10 +4072,10 @@ latency when forwarding is later enabled.<a href="#section-7.2-2.2.1" class="pil
         <h3 id="name-multiple-publishers">
 <a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-multiple-publishers" class="section-name selfRef">Multiple Publishers</a>
         </h3>
-<p id="section-7.3-1">A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or PUBLISH
-messages for the same Track from multiple publishers.  The following sections
-explain how Relays maintain subscriptions to all available publishers for a
-given Track.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.3-1">A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace Prefix or
+PUBLISH messages for the same Track from multiple publishers.  The following
+sections explain how Relays maintain subscriptions to all available publishers
+for a given Track.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
 <p id="section-7.3-2">There is no specified limit to the number of publishers of a Track Namespace or
 Track.  An implementation can use mechanisms such as REQUEST_ERROR or
 unsubscribing (see <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>) if it cannot accept an additional
@@ -4160,15 +4161,16 @@ pause the Subscription with REQUEST_UPDATE in Forward State=0 until there are
 known subscribers for new Tracks.<a href="#section-7.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-7.5-2.2">
-            <p id="section-7.5-2.2.1">Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
-enables the relay to send SUBSCRIBE or FETCH messages to publishers for Tracks
-in this Namespace in response to requests received from subscribers.<a href="#section-7.5-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-7.5-2.2.1">Send a PUBLISH_NAMESPACE message for a Track Namespace Prefix to the relay.
+This enables the relay to send SUBSCRIBE or FETCH messages to publishers for
+Tracks matching that prefix in response to requests received from subscribers.<a href="#section-7.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-7.5-3">Relays <span class="bcp14">MUST</span> verify that publishers are authorized to publish the set of Tracks
-whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
-Track Name in PUBLISH. Relays <span class="bcp14">MUST NOT</span> assume that an authorized publisher of a single
-Track is implicitly authorized to publish any other Tracks or Track Namespaces.
+whose Track Namespace matches the Track Namespace Prefix in a
+PUBLISH_NAMESPACE, or the Full Track Name in PUBLISH. Relays <span class="bcp14">MUST NOT</span> assume
+that an authorized publisher of a single Track is implicitly authorized to
+publish any other Tracks or Track Namespaces.
 If a Publisher would like Subscriptions in a Namespace routed to it, it <span class="bcp14">MUST</span> send
 an explicit PUBLISH_NAMESPACE.
 The authorization and identification of the publisher depends on the way the
@@ -5946,9 +5948,10 @@ REQUEST_UPDATE.<a href="#section-9.13-4" class="pilcrow">¶</a></p>
 <a href="#section-9.14" class="section-number selfRef">9.14. </a><a href="#name-publish_namespace" class="section-name selfRef">PUBLISH_NAMESPACE</a>
         </h3>
 <p id="section-9.14-1">The publisher sends the PUBLISH_NAMESPACE message as the first message on a
-new bidi stream to advertise that it has tracks available within a Track Namespace.
+new bidi stream to advertise that it has tracks available in namespaces
+matching a Track Namespace Prefix.
 The receiver verifies the publisher is authorized to publish tracks under this
-namespace.<a href="#section-9.14-1" class="pilcrow">¶</a></p>
+prefix.<a href="#section-9.14-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_namespace-mess"></span><div id="moq-transport-pub-ns-format">
 <figure id="figure-17">
           <div class="alignLeft art-text artwork" id="section-9.14-2.1">
@@ -5957,7 +5960,7 @@ PUBLISH_NAMESPACE Message {
   Type (vi64) = 0x6,
   Length (16),
   Request ID (vi64),
-  Track Namespace (..),
+  Track Namespace Prefix (..),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -5972,8 +5975,9 @@ PUBLISH_NAMESPACE Message {
             <p id="section-9.14-3.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 6.4.2.1</a>.<a href="#section-9.14-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.14-3.2">
-            <p id="section-9.14-3.2.1">Track Namespace: Identifies a track's namespace as defined in
-<a href="#track-namespace-structure" class="auto internal xref">Section 8.7</a>.<a href="#section-9.14-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.14-3.2.1">Track Namespace Prefix: A Track Namespace as defined in
+<a href="#track-namespace-structure" class="auto internal xref">Section 8.7</a>, matched as a prefix (see
+<a href="#namespace-prefix-matching" class="auto internal xref">Section 7.5, Paragraph 6</a>).<a href="#section-9.14-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.14-3.3">
             <p id="section-9.14-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.<a href="#section-9.14-3.3.1" class="pilcrow">¶</a></p>
@@ -6061,7 +6065,10 @@ are not affected by closure of the SUBSCRIBE_NAMESPACE stream.<a href="#section-
 it is sent on the response stream of a SUBSCRIBE_NAMESPACE request.
 All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
-in the 'Track Namespace Suffix'.<a href="#section-9.16-1" class="pilcrow">¶</a></p>
+in the 'Track Namespace Suffix'.  The Track Namespace Prefix from the
+SUBSCRIBE_NAMESPACE followed by the Track Namespace Suffix is the Track
+Namespace Prefix the publisher advertised, so tracks can exist in
+namespaces matching that prefix (see <a href="#namespace-prefix-matching" class="auto internal xref">Section 7.5, Paragraph 6</a>).<a href="#section-9.16-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-namespace-message"></span><div id="moq-transport-ns-format">
 <figure id="figure-19">
           <div class="alignLeft art-text artwork" id="section-9.16-2.1">
