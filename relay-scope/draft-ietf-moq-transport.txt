@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 March 2027                                     I. Swett, Ed.
+Expires: 14 March 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        9 September 2026
+                                                       10 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 March 2027.
+   This Internet-Draft will expire on 14 March 2027.
 
 Copyright Notice
 
@@ -5702,10 +5702,10 @@ EXT 1 and EXT N can be modified or removed by Relays
 15.  Security Considerations
 
    MOQT is a protocol used hop-by-hop between original publishers to
-   relays and relays to end subscribers.  Thus, the security
-   considerations need to consider first what happens between two
-   Endpoints, but also consider the impacts end to end over several hops
-   of MOQT.
+   relay, (possibly) relay to relay, and relay to end subscribers.
+   Thus, the security considerations need to consider first what happens
+   between two Endpoints, but also consider the impacts end to end over
+   several hops of MOQT.
 
    MOQT uses a trust model where on each hop the Endpoints need to be
    securely identified, authorized to use resources of the peer, provide
