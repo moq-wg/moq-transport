@@ -179,11 +179,13 @@ Application:
 
 Client:
 
-: The party initiating a Transport Session.
+: The party initiating a Transport Session.  A Client can be a Publisher, a
+  Subscriber, or both.
 
 Server:
 
-: The party accepting an incoming Transport Session.
+: The party accepting an incoming Transport Session.  A Server can be a
+  Publisher, a Subscriber, or both.
 
 Endpoint:
 
@@ -266,7 +268,7 @@ This document uses stream management terms described in {{?RFC9000, Section
 1.3}} including STOP_SENDING, RESET_STREAM, and FIN. It also uses
 RESET_STREAM_AT from {{!I-D.draft-ietf-quic-reliable-stream-reset}}.
 RESET_STREAM_AT can be used by MOQT, but the protocol is also designed to work
-correctly when the extension is not supported.
+correctly when the extension is not used or not supported.
 
 When this document says an endpoint "resets" a stream, it means the endpoint
 sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
@@ -1157,8 +1159,9 @@ interested in and authorized to receive the content.
 
 A publisher MAY send PUBLISH_NAMESPACE messages to any subscriber. A
 PUBLISH_NAMESPACE indicates to the subscriber that the publisher has tracks
-available in that namespace. A subscriber MAY send SUBSCRIBE or FETCH for tracks
-in a namespace without having received a PUBLISH_NAMESPACE for it.
+available in namespaces matching the Track Namespace Prefix it carries (see
+{{namespace-prefix-matching}}). A subscriber MAY send SUBSCRIBE or FETCH for
+tracks in a namespace without having received a PUBLISH_NAMESPACE for it.
 
 If a publisher is the Original Publisher for one or more tracks in a given
 namespace, or is a relay that has received an authorized PUBLISH_NAMESPACE for
@@ -1657,6 +1660,15 @@ values required by those extensions as Setup Options in SETUP. Once an endpoint
 has both sent and received SETUP messages, it determines the set of negotiated
 extensions.
 
+There is no generic format for declaring extension support. Each extension
+specification defines the Setup Option or Options used to declare support for
+that extension, the format of their values, and the rules for determining
+whether the extension is negotiated. For example, an extension could be
+declared by a zero length option, where presence alone indicates support, or
+by an option carrying a list of supported extension versions from which the
+endpoints select a common version. Setup Option types are registered with
+IANA; see {{iana-setup-options}}.
+
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
 can be used.
@@ -1881,10 +1893,10 @@ tradeoffs and deployment considerations:
 
 ## Multiple Publishers
 
-A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or PUBLISH
-messages for the same Track from multiple publishers.  The following sections
-explain how Relays maintain subscriptions to all available publishers for a
-given Track.
+A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace Prefix or
+PUBLISH messages for the same Track from multiple publishers.  The following
+sections explain how Relays maintain subscriptions to all available publishers
+for a given Track.
 
 There is no specified limit to the number of publishers of a Track Namespace or
 Track.  An implementation can use mechanisms such as REQUEST_ERROR or
@@ -1965,14 +1977,15 @@ There are two ways to publish through a relay:
 pause the Subscription with REQUEST_UPDATE in Forward State=0 until there are
 known subscribers for new Tracks.
 
-2. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
-enables the relay to send SUBSCRIBE or FETCH messages to publishers for Tracks
-in this Namespace in response to requests received from subscribers.
+2. Send a PUBLISH_NAMESPACE message for a Track Namespace Prefix to the relay.
+This enables the relay to send SUBSCRIBE or FETCH messages to publishers for
+Tracks matching that prefix in response to requests received from subscribers.
 
 Relays MUST verify that publishers are authorized to publish the set of Tracks
-whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
-Track Name in PUBLISH. Relays MUST NOT assume that an authorized publisher of a single
-Track is implicitly authorized to publish any other Tracks or Track Namespaces.
+whose Track Namespace matches the Track Namespace Prefix in a
+PUBLISH_NAMESPACE, or the Full Track Name in PUBLISH. Relays MUST NOT assume
+that an authorized publisher of a single Track is implicitly authorized to
+publish any other Tracks or Track Namespaces.
 If a Publisher would like Subscriptions in a Namespace routed to it, it MUST send
 an explicit PUBLISH_NAMESPACE.
 The authorization and identification of the publisher depends on the way the
@@ -2002,8 +2015,7 @@ bar).  It will not match a session with namespace=(foobar).
 
 Relays MUST send SUBSCRIBE messages to all matching publishers. This includes
 matching both Established subscriptions on the Full Track Name and Namespace
-Prefix Matching against published Namespaces.  Relays MUST forward
-PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
+Prefix Matching against published Namespaces.
 
 When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
@@ -2029,14 +2041,18 @@ holding a downstream SUBSCRIBE awaiting a publisher for this Track (see
 {{rendezvous-timeout}}), it MUST proceed with the SUBSCRIBE and
 MUST NOT also forward the PUBLISH to that subscriber.
 
-When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
-matches one or more existing subscriptions to other upstream sessions, it MUST
-send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
-matching subscription.  When it receives an authorized PUBLISH message for a
+When a relay receives an authorized PUBLISH message for a
 Track that has `Established` downstream subscriptions, it MUST respond with
 PUBLISH_OK.  If at least one downstream subscriber for the Track has
 Forward State=1, the Relay MUST change the Forward State to 1 with
 REQUEST_UPDATE.
+
+When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
+matches one or more existing subscriptions to other upstream sessions, it MUST
+send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
+matching subscription. A Relay does not send PUBLISH_NAMESPACE to a subscriber;
+it advertises namespaces by sending NAMESPACE in response to a matching
+SUBSCRIBE_NAMESPACE (see {{subscribing-to-namespaces}}).
 
 If a Session is closed due to an unknown or invalid control message or Object,
 the Relay MUST NOT propagate that message or Object to another Session, because
@@ -2375,29 +2391,15 @@ is chosen to be generally both filename and URL safe, filename safety is
 platform specific; for instance, on case-insensitive filesystems, track names
 can collide.
 
-### Parsing Serialized Names
-
-When parsing a serialized namespace or track name back to its binary form,
-implementations MUST apply the following rules to ensure a canonical encoding:
-
-* A period (.) MUST be followed by exactly two hexadecimal digits. A trailing period
-  or a period followed by fewer than two hexadecimal digits is invalid.
-
-* The hexadecimal digits following a period (.) MUST be lowercase (a-f). Uppercase
-  hexadecimal digits (A-F) are invalid and MUST cause parsing to fail.
-
-* Bytes that can be represented literally (a-z, A-Z, 0-9, _) MUST NOT appear
-  in their hex-encoded form. For example, `.61` is invalid because `a` must
-  be represented as the literal character `a`. A parser MUST reject such
-  redundant encodings.
-
-These rules ensure that the encoding is bijective: every binary value has
-exactly one valid serialized representation, and every valid serialized
-string maps to exactly one binary value. This property simplifies comparison
-of serialized names without requiring full deserialization.
-
-Implementations that receive an invalid serialized name SHOULD treat it as
-an error. The specific error handling behavior is application-defined.
+Because this format produces exactly one rendering of any given binary value, it
+is bijective: every valid serialized name maps to exactly one binary value, so
+serialized names can be compared without deserializing them. To maintain this
+property, an implementation parsing this format MUST reject a name that does
+not follow the encoding rules exactly, including a period not followed by
+exactly two lowercase hexadecimal digits, or a byte that could have been
+represented literally but was hex-encoded.  For example, `.61` is invalid
+because `a` is represented as the literal character `a`. How an invalid name is
+handled is application-defined.
 
 Example:
 
@@ -2508,9 +2510,10 @@ By registering a Token, the sender is requiring the receiver to store the Token
 Alias and Token Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a Setup Option defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
-willing to accept. If a registration is attempted which would cause this limit
-to be exceeded, the receiver MUST terminate the Session with a
-`AUTH_TOKEN_CACHE_OVERFLOW` error.
+willing to accept. If a registration outside of SETUP is attempted that would
+cause this limit to be exceeded, the receiver MUST terminate the Session with
+an `AUTH_TOKEN_CACHE_OVERFLOW` error.  Registrations in SETUP are handled as
+described in {{setup-auth-token}}.
 
 An Authorization Token MAY be repeated within a message as long as the
 combination of Token Type and Token Value are unique after resolving any
@@ -2641,6 +2644,9 @@ separate from Message Parameters.  Receivers MUST ignore unrecognized Setup
 Options.  Senders MUST NOT repeat the same Option Type in a message unless
 the option definition explicitly allows multiple instances. Receivers MUST
 allow duplicates of unknown Setup Options.
+
+Setup Options are also the mechanism by which endpoints declare support for
+MOQT extensions; see {{extension-negotiation}}.
 
 The available Setup Options are detailed in the next sections.
 
@@ -3337,16 +3343,17 @@ REQUEST_UPDATE.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 The publisher sends the PUBLISH_NAMESPACE message as the first message on a
-new bidi stream to advertise that it has tracks available within a Track Namespace.
+new bidi stream to advertise that it has tracks available in namespaces
+matching a Track Namespace Prefix.
 The receiver verifies the publisher is authorized to publish tracks under this
-namespace.
+prefix.
 
 ~~~
 PUBLISH_NAMESPACE Message {
   Type (vi64) = 0x6,
   Length (16),
   Request ID (vi64),
-  Track Namespace (..),
+  Track Namespace Prefix (..),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -3355,8 +3362,9 @@ PUBLISH_NAMESPACE Message {
 
 * Request ID: See {{request-id}}.
 
-* Track Namespace: Identifies a track's namespace as defined in
-  {{track-namespace-structure}}.
+* Track Namespace Prefix: A Track Namespace as defined in
+  {{track-namespace-structure}}, matched as a prefix (see
+  {{namespace-prefix-matching}}).
 
 * Parameters: The parameters are defined in {{message-params}}.
 
@@ -3427,7 +3435,10 @@ The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
 it is sent on the response stream of a SUBSCRIBE_NAMESPACE request.
 All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
-in the 'Track Namespace Suffix'.
+in the 'Track Namespace Suffix'.  The Track Namespace Prefix from the
+SUBSCRIBE_NAMESPACE followed by the Track Namespace Suffix is the Track
+Namespace Prefix the publisher advertised, so tracks can exist in
+namespaces matching that prefix (see {{namespace-prefix-matching}}).
 
 ~~~
 NAMESPACE Message {
@@ -4429,7 +4440,8 @@ fields are present in the header:
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is present
   in all Objects in this Subgroup. When set to 1, the Object Properties structure
   defined in {{object-properties}} is present in all Objects; Objects with no
-  properties set Properties Length to 0. When set to 0, the field is never present.
+  properties or non-Normal status set Properties Length to 0. When set to 0, the
+  field is never present in this Subgroup.
 
 * The **SUBGROUP_ID_MODE** field (bits 1-2, mask 0x06) is a two-bit field that
   determines the encoding of the Subgroup ID. To extract this value, perform a
@@ -5753,6 +5765,23 @@ document. All AI-generated content was reviewed and approved by the editors.
 RFC Editor's Note: Please remove this section prior to publication of a final version of this document.
 
 Issue and pull request numbers are listed with a leading octothorp.
+
+## Since draft-ietf-moq-transport-20
+
+**Notable Editorial Changes**
+
+* Add a Document Structure section (#1903)
+* Move-only restructuring across the document (#1877)
+* Restructure and reorder Publishing and Receiving Tracks (#1885, #1893)
+* Move Error Handling and Grease ahead of the considerations sections (#1899)
+* Promote each Setup Option to its own section (#1896)
+* Collect Session Termination, Request Error, and Publish Done codes into
+  Error Handling (#1879, #1880, #1881)
+* Extract common wire format sections: Authorization Token Compression, Track
+  Namespace, Location Filter, and Range Filter (#1882, #1887, #1888, #1892)
+* Remove the Connection URL, Stream Cancellation, and Examples sections (#1878)
+* Restructuring pull requests that also made editorial clarifications are
+  included as moves only; the clarifications are deferred (#1887, #1888, #1892)
 
 ## Since draft-ietf-moq-transport-19
 
