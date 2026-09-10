@@ -2977,7 +2977,7 @@ response (see <a href="#message-fetch" class="auto internal xref">Section 9.11</
 <p id="section-3.4-2">The <strong>fill range</strong> is the range of Locations selected by the Location filter
 inside FILL_PARAMETERS, or the subscription's Location filter if it is
 omitted. The filter is evaluated using the rules for a Fetch in
-<a href="#location-filters" class="auto internal xref">Section 3.3.1</a>, so the fill range never extends beyond <code>Largest
+<a href="#location-filter" class="auto internal xref">Section 9.20.10</a>, so the fill range never extends beyond <code>Largest
 Object</code>. When the subscription has no Location filter, or the LOCATION_FILTER
 inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
 <code>Largest Object</code>.  The subscriber learns the <code>Largest Object</code> from the
@@ -5452,7 +5452,7 @@ REQUEST_UPDATE messages.<a href="#section-9.5-3" class="pilcrow">¶</a></p>
 limited by the MAX_REQUEST_UPDATES Setup Option (<a href="#max-request-updates" class="auto internal xref">Section 9.1.7</a>).<a href="#section-9.5-4" class="pilcrow">¶</a></p>
 <p id="section-9.5-5">If a parameter previously set on the request is not present in
 <code>REQUEST_UPDATE</code>, its value remains unchanged.<a href="#section-9.5-5" class="pilcrow">¶</a></p>
-<p id="section-9.5-6">There is no mechanism to remove a parameter from a request.<a href="#section-9.5-6" class="pilcrow">¶</a></p>
+<p id="section-9.5-6">There is no generic mechanism to remove a parameter from a request.<a href="#section-9.5-6" class="pilcrow">¶</a></p>
 <p id="section-9.5-7">The format of REQUEST_UPDATE is as follows:<a href="#section-9.5-7" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_update-message"></span><div id="moq-transport-request-update-format">
 <figure id="figure-9">
@@ -6475,35 +6475,97 @@ LOCATION_FILTER Parameter {
 }
 </pre><a href="#section-9.20.10-3" class="pilcrow">¶</a>
 </div>
-<p id="section-9.20.10-4">Length (in bytes) determines how many optional vi64 fields are present.
-A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
-  * If only one field is present, it is StartGroup.
+<p id="section-9.20.10-4">The optional variable-length integer fields are decoded in the order shown until Length bytes have been
+consumed.  A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
+How many fields are decoded determines which fields they are, and how
+the filter is interpreted:
+  * If only one field is present, it is a relative StartGroup.
   * If only two fields are present, they are StartGroup and StartObject.
   * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.<a href="#section-9.20.10-4" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-5">If only StartGroup is present, it is a relative number of groups prior to the Next Group,
+<p id="section-9.20.10-5">The table below summarizes the encodings.<a href="#section-9.20.10-5" class="pilcrow">¶</a></p>
+<span id="name-location-filter-forms"></span><div id="location-filter-forms">
+<table class="center" id="table-6">
+            <caption>
+<a href="#table-6" class="selfRef">Table 6</a>:
+<a href="#name-location-filter-forms" class="selfRef">Location Filter forms</a>
+            </caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Fields present</th>
+                <th class="text-left" rowspan="1" colspan="1">Start Location</th>
+                <th class="text-left" rowspan="1" colspan="1">End Location</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">none (Length 0)</td>
+                <td class="text-left" rowspan="1" colspan="1">no filter</td>
+                <td class="text-left" rowspan="1" colspan="1">no filter</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">StartGroup</td>
+                <td class="text-left" rowspan="1" colspan="1">relative: <code>{Largest Object.Group + 1 - StartGroup, 0}</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">open-ended</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">StartGroup, StartObject, both 0</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>Next Object</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">open-ended</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">StartGroup, StartObject, not both 0</td>
+                <td class="text-left" rowspan="1" colspan="1">absolute: <code>{StartGroup, StartObject}</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">open-ended</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">StartGroup, StartObject, EndGroupDelta</td>
+                <td class="text-left" rowspan="1" colspan="1">absolute: <code>{StartGroup, StartObject}</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">last Object of Group <code>StartGroup + EndGroupDelta</code>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">StartGroup, StartObject, EndGroupDelta, EndObject</td>
+                <td class="text-left" rowspan="1" colspan="1">absolute: <code>{StartGroup, StartObject}</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>{StartGroup + EndGroupDelta, EndObject}</code>
+</td>
+              </tr>
+            </tbody>
+          </table>
+</div>
+<p id="section-9.20.10-7">If a field extends beyond the end of the parameter, more than four fields
+are present, or an integer field extends beyond the given Length, the
+endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.10-7" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-8">If only StartGroup is present, it is a relative number of groups prior to the Next Group,
 hence the start Location is <code>{Largest Object.Group + 1 - StartGroup, 0}</code>. For example:
   * StartGroup=0 will start at the Next Group
   * StartGroup=1 will start at the current group
   * StartGroup=2 will start at 1 group prior to the current group
-  * StartGroup=N will start at N-1 groups prior to the current group<a href="#section-9.20.10-5" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-6">If only StartGroup and StartObject are present and both 0, the start Location
+  * StartGroup=N will start at N-1 groups prior to the current group<a href="#section-9.20.10-8" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-9">If only StartGroup and StartObject are present and both 0, the start Location
 is the Next Object (see <a href="#largest-object" class="auto internal xref">Section 3.1.3</a>).  An open-ended filter that starts
 at absolute Location {0, 0} is equivalent to unfiltered, so the subscriber need
-not include a Location filter.<a href="#section-9.20.10-6" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-7">If a relative start group results in a computed absolute group less than 0, the
-computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.<a href="#section-9.20.10-7" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-8">Otherwise, all fields are absolute.  EndGroupDelta is delta
+not include a Location filter.<a href="#section-9.20.10-9" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-10">If a relative start group results in a computed absolute group less than 0, the
+computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.<a href="#section-9.20.10-10" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-11">Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
 relative to <code>Largest Object</code>.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
-the endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.10-8" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-9">When EndGroupDelta and EndObject are omitted from a subscription filter, the
+the endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.10-11" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-12">When EndGroupDelta and EndObject are omitted from a subscription filter, the
 subscription is open-ended. When they are omitted from a Fetch, the
-EndGroup and EndObject are <code>Largest Object</code>.<a href="#section-9.20.10-9" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-10">When EndObject is omitted, the filter includes all objects in the End Group.<a href="#section-9.20.10-10" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-11">If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
+EndGroup and EndObject are <code>Largest Object</code>.<a href="#section-9.20.10-12" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-13">When EndObject is omitted, the filter includes all objects in the End Group.<a href="#section-9.20.10-13" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-14">If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
 unfiltered.  If omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY, the
 value is unchanged.  When sent in PUBLISH_STATE_NOTIFY, it reports the
-Location Filter now in effect at the publisher.<a href="#section-9.20.10-11" class="pilcrow">¶</a></p>
+Location Filter now in effect at the publisher.<a href="#section-9.20.10-14" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subgroup-filter">
@@ -6627,8 +6689,8 @@ stream (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>
 separate message (see <a href="#message-parameters" class="auto internal xref">Section 16.7</a>).  Its presence is what requests a
 fill fetch stream; a subscription with no FILL_PARAMETERS opens none.<a href="#section-9.20.16-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.16-2">The following parameters <span class="bcp14">MAY</span> appear inside FILL_PARAMETERS:<a href="#section-9.20.16-2" class="pilcrow">¶</a></p>
-<table class="center" id="table-6">
-            <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
+<table class="center" id="table-7">
+            <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Parameter Type</th>
@@ -7597,8 +7659,8 @@ a variable-length integer. When less than 128, the bits represent flags
 described in <a href="#fetch-serialization-flags" class="auto internal xref">Section 11.4.1.1</a>. When 128 or greater, the value
 signals a range indicator; the defined values are:<a href="#section-11.4.1-5" class="pilcrow">¶</a></p>
 <p id="section-11.4.1-6"><strong>Reserved Serialization Flags values:</strong><a href="#section-11.4.1-6" class="pilcrow">¶</a></p>
-<table class="center" id="table-7">
-            <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
+<table class="center" id="table-8">
+            <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Value</th>
@@ -7629,8 +7691,8 @@ signals a range indicator; the defined values are:<a href="#section-11.4.1-5" cl
 <p id="section-11.4.1.1-1"><strong>Subgroup ID encoding (bits 0-1, mask 0x03):</strong> The two least significant
 bits of the Serialization Flags form a two-bit field that defines the
 encoding of the Subgroup ID.<a href="#section-11.4.1.1-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-8">
-              <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
+<table class="center" id="table-9">
+              <caption><a href="#table-9" class="selfRef">Table 9</a></caption>
 <thead>
                 <tr>
                   <th class="text-left" rowspan="1" colspan="1">Value</th>
@@ -7658,8 +7720,8 @@ encoding of the Subgroup ID.<a href="#section-11.4.1.1-1" class="pilcrow">¶</a>
             </table>
 <p id="section-11.4.1.1-3"><strong>Independent flag bits:</strong> Each of the following is an independent boolean;
 a set bit (1) indicates the corresponding condition is true.<a href="#section-11.4.1.1-3" class="pilcrow">¶</a></p>
-<table class="center" id="table-9">
-              <caption><a href="#table-9" class="selfRef">Table 9</a></caption>
+<table class="center" id="table-10">
+              <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
 <thead>
                 <tr>
                   <th class="text-left" rowspan="1" colspan="1">Bitmask</th>
@@ -8791,8 +8853,8 @@ Required policy (<span>[<a href="#RFC8126" class="cite xref">RFC8126</a>], <a hr
         <h3 id="name-setup-options">
 <a href="#section-16.4" class="section-number selfRef">16.4. </a><a href="#name-setup-options" class="section-name selfRef">Setup Options</a>
         </h3>
-<table class="center" id="table-10">
-          <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
+<table class="center" id="table-11">
+          <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Type</th>
@@ -8874,8 +8936,8 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
         <h3 id="name-authorization-token-alias-t">
 <a href="#section-16.5" class="section-number selfRef">16.5. </a><a href="#name-authorization-token-alias-t" class="section-name selfRef">Authorization Token Alias Type</a>
         </h3>
-<table class="center" id="table-11">
-          <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
+<table class="center" id="table-12">
+          <caption><a href="#table-12" class="selfRef">Table 12</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Code</th>
@@ -8921,8 +8983,8 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
         <h3 id="name-moqt-auth-token-type">
 <a href="#section-16.6" class="section-number selfRef">16.6. </a><a href="#name-moqt-auth-token-type" class="section-name selfRef">MOQT Auth Token Type</a>
         </h3>
-<table class="center" id="table-12">
-          <caption><a href="#table-12" class="selfRef">Table 12</a></caption>
+<table class="center" id="table-13">
+          <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Code</th>
@@ -8954,8 +9016,8 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
         <h3 id="name-message-parameters">
 <a href="#section-16.7" class="section-number selfRef">16.7. </a><a href="#name-message-parameters" class="section-name selfRef">Message Parameters</a>
         </h3>
-<table class="center" id="table-13">
-          <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
+<table class="center" id="table-14">
+          <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Parameter Type</th>
@@ -9118,8 +9180,8 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
         <h3 id="name-properties">
 <a href="#section-16.8" class="section-number selfRef">16.8. </a><a href="#name-properties" class="section-name selfRef">Properties</a>
         </h3>
-<table class="center" id="table-14">
-          <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
+<table class="center" id="table-15">
+          <caption><a href="#table-15" class="selfRef">Table 15</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Type</th>
@@ -9213,8 +9275,8 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
         </table>
 <p id="section-16.8-2">The following table contains provisional registrations for other active drafts in the moq wg.
 These entries share the same Property Type space as the table above.<a href="#section-16.8-2" class="pilcrow">¶</a></p>
-<table class="center" id="table-15">
-          <caption><a href="#table-15" class="selfRef">Table 15</a></caption>
+<table class="center" id="table-16">
+          <caption><a href="#table-16" class="selfRef">Table 16</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Type</th>
@@ -9323,8 +9385,8 @@ collision risks.<a href="#section-16.8-5.1.3" class="pilcrow">¶</a></p>
 <p id="section-16.9-1">This document establishes a registry for Object Status values (see
 <a href="#object-status" class="auto internal xref">Section 11.1.1</a>). The "Payload" column indicates whether an Object with that
 status is permitted to carry a non-empty payload.<a href="#section-16.9-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-16">
-          <caption><a href="#table-16" class="selfRef">Table 16</a></caption>
+<table class="center" id="table-17">
+          <caption><a href="#table-17" class="selfRef">Table 17</a></caption>
 <thead>
             <tr>
               <th class="text-right" rowspan="1" colspan="1">Code</th>
@@ -9374,8 +9436,8 @@ status permits a payload.<a href="#section-16.9-3" class="pilcrow">¶</a></p>
 under the <code>.session</code> namespace (see <a href="#session-level-tracks" class="auto internal xref">Section 6.5</a>). The
 registration policy is Specification Required (per <span>[<a href="#RFC8126" class="cite xref">RFC8126</a>], <a href="https://rfc-editor.org/rfc/rfc8126#section-4.6" class="relref">Section 4.6</a></span>).<a href="#section-16.10-1" class="pilcrow">¶</a></p>
 <p id="section-16.10-2">Each registration must include:<a href="#section-16.10-2" class="pilcrow">¶</a></p>
-<table class="center" id="table-17">
-          <caption><a href="#table-17" class="selfRef">Table 17</a></caption>
+<table class="center" id="table-18">
+          <caption><a href="#table-18" class="selfRef">Table 18</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Field</th>
@@ -9418,8 +9480,8 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
           <h4 id="name-session-termination-error-c">
 <a href="#section-16.11.1" class="section-number selfRef">16.11.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
           </h4>
-<table class="center" id="table-18">
-            <caption><a href="#table-18" class="selfRef">Table 18</a></caption>
+<table class="center" id="table-19">
+            <caption><a href="#table-19" class="selfRef">Table 19</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -9584,8 +9646,8 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
           <h4 id="name-request_error-codes">
 <a href="#section-16.11.2" class="section-number selfRef">16.11.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
           </h4>
-<table class="center" id="table-19">
-            <caption><a href="#table-19" class="selfRef">Table 19</a></caption>
+<table class="center" id="table-20">
+            <caption><a href="#table-20" class="selfRef">Table 20</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -9736,8 +9798,8 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
           <h4 id="name-publish_done-codes">
 <a href="#section-16.11.3" class="section-number selfRef">16.11.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
           </h4>
-<table class="center" id="table-20">
-            <caption><a href="#table-20" class="selfRef">Table 20</a></caption>
+<table class="center" id="table-21">
+            <caption><a href="#table-21" class="selfRef">Table 21</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -9825,8 +9887,8 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
           <h4 id="name-stream-reset-error-codes-2">
 <a href="#section-16.11.4" class="section-number selfRef">16.11.4. </a><a href="#name-stream-reset-error-codes-2" class="section-name selfRef">Stream Reset Error Codes</a>
           </h4>
-<table class="center" id="table-21">
-            <caption><a href="#table-21" class="selfRef">Table 21</a></caption>
+<table class="center" id="table-22">
+            <caption><a href="#table-22" class="selfRef">Table 22</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
