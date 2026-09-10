@@ -84,7 +84,8 @@ Table of Contents
        1.2.4.  Relays
      1.3.  Terms and Definitions
      1.4.  Stream Management Terms
-     1.5.  Modularity
+     1.5.  Response Message Naming
+     1.6.  Modularity
    2.  Object Data Model
      2.1.  Objects
        2.1.1.  Object Fields
@@ -496,6 +497,10 @@ Table of Contents
 
    Track:  A track is a collection of groups.  See (Section 2.4).
 
+   Subscription:  An ongoing relationship in which a publisher delivers
+      newly published objects from a track to a subscriber.  See
+      (Section 3.1).
+
 1.4.  Stream Management Terms
 
    This document uses stream management terms described in [RFC9000],
@@ -509,7 +514,20 @@ Table of Contents
    endpoint sends a RESET_STREAM or RESET_STREAM_AT frame on that stream
    (see Section 11.3.2 for considerations on choosing between them).
 
-1.5.  Modularity
+1.5.  Response Message Naming
+
+   Most requests in MOQT are answered with a common REQUEST_OK
+   (Section 9.3) or REQUEST_ERROR (Section 9.4) message.  This document
+   uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK, TRACK_STATUS_OK,
+   SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and PUBLISH_NAMESPACE_OK
+   to refer to a REQUEST_OK sent in response to the corresponding
+   request type.  Likewise, it uses the shorthand SUBSCRIBE_ERROR,
+   FETCH_ERROR, PUBLISH_ERROR, SUBSCRIBE_NAMESPACE_ERROR,
+   SUBSCRIBE_TRACKS_ERROR, PUBLISH_NAMESPACE_ERROR, TRACK_STATUS_ERROR
+   and REQUEST_UPDATE_ERROR to refer to a REQUEST_ERROR sent in response
+   to the corresponding request type.
+
+1.6.  Modularity
 
    MOQT defines all messages necessary to implement both simple
    publishing or subscribing endpoints as well as fully capable Relays.
@@ -827,9 +845,9 @@ Table of Contents
    subscriber.  A publisher initiates a subscription to a track by
    sending the PUBLISH message.  The subscriber either accepts or
    rejects the subscription using PUBLISH_OK (Section 9.3) or
-   REQUEST_ERROR.  A subscriber initiates a subscription to a track by
+   PUBLISH_ERROR.  A subscriber initiates a subscription to a track by
    sending the SUBSCRIBE message.  The publisher either accepts or
-   rejects the subscription using SUBSCRIBE_OK or REQUEST_ERROR.  Once
+   rejects the subscription using SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once
    either of these sequences is successful, the subscription moves to
    the Established state and can be updated by the subscriber using
    REQUEST_UPDATE.  Either endpoint can terminate an Established
@@ -841,36 +859,36 @@ Table of Contents
 
    This diagram shows the subscription state machine:
 
-                               +--------+
-                               |  Idle  |
-                               +--------+
-                                 |    |
-                       SUBSCRIBE |    | PUBLISH
-                     (subscriber)|    | (publisher)
-                                 V    V
-                    +--------------+ +--------------+
-                    | Pending      | | Pending      |
-               +----| (Subscriber) | | (Publisher)  |----+
-               |    +--------------+ +--------------+    |
-               |                 |    |                  |
- REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
- (publisher)   |      (publisher)|    | (subscriber)     | (subscriber)
-               |                 V    V                  |
-               |            +-------------+              |
-               |            | Established | ------+
-               |            |             |       | REQUEST_UPDATE
-               |            +-------------+ <-----+
-               |                 |    |                  |
-               +--- STOP_SENDING |    | PUBLISH_DONE ----+
-               |     (subscriber)|    | (publisher)      |
-               |                 V    V                  |
-               |            +-------------+              |
-               +----------->| Terminated  | <------------+
-                            +-------------+
+                                +--------+
+                                |  Idle  |
+                                +--------+
+                                  |    |
+                        SUBSCRIBE |    | PUBLISH
+                      (subscriber)|    | (publisher)
+                                  V    V
+                     +--------------+ +--------------+
+                     | Pending      | | Pending      |
+                +----| (Subscriber) | | (Publisher)  |----+
+                |    +--------------+ +--------------+    |
+                |                 |    |                  |
+SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
+(publisher)     |      (publisher)|    | (subscriber)     | (subscriber)
+                |                 V    V                  |
+                |            +-------------+              |
+                |            | Established | ------+
+                |            |             |       | REQUEST_UPDATE
+                |            +-------------+ <-----+
+                |                 |    |                  |
+                +--- STOP_SENDING |    | PUBLISH_DONE ----+
+                |     (subscriber)|    | (publisher)      |
+                |                 V    V                  |
+                |            +-------------+              |
+                +----------->| Terminated  | <------------+
+                             +-------------+
 
-   A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in
+   A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in
    response to a SUBSCRIBE.  A subscriber MUST send exactly one
-   PUBLISH_OK (Section 9.3) or REQUEST_ERROR in response to a PUBLISH.
+   PUBLISH_OK (Section 9.3) or PUBLISH_ERROR in response to a PUBLISH.
    The peer SHOULD close the session with a protocol error if it
    receives more than one.
 
@@ -914,7 +932,7 @@ Table of Contents
    Publishers MAY start sending Objects on PUBLISH-initiated
    subscriptions before receiving a PUBLISH_OK response to reduce
    latency.  Doing so can consume unnecessary resources in cases where
-   the Subscriber rejects the subscription with REQUEST_ERROR or sets
+   the Subscriber rejects the subscription with PUBLISH_ERROR or sets
    Forward=0 in REQUEST_UPDATE.  It can also result in the Subscriber
    dropping Objects if its buffering limits are exceeded (see
    Section 11.2 and Section 11.3.1).
@@ -1016,15 +1034,15 @@ Table of Contents
    end of the FETCH response is indicated in the FETCH_OK End Location
    (see Section 9.12).
 
-   The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in
-   response to a FETCH.  The FETCH_OK or REQUEST_ERROR can come at any
+   The publisher MUST send exactly one FETCH_OK or FETCH_ERROR in
+   response to a FETCH.  The FETCH_OK or FETCH_ERROR can come at any
    time relative to object delivery.  The publisher MAY send Objects in
    response to a FETCH before the FETCH_OK message is sent, but the
    FETCH_OK MUST NOT be sent until the End Location is known.
 
    If no Objects have been published for the track or Start Location is
    greater than the Largest Object (Section 3.1.3) the publisher MUST
-   return REQUEST_ERROR with error code INVALID_RANGE.
+   return FETCH_ERROR with error code INVALID_RANGE.
 
 3.2.1.  Fetch Object Delivery
 
@@ -1086,7 +1104,7 @@ Table of Contents
    Section 11.4.1.2) and continue serving other known Objects.  When
    resetting the stream, the publisher can do so immediately or after
    previously sent objects are delivered.  If it has not yet sent
-   FETCH_OK, it can send REQUEST_ERROR in addition to resetting the
+   FETCH_OK, it can send FETCH_ERROR in addition to resetting the
    stream.
 
 3.2.3.  Relay Fetch Handling
@@ -1109,7 +1127,7 @@ Table of Contents
 3.2.4.  Fetch State Management
 
    A subscriber keeps FETCH state until it cancels the request (see
-   Section 6.4.2.3), receives REQUEST_ERROR, or the FETCH data stream
+   Section 6.4.2.3), receives FETCH_ERROR, or the FETCH data stream
    receives a FIN or is reset.  If the data stream is already open, the
    subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
    data stream as well as the bidi request stream.  It MUST send
@@ -1123,7 +1141,7 @@ Table of Contents
    It can remove all FETCH state after closing the data stream with a
    FIN.
 
-   A REQUEST_ERROR indicates that both endpoints can immediately remove
+   A FETCH_ERROR indicates that both endpoints can immediately remove
    state.  Since a relay can start delivering FETCH Objects from cache
    before determining the result of the request, some Objects could be
    received even if the FETCH results in error.
@@ -1360,28 +1378,28 @@ Table of Contents
    process or forward that track:
 
    *  For PUBLISH messages: the subscriber MUST respond with
-      REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+      PUBLISH_ERROR with error code UNSUPPORTED_EXTENSION.
 
    *  For SUBSCRIBE_OK messages: the subscriber MUST cancel the
       subscription (see Section 6.4.2.3).  If the subscriber is a relay
-      with pending downstream subscribers, it MUST send REQUEST_ERROR
+      with pending downstream subscribers, it MUST send SUBSCRIBE_ERROR
       with error code UNSUPPORTED_EXTENSION to the downstream
       subscribers.
 
    *  For FETCH_OK messages: the subscriber MUST cancel the fetch (see
       Section 6.4.2.3).  If the subscriber is a relay and has not yet
-      sent a FETCH_OK or REQUEST_ERROR downstream, it MUST send
-      REQUEST_ERROR with error code UNSUPPORTED_EXTENSION to the
+      sent a FETCH_OK or FETCH_ERROR downstream, it MUST send
+      FETCH_ERROR with error code UNSUPPORTED_EXTENSION to the
       downstream fetch requester.  If the relay has already forwarded
       data on a fetch stream, it MUST reset the stream.
 
    A publisher that knows a subscriber does not support a Mandatory
    Track Property SHOULD take the following action:
 
-   *  For SUBSCRIBE: respond with REQUEST_ERROR with error code
+   *  For SUBSCRIBE: respond with SUBSCRIBE_ERROR with error code
       UNSUPPORTED_EXTENSION.
 
-   *  For FETCH: respond with REQUEST_ERROR with error code
+   *  For FETCH: respond with FETCH_ERROR with error code
       UNSUPPORTED_EXTENSION.
 
    *  For PUBLISH: do not publish the track to that subscriber.
@@ -1480,13 +1498,14 @@ Table of Contents
    AUTHORIZATION TOKEN parameter.  Its lifetime is independent of the
    SUBSCRIBE_NAMESPACE stream.
 
-   An endpoint SHOULD report the reception of a REQUEST_OK or
-   REQUEST_ERROR to the application to inform the search for additional
-   subscribers for a namespace, or to abandon the attempt to publish
-   under this namespace.  A subscriber MUST send exactly one REQUEST_OK
-   or REQUEST_ERROR as the first message on the bidi stream in response
-   to a PUBLISH_NAMESPACE.  The publisher SHOULD close the session with
-   a protocol error if it receives more than one.
+   An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
+   PUBLISH_NAMESPACE_ERROR to the application to inform the search for
+   additional subscribers for a namespace, or to abandon the attempt to
+   publish under this namespace.  A subscriber MUST send exactly one
+   PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR as the first message
+   on the bidi stream in response to a PUBLISH_NAMESPACE.  The publisher
+   SHOULD close the session with a protocol error if it receives more
+   than one.
 
    A PUBLISH_NAMESPACE is withdrawn by cancelling the request (see
    Section 6.4.2.3), although it is not a protocol error for the
@@ -3274,11 +3293,6 @@ Table of Contents
    REQUEST_UPDATE, TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS
    and PUBLISH_NAMESPACE requests.
 
-   This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
-   TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
-   PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
-   corresponding request type.
-
    REQUEST_OK Message {
      Type (vi64) = 0x7,
      Length (16),
@@ -3393,9 +3407,10 @@ Table of Contents
    cases above MUST close the session with a PROTOCOL_VIOLATION.
 
    The receiver of a REQUEST_UPDATE MUST respond with exactly one
-   REQUEST_OK or REQUEST_ERROR message indicating if the update was
-   successful, unless it is coalescing failed updates to produce just
-   one REQUEST_ERROR for multiple REQUEST_UPDATE messages.
+   REQUEST_UPDATE_OK or REQUEST_UPDATE_ERROR message indicating if the
+   update was successful, unless it is coalescing failed updates to
+   produce just one REQUEST_UPDATE_ERROR for multiple REQUEST_UPDATE
+   messages.
 
    The number of outstanding REQUEST_UPDATEs on a single request stream
    is limited by the MAX_REQUEST_UPDATES Setup Option (Section 9.1.7).
@@ -3474,10 +3489,10 @@ Table of Contents
    A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
    coalesce their processing by applying only the cumulative result.
    Parameter values from later REQUEST_UPDATE messages override values
-   from earlier ones.  The receiver MUST still send a REQUEST_OK for
-   each successful update, but it is not required to process
+   from earlier ones.  The receiver MUST still send a REQUEST_UPDATE_OK
+   for each successful update, but it is not required to process
    intermediate states individually.  If the coalesced REQUEST_UPDATE
-   results in REQUEST_ERROR, only a single REQUEST_ERROR will be sent
+   results in an error, only a single REQUEST_UPDATE_ERROR will be sent
    and the sender of the REQUEST_UPDATEs will not always be able to
    determine which caused an error.
 
@@ -3614,7 +3629,7 @@ Table of Contents
    *  Track Properties : A sequence of Properties.  See Section 8.4.
 
    A subscriber receiving a PUBLISH for a Track it does not wish to
-   receive SHOULD send REQUEST_ERROR with error code UNINTERESTED, and
+   receive SHOULD send PUBLISH_ERROR with error code UNINTERESTED, and
    abandon reading any publisher initiated streams associated with that
    subscription using a STOP_SENDING frame.
 
@@ -3837,9 +3852,9 @@ Table of Contents
    the publisher responds with a TRACK_STATUS_OK with the same
    parameters and Track Properties it would have set in a SUBSCRIBE_OK.
    Track Alias is not used.  A publisher responds to a failed
-   TRACK_STATUS with an appropriate REQUEST_ERROR message.  The bidi
-   stream is closed with a FIN after TRACK_STATUS_OK or REQUEST_ERROR
-   are sent.
+   TRACK_STATUS with an appropriate TRACK_STATUS_ERROR message.  The
+   bidi stream is closed with a FIN after TRACK_STATUS_OK or
+   TRACK_STATUS_ERROR are sent.
 
    Relays without an Established subscription MAY forward TRACK_STATUS
    to one or more publishers, or MAY initiate a subscription (subject to
@@ -3906,11 +3921,12 @@ Table of Contents
       parameter that can appear in a SUBSCRIBE_NAMESPACE is
       AUTHORIZATION_TOKEN.
 
-   The publisher will respond with REQUEST_OK or REQUEST_ERROR on the
-   response half of the stream.  If the subscriber receives any message
-   other than a REQUEST_OK or a REQUEST_ERROR as the first message on
-   the response half of the stream, then it MUST close the session with
-   a PROTOCOL_VIOLATION.  If the SUBSCRIBE_NAMESPACE is successful, the
+   The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
+   SUBSCRIBE_NAMESPACE_ERROR on the response half of the stream.  If the
+   subscriber receives any message other than a SUBSCRIBE_NAMESPACE_OK
+   or a SUBSCRIBE_NAMESPACE_ERROR as the first message on the response
+   half of the stream, then it MUST close the session with a
+   PROTOCOL_VIOLATION.  If the SUBSCRIBE_NAMESPACE is successful, the
    publisher will send matching NAMESPACE messages on the response
    stream.  If it is an error, the stream will be immediately closed via
    FIN.  When there are changes to the namespaces being published and
@@ -3919,9 +3935,10 @@ Table of Contents
 
    Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with
    a Track Namespace Prefix that shares a common prefix with an
-   established SUBSCRIBE_NAMESPACE, it MUST respond with REQUEST_ERROR
-   with error code PREFIX_OVERLAP.  SUBSCRIBE_NAMESPACE and
-   SUBSCRIBE_TRACKS have independent overlap spaces (see Section 9.18).
+   established SUBSCRIBE_NAMESPACE, it MUST respond with
+   SUBSCRIBE_NAMESPACE_ERROR with error code PREFIX_OVERLAP.
+   SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have independent overlap
+   spaces (see Section 9.18).
 
    The publisher MUST ensure the subscriber is authorized to perform
    this namespace subscription.
@@ -4018,20 +4035,22 @@ Table of Contents
       OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER and
       INCLUDE_PROPERTIES.
 
-   The publisher will respond with REQUEST_OK or REQUEST_ERROR on the
-   response half of the stream.  If the subscriber receives any message
-   other than a REQUEST_OK or a REQUEST_ERROR as the first message on
-   the response half of the stream, then it MUST close the session with
-   a PROTOCOL_VIOLATION.  If the SUBSCRIBE_TRACKS is successful, the
-   publisher will send PUBLISH messages on new bidirectional streams for
-   tracks within matching namespaces.  If it is an error, the stream
-   will be closed via FIN after REQUEST_ERROR is sent.
+   The publisher will respond with SUBSCRIBE_TRACKS_OK or
+   SUBSCRIBE_TRACKS_ERROR on the response half of the stream.  If the
+   subscriber receives any message other than a SUBSCRIBE_TRACKS_OK or a
+   SUBSCRIBE_TRACKS_ERROR as the first message on the response half of
+   the stream, then it MUST close the session with a PROTOCOL_VIOLATION.
+   If the SUBSCRIBE_TRACKS is successful, the publisher will send
+   PUBLISH messages on new bidirectional streams for tracks within
+   matching namespaces.  If it is an error, the stream will be closed
+   via FIN after SUBSCRIBE_TRACKS_ERROR is sent.
 
    Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
    Track Namespace Prefix that shares a common prefix with an
-   established SUBSCRIBE_TRACKS, it MUST respond with REQUEST_ERROR with
-   error code PREFIX_OVERLAP.  SUBSCRIBE_TRACKS and SUBSCRIBE_NAMESPACE
-   have independent overlap spaces (see Section 9.15).
+   established SUBSCRIBE_TRACKS, it MUST respond with
+   SUBSCRIBE_TRACKS_ERROR with error code PREFIX_OVERLAP.
+   SUBSCRIBE_TRACKS and SUBSCRIBE_NAMESPACE have independent overlap
+   spaces (see Section 9.15).
 
    The publisher MUST ensure the subscriber is authorized to perform
    this namespace subscription.
@@ -4223,7 +4242,7 @@ Table of Contents
    becomes available.  If a publisher becomes available within this
    time, the relay proceeds with the subscription normally.  If the
    timeout expires without a publisher, the relay SHOULD respond with
-   REQUEST_ERROR with error code TIMEOUT.
+   SUBSCRIBE_ERROR with error code TIMEOUT.
 
    The relay MAY use a shorter timeout than requested by the subscriber.
    For example, a relay might limit the maximum rendezvous timeout to
@@ -4231,7 +4250,7 @@ Table of Contents
 
    A value of 0 indicates the subscriber does not want to wait and
    expects an immediate response.  The relay MUST immediately return
-   REQUEST_ERROR with error code DOES_NOT_EXIST if no publisher is
+   SUBSCRIBE_ERROR with error code DOES_NOT_EXIST if no publisher is
    available
 
    If RENDEZVOUS_TIMEOUT is absent, the default is 0.
