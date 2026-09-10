@@ -6536,31 +6536,30 @@ the filter is interpreted:
 <p id="section-9.20.10-7">If a field extends beyond the end of the parameter, more than four fields
 are present, or an integer field extends beyond the given Length, the
 endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.10-7" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-8">A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.<a href="#section-9.20.10-8" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-9">If only StartGroup is present, it is a relative number of groups prior to the Next Group,
+<p id="section-9.20.10-8">If only StartGroup is present, it is a relative number of groups prior to the Next Group,
 hence the start Location is <code>{Largest Object.Group + 1 - StartGroup, 0}</code>. For example:
   * StartGroup=0 will start at the Next Group
   * StartGroup=1 will start at the current group
   * StartGroup=2 will start at 1 group prior to the current group
-  * StartGroup=N will start at N-1 groups prior to the current group<a href="#section-9.20.10-9" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-10">If only StartGroup and StartObject are present and both 0, the start Location
+  * StartGroup=N will start at N-1 groups prior to the current group<a href="#section-9.20.10-8" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-9">If only StartGroup and StartObject are present and both 0, the start Location
 is the Next Object (see <a href="#largest-object" class="auto internal xref">Section 3.1.3</a>).  An open-ended filter that starts
 at absolute Location {0, 0} is equivalent to unfiltered, so the subscriber need
-not include a Location filter.<a href="#section-9.20.10-10" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-11">If a relative start group results in a computed absolute group less than 0, the
-computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.<a href="#section-9.20.10-11" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-12">Otherwise, all fields are absolute.  EndGroupDelta is delta
+not include a Location filter.<a href="#section-9.20.10-9" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-10">If a relative start group results in a computed absolute group less than 0, the
+computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.<a href="#section-9.20.10-10" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-11">Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
 relative to <code>Largest Object</code>.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
-the endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.10-12" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-13">When EndGroupDelta and EndObject are omitted from a subscription filter, the
+the endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.10-11" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-12">When EndGroupDelta and EndObject are omitted from a subscription filter, the
 subscription is open-ended. When they are omitted from a Fetch, the
-EndGroup and EndObject are <code>Largest Object</code>.<a href="#section-9.20.10-13" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-14">When EndObject is omitted, the filter includes all objects in the End Group.<a href="#section-9.20.10-14" class="pilcrow">¶</a></p>
-<p id="section-9.20.10-15">If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
+EndGroup and EndObject are <code>Largest Object</code>.<a href="#section-9.20.10-12" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-13">When EndObject is omitted, the filter includes all objects in the End Group.<a href="#section-9.20.10-13" class="pilcrow">¶</a></p>
+<p id="section-9.20.10-14">If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
 unfiltered.  If omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY, the
 value is unchanged.  When sent in PUBLISH_STATE_NOTIFY, it reports the
-Location Filter now in effect at the publisher.<a href="#section-9.20.10-15" class="pilcrow">¶</a></p>
+Location Filter now in effect at the publisher.<a href="#section-9.20.10-14" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subgroup-filter">
