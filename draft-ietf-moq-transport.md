@@ -3753,11 +3753,6 @@ The table below summarizes the encodings.
 | StartGroup, StartObject, EndGroupDelta, EndObject | absolute: `{StartGroup, StartObject}` | `{StartGroup + EndGroupDelta, EndObject}` |
 {: #location-filter-forms title="Location Filter forms"}
 
-Note that adding StartObject to a filter that carries only StartGroup changes
-the start Location from relative to absolute.  For example, `{StartGroup=1}`
-starts at the current Group, whereas `{StartGroup=1, StartObject=0}` starts at
-the first Object of Group 1.
-
 If a field extends beyond the end of the parameter, more than four fields
 are present, or an integer field extends beyond the given Length, the
 endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
