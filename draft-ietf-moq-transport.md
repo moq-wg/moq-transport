@@ -948,7 +948,7 @@ response (see {{message-fetch}}).  This is called a fill fetch stream.
 The **fill range** is the range of Locations selected by the Location filter
 inside FILL_PARAMETERS, or the subscription's Location filter if it is
 omitted. The filter is evaluated using the rules for a Fetch in
-{{location-filters}}, so the fill range never extends beyond `Largest
+{{location-filter}}, so the fill range never extends beyond `Largest
 Object`. When the subscription has no Location filter, or the LOCATION_FILTER
 inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
 `Largest Object`.  The subscriber learns the `Largest Object` from the
@@ -2951,7 +2951,7 @@ limited by the MAX_REQUEST_UPDATES Setup Option ({{max-request-updates}}).
 If a parameter previously set on the request is not present in
 `REQUEST_UPDATE`, its value remains unchanged.
 
-There is no mechanism to remove a parameter from a request.
+There is no generic mechanism to remove a parameter from a request.
 
 The format of REQUEST_UPDATE is as follows:
 
@@ -3754,11 +3754,29 @@ LOCATION_FILTER Parameter {
 }
 ~~~
 
-Length (in bytes) determines how many optional vi64 fields are present.
-A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
-  * If only one field is present, it is StartGroup.
+The optional variable-length integer fields are decoded in the order shown until Length bytes have been
+consumed.  A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
+How many fields are decoded determines which fields they are, and how
+the filter is interpreted:
+  * If only one field is present, it is a relative StartGroup.
   * If only two fields are present, they are StartGroup and StartObject.
   * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
+
+The table below summarizes the encodings.
+
+| Fields present | Start Location | End Location |
+|:---------------|:---------------|:-------------|
+| none (Length 0) | no filter | no filter |
+| StartGroup | relative: `{Largest Object.Group + 1 - StartGroup, 0}` | open-ended |
+| StartGroup, StartObject, both 0 | `Next Object` | open-ended |
+| StartGroup, StartObject, not both 0 | absolute: `{StartGroup, StartObject}` | open-ended |
+| StartGroup, StartObject, EndGroupDelta | absolute: `{StartGroup, StartObject}` | last Object of Group `StartGroup + EndGroupDelta` |
+| StartGroup, StartObject, EndGroupDelta, EndObject | absolute: `{StartGroup, StartObject}` | `{StartGroup + EndGroupDelta, EndObject}` |
+{: #location-filter-forms title="Location Filter forms"}
+
+If a field extends beyond the end of the parameter, more than four fields
+are present, or an integer field extends beyond the given Length, the
+endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
 If only StartGroup is present, it is a relative number of groups prior to the Next Group,
 hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
