@@ -2761,7 +2761,8 @@ send the message.<a href="#section-3.1.2.1-1" class="pilcrow">¶</a></p>
 (<a href="#location-structure" class="auto internal xref">Section 8.2</a>) in the Track from the perspective of the publisher
 processing the message. Largest Object updates when the first byte of an Object
 with a Location larger than the previous value is published or received through
-a subscription.<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
+a subscription.  <code>Largest Object</code> therefore identifies an Object that can still
+be arriving.<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.1.3-2">The <code>Next Object</code> is the Location immediately following <code>Largest Object</code>, which
 is <code>{Largest Object.Group, Largest Object.Object + 1}</code>, or {0, 0} if no content
 has been delivered yet. The <code>Next Group</code> is the first Location of the Group
@@ -2783,7 +2784,11 @@ an End Location, inclusive.  This range is specified by a Location Filter (see
 (<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>) respectively.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.2-2">Objects with Locations larger than the <code>Largest Object</code> at the time the request
 is processed will not be retrieved by a FETCH.  The actual end of the FETCH
-response is indicated in the FETCH_OK End Location (see <a href="#message-fetch-ok" class="auto internal xref">Section 9.12</a>).<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+response is indicated in the FETCH_OK End Location (see <a href="#message-fetch-ok" class="auto internal xref">Section 9.12</a>).
+Because <code>Largest Object</code> can identify an Object that is still arriving
+(<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>), a FETCH whose range includes <code>Largest Object</code> includes
+that Object in full; the publisher delivers the remainder as it becomes
+available.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
 <p id="section-3.2-3">The publisher <span class="bcp14">MUST</span> send exactly one FETCH_OK or FETCH_ERROR in response to a
 FETCH.  The FETCH_OK or FETCH_ERROR can come at any time relative to object
 delivery.  The publisher <span class="bcp14">MAY</span> send Objects in response to a FETCH before the
@@ -3005,9 +3010,10 @@ inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
 <code>Largest Object</code>.  The subscriber learns the <code>Largest Object</code> from the
 <code>LARGEST_OBJECT</code> parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
 <p id="section-3.4-3">Because the fill range is specified independently of the subscription's
-Location filter, a subscriber can retrieve a range of Groups prior to the live
-edge while the subscription itself starts at the Next Group.  If the fill range
-is empty, or starts after Largest Object, the publisher does not open a fill fetch stream.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
+Location filter, a subscriber can retrieve a range of Groups prior to
+<code>Largest Object</code> while the subscription itself starts at the Next Group.  If
+the fill range is empty, or starts after Largest Object, the publisher does not
+open a fill fetch stream.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
 <p id="section-3.4-4">The fill fetch stream inherits the subscription's parameters, including
 subscriber priority, range filters and authorization; parameters carried inside
 FILL_PARAMETERS override them for the fill fetch stream.  FILL_TIMEOUT (see
@@ -6885,9 +6891,9 @@ does not expire or expires at an unknown time.<a href="#section-9.20.16-3" class
           </h4>
 <p id="section-9.20.17-1">The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It <span class="bcp14">MAY</span> appear
 in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or
-PUBLISH_STATE_NOTIFY.  It contains the largest Location (see
-<a href="#location-structure" class="auto internal xref">Section 8.2</a>) in the Track observed by the sending endpoint (see
-<a href="#location-filters" class="auto internal xref">Section 3.3.1</a>). If Objects have been published on this Track the
+PUBLISH_STATE_NOTIFY.  It contains the <code>Largest Object</code>
+(<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>) in the Track from the perspective of the sending
+endpoint. If Objects have been published on this Track the
 Publisher <span class="bcp14">MUST</span> include this parameter.<a href="#section-9.20.17-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.17-2">If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.<a href="#section-9.20.17-2" class="pilcrow">¶</a></p>
