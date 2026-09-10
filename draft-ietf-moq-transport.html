@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 13 March 2027</td>
+<td class="center">Expires 14 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-09" class="published">9 September 2026</time>
+<time datetime="2026-09-10" class="published">10 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-13">13 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-14">14 March 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 13 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 14 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1476,11 +1476,6 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.8">
                 <p id="section-toc.1-1.8.2.8.1"><a href="#section-8.8" class="auto internal xref">8.8</a>.  <a href="#name-representing-namespace-and-" class="internal xref">Representing Namespace and Track Names</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.8.2.1">
-                    <p id="section-toc.1-1.8.2.8.2.1.1"><a href="#section-8.8.1" class="auto internal xref">8.8.1</a>.  <a href="#name-parsing-serialized-names" class="internal xref">Parsing Serialized Names</a></p>
-</li>
-                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.9">
                 <p id="section-toc.1-1.8.2.9.1"><a href="#section-8.9" class="auto internal xref">8.9</a>.  <a href="#name-authorization-token-compres" class="internal xref">Authorization Token Compression</a></p>
@@ -4199,8 +4194,7 @@ that sent PUBLISH_NAMESPACE messages with namespace=(foo) or namespace=(foo,
 bar).  It will not match a session with namespace=(foobar).<a href="#section-7.5-7" class="pilcrow">¶</a></p>
 <p id="section-7.5-8">Relays <span class="bcp14">MUST</span> send SUBSCRIBE messages to all matching publishers. This includes
 matching both Established subscriptions on the Full Track Name and Namespace
-Prefix Matching against published Namespaces.  Relays <span class="bcp14">MUST</span> forward
-PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.<a href="#section-7.5-8" class="pilcrow">¶</a></p>
+Prefix Matching against published Namespaces.<a href="#section-7.5-8" class="pilcrow">¶</a></p>
 <p id="section-7.5-9">When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
 one publisher is available, the Relay <span class="bcp14">MUST</span> send the FETCH to at least one of them.<a href="#section-7.5-9" class="pilcrow">¶</a></p>
@@ -4221,18 +4215,21 @@ namespace or a prefix thereof. However, if the relay is
 holding a downstream SUBSCRIBE awaiting a publisher for this Track (see
 <a href="#rendezvous-timeout" class="auto internal xref">Section 9.20.7</a>), it <span class="bcp14">MUST</span> proceed with the SUBSCRIBE and
 <span class="bcp14">MUST NOT</span> also forward the PUBLISH to that subscriber.<a href="#section-7.5-12" class="pilcrow">¶</a></p>
-<p id="section-7.5-13">When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
-matches one or more existing subscriptions to other upstream sessions, it <span class="bcp14">MUST</span>
-send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
-matching subscription.  When it receives an authorized PUBLISH message for a
+<p id="section-7.5-13">When a relay receives an authorized PUBLISH message for a
 Track that has <code>Established</code> downstream subscriptions, it <span class="bcp14">MUST</span> respond with
 PUBLISH_OK.  If at least one downstream subscriber for the Track has
 Forward State=1, the Relay <span class="bcp14">MUST</span> change the Forward State to 1 with
 REQUEST_UPDATE.<a href="#section-7.5-13" class="pilcrow">¶</a></p>
-<p id="section-7.5-14">If a Session is closed due to an unknown or invalid control message or Object,
+<p id="section-7.5-14">When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
+matches one or more existing subscriptions to other upstream sessions, it <span class="bcp14">MUST</span>
+send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
+matching subscription. A Relay does not send PUBLISH_NAMESPACE to a subscriber;
+it advertises namespaces by sending NAMESPACE in response to a matching
+SUBSCRIBE_NAMESPACE (see <a href="#subscribing-to-namespaces" class="auto internal xref">Section 4.1</a>).<a href="#section-7.5-14" class="pilcrow">¶</a></p>
+<p id="section-7.5-15">If a Session is closed due to an unknown or invalid control message or Object,
 the Relay <span class="bcp14">MUST NOT</span> propagate that message or Object to another Session, because
 it would enable a single Session error to force an unrelated Session, which
-might be handling other subscriptions, to be closed.<a href="#section-7.5-14" class="pilcrow">¶</a></p>
+might be handling other subscriptions, to be closed.<a href="#section-7.5-15" class="pilcrow">¶</a></p>
 <div id="graceful-publisher-switchover">
 <section id="section-7.5.1">
           <h4 id="name-graceful-publisher-relay-sw">
@@ -4713,44 +4710,22 @@ form while still supporting binary values.  Note that while the character set
 is chosen to be generally both filename and URL safe, filename safety is
 platform specific; for instance, on case-insensitive filesystems, track names
 can collide.<a href="#section-8.8-4" class="pilcrow">¶</a></p>
-<div id="parsing-serialized-names">
-<section id="section-8.8.1">
-          <h4 id="name-parsing-serialized-names">
-<a href="#section-8.8.1" class="section-number selfRef">8.8.1. </a><a href="#name-parsing-serialized-names" class="section-name selfRef">Parsing Serialized Names</a>
-          </h4>
-<p id="section-8.8.1-1">When parsing a serialized namespace or track name back to its binary form,
-implementations <span class="bcp14">MUST</span> apply the following rules to ensure a canonical encoding:<a href="#section-8.8.1-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-8.8.1-2.1">
-              <p id="section-8.8.1-2.1.1">A period (.) <span class="bcp14">MUST</span> be followed by exactly two hexadecimal digits. A trailing period
-or a period followed by fewer than two hexadecimal digits is invalid.<a href="#section-8.8.1-2.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-8.8.1-2.2">
-              <p id="section-8.8.1-2.2.1">The hexadecimal digits following a period (.) <span class="bcp14">MUST</span> be lowercase (a-f). Uppercase
-hexadecimal digits (A-F) are invalid and <span class="bcp14">MUST</span> cause parsing to fail.<a href="#section-8.8.1-2.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-8.8.1-2.3">
-              <p id="section-8.8.1-2.3.1">Bytes that can be represented literally (a-z, A-Z, 0-9, _) <span class="bcp14">MUST NOT</span> appear
-in their hex-encoded form. For example, <code>.61</code> is invalid because <code>a</code> must
-be represented as the literal character <code>a</code>. A parser <span class="bcp14">MUST</span> reject such
-redundant encodings.<a href="#section-8.8.1-2.3.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-8.8.1-3">These rules ensure that the encoding is bijective: every binary value has
-exactly one valid serialized representation, and every valid serialized
-string maps to exactly one binary value. This property simplifies comparison
-of serialized names without requiring full deserialization.<a href="#section-8.8.1-3" class="pilcrow">¶</a></p>
-<p id="section-8.8.1-4">Implementations that receive an invalid serialized name <span class="bcp14">SHOULD</span> treat it as
-an error. The specific error handling behavior is application-defined.<a href="#section-8.8.1-4" class="pilcrow">¶</a></p>
-<p id="section-8.8.1-5">Example:<a href="#section-8.8.1-5" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-8.8.1-6">
+<p id="section-8.8-5">Because this format produces exactly one rendering of any given binary value, it
+is bijective: every valid serialized name maps to exactly one binary value, so
+serialized names can be compared without deserializing them. To maintain this
+property, an implementation parsing this format <span class="bcp14">MUST</span> reject a name that does
+not follow the encoding rules exactly, including a period not followed by
+exactly two lowercase hexadecimal digits, or a byte that could have been
+represented literally but was hex-encoded.  For example, <code>.61</code> is invalid
+because <code>a</code> is represented as the literal character <code>a</code>. How an invalid name is
+handled is application-defined.<a href="#section-8.8-5" class="pilcrow">¶</a></p>
+<p id="section-8.8-6">Example:<a href="#section-8.8-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.8-7">
 <pre>
 example.2enet-team2-project_x--report
   Namespace tuples: (example.net, team2, project_x)
   Track name: report
-</pre><a href="#section-8.8.1-6" class="pilcrow">¶</a>
-</div>
-</section>
+</pre><a href="#section-8.8-7" class="pilcrow">¶</a>
 </div>
 </section>
 </div>

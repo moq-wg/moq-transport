@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 March 2027                                     I. Swett, Ed.
+Expires: 14 March 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        9 September 2026
+                                                       10 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 March 2027.
+   This Internet-Draft will expire on 14 March 2027.
 
 Copyright Notice
 
@@ -161,7 +161,6 @@ Table of Contents
      8.6.  Range Filter Structure
      8.7.  Track Namespace Structure
      8.8.  Representing Namespace and Track Names
-       8.8.1.  Parsing Serialized Names
      8.9.  Authorization Token Compression
    9.  Control Messages
      9.1.  SETUP
@@ -2401,8 +2400,6 @@ Table of Contents
    Relays MUST send SUBSCRIBE messages to all matching publishers.  This
    includes matching both Established subscriptions on the Full Track
    Name and Namespace Prefix Matching against published Namespaces.
-   Relays MUST forward PUBLISH_NAMESPACE or PUBLISH messages to all
-   matching subscribers.
 
    When a Relay needs to make an upstream FETCH request, it determines
    the available publishers using the same matching rules as SUBSCRIBE.
@@ -2431,14 +2428,19 @@ Table of Contents
    (see Section 9.20.7), it MUST proceed with the SUBSCRIBE and MUST NOT
    also forward the PUBLISH to that subscriber.
 
+   When a relay receives an authorized PUBLISH message for a Track that
+   has Established downstream subscriptions, it MUST respond with
+   PUBLISH_OK.  If at least one downstream subscriber for the Track has
+   Forward State=1, the Relay MUST change the Forward State to 1 with
+   REQUEST_UPDATE.
+
    When a relay receives an authorized PUBLISH_NAMESPACE for a namespace
    that matches one or more existing subscriptions to other upstream
    sessions, it MUST send a SUBSCRIBE to the publisher that sent the
-   PUBLISH_NAMESPACE for each matching subscription.  When it receives
-   an authorized PUBLISH message for a Track that has Established
-   downstream subscriptions, it MUST respond with PUBLISH_OK.  If at
-   least one downstream subscriber for the Track has Forward State=1,
-   the Relay MUST change the Forward State to 1 with REQUEST_UPDATE.
+   PUBLISH_NAMESPACE for each matching subscription.  A Relay does not
+   send PUBLISH_NAMESPACE to a subscriber; it advertises namespaces by
+   sending NAMESPACE in response to a matching SUBSCRIBE_NAMESPACE (see
+   Section 4.1).
 
    If a Session is closed due to an unknown or invalid control message
    or Object, the Relay MUST NOT propagate that message or Object to
@@ -2797,34 +2799,16 @@ Table of Contents
    URL safe, filename safety is platform specific; for instance, on
    case-insensitive filesystems, track names can collide.
 
-8.8.1.  Parsing Serialized Names
-
-   When parsing a serialized namespace or track name back to its binary
-   form, implementations MUST apply the following rules to ensure a
-   canonical encoding:
-
-   *  A period (.) MUST be followed by exactly two hexadecimal digits.
-      A trailing period or a period followed by fewer than two
-      hexadecimal digits is invalid.
-
-   *  The hexadecimal digits following a period (.) MUST be lowercase
-      (a-f).  Uppercase hexadecimal digits (A-F) are invalid and MUST
-      cause parsing to fail.
-
-   *  Bytes that can be represented literally (a-z, A-Z, 0-9, _) MUST
-      NOT appear in their hex-encoded form.  For example, .61 is invalid
-      because a must be represented as the literal character a.  A
-      parser MUST reject such redundant encodings.
-
-   These rules ensure that the encoding is bijective: every binary value
-   has exactly one valid serialized representation, and every valid
-   serialized string maps to exactly one binary value.  This property
-   simplifies comparison of serialized names without requiring full
-   deserialization.
-
-   Implementations that receive an invalid serialized name SHOULD treat
-   it as an error.  The specific error handling behavior is application-
-   defined.
+   Because this format produces exactly one rendering of any given
+   binary value, it is bijective: every valid serialized name maps to
+   exactly one binary value, so serialized names can be compared without
+   deserializing them.  To maintain this property, an implementation
+   parsing this format MUST reject a name that does not follow the
+   encoding rules exactly, including a period not followed by exactly
+   two lowercase hexadecimal digits, or a byte that could have been
+   represented literally but was hex-encoded.  For example, .61 is
+   invalid because a is represented as the literal character a.  How an
+   invalid name is handled is application-defined.
 
    Example:
 
