@@ -2370,8 +2370,9 @@ serialized names can be compared without deserializing them. To maintain this
 property, an implementation parsing this format MUST reject a name that does
 not follow the encoding rules exactly, including a period not followed by
 exactly two lowercase hexadecimal digits, or a byte that could have been
-represented literally but was hex-encoded. How an invalid name is handled is
-application-defined.
+represented literally but was hex-encoded.  For example, `.61` is invalid
+because `a` is represented as the literal character `a`. How an invalid name is
+handled is application-defined.
 
 Example:
 
