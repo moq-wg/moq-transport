@@ -1838,6 +1838,10 @@ validating subscribe and publish requests at the edge of a network.
 Relays are endpoints, which means they terminate Transport Sessions in order to
 have visibility of MOQT Object metadata.
 
+For the purposes of this specification, a coordinated set of relays are treated
+as a single MOQT relay.  How relays within such a set interconnect, and use
+cases built on relay to relay communication, are out of scope.
+
 ## Caching Relays
 
 Relays MAY cache Objects, but are not required to.
