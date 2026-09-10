@@ -5142,9 +5142,10 @@ cause issues with latency sensitive applications.
 
 # Security Considerations {#security}
 
-MOQT is a protocol used hop-by-hop between original publishers to relays and
-relays to end subscribers. Thus, the security considerations need to consider
-first what happens between two Endpoints, but also consider the impacts end to
+MOQT is a protocol used hop-by-hop between original
+publishers to relay, (possibly) relay to relay, and relay to end
+subscribers. Thus, the security considerations need to consider first
+what happens between two Endpoints, but also consider the impacts end to
 end over several hops of MOQT.
 
 MOQT uses a trust model where on each hop the Endpoints need to be
