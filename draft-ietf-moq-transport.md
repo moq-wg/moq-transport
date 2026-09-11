@@ -1909,7 +1909,7 @@ that specify otherwise.
 ## Paused Subscription Handling
 
 If one or more downstream subscribers to a track are not paused, the relay
-MUST resume the upstream subscription, if paused, in order to receive and
+MUST have an unpaused upstream subscription, in order to receive and
 forward the requested Objects. When all downstream subscribers are paused, the
 relay chooses whether to pause upstream at its discretion, considering the
 following
