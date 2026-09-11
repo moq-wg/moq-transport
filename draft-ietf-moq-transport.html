@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 14 March 2027</td>
+<td class="center">Expires 15 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-10" class="published">10 September 2026</time>
+<time datetime="2026-09-11" class="published">11 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-14">14 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-15">15 March 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 15 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1254,13 +1254,16 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-subscriptions" class="internal xref">Subscriptions</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.1">
-                    <p id="section-toc.1-1.3.2.1.2.1.1"><a href="#section-3.1.1" class="auto internal xref">3.1.1</a>.  <a href="#name-subscription-state-manageme" class="internal xref">Subscription State Management</a></p>
+                    <p id="section-toc.1-1.3.2.1.2.1.1"><a href="#section-3.1.1" class="auto internal xref">3.1.1</a>.  <a href="#name-pausing-subscriptions" class="internal xref">Pausing Subscriptions</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.2">
-                    <p id="section-toc.1-1.3.2.1.2.2.1"><a href="#section-3.1.2" class="auto internal xref">3.1.2</a>.  <a href="#name-track-alias" class="internal xref">Track Alias</a></p>
+                    <p id="section-toc.1-1.3.2.1.2.2.1"><a href="#section-3.1.2" class="auto internal xref">3.1.2</a>.  <a href="#name-subscription-state-manageme" class="internal xref">Subscription State Management</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.3">
-                    <p id="section-toc.1-1.3.2.1.2.3.1"><a href="#section-3.1.3" class="auto internal xref">3.1.3</a>.  <a href="#name-largest-object" class="internal xref">Largest Object</a></p>
+                    <p id="section-toc.1-1.3.2.1.2.3.1"><a href="#section-3.1.3" class="auto internal xref">3.1.3</a>.  <a href="#name-track-alias" class="internal xref">Track Alias</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.4">
+                    <p id="section-toc.1-1.3.2.1.2.4.1"><a href="#section-3.1.4" class="auto internal xref">3.1.4</a>.  <a href="#name-largest-object" class="internal xref">Largest Object</a></p>
 </li>
                 </ul>
 </li>
@@ -1424,7 +1427,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-caching-relays" class="internal xref">Caching Relays</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
-                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-forward-handling" class="internal xref">Forward Handling</a></p>
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-paused-subscription-handlin" class="internal xref">Paused Subscription Handling</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
                 <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-multiple-publishers" class="internal xref">Multiple Publishers</a></p>
@@ -2647,76 +2650,86 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 to a SUBSCRIBE. A subscriber <span class="bcp14">MUST</span> send exactly one PUBLISH_OK
 (<a href="#message-request-ok" class="auto internal xref">Section 9.3</a>) or PUBLISH_ERROR in response to a PUBLISH. The peer
 <span class="bcp14">SHOULD</span> close the session with a protocol error if it receives more than one.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.1-5">All <code>Established</code> subscriptions have a Forward State which is either 0 or 1.
-The publisher does not send Objects if the Forward State is 0, and does send them
-if the Forward State is 1.  The initiator of the subscription sets the initial
-Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send
-REQUEST_UPDATE to update the Forward State. Control messages, such as
-PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.9</a>) are sent regardless of the forward state.<a href="#section-3.1-5" class="pilcrow">¶</a></p>
-<p id="section-3.1-6">Either endpoint can initiate a subscription to a track without exchanging any
+<p id="section-3.1-5">Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays <span class="bcp14">MUST NOT</span> send any PUBLISH messages
 without knowing the client is interested in and authorized to receive the
 content. The communication of intent and authorization can be accomplished by
 the client sending SUBSCRIBE_NAMESPACE, or conveyed in other mechanisms out of
-band.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
-<p id="section-3.1-7">An endpoint <span class="bcp14">MAY</span> SUBSCRIBE to a Track it is publishing, though only Relays are
+band.<a href="#section-3.1-5" class="pilcrow">¶</a></p>
+<p id="section-3.1-6">An endpoint <span class="bcp14">MAY</span> SUBSCRIBE to a Track it is publishing, though only Relays are
 required to handle such a SUBSCRIBE.  Such self-subscriptions are identical to
 subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
-rules.<a href="#section-3.1-7" class="pilcrow">¶</a></p>
-<p id="section-3.1-8">An endpoint <span class="bcp14">MAY</span> have multiple concurrent subscriptions to the same Track,
+rules.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+<p id="section-3.1-7">An endpoint <span class="bcp14">MAY</span> have multiple concurrent subscriptions to the same Track,
 each identified by a unique Request ID. A publisher <span class="bcp14">MAY</span> assign the same or
-different Track Aliases to these subscriptions.<a href="#section-3.1-8" class="pilcrow">¶</a></p>
-<p id="section-3.1-9">When an Object matches the filters of multiple subscriptions to the same Track,
+different Track Aliases to these subscriptions.<a href="#section-3.1-7" class="pilcrow">¶</a></p>
+<p id="section-3.1-8">When an Object matches the filters of multiple subscriptions to the same Track,
 the publisher <span class="bcp14">MUST</span> send the Object once for each matching subscription, even
 when those subscriptions share the same Track Alias. Because subscriptions can
 share a Track Alias, the subscriber re-applies each subscription's filter to
 determine which subscription a received Object belongs to. Subscribers <span class="bcp14">SHOULD</span>
 avoid overlapping filters across subscriptions to the same Track, as they are
-responsible for deduplicating any resulting duplicate Objects.<a href="#section-3.1-9" class="pilcrow">¶</a></p>
-<p id="section-3.1-10">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to avoid
-incurring additional latency.<a href="#section-3.1-10" class="pilcrow">¶</a></p>
-<p id="section-3.1-11">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
+responsible for deduplicating any resulting duplicate Objects.<a href="#section-3.1-8" class="pilcrow">¶</a></p>
+<p id="section-3.1-9">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to avoid
+incurring additional latency.<a href="#section-3.1-9" class="pilcrow">¶</a></p>
+<p id="section-3.1-10">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with PUBLISH_ERROR or sets Forward=0 in REQUEST_UPDATE. It can also result in
+with PUBLISH_ERROR or pauses the subscription (see below). It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
-<a href="#datagrams" class="auto internal xref">Section 11.2</a> and <a href="#subgroup-header" class="auto internal xref">Section 11.3.1</a>).<a href="#section-3.1-11" class="pilcrow">¶</a></p>
-<p id="section-3.1-12">An object published or received in a subgroup or datagram is
-<strong>subscription-delivered</strong>.<a href="#section-3.1-12" class="pilcrow">¶</a></p>
-<div id="subscription-state-management">
+<a href="#datagrams" class="auto internal xref">Section 11.2</a> and <a href="#subgroup-header" class="auto internal xref">Section 11.3.1</a>).<a href="#section-3.1-10" class="pilcrow">¶</a></p>
+<p id="section-3.1-11">An object published or received in a subgroup or datagram is
+<strong>subscription-delivered</strong>.<a href="#section-3.1-11" class="pilcrow">¶</a></p>
+<div id="pausing-subscriptions">
 <section id="section-3.1.1">
-          <h4 id="name-subscription-state-manageme">
-<a href="#section-3.1.1" class="section-number selfRef">3.1.1. </a><a href="#name-subscription-state-manageme" class="section-name selfRef">Subscription State Management</a>
+          <h4 id="name-pausing-subscriptions">
+<a href="#section-3.1.1" class="section-number selfRef">3.1.1. </a><a href="#name-pausing-subscriptions" class="section-name selfRef">Pausing Subscriptions</a>
           </h4>
-<p id="section-3.1.1-1">A subscriber keeps subscription state until it cancels the request
+<p id="section-3.1.1-1">An <code>Established</code> subscription is either paused or not paused. The publisher does
+not send Objects on a paused subscription, and does send them when it is not
+paused.  Control messages, such as PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.9</a>), are
+sent regardless of whether the subscription is paused.<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1.1-2">The initiator of the subscription sets the initial state by including the
+FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.20.18</a>) in PUBLISH or SUBSCRIBE. The
+subscriber can pause an <code>Established</code> subscription by sending REQUEST_UPDATE
+with FORWARD set to 0, or resume it by sending REQUEST_UPDATE with FORWARD set
+to 1.<a href="#section-3.1.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="subscription-state-management">
+<section id="section-3.1.2">
+          <h4 id="name-subscription-state-manageme">
+<a href="#section-3.1.2" class="section-number selfRef">3.1.2. </a><a href="#name-subscription-state-manageme" class="section-name selfRef">Subscription State Management</a>
+          </h4>
+<p id="section-3.1.2-1">A subscriber keeps subscription state until it cancels the request
 (see <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>), or until receipt of a PUBLISH_DONE or
 REQUEST_ERROR. Note that PUBLISH_DONE does not usually indicate that state
-can immediately be removed, see <a href="#message-publish-done" class="auto internal xref">Section 9.9</a>.<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.1.1-2">The Publisher can remove subscription state as soon as it has received
-STOP_SENDING. It <span class="bcp14">MUST</span> reset any open streams associated with the SUBSCRIBE.<a href="#section-3.1.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.1.1-3">The Publisher can also immediately delete subscription state after sending
-PUBLISH_DONE, but <span class="bcp14">MUST NOT</span> send it until it has closed all related streams.<a href="#section-3.1.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.1.1-4">A REQUEST_ERROR indicates no objects will be delivered, and both endpoints can
+can immediately be removed, see <a href="#message-publish-done" class="auto internal xref">Section 9.9</a>.<a href="#section-3.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.1.2-2">The Publisher can remove subscription state as soon as it has received
+STOP_SENDING. It <span class="bcp14">MUST</span> reset any open streams associated with the SUBSCRIBE.<a href="#section-3.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.1.2-3">The Publisher can also immediately delete subscription state after sending
+PUBLISH_DONE, but <span class="bcp14">MUST NOT</span> send it until it has closed all related streams.<a href="#section-3.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.1.2-4">A REQUEST_ERROR indicates no objects will be delivered, and both endpoints can
 immediately remove relevant state. Objects <span class="bcp14">MUST NOT</span> be sent for requests that
-end with an error.<a href="#section-3.1.1-4" class="pilcrow">¶</a></p>
+end with an error.<a href="#section-3.1.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="track-alias">
-<section id="section-3.1.2">
+<section id="section-3.1.3">
           <h4 id="name-track-alias">
-<a href="#section-3.1.2" class="section-number selfRef">3.1.2. </a><a href="#name-track-alias" class="section-name selfRef">Track Alias</a>
+<a href="#section-3.1.3" class="section-number selfRef">3.1.3. </a><a href="#name-track-alias" class="section-name selfRef">Track Alias</a>
           </h4>
-<p id="section-3.1.2-1">To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
+<p id="section-3.1.3-1">To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
 the publisher and included in SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section 9.7</a>) or PUBLISH
-(<a href="#message-publish" class="auto internal xref">Section 9.8</a>).<a href="#section-3.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-2">The same Track Alias <span class="bcp14">MUST NOT</span> be used by a publisher to refer to two different
+(<a href="#message-publish" class="auto internal xref">Section 9.8</a>).<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-2">The same Track Alias <span class="bcp14">MUST NOT</span> be used by a publisher to refer to two different
 Tracks simultaneously in the same session. If a subscriber receives a
 PUBLISH or SUBSCRIBE_OK that uses the same Track Alias as a different Track
 with an <code>Established</code> subscription, it <span class="bcp14">MUST</span> close the session with error
-<code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-3.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-3">Objects can be sent before the Subscriber knows the Track Alias, requiring
+<code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-3.1.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-3">Objects can be sent before the Subscriber knows the Track Alias, requiring
 buffering Objects with an unknown Track Alias. If a Track Alias
 is used for two concurrent subscriptions to the same Track, an
 Object that arrives with the Track Alias could be for either
@@ -2725,20 +2738,20 @@ subscriptions to the same Track can lead to missed delivery
 if objects for the new subscription arrive
 before the control message establishing the shared Alias.
 The Subscriber can assume the Track Alias is reused until
-told otherwise, in order to avoid missing Objects.<a href="#section-3.1.2-3" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-4">To avoid a protocol violation and to ensure the Subscriber knows which Track
+told otherwise, in order to avoid missing Objects.<a href="#section-3.1.3-3" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-4">To avoid a protocol violation and to ensure the Subscriber knows which Track
 Objects are from, Publishers <span class="bcp14">SHOULD NOT</span> reuse a Track Alias for different Tracks
 within a session, unless it is certain the prior Subscription has been
-completely closed and no Objects are scheduled to be sent or in flight.<a href="#section-3.1.2-4" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-5">Objects can arrive after a subscription has been cancelled.  Subscribers <span class="bcp14">SHOULD</span>
+completely closed and no Objects are scheduled to be sent or in flight.<a href="#section-3.1.3-4" class="pilcrow">¶</a></p>
+<p id="section-3.1.3-5">Objects can arrive after a subscription has been cancelled.  Subscribers <span class="bcp14">SHOULD</span>
 retain sufficient state to quickly discard these unwanted Objects, rather than
-treating them as belonging to an unknown Track Alias.<a href="#section-3.1.2-5" class="pilcrow">¶</a></p>
+treating them as belonging to an unknown Track Alias.<a href="#section-3.1.3-5" class="pilcrow">¶</a></p>
 <div id="unknown-track-alias">
-<section id="section-3.1.2.1">
+<section id="section-3.1.3.1">
             <h5 id="name-unknown-track-alias">
-<a href="#section-3.1.2.1" class="section-number selfRef">3.1.2.1. </a><a href="#name-unknown-track-alias" class="section-name selfRef">Unknown Track Alias</a>
+<a href="#section-3.1.3.1" class="section-number selfRef">3.1.3.1. </a><a href="#name-unknown-track-alias" class="section-name selfRef">Unknown Track Alias</a>
             </h5>
-<p id="section-3.1.2.1-1">When an endpoint receives a datagram or a new stream with a Track Alias that
+<p id="section-3.1.3.1-1">When an endpoint receives a datagram or a new stream with a Track Alias that
 is not yet associated with an <code>Established</code> subscription, it <span class="bcp14">MAY</span> drop the
 data or buffer it briefly to handle reordering with the control message that
 establishes the Track Alias. For streams, the endpoint <span class="bcp14">MAY</span> withhold stream
@@ -2747,28 +2760,28 @@ established. To prevent deadlocks, endpoints <span class="bcp14">MUST</span> all
 control to control streams before allocating it to any data streams;
 otherwise a receiver might wait for a control message containing a Track
 Alias to release flow control, while the sender waits for flow control to
-send the message.<a href="#section-3.1.2.1-1" class="pilcrow">¶</a></p>
+send the message.<a href="#section-3.1.3.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="largest-object">
-<section id="section-3.1.3">
+<section id="section-3.1.4">
           <h4 id="name-largest-object">
-<a href="#section-3.1.3" class="section-number selfRef">3.1.3. </a><a href="#name-largest-object" class="section-name selfRef">Largest Object</a>
+<a href="#section-3.1.4" class="section-number selfRef">3.1.4. </a><a href="#name-largest-object" class="section-name selfRef">Largest Object</a>
           </h4>
-<p id="section-3.1.3-1">The <code>Largest Object</code> is the Object with the largest Location
+<p id="section-3.1.4-1">The <code>Largest Object</code> is the Object with the largest Location
 (<a href="#location-structure" class="auto internal xref">Section 8.2</a>) in the Track from the perspective of the publisher
 processing the message. Largest Object updates when the first byte of an Object
 with a Location larger than the previous value is published or received through
 a subscription.  <code>Largest Object</code> therefore identifies an Object that can still
-be arriving.<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.1.3-2">The <code>Next Object</code> is the Location immediately following <code>Largest Object</code>, which
+be arriving.<a href="#section-3.1.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.1.4-2">The <code>Next Object</code> is the Location immediately following <code>Largest Object</code>, which
 is <code>{Largest Object.Group, Largest Object.Object + 1}</code>, or {0, 0} if no content
 has been delivered yet. The <code>Next Group</code> is the first Location of the Group
 following <code>Largest Object</code>, which is <code>{Largest Object.Group + 1, 0}</code>.
 <code>Next Object</code> and <code>Next Group</code> are Locations that do not necessarily
-refer to an Object that exists.<a href="#section-3.1.3-2" class="pilcrow">¶</a></p>
+refer to an Object that exists.<a href="#section-3.1.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2781,12 +2794,12 @@ refer to an Object that exists.<a href="#section-3.1.3-2" class="pilcrow">¶</a>
 <p id="section-3.2-1">A FETCH requests pre-existing Objects from a Track between a Start Location and
 an End Location, inclusive.  This range is specified by a Location Filter (see
 <a href="#location-filters" class="auto internal xref">Section 3.3.1</a>) when present, or defaults to {0, 0} and <code>Largest Object</code>
-(<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>) respectively.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+(<a href="#largest-object" class="auto internal xref">Section 3.1.4</a>) respectively.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.2-2">Objects with Locations larger than the <code>Largest Object</code> at the time the request
 is processed will not be retrieved by a FETCH.  The actual end of the FETCH
 response is indicated in the FETCH_OK End Location (see <a href="#message-fetch-ok" class="auto internal xref">Section 9.12</a>).
 Because <code>Largest Object</code> can identify an Object that is still arriving
-(<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>), a FETCH whose range includes <code>Largest Object</code> includes
+(<a href="#largest-object" class="auto internal xref">Section 3.1.4</a>), a FETCH whose range includes <code>Largest Object</code> includes
 that Object in full; the publisher delivers the remainder as it becomes
 available.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
 <p id="section-3.2-3">The publisher <span class="bcp14">MUST</span> send exactly one FETCH_OK or FETCH_ERROR in response to a
@@ -2795,7 +2808,7 @@ delivery.  The publisher <span class="bcp14">MAY</span> send Objects in response
 FETCH_OK message is sent, but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the End
 Location is known.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.2-4">If no Objects have been published for the track or Start Location is greater
-than the <code>Largest Object</code> (<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>) the publisher <span class="bcp14">MUST</span> return
+than the <code>Largest Object</code> (<a href="#largest-object" class="auto internal xref">Section 3.1.4</a>) the publisher <span class="bcp14">MUST</span> return
 FETCH_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
 <div id="fetch-object-delivery">
 <section id="section-3.2.1">
@@ -2915,7 +2928,7 @@ publisher which Objects to send.  Subscriptions without a filter pass all
 Objects published or received via upstream subscriptions.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.3.1-3">Fetch requests can also specify a Location filter (see <a href="#fetch" class="auto internal xref">Section 3.2</a>).<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
 <p id="section-3.3.1-4">Some Location filters are defined to be relative to the <code>Largest Object</code>
-(<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>).<a href="#section-3.3.1-4" class="pilcrow">¶</a></p>
+(<a href="#largest-object" class="auto internal xref">Section 3.1.4</a>).<a href="#section-3.3.1-4" class="pilcrow">¶</a></p>
 <p id="section-3.3.1-5">A Location Filter on a subscription is always valid, even if it specifies a
 range entirely before Largest Object.<a href="#section-3.3.1-5" class="pilcrow">¶</a></p>
 <p id="section-3.3.1-6">Note that due to network reordering or prioritization, relays can receive
@@ -3037,12 +3050,13 @@ with an open-ended fill range, which the publisher will end at Largest Object.<a
 <a href="#section-3.4.1" class="section-number selfRef">3.4.1. </a><a href="#name-opening-and-closing-fill-fe" class="section-name selfRef">Opening and Closing Fill Fetch Streams</a>
           </h4>
 <p id="section-3.4.1-1">A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
-REQUEST_UPDATE that carries FILL_PARAMETERS while Forward State is 1.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
+REQUEST_UPDATE that carries FILL_PARAMETERS while the subscription is not
+paused (see <a href="#pausing-subscriptions" class="auto internal xref">Section 3.1.1</a>).<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.4.1-2.1">
-              <p id="section-3.4.1-2.1.1">FILL_PARAMETERS carried while Forward State is 0 opens no fill fetch stream.
-Transitioning to Forward State 1 without re-sending FILL_PARAMETERS does not
-open one either.<a href="#section-3.4.1-2.1.1" class="pilcrow">¶</a></p>
+              <p id="section-3.4.1-2.1.1">FILL_PARAMETERS carried while the subscription is paused opens no fill fetch
+stream.  Resuming the subscription without re-sending FILL_PARAMETERS does
+not open one either.<a href="#section-3.4.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-3.4.1-2.2">
               <p id="section-3.4.1-2.2.1">A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open a new fill
@@ -4075,26 +4089,28 @@ with the exception of any Object Properties (<a href="#object-properties" class=
 that specify otherwise.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="forward-handling">
+<div id="paused-subscription-handling">
 <section id="section-7.2">
-        <h3 id="name-forward-handling">
-<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-forward-handling" class="section-name selfRef">Forward Handling</a>
+        <h3 id="name-paused-subscription-handlin">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-paused-subscription-handlin" class="section-name selfRef">Paused Subscription Handling</a>
         </h3>
-<p id="section-7.2-1">If one or more downstream subscribers to a track have Forward=1, the relay
-<span class="bcp14">MUST</span> set Forward=1 upstream in order to receive and forward the requested
-Objects. When no downstream subscriber has Forward=1, the relay chooses the
-upstream Forward value at its discretion, considering the following
+<p id="section-7.2-1">If one or more downstream subscribers to a track are not paused, the relay
+<span class="bcp14">MUST</span> have an unpaused upstream subscription, in order to receive and
+forward the requested Objects. When all downstream subscribers are paused, the
+relay chooses whether to pause upstream at its discretion, considering the
+following
 tradeoffs and deployment considerations:<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-7.2-2.1">
-            <p id="section-7.2-2.1.1">Setting Forward=1 upstream starts object delivery and pre-warms the
-relay's cache, so objects are available when a downstream subscriber
-sets Forward=1. This reduces latency but consumes upstream and publisher
-resources for content no downstream subscriber is currently receiving.<a href="#section-7.2-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-7.2-2.1.1">Leaving the upstream subscription unpaused starts object delivery and
+pre-warms the relay's cache, so objects are available when a downstream
+subscriber resumes. This reduces latency but consumes upstream and
+publisher resources for content no downstream subscriber is currently
+receiving.<a href="#section-7.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.2-2.2">
-            <p id="section-7.2-2.2.1">Setting Forward=0 upstream avoids that work, at the cost of higher
-latency when forwarding is later enabled.<a href="#section-7.2-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-7.2-2.2.1">Pausing the upstream subscription avoids that work, at the cost of higher
+latency when delivery is later resumed.<a href="#section-7.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4136,7 +4152,7 @@ sufficient information to send a FETCH_OK immediately in response to a FETCH, it
 <span class="bcp14">MUST</span> withhold sending FETCH_OK until it does.  Relays <span class="bcp14">MUST</span> follow the
 constraints on LARGEST_OBJECT defined in <a href="#largest-param" class="auto internal xref">Section 9.20.17</a>.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
 <p id="section-7.4-3">Publishers maintain a list of <code>Established</code> downstream subscriptions for
-each Track. Relays use the Track Alias (<a href="#track-alias" class="auto internal xref">Section 3.1.2</a>) of an incoming Object
+each Track. Relays use the Track Alias (<a href="#track-alias" class="auto internal xref">Section 3.1.3</a>) of an incoming Object
 to identify its Track and find the current subscribers.  Each new Object
 belonging to the Track is forwarded to each subscriber, as allowed by the
 subscription's filter (see <a href="#message-subscribe-req" class="auto internal xref">Section 9.6</a>), and delivered according
@@ -4189,8 +4205,8 @@ to the old relay can be cancelled (see <a href="#request-cancellation" class="au
 <ol start="1" type="1" class="normal type-1" id="section-7.5-2">
 <li id="section-7.5-2.1">
             <p id="section-7.5-2.1.1">Send a PUBLISH message for a specific Track to the relay. The relay <span class="bcp14">MAY</span>
-pause the Subscription with REQUEST_UPDATE in Forward State=0 until there are
-known subscribers for new Tracks.<a href="#section-7.5-2.1.1" class="pilcrow">¶</a></p>
+pause the Subscription with REQUEST_UPDATE (see <a href="#pausing-subscriptions" class="auto internal xref">Section 3.1.1</a>)
+until there are known subscribers for new Tracks.<a href="#section-7.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-7.5-2.2">
             <p id="section-7.5-2.2.1">Send a PUBLISH_NAMESPACE message for a Track Namespace Prefix to the relay.
@@ -4237,12 +4253,12 @@ range from its cache and retrieves any missing objects upstream using
 a SUBSCRIBE with FILL_PARAMETERS or FETCHes (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>).<a href="#section-7.5-10" class="pilcrow">¶</a></p>
 <p id="section-7.5-11">When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 <code>Established</code> upstream subscriptions, it <span class="bcp14">MUST</span> reply with SUBSCRIBE_OK.  If the
-SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
-State=0, the Relay <span class="bcp14">MUST</span> send REQUEST_UPDATE with Forward=1 to all publishers.
+SUBSCRIBE is not paused and the upstream subscriptions are paused, the Relay
+<span class="bcp14">MUST</span> resume the upstream subscriptions with REQUEST_UPDATE to all publishers.
 If there are no <code>Established</code> upstream subscriptions for the requested Track, the Relay
 <span class="bcp14">MUST</span> send a SUBSCRIBE request to each publisher that has published the
-subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
-then the Relay <span class="bcp14">MUST</span> use Forward=1 when subscribing upstream.<a href="#section-7.5-11" class="pilcrow">¶</a></p>
+subscription's namespace or prefix thereof.  If the SUBSCRIBE is not paused,
+then the Relay <span class="bcp14">MUST NOT</span> pause when subscribing upstream.<a href="#section-7.5-11" class="pilcrow">¶</a></p>
 <p id="section-7.5-12">When a relay receives an incoming PUBLISH message, it <span class="bcp14">MUST</span> send a PUBLISH
 request to each subscriber that has sent SUBSCRIBE_TRACKS for the Track's
 namespace or a prefix thereof. However, if the relay is
@@ -4251,9 +4267,9 @@ holding a downstream SUBSCRIBE awaiting a publisher for this Track (see
 <span class="bcp14">MUST NOT</span> also forward the PUBLISH to that subscriber.<a href="#section-7.5-12" class="pilcrow">¶</a></p>
 <p id="section-7.5-13">When a relay receives an authorized PUBLISH message for a
 Track that has <code>Established</code> downstream subscriptions, it <span class="bcp14">MUST</span> respond with
-PUBLISH_OK.  If at least one downstream subscriber for the Track has
-Forward State=1, the Relay <span class="bcp14">MUST</span> change the Forward State to 1 with
-REQUEST_UPDATE.<a href="#section-7.5-13" class="pilcrow">¶</a></p>
+PUBLISH_OK.  If at least one downstream subscriber for the Track is not
+paused, the Relay <span class="bcp14">MUST</span> resume the upstream subscription with REQUEST_UPDATE,
+if paused.<a href="#section-7.5-13" class="pilcrow">¶</a></p>
 <p id="section-7.5-14">When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it <span class="bcp14">MUST</span>
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
@@ -5691,7 +5707,7 @@ SUBSCRIBE_OK Message {
 <ul class="normal">
 <li class="normal" id="section-9.7-3.1">
             <p id="section-9.7-3.1.1">Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-<a href="#track-alias" class="auto internal xref">Section 3.1.2</a>).<a href="#section-9.7-3.1.1" class="pilcrow">¶</a></p>
+<a href="#track-alias" class="auto internal xref">Section 3.1.3</a>).<a href="#section-9.7-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.7-3.2">
             <p id="section-9.7-3.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  The parameters
@@ -5746,7 +5762,7 @@ PUBLISH Message {
 </li>
           <li class="normal" id="section-9.8-3.4">
             <p id="section-9.8-3.4.1">Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-<a href="#track-alias" class="auto internal xref">Section 3.1.2</a>).<a href="#section-9.8-3.4.1" class="pilcrow">¶</a></p>
+<a href="#track-alias" class="auto internal xref">Section 3.1.3</a>).<a href="#section-9.8-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.8-3.5">
             <p id="section-9.8-3.5.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>. The parameters
@@ -5769,9 +5785,9 @@ change.<a href="#section-9.8-3.5.1" class="pilcrow">¶</a></p>
 send PUBLISH_ERROR with error code <code>UNINTERESTED</code>, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.<a href="#section-9.8-4" class="pilcrow">¶</a></p>
-<p id="section-9.8-5">A publisher that sends the FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.20.18</a>) equal to 0
-indicates that it will not transmit any objects until the subscriber sets the
-Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
+<p id="section-9.8-5">A publisher that pauses the subscription (see <a href="#pausing-subscriptions" class="auto internal xref">Section 3.1.1</a>)
+indicates that it will not transmit any objects until the subscriber resumes
+it. If the subscription is not paused, the
 publisher will start transmitting objects immediately, possibly before
 PUBLISH_OK. Delivery starts at the Next Object relative to the Largest Object
 at the time the publisher begins sending.<a href="#section-9.8-5" class="pilcrow">¶</a></p>
@@ -6637,7 +6653,7 @@ hence the start Location is <code>{Largest Object.Group + 1 - StartGroup, 0}</co
   * StartGroup=2 will start at 1 group prior to the current group
   * StartGroup=N will start at N-1 groups prior to the current group<a href="#section-9.20.9-8" class="pilcrow">¶</a></p>
 <p id="section-9.20.9-9">If only StartGroup and StartObject are present and both 0, the start Location
-is the Next Object (see <a href="#largest-object" class="auto internal xref">Section 3.1.3</a>).  An open-ended filter that starts
+is the Next Object (see <a href="#largest-object" class="auto internal xref">Section 3.1.4</a>).  An open-ended filter that starts
 at absolute Location {0, 0} is equivalent to unfiltered, so the subscriber need
 not include a Location filter.<a href="#section-9.20.9-9" class="pilcrow">¶</a></p>
 <p id="section-9.20.9-10">If a relative start group results in a computed absolute group less than 0, the
@@ -6892,7 +6908,7 @@ does not expire or expires at an unknown time.<a href="#section-9.20.16-3" class
 <p id="section-9.20.17-1">The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It <span class="bcp14">MAY</span> appear
 in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or
 PUBLISH_STATE_NOTIFY.  It contains the <code>Largest Object</code>
-(<a href="#largest-object" class="auto internal xref">Section 3.1.3</a>) in the Track from the perspective of the sending
+(<a href="#largest-object" class="auto internal xref">Section 3.1.4</a>) in the Track from the perspective of the sending
 endpoint. If Objects have been published on this Track the
 Publisher <span class="bcp14">MUST</span> include this parameter.<a href="#section-9.20.17-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.17-2">If omitted from a message, the sending endpoint has not published or received
@@ -6917,16 +6933,17 @@ PUBLISH, or REQUEST_UPDATE_OK<a href="#section-9.20.17-4.1.1" class="pilcrow">¶
 <p id="section-9.20.18-1">The FORWARD parameter (Parameter Type 0x10) is a uint8. It <span class="bcp14">MAY</span> appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
 PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
-specifies the Forwarding State on affected subscriptions (see <a href="#subscriptions" class="auto internal xref">Section 3.1</a>).
+specifies whether affected subscriptions are paused (see
+<a href="#pausing-subscriptions" class="auto internal xref">Section 3.1.1</a>).
 The allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives
 a value outside this range, it <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.18-1" class="pilcrow">¶</a></p>
-<p id="section-9.20.18-2">In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies the
-Forwarding State on future subscriptions that match the prefix. Existing
+<p id="section-9.20.18-2">In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies whether
+future subscriptions that match the prefix are paused. Existing
 subscriptions are unaffected.<a href="#section-9.20.18-2" class="pilcrow">¶</a></p>
 <p id="section-9.20.18-3">If the parameter is omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY,
 the value for the subscription remains unchanged.  If the parameter is omitted
 from any other message, the default value is 1.  When sent in
-PUBLISH_STATE_NOTIFY, it reports the Forwarding State now in effect at the
+PUBLISH_STATE_NOTIFY, it reports whether the subscription is paused at the
 publisher.<a href="#section-9.20.18-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -7340,8 +7357,8 @@ Object Properties {
 <a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-datagrams" class="section-name selfRef">Datagrams</a>
         </h3>
 <p id="section-11.2-1">A single object can be conveyed in a datagram.  The Track Alias field
-(<a href="#track-alias" class="auto internal xref">Section 3.1.2</a>) indicates the track this Datagram belongs to; see
-<a href="#unknown-track-alias" class="auto internal xref">Section 3.1.2.1</a> for handling of unknown Track Aliases.<a href="#section-11.2-1" class="pilcrow">¶</a></p>
+(<a href="#track-alias" class="auto internal xref">Section 3.1.3</a>) indicates the track this Datagram belongs to; see
+<a href="#unknown-track-alias" class="auto internal xref">Section 3.1.3.1</a> for handling of unknown Track Aliases.<a href="#section-11.2-1" class="pilcrow">¶</a></p>
 <p id="section-11.2-2">An Object received in an <code>OBJECT_DATAGRAM</code> message has a <code>Delivery Mode</code> =
 <code>Datagram</code>.<a href="#section-11.2-2" class="pilcrow">¶</a></p>
 <p id="section-11.2-3">To send an Object with <code>Delivery Mode</code> = <code>Datagram</code>, determine
@@ -7458,9 +7475,9 @@ Header field values.<a href="#section-11.3-2" class="pilcrow">¶</a></p>
 <a href="#section-11.3.1" class="section-number selfRef">11.3.1. </a><a href="#name-subgroup-header" class="section-name selfRef">Subgroup Header</a>
           </h4>
 <p id="section-11.3.1-1">All Objects on a Subgroup stream belong to the track identified by
-<code>Track Alias</code> (see <a href="#track-alias" class="auto internal xref">Section 3.1.2</a>) and the Subgroup indicated by <code>Group ID</code>
+<code>Track Alias</code> (see <a href="#track-alias" class="auto internal xref">Section 3.1.3</a>) and the Subgroup indicated by <code>Group ID</code>
 and <code>Subgroup ID</code> in the SUBGROUP_HEADER.<a href="#section-11.3.1-1" class="pilcrow">¶</a></p>
-<p id="section-11.3.1-2">See <a href="#unknown-track-alias" class="auto internal xref">Section 3.1.2.1</a> for handling of subgroups with unknown Track
+<p id="section-11.3.1-2">See <a href="#unknown-track-alias" class="auto internal xref">Section 3.1.3.1</a> for handling of subgroups with unknown Track
 Aliases.<a href="#section-11.3.1-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup_header"></span><div id="object-header-format">
 <figure id="figure-25">
@@ -7615,7 +7632,7 @@ not limited to:<a href="#section-11.3.2-3" class="pilcrow">¶</a></p>
 the Start Location to a larger Location<a href="#section-11.3.2-4.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-11.3.2-4.5">
-              <p id="section-11.3.2-4.5.1">Omitting a Subgroup Object due to the subscriber's Forward State<a href="#section-11.3.2-4.5.1" class="pilcrow">¶</a></p>
+              <p id="section-11.3.2-4.5.1">Omitting a Subgroup Object because the subscription is paused<a href="#section-11.3.2-4.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-11.3.2-5">When RESET_STREAM_AT is used, the
@@ -7685,8 +7702,8 @@ Subgroups in the Group or the subscription, although applications might cancel a
 Subgroups in a Group at once.<a href="#section-11.3.2-16" class="pilcrow">¶</a></p>
 <p id="section-11.3.2-17">A publisher that receives a STOP_SENDING on a Subgroup stream <span class="bcp14">SHOULD NOT</span> attempt
 to open a new stream to deliver additional Objects in that Subgroup.  However,
-if the publisher subsequently receives a REQUEST_UPDATE that changes the Forward
-State from 0 to 1, it <span class="bcp14">MAY</span> open a new stream to deliver Objects in that Subgroup,
+if the publisher subsequently receives a REQUEST_UPDATE that resumes the
+subscription, it <span class="bcp14">MAY</span> open a new stream to deliver Objects in that Subgroup,
 as the update indicates the subscriber has renewed interest in forwarded Objects.<a href="#section-11.3.2-17" class="pilcrow">¶</a></p>
 <p id="section-11.3.2-18">The application <span class="bcp14">SHOULD</span> use a relevant error code when resetting a stream,
 as defined in <a href="#stream-reset-codes" class="auto internal xref">Section 12.5</a>.<a href="#section-11.3.2-18" class="pilcrow">¶</a></p>
