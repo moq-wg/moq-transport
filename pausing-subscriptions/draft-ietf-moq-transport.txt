@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 14 March 2027                                     I. Swett, Ed.
+Expires: 15 March 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                       10 September 2026
+                                                       11 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 March 2027.
+   This Internet-Draft will expire on 15 March 2027.
 
 Copyright Notice
 
@@ -2286,7 +2286,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 7.2.  Paused Subscription Handling
 
    If one or more downstream subscribers to a track are not paused, the
-   relay MUST resume the upstream subscription, if paused, in order to
+   relay MUST have an unpaused upstream subscription, in order to
    receive and forward the requested Objects.  When all downstream
    subscribers are paused, the relay chooses whether to pause upstream
    at its discretion, considering the following tradeoffs and deployment
