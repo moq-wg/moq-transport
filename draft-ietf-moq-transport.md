@@ -1276,8 +1276,9 @@ session with a PROTOCOL_VIOLATION.
 On success, the publisher MUST send a NAMESPACE message for each namespace it
 knows that matches the Track Namespace Prefix, and further NAMESPACE or
 NAMESPACE_DONE messages as that set changes.  A publisher knows a namespace if
-it is the Original Publisher for one or more tracks in it, or is a relay that
-has received an authorized PUBLISH_NAMESPACE for the Namespace.
+it is an Original Publisher for one or more tracks in that Namespace Prefix,
+or is a relay that has received an authorized PUBLISH_NAMESPACE for the
+Namespace.
 On error, the stream is immediately closed via FIN.
 
 The namespace in a NAMESPACE message is itself a prefix; tracks can exist in
@@ -2114,10 +2115,12 @@ Relays SHOULD aggregate and propagate filters upstream on subscriptions,
 especially namespace subscriptions,
 to conserve and protect their resources from excessive load.  They MAY
 also impose limits on the number of publishers in a namespace, by rejecting
-or closing namespace subscriptions with the error NAMESPACE_TOO_LARGE, or
-CONFLICTING_FILTERS if too many disjoint filters are requested on downstream
-subscriptions across a large number of subscribers, or PREFIX_OVERLAP if different
-subscribers force an aggregated upstream subscription to overlap.
+or closing namespace subscriptions with the error NAMESPACE_TOO_LARGE.
+Relays MAY likewise limit the load imposed by subscribers, by rejecting or
+closing namespace subscriptions with CONFLICTING_FILTERS if too many disjoint
+filters are requested on downstream subscriptions across a large number of
+subscribers, or with PREFIX_OVERLAP if different subscribers force an
+aggregated upstream subscription to overlap.
 
 ## Publisher Interactions
 
