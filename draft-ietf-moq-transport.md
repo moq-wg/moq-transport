@@ -1141,8 +1141,9 @@ the resulting Subscriptions can be filtered by any Range Filter.
 Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
 in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
 publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS. These Parameters are explicitly communicated in PUBLISH.
-When omitted by the publisher in PUBLISH, the subscriber uses the default value for each.
+SUBSCRIBE_TRACKS, and explicitly communicated in the PUBLISH.
+When a Parameter is omitted from the SUBSCRIBE_TRACKS and resulting PUBLISH,
+the Subscription uses the default value.
 
 To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a
 Location Filter and optionally include FILL_PARAMETERS, as described in {{joining-tracks}}.
