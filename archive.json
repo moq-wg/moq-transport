@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-13T03:57:11.110495+00:00",
+  "timestamp": "2026-09-15T04:03:37.330656+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -49016,14 +49016,15 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
-        "ianswett"
+        "martinduke"
       ],
       "labels": [
-        "Needs PR"
+        "Needs PR",
+        "BLOCKED"
       ],
       "body": "I don't think the text is clear about what happens when there isn't enough bidi stream credit to send a request. Specifically, does the responsibility to retry lie with MOQT or with the application?\n\nWe got rid of REQUEST_BLOCKED, and it would be sad to pipe OnCanOpenBidiStream() from QUIC all the way up to the application, so it seems worthwhile to just have MOQT track pending bidi streams.\n\nBut we have PUBLISH_BLOCKED, which I guess is a way for a subscriber to SUBSCRIBE (where it might have credit). But this is the inverse of SUBSCRIBE_BLOCKED, where the publisher could potentially deliver the stream, but there's no SUBSCRIBE_BLOCKED message.\n\nAt the very least, the draft should spell out what is required for interoperability, and ideally what MOQT is doing vs. what applications do, so\n(1) What request streams are retried by MOQT vs. requiring the application to do something?\n(2) When is the peer expected to try the SUBSCRIBE/PUBLISH inverse because the other direction is blocked?\n(3) If both directions are blocked, who is responsible for finally opening it? Will we just let the messages cross and let the tiebreaker rules in 5.1 do their thing?\n\nIt would be nice to actually clean this up conceptually as well.\n\n",
       "createdAt": "2026-05-29T22:30:34Z",
-      "updatedAt": "2026-06-15T20:16:23Z",
+      "updatedAt": "2026-09-14T16:28:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -49074,6 +49075,20 @@
           "body": "It is a little more complicated than just REQUEST_ERROR because a single request can result in multiple FETCH streams. The fix is just to reset the FETCH stream or declare unknown blocks within it.",
           "createdAt": "2026-06-11T12:09:45Z",
           "updatedAt": "2026-06-11T12:09:45Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm not sure what else needs to be written, so assigning to @martinduke to tell us more or write a PR.",
+          "createdAt": "2026-09-13T21:29:48Z",
+          "updatedAt": "2026-09-13T21:29:48Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "The scenario still not addressed is:\n\nThe subscriber sends a request. the relay would like to forward it but can't because it has no bidi stream credit. What REQUEST_ERROR code should it use? In general subscribers could not assume that any other request would fail, because there are may be other upstreams.\n\nRelatedly, what if that request is a FETCH, which should spawn 4 different FETCHes to fill gaps in the cache, and there's only credit for one request. What is the expected behavior? Send one large fetch and get duplicate objects? Send FETCH_OK and plug the gaps with unknown status? Or send REQUEST_ERROR because there's inadequate credit to fill the whole request?",
+          "createdAt": "2026-09-14T16:28:36Z",
+          "updatedAt": "2026-09-14T16:28:36Z"
         }
       ]
     },
@@ -53547,7 +53562,7 @@
       "labels": [],
       "body": "Since we originally discussed using Subscribe ID or Track Alias, Parameters and Track Properties were created.\n\nThere are some known problems with using Track Alias in SUBSCRIBE:\n1) It delays Object delivery if the SUBSCRIBE_OK arrives after the first Object.\n2) In cases when a Track Alias might be reused, it creates complexity, see PR #1856 \n3) It makes resource management of unknown tracks more complex, see https://github.com/englishm/moq-relay-dos/issues/29\n\nMaking Track Alias a Parameter is a fairly straightforward change.",
       "createdAt": "2026-09-01T02:13:17Z",
-      "updatedAt": "2026-09-01T13:21:48Z",
+      "updatedAt": "2026-09-13T21:53:21Z",
       "closedAt": null,
       "comments": [
         {
@@ -53563,6 +53578,13 @@
           "body": "> Since we originally discussed using Subscribe ID or Track Alias, Parameters and Track Properties were created.\n> \n> There are some known problems with using Track Alias in SUBSCRIBE:\n> \n> 1. It delays Object delivery if the SUBSCRIBE_OK arrives after the first Object.\nthis is not true , since publisher choose the track alias and it can send the objects immediately .\n\n> 3. In cases when a Track Alias might be reused, it creates complexity, see PR [Beware re-using a Track Alias\u00a0#1856](https://github.com/moq-wg/moq-transport/pull/1856)\n  \n> 4. It makes resource management of unknown tracks more complex, see [Buffering data for unknown Track Aliases\u00a0englishm/moq-relay-dos#29](https://github.com/englishm/moq-relay-dos/issues/29)>\n \nBuffering data is needed regardless of track alias if there is no downward subscriptions and cached\n\n> Making Track Alias a Parameter is a fairly straightforward change.\nthis makes it optional and goes back on consensus from ietf 116. \n",
           "createdAt": "2026-09-01T13:21:48Z",
           "updatedAt": "2026-09-01T13:21:48Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The easiest way to have them coexist is even/odd, but that does mean we'd have a 63 bit space.  I can't imagine that being a problem, but it's a change.\n\nPUBLISH requires a publisher to provide an ID of some sort to associate with Track data.  The current Track Alias is one option.  If we could use stream IDs from the PUBLISH's bidi stream, we could use that, which would have the benefit of limiting the range of Publish IDs one needs to cache.\n\nOne potential benefit of making the Request ID an option for delivering Objects is if two Subscriptions are active for the same Track at the same time, it's possible to use Track Alias for one Subscription and Subscribe ID for the other to avoid potentially ambiguous Object delivery.",
+          "createdAt": "2026-09-13T21:53:21Z",
+          "updatedAt": "2026-09-13T21:53:21Z"
         }
       ]
     },
@@ -53641,7 +53663,7 @@
       ],
       "body": "Section 6.3.1 is missing discussion of  FETCH, SUBSCRIBE_TRACKS, and SETUP.\n\nMoreover, I think it's worth referencing the Replay Attacks section of Security Considerations. No 0-RTT message containing an Auth Token can be accepted in a 0RTT packet if the token doesn't have replay protection, which is something you've punted to the token design. (Unless tokens MUST have replay protection?)",
       "createdAt": "2026-09-04T21:24:55Z",
-      "updatedAt": "2026-09-09T03:20:20Z",
+      "updatedAt": "2026-09-13T05:13:51Z",
       "closedAt": null,
       "comments": [
         {
@@ -53650,6 +53672,13 @@
           "body": "Why is replaying an Auth Token a problem in and of itself?",
           "createdAt": "2026-09-09T03:20:20Z",
           "updatedAt": "2026-09-09T03:20:20Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> Why is replaying an Auth Token a problem in and of itself?\n\nWell, if Alice sends a 0RTT packet with SETUP+AUTH_TOKEN and SUBSCRIBE+AUTH_TOKEN, and Bob simply replays that, then he'd be able to subscribe to media he's not authorized for, no?",
+          "createdAt": "2026-09-13T05:13:51Z",
+          "updatedAt": "2026-09-13T05:13:51Z"
         }
       ]
     },
@@ -218333,13 +218362,13 @@
       "labels": [],
       "body": "Create a new PR that makes Track Alias a Parameter returned in SUBSCRIBE_OK instead of a required field. When Track Alias isn't returned, the Request ID is used to associate Objects with the correct Subscription.\r\n\r\nThis adds `TRACK_ALIAS` to the IANA Message Parameters table, updates `SUBSCRIBE_OK`, adds a parity rule for `Track Alias`, and renames `Track Alias` to `Track Alias or Request ID` in the object headers.\r\n\r\nFixes #1875 \r\n\r\n---\r\n*PR created automatically by Jules for task [13571905536436668031](https://jules.google.com/task/13571905536436668031) started by @ianswett*",
       "createdAt": "2026-09-01T02:32:09Z",
-      "updatedAt": "2026-09-02T15:19:51Z",
+      "updatedAt": "2026-09-13T21:59:19Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d1004ff53bfd7cc8e04a9ce60e21f44f3341c0f7",
+      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "make-track-alias-parameter-13571905536436668031",
-      "headRefOid": "862989915f3dcbebea75eb34e32f21f3648304c5",
+      "headRefOid": "7379e5b90e67f71ad97acdca950927633523ca54",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -223441,6 +223470,94 @@
           ]
         }
       ]
+    },
+    {
+      "number": 1944,
+      "id": "PR_kwDOG2Ho4M8AAAABDXvI8w",
+      "title": "RFC: Make Track Alias a Parameter returned in SUBSCRIBE_OK (#1876 redux)",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1944",
+      "state": "CLOSED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I tried to use AI to resolve merge conflicts, but it created a new branch.\r\n\r\nFixes #1875 ",
+      "createdAt": "2026-09-13T22:12:55Z",
+      "updatedAt": "2026-09-13T22:13:21Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "jules-12058562043226588960-df240171",
+      "headRefOid": "cca5fa32adaea5d3a562375536bd6525ca4aae8e",
+      "closedAt": "2026-09-13T22:13:21Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 1945,
+      "id": "PR_kwDOG2Ho4M8AAAABDXvUSw",
+      "title": "Resolve merge conflicts from PR #1876",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1945",
+      "state": "CLOSED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This submission applies the latest commits from PR #1876 that had merge conflicts with the `main` branch. I successfully brought in the incoming changes that addressed suggestions on the PR and successfully applied them on top of the latest `main`. Afterwards, I executed `make all` to ensure that all build steps passed.\n\n---\n*PR created automatically by Jules for task [12058562043226588960](https://jules.google.com/task/12058562043226588960) started by @ianswett*",
+      "createdAt": "2026-09-13T22:13:38Z",
+      "updatedAt": "2026-09-13T22:13:56Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "jules-12058562043226588960-df240171",
+      "headRefOid": "cca5fa32adaea5d3a562375536bd6525ca4aae8e",
+      "closedAt": "2026-09-13T22:13:56Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "google-labs-jules",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "\ud83d\udc4b Jules, reporting for duty! I'm here to lend a hand with this pull request.\n\nWhen you start a review, I'll add a \ud83d\udc40 emoji to each comment to let you know I've read it. I'll focus on feedback directed at me and will do my best to stay out of conversations between you and other bots or reviewers to keep the noise down.\n\nI'll push a commit with your requested changes shortly after. Please note there might be a delay between these steps, but rest assured I'm on the job!\n\nFor more direct control, you can switch me to **Reactive Mode**. When this mode is on, I will only act on comments where you specifically mention me with `@jules`. You can find this option in the **Pull Request** section of your [global Jules UI settings](https://jules.google.com/settings). You can always switch back!\n\nNew to Jules? Learn more at [jules.google/docs](https://jules.google/docs).\n\n---\n*_For security, I will only act on instructions from the user who triggered this task._*",
+          "createdAt": "2026-09-13T22:13:39Z",
+          "updatedAt": "2026-09-13T22:13:39Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 1946,
+      "id": "PR_kwDOG2Ho4M8AAAABDgxh7Q",
+      "title": "Restructure Publisher and Namespace Discovery, Give Subscribe Tracks it's own section",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1946",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "- Namespace Prefix Matching gets its own section under Track.\r\n- SUBSCRIBE_TRACKS moves to its own section under Publishing and Receiving\r\n  Tracks \u2014 it creates subscriptions rather than discovering namespaces.\r\n- Behavior is hoisted out of the five namespace message sections, which now\r\n  carry only a diagram and fields.\r\n- Publishing now precedes Subscribing, and section 4 is tightened: response\r\n  handling was stated three times, authorization in three places.\r\n- A ladder diagram shows the publisher \u2192 relay \u2192 subscriber path.\r\n- Editorial cleanup of some prose\r\n- \r\nsentence-diff (from `draft-21-retro`) against  main: \r\n\r\n2343 of 2379 sentences unchanged.\r\n\r\n * modified 21\r\n * added 22\r\n * removed 23\r\n",
+      "createdAt": "2026-09-14T20:43:34Z",
+      "updatedAt": "2026-09-14T21:20:01Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "hoist-discovery-semantics",
+      "headRefOid": "d9b8cb5ea61f22350a00eae0b95d1a1eed1c17d6",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
