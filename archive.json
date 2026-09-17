@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-15T04:03:37.330656+00:00",
+  "timestamp": "2026-09-17T04:07:40.494349+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -53522,9 +53522,17 @@
       ],
       "body": "As of now, I can see that there is some discussion to have the ability to switch individual tracks (e.g: #1675). However, there are potentially use cases where we might want an atomic switch between two sets of tracks.\n\nFor example, sports streams may have three tracks: video, commentary audio, and captions. If someone wants to switch from watching tennis to soccer, having \"atomic subscription bundle\" functionality could prevent duplicate data transmission and bandwidth wastage.\n\nAnother example: A security dashboard might show tiled views from multiple cameras (each one is its own track). If the viewer switches from \"floor 1\" to \"office\", we'd avoid a partially rendered scene and wasted bandwidth by having an \"atomic subscription bundle\".\n\nWould anyone be interested if I write an extension for this?",
       "createdAt": "2026-08-28T23:36:02Z",
-      "updatedAt": "2026-09-07T18:12:26Z",
+      "updatedAt": "2026-09-15T21:03:14Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I wrote a draft for this: https://datatracker.ietf.org/doc/draft-sharma-moq-atomic-subscription-bundles/",
+          "createdAt": "2026-09-15T21:03:13Z",
+          "updatedAt": "2026-09-15T21:03:13Z"
+        }
+      ]
     },
     {
       "number": 1861,
@@ -53651,7 +53659,7 @@
     {
       "number": 1906,
       "id": "I_kwDOG2Ho4M8AAAABPxOETg",
-      "title": "0-RTT",
+      "title": "Discuss 0-RTT properties of FETCH, SUBSCRIBE_TRACKS, SETUP and auth tokens",
       "url": "https://github.com/moq-wg/moq-transport/issues/1906",
       "state": "OPEN",
       "author": "martinduke",
@@ -53663,7 +53671,7 @@
       ],
       "body": "Section 6.3.1 is missing discussion of  FETCH, SUBSCRIBE_TRACKS, and SETUP.\n\nMoreover, I think it's worth referencing the Replay Attacks section of Security Considerations. No 0-RTT message containing an Auth Token can be accepted in a 0RTT packet if the token doesn't have replay protection, which is something you've punted to the token design. (Unless tokens MUST have replay protection?)",
       "createdAt": "2026-09-04T21:24:55Z",
-      "updatedAt": "2026-09-13T05:13:51Z",
+      "updatedAt": "2026-09-16T21:17:21Z",
       "closedAt": null,
       "comments": [
         {
@@ -53679,6 +53687,41 @@
           "body": "> Why is replaying an Auth Token a problem in and of itself?\n\nWell, if Alice sends a 0RTT packet with SETUP+AUTH_TOKEN and SUBSCRIBE+AUTH_TOKEN, and Bob simply replays that, then he'd be able to subscribe to media he's not authorized for, no?",
           "createdAt": "2026-09-13T05:13:51Z",
           "updatedAt": "2026-09-13T05:13:51Z"
+        },
+        {
+          "author": "alficles",
+          "authorAssociation": "NONE",
+          "body": "If Bob has Alice's auth token, then either it is bound to something of Alice's that Bob can't provide proof of and it's useless or it's not and Bob can use it for authentication regardless of the 0RTT question, unless I'm missing something?\n\nEither way, the token format itself defines the security scope. You can imagine a token that implements DPoP and is bound to private material Alice never puts on the wire and you can imagine a token that is nothing more than a password. They both have wildly different security semantics defined by the format. I'd suggest we probably not recommend the later, but I'm not certain that's a transport question, but rather a token definition question.",
+          "createdAt": "2026-09-15T16:02:05Z",
+          "updatedAt": "2026-09-15T16:02:05Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> If Bob has Alice's auth token, then either it is bound to something of Alice's that Bob can't provide proof of and it's useless or it's not and Bob can use it for authentication regardless of the 0RTT question, unless I'm missing something?\n> \n\nI might be the one missing something there, but Bob can't use it if it's sent 1-RTT, because replaying a 1-RTT packet doesn't work. The issue here is that a 0RTT QUIC packet can be blindly re-sent.\n\n> Either way, the token format itself defines the security scope. You can imagine a token that implements DPoP and is bound to private material Alice never puts on the wire and you can imagine a token that is nothing more than a password. They both have wildly different security semantics defined by the format. I'd suggest we probably not recommend the later, but I'm not certain that's a transport question, but rather a token definition question.\n\nI think we're in agreement on this, but it's confusing enough that the draft should say *something*. It could be as simple as 'applications MUST NOT send 0-RTT packets if their authorization token format does not prevent replay attacks', but there are other possibilities, like requiring auth tokens to have replay protection to be used with MOQT.\n",
+          "createdAt": "2026-09-15T16:08:41Z",
+          "updatedAt": "2026-09-15T16:08:41Z"
+        },
+        {
+          "author": "alficles",
+          "authorAssociation": "NONE",
+          "body": "Yeah, we should almost certainly say something about it. And I think you are right: it does open up a hole. In the 1RTT case, you have to actually steal the _token_. But in 0RTT, you only have to steal the QUIC packet. That expands the scope problematically. A token with replay protection works here, but most tokens used in practice today don't have that protection. This may be an interesting issue to solve.",
+          "createdAt": "2026-09-15T16:13:19Z",
+          "updatedAt": "2026-09-15T16:13:51Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Well, if Alice sends a 0RTT packet with SETUP+AUTH_TOKEN and SUBSCRIBE+AUTH_TOKEN, and Bob simply replays that, then he'd be able to subscribe to media he's not authorized for, no?\n\nBob can cause the relay to deliver media for that track, but isn't it encrypted with a transport key that Bob doesn't have?",
+          "createdAt": "2026-09-15T21:47:16Z",
+          "updatedAt": "2026-09-15T21:47:35Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "That's true. I'm having trouble seeing what state on the relay would be affected. Perhaps a closed upstream SUBSCRIBE would be reopened? But then the connection would fail almost immediately.\n\nPerhaps only the first sentence of this issue is relevant.",
+          "createdAt": "2026-09-16T21:17:21Z",
+          "updatedAt": "2026-09-16T21:17:21Z"
         }
       ]
     },
@@ -53696,7 +53739,7 @@
       ],
       "body": "I would like to gauge interest in an extension providing two related signals:\n\n* Cache availability: An indication that a relay has all, some, none, or an unknown portion of the requested content cached.\n* Cache status: An indication of whether delivered content came from the local cache, was fetched from upstream, or could not be obtained.\n\nThe initial design could reuse existing messages rather than introduce new message types:\n* A request parameter on TRACK_STATUS could ask about local cache availability. The response would be carried as a parameter on TRACK_STATUS_OK\n* A FETCH could request Cache-Status, with the result returned on FETCH_OK.",
       "createdAt": "2026-09-04T22:55:08Z",
-      "updatedAt": "2026-09-10T19:57:26Z",
+      "updatedAt": "2026-09-15T19:40:41Z",
       "closedAt": null,
       "comments": [
         {
@@ -53747,6 +53790,13 @@
           "body": "@riedlse Yes, for ad selection, a continuously updated view is better than proactively making round-trips asking for the most recent cache availability. However, I still see a use case for an on-demand query for decisions that need to only be made occasionally, such as rewind planning (deciding how far back a viewer should start when watching delayed live content) or representation choice (e.g. beginning with quality X because it is cached, for faster startup, and switching to quality Y later).",
           "createdAt": "2026-09-10T19:57:26Z",
           "updatedAt": "2026-09-10T19:57:26Z"
+        },
+        {
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Sounds like there's more support for cache status than cache availability. Anyway, I made a new draft that includes both as negotiable capabilities: https://datatracker.ietf.org/doc/draft-sharma-moq-cache-signaling/",
+          "createdAt": "2026-09-15T19:40:40Z",
+          "updatedAt": "2026-09-15T19:40:40Z"
         }
       ]
     },
@@ -53929,9 +53979,24 @@
       "labels": [],
       "body": "In 3.6 \"Mandatory to understand track properties\"\n\n>`For SUBSCRIBE_OK messages: the subscriber MUST cancel the subscription (see [Section 6.4.2.3](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#request-cancellation)). If the subscriber is a relay with pending downstream subscribers, it MUST send REQUEST_ERROR with error code UNSUPPORTED_EXTENSION to the downstream subscribers.\n\nTo cancel the subscription it would set RESET_STREAM with some code. There's no code UNSUPPORTED_EXTENSION so I  suppose it'd just use CANCELED.\n\nBut then it says:\n\n> A publisher that knows a subscriber does not support a Mandatory Track Property SHOULD take the following action:\n> \n> For SUBSCRIBE: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.\n> \n> For FETCH: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.\n> \n> For PUBLISH: do not publish the track to that subscriber.\n\nHow could it ever know this? When it sends a track with an unsupported policy, it'll get back a generic reset code.\n\nYou could add a specific Stream reset code for this, or specify what other means a publisher could find this out. Or you could just delete that block.",
       "createdAt": "2026-09-10T21:30:44Z",
-      "updatedAt": "2026-09-10T21:31:08Z",
+      "updatedAt": "2026-09-16T21:26:34Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think the idea is that when one adds a MTU property, it will be accompanied with a SETUP option that defines the \"I support that MTU property\".  \n\nDummy Example:\n\nWhen a track has the \"reverso\" property, the bytes of the objects are transmitted in reverse order.  \n\nSo the extension draft would define both a SETUP Option: REVERSO_VERSION (defines the version of REVERSO supported, missing == not supported) and a MTU Property REVERSO (bytes reversed when non-zero).\n\nSo the publisher really ought to know that the peer doesn't support it, and hence should take the actions to fail attempts by the subscriber to retrieve the track.",
+          "createdAt": "2026-09-15T22:08:10Z",
+          "updatedAt": "2026-09-15T22:08:10Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I believe that's logically consistent. So please add text to 3.6 that specifies that these MTU Properties have to map to Setup Options.",
+          "createdAt": "2026-09-16T21:26:34Z",
+          "updatedAt": "2026-09-16T21:26:34Z"
+        }
+      ]
     },
     {
       "number": 1941,
@@ -53942,12 +54007,22 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion"
+      ],
       "body": "Sec 3.6 \"Mandatory to understand track properties\" tells relays to send REQUEST_ERROR downstream if they get unknown properties in SUBSCRIBE_OK or FETCH_OK, but it doesn't mention TRACK_STATUS_OK.\n\nThis will not be OK if the relay is supposed to change the property in some way.\n\nEither add a paragraph about TRACK_STATUS or explicitly say it doesn't behave this way, to make it clear it isn't an oversight (which it currently is).",
       "createdAt": "2026-09-10T22:37:02Z",
-      "updatedAt": "2026-09-10T22:37:02Z",
+      "updatedAt": "2026-09-15T22:01:22Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I actually think the right answer might be \"yes, relays propagate unknown MTU properties\".  My logic is 1) this might be the only way to discover what properties of the track are preventing a subscriber from retrieving it and 2) it seems unlikely someone would need to alter the behavior of TRACK_STATUS through a custom property in such a way that it actually requires the \"don't even try\" behavior.",
+          "createdAt": "2026-09-15T22:01:15Z",
+          "updatedAt": "2026-09-15T22:01:15Z"
+        }
+      ]
     },
     {
       "number": 1942,
@@ -53958,10 +54033,12 @@
       "author": "mengelbart",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial"
+      ],
       "body": "[Section 9.20](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-21#section-9.20) defines four value encodings for parameters: uint8, varint, Location, and Length-prefixed. But [TRACK_NAMESPACE_PREFIX](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-21#section-9.20.21) uses the Track Namespace encoding described in [Section 8.7.](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-21#section-8.7), which is not one of the four encodings. Should the Track Namespace encoding be added to the list of value encodings defined in this draft?",
       "createdAt": "2026-09-11T14:13:57Z",
-      "updatedAt": "2026-09-11T14:13:57Z",
+      "updatedAt": "2026-09-15T21:59:35Z",
       "closedAt": null,
       "comments": []
     },
@@ -53974,12 +54051,47 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs PR"
+      ],
       "body": "There is a corner case where a NAMESPACE (or NAMESPACE_DONE!) message has a reserved namespace. This is only possible if SUBSCRIBE_NAMESPACE is for the empty namespace.\n\nSec 2.4.2 and 6.5 talk about reserved namespaces; application attempts to use them are rebuffed, and requests are ERRORed. But a NAMESPACE message is neither of those; what is the correct behavior?\n\na '.' NAMESPACE message is presumably some kind of error. a '.session' is presumably OK, as long as it didn't come from an application?\n\n6.5 also says\n\n> An endpoint that receives a request for an unrecognized session-level track or namespace MUST reject it with REQUEST_ERROR using error code DOES_NOT_EXIST rather than passing it to the Application.\n\nNot a big deal, but if that request is a PUBLISH or PUBLISH_NAMESPACE, should it be UNINTERESTED instead?",
       "createdAt": "2026-09-11T21:35:04Z",
-      "updatedAt": "2026-09-11T21:35:04Z",
+      "updatedAt": "2026-09-15T22:01:56Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 1947,
+      "id": "I_kwDOG2Ho4M8AAAABRd7oqw",
+      "title": "NEW_GROUP_REQUEST might be in REQUEST_UPDATE even without DYNAMIC_GROUPS",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1947",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Needs Discussion"
+      ],
+      "body": "9.20.19:\n\n> A subscriber MUST NOT send this parameter in REQUEST_UPDATE if the Track did not include the DYNAMIC_GROUPS Property with value 1. \n\nHere's a scenario:\n1. A relay receives a SUBSCRIBE without NEW_GROUP_REQUEST and forwards upstream.\n2. A relay receives a second SUBSCRIBE with NEW_GROUP_REQUEST.\n3. The relay sends REQUEST_UPDATE upstream.\n4. SUBSCRIBE_OK arrives with properties.\n\n\"if the track did not include...\" could be weaseled into a reading that the Track has done nothing, and therefore doesn't violate the language. But an implementer, reading 9.20.19, might throw an error if it got REQUEST_UPDATE under these circumstances.",
+      "createdAt": "2026-09-15T20:47:13Z",
+      "updatedAt": "2026-09-16T21:11:59Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Should we just say SHOULD NOT send?  I assume the publisher will ignore it anyways, and that removes some edge cases?\n\nI recall some high-scale publishers wanted no piece of NGR, but the code to hold the REQUEST_UPDATE in the scenario you describe might be more pain that an accidental NGR being ignored at the publisher.\n",
+          "createdAt": "2026-09-15T20:56:32Z",
+          "updatedAt": "2026-09-15T20:56:32Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "perhaps just say \"if it has received the Track Properties and the they did not include the DYNAMIC_GROUPS Property with value 1.\"",
+          "createdAt": "2026-09-16T21:11:58Z",
+          "updatedAt": "2026-09-16T21:11:58Z"
+        }
+      ]
     }
   ],
   "pulls": [
