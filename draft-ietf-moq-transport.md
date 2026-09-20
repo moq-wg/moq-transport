@@ -5114,6 +5114,8 @@ The `authority` component of the MOQT URI is sent in the TLS SNI
 extension during connection establishment, exposing the target server
 identity to on-path observers. Encrypted Client Hello (ECH) {{?RFC9580}}
 can mitigate this exposure.
+All of the URI other, than the fragment, is exposed to the relay which a
+client connects to.
 
 ## Subscription Amplification
 
