@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-17T04:07:40.494349+00:00",
+  "timestamp": "2026-09-20T04:06:36.964650+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -54090,6 +54090,64 @@
           "body": "perhaps just say \"if it has received the Track Properties and the they did not include the DYNAMIC_GROUPS Property with value 1.\"",
           "createdAt": "2026-09-16T21:11:58Z",
           "updatedAt": "2026-09-16T21:11:58Z"
+        }
+      ]
+    },
+    {
+      "number": 1948,
+      "id": "I_kwDOG2Ho4M8AAAABR2AFiw",
+      "title": "NEW_GROUP_REQUEST with a value of Group ID far in the future",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1948",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "What should an original publisher do?  A relay?\n\nDoes sending uint64_max mean that a relay will never send a NEW_GROUP_REQUEST again?",
+      "createdAt": "2026-09-17T20:36:21Z",
+      "updatedAt": "2026-09-17T20:36:21Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 1949,
+      "id": "I_kwDOG2Ho4M8AAAABR2Cr_Q",
+      "title": "Chunked encoding for objects when size is not known initially?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1949",
+      "state": "OPEN",
+      "author": "sharmafb",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Today, a streamed MOQT Object must declare its total payload length before sending any payload bytes. If an encoder produces data progressively but does not know the final size yet, it must wait until encoding finishes. This can unnecessarily increase latency. Have we thought about adding chunked encoding in, either to the base draft or as an extension? Do people believe this would be useful?",
+      "createdAt": "2026-09-17T20:41:05Z",
+      "updatedAt": "2026-09-17T20:47:23Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 1950,
+      "id": "I_kwDOG2Ho4M8AAAABR3O2ZQ",
+      "title": "Rename UNSUPPORTED_EXTENSION to UNSUPPORTED_MANDATORY_TRACK_PROPERTY",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1950",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Happy to bikeshed the name, but clearly EXTENSION is the wrong word given that unsupported mandatory track properties are the only trigger for this Request Error.",
+      "createdAt": "2026-09-17T23:29:23Z",
+      "updatedAt": "2026-09-18T12:34:03Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "+1 ",
+          "createdAt": "2026-09-18T12:34:03Z",
+          "updatedAt": "2026-09-18T12:34:03Z"
         }
       ]
     }
