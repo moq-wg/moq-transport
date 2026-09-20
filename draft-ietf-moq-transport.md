@@ -5115,7 +5115,6 @@ extension during connection establishment, exposing the target server
 identity to on-path observers. Encrypted Client Hello (ECH) {{?RFC9580}}
 can mitigate this exposure.
 
-
 ## Subscription Amplification
 
 A malicious subscriber could attempt to overwhelm a publisher or relay
