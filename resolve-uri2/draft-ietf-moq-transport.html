@@ -8351,7 +8351,9 @@ ensure each subscriber is independently authorized.<a href="#section-15-3" class
 <p id="section-15-4">The <code>authority</code> component of the MOQT URI is sent in the TLS SNI
 extension during connection establishment, exposing the target server
 identity to on-path observers. Encrypted Client Hello (ECH) <span>[<a href="#RFC9580" class="cite xref">RFC9580</a>]</span>
-can mitigate this exposure.<a href="#section-15-4" class="pilcrow">¶</a></p>
+can mitigate this exposure.
+All of the URI other, than the fragment, is exposed to the relay which a
+client connects to.<a href="#section-15-4" class="pilcrow">¶</a></p>
 <div id="subscription-amplification">
 <section id="section-15.1">
         <h3 id="name-subscription-amplification">
