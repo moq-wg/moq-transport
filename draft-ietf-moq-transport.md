@@ -1077,6 +1077,77 @@ that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
 groups. A publisher that does will begin the next group as soon as practical.
 
+## Track Switching {#track-switching}
+
+A subscriber can atomically stop delivery on one subscription (the _suspending
+subscription_) and start delivery on another, possibly new subscription (the _activating subscription_) by
+including the SWITCH_FROM parameter ({{switch-from}}) in a SUBSCRIBE or
+REQUEST_UPDATE on the activating subscription's request stream.  This enables
+subscriber track switching (e.g., ABR quality changes, alternate camera angles, or meetings
+participants) without coordinating multiple messages.
+
+On receiving a message containing SWITCH_FROM, the publisher:
+
+1. Validates that Switch From Request ID identifies an existing subscription
+   and is not the same as the activating subscription's Request ID. If not,
+   responds with REQUEST_ERROR `INVALID_SWITCH`. The switch determines whether
+   each subscription is paused (see {{pausing-subscriptions}}); if the message
+   carrying SWITCH_FROM has a FORWARD parameter, the publisher responds with
+   REQUEST_ERROR `INVALID_SWITCH`.  Note it is not an error if the suspending
+   subscription is already paused.
+
+2. Resumes the activating subscription and applies the
+   most recent LOCATION_FILTER parameter for this subscription (which
+   can be in the same message carrying SWITCH_FROM). This ensures objects
+   in Groups greater than or equal to the Largest Object's Group
+   are not missed during the transition.
+
+3. Responds on the activating subscription's control stream with SUBSCRIBE_OK
+   or REQUEST_UPDATE_OK as appropriate, as soon as `Largest Object` for the
+   activating track is known.  This response indicates that the switch has been
+   accepted; it does not indicate that delivery on the activating subscription
+   has begun.  If the publisher times out before `Largest Object` is known, it
+   MUST respond with REQUEST_ERROR `TIMEOUT`.
+
+4. Waits until it is ready to publish an object from the Start Group, computed
+   from the activating track at the time the request is received, while
+   continuing to deliver objects on the suspending subscription.
+
+   When the activating subscription opens a fill fetch stream (see
+   {{fill-semantics}}), the Start Group is the first Group of the fill range
+   that the stream delivers: the Group of the fill range's Start Location, or
+   the largest Group in the fill range when GROUP_ORDER inside FILL_PARAMETERS
+   is Descending.  Otherwise the Start Group is the Group of the Start Location
+   of the activating subscription's LOCATION_FILTER (see {{location-filters}}).
+
+5. Stops delivery on the suspending subscription:
+
+   * Mode Hard (0x0): pauses the suspending subscription and resets any
+     outstanding streams, including fill fetch streams.  Objects already in
+     flight can still be received by the subscriber.
+
+   The publisher sends PUBLISH_STATE_NOTIFY ({{ps-notify}}) on the suspending
+   subscription's stream as soon as the mode's change takes effect, reporting
+   the parameters it changed and including LARGEST_OBJECT.  If the Publish Done
+   flag in SWITCH_FROM ({{switch-from}}) is 1, the publisher follows it with
+   PUBLISH_DONE with code SWITCHED_AWAY; otherwise the suspending subscription
+   remains established.
+
+6. Begins delivery of activating subscription from Start Group, including any
+   fill fetch stream (see {{fill-semantics}}), which uses the activating
+   subscription's Request ID.
+
+If the publisher cannot begin delivery on the activating subscription, it MUST
+leave the suspending subscription unchanged.
+
+### Relay Handling of SWITCH_FROM {#relay-switch-from}
+
+Relays ordinarily handle the switch locally, applying the start group
+computation from {{track-switching}} using locally observed state for the
+activating track and servicing any fill fetch stream from cache and upstream
+sources.  When a relay performs the switch operation, it MUST NOT forward the
+SWITCH_FROM parameter upstream.
+
 ## Mandatory to Understand Track Properties {#mandatory-track-properties}
 
 Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
@@ -3009,8 +3080,8 @@ REQUEST_UPDATE Message {
 
   * Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
     SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
-    FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
-    OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST
+    FILL_PARAMETERS, SWITCH_FROM, SUBGROUP_FILTER, OBJECTID_FILTER,
+    PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST
   * FETCH: AUTHORIZATION_TOKEN, SUBSCRIBER_PRIORITY
   * PUBLISH_NAMESPACE: AUTHORIZATION_TOKEN
   * SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN, TRACK_NAMESPACE_PREFIX
@@ -3106,8 +3177,8 @@ SUBSCRIBE Message {
   that can appear in a SUBSCRIBE are OBJECT_DELIVERY_TIMEOUT,
   AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, FORWARD,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
-  SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-  NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
+  SWITCH_FROM, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
+  OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -3805,6 +3876,39 @@ close the session with `PROTOCOL_VIOLATION`.
 
 If omitted from SUBSCRIBE or SUBSCRIBE_TRACKS, the publisher's preference from
 the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
+
+### SWITCH_FROM Parameter {#switch-from}
+
+The SWITCH_FROM parameter (Parameter Type 0x24) MAY appear in a SUBSCRIBE or
+REQUEST_UPDATE (for a subscription) message.
+
+A SWITCH_FROM parameter has the following structure:
+
+~~~
+SWITCH_FROM {
+  Switch From Request ID (vi64),
+  Mode (vi64),
+  Publish Done (1),
+  Reserved Bits (7),
+}
+~~~
+
+* Switch From Request ID: The Request ID of the subscription to suspend.
+
+* Mode: A vi64 enum selecting how the suspending subscription is stopped. Modes
+  are registered in the IANA table "MOQT SWITCH_FROM Modes"
+  ({{iana-switch-from-modes}}); the following mode is defined: Hard (0x0). An
+  endpoint that receives a Mode value that is not defined MUST close the session
+  with `PROTOCOL_VIOLATION`. See {{track-switching}}.
+
+* Publish Done: If 1, the publisher sends PUBLISH_DONE on the suspending
+  subscription as described in {{track-switching}}.
+
+* Reserved Bits: MUST be 0. An endpoint that receives a non-zero value MUST
+  close the session with `PROTOCOL_VIOLATION`.
+
+When present, the enclosing SUBSCRIBE or REQUEST_UPDATE initiates a track
+switch as described in {{track-switching}}.
 
 ### LOCATION FILTER Parameter {#location-filter}
 
@@ -5061,6 +5165,10 @@ MALFORMED_TRACK:
 : In response to a FETCH, a relay publisher detected the track was
 malformed (see {{malformed-tracks}}).
 
+INVALID_SWITCH:
+: In response to a SUBSCRIBE or REQUEST_UPDATE carrying SWITCH_FROM, the track
+switch cannot be performed (see {{track-switching}}).
+
 The following are errors for use by the subscriber. They can appear in response
 to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.
 
@@ -5118,6 +5226,10 @@ UPDATE_FAILED (0x8):
 
 EXCESSIVE_LOAD (0x9):
 : The publisher is overloaded and is terminating the subscription.
+
+SWITCHED_AWAY (0x13):
+: The subscriber switched delivery away from this subscription using the
+  SWITCH_FROM parameter (see {{track-switching}}).
 
 ## Stream Reset Error Codes {#stream-reset-codes}
 
@@ -5635,6 +5747,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x21 | LOCATION_FILTER | {{location-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x23 | FILL_PARAMETERS | {{fill-parameters}} |
+| 0x24 | SWITCH_FROM | {{switch-from}} |
 | 0x25 | SUBGROUP_FILTER | {{subgroup-filter}} |
 | 0x26 | OBJECTID_FILTER | {{objectid-filter}} |
 | 0x27 | PRIORITY_FILTER | {{priority-filter}} |
@@ -5645,6 +5758,16 @@ Setup Options SHOULD request a provisional registration.
 | 0x35 | INCLUDE_PROPERTIES | {{include-properties-param}} |
 
 * Message Parameters - List which params can be repeated in the table.
+
+## SWITCH_FROM Modes {#iana-switch-from-modes}
+
+This document establishes the "MOQT SWITCH_FROM Modes" registry, governing the
+Mode field of the SWITCH_FROM parameter (see {{switch-from}}). The registration
+policy is First Come First Served (per {{!RFC8126, Section 4.4}}).
+
+| Mode | Name     | Specification |
+|-----:|:---------|:--------------|
+| 0x0  | Hard     | {{switch-from}} |
 
 ## Properties {#iana-properties}
 
@@ -5779,6 +5902,7 @@ This document does not define any initial entries.
 | UNINTERESTED               | 0x20 | {{request-error-codes}} |
 | PREFIX_OVERLAP             | 0x30 | {{request-error-codes}} |
 | NAMESPACE_TOO_LARGE        | 0x31 | {{request-error-codes}} |
+| INVALID_SWITCH             | 0x32 | {{request-error-codes}} |
 | UNSUPPORTED_EXTENSION      | 0x33 | {{request-error-codes}} |
 | REDIRECT                   | 0x34 | {{request-error-codes}} |
 | CONFLICTING_FILTERS        | 0x35 | {{request-error-codes}} |
@@ -5798,6 +5922,7 @@ This document does not define any initial entries.
 | UPDATE_FAILED      | 0x8  | {{publish-done-codes}} |
 | EXCESSIVE_LOAD     | 0x9  | {{publish-done-codes}} |
 | MALFORMED_TRACK    | 0x12 | {{publish-done-codes}} |
+| SWITCHED_AWAY      | 0x13 | {{publish-done-codes}} |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
 ### Stream Reset Error Codes {#iana-reset-stream}
