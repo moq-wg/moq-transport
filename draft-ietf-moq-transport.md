@@ -1090,24 +1090,24 @@ On receiving a message containing SWITCH_FROM, the publisher:
 
 1. Validates that Switch From Request ID identifies an existing subscription
    and is not the same as the activating subscription's Request ID. If not,
-   responds with REQUEST_ERROR `INVALID_SWITCH`. The activating subscription
-   handles Forward State transitions as part of the switch; if the message
+   responds with REQUEST_ERROR `INVALID_SWITCH`. The switch determines whether
+   each subscription is paused (see {{pausing-subscriptions}}); if the message
    carrying SWITCH_FROM has a FORWARD parameter, the publisher responds with
    REQUEST_ERROR `INVALID_SWITCH`.  Note it is not an error if the suspending
-   subscription is in Forward State 0.
+   subscription is already paused.
 
-2. Sets the activating subscription to Forward State 1 and applies the
+2. Resumes the activating subscription and applies the
    most recent LOCATION_FILTER parameter for this subscription (which
    can be in the same message carrying SWITCH_FROM). This ensures objects
    in Groups greater than or equal to the Largest Object's Group
    are not missed during the transition.
 
 3. Responds on the activating subscription's control stream with SUBSCRIBE_OK
-   or REQUEST_OK as appropriate, as soon as `Largest Object` for the activating
-   track is known.  This response indicates that the switch has been accepted;
-   it does not indicate that delivery on the activating subscription has begun.
-   If the publisher times out before `Largest Object` is known, it MUST respond
-   with REQUEST_ERROR `TIMEOUT`.
+   or REQUEST_UPDATE_OK as appropriate, as soon as `Largest Object` for the
+   activating track is known.  This response indicates that the switch has been
+   accepted; it does not indicate that delivery on the activating subscription
+   has begun.  If the publisher times out before `Largest Object` is known, it
+   MUST respond with REQUEST_ERROR `TIMEOUT`.
 
 4. Waits until it is ready to publish an object from the Start Group, computed
    from the activating track at the time the request is received, while
@@ -1122,7 +1122,7 @@ On receiving a message containing SWITCH_FROM, the publisher:
 
 5. Stops delivery on the suspending subscription:
 
-   * Mode Hard (0x0): sets Forward State 0 on the suspending subscription.
+   * Mode Hard (0x0): pauses the suspending subscription.
 
    In all modes, the publisher also resets any outstanding streams (including
    fill fetch streams) on the suspending subscription; objects already in flight
@@ -3081,8 +3081,8 @@ REQUEST_UPDATE Message {
 
   * Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
     SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
-    FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
-    OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST
+    FILL_PARAMETERS, SWITCH_FROM, SUBGROUP_FILTER, OBJECTID_FILTER,
+    PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST
   * FETCH: AUTHORIZATION_TOKEN, SUBSCRIBER_PRIORITY
   * PUBLISH_NAMESPACE: AUTHORIZATION_TOKEN
   * SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN, TRACK_NAMESPACE_PREFIX
@@ -3178,8 +3178,8 @@ SUBSCRIBE Message {
   that can appear in a SUBSCRIBE are OBJECT_DELIVERY_TIMEOUT,
   AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, FORWARD,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
-  SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-  NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
+  SWITCH_FROM, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
+  OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -3901,7 +3901,7 @@ SWITCH_FROM {
   endpoint that receives a Mode value that is not defined MUST close the session
   with `PROTOCOL_VIOLATION`. See {{track-switching}}.
 
-* Publish Done: If 1, the publisher sends PUBLISH_DONE on the suspend
+* Publish Done: If 1, the publisher sends PUBLISH_DONE on the suspending
   subscription as described in {{track-switching}}.
 
 * Reserved Bits: MUST be 0. An endpoint that receives a non-zero value MUST
