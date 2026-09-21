@@ -1122,17 +1122,15 @@ On receiving a message containing SWITCH_FROM, the publisher:
 
 5. Stops delivery on the suspending subscription:
 
-   * Mode Hard (0x0): pauses the suspending subscription.
-
-   In all modes, the publisher also resets any outstanding streams (including
-   fill fetch streams) on the suspending subscription; objects already in flight
-   can still be received by the subscriber.
+   * Mode Hard (0x0): pauses the suspending subscription and resets any
+     outstanding streams, including fill fetch streams.  Objects already in
+     flight can still be received by the subscriber.
 
    The publisher then sends PUBLISH_STATE_NOTIFY ({{ps-notify}}) on the
    suspending subscription's stream, reporting the state now in effect and
-   including LARGEST_OBJECT.  If Publish Done is 1, the publisher follows it
-   with PUBLISH_DONE with code SWITCHED_AWAY; otherwise
-   the suspending subscription remains established.
+   including LARGEST_OBJECT.  If the Publish Done flag in SWITCH_FROM
+   ({{switch-from}}) is 1, the publisher follows it with PUBLISH_DONE with code
+   SWITCHED_AWAY; otherwise the suspending subscription remains established.
 
 6. Begins delivery of activating subscription from Start Group, including any
    fill fetch stream (see {{fill-semantics}}), which uses the activating
@@ -3880,9 +3878,10 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 
 ### SWITCH_FROM Parameter {#switch-from}
 
-The SWITCH_FROM parameter (Parameter Type 0x24) consists of a varint Switch
-From Request ID, a varint Mode, and a single byte of flags. It MAY appear in a
-SUBSCRIBE or REQUEST_UPDATE (for a subscription) message.
+The SWITCH_FROM parameter (Parameter Type 0x24) MAY appear in a SUBSCRIBE or
+REQUEST_UPDATE (for a subscription) message.
+
+A SWITCH_FROM parameter has the following structure:
 
 ~~~
 SWITCH_FROM {
