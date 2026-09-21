@@ -1126,12 +1126,27 @@ On receiving a message containing SWITCH_FROM, the publisher:
      outstanding streams, including fill fetch streams.  Objects already in
      flight can still be received by the subscriber.
 
+   * Mode Soft (0x1): when Start Group is greater than zero, the publisher
+     updates the suspending subscription's End Group to Start Group - 1 and
+     delivery continues until that group is reached; otherwise the publisher
+     stops delivery on the suspending subscription immediately, as in Hard
+     mode.  Outstanding fill fetch streams on the suspending subscription are
+     not cancelled. This mode is most useful when the suspending and activating
+     tracks are group-aligned (i.e., share group boundaries), ensuring a clean
+     handoff between tracks.
+
+     The publisher also resets any outstanding suspend data for groups greater
+     than or equal to the Start Group; objects already in flight can still be
+     received by the subscriber.
+
    The publisher sends PUBLISH_STATE_NOTIFY ({{ps-notify}}) on the suspending
    subscription's stream as soon as the mode's change takes effect, reporting
    the parameters it changed and including LARGEST_OBJECT.  If the Publish Done
    flag in SWITCH_FROM ({{switch-from}}) is 1, the publisher follows it with
    PUBLISH_DONE with code SWITCHED_AWAY; otherwise the suspending subscription
-   remains established.
+   remains established.  In Mode Soft, the publisher sends PUBLISH_DONE after
+   sending the final Object in Start Group - 1, if signaled by the publisher,
+   or after an implementation-specific timeout.
 
 6. Begins delivery of activating subscription from Start Group, including any
    fill fetch stream (see {{fill-semantics}}), which uses the activating
@@ -3897,9 +3912,9 @@ SWITCH_FROM {
 
 * Mode: A vi64 enum selecting how the suspending subscription is stopped. Modes
   are registered in the IANA table "MOQT SWITCH_FROM Modes"
-  ({{iana-switch-from-modes}}); the following mode is defined: Hard (0x0). An
-  endpoint that receives a Mode value that is not defined MUST close the session
-  with `PROTOCOL_VIOLATION`. See {{track-switching}}.
+  ({{iana-switch-from-modes}}); the following modes are defined: Hard (0x0) and
+  Soft (0x1). An endpoint that receives a Mode value that is not defined MUST
+  close the session with `PROTOCOL_VIOLATION`. See {{track-switching}}.
 
 * Publish Done: If 1, the publisher sends PUBLISH_DONE on the suspending
   subscription as described in {{track-switching}}.
@@ -5768,6 +5783,7 @@ policy is First Come First Served (per {{!RFC8126, Section 4.4}}).
 | Mode | Name     | Specification |
 |-----:|:---------|:--------------|
 | 0x0  | Hard     | {{switch-from}} |
+| 0x1  | Soft     | {{switch-from}} |
 
 ## Properties {#iana-properties}
 
