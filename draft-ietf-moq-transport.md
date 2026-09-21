@@ -1126,11 +1126,12 @@ On receiving a message containing SWITCH_FROM, the publisher:
      outstanding streams, including fill fetch streams.  Objects already in
      flight can still be received by the subscriber.
 
-   The publisher then sends PUBLISH_STATE_NOTIFY ({{ps-notify}}) on the
-   suspending subscription's stream, reporting the state now in effect and
-   including LARGEST_OBJECT.  If the Publish Done flag in SWITCH_FROM
-   ({{switch-from}}) is 1, the publisher follows it with PUBLISH_DONE with code
-   SWITCHED_AWAY; otherwise the suspending subscription remains established.
+   The publisher sends PUBLISH_STATE_NOTIFY ({{ps-notify}}) on the suspending
+   subscription's stream as soon as the mode's change takes effect, reporting
+   the parameters it changed and including LARGEST_OBJECT.  If the Publish Done
+   flag in SWITCH_FROM ({{switch-from}}) is 1, the publisher follows it with
+   PUBLISH_DONE with code SWITCHED_AWAY; otherwise the suspending subscription
+   remains established.
 
 6. Begins delivery of activating subscription from Start Group, including any
    fill fetch stream (see {{fill-semantics}}), which uses the activating
