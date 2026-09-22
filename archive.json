@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-20T04:06:36.964650+00:00",
+  "timestamp": "2026-09-22T04:00:58.108755+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -35542,7 +35542,7 @@
       ],
       "body": "If the subgroup ID is zero, or the first object ID, the relevant bits of the subgroup stream type can be determined on the fly for each hop.\n\nHowever, to omit the extension header lengths from a stream, I have to know that all objects in the stream will not have extension headers. AFAICT consistent presence of extensions in a subgroup is not a requirement in the object model.\n\nSo either:\n1) Relay MOQT framers ~never omit the extension header length in a subgroup;\n2) There is a new sending API parameter \"will never use extensions\" when delivering an object for a new subgroup.\n\n",
       "createdAt": "2025-07-10T05:40:35Z",
-      "updatedAt": "2026-09-11T16:57:46Z",
+      "updatedAt": "2026-09-20T19:31:31Z",
       "closedAt": null,
       "comments": [
         {
@@ -35621,6 +35621,13 @@
           "body": "Maybe the bit could mean \"the first object in this subgroup has no properties\"? That seems way easier to implement and covers the main use case you cited.",
           "createdAt": "2026-09-11T16:57:46Z",
           "updatedAt": "2026-09-11T16:57:46Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think the \"(1) the upstream sent 0 and the relay knows it definitely won't add any properties.\" is a pretty common use case ",
+          "createdAt": "2026-09-20T19:31:31Z",
+          "updatedAt": "2026-09-20T19:31:31Z"
         }
       ]
     },
@@ -43169,7 +43176,7 @@
       ],
       "body": "Currently within SUBSCRIBE you can set a [forward parameter](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#forward-parameter) of 0 (don't send me anything) or 1 ( send me everything, default).\n\nIf we implement FILTERS (see https://github.com/moq-wg/moq-transport/pull/1164 and also Filter design team results), then we can remove this flag as:\n\na forward flag of 0 is syntactically equivalent to a FILTER that blocks everything\na forward flag of 1 is syntactically equivalent to a FILTER that allows everything \n\nForward state can be managed by SUBSCRIBE_UPDATE and adjusting the FILTER. ",
       "createdAt": "2025-11-04T16:51:54Z",
-      "updatedAt": "2026-09-08T21:29:13Z",
+      "updatedAt": "2026-09-20T17:47:23Z",
       "closedAt": null,
       "comments": [
         {
@@ -43234,6 +43241,13 @@
           "body": "Discussed 9/8: support to split the current PR into an editorial only change using \"paused\" terminology and separate the Forward Param/Location filter.\n\n@mzanaty commented that rather than setting an unsatisfiable location, publishers/relays should set an End location that reflects the pause point.  This is different than how Forward works, since objects that fall within the subscribers location filter are not delivered with forward=0.\n\nAnother question was whether publishers/relays needed to remember the previous filter when they are directed to pause and subsequently subscriptions (e.g. SWITCH_FROM, TOP-N, SSTS).",
           "createdAt": "2026-09-08T21:29:13Z",
           "updatedAt": "2026-09-08T21:29:13Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm not sure this is true. The issue is when forward is turned back on, how to know what the original filter values were so they can be set the same. In some cases this is easy, but not sure in all cases. ",
+          "createdAt": "2026-09-20T17:47:23Z",
+          "updatedAt": "2026-09-20T17:47:23Z"
         }
       ]
     },
@@ -48960,7 +48974,7 @@
       ],
       "body": "I was just reading the draft-18 text regarding namespace prefixes and full track names and wanted to clarify the rules for our implementation. \n\nI understand the use-case for zero element namespace prefixes, but wanted to check that publishing a track with a zero element namespace is allowed, and in theory, given the text as it is today, a track with a zero element namespace AND an empty name is also allowed?",
       "createdAt": "2026-05-21T10:50:20Z",
-      "updatedAt": "2026-09-07T18:01:11Z",
+      "updatedAt": "2026-09-20T18:58:46Z",
       "closedAt": null,
       "comments": [
         {
@@ -49004,6 +49018,13 @@
           "body": "I went to write this up, but I think we need to revisit this decision.\n\nIf you can publish tracks in the empty namespace - then you might send PUBLISH_NAMESPACE (0-tuple prefix) to the relay.  But this will get the relay to route _all_ subscribes to you - eg the relay probably shouldn't give you an auth token for this.\n\nSo I think this is a concrete reason to say you cannot publish tracks in the 0-tuple namespace.  Alternately, we could add a special flag in PUBLISH_NAMESPACE like \"recursive=false\".",
           "createdAt": "2026-09-07T18:01:04Z",
           "updatedAt": "2026-09-07T18:01:04Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I don't want to bring in a \"recursive=false\" concept at this point. \n\nI lean towards each element of tuple namespace, and each track name, must have at least 1 character and namespaces have to have at least one tuple but I could live with zero. This is roughly have files names and lots of other URLs work and anything else is going to be an evergreen source of bugs no matter how much we call it out in the spec. \n\nI don't think I have heard any uses cases that push this one way of the other. ",
+          "createdAt": "2026-09-20T18:58:46Z",
+          "updatedAt": "2026-09-20T18:58:46Z"
         }
       ]
     },
@@ -53463,7 +53484,7 @@
       ],
       "body": "MOQT has Track and Object property scopes but nothing \"in between\", i.e. no general way to attach metadata to a Subgroup or a Group.\n\nSubgroup scope is being emulated for SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT which, \"as an Object Property on the first object in a subgroup, [override] the Track-level value for that subgroup\". And the scope for object property PRIOR_GROUP_ID_GAP is weird, but definitely not scoped to a given object.\n\nUsing object parameters as emulation for wider than object scope has a number of problems.\n1. Mid-group join may miss them\n2. A fetch range may be mid-group\n\nboth of those existed for long time, but reading group without the beginning could be considered transient state, but \n\n3. Filters may exclude this metadata even in \"steady-state\". \n\nFrom general extensibility standpoint, I am missing this metadata when trying to build application on top of MOQT, and first-object as group emulation is, at minimum, hacky. I feel this is a missing extension point and should be there given that object model is the foundation of moqt. \n\nIt seems relatively easy to add subgroup parameters, given that subgroup headers exist, but the single-byte bit-field compressed type is practically full.\nTrue group-level would require more significant changes in the data plane. As would some other generic data-plane metadata carrier. But both of those could bring more resilient mechanism to add metadata. \n\nI understand that this may be quite heavy change, possibly past-deadline, but I feel this should have a dedicated general discussion.\n\nDo people think we should have an additional extension point for metadata in data-plane? Which/where/how? \n",
       "createdAt": "2026-08-24T17:11:49Z",
-      "updatedAt": "2026-09-07T18:17:18Z",
+      "updatedAt": "2026-09-21T00:38:21Z",
       "closedAt": null,
       "comments": [
         {
@@ -53472,6 +53493,20 @@
           "body": "Strong +1 from an operator side. We run 24/7 live linear channels with server-side ad insertion over MoQ, and the lack of a group-scoped metadata point is exactly why we carry splice/boundary signaling (SCTE-35-derived: boundary here, duration N, resume at X) in a self-defined JSON track today. Splice points align to group boundaries by construction in our pipeline, so group scope is the natural carrier \u2014 and we've hit both failure modes named here in practice: late joiners reading stale boundary state, and boundary metadata living in a side track precisely because object-property emulation can't survive mid-group join. Happy to share our workaround's design notes as input.",
           "createdAt": "2026-08-24T17:25:40Z",
           "updatedAt": "2026-08-24T17:25:40Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I have seen some uses case where we have been attaching meta information for the group to object 0 in the group. Is that good enough ?",
+          "createdAt": "2026-09-20T19:01:43Z",
+          "updatedAt": "2026-09-20T19:01:43Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@fluffy \n> I have seen some uses case where we have been attaching meta information for the group to object 0 in the group. Is that good enough ?\n\nWell the draft as written gives you only that option so we've been running with \"yes it's probably good enough\".  But there are specific cases where it falls down mentioned in the OP:\n\n1. Mid-group join may miss them\n2. A fetch range may be mid-group\n3. Filters may exclude this metadata even in \"steady-state\"\n",
+          "createdAt": "2026-09-21T00:38:21Z",
+          "updatedAt": "2026-09-21T00:38:21Z"
         }
       ]
     },
@@ -53883,11 +53918,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "Needs Discussion",
         "Subscribe"
       ],
       "body": "Payloads can be much larger than object metadata/properties and may not be of interest.\n\nTop Tracks Filter would be an ideal consumer of this - a relay need only ingest the metadata from all publishers until it knows the track is actually passing a filter.",
       "createdAt": "2026-09-08T00:05:57Z",
-      "updatedAt": "2026-09-09T03:18:13Z",
+      "updatedAt": "2026-09-21T15:17:30Z",
       "closedAt": null,
       "comments": [
         {
@@ -53896,6 +53932,34 @@
           "body": "This seems useful, but I don't have a clear enough use case yet to warrant it.",
           "createdAt": "2026-09-09T03:18:07Z",
           "updatedAt": "2026-09-09T03:18:07Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Can you do this just be setting a filter that says \"don't send my any objects\" ?",
+          "createdAt": "2026-09-20T19:02:59Z",
+          "updatedAt": "2026-09-20T19:02:59Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Can you do this just be setting a filter that says \"don't send my any objects\" ?\n\nThe request is to receive Objects, with Payload Length set to a real value, but no payloads -- like an HTTP HEAD request.  It can't be expressed purely as a filter today because it changes how the data-plane parser interprets what comes after the Length.  So there needs to be\n\n1) A control plane way to request this\n2) A data plane way to signal that the datagram/subgroup lengths are informational, rather than how many bytes are coming.",
+          "createdAt": "2026-09-21T00:40:52Z",
+          "updatedAt": "2026-09-21T00:40:52Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "This is a useful feature, especially when combined with filtering. One nit is that the term \"metadata\" is not a term-of-art with MOQT and therefore a little ambiguous.  Can we express this in terms of \"Send Object properties only\" or \"empty Object payloads\" etc ? ",
+          "createdAt": "2026-09-21T08:24:18Z",
+          "updatedAt": "2026-09-21T08:24:18Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> This seems useful, but I don't have a clear enough use case yet to warrant it.\n\nI think a specific use case might be in conjunction with top-N.\n\nConsider a fan-in case with 1000 publishers and a single subscriber looking for Top-5 (perhaps security cameras).  The relay would SUBSCRIBE to each publisher \"Properties only\" and switch to full objects for a track when that track is selected.",
+          "createdAt": "2026-09-21T15:17:30Z",
+          "updatedAt": "2026-09-21T15:17:30Z"
         }
       ]
     },
@@ -53955,7 +54019,7 @@
       ],
       "body": "When reviewing, #1913 I realized that we don't have to use a Length and instead we can use an enum that indicates how many varints followed.  I believe when this was originally designed, Parameters were either varint or TLV, so the design made sense at that time.\n\nThis would allow us to remove the special case for 0, 0 -> Largest Object.  We could also create a 'Null' filter enum value that forwards no Objects like the existing FORWARD param if we wanted to.\n\nFrom a wire format perspective, the length is likely to always be a byte, so its a wash.",
       "createdAt": "2026-09-09T01:26:17Z",
-      "updatedAt": "2026-09-09T05:46:33Z",
+      "updatedAt": "2026-09-21T16:44:02Z",
       "closedAt": null,
       "comments": [
         {
@@ -53964,6 +54028,34 @@
           "body": "Ok so you want something like:\n\nLocation Filter Type: \n  No Filter (0), \n  Relative Start Group (1), \n  Absolute Start (2), \n  Absolute Range (3), \n  Absolute Range with End Object (4)\n  Largest Object (5)\n\nThis particular assignment of enum also is a proxy for the number of varints that follow, except Largest Object is also 0.\n\n> the length is likely to always be a byte, so its a wash.\n\nIn fact 4 varints max out at 36 bytes, length _has_ to be 1 byte, if minimally encoded.\n\nThe number of error cases seems is slightly lower (unless I missed some)?\n\nbefore:\n\n1. Bytes remaining in length after decoding 4 varints\n2. Length terminates mid-varint\n3. Param length exceeds remaining message length\n\nafter\n\n1. Enum out of range\n2. Params length exhausted mid-varint\n\nI think the enum spelling is a little harder to get wrong - see 0,0 has a special meaning, and 1 and 1,0 mean very different things.  I think the spec text length is more or less the same?  \n\nThe cost is churn.  The current spelling is in an interop target now.\n\nCC: @mzanaty ",
           "createdAt": "2026-09-09T05:46:32Z",
           "updatedAt": "2026-09-09T05:46:32Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Extensibility questions ... In the future, do we want to be able to add new types of filters that are not MTU ?",
+          "createdAt": "2026-09-20T19:25:26Z",
+          "updatedAt": "2026-09-20T19:25:26Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Extensibility questions ... In the future, do we want to be able to add new types of filters that are not MTU ?\n\nI don't have plans for any, but yes, I expect this to be something that some implementation might want to extend, both some kind of fancy location filter or Range filters.\n\nIt's probably a little easier to add a new type of location filter if we use an enum.",
+          "createdAt": "2026-09-21T00:54:56Z",
+          "updatedAt": "2026-09-21T00:54:56Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I agree that using an enum makes it potentially a bit easier to extend.",
+          "createdAt": "2026-09-21T15:52:54Z",
+          "updatedAt": "2026-09-21T15:52:54Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The more I think about this, the more I think this is a no brainer that enum is a better way to spell this. ",
+          "createdAt": "2026-09-21T16:44:02Z",
+          "updatedAt": "2026-09-21T16:44:02Z"
         }
       ]
     },
@@ -54008,11 +54100,13 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "Needs Discussion"
+        "Needs Discussion",
+        "Design",
+        "Extensibility"
       ],
       "body": "Sec 3.6 \"Mandatory to understand track properties\" tells relays to send REQUEST_ERROR downstream if they get unknown properties in SUBSCRIBE_OK or FETCH_OK, but it doesn't mention TRACK_STATUS_OK.\n\nThis will not be OK if the relay is supposed to change the property in some way.\n\nEither add a paragraph about TRACK_STATUS or explicitly say it doesn't behave this way, to make it clear it isn't an oversight (which it currently is).",
       "createdAt": "2026-09-10T22:37:02Z",
-      "updatedAt": "2026-09-15T22:01:22Z",
+      "updatedAt": "2026-09-21T00:45:28Z",
       "closedAt": null,
       "comments": [
         {
@@ -54021,6 +54115,20 @@
           "body": "I actually think the right answer might be \"yes, relays propagate unknown MTU properties\".  My logic is 1) this might be the only way to discover what properties of the track are preventing a subscriber from retrieving it and 2) it seems unlikely someone would need to alter the behavior of TRACK_STATUS through a custom property in such a way that it actually requires the \"don't even try\" behavior.",
           "createdAt": "2026-09-15T22:01:15Z",
           "updatedAt": "2026-09-15T22:01:15Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Marked as design because this seems like it could have some significant impacts on extensibility. ",
+          "createdAt": "2026-09-20T19:06:11Z",
+          "updatedAt": "2026-09-20T19:06:11Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@fluffy \n\n> Marked as design because this seems like it could have some significant impacts on extensibility.\n\nJust FYI - we don't really use the Design tag consistently for _issues_.  Design/Editorial is marked for PRs so editors know how long to keep them open for review and how many/which approvers are required to proceed.\n\nIssues get one of these tags that help us understand workflow and next steps: Editorial, Not Transport, BLOCKED, Needs PR, Parked, or Needs Discussion\nPlus any relevant functional tags: e.g. Extensibility.",
+          "createdAt": "2026-09-21T00:45:05Z",
+          "updatedAt": "2026-09-21T00:45:05Z"
         }
       ]
     },
@@ -54105,25 +54213,41 @@
       "labels": [],
       "body": "What should an original publisher do?  A relay?\n\nDoes sending uint64_max mean that a relay will never send a NEW_GROUP_REQUEST again?",
       "createdAt": "2026-09-17T20:36:21Z",
-      "updatedAt": "2026-09-17T20:36:21Z",
+      "updatedAt": "2026-09-21T00:01:25Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "If I read the text:\n\n> The Original Publisher chooses the next Group ID; there are no requirements that it be equal to the NEW_GROUP_REQUEST parameter value.\n\n> A relay that receives a NEW_GROUP_REQUEST for an Established subscription with a value of 0 or a value larger than the Largest Group MUST send a REQUEST_UPDATE including the NEW_GROUP_REQUEST to the publisher unless:\n>\n> 1. The Track does not support dynamic Groups\n> 2. There is already an outstanding NEW_GROUP_REQUEST from this Relay with a greater or equal value\n>\n> If a relay receives a NEW_GROUP_REQUEST with a non-zero value less than or equal to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.\n> \n> After sending a NEW_GROUP_REQUEST upstream, the request is considered outstanding until the Largest Group increases.\n\nI think the scenario you describe works ok.\n\n``` \nCurrent Largest Group = 10\nC1->R: NGR=2^64-1\nR->P: NGR=2^64-1  // the max NGR is outstanding\nC2->R: NGR=11     // Relay does not send to OP, because of rule 2\nP->R: Group = 11  // the request is no longer outstanding\nC3->R: NGR=12     // this is fine\nR->P: NGR=12\n```\n\n",
+          "createdAt": "2026-09-21T00:01:25Z",
+          "updatedAt": "2026-09-21T00:01:25Z"
+        }
+      ]
     },
     {
       "number": 1949,
       "id": "I_kwDOG2Ho4M8AAAABR2Cr_Q",
       "title": "Chunked encoding for objects when size is not known initially?",
       "url": "https://github.com/moq-wg/moq-transport/issues/1949",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "sharmafb",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Today, a streamed MOQT Object must declare its total payload length before sending any payload bytes. If an encoder produces data progressively but does not know the final size yet, it must wait until encoding finishes. This can unnecessarily increase latency. Have we thought about adding chunked encoding in, either to the base draft or as an extension? Do people believe this would be useful?",
       "createdAt": "2026-09-17T20:41:05Z",
-      "updatedAt": "2026-09-17T20:47:23Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2026-09-21T16:19:11Z",
+      "closedAt": "2026-09-21T16:19:11Z",
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think in most practical scenarios, either the object length is known up front, or the publisher can represent the higher level construct as a series of objects whose length is known.\n\nI would drop this unless there's a specific use case.",
+          "createdAt": "2026-09-21T00:03:17Z",
+          "updatedAt": "2026-09-21T00:03:17Z"
+        }
+      ]
     },
     {
       "number": 1950,
@@ -54148,6 +54272,32 @@
           "body": "+1 ",
           "createdAt": "2026-09-18T12:34:03Z",
           "updatedAt": "2026-09-18T12:34:03Z"
+        }
+      ]
+    },
+    {
+      "number": 1951,
+      "id": "I_kwDOG2Ho4M8AAAABSQLYCw",
+      "title": "UNSUPPORTED_EXTENSION  error does not say which extension is the problem",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1951",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Needs Discussion"
+      ],
+      "body": "\nWhen a client receives an UNSUPPORTED_EXTENSION  error, it should be able to tell which extension caused the problem. ",
+      "createdAt": "2026-09-20T19:12:26Z",
+      "updatedAt": "2026-09-21T00:51:30Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "We already had complaints about mutating the error response fields based on the specific error code (#1837) so I'm a little loathe to add an extra field in this case, but I do see the utility.\n\nDepending on how #1941 resolves, one answer could be - send a TRACK_STATUS to see what extensions are there that you didn't indicate support for.",
+          "createdAt": "2026-09-21T00:51:27Z",
+          "updatedAt": "2026-09-21T00:51:27Z"
         }
       ]
     }
@@ -203460,13 +203610,13 @@
       ],
       "body": "Introduce a new parameter SWITCH_FROM, that can appear in SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE.  The parameter has a Mode enum which can control details of the switching algorithm.  The base algorithm and a single \"Hard\" mode that flips the Forward State are defined.  Subsequent PRs will introduce additional modes.\r\n\r\nThe parameter also has a \"Publish Done\" option which the subscriber uses to control whether the other track is closed or left open after Switch.\r\n\r\nSee #1354\r\nFixes #1519 ",
       "createdAt": "2026-06-14T00:50:19Z",
-      "updatedAt": "2026-09-08T16:04:15Z",
+      "updatedAt": "2026-09-21T01:57:14Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "527686bc5f37fd9f6dcac20eddc8e30f67018718",
+      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "switch-from-with-enum",
-      "headRefOid": "399cbf6ba5ebedcb9b1dc7205157c606b657d299",
+      "headRefOid": "6e01144404643b0a3f44f56e89fe96923a1f87e7",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -204920,6 +205070,112 @@
               "updatedAt": "2026-08-10T15:25:21Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABOZo6dA",
+          "commit": {
+            "abbreviatedOid": "399cbf6"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2026-09-20T18:37:01Z",
+          "updatedAt": "2026-09-20T18:52:08Z",
+          "comments": [
+            {
+              "originalPosition": 51,
+              "body": "are we sure this is correct. In some modes, If I switch at group 7, I still want to get all the data in group 6 on the old stream and then get group 7 on new stream. I may have lost track of how all the bits fit together on this. ",
+              "createdAt": "2026-09-20T18:37:01Z",
+              "updatedAt": "2026-09-20T18:52:08Z"
+            },
+            {
+              "originalPosition": 57,
+              "body": "need a bit of info of where Publish Done comes from as this is first time menetioned",
+              "createdAt": "2026-09-20T18:39:00Z",
+              "updatedAt": "2026-09-20T18:52:08Z"
+            },
+            {
+              "originalPosition": 61,
+              "body": "seems like might have happened much sooner ",
+              "createdAt": "2026-09-20T18:39:53Z",
+              "updatedAt": "2026-09-20T18:52:08Z"
+            },
+            {
+              "originalPosition": 65,
+              "body": "this seems very wrong. What are we thinking would cause this. This would need an error at least. ",
+              "createdAt": "2026-09-20T18:40:42Z",
+              "updatedAt": "2026-09-20T18:52:08Z"
+            },
+            {
+              "originalPosition": 73,
+              "body": "I think the MUST NOT needs to be a SHOULD NOT here. There are cases, particularly when relay has is a stub relay and has one subscriber, where sending this upstream might be the right thing to do. ",
+              "createdAt": "2026-09-20T18:41:51Z",
+              "updatedAt": "2026-09-20T18:52:08Z"
+            },
+            {
+              "originalPosition": 85,
+              "body": "Is this sentence really adding much value ? Seems like just one more thing to keep in sync ",
+              "createdAt": "2026-09-20T18:43:02Z",
+              "updatedAt": "2026-09-20T18:52:08Z"
+            },
+            {
+              "originalPosition": 49,
+              "body": "The other modes also do this at some level. I think it would be easier to differenate from other modes if it said \n\n\"immediately sets Forward State\" ",
+              "createdAt": "2026-09-20T18:46:08Z",
+              "updatedAt": "2026-09-20T18:52:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABOadoDw",
+          "commit": {
+            "abbreviatedOid": "399cbf6"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-21T00:11:41Z",
+          "updatedAt": "2026-09-21T00:35:32Z",
+          "comments": [
+            {
+              "originalPosition": 49,
+              "body": "This PR needs to be updated with the new terminology (we no longer talk about forward state, but pause/unpause).  Some of the editorial awkwardness comes from how this was split into Hard and Soft PRs.  I think the combined text read better.  As long as we agree on the functionality, we can massage the final text correctly depending on whether we are supporting one or both in the base draft.",
+              "createdAt": "2026-09-21T00:11:42Z",
+              "updatedAt": "2026-09-21T00:35:33Z"
+            },
+            {
+              "originalPosition": 51,
+              "body": "Agreed that \"Soft/Aligned\" mode doesn't work like this, and it's gotten out of sync.  The original text said:\r\n\r\n>  In all modes, the publisher also resets any outstanding suspend data for\r\n>   **groups greater than or equal to the Start Group**; objects already in flight\r\n>    can still be received by the subscriber.",
+              "createdAt": "2026-09-21T00:13:44Z",
+              "updatedAt": "2026-09-21T00:35:32Z"
+            },
+            {
+              "originalPosition": 61,
+              "body": "I'm not sure that's true because of the \"from Start Group\" qualifier.\r\n\r\nThe first three steps are:\r\n\r\n1. Validate\r\n2. Set the activating subscription to unpaused and apply the new filter\r\n3. Send Subscribe OK\r\n\r\nAnd I expect these to be more-or-less synchronous.\r\n\r\n4. \"Waits until it is ready to publish an object from the Start Group\"\r\n5. Pause old subscription\r\n6. Begin delivery...\r\n\r\nWhat can happen is an object from a group later than Start group can be forwarded while waiting for an object from Start Group.  That said, I expect that to be kind of an edge case, and step two explains it:\r\n\r\n> This ensures objects in Groups greater than or equal to the Largest Object's Group\r\n>  are not missed during the transition.\r\n\r\nThough now that I think about it, this could leave the SWITCH in a hung state if the Start group is greater than largest object, but doesn't exist.  (e.g. Largest = 10, Start=11, but the publisher only publishes even groups).",
+              "createdAt": "2026-09-21T00:23:33Z",
+              "updatedAt": "2026-09-21T00:35:32Z"
+            },
+            {
+              "originalPosition": 65,
+              "body": "> This would need an error at least.\r\n\r\nAgree and I think all the cases do generate errors.\r\n\r\n> What are we thinking would cause this\r\n\r\nTimeout waiting for the new track to show up is one, it says REQUEST_ERROR+TIMEOUT.\r\nAnother might be a new subscription or subscribe update that fails, this would get REQUEST_ERROR on the activating subscription.\r\n\r\nIf you want to unilaterally pause the old subscription this is the wrong vehicle --> Just send REQUEST_UPDATE Foward=0.  SWITCH_FROM is for coordinated switching, where you want A-then-B.  I'm thinking e.g. I want to swap out one hollywood square from Alice to Bob: you don't want to stop sending Alice until you have Bob media, right?  If you spelled Bob wrong or auth failed to get that track, pausing Alice seems incorrect. But I suspect there's some other scenario where maybe you would?",
+              "createdAt": "2026-09-21T00:28:22Z",
+              "updatedAt": "2026-09-21T00:35:33Z"
+            },
+            {
+              "originalPosition": 73,
+              "body": "I agree with your use case and I don't think the text precludes it.  It says the relay MUST NOT forward when **it** is performing the SWITCH.  If the stub relay isn't switching, forwarding upstream is allowed and correct.  Or is there some scenario where you want both relays to execute the switch algorithm?\r\n",
+              "createdAt": "2026-09-21T00:31:18Z",
+              "updatedAt": "2026-09-21T00:35:33Z"
+            },
+            {
+              "originalPosition": 113,
+              "body": "There are 3 distinct error cases in the algorithm:\r\n\r\n\"From ID\" doesn't refer to an active subscription\r\n\"From ID\" is the same ID as \"To ID\"\r\nRequest contains both Forward=0 and SWITCH_FROM -- though it sounds like some folks want to make this case not an error.\r\n\r\nIf we really want 2 or 3 distinct codes, we can add them.",
+              "createdAt": "2026-09-21T00:35:24Z",
+              "updatedAt": "2026-09-21T00:35:32Z"
+            }
+          ]
         }
       ]
     },
@@ -204937,13 +205193,13 @@
       ],
       "body": "This introduces a \"Soft\" switch mode that assumes group alignment between the suspend and resume tracks.  The switch is executed by updating the filter of the suspend subscription to end at Start Group - 1.  This allows graceful draining, preventing a possible gap between the aligned groups of the two tracks.",
       "createdAt": "2026-06-14T00:50:59Z",
-      "updatedAt": "2026-07-18T16:19:35Z",
+      "updatedAt": "2026-09-21T02:19:40Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "switch-from-with-enum",
-      "baseRefOid": "52a86b7f95ae7041e9facd0d9a29e49031115c60",
+      "baseRefOid": "6e01144404643b0a3f44f56e89fe96923a1f87e7",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "switch-from-soft-mode",
-      "headRefOid": "2811d06754110027e955744342a854e0e2342218",
+      "headRefOid": "9660ec9cd797406f8516e389ef3128f07fb77ca4",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -205164,6 +205420,79 @@
               "body": "I suppose one mechanism is to add end-of-group signaling to the subscription control channel.  eg: \r\n\r\n```\r\nEND_OF_GROUP { \r\n  Group ID (vi64),\r\n  StreamCount (vi64)\r\n}\r\n```\r\n\r\nThen relay can use this to know when to move to the other group (when it has all the streams and they have all terminated).  However, it's a bit heavy-handed to require such a message (3 MOQ bytes on the control stream every group).",
               "createdAt": "2026-07-18T16:19:15Z",
               "updatedAt": "2026-07-18T16:19:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABOZqczQ",
+          "commit": {
+            "abbreviatedOid": "2811d06"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-20T18:47:55Z",
+          "updatedAt": "2026-09-20T18:47:55Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "Lets think about a way to do it without timers. ",
+              "createdAt": "2026-09-20T18:47:55Z",
+              "updatedAt": "2026-09-20T18:47:55Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABOZqh6Q",
+          "commit": {
+            "abbreviatedOid": "2811d06"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-20T18:48:32Z",
+          "updatedAt": "2026-09-20T18:48:32Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "ah, yes, agree ",
+              "createdAt": "2026-09-20T18:48:32Z",
+              "updatedAt": "2026-09-20T18:48:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABOZqy0g",
+          "commit": {
+            "abbreviatedOid": "2811d06"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I think we need some discussion on if timers are needed and if we can avoid them ",
+          "createdAt": "2026-09-20T18:50:40Z",
+          "updatedAt": "2026-09-20T18:50:40Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABOa0MYA",
+          "commit": {
+            "abbreviatedOid": "2811d06"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-21T02:17:20Z",
+          "updatedAt": "2026-09-21T02:17:20Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "@fluffy I have given it a significant amount of thought -- see #641, #1832 #1833.  I think some progress is possible if we include _per group_ **stream** counts (and possibly datagram counts too) and publishers send these accurately.  e.g. could be a Parameter on PUBLISH_STATE_NOTIFY sent by every publisher like \r\n\r\n```\r\nGROUP_COMPLETE {\r\n  ID (vi64),\r\n  Stream Count (vi64)\r\n}\r\n```\r\n\r\nThis is not to say it eliminates timers, since the publisher could be malicious or buggy, and the provided stream count is never reached.  But in the normal case, a relay can be certain that it has received all the data sent from upstream for a given group, and send it's own GROUP_COMPLETE (which could have different counts).\r\n\r\nI'll note this problem likely impacts SSTS also.",
+              "createdAt": "2026-09-21T02:17:20Z",
+              "updatedAt": "2026-09-21T02:17:20Z"
             }
           ]
         }
@@ -215133,7 +215462,7 @@
       ],
       "body": "Fixes #1352 \r\nFixes #1694 ",
       "createdAt": "2026-07-22T08:25:26Z",
-      "updatedAt": "2026-09-11T18:36:38Z",
+      "updatedAt": "2026-09-21T16:57:21Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
@@ -215165,6 +215494,13 @@
           "body": "@yuyou the proposed solution wouldn't block any of the above other than mechanics to do so\n\nYou pause a subscription and unpause with the filters you need using the same location filter machinery than 2 different ways to do so",
           "createdAt": "2026-09-08T15:15:29Z",
           "updatedAt": "2026-09-08T15:15:29Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "See sept 21 meeting for what we decided to try next on this ",
+          "createdAt": "2026-09-21T16:57:21Z",
+          "updatedAt": "2026-09-21T16:57:21Z"
         }
       ],
       "reviews": [
@@ -215681,6 +216017,38 @@
               "body": "you do if the code point is used before the ALPN is changed. It's not like we are short on code points. I think we should minimize things that might make debug harder and clean up all the reserved ones and reorder all the other at some point we get closer to WGLC ",
               "createdAt": "2026-09-08T13:41:18Z",
               "updatedAt": "2026-09-08T13:41:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABOZjdWg",
+          "commit": {
+            "abbreviatedOid": "c32a886"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I'm missing the motivation for why we are doing this but can live with it. \n\nThe big issue for me is when relays pause or unpause, how does the subscriber understand what happened? And when they unpause, what happens to the filters ? Do they go back to the state they were before ? \n\nI'm trying to work through my head where the relay is pausing and unpausing due to something like SSTS and at the same time the subscriber is changing what layers it wants of a layered codec. Both are updating the filter and I see no text that is going to keep the updates not conflicting. It also seems very race in that all the things are trying to change the same atomic state which is the filters instead of different things changing different state. \n\nThe more I think about it, the less I am sure this works. Needs discussion. ",
+          "createdAt": "2026-09-20T17:53:46Z",
+          "updatedAt": "2026-09-20T18:05:03Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "Its weird to say what not to do without saying what to do. Perhaps a pointer to the section that has the recommended way ",
+              "createdAt": "2026-09-20T17:53:46Z",
+              "updatedAt": "2026-09-20T18:05:03Z"
+            },
+            {
+              "originalPosition": 156,
+              "body": "When a relay does the pause or unpause, I think we need to specify at a MUST level how it is done. The subscriber is going to get an message that says the filter was updated and will need to be able to understand what is going on ",
+              "createdAt": "2026-09-20T17:57:38Z",
+              "updatedAt": "2026-09-20T18:05:03Z"
+            },
+            {
+              "originalPosition": 14,
+              "body": "I think we have to get specific about what a relay does when it \"unpauses\"  - does it restore all tof the multiple filter IDs back to how they were before they were paused ?",
+              "createdAt": "2026-09-20T18:00:17Z",
+              "updatedAt": "2026-09-20T18:05:03Z"
             }
           ]
         }
@@ -217416,7 +217784,7 @@
       ],
       "body": "Fixes #1800 ",
       "createdAt": "2026-08-24T18:03:37Z",
-      "updatedAt": "2026-09-10T19:01:33Z",
+      "updatedAt": "2026-09-20T19:41:42Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "67b1a4233f79b81536894236b02637600f76df2c",
@@ -217473,6 +217841,19 @@
           "body": "",
           "createdAt": "2026-09-10T19:01:33Z",
           "updatedAt": "2026-09-10T19:01:33Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABOZy8wQ",
+          "commit": {
+            "abbreviatedOid": "87720fb"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-20T19:41:42Z",
+          "updatedAt": "2026-09-20T19:41:42Z",
           "comments": []
         }
       ]
@@ -221468,13 +221849,13 @@
       ],
       "body": "Fixes #1839\r\n\r\nAn alternative way to do this would be to put the text in the MOQT draft. That approach is sketched out in https://github.com/moq-wg/moq-transport/pull/1901 but after looking at how much is needed, and the fact that the people we need to review this are PKIX and DNS people, I agree with Alan is better to put this in a separate draft as is done in this PR. ",
       "createdAt": "2026-09-05T16:07:04Z",
-      "updatedAt": "2026-09-09T05:25:00Z",
+      "updatedAt": "2026-09-20T20:29:48Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "48236253a3ae56c3f04a1e4a3bd16c1c4de52e62",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "resolve-uri2",
-      "headRefOid": "d124140318d06bd7ea69b347fce70219ca2019a5",
+      "headRefOid": "dee42fac58178958e993ee116b2ecdadb13719aa",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -221558,6 +221939,26 @@
               "body": "This bit didn't make it to security considerations",
               "createdAt": "2026-09-09T05:14:42Z",
               "updatedAt": "2026-09-09T05:16:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABOZ4sZg",
+          "commit": {
+            "abbreviatedOid": "ece5f74"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-20T20:18:22Z",
+          "updatedAt": "2026-09-20T20:18:22Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "well that's embarrassing ... will fix ",
+              "createdAt": "2026-09-20T20:18:22Z",
+              "updatedAt": "2026-09-20T20:18:22Z"
             }
           ]
         }
