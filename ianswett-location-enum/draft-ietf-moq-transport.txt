@@ -4313,10 +4313,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      [EndObject (vi64),]
    }
 
-   The value of Location Filter Type dictates which optional variable-
-   length integer fields follow, and how the filter is interpreted.  A
-   Location Filter Type of 0 indicates no filter, for example to remove
-   the filter in REQUEST_UPDATE.
+   The Location Filter Type dictates which optional variable-length
+   integer fields follow, and how they are interpreted.
+
+   *  If Location Filter Type is 0x00, no fields follow and there is no
+      Location Filter.
 
    *  If Location Filter Type is 0x01, a relative StartGroup follows.
 
@@ -4374,11 +4375,6 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    at the current group * StartGroup=2 will start at 1 group prior to
    the current group * StartGroup=N will start at N-1 groups prior to
    the current group
-
-   If Location Filter Type is 0x05, the start Location is the Next
-   Object (see Section 3.1.4).  An open-ended filter that starts at
-   absolute Location {0, 0} is equivalent to unfiltered, so the
-   subscriber need not include a Location filter.
 
    If a relative start group results in a computed absolute group less
    than 0, the computed value is set to 0; if greater than 2^64 - 1, it

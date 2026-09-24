@@ -6579,25 +6579,29 @@ LOCATION_FILTER Parameter {
 }
 </pre><a href="#section-9.20.9-3" class="pilcrow">¶</a>
 </div>
-<p id="section-9.20.9-4">The value of Location Filter Type dictates which optional variable-length integer fields follow, and how the filter is interpreted. A Location Filter Type of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.<a href="#section-9.20.9-4" class="pilcrow">¶</a></p>
+<p id="section-9.20.9-4">The Location Filter Type dictates which optional variable-length integer fields follow,
+and how they are interpreted.<a href="#section-9.20.9-4" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9.20.9-5.1">
-              <p id="section-9.20.9-5.1.1">If Location Filter Type is 0x01, a relative StartGroup follows.<a href="#section-9.20.9-5.1.1" class="pilcrow">¶</a></p>
+              <p id="section-9.20.9-5.1.1">If Location Filter Type is 0x00, no fields follow and there is no Location Filter.<a href="#section-9.20.9-5.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.20.9-5.2">
-              <p id="section-9.20.9-5.2.1">If Location Filter Type is 0x02, StartGroup and StartObject follow.<a href="#section-9.20.9-5.2.1" class="pilcrow">¶</a></p>
+              <p id="section-9.20.9-5.2.1">If Location Filter Type is 0x01, a relative StartGroup follows.<a href="#section-9.20.9-5.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.20.9-5.3">
-              <p id="section-9.20.9-5.3.1">If Location Filter Type is 0x03, StartGroup, StartObject, and EndGroupDelta follow.<a href="#section-9.20.9-5.3.1" class="pilcrow">¶</a></p>
+              <p id="section-9.20.9-5.3.1">If Location Filter Type is 0x02, StartGroup and StartObject follow.<a href="#section-9.20.9-5.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.20.9-5.4">
-              <p id="section-9.20.9-5.4.1">If Location Filter Type is 0x04, StartGroup, StartObject, EndGroupDelta, and EndObject follow.<a href="#section-9.20.9-5.4.1" class="pilcrow">¶</a></p>
+              <p id="section-9.20.9-5.4.1">If Location Filter Type is 0x03, StartGroup, StartObject, and EndGroupDelta follow.<a href="#section-9.20.9-5.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.20.9-5.5">
-              <p id="section-9.20.9-5.5.1">If Location Filter Type is 0x05, no fields follow and it specifies the Next Object.<a href="#section-9.20.9-5.5.1" class="pilcrow">¶</a></p>
+              <p id="section-9.20.9-5.5.1">If Location Filter Type is 0x04, StartGroup, StartObject, EndGroupDelta, and EndObject follow.<a href="#section-9.20.9-5.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.20.9-5.6">
-              <p id="section-9.20.9-5.6.1">Any other Location Filter Type is a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.9-5.6.1" class="pilcrow">¶</a></p>
+              <p id="section-9.20.9-5.6.1">If Location Filter Type is 0x05, no fields follow and it specifies the Next Object.<a href="#section-9.20.9-5.6.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.20.9-5.7">
+              <p id="section-9.20.9-5.7.1">Any other Location Filter Type is a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.9-5.7.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-9.20.9-6">The table below summarizes the encodings.<a href="#section-9.20.9-6" class="pilcrow">¶</a></p>
@@ -6664,24 +6668,20 @@ hence the start Location is <code>{Largest Object.Group + 1 - StartGroup, 0}</co
   * StartGroup=1 will start at the current group
   * StartGroup=2 will start at 1 group prior to the current group
   * StartGroup=N will start at N-1 groups prior to the current group<a href="#section-9.20.9-9" class="pilcrow">¶</a></p>
-<p id="section-9.20.9-10">If Location Filter Type is 0x05, the start Location
-is the Next Object (see <a href="#largest-object" class="auto internal xref">Section 3.1.4</a>).  An open-ended filter that starts
-at absolute Location {0, 0} is equivalent to unfiltered, so the subscriber need
-not include a Location filter.<a href="#section-9.20.9-10" class="pilcrow">¶</a></p>
-<p id="section-9.20.9-11">If a relative start group results in a computed absolute group less than 0, the
-computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.<a href="#section-9.20.9-11" class="pilcrow">¶</a></p>
-<p id="section-9.20.9-12">Otherwise, all fields are absolute.  EndGroupDelta is delta
+<p id="section-9.20.9-10">If a relative start group results in a computed absolute group less than 0, the
+computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.<a href="#section-9.20.9-10" class="pilcrow">¶</a></p>
+<p id="section-9.20.9-11">Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
 relative to <code>Largest Object</code>.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
-the endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.9-12" class="pilcrow">¶</a></p>
-<p id="section-9.20.9-13">When EndGroupDelta and EndObject are omitted from a subscription filter, the
+the endpoint <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.20.9-11" class="pilcrow">¶</a></p>
+<p id="section-9.20.9-12">When EndGroupDelta and EndObject are omitted from a subscription filter, the
 subscription is open-ended. When they are omitted from a Fetch, the
-EndGroup and EndObject are <code>Largest Object</code>.<a href="#section-9.20.9-13" class="pilcrow">¶</a></p>
-<p id="section-9.20.9-14">When EndObject is omitted, the filter includes all objects in the End Group.<a href="#section-9.20.9-14" class="pilcrow">¶</a></p>
-<p id="section-9.20.9-15">If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
+EndGroup and EndObject are <code>Largest Object</code>.<a href="#section-9.20.9-12" class="pilcrow">¶</a></p>
+<p id="section-9.20.9-13">When EndObject is omitted, the filter includes all objects in the End Group.<a href="#section-9.20.9-13" class="pilcrow">¶</a></p>
+<p id="section-9.20.9-14">If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
 unfiltered.  If omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY, the
 value is unchanged.  When sent in PUBLISH_STATE_NOTIFY, it reports the
-Location Filter now in effect at the publisher.<a href="#section-9.20.9-15" class="pilcrow">¶</a></p>
+Location Filter now in effect at the publisher.<a href="#section-9.20.9-14" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subgroup-filter">
