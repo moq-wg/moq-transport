@@ -13,7 +13,7 @@ keyword:
  - media over quic
 venue:
   group: "Media Over QUIC"
-  type: "Working Group"
+  type: "Working Group"x
   mail: "moq@ietf.org"
   arch: "https://mailarchive.ietf.org/arch/browse/moq/"
   github: "moq-wg/moq-transport"
@@ -3826,8 +3826,10 @@ LOCATION_FILTER Parameter {
 }
 ~~~
 
-The value of Location Filter Type dictates which optional variable-length integer fields follow, and how the filter is interpreted. A Location Filter Type of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
+The Location Filter Type dictates which optional variable-length integer fields follow,
+and how they are interpreted.
 
+* If Location Filter Type is 0x00, no fields follow and there is no Location Filter.
 * If Location Filter Type is 0x01, a relative StartGroup follows.
 * If Location Filter Type is 0x02, StartGroup and StartObject follow.
 * If Location Filter Type is 0x03, StartGroup, StartObject, and EndGroupDelta follow.
@@ -3855,11 +3857,6 @@ hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For ex
   * StartGroup=1 will start at the current group
   * StartGroup=2 will start at 1 group prior to the current group
   * StartGroup=N will start at N-1 groups prior to the current group
-
-If Location Filter Type is 0x05, the start Location
-is the Next Object (see {{largest-object}}).  An open-ended filter that starts
-at absolute Location {0, 0} is equivalent to unfiltered, so the subscriber need
-not include a Location filter.
 
 If a relative start group results in a computed absolute group less than 0, the
 computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
