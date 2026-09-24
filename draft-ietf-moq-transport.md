@@ -13,7 +13,7 @@ keyword:
  - media over quic
 venue:
   group: "Media Over QUIC"
-  type: "Working Group"x
+  type: "Working Group"
   mail: "moq@ietf.org"
   arch: "https://mailarchive.ietf.org/arch/browse/moq/"
   github: "moq-wg/moq-transport"
