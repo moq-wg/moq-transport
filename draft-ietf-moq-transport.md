@@ -1079,71 +1079,78 @@ groups. A publisher that does will begin the next group as soon as practical.
 
 ## Track Switching {#track-switching}
 
-A subscriber can atomically stop delivery on one subscription (the _suspending
-subscription_) and start delivery on another, possibly new subscription (the _activating subscription_) by
+A subscriber can stop delivery on one subscription (the _suspending
+subscription_) and start delivery on another, possibly new subscription
+(the _activating subscription_) in a single message by
 including the SWITCH_FROM parameter ({{switch-from}}) in a SUBSCRIBE or
 REQUEST_UPDATE on the activating subscription's request stream.  This enables
-subscriber track switching (e.g., ABR quality changes, alternate camera angles, or meetings
-participants) without coordinating multiple messages.
+subscriber initiated track switching (e.g., ABR quality changes, alternate camera angles, or meeting participants) coordinated by the publisher.
 
 On receiving a message containing SWITCH_FROM, the publisher:
 
 1. Validates that Switch From Request ID identifies an existing subscription
    and is not the same as the activating subscription's Request ID. If not,
-   responds with REQUEST_ERROR `INVALID_SWITCH`. The switch determines whether
-   each subscription is paused (see {{pausing-subscriptions}}); if the message
-   carrying SWITCH_FROM has a FORWARD parameter, the publisher responds with
+   responds with REQUEST_ERROR `INVALID_SWITCH`. If the message carrying
+   SWITCH_FROM has a FORWARD parameter equal to 0, the publisher responds with
    REQUEST_ERROR `INVALID_SWITCH`.  Note it is not an error if the suspending
-   subscription is already paused.
+   subscription is already paused or the activating subscription is unpaused.
 
-2. Resumes the activating subscription and applies the
-   most recent LOCATION_FILTER parameter for this subscription (which
-   can be in the same message carrying SWITCH_FROM). This ensures objects
-   in Groups greater than or equal to the Largest Object's Group
-   are not missed during the transition.
+2. Ensures the activating subscription is established, applies the new
+   LOCATION_FILTER, if any, and unpauses the subscription.  The publisher then
+   sends SUBSCRIBE_OK or REQUEST_UPDATE_OK as soon as the `Largest Object` for
+   the activating track is known.
 
-3. Responds on the activating subscription's control stream with SUBSCRIBE_OK
-   or REQUEST_UPDATE_OK as appropriate, as soon as `Largest Object` for the
-   activating track is known.  This response indicates that the switch has been
-   accepted; it does not indicate that delivery on the activating subscription
-   has begun.  If the publisher times out before `Largest Object` is known, it
-   MUST respond with REQUEST_ERROR `TIMEOUT`.
-
-4. Waits until it is ready to publish an object from the Start Group, computed
-   from the activating track at the time the request is received, while
+3. Waits until it is ready to publish the Switch Object (defined below), while
    continuing to deliver objects on the suspending subscription.
 
+   When the activating subscription does not open a fill fetch stream, the
+   Switch Object is the first subscription-delivered Object that passes the
+   activating subscription's LOCATION_FILTER.
+
    When the activating subscription opens a fill fetch stream (see
-   {{fill-semantics}}), the Start Group is the first Group of the fill range
-   that the stream delivers: the Group of the fill range's Start Location, or
-   the largest Group in the fill range when GROUP_ORDER inside FILL_PARAMETERS
-   is Descending.  Otherwise the Start Group is the Group of the Start Location
-   of the activating subscription's LOCATION_FILTER (see {{location-filters}}).
+   {{fill-semantics}}), the Switch Object is the first Object delivered in that
+   stream.  While waiting for the Switch Object, Objects passing the activating
+   subscription's LOCATION_FILTER are delivered normally. If the fill fetch
+   stream is closed or reset without delivering an Object, the Switch Object is
+   the first subscription-delivered Object that passes (or previously passed)
+   the activating subscription's LOCATION_FILTER.
 
-5. Stops delivery on the suspending subscription:
+   If the activating subscription fails or ends before the Switch Object is
+   published, the publisher abandons the switch and MUST NOT modify the
+   suspending subscription.  A subsequent REQUEST_UPDATE containing a new
+   LOCATION_FILTER, FORWARD=0, or SWITCH_FROM on the activating
+   subscription cancels any previously outstanding SWITCH_FROM.
 
-   * Mode Hard (0x0): pauses the suspending subscription and resets any
-     outstanding streams, including fill fetch streams.  Objects already in
-     flight can still be received by the subscriber.
+4. Stops delivery on the suspending subscription, depending on the Mode:
 
-   The publisher sends PUBLISH_STATE_NOTIFY ({{ps-notify}}) on the suspending
-   subscription's stream as soon as the mode's change takes effect, reporting
-   the parameters it changed and including LARGEST_OBJECT.  If the Publish Done
-   flag in SWITCH_FROM ({{switch-from}}) is 1, the publisher follows it with
-   PUBLISH_DONE with code SWITCHED_AWAY; otherwise the suspending subscription
-   remains established.
+   * Mode Immediate (0x0): pauses the suspending subscription and resets any
+     outstanding streams, including fill fetch streams.
 
-6. Begins delivery of activating subscription from Start Group, including any
-   fill fetch stream (see {{fill-semantics}}), which uses the activating
-   subscription's Request ID.
+   * Mode Aligned (0x1): when Switch Object's Group is greater than zero, the
+     publisher updates the suspending subscription's End Group to the Switch
+     Object's Group - 1. The publisher also resets any outstanding streams,
+     including fill fetch streams, for groups greater than or equal to the
+     Switch Object's Group.  If the Switch Object's Group is zero, the Aligned
+     mode behaves like Immediate mode. As the name suggests, Aligned mode
+     is effective when the activating and suspending Tracks use aligned Group
+     IDs.
 
-If the publisher cannot begin delivery on the activating subscription, it MUST
-leave the suspending subscription unchanged.
+   In either mode, Objects already in flight can still be received by the
+   subscriber.
+
+5. Sends PUBLISH_STATE_NOTIFY ({{ps-notify}}) on the suspending subscription's
+   stream, reporting changed parameters and including LARGEST_OBJECT.
+
+6. Optionally ends the suspending subscription with PUBLISH_DONE with code
+   SWITCHED_AWAY, when the Publish Done flag in SWITCH_FROM ({{switch-from}}) is
+   1.  In Aligned Mode, the publisher waits until after it has sent all data
+   matching the suspend subscription's LOCATION_FILTER before sending
+   PUBLISH_DONE.
 
 ### Relay Handling of SWITCH_FROM {#relay-switch-from}
 
-Relays ordinarily handle the switch locally, applying the start group
-computation from {{track-switching}} using locally observed state for the
+Relays ordinarily handle the switch locally, applying any relative start group
+computation from {{location-filter}} using locally observed state for the
 activating track and servicing any fill fetch stream from cache and upstream
 sources.  When a relay performs the switch operation, it MUST NOT forward the
 SWITCH_FROM parameter upstream.
@@ -3897,9 +3904,9 @@ SWITCH_FROM {
 
 * Mode: A vi64 enum selecting how the suspending subscription is stopped. Modes
   are registered in the IANA table "MOQT SWITCH_FROM Modes"
-  ({{iana-switch-from-modes}}); the following mode is defined: Hard (0x0). An
-  endpoint that receives a Mode value that is not defined MUST close the session
-  with `PROTOCOL_VIOLATION`. See {{track-switching}}.
+  ({{iana-switch-from-modes}}); the following modes are defined: Immediate (0x0)
+  and Aligned (0x1). An endpoint that receives a Mode value that is not defined
+  MUST close the session with `PROTOCOL_VIOLATION`. See {{track-switching}}.
 
 * Publish Done: If 1, the publisher sends PUBLISH_DONE on the suspending
   subscription as described in {{track-switching}}.
@@ -5765,9 +5772,10 @@ This document establishes the "MOQT SWITCH_FROM Modes" registry, governing the
 Mode field of the SWITCH_FROM parameter (see {{switch-from}}). The registration
 policy is First Come First Served (per {{!RFC8126, Section 4.4}}).
 
-| Mode | Name     | Specification |
-|-----:|:---------|:--------------|
-| 0x0  | Hard     | {{switch-from}} |
+| Mode | Name | Specification |
+|-----:|:-----|:--------------|
+| 0x0  | Immediate | {{switch-from}} |
+| 0x1  | Aligned   | {{switch-from}} |
 
 ## Properties {#iana-properties}
 
