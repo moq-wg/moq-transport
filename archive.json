@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-22T04:00:58.108755+00:00",
+  "timestamp": "2026-09-24T03:52:33.915634+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -54300,6 +54300,22 @@
           "updatedAt": "2026-09-21T00:51:27Z"
         }
       ]
+    },
+    {
+      "number": 1952,
+      "id": "I_kwDOG2Ho4M8AAAABSmJP4Q",
+      "title": "REQUEST_ID validation is still kinda broken",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1952",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "In Sec 6.2.4.1 \"Request ID\" it says\n\n> If an endpoint receives a Request ID where the least significant bit is incorrect for the sender, or a duplicate Request ID, it MUST close the session with INVALID_REQUEST_ID.\n\nThis is not really implementable. With infinite memory, the receiver could store all request IDs that have been seen. In the past @afrind suggested that one could use the maximum stream credit has a lower bound on request IDs that could be outstanding. But this doesn't work; first of all, max stream credit is not available in Webtransport APIs. Further, it's not sufficient: in an endpoint sends a bunch of requests and then resets them, the receiver may never process some request IDs, which appears to it exactly as if the peer skipped some request IDs. Thus, the set of missing request IDs is unbounded.\n\n(1) At a minimum, I would like the \"if it detects a duplicate Request ID\" weasel words. \n\nThese 2 other proposals are Past Deadline:\n\n(2) I don't see any use for a request ID in SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, REQUEST_UPDATE, or TRACK_STATUS, and would be happy to delete these fields entirely.\n\n(3) At the maximum level of effort, we could get rid of request IDs entirely and use QUIC stream IDs to reference other requests. This would also be a WT API change, but would allow all the ID validation machinery to be outsourced to QUIC.",
+      "createdAt": "2026-09-22T17:25:20Z",
+      "updatedAt": "2026-09-23T21:42:53Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
