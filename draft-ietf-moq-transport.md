@@ -3107,7 +3107,7 @@ SUBSCRIBE Message {
   AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, FORWARD,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
   SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-  NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
+  NEW_GROUP_REQUEST, INCLUDE_PROPERTIES and INCLUDE_PAYLOAD.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -3344,8 +3344,8 @@ FETCH Message {
 * Parameters: The parameters are defined in {{message-params}}.  The parameters
   that can appear in a FETCH are AUTHORIZATION_TOKEN, FILL_TIMEOUT,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, SUBGROUP_FILTER,
-  OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER and
-  INCLUDE_PROPERTIES.
+  OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
+  INCLUDE_PROPERTIES and INCLUDE_PAYLOAD.
 
 ## FETCH_OK {#message-fetch-ok}
 
@@ -3571,8 +3571,8 @@ SUBSCRIBE_TRACKS Message {
   are handled differently from the same Parameters on Subscriptions, as outlined
   below.  The parameters that can appear in a SUBSCRIBE_TRACKS are
   AUTHORIZATION_TOKEN, FORWARD, GROUP_ORDER, SUBGROUP_FILTER, OBJECTID_FILTER,
-  PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER and
-  INCLUDE_PROPERTIES.
+  PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER,
+  INCLUDE_PROPERTIES and INCLUDE_PAYLOAD.
 
 The publisher will respond with SUBSCRIBE_TRACKS_OK or SUBSCRIBE_TRACKS_ERROR
 on the response half of the stream. If the subscriber receives any message
@@ -4124,6 +4124,17 @@ The allowed values are 0 (do not send Properties) or 1 (send Properties), and th
 default is 1. If an endpoint receives a value outside this range, it MUST close the
 session with `PROTOCOL_VIOLATION`.
 
+### INCLUDE_PAYLOAD Parameter {#include-payload-param}
+
+The INCLUDE_PAYLOAD parameter (Parameter Type 0x36) is a uint8. It MAY appear
+in SUBSCRIBE, FETCH or SUBSCRIBE_TRACKS. It specifies whether the Publisher
+delivers the Object Payloads. If INCLUDE_PAYLOAD is 0, the Publisher MUST omit the
+Object Payload, setting the Object Payload Length to 0 and the Object Status
+to Payload Omitted (0x1) (see {{object-status}}). The allowed values are 0
+(do not send Payloads) or 1 (send Payloads), and the default is 1. If an
+endpoint receives a value outside this range, it MUST close the session with
+`PROTOCOL_VIOLATION`.
+
 # MOQT Properties {#moqt-properties}
 
 The following Properties are defined in MOQT. Each Property
@@ -4349,6 +4360,9 @@ not exist.
 
 * 0x0 := Normal object. This status is implicit for any non-zero length object.
          Zero-length objects explicitly encode the Normal status.
+
+* 0x1 := Object Payload Omitted. Indicates that the object exists, but its
+         payload has been intentionally omitted.
 
 * 0x3 := Indicates End of Group. Indicates that no objects with the specified
          Group ID and the Object ID that is greater than or equal to the one
@@ -5643,6 +5657,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 | 0x35 | INCLUDE_PROPERTIES | {{include-properties-param}} |
+| 0x36 | INCLUDE_PAYLOAD | {{include-payload-param}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
@@ -5707,6 +5722,7 @@ status is permitted to carry a non-empty payload.
 | Code | Name | Payload | Specification |
 |-----:|:-----|:--------|:--------------|
 | 0x0 | Normal | Yes | {{object-status}} |
+| 0x1 | Object Payload Omitted | No | {{object-status}} |
 | 0x3 | End of Group | No | {{object-status}} |
 | 0x4 | End of Track | No | {{object-status}} |
 
