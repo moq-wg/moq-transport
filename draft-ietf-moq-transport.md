@@ -4123,6 +4123,11 @@ priority.  See {{priorities}}. Priorities above 255 are invalid. Subgroups and
 Datagrams for this subscription inherit this priority, unless they specifically
 override it.
 
+This Parameter can be updated while a Subscription is active by sending
+a PUBLISH_STATE_NOTIFY with a DEFAULT_PUBLISHER_PRIORITY and a
+LARGEST_OBJECT parameter to indicate when the new priority became
+effective.
+
 If omitted, the Default Publisher Priority is 128.
 
 ### INCLUDE_PROPERTIES Parameter {#include-properties-param}
