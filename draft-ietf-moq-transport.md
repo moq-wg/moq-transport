@@ -487,8 +487,10 @@ encoded as described in {{track-namespace-structure}}.
 The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace.
 
-Track Name is a sequence of bytes, possibly empty, that identifies an individual
-track within the namespace.
+Track Name is a sequence of bytes that identifies an individual track within
+the namespace. Each Track Name MUST contain at least one byte. Unless
+otherwise specified, if an endpoint receives a Track Name with a length
+of 0, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 In this specification, both the Track Namespace Fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
