@@ -3814,12 +3814,12 @@ SUBSCRIBE, PUBLISH, REQUEST_UPDATE (for a subscription) or
 PUBLISH_STATE_NOTIFY message. It is a Location Filter (see
 {{location-filters}}).
 
-A Location filter parameter has the following length-prefixed structure:
+A Location filter parameter has the following structure:
 
 ~~~
 LOCATION_FILTER Parameter {
   Parameter Type (vi64) = 0x21,
-  Length (vi64),
+  Location Filter Type (vi64),
   [StartGroup (vi64),]
   [StartObject (vi64),]
   [EndGroupDelta (vi64),]
@@ -3827,41 +3827,37 @@ LOCATION_FILTER Parameter {
 }
 ~~~
 
-The optional variable-length integer fields are decoded in the order shown until Length bytes have been
-consumed.  A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
-How many fields are decoded determines which fields they are, and how
-the filter is interpreted:
-  * If only one field is present, it is a relative StartGroup.
-  * If only two fields are present, they are StartGroup and StartObject.
-  * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
+The Location Filter Type dictates which optional variable-length integer fields follow,
+and how they are interpreted.
+
+* If Location Filter Type is 0x00, no fields follow and there is no Location Filter.
+* If Location Filter Type is 0x01, a relative StartGroup follows.
+* If Location Filter Type is 0x02, StartGroup and StartObject follow.
+* If Location Filter Type is 0x03, StartGroup, StartObject, and EndGroupDelta follow.
+* If Location Filter Type is 0x04, StartGroup, StartObject, EndGroupDelta, and EndObject follow.
+* If Location Filter Type is 0x05, no fields follow and it specifies the Next Object.
+* Any other Location Filter Type is a `PROTOCOL_VIOLATION`.
 
 The table below summarizes the encodings.
 
-| Fields present | Start Location | End Location |
-|:---------------|:---------------|:-------------|
-| none (Length 0) | no filter | no filter |
-| StartGroup | relative: `{Largest Object.Group + 1 - StartGroup, 0}` | open-ended |
-| StartGroup, StartObject, both 0 | `Next Object` | open-ended |
-| StartGroup, StartObject, not both 0 | absolute: `{StartGroup, StartObject}` | open-ended |
-| StartGroup, StartObject, EndGroupDelta | absolute: `{StartGroup, StartObject}` | last Object of Group `StartGroup + EndGroupDelta` |
-| StartGroup, StartObject, EndGroupDelta, EndObject | absolute: `{StartGroup, StartObject}` | `{StartGroup + EndGroupDelta, EndObject}` |
+| Location Filter Type | Start Location | End Location |
+|:---------------------|:---------------|:-------------|
+| 0x00 (None) | no filter | no filter |
+| 0x01 (Relative Start) | relative: `{Largest Object.Group + 1 - StartGroup, 0}` | open-ended |
+| 0x02 (Absolute Start) | absolute: `{StartGroup, StartObject}` | open-ended |
+| 0x03 (Absolute Start, Group End) | absolute: `{StartGroup, StartObject}` | last Object of Group `StartGroup + EndGroupDelta` |
+| 0x04 (Absolute Range) | absolute: `{StartGroup, StartObject}` | `{StartGroup + EndGroupDelta, EndObject}` |
+| 0x05 (Next Object) | `Next Object` | open-ended |
 {: #location-filter-forms title="Location Filter forms"}
 
-If a field extends beyond the end of the parameter, more than four fields
-are present, or an integer field extends beyond the given Length, the
-endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
+If a field extends beyond the end of the parameter, the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
-If only StartGroup is present, it is a relative number of groups prior to the Next Group,
+If Location Filter Type is 0x01, the StartGroup field specifies a relative number of groups prior to the Next Group,
 hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
   * StartGroup=0 will start at the Next Group
   * StartGroup=1 will start at the current group
   * StartGroup=2 will start at 1 group prior to the current group
   * StartGroup=N will start at N-1 groups prior to the current group
-
-If only StartGroup and StartObject are present and both 0, the start Location
-is the Next Object (see {{largest-object}}).  An open-ended filter that starts
-at absolute Location {0, 0} is equivalent to unfiltered, so the subscriber need
-not include a Location filter.
 
 If a relative start group results in a computed absolute group less than 0, the
 computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
