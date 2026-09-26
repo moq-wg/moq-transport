@@ -92,7 +92,7 @@ This document describes the MOQT protocol and is structured as follows:
 * The core concepts and functionality are described first
   * Section 2 {{model}} Object Data Model describes how Objects, Tracks and Namespaces relate
   * Section 3 {{publishing-and-receiving-tracks}} Describes how Objects in Tracks are Published and Retrieved.
-  * Section 4 {{track-discovery}} Describes mechanisms for discovering Namespaces and Tracks
+  * Section 4 {{track-discovery}} Describes mechanisms for discovering Publishers and Namespaces
 
 * Next, the document describes how Objects are transmitted and MOQT Sessions
   * Section 5 {{object-transmission}} Describes ways MOTQ allows a subscriber to influence Object transmission order
@@ -497,6 +497,22 @@ exact comparison of the bytes. Specifications that use MOQT may constrain the
 information in these fields, for example by restricting them to UTF-8. Any such
 specification needs to specify the canonicalization into the bytes in the Track
 Namespace Fields or Track Name such that exact comparison works.
+
+### Namespace Prefix Matching {#namespace-prefix-matching}
+
+To perform a namespace prefix match, the fields of the prefix are compared
+sequentially against the leading fields of the Track Namespace or Full Track
+Name being matched, requiring an exact match for each field.  The prefix
+matches if it has the same or fewer fields.
+
+The examples below use the serialized name format from
+{{namespace-name-format}}.
+
+The name `foo-bar--x` matches the prefixes `foo` and `foo-bar`.  It does not
+match `foobar`.
+
+The prefix `example.2ecom-123` matches the namespaces `example.2ecom-123-100`
+and `example.2ecom-123-200`.
 
 ### Reserved Namespaces {#reserved-namespaces}
 
@@ -1077,6 +1093,74 @@ that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
 groups. A publisher that does will begin the next group as soon as practical.
 
+## Subscribing to Tracks by Prefix {#subscribe-tracks}
+
+SUBSCRIBE_TRACKS requests subscriptions: the publisher sends PUBLISH
+messages for tracks within matching namespaces, excluding tracks published
+by the subscriber.
+
+A SUBSCRIBE_TRACKS with zero Track Namespace fields indicates the sender is
+requesting a Subscription for all Tracks from the receiver.
+
+SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
+a subscriber.  It is useful for subscribers that are
+only interested in or authorized to access a subset of available tracks.
+
+The publisher will respond with SUBSCRIBE_TRACKS_OK or SUBSCRIBE_TRACKS_ERROR
+on the response half of the stream. If the subscriber receives any message
+other than a SUBSCRIBE_TRACKS_OK or a SUBSCRIBE_TRACKS_ERROR as the first
+message on the response half of the stream, then it MUST close the session with
+a PROTOCOL_VIOLATION. If the SUBSCRIBE_TRACKS is successful, the publisher will
+send PUBLISH messages on new bidirectional streams for tracks matching the
+Namespace Prefix. If it is an error, the stream will be closed via FIN after
+SUBSCRIBE_TRACKS_ERROR is sent.
+
+Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
+Track Namespace Prefix that shares a common prefix with an established
+SUBSCRIBE_TRACKS, it MUST respond with SUBSCRIBE_TRACKS_ERROR with error code
+`PREFIX_OVERLAP`.
+
+The publisher MUST ensure the subscriber is authorized to perform this
+namespace subscription.
+
+A SUBSCRIBE_TRACKS is cancelled as described in
+{{request-cancellation}}.
+Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
+from sending further PUBLISH messages, but relays MUST NOT
+send any further PUBLISH messages to a client without knowing the client is
+interested in and authorized to receive the content.
+
+### Filtering SUBSCRIBE_TRACKS
+
+Range Filters {{range-filters}} can be used in SUBSCRIBE_TRACKS to filter
+Tracks in a namespace using the Track Property Filter. Objects published in
+the resulting Subscriptions can be filtered by any Range Filter.
+
+### Parameters on SUBSCRIBE_TRACKS {#parameters-on-subscribe-tracks}
+
+Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
+in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
+publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
+SUBSCRIBE_TRACKS, and explicitly communicated in the PUBLISH.
+When a Parameter is omitted from the SUBSCRIBE_TRACKS and resulting PUBLISH,
+the Subscription uses the default value.
+
+To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a
+Location Filter and optionally include FILL_PARAMETERS, as described in {{joining-tracks}}.
+
+### Skipped Tracks
+
+If a Subscription cannot be created because there are no available bidirectional
+streams or any other reason, the Publisher sends a PUBLISH_SKIPPED message on the
+SUBSCRIBE_TRACKS response stream to indicate the Full Track Name of the
+Subscription that was not created. The Publisher MUST NOT send a PUBLISH for a
+Track for a given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent,
+scoped to a single PUBLISH.  If, for example, the publisher disconnects from
+a relay and later reconnects and sends a new PUBLISH, the relay MAY send the new
+PUBLISH downstream.
+If desired, the subscriber can issue a SUBSCRIBE to establish a subscription to
+that track.
+
 ## Mandatory to Understand Track Properties {#mandatory-track-properties}
 
 Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
@@ -1115,85 +1199,101 @@ SHOULD take the following action:
 
 * For PUBLISH: do not publish the track to that subscriber.
 
-# Namespace Discovery {#track-discovery}
+# Publisher and Namespace Discovery {#track-discovery}
 
-Discovery of MOQT servers is always done out-of-band. Namespace discovery can be
-done in the context of an established MOQT session using SUBSCRIBE_NAMESPACE
-(see {{subscribing-to-namespaces}}).
+Given out-of-band information, a subscriber can
+retrieve tracks from a publisher (including a relay) without any previous MOQT
+messages besides SETUP.  However, MOQT provides in-band messages for a publisher
+to advertise the namespaces it has tracks in, and for a subscriber to discover
+the namespaces a publisher knows.
 
-Given sufficient out of band information, it is valid for a subscriber to send a
-SUBSCRIBE or FETCH message to a publisher (including a relay) without any
-previous MOQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH and
-PUBLISH_NAMESPACE messages provide an in-band means of discovery of publishers
-for a namespace.
-
-The syntax of these messages is described in {{message}}.
-
-
-## Subscribing to Namespaces {#subscribing-to-namespaces}
-
-If the subscriber is aware of a namespace of interest, it can send
-SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS to publishers/relays it has established
-a session with. The Track Namespace Prefix carried in these messages is
-compared against the namespaces known to the receiver using Namespace Prefix
-Matching ({{namespace-prefix-matching}}).
-
-SUBSCRIBE_NAMESPACE requests namespace discovery: the publisher sends relevant
-NAMESPACE and NAMESPACE_DONE messages for namespaces matching the prefix,
-including echoing back Track Namespaces under the prefix that have been published
-to it.
-
-SUBSCRIBE_TRACKS requests track subscriptions: the publisher sends PUBLISH
-messages for tracks within matching namespaces, excluding tracks published
-by the subscriber.
-
-Either message with zero Track Namespace fields indicates the sender is
-interested in all namespaces or all tracks from the receiver, respectively.
-
-By sending SUBSCRIBE_NAMESPACE, the subscriber indicates that it trusts the
-relay to be authoritative for namespaces matching the requested prefix.
-NAMESPACE messages received on the SUBSCRIBE_NAMESPACE response stream inherit
-this trust and do not independently carry authorization.
-
-The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
-bidirectional stream and the publisher MUST send a single REQUEST_OK or
-REQUEST_ERROR as the first message on the bidirectional stream in response.
-
-If a Subscription cannot be created because there are no available bidirectional
-streams or any other reason, the Publisher sends a PUBLISH_SKIPPED message on the
-SUBSCRIBE_TRACKS response stream to indicate the Full Track Name of the
-Subscription that was not created. The Publisher MUST NOT send a PUBLISH for a
-Track for a given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent,
-scoped to a single PUBLISH.  If, for example, the publisher disconnects from
-a relay and later reconnects and sends a new PUBLISH, the relay MAY send the new
-PUBLISH downstream.
-If desired, the subscriber can issue a SUBSCRIBE to establish a subscription to
-that track.
-
-The receiver of a REQUEST_OK or REQUEST_ERROR ought to
-forward the result to the application, so the application can decide which other
-publishers to contact, if any.
-
-A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS is cancelled as described in
-{{request-cancellation}}, by resetting or sending STOP_SENDING on the stream.
-Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
-from sending further PUBLISH messages, but relays MUST NOT
-send any further PUBLISH messages to a client without knowing the client is
-interested in and authorized to receive the content.
+Discovery of MOQT servers is always done out-of-band: MOQT does not specify how
+an endpoint learns where to establish a session. The discovery described in this
+section takes place within an established session.
 
 ## Publishing Namespaces
 
 A publisher MAY send PUBLISH_NAMESPACE messages to any subscriber. A
 PUBLISH_NAMESPACE indicates to the subscriber that the publisher has tracks
 available in namespaces matching the Track Namespace Prefix it carries (see
-{{namespace-prefix-matching}}). A subscriber MAY send SUBSCRIBE or FETCH for
-tracks in a namespace without having received a PUBLISH_NAMESPACE for it.
+{{namespace-prefix-matching}}). A subscriber MAY send SUBSCRIBE, FETCH or
+TRACK_STATUS for tracks in a namespace without having received a
+PUBLISH_NAMESPACE for it.
 
-If a publisher is the Original Publisher for one or more tracks in a given
-namespace, or is a relay that has received an authorized PUBLISH_NAMESPACE for
-that namespace from an upstream publisher, it MUST send a NAMESPACE message
-that includes this namespace to any subscriber that has sent a
-SUBSCRIBE_NAMESPACE whose prefix matches this namespace.
+The receiver verifies the publisher is authorized to publish tracks under this
+prefix.
+
+A subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or
+PUBLISH_NAMESPACE_ERROR as the first message on the bidi stream in response to
+a PUBLISH_NAMESPACE. The publisher SHOULD close the session with a protocol
+error if it receives more than one.
+
+An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
+PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
+subscribers for a namespace, or to abandon the attempt to publish under this
+namespace.
+
+If a subscriber
+has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
+namespace for a given track, it SHOULD only request the Track from the sender(s) of those
+PUBLISH_NAMESPACE messages.
+
+A PUBLISH_NAMESPACE is withdrawn by cancelling the request
+(see {{request-cancellation}}), although it is not a protocol error for
+the subscriber to send a SUBSCRIBE, FETCH or TRACK_STATUS message for a track
+in a namespace after the namespace is withdrawn.
+
+A subscriber can cancel the request (see {{request-cancellation}}) to revoke
+acceptance of a PUBLISH_NAMESPACE. If the reason for cancellation is expiration
+of authorization credentials, the publisher can send PUBLISH_NAMESPACE again
+on a new bidi stream with refreshed authorization.
+
+While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
+subscribers, it is not a full-fledged routing protocol and does not protect
+against loops. In particular, PUBLISH_NAMESPACE SHOULD NOT
+be used to find paths through richly connected networks of relays.
+
+## Subscribing to Namespaces {#subscribing-to-namespaces}
+
+If the subscriber is aware of a namespace of interest, it can send
+SUBSCRIBE_NAMESPACE to publishers/relays it has established
+a session with. The Track Namespace Prefix it carries is
+compared against the namespaces known to the receiver using Namespace Prefix
+Matching ({{namespace-prefix-matching}}).
+
+SUBSCRIBE_NAMESPACE requests namespace discovery: the publisher responds with
+NAMESPACE and NAMESPACE_DONE messages.
+
+A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the sender is
+interested in all namespaces from the receiver.
+
+The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream. The
+publisher MUST send a single SUBSCRIBE_NAMESPACE_OK or
+SUBSCRIBE_NAMESPACE_ERROR as the first message on the response half of the
+stream; if the subscriber receives any other message first, it MUST close the
+session with a PROTOCOL_VIOLATION.
+
+On success, the publisher MUST send a NAMESPACE message for each namespace it
+knows that matches the Track Namespace Prefix, and further NAMESPACE or
+NAMESPACE_DONE messages as that set changes.  A publisher knows a namespace if
+it is an Original Publisher for one or more tracks in that Namespace Prefix,
+or is a relay that has received an authorized PUBLISH_NAMESPACE for the
+Namespace.
+On error, the stream is immediately closed via FIN.
+
+The namespace in a NAMESPACE message is itself a prefix; tracks can exist in
+namespaces matching it.  A NAMESPACE_DONE indicates the publisher intends to
+stop serving new subscriptions for tracks within that namespace.
+
+
+Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
+Track Namespace Prefix that shares a common prefix with an established
+SUBSCRIBE_NAMESPACE, it MUST respond with SUBSCRIBE_NAMESPACE_ERROR with
+error code `PREFIX_OVERLAP`.
+
+The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
+corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
+corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
 
 A subscriber can receive a PUBLISH_NAMESPACE on a request stream for a
 namespace that falls within an active SUBSCRIBE_NAMESPACE prefix. This
@@ -1203,52 +1303,60 @@ to advertise namespaces within the prefix being discovered. Such a
 PUBLISH_NAMESPACE is valid and MAY carry an AUTHORIZATION TOKEN parameter.
 Its lifetime is independent of the SUBSCRIBE_NAMESPACE stream.
 
-An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
-PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
-subscribers for a namespace, or to abandon the attempt to publish under this
-namespace. A subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or
-PUBLISH_NAMESPACE_ERROR as the first message on the bidi stream in response to
-a PUBLISH_NAMESPACE. The publisher SHOULD close the session with a protocol
-error if it receives more than one.
+A SUBSCRIBE_NAMESPACE is cancelled as described in
+{{request-cancellation}}, by resetting or sending STOP_SENDING on the stream.
 
-A PUBLISH_NAMESPACE is withdrawn by cancelling the request
-(see {{request-cancellation}}), although it is not a protocol error for
-the subscriber to send a SUBSCRIBE or FETCH message for a track in a
-namespace after the namespace is withdrawn.
+### Namespace Subscription Authorization
 
-A subscriber can cancel the request (see {{request-cancellation}}) to revoke
-acceptance of a PUBLISH_NAMESPACE. If the reason for cancellation is expiration
-of authorization credentials, the publisher can send PUBLISH_NAMESPACE again
-on a new bidi stream with refreshed authorization, or close the stream and
-discard associated state.
+The publisher MUST ensure the subscriber is authorized to perform a
+namespace subscription.
 
-While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
-subscribers, it is not a full-fledged routing protocol and does not protect
-against loops and other phenomena. In particular, PUBLISH_NAMESPACE SHOULD NOT
-be used to find paths through richly connected networks of relays.
+By sending SUBSCRIBE_NAMESPACE, the subscriber indicates that it trusts the
+relay to be authoritative for namespaces matching the requested prefix.
+NAMESPACE messages received on the SUBSCRIBE_NAMESPACE response stream inherit
+this trust and do not independently carry authorization.
 
-A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
-has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
-namespace for that track, it SHOULD only request it from the senders of those
-PUBLISH_NAMESPACE messages.
+### Namespace Subscription State Management
 
-## Filtering SUBSCRIBE_TRACKS
+If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
+timely manner because the SUBSCRIBE_NAMESPACE response stream is blocked by flow
+control, the publisher MAY reset the SUBSCRIBE_NAMESPACE response stream.  When
+a subscriber receives a stream reset or FIN on a SUBSCRIBE_NAMESPACE response
+stream, it SHOULD treat this as though each active namespace received a
+NAMESPACE_DONE. Subscriptions established via PUBLISH on separate bidi streams
+are not affected by closure of the SUBSCRIBE_NAMESPACE stream.
 
-Range Filters {{range-filters}} can be used in SUBSCRIBE_TRACKS to filter
-Tracks in a namespace using the Track Property Filter. Objects published in
-the resulting Subscriptions can be filtered by any Range Filter.
+## Namespace Discovery Example
 
-### Relay Resource Protection in Large Namespaces {#large-namespaces}
+In the following example, a subscriber asks a relay for namespaces under a
+prefix, a publisher subsequently advertises a matching namespace to that relay,
+and the relay passes it on.  When the publisher withdraws its advertisement, the
+relay tells the subscriber the namespace is gone.
 
-Relays SHOULD aggregate and propagate filters upstream on subscriptions,
-especially namespace subscriptions,
-to conserve and protect their resources from excessive load.  They MAY
-also impose limits on the number of publishers in a namespace, by rejecting
-or closing namespace subscriptions with the error NAMESPACE_TOO_LARGE, or
-CONFLICTING_FILTERS if too many disjoint filters are requested on downstream
-subscriptions across a large number of subscribers, or PREFIX_OVERLAP if different
-subscribers force an aggregated upstream subscription to overlap.
+~~~
+ Publisher                    Relay                   Subscriber
+     |                          |                          |
+     |                          |   SUBSCRIBE_NAMESPACE    |
+     |                          |        (example)         |
+     |                          |<-------------------------|
+     |                          |  SUBSCRIBE_NAMESPACE_OK  |
+     |    PUBLISH_NAMESPACE     |------------------------->|
+     |      (example-123)       |                          |
+     |------------------------->|                          |
+     |   PUBLISH_NAMESPACE_OK   |        NAMESPACE         |
+     |<-------------------------|          (123)           |
+     |                          |------------------------->|
+     | cancel PUBLISH_NAMESPACE |                          |
+     |------------------------->|                          |
+     |                          |      NAMESPACE_DONE      |
+     |                          |          (123)           |
+     |                          |------------------------->|
+     |                          |                          |
+~~~
+{: #namespace-discovery-flow title="Namespace discovery through a relay"}
 
+The NAMESPACE and NAMESPACE_DONE messages carry only the suffix `123`, because
+the prefix `example` is already known from the SUBSCRIBE_NAMESPACE.
 
 # Object Transmission
 
@@ -2001,6 +2109,19 @@ response to the subscribes and if they are successful, the subscriptions
 to the old relay can be cancelled (see {{request-cancellation}}).
 
 
+## Relay Resource Protection in Large Namespaces {#large-namespaces}
+
+Relays SHOULD aggregate and propagate filters upstream on subscriptions,
+especially namespace subscriptions,
+to conserve and protect their resources from excessive load.  They MAY
+also impose limits on the number of publishers in a namespace, by rejecting
+or closing namespace subscriptions with the error NAMESPACE_TOO_LARGE.
+Relays MAY likewise limit the load imposed by subscribers, by rejecting or
+closing namespace subscriptions with CONFLICTING_FILTERS if too many disjoint
+filters are requested on downstream subscriptions across a large number of
+subscribers, or with PREFIX_OVERLAP if different subscribers force an
+aggregated upstream subscription to overlap.
+
 ## Publisher Interactions
 
 There are two ways to publish through a relay:
@@ -2033,17 +2154,9 @@ A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
 Track Name is matched exactly against existing upstream subscriptions.
 
-Namespace Prefix Matching is further used to decide which publishers receive a
-SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the fields
-in the Track Namespace are matched sequentially, requiring an exact match for
-each field. If the published or subscribed Track Namespace has the same or fewer
-fields than the Track Namespace in the message, it qualifies as a match.
-{: #namespace-prefix-matching}
-
-For example:
-A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
-that sent PUBLISH_NAMESPACE messages with namespace=(foo) or namespace=(foo,
-bar).  It will not match a session with namespace=(foobar).
+Namespace Prefix Matching ({{namespace-prefix-matching}}) is further used to
+decide which publishers receive a SUBSCRIBE and which subscribers receive a
+PUBLISH.
 
 Relays MUST send SUBSCRIBE messages to all matching publishers. This includes
 matching both Established subscriptions on the Full Track Name and Namespace
@@ -3410,8 +3523,6 @@ REQUEST_UPDATE.
 The publisher sends the PUBLISH_NAMESPACE message as the first message on a
 new bidi stream to advertise that it has tracks available in namespaces
 matching a Track Namespace Prefix.
-The receiver verifies the publisher is authorized to publish tracks under this
-prefix.
 
 ~~~
 PUBLISH_NAMESPACE Message {
@@ -3455,47 +3566,11 @@ SUBSCRIBE_NAMESPACE Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
-  {{track-namespace-structure}}.  This prefix is matched against track
-  namespaces known to the publisher.  For example, using the serialized format
-  from {{namespace-name-format}}, if the publisher is a relay that has received
-  PUBLISH_NAMESPACE messages for namespaces `example.2ecom-123-100` and
-  `example.2ecom-123-200`, a SUBSCRIBE_NAMESPACE for `example.2ecom-123` would
-  match both.
+  {{track-namespace-structure}}, matched as a prefix (see
+  {{namespace-prefix-matching}}).
 
 * Parameters: The parameters are defined in {{message-params}}.  The only
   parameter that can appear in a SUBSCRIBE_NAMESPACE is AUTHORIZATION_TOKEN.
-
-The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
-SUBSCRIBE_NAMESPACE_ERROR on the response half of the stream. If the subscriber
-receives any message other than a SUBSCRIBE_NAMESPACE_OK or a
-SUBSCRIBE_NAMESPACE_ERROR as the first message on the response half of the
-stream, then it MUST close the session with a PROTOCOL_VIOLATION. If the
-SUBSCRIBE_NAMESPACE is successful, the publisher will send matching NAMESPACE
-messages on the response stream. If it is an error, the stream will be
-immediately closed via FIN. When there are changes to the namespaces being
-published and the subscriber is subscribed to them, the publisher sends the
-corresponding NAMESPACE or NAMESPACE_DONE messages.
-
-Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
-Track Namespace Prefix that shares a common prefix with an established
-SUBSCRIBE_NAMESPACE, it MUST respond with SUBSCRIBE_NAMESPACE_ERROR with
-error code `PREFIX_OVERLAP`.  SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have
-independent overlap spaces (see {{message-subscribe-tracks}}).
-
-The publisher MUST ensure the subscriber is authorized to perform this
-namespace subscription.
-
-The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
-corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
-corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
-
-If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
-timely manner because the SUBSCRIBE_NAMESPACE response stream is blocked by flow
-control, the publisher MAY reset the SUBSCRIBE_NAMESPACE response stream.  When
-a subscriber receives a stream reset or FIN on a SUBSCRIBE_NAMESPACE response
-stream, it SHOULD treat this as though each active namespace received a
-NAMESPACE_DONE. Subscriptions established via PUBLISH on separate bidi streams
-are not affected by closure of the SUBSCRIBE_NAMESPACE stream.
 
 ## NAMESPACE {#message-namespace}
 
@@ -3503,10 +3578,7 @@ The NAMESPACE message is similar to the PUBLISH_NAMESPACE message, except
 it is sent on the response stream of a SUBSCRIBE_NAMESPACE request.
 All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
-in the 'Track Namespace Suffix'.  The Track Namespace Prefix from the
-SUBSCRIBE_NAMESPACE followed by the Track Namespace Suffix is the Track
-Namespace Prefix the publisher advertised, so tracks can exist in
-namespaces matching that prefix (see {{namespace-prefix-matching}}).
+in the 'Track Namespace Suffix'.
 
 ~~~
 NAMESPACE Message {
@@ -3524,9 +3596,9 @@ NAMESPACE Message {
 
 ## NAMESPACE_DONE {#message-namespace-done}
 
-The publisher sends the `NAMESPACE_DONE` control message to indicate its
-intent to stop serving new subscriptions for tracks within the provided Track
-Namespace. All NAMESPACE_DONE messages are in response to a SUBSCRIBE_NAMESPACE,
+The publisher sends the `NAMESPACE_DONE` control message on the response stream
+of a SUBSCRIBE_NAMESPACE request. All NAMESPACE_DONE messages are in response to
+a SUBSCRIBE_NAMESPACE,
 so only the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.
 
@@ -3573,39 +3645,6 @@ SUBSCRIBE_TRACKS Message {
   AUTHORIZATION_TOKEN, FORWARD, GROUP_ORDER, SUBGROUP_FILTER, OBJECTID_FILTER,
   PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER and
   INCLUDE_PROPERTIES.
-
-The publisher will respond with SUBSCRIBE_TRACKS_OK or SUBSCRIBE_TRACKS_ERROR
-on the response half of the stream. If the subscriber receives any message
-other than a SUBSCRIBE_TRACKS_OK or a SUBSCRIBE_TRACKS_ERROR as the first
-message on the response half of the stream, then it MUST close the session with
-a PROTOCOL_VIOLATION. If the SUBSCRIBE_TRACKS is successful, the publisher will
-send PUBLISH messages on new bidirectional streams for tracks within matching
-namespaces. If it is an error, the stream will be closed via FIN after
-SUBSCRIBE_TRACKS_ERROR is sent.
-
-Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
-Track Namespace Prefix that shares a common prefix with an established
-SUBSCRIBE_TRACKS, it MUST respond with SUBSCRIBE_TRACKS_ERROR with error code
-`PREFIX_OVERLAP`.  SUBSCRIBE_TRACKS and SUBSCRIBE_NAMESPACE have independent
-overlap spaces (see {{message-subscribe-ns}}).
-
-The publisher MUST ensure the subscriber is authorized to perform this
-namespace subscription.
-
-SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
-a subscriber.  It is useful for subscribers that are
-only interested in or authorized to access a subset of available tracks.
-
-### Parameters on SUBSCRIBE_TRACKS {#parameters-on-subscribe-tracks}
-
-Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
-in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
-publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS. These Parameters are explicitly communicated in PUBLISH.
-When omitted by the publisher in PUBLISH, the subscriber uses the default value for each.
-
-To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a
-Location Filter and optionally include FILL_PARAMETERS, as described in {{joining-tracks}}.
 
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
