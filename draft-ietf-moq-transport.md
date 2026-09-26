@@ -3658,6 +3658,7 @@ The encodings defined in this draft are:
   * varint: A variable-length integer
   * Location: Two consecutive varints (Group, Object)
   * Length-prefixed: A varint length followed by that many bytes
+  * Track Namespace: A sequence of length-prefixed fields ({{track-namespace-structure}})
 
 Message Parameters are intended for the peer only and are not
 forwarded by Relays, though relays can consider received parameter values when
