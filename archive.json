@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-24T03:52:33.915634+00:00",
+  "timestamp": "2026-09-27T04:27:15.357185+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -40740,7 +40740,7 @@
       "id": "I_kwDOG2Ho4M7NAA_Y",
       "title": "Clarify the meaning of the Forward State",
       "url": "https://github.com/moq-wg/moq-transport/issues/1232",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -40749,8 +40749,8 @@
       ],
       "body": "I am not entirely sure the draft makes it clear, but we should probably be very explicit about what Forward means: Forward=0 means the publisher (original or relay) will not publish new objects; in particular, setting Forward to 1 will not cause a relay to backfill all objects it have received from the original publisher when Forward was 0 (similar to how subscribing from scratch works).",
       "createdAt": "2025-09-22T06:06:47Z",
-      "updatedAt": "2025-09-22T13:58:09Z",
-      "closedAt": null,
+      "updatedAt": "2026-09-25T19:04:18Z",
+      "closedAt": "2026-09-25T19:04:18Z",
       "comments": [
         {
           "author": "afrind",
@@ -40758,6 +40758,13 @@
           "body": "This matches my understanding ",
           "createdAt": "2025-09-22T13:57:30Z",
           "updatedAt": "2025-09-22T13:57:30Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I believe this is OBE, partially by #1940 ",
+          "createdAt": "2026-09-25T19:04:18Z",
+          "updatedAt": "2026-09-25T19:04:18Z"
         }
       ]
     },
@@ -43176,7 +43183,7 @@
       ],
       "body": "Currently within SUBSCRIBE you can set a [forward parameter](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#forward-parameter) of 0 (don't send me anything) or 1 ( send me everything, default).\n\nIf we implement FILTERS (see https://github.com/moq-wg/moq-transport/pull/1164 and also Filter design team results), then we can remove this flag as:\n\na forward flag of 0 is syntactically equivalent to a FILTER that blocks everything\na forward flag of 1 is syntactically equivalent to a FILTER that allows everything \n\nForward state can be managed by SUBSCRIBE_UPDATE and adjusting the FILTER. ",
       "createdAt": "2025-11-04T16:51:54Z",
-      "updatedAt": "2026-09-20T17:47:23Z",
+      "updatedAt": "2026-09-25T16:39:04Z",
       "closedAt": null,
       "comments": [
         {
@@ -43248,6 +43255,13 @@
           "body": "I'm not sure this is true. The issue is when forward is turned back on, how to know what the original filter values were so they can be set the same. In some cases this is easy, but not sure in all cases. ",
           "createdAt": "2026-09-20T17:47:23Z",
           "updatedAt": "2026-09-20T17:47:23Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "When discussed at the 9/21 virtual interim, people preferred keeping an explicit signal to not forward Objects, like the existing FORWARD param, over using a special case where the Location Filter allows you to spell an empty range (beginning after the end).\n\nThe idea of adding an enum value that is the equivalent of Forward=0 was discussed, but that can wait until PR #1953 lands.  We can keep this issue open until we decide whether to add an enum value to the Location Filter.",
+          "createdAt": "2026-09-25T16:39:04Z",
+          "updatedAt": "2026-09-25T16:39:04Z"
         }
       ]
     },
@@ -48962,19 +48976,18 @@
     {
       "number": 1636,
       "id": "I_kwDOG2Ho4M8AAAABC9uEhg",
-      "title": "Empty namespace clarification",
+      "title": "Empty namespace clarification (zero-length names and namespace tuples)",
       "url": "https://github.com/moq-wg/moq-transport/issues/1636",
       "state": "OPEN",
       "author": "RichLogan",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "Editorial",
-        "Needs Discussion"
+        "Design"
       ],
       "body": "I was just reading the draft-18 text regarding namespace prefixes and full track names and wanted to clarify the rules for our implementation. \n\nI understand the use-case for zero element namespace prefixes, but wanted to check that publishing a track with a zero element namespace is allowed, and in theory, given the text as it is today, a track with a zero element namespace AND an empty name is also allowed?",
       "createdAt": "2026-05-21T10:50:20Z",
-      "updatedAt": "2026-09-20T18:58:46Z",
+      "updatedAt": "2026-09-25T17:24:46Z",
       "closedAt": null,
       "comments": [
         {
@@ -49025,6 +49038,13 @@
           "body": "I don't want to bring in a \"recursive=false\" concept at this point. \n\nI lean towards each element of tuple namespace, and each track name, must have at least 1 character and namespaces have to have at least one tuple but I could live with zero. This is roughly have files names and lots of other URLs work and anything else is going to be an evergreen source of bugs no matter how much we call it out in the spec. \n\nI don't think I have heard any uses cases that push this one way of the other. ",
           "createdAt": "2026-09-20T18:58:46Z",
           "updatedAt": "2026-09-20T18:58:46Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I believe there was fairly broad support for: Everything has to be at least one character long, but we'll allow zero tuple namespace, because one might want to be an authoritative publisher for all tracks (ie: The default upstream) or Subscribe to all Namespaces and/or Tracks.\n\nAs Cullen noted, this is similar to the rules around filesystems.  To my knowledge, no filesystems allow zero-length file or directory names.\n\nAlso, it seems like our serialization algorithm might not actually be a bijection as it stands today, which is a fairly major issue that needs fixing.",
+          "createdAt": "2026-09-25T16:44:07Z",
+          "updatedAt": "2026-09-25T16:44:07Z"
         }
       ]
     },
@@ -49045,7 +49065,7 @@
       ],
       "body": "I don't think the text is clear about what happens when there isn't enough bidi stream credit to send a request. Specifically, does the responsibility to retry lie with MOQT or with the application?\n\nWe got rid of REQUEST_BLOCKED, and it would be sad to pipe OnCanOpenBidiStream() from QUIC all the way up to the application, so it seems worthwhile to just have MOQT track pending bidi streams.\n\nBut we have PUBLISH_BLOCKED, which I guess is a way for a subscriber to SUBSCRIBE (where it might have credit). But this is the inverse of SUBSCRIBE_BLOCKED, where the publisher could potentially deliver the stream, but there's no SUBSCRIBE_BLOCKED message.\n\nAt the very least, the draft should spell out what is required for interoperability, and ideally what MOQT is doing vs. what applications do, so\n(1) What request streams are retried by MOQT vs. requiring the application to do something?\n(2) When is the peer expected to try the SUBSCRIBE/PUBLISH inverse because the other direction is blocked?\n(3) If both directions are blocked, who is responsible for finally opening it? Will we just let the messages cross and let the tiebreaker rules in 5.1 do their thing?\n\nIt would be nice to actually clean this up conceptually as well.\n\n",
       "createdAt": "2026-05-29T22:30:34Z",
-      "updatedAt": "2026-09-14T16:28:36Z",
+      "updatedAt": "2026-09-25T18:16:47Z",
       "closedAt": null,
       "comments": [
         {
@@ -49110,6 +49130,13 @@
           "body": "The scenario still not addressed is:\n\nThe subscriber sends a request. the relay would like to forward it but can't because it has no bidi stream credit. What REQUEST_ERROR code should it use? In general subscribers could not assume that any other request would fail, because there are may be other upstreams.\n\nRelatedly, what if that request is a FETCH, which should spawn 4 different FETCHes to fill gaps in the cache, and there's only credit for one request. What is the expected behavior? Send one large fetch and get duplicate objects? Send FETCH_OK and plug the gaps with unknown status? Or send REQUEST_ERROR because there's inadequate credit to fill the whole request?",
           "createdAt": "2026-09-14T16:28:36Z",
           "updatedAt": "2026-09-14T16:28:36Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "So the specific concerns are around Relays?  In my experience, HTTP proxies usually solve problems like what you're describing by opening more connections.  I'm not sure if that's the best solution for MoQ, but it seems plausible?",
+          "createdAt": "2026-09-25T18:16:47Z",
+          "updatedAt": "2026-09-25T18:16:47Z"
         }
       ]
     },
@@ -53484,7 +53511,7 @@
       ],
       "body": "MOQT has Track and Object property scopes but nothing \"in between\", i.e. no general way to attach metadata to a Subgroup or a Group.\n\nSubgroup scope is being emulated for SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT which, \"as an Object Property on the first object in a subgroup, [override] the Track-level value for that subgroup\". And the scope for object property PRIOR_GROUP_ID_GAP is weird, but definitely not scoped to a given object.\n\nUsing object parameters as emulation for wider than object scope has a number of problems.\n1. Mid-group join may miss them\n2. A fetch range may be mid-group\n\nboth of those existed for long time, but reading group without the beginning could be considered transient state, but \n\n3. Filters may exclude this metadata even in \"steady-state\". \n\nFrom general extensibility standpoint, I am missing this metadata when trying to build application on top of MOQT, and first-object as group emulation is, at minimum, hacky. I feel this is a missing extension point and should be there given that object model is the foundation of moqt. \n\nIt seems relatively easy to add subgroup parameters, given that subgroup headers exist, but the single-byte bit-field compressed type is practically full.\nTrue group-level would require more significant changes in the data plane. As would some other generic data-plane metadata carrier. But both of those could bring more resilient mechanism to add metadata. \n\nI understand that this may be quite heavy change, possibly past-deadline, but I feel this should have a dedicated general discussion.\n\nDo people think we should have an additional extension point for metadata in data-plane? Which/where/how? \n",
       "createdAt": "2026-08-24T17:11:49Z",
-      "updatedAt": "2026-09-21T00:38:21Z",
+      "updatedAt": "2026-09-26T00:51:28Z",
       "closedAt": null,
       "comments": [
         {
@@ -53507,6 +53534,34 @@
           "body": "@fluffy \n> I have seen some uses case where we have been attaching meta information for the group to object 0 in the group. Is that good enough ?\n\nWell the draft as written gives you only that option so we've been running with \"yes it's probably good enough\".  But there are specific cases where it falls down mentioned in the OP:\n\n1. Mid-group join may miss them\n2. A fetch range may be mid-group\n3. Filters may exclude this metadata even in \"steady-state\"\n",
           "createdAt": "2026-09-21T00:38:21Z",
           "updatedAt": "2026-09-21T00:38:21Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "In the context of Filters, it seems like we don't make it easy to say \"The properties of this Object apply to everything in the Subgroup\".  We do this for Priority, but as we've agreed, Priority is special.\n\nAs a related question, do we want to be filtering Objects by each Object's properties, or the properties of the Subgroup/First Object of the Subgroup?  In theory, there's no reason you'd want any Objects after the first Object if you didn't also send the first Object, since they're dependent.\n\nI'd love to do as little as possible here, but I admit the state of the world is odd.",
+          "createdAt": "2026-09-25T16:54:38Z",
+          "updatedAt": "2026-09-25T16:54:38Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "If we did do something, would it be:\n\nAdd a Default Properties property block to Subgroups and when present, those become the default Object properties for all Objects in the Subgroup, just like we have a Default Priority today?",
+          "createdAt": "2026-09-25T16:58:29Z",
+          "updatedAt": "2026-09-25T16:58:29Z"
+        },
+        {
+          "author": "riedlse",
+          "authorAssociation": "NONE",
+          "body": "Operator data on @fluffy's question (is attaching group metadata to object 0 good enough?), and on @ianswett's Default Properties idea.\n\nWe run continuous linear channels over MoQ with server-side ad insertion on one shared broadcast, and we tried exactly that first: splice and boundary state (break id, duration, resume point) as properties on the first object of the group.\n\nIt failed in two of the three ways @afrind listed. A mid-group joiner never sees the state. A location filter that starts past object 0 drops it too. In both cases late joiners act on stale boundary state: they keep a break open after the resume, or miss that one started.\n\nToday that signaling lives in a separate side track instead: one JSON record per break state, cleared at resume. It works, but it needs its own correlation back to group numbers, adds a subscription for every player, and a relay can't act on it.\n\nA Default Properties block on the subgroup, as @ianswett suggests, would fix both failures we hit. Every stream for a subgroup starts with its header, so a mid-group joiner and a subscriber whose location filter starts past object 0 would still get the defaults. The remaining gap is FETCH, which has no subgroup header: fetched objects would need to carry the effective defaults in their own Properties, the way FETCH objects can already carry their own Publisher Priority. With that covered, we'd move our boundary signaling off the side track and report back with numbers.\n",
+          "createdAt": "2026-09-25T22:47:20Z",
+          "updatedAt": "2026-09-25T22:47:20Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "May be I am bit confused of the semantics here when we say Subgroup Default Properties block. Are these properties scope only to a subgroup ? What are the properties we are thinking here ? \n\n\nFor me to better understand the use-case and requirements here, what properties will be useful for mid-group join for a given subscriber ? \n\n",
+          "createdAt": "2026-09-26T00:51:28Z",
+          "updatedAt": "2026-09-26T00:51:28Z"
         }
       ]
     },
@@ -53515,7 +53570,7 @@
       "id": "I_kwDOG2Ho4M8AAAABOZ_bZw",
       "title": "No way to specify equal-pri data: interleave vs serially?",
       "url": "https://github.com/moq-wg/moq-transport/issues/1859",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "sharmafb",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -53524,8 +53579,8 @@
       ],
       "body": "The existing priorities express ordering, but not whether equal-priority data should be completed serially or interleaved. Should we add in an INCREMENTAL parameter like HTTP does in RFC 9218?",
       "createdAt": "2026-08-26T21:47:45Z",
-      "updatedAt": "2026-09-10T19:08:23Z",
-      "closedAt": null,
+      "updatedAt": "2026-09-25T18:52:03Z",
+      "closedAt": "2026-09-25T18:52:03Z",
       "comments": [
         {
           "author": "afrind",
@@ -53911,19 +53966,20 @@
     {
       "number": 1933,
       "id": "I_kwDOG2Ho4M8AAAABQK9Gqg",
-      "title": "Option to SUBSCRIBE / SUBSCRIBE_TRACKS with metadata only",
+      "title": "Option to SUBSCRIBE / SUBSCRIBE_TRACKS without Object payloads",
       "url": "https://github.com/moq-wg/moq-transport/issues/1933",
       "state": "OPEN",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "Needs PR",
         "Needs Discussion",
         "Subscribe"
       ],
       "body": "Payloads can be much larger than object metadata/properties and may not be of interest.\n\nTop Tracks Filter would be an ideal consumer of this - a relay need only ingest the metadata from all publishers until it knows the track is actually passing a filter.",
       "createdAt": "2026-09-08T00:05:57Z",
-      "updatedAt": "2026-09-21T15:17:30Z",
+      "updatedAt": "2026-09-25T16:46:39Z",
       "closedAt": null,
       "comments": [
         {
@@ -54137,7 +54193,7 @@
       "id": "I_kwDOG2Ho4M8AAAABQ1_PUw",
       "title": "TRACK_NAMESPACE_PREFIX format is not defined for Control Message Parameters",
       "url": "https://github.com/moq-wg/moq-transport/issues/1942",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "mengelbart",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -54146,8 +54202,8 @@
       ],
       "body": "[Section 9.20](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-21#section-9.20) defines four value encodings for parameters: uint8, varint, Location, and Length-prefixed. But [TRACK_NAMESPACE_PREFIX](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-21#section-9.20.21) uses the Track Namespace encoding described in [Section 8.7.](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-21#section-8.7), which is not one of the four encodings. Should the Track Namespace encoding be added to the list of value encodings defined in this draft?",
       "createdAt": "2026-09-11T14:13:57Z",
-      "updatedAt": "2026-09-15T21:59:35Z",
-      "closedAt": null,
+      "updatedAt": "2026-09-26T17:13:48Z",
+      "closedAt": "2026-09-26T17:13:48Z",
       "comments": []
     },
     {
@@ -54213,7 +54269,7 @@
       "labels": [],
       "body": "What should an original publisher do?  A relay?\n\nDoes sending uint64_max mean that a relay will never send a NEW_GROUP_REQUEST again?",
       "createdAt": "2026-09-17T20:36:21Z",
-      "updatedAt": "2026-09-21T00:01:25Z",
+      "updatedAt": "2026-09-25T18:25:13Z",
       "closedAt": null,
       "comments": [
         {
@@ -54222,6 +54278,13 @@
           "body": "If I read the text:\n\n> The Original Publisher chooses the next Group ID; there are no requirements that it be equal to the NEW_GROUP_REQUEST parameter value.\n\n> A relay that receives a NEW_GROUP_REQUEST for an Established subscription with a value of 0 or a value larger than the Largest Group MUST send a REQUEST_UPDATE including the NEW_GROUP_REQUEST to the publisher unless:\n>\n> 1. The Track does not support dynamic Groups\n> 2. There is already an outstanding NEW_GROUP_REQUEST from this Relay with a greater or equal value\n>\n> If a relay receives a NEW_GROUP_REQUEST with a non-zero value less than or equal to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.\n> \n> After sending a NEW_GROUP_REQUEST upstream, the request is considered outstanding until the Largest Group increases.\n\nI think the scenario you describe works ok.\n\n``` \nCurrent Largest Group = 10\nC1->R: NGR=2^64-1\nR->P: NGR=2^64-1  // the max NGR is outstanding\nC2->R: NGR=11     // Relay does not send to OP, because of rule 2\nP->R: Group = 11  // the request is no longer outstanding\nC3->R: NGR=12     // this is fine\nR->P: NGR=12\n```\n\n",
           "createdAt": "2026-09-21T00:01:25Z",
           "updatedAt": "2026-09-21T00:01:25Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Can't we make NGR values > Largest Group + 1 a protocol violation?",
+          "createdAt": "2026-09-25T18:25:13Z",
+          "updatedAt": "2026-09-25T18:25:13Z"
         }
       ]
     },
@@ -54313,9 +54376,24 @@
       "labels": [],
       "body": "In Sec 6.2.4.1 \"Request ID\" it says\n\n> If an endpoint receives a Request ID where the least significant bit is incorrect for the sender, or a duplicate Request ID, it MUST close the session with INVALID_REQUEST_ID.\n\nThis is not really implementable. With infinite memory, the receiver could store all request IDs that have been seen. In the past @afrind suggested that one could use the maximum stream credit has a lower bound on request IDs that could be outstanding. But this doesn't work; first of all, max stream credit is not available in Webtransport APIs. Further, it's not sufficient: in an endpoint sends a bunch of requests and then resets them, the receiver may never process some request IDs, which appears to it exactly as if the peer skipped some request IDs. Thus, the set of missing request IDs is unbounded.\n\n(1) At a minimum, I would like the \"if it detects a duplicate Request ID\" weasel words. \n\nThese 2 other proposals are Past Deadline:\n\n(2) I don't see any use for a request ID in SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, REQUEST_UPDATE, or TRACK_STATUS, and would be happy to delete these fields entirely.\n\n(3) At the maximum level of effort, we could get rid of request IDs entirely and use QUIC stream IDs to reference other requests. This would also be a WT API change, but would allow all the ID validation machinery to be outsourced to QUIC.",
       "createdAt": "2026-09-22T17:25:20Z",
-      "updatedAt": "2026-09-23T21:42:53Z",
+      "updatedAt": "2026-09-25T18:29:18Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "For this type of stuff, it seems like we should the sender MUST NOT do the bad thing, and say the receiver MAY send \"whatever the error is\". We don't need anything clever and I don't want to be in an argument with some person at my company that wants to use WebRTC instead of MoQ telling me we can't use MoQ because it requires infinite memory to check the duplicates.  And I don't want to tell the, oh yah, ignore the spec as that is a very slippery slope.",
+          "createdAt": "2026-09-25T14:04:01Z",
+          "updatedAt": "2026-09-25T14:04:01Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Yes, adding text that if you detect a duplicate, you SHOULD/MUST close the session with an error sounds sensible.  I thought we already said that, but maybe not.\n\nOn 3, Alan reminded me that we use Request ID in REQUEST_UPDATE in the resulting Fill-Fetch stream header.",
+          "createdAt": "2026-09-25T18:29:17Z",
+          "updatedAt": "2026-09-25T18:29:17Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -217800,13 +217878,13 @@
       ],
       "body": "Fixes #1800 ",
       "createdAt": "2026-08-24T18:03:37Z",
-      "updatedAt": "2026-09-20T19:41:42Z",
+      "updatedAt": "2026-09-25T18:46:39Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "67b1a4233f79b81536894236b02637600f76df2c",
+      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-namespace-params",
-      "headRefOid": "87720fb3130acfa4d885b6c4963dcc35ab5d21e5",
+      "headRefOid": "e87552276f0911607d34023ab3ca5953689d5bed",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -217849,27 +217927,27 @@
         {
           "id": "PRR_kwDOG2Ho4M8AAAABNDluVg",
           "commit": {
-            "abbreviatedOid": "87720fb"
+            "abbreviatedOid": "e875522"
           },
           "author": "suhasHere",
           "authorAssociation": "COLLABORATOR",
           "state": "APPROVED",
           "body": "",
           "createdAt": "2026-09-10T19:01:33Z",
-          "updatedAt": "2026-09-10T19:01:33Z",
+          "updatedAt": "2026-09-25T18:46:39Z",
           "comments": []
         },
         {
           "id": "PRR_kwDOG2Ho4M8AAAABOZy8wQ",
           "commit": {
-            "abbreviatedOid": "87720fb"
+            "abbreviatedOid": "e875522"
           },
           "author": "fluffy",
           "authorAssociation": "COLLABORATOR",
           "state": "APPROVED",
           "body": "",
           "createdAt": "2026-09-20T19:41:42Z",
-          "updatedAt": "2026-09-20T19:41:42Z",
+          "updatedAt": "2026-09-25T18:46:39Z",
           "comments": []
         }
       ]
@@ -218086,10 +218164,12 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial"
+      ],
       "body": "",
       "createdAt": "2026-08-31T15:26:51Z",
-      "updatedAt": "2026-09-01T19:56:45Z",
+      "updatedAt": "2026-09-24T18:21:54Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d92ccef327b045fd3c1536c9edf8e1ace0877175",
@@ -218126,10 +218206,12 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial"
+      ],
       "body": "",
       "createdAt": "2026-08-31T17:10:31Z",
-      "updatedAt": "2026-09-09T02:59:38Z",
+      "updatedAt": "2026-09-24T18:21:55Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "527686bc5f37fd9f6dcac20eddc8e30f67018718",
@@ -218926,10 +219008,12 @@
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Design"
+      ],
       "body": "Create a new PR that makes Track Alias a Parameter returned in SUBSCRIBE_OK instead of a required field. When Track Alias isn't returned, the Request ID is used to associate Objects with the correct Subscription.\r\n\r\nThis adds `TRACK_ALIAS` to the IANA Message Parameters table, updates `SUBSCRIBE_OK`, adds a parity rule for `Track Alias`, and renames `Track Alias` to `Track Alias or Request ID` in the object headers.\r\n\r\nFixes #1875 \r\n\r\n---\r\n*PR created automatically by Jules for task [13571905536436668031](https://jules.google.com/task/13571905536436668031) started by @ianswett*",
       "createdAt": "2026-09-01T02:32:09Z",
-      "updatedAt": "2026-09-13T21:59:19Z",
+      "updatedAt": "2026-09-24T18:21:39Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
@@ -220042,25 +220126,33 @@
       "id": "PR_kwDOG2Ho4M8AAAABByBH_w",
       "title": "Refactor Namespace Discovery section",
       "url": "https://github.com/moq-wg/moq-transport/pull/1890",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "This is a rewrite of namespace discovery section that is more reflective of latest changes and better organizaton of the content. ",
       "createdAt": "2026-09-01T17:13:17Z",
-      "updatedAt": "2026-09-12T00:53:55Z",
+      "updatedAt": "2026-09-24T18:21:22Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "refactor-ns-discovery",
       "headRefOid": "b67a245fd5084225c3ce35db6397c8d168d7f232",
-      "closedAt": null,
+      "closedAt": "2026-09-24T18:21:22Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Closing in favor of #1946",
+          "createdAt": "2026-09-24T18:21:22Z",
+          "updatedAt": "2026-09-24T18:21:22Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M8AAAABL2a2cw",
@@ -220832,10 +220924,12 @@
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial"
+      ],
       "body": "Extracts the SetID evaluation rules into a dedicated Filter Sets subsection under Range Filters and adds worked examples of AND, OR, mixed conjunctions, and relay aggregation.",
       "createdAt": "2026-09-01T21:26:41Z",
-      "updatedAt": "2026-09-02T14:03:01Z",
+      "updatedAt": "2026-09-24T18:21:00Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7ee597838d926f8189a1f88e442802d435324a1e",
@@ -224130,9 +224224,9 @@
       "labels": [
         "Editorial"
       ],
-      "body": "- Namespace Prefix Matching gets its own section under Track.\r\n- SUBSCRIBE_TRACKS moves to its own section under Publishing and Receiving\r\n  Tracks \u2014 it creates subscriptions rather than discovering namespaces.\r\n- Behavior is hoisted out of the five namespace message sections, which now\r\n  carry only a diagram and fields.\r\n- Publishing now precedes Subscribing, and section 4 is tightened: response\r\n  handling was stated three times, authorization in three places.\r\n- A ladder diagram shows the publisher \u2192 relay \u2192 subscriber path.\r\n- Editorial cleanup of some prose\r\n- \r\nsentence-diff (from `draft-21-retro`) against  main: \r\n\r\n2343 of 2379 sentences unchanged.\r\n\r\n * modified 21\r\n * added 22\r\n * removed 23\r\n",
+      "body": "- Namespace Prefix Matching gets its own section under Track.\r\n- SUBSCRIBE_TRACKS moves to its own section under Publishing and Receiving\r\n  Tracks \u2014 it creates subscriptions rather than discovering namespaces.\r\n- Behavior is hoisted out of the five namespace message sections, which now\r\n  carry only a diagram and fields.\r\n- Publishing now precedes Subscribing, and section 4 is tightened: response\r\n  handling was stated three times, authorization in three places.\r\n- A ladder diagram shows the publisher \u2192 relay \u2192 subscriber path.\r\n- Editorial cleanup of some prose\r\n- \r\nsentence-diff (from `draft-21-retro`) against  main: \r\n\r\n2343 of 2379 sentences unchanged.\r\n\r\n * modified 21\r\n * added 22\r\n * removed 23\r\n\r\nFixes #841\r\n",
       "createdAt": "2026-09-14T20:43:34Z",
-      "updatedAt": "2026-09-14T21:20:01Z",
+      "updatedAt": "2026-09-25T18:37:32Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
@@ -224144,7 +224238,338 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPGdpYw",
+          "commit": {
+            "abbreviatedOid": "d9b8cb5"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-24T18:15:28Z",
+          "updatedAt": "2026-09-24T18:15:29Z",
+          "comments": [
+            {
+              "originalPosition": 343,
+              "body": "Add a PUB_NS before SUB_NS too",
+              "createdAt": "2026-09-24T18:15:29Z",
+              "updatedAt": "2026-09-24T18:15:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPRjDPg",
+          "commit": {
+            "abbreviatedOid": "d9b8cb5"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-25T16:18:41Z",
+          "updatedAt": "2026-09-25T17:16:53Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "```suggestion\nmatches if all fields in the prefix match the leading fields of the Namespace.\n```",
+              "createdAt": "2026-09-25T16:18:41Z",
+              "updatedAt": "2026-09-25T17:16:53Z"
+            },
+            {
+              "originalPosition": 43,
+              "body": "```suggestion\nrequesting a Subscription for all Tracks from the publisher.\n```",
+              "createdAt": "2026-09-25T16:20:04Z",
+              "updatedAt": "2026-09-25T17:16:53Z"
+            },
+            {
+              "originalPosition": 89,
+              "body": "```suggestion\nLocation Filter and optionally include FILL_PARAMETERS in the SUBSCRIBE_TRACKS, as described in {{joining-tracks}}.\n```",
+              "createdAt": "2026-09-25T16:25:49Z",
+              "updatedAt": "2026-09-25T17:16:53Z"
+            },
+            {
+              "originalPosition": 100,
+              "body": "I think I noted this before, but anytime its a new session, the state is reset and we start all over, so I don't think this is helpful.\n\n\n```suggestion\nscoped to a single PUBLISH.\n```",
+              "createdAt": "2026-09-25T16:28:43Z",
+              "updatedAt": "2026-09-25T17:16:53Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 1953,
+      "id": "PR_kwDOG2Ho4M8AAAABE_UZTQ",
+      "title": "Change Location Filter to an enum",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1953",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Wire Format",
+        "Filters"
+      ],
+      "body": "Fixes #1937",
+      "createdAt": "2026-09-24T18:51:24Z",
+      "updatedAt": "2026-09-25T18:52:05Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-location-enum",
+      "headRefOid": "dad1a41c7eb8764439e4ee845c8f91283c6190bb",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPG4EpQ",
+          "commit": {
+            "abbreviatedOid": "01f66e9"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-24T18:55:27Z",
+          "updatedAt": "2026-09-24T18:55:28Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "```suggestion\n  type: \"Working Group\"\n```",
+              "createdAt": "2026-09-24T18:55:27Z",
+              "updatedAt": "2026-09-24T18:55:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPTAG0Q",
+          "commit": {
+            "abbreviatedOid": "dad1a41"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-25T18:52:05Z",
+          "updatedAt": "2026-09-25T18:52:05Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1954,
+      "id": "PR_kwDOG2Ho4M8AAAABFJxHQQ",
+      "title": "Require Track Names to have a length > 0",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1954",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial & Minor Design"
+      ],
+      "body": "Fixes #1636 by requiring that Track Names must have a length > 0, mirroring the existing behavior for Track Namespace Tuples.\n\nUnless otherwise specified (e.g. namespace-scoped requests in REDIRECT messages), an endpoint MUST close the session with a PROTOCOL_VIOLATION if it receives a Track Name with length 0.\n\n---\n*PR created automatically by Jules for task [5822775389568492176](https://jules.google.com/task/5822775389568492176) started by @ianswett*",
+      "createdAt": "2026-09-25T17:23:15Z",
+      "updatedAt": "2026-09-26T21:08:33Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "fix-track-name-length-restriction-5822775389568492176",
+      "headRefOid": "530d484b57ef48dc592ac59cbc399b8694c4a74c",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPSV4aA",
+          "commit": {
+            "abbreviatedOid": "530d484"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2026-09-25T17:49:51Z",
+          "updatedAt": "2026-09-25T17:49:51Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPYpnLA",
+          "commit": {
+            "abbreviatedOid": "530d484"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-26T21:08:33Z",
+          "updatedAt": "2026-09-26T21:08:33Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "I am not sure if we need this restriction and not sure what is it buying ..",
+              "createdAt": "2026-09-26T21:08:33Z",
+              "updatedAt": "2026-09-26T21:08:33Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 1955,
+      "id": "PR_kwDOG2Ho4M8AAAABFKIRZQ",
+      "title": "Add INCLUDE_PAYLOAD parameter",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1955",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Design"
+      ],
+      "body": "Fixes #1933\r\n\r\nAdds a `INCLUDE_PAYLOAD` parameter (0x36) for `SUBSCRIBE`, `FETCH`, and `SUBSCRIBE_TRACKS` messages to allow subscribers to request only object headers and metadata without payloads.\r\n\r\nIt also introduces the `Object Payload Omitted` (0x1) `Object Status` code, allowing publishers to explicitly specify that a payload was omitted due to the `INCLUDE_PAYLOAD` parameter, preserving metadata capabilities for Relays.\r\n\r\n---\r\n*PR created automatically by Jules for task [12281881590640091795](https://jules.google.com/task/12281881590640091795) started by @ianswett*",
+      "createdAt": "2026-09-25T18:05:36Z",
+      "updatedAt": "2026-09-25T18:10:09Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "add-include-payload-parameter-12281881590640091795",
+      "headRefOid": "f182468a9e93872ac377b4c6bd7eaac63a047887",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
       "reviews": []
+    },
+    {
+      "number": 1956,
+      "id": "PR_kwDOG2Ho4M8AAAABFK0_ow",
+      "title": "Add Track Namespace to list of value encodings",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1956",
+      "state": "MERGED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Fixes #1942 by adding \"Track Namespace\" to the list of value encodings.",
+      "createdAt": "2026-09-25T19:26:58Z",
+      "updatedAt": "2026-09-26T17:13:48Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "fix-1942-16213030337457837643",
+      "headRefOid": "ca7d6c4dd19ef48253af0eab1bfe7139a8c6cd34",
+      "closedAt": "2026-09-26T17:13:47Z",
+      "mergedAt": "2026-09-26T17:13:47Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "fb2a6e46ea1144ecd04d07880146dab15ea5a3dc"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPVXXPQ",
+          "commit": {
+            "abbreviatedOid": "ca7d6c4"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-26T01:28:11Z",
+          "updatedAt": "2026-09-26T01:28:11Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPVfh8w",
+          "commit": {
+            "abbreviatedOid": "ca7d6c4"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-26T02:05:12Z",
+          "updatedAt": "2026-09-26T02:05:12Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1957,
+      "id": "PR_kwDOG2Ho4M8AAAABFMXQVw",
+      "title": "Make DEFAULT PUBLISHER PRIORITY a Message Parameter",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1957",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Design"
+      ],
+      "body": "Change `DEFAULT PUBLISHER PRIORITY` from a Track Property to a Message Parameter\r\n\r\nFixes #1270\r\nAn alternative to #1770 ",
+      "createdAt": "2026-09-25T23:05:49Z",
+      "updatedAt": "2026-09-26T17:13:25Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "make-default-publisher-priority-parameter-18328307317527111052",
+      "headRefOid": "35aedfedf3071199d1a19d6b49a501348a51a2b1",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPU39gg",
+          "commit": {
+            "abbreviatedOid": "e525bd3"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-25T23:12:52Z",
+          "updatedAt": "2026-09-25T23:12:52Z",
+          "comments": [
+            {
+              "originalPosition": 48,
+              "body": "```suggestion\npriority.  See {{priorities}}. Priorities above 255 are invalid. Subgroups and\nDatagrams for this subscription inherit this priority, unless they specifically\noverride it.\n\nThis Parameter can be updated while a Subscription is active by sending\na PUBLISH_STATE_NOTIFY with a DEFAULT_PUBLISHER_PRIORITY and a\nLARGEST_OBJECT parameter to indicate when the new priority became\neffective.\n```",
+              "createdAt": "2026-09-25T23:12:52Z",
+              "updatedAt": "2026-09-25T23:12:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPVXSpg",
+          "commit": {
+            "abbreviatedOid": "35aedfe"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-26T01:27:54Z",
+          "updatedAt": "2026-09-26T01:27:54Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
