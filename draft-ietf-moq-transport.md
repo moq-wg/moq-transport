@@ -781,6 +781,9 @@ If no Objects have been published for the track or Start Location is greater
 than the `Largest Object` ({{largest-object}}) the publisher MUST return
 FETCH_ERROR with error code `INVALID_RANGE`.
 
+If the Location filter is relative (see {{location-filter}}), the publisher
+MUST return REQUEST_ERROR with error code `INVALID_RANGE`.
+
 ### Fetch Object Delivery
 
 The publisher creates a single unidirectional stream (see {{fetch-streams}})
