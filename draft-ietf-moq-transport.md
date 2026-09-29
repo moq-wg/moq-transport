@@ -501,15 +501,15 @@ Namespace Fields or Track Name such that exact comparison works.
 ### Namespace Prefix Matching {#namespace-prefix-matching}
 
 To perform a namespace prefix match, the fields of the prefix are compared
-sequentially against the leading fields of the Track Namespace or Full Track
-Name being matched, requiring an exact match for each field.  The prefix
-matches if it has the same or fewer fields.
+sequentially against the leading fields of the Track Namespace being
+matched, requiring an exact match for each field.  The prefix matches if all
+fields in the prefix match the leading fields of the Namespace.
 
 The examples below use the serialized name format from
 {{namespace-name-format}}.
 
-The name `foo-bar--x` matches the prefixes `foo` and `foo-bar`.  It does not
-match `foobar`.
+The Full Track Name `foo-bar--x` has the namespace `foo-bar`, so it matches
+the prefixes `foo` and `foo-bar`.  It does not match `foobar`.
 
 The prefix `example.2ecom-123` matches the namespaces `example.2ecom-123-100`
 and `example.2ecom-123-200`.
@@ -1099,12 +1099,13 @@ SUBSCRIBE_TRACKS requests subscriptions: the publisher sends PUBLISH
 messages for tracks within matching namespaces, excluding tracks published
 by the subscriber.
 
-A SUBSCRIBE_TRACKS with zero Track Namespace fields indicates the sender is
-requesting a Subscription for all Tracks from the receiver.
+A SUBSCRIBE_TRACKS with zero Track Namespace fields indicates the subscriber
+is requesting a Subscription for all Tracks from the publisher.
 
 SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
-a subscriber.  It is useful for subscribers that are
-only interested in or authorized to access a subset of available tracks.
+a subscriber.  It is useful, for example, when the subscriber does not know
+the exact names of the tracks it wants, or when those tracks will be
+published.
 
 The publisher will respond with SUBSCRIBE_TRACKS_OK or SUBSCRIBE_TRACKS_ERROR
 on the response half of the stream. If the subscriber receives any message
@@ -1145,8 +1146,10 @@ SUBSCRIBE_TRACKS, and explicitly communicated in the PUBLISH.
 When a Parameter is omitted from the SUBSCRIBE_TRACKS and resulting PUBLISH,
 the Subscription uses the default value.
 
-To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a
-Location Filter and optionally include FILL_PARAMETERS, as described in {{joining-tracks}}.
+To join Tracks initiated via the resulting PUBLISHes, the subscriber can
+specify a Location Filter and optionally include FILL_PARAMETERS in the
+SUBSCRIBE_TRACKS, or in a REQUEST_UPDATE following PUBLISH_OK, as described
+in {{joining-tracks}}.
 
 ### Skipped Tracks
 
@@ -1328,19 +1331,29 @@ are not affected by closure of the SUBSCRIBE_NAMESPACE stream.
 
 ## Namespace Discovery Example
 
-In the following example, a subscriber asks a relay for namespaces under a
-prefix, a publisher subsequently advertises a matching namespace to that relay,
-and the relay passes it on.  When the publisher withdraws its advertisement, the
-relay tells the subscriber the namespace is gone.
+In the following example, a publisher advertises a namespace to a relay before
+a subscriber asks that relay for namespaces under a prefix, so the relay
+reports it immediately.  The publisher then advertises a second matching
+namespace, which the relay passes on as it arrives.  When the publisher
+withdraws that advertisement, the relay tells the subscriber the namespace is
+gone.
 
 ~~~
  Publisher                    Relay                   Subscriber
      |                          |                          |
-     |                          |   SUBSCRIBE_NAMESPACE    |
+     |    PUBLISH_NAMESPACE     |                          |
+     |       (example-42)       |                          |
+     |------------------------->|                          |
+     |   PUBLISH_NAMESPACE_OK   |                          |
+     |<-------------------------|   SUBSCRIBE_NAMESPACE    |
      |                          |        (example)         |
      |                          |<-------------------------|
      |                          |  SUBSCRIBE_NAMESPACE_OK  |
-     |    PUBLISH_NAMESPACE     |------------------------->|
+     |                          |------------------------->|
+     |                          |        NAMESPACE         |
+     |                          |           (42)           |
+     |                          |------------------------->|
+     |    PUBLISH_NAMESPACE     |                          |
      |      (example-123)       |                          |
      |------------------------->|                          |
      |   PUBLISH_NAMESPACE_OK   |        NAMESPACE         |
@@ -1355,8 +1368,9 @@ relay tells the subscriber the namespace is gone.
 ~~~
 {: #namespace-discovery-flow title="Namespace discovery through a relay"}
 
-The NAMESPACE and NAMESPACE_DONE messages carry only the suffix `123`, because
-the prefix `example` is already known from the SUBSCRIBE_NAMESPACE.
+The NAMESPACE and NAMESPACE_DONE messages carry only the suffixes `42` and
+`123`, because the prefix `example` is already known from the
+SUBSCRIBE_NAMESPACE.
 
 # Object Transmission
 
