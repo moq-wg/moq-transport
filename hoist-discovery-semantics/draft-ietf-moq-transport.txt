@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 18 March 2027                                     I. Swett, Ed.
+Expires: 2 April 2027                                      I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                       14 September 2026
+                                                       29 September 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 March 2027.
+   This Internet-Draft will expire on 2 April 2027.
 
 Copyright Notice
 
@@ -773,14 +773,14 @@ Table of Contents
 
    To perform a namespace prefix match, the fields of the prefix are
    compared sequentially against the leading fields of the Track
-   Namespace or Full Track Name being matched, requiring an exact match
-   for each field.  The prefix matches if it has the same or fewer
-   fields.
+   Namespace being matched, requiring an exact match for each field.
+   The prefix matches if all fields in the prefix match the leading
+   fields of the Namespace.
 
    The examples below use the serialized name format from Section 8.8.
 
-   The name foo-bar--x matches the prefixes foo and foo-bar.  It does
-   not match foobar.
+   The Full Track Name foo-bar--x has the namespace foo-bar, so it
+   matches the prefixes foo and foo-bar.  It does not match foobar.
 
    The prefix example.2ecom-123 matches the namespaces example.2ecom-
    123-100 and example.2ecom-123-200.
@@ -1402,11 +1402,13 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    published by the subscriber.
 
    A SUBSCRIBE_TRACKS with zero Track Namespace fields indicates the
-   sender is requesting a Subscription for all Tracks from the receiver.
+   subscriber is requesting a Subscription for all Tracks from the
+   publisher.
 
    SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH
-   messages to a subscriber.  It is useful for subscribers that are only
-   interested in or authorized to access a subset of available tracks.
+   messages to a subscriber.  It is useful, for example, when the
+   subscriber does not know the exact names of the tracks it wants, or
+   when those tracks will be published.
 
    The publisher will respond with SUBSCRIBE_TRACKS_OK or
    SUBSCRIBE_TRACKS_ERROR on the response half of the stream.  If the
@@ -1450,7 +1452,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    the Subscription uses the default value.
 
    To join Tracks initiated via the resulting PUBLISHes, the subscriber
-   can specify a Location Filter and optionally include FILL_PARAMETERS,
+   can specify a Location Filter and optionally include FILL_PARAMETERS
+   in the SUBSCRIBE_TRACKS, or in a REQUEST_UPDATE following PUBLISH_OK,
    as described in Section 3.5.
 
 3.6.3.  Skipped Tracks
@@ -1645,19 +1648,28 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
 4.3.  Namespace Discovery Example
 
-   In the following example, a subscriber asks a relay for namespaces
-   under a prefix, a publisher subsequently advertises a matching
-   namespace to that relay, and the relay passes it on.  When the
-   publisher withdraws its advertisement, the relay tells the subscriber
-   the namespace is gone.
+   In the following example, a publisher advertises a namespace to a
+   relay before a subscriber asks that relay for namespaces under a
+   prefix, so the relay reports it immediately.  The publisher then
+   advertises a second matching namespace, which the relay passes on as
+   it arrives.  When the publisher withdraws that advertisement, the
+   relay tells the subscriber the namespace is gone.
 
     Publisher                    Relay                   Subscriber
         |                          |                          |
-        |                          |   SUBSCRIBE_NAMESPACE    |
+        |    PUBLISH_NAMESPACE     |                          |
+        |       (example-42)       |                          |
+        |------------------------->|                          |
+        |   PUBLISH_NAMESPACE_OK   |                          |
+        |<-------------------------|   SUBSCRIBE_NAMESPACE    |
         |                          |        (example)         |
         |                          |<-------------------------|
         |                          |  SUBSCRIBE_NAMESPACE_OK  |
-        |    PUBLISH_NAMESPACE     |------------------------->|
+        |                          |------------------------->|
+        |                          |        NAMESPACE         |
+        |                          |           (42)           |
+        |                          |------------------------->|
+        |    PUBLISH_NAMESPACE     |                          |
         |      (example-123)       |                          |
         |------------------------->|                          |
         |   PUBLISH_NAMESPACE_OK   |        NAMESPACE         |
@@ -1672,8 +1684,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
                Figure 1: Namespace discovery through a relay
 
-   The NAMESPACE and NAMESPACE_DONE messages carry only the suffix 123,
-   because the prefix example is already known from the
+   The NAMESPACE and NAMESPACE_DONE messages carry only the suffixes 42
+   and 123, because the prefix example is already known from the
    SUBSCRIBE_NAMESPACE.
 
 5.  Object Transmission
@@ -6792,9 +6804,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-08, 8 September 2026,
+              draft-ietf-scone-protocol-09, 24 September 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-08>.
+              protocol-09>.
 
    [I-D.ietf-webtrans-http2]
               Frindell, A., Kinnear, E., Pauly, T., Thomson, M.,

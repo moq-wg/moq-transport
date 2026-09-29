@@ -17,23 +17,23 @@ reliability. MOQT operates both point-to-point and through intermediate relays,
 enabling scalable low-latency delivery. Despite its name, MOQT is media
 agnostic and can be used for a wide range of use cases. 
     " name="description">
-<meta content="xml2rfc 3.34.0" name="generator">
+<meta content="xml2rfc 3.34.1" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.34.0
+  xml2rfc 3.34.1
     Python 3.14.7
-    ConfigArgParse 1.7.5
+    ConfigArgParse 1.7.7
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.11.7
+    platformdirs 4.11.10
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.8.3
+    wcwidth 0.8.4
 -->
 <link href="draft-ietf-moq-transport.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 18 March 2027</td>
+<td class="center">Expires 2 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-14" class="published">14 September 2026</time>
+<time datetime="2026-09-29" class="published">29 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-18">18 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-02">2 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 18 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 2 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2531,13 +2531,13 @@ Namespace Fields or Track Name such that exact comparison works.<a href="#sectio
 <a href="#section-2.4.2" class="section-number selfRef">2.4.2. </a><a href="#name-namespace-prefix-matching" class="section-name selfRef">Namespace Prefix Matching</a>
           </h4>
 <p id="section-2.4.2-1">To perform a namespace prefix match, the fields of the prefix are compared
-sequentially against the leading fields of the Track Namespace or Full Track
-Name being matched, requiring an exact match for each field.  The prefix
-matches if it has the same or fewer fields.<a href="#section-2.4.2-1" class="pilcrow">¶</a></p>
+sequentially against the leading fields of the Track Namespace being
+matched, requiring an exact match for each field.  The prefix matches if all
+fields in the prefix match the leading fields of the Namespace.<a href="#section-2.4.2-1" class="pilcrow">¶</a></p>
 <p id="section-2.4.2-2">The examples below use the serialized name format from
 <a href="#namespace-name-format" class="auto internal xref">Section 8.8</a>.<a href="#section-2.4.2-2" class="pilcrow">¶</a></p>
-<p id="section-2.4.2-3">The name <code>foo-bar--x</code> matches the prefixes <code>foo</code> and <code>foo-bar</code>.  It does not
-match <code>foobar</code>.<a href="#section-2.4.2-3" class="pilcrow">¶</a></p>
+<p id="section-2.4.2-3">The Full Track Name <code>foo-bar--x</code> has the namespace <code>foo-bar</code>, so it matches
+the prefixes <code>foo</code> and <code>foo-bar</code>.  It does not match <code>foobar</code>.<a href="#section-2.4.2-3" class="pilcrow">¶</a></p>
 <p id="section-2.4.2-4">The prefix <code>example.2ecom-123</code> matches the namespaces <code>example.2ecom-123-100</code>
 and <code>example.2ecom-123-200</code>.<a href="#section-2.4.2-4" class="pilcrow">¶</a></p>
 </section>
@@ -3170,11 +3170,12 @@ groups. A publisher that does will begin the next group as soon as practical.<a 
 <p id="section-3.6-1">SUBSCRIBE_TRACKS requests subscriptions: the publisher sends PUBLISH
 messages for tracks within matching namespaces, excluding tracks published
 by the subscriber.<a href="#section-3.6-1" class="pilcrow">¶</a></p>
-<p id="section-3.6-2">A SUBSCRIBE_TRACKS with zero Track Namespace fields indicates the sender is
-requesting a Subscription for all Tracks from the receiver.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
+<p id="section-3.6-2">A SUBSCRIBE_TRACKS with zero Track Namespace fields indicates the subscriber
+is requesting a Subscription for all Tracks from the publisher.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
 <p id="section-3.6-3">SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
-a subscriber.  It is useful for subscribers that are
-only interested in or authorized to access a subset of available tracks.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
+a subscriber.  It is useful, for example, when the subscriber does not know
+the exact names of the tracks it wants, or when those tracks will be
+published.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
 <p id="section-3.6-4">The publisher will respond with SUBSCRIBE_TRACKS_OK or SUBSCRIBE_TRACKS_ERROR
 on the response half of the stream. If the subscriber receives any message
 other than a SUBSCRIBE_TRACKS_OK or a SUBSCRIBE_TRACKS_ERROR as the first
@@ -3216,8 +3217,10 @@ publisher as the initial Subscription parameters when a PUBLISH is sent as a res
 SUBSCRIBE_TRACKS, and explicitly communicated in the PUBLISH.
 When a Parameter is omitted from the SUBSCRIBE_TRACKS and resulting PUBLISH,
 the Subscription uses the default value.<a href="#section-3.6.2-1" class="pilcrow">¶</a></p>
-<p id="section-3.6.2-2">To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a
-Location Filter and optionally include FILL_PARAMETERS, as described in <a href="#joining-tracks" class="auto internal xref">Section 3.5</a>.<a href="#section-3.6.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.6.2-2">To join Tracks initiated via the resulting PUBLISHes, the subscriber can
+specify a Location Filter and optionally include FILL_PARAMETERS in the
+SUBSCRIBE_TRACKS, or in a REQUEST_UPDATE following PUBLISH_OK, as described
+in <a href="#joining-tracks" class="auto internal xref">Section 3.5</a>.<a href="#section-3.6.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="skipped-tracks">
@@ -3421,21 +3424,31 @@ are not affected by closure of the SUBSCRIBE_NAMESPACE stream.<a href="#section-
         <h3 id="name-namespace-discovery-example">
 <a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-namespace-discovery-example" class="section-name selfRef">Namespace Discovery Example</a>
         </h3>
-<p id="section-4.3-1">In the following example, a subscriber asks a relay for namespaces under a
-prefix, a publisher subsequently advertises a matching namespace to that relay,
-and the relay passes it on.  When the publisher withdraws its advertisement, the
-relay tells the subscriber the namespace is gone.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-1">In the following example, a publisher advertises a namespace to a relay before
+a subscriber asks that relay for namespaces under a prefix, so the relay
+reports it immediately.  The publisher then advertises a second matching
+namespace, which the relay passes on as it arrives.  When the publisher
+withdraws that advertisement, the relay tells the subscriber the namespace is
+gone.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
 <span id="name-namespace-discovery-through"></span><div id="namespace-discovery-flow">
 <figure id="figure-1">
           <div class="alignLeft art-text artwork" id="section-4.3-2.1">
 <pre>
  Publisher                    Relay                   Subscriber
      |                          |                          |
-     |                          |   SUBSCRIBE_NAMESPACE    |
+     |    PUBLISH_NAMESPACE     |                          |
+     |       (example-42)       |                          |
+     |-------------------------&gt;|                          |
+     |   PUBLISH_NAMESPACE_OK   |                          |
+     |&lt;-------------------------|   SUBSCRIBE_NAMESPACE    |
      |                          |        (example)         |
      |                          |&lt;-------------------------|
      |                          |  SUBSCRIBE_NAMESPACE_OK  |
-     |    PUBLISH_NAMESPACE     |-------------------------&gt;|
+     |                          |-------------------------&gt;|
+     |                          |        NAMESPACE         |
+     |                          |           (42)           |
+     |                          |-------------------------&gt;|
+     |    PUBLISH_NAMESPACE     |                          |
      |      (example-123)       |                          |
      |-------------------------&gt;|                          |
      |   PUBLISH_NAMESPACE_OK   |        NAMESPACE         |
@@ -3453,8 +3466,9 @@ relay tells the subscriber the namespace is gone.<a href="#section-4.3-1" class=
 <a href="#name-namespace-discovery-through" class="selfRef">Namespace discovery through a relay</a>
           </figcaption></figure>
 </div>
-<p id="section-4.3-3">The NAMESPACE and NAMESPACE_DONE messages carry only the suffix <code>123</code>, because
-the prefix <code>example</code> is already known from the SUBSCRIBE_NAMESPACE.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">The NAMESPACE and NAMESPACE_DONE messages carry only the suffixes <code>42</code> and
+<code>123</code>, because the prefix <code>example</code> is already known from the
+SUBSCRIBE_NAMESPACE.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -10334,7 +10348,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
         <dd>
-<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-08</span>, <time datetime="2026-09-08" class="refDate">8 September 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-08">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-08</a>&gt;</span>. </dd>
+<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-09</span>, <time datetime="2026-09-24" class="refDate">24 September 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-09">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-09</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-http2">[I-D.ietf-webtrans-http2]</dt>
         <dd>
