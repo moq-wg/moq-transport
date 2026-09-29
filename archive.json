@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-27T04:27:15.357185+00:00",
+  "timestamp": "2026-09-29T04:57:54.602184+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -54392,6 +54392,37 @@
           "body": "Yes, adding text that if you detect a duplicate, you SHOULD/MUST close the session with an error sounds sensible.  I thought we already said that, but maybe not.\n\nOn 3, Alan reminded me that we use Request ID in REQUEST_UPDATE in the resulting Fill-Fetch stream header.",
           "createdAt": "2026-09-25T18:29:17Z",
           "updatedAt": "2026-09-25T18:29:17Z"
+        }
+      ]
+    },
+    {
+      "number": 1958,
+      "id": "I_kwDOG2Ho4M8AAAABTjQrqA",
+      "title": "Relay can report stale Largest Object to new subscriptions of a track that's paused upstream",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1958",
+      "state": "OPEN",
+      "author": "kidq330",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Was playing around with generating a quint model for the draft and found this trace (1 object per group):\n\nRelay has a paused upstream subscription for the track. Its Largest Object is (0,0).\nOrigin publishes (1,0), not sent because of the pause ([\u00a73.1](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.1)). Largest Object is (0,0) at the relay and (1,0) at the origin.\nDownstream subscriber sends SUBSCRIBE, Next Object, Forward=1.\nRelay responds with SUBSCRIBE_OK, Largest Object (0,0) ([\u00a77.5](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-7.5), [\u00a79.20.18](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-9.20.18)). Next Object is relative to the relay ([\u00a73.1.3](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.1.3)).\nRelay resumes the upstream with REQUEST_UPDATE Forward=1 ([\u00a77.5](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-7.5)). Origin responds with REQUEST_UPDATE_OK, Largest Object (1,0).\nOrigin publishes (2,0), relay forwards it to the subscriber.\n\nThis is legal per draft-21, but the subscriber holds a stale Largest Object and has no way of knowing there is a discontinuity, or that it would have to FETCH (1,0). A fill does not help, because its range is [bounded by the same Largest Object](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.4-2), so it ends at (0,0). [\u00a79.20.18](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-9.20.18) lists REQUEST_UPDATE_OK as an input to the relay's Largest Object, but nothing requires the relay to wait for it before sending SUBSCRIBE_OK.\n\nI was able to get moxygen to reproduce this behaviour with a relay unit test: https://github.com/kidq330/moxygen/commit/c2ee229362cfa8bcf3022690a240f1aa983f9846",
+      "createdAt": "2026-09-27T22:53:45Z",
+      "updatedAt": "2026-09-28T17:29:20Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think we might need some language that says the relay can\u2019t use a stale largest object in the scenario you describe. Certainly it wouldn\u2019t have if it had unsubscribed upstream.\n\nThis could be a case where the relay could benefit from being able to subscribe upstream to metadata only - it can keep largest object fresh without receiving all the bytes no one is consuming. ",
+          "createdAt": "2026-09-28T04:33:59Z",
+          "updatedAt": "2026-09-28T04:33:59Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I expect there's a similar issue with range filters?  e.g. if the first subscription only wanted Objects with Color=Red, and 1,0 has Color=Blue, the relay won't see it nor update its largest.\n\nIs there also a similar problem if there's an upstream delivery timeout?",
+          "createdAt": "2026-09-28T17:29:20Z",
+          "updatedAt": "2026-09-28T17:29:20Z"
         }
       ]
     }
@@ -224226,7 +224257,7 @@
       ],
       "body": "- Namespace Prefix Matching gets its own section under Track.\r\n- SUBSCRIBE_TRACKS moves to its own section under Publishing and Receiving\r\n  Tracks \u2014 it creates subscriptions rather than discovering namespaces.\r\n- Behavior is hoisted out of the five namespace message sections, which now\r\n  carry only a diagram and fields.\r\n- Publishing now precedes Subscribing, and section 4 is tightened: response\r\n  handling was stated three times, authorization in three places.\r\n- A ladder diagram shows the publisher \u2192 relay \u2192 subscriber path.\r\n- Editorial cleanup of some prose\r\n- \r\nsentence-diff (from `draft-21-retro`) against  main: \r\n\r\n2343 of 2379 sentences unchanged.\r\n\r\n * modified 21\r\n * added 22\r\n * removed 23\r\n\r\nFixes #841\r\n",
       "createdAt": "2026-09-14T20:43:34Z",
-      "updatedAt": "2026-09-25T18:37:32Z",
+      "updatedAt": "2026-09-28T17:15:50Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
@@ -224296,6 +224327,222 @@
               "updatedAt": "2026-09-25T17:16:53Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPggy9w",
+          "commit": {
+            "abbreviatedOid": "d9b8cb5"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T08:12:09Z",
+          "updatedAt": "2026-09-28T08:12:10Z",
+          "comments": [
+            {
+              "originalPosition": 47,
+              "body": "I am not sure if the last sentence is fully correct.  How about ?\n```suggestion\na subscriber.  It is useful for subscribers that don't wish to enumerate\nall the available tracks or interested in accessing a subset of them,\nunder a given track namespace prefix.\n```",
+              "createdAt": "2026-09-28T08:12:09Z",
+              "updatedAt": "2026-09-28T08:12:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPgiRsQ",
+          "commit": {
+            "abbreviatedOid": "d9b8cb5"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T08:14:19Z",
+          "updatedAt": "2026-09-28T08:14:20Z",
+          "comments": [
+            {
+              "originalPosition": 71,
+              "body": "not sure what do we mean by \"without knowing the client is interested in \"",
+              "createdAt": "2026-09-28T08:14:19Z",
+              "updatedAt": "2026-09-28T08:14:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPgjgtg",
+          "commit": {
+            "abbreviatedOid": "d9b8cb5"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T08:16:07Z",
+          "updatedAt": "2026-09-28T08:16:07Z",
+          "comments": [
+            {
+              "originalPosition": 89,
+              "body": "I think this sentence should also mention, thse will be set in PUBLISH_OK",
+              "createdAt": "2026-09-28T08:16:07Z",
+              "updatedAt": "2026-09-28T08:16:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPgksuA",
+          "commit": {
+            "abbreviatedOid": "d9b8cb5"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T08:17:46Z",
+          "updatedAt": "2026-09-28T08:17:46Z",
+          "comments": [
+            {
+              "originalPosition": 98,
+              "body": "not sure why does \"scoped to a single PUBLISH\" in this context means",
+              "createdAt": "2026-09-28T08:17:46Z",
+              "updatedAt": "2026-09-28T08:17:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPgmrXw",
+          "commit": {
+            "abbreviatedOid": "d9b8cb5"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T08:20:33Z",
+          "updatedAt": "2026-09-28T08:20:34Z",
+          "comments": [
+            {
+              "originalPosition": 245,
+              "body": "i think namespace done will not stop new subsciptions, as this message doesn't setup subscription",
+              "createdAt": "2026-09-28T08:20:34Z",
+              "updatedAt": "2026-09-28T08:20:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPgosNQ",
+          "commit": {
+            "abbreviatedOid": "d9b8cb5"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T08:23:21Z",
+          "updatedAt": "2026-09-28T08:23:22Z",
+          "comments": [
+            {
+              "originalPosition": 343,
+              "body": "This needs to be added",
+              "createdAt": "2026-09-28T08:23:21Z",
+              "updatedAt": "2026-09-28T08:23:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPmbsvQ",
+          "commit": {
+            "abbreviatedOid": "d9b8cb5"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T16:49:16Z",
+          "updatedAt": "2026-09-28T17:01:26Z",
+          "comments": [
+            {
+              "originalPosition": 43,
+              "body": "Should we also say \"subscriber\" instead of sender then?",
+              "createdAt": "2026-09-28T16:49:16Z",
+              "updatedAt": "2026-09-28T17:01:26Z"
+            },
+            {
+              "originalPosition": 71,
+              "body": "Moved sentence.\r\n\r\nThe point is relays never send publish without a matching SUBSCRIBE_TRACKS, and also never send tracks which the subscriber is not authorized for.",
+              "createdAt": "2026-09-28T16:52:33Z",
+              "updatedAt": "2026-09-28T17:01:26Z"
+            },
+            {
+              "originalPosition": 89,
+              "body": "PUBLISH_OK doesn't have LOCATION_FILTER or FILL_PARAMs anymore, right?  Subscriber needs REQUEST_UPDATE.",
+              "createdAt": "2026-09-28T16:54:06Z",
+              "updatedAt": "2026-09-28T17:01:26Z"
+            },
+            {
+              "originalPosition": 98,
+              "body": "It's explained in the next sentence?\r\n\r\n> If, for example, the publisher disconnects from a relay and later reconnects and sends a new PUBLISH, the relay MAY send the new PUBLISH downstream",
+              "createdAt": "2026-09-28T16:54:46Z",
+              "updatedAt": "2026-09-28T17:01:26Z"
+            },
+            {
+              "originalPosition": 100,
+              "body": "You say this and then Martin is going to file an issue that relays need infinite state to remember which PUBLISHes have been previously skipped.  I'm disinclined to remove. ",
+              "createdAt": "2026-09-28T16:55:57Z",
+              "updatedAt": "2026-09-28T17:01:26Z"
+            },
+            {
+              "originalPosition": 245,
+              "body": "It means the publisher no longer wants to receive SUBSCRIBE --> \"will stop serving _new_ subscriptions\"",
+              "createdAt": "2026-09-28T16:57:00Z",
+              "updatedAt": "2026-09-28T17:01:26Z"
+            },
+            {
+              "originalPosition": 47,
+              "body": "SUB_TRACKS is useful when:\r\n\r\n1) the subscriber doesn't know the exact names of tracks it wants to subscribe to\r\n2) the subscriber doesn't know when the publishers / tracks will arrive\r\n3) the subscriber wants to include only tracks that have certain Track properties",
+              "createdAt": "2026-09-28T17:01:16Z",
+              "updatedAt": "2026-09-28T17:01:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPmtfbQ",
+          "commit": {
+            "abbreviatedOid": "d9b8cb5"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T17:13:50Z",
+          "updatedAt": "2026-09-28T17:13:50Z",
+          "comments": [
+            {
+              "originalPosition": 47,
+              "body": "These are better , probably should add it so",
+              "createdAt": "2026-09-28T17:13:50Z",
+              "updatedAt": "2026-09-28T17:13:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPmu_Zg",
+          "commit": {
+            "abbreviatedOid": "d9b8cb5"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T17:15:50Z",
+          "updatedAt": "2026-09-28T17:15:50Z",
+          "comments": [
+            {
+              "originalPosition": 89,
+              "body": "ah .. that's correct .. To join Tracks initiated via the resulting PUBLISHes made me think accepting publish and hence publish_ok. Yes this needs to be req_upadte",
+              "createdAt": "2026-09-28T17:15:50Z",
+              "updatedAt": "2026-09-28T17:15:51Z"
+            }
+          ]
         }
       ]
     },
@@ -224314,7 +224561,7 @@
       ],
       "body": "Fixes #1937",
       "createdAt": "2026-09-24T18:51:24Z",
-      "updatedAt": "2026-09-25T18:52:05Z",
+      "updatedAt": "2026-09-28T16:28:15Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
@@ -224359,6 +224606,26 @@
           "createdAt": "2026-09-25T18:52:05Z",
           "updatedAt": "2026-09-25T18:52:05Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPmM_qg",
+          "commit": {
+            "abbreviatedOid": "dad1a41"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-28T16:27:47Z",
+          "updatedAt": "2026-09-28T16:28:15Z",
+          "comments": [
+            {
+              "originalPosition": 60,
+              "body": "How can this happen anymore?  It can extend beyond the enclosing message's length maybe, but that is true f any parameter.",
+              "createdAt": "2026-09-28T16:27:47Z",
+              "updatedAt": "2026-09-28T16:28:15Z"
+            }
+          ]
         }
       ]
     },
@@ -224376,7 +224643,7 @@
       ],
       "body": "Fixes #1636 by requiring that Track Names must have a length > 0, mirroring the existing behavior for Track Namespace Tuples.\n\nUnless otherwise specified (e.g. namespace-scoped requests in REDIRECT messages), an endpoint MUST close the session with a PROTOCOL_VIOLATION if it receives a Track Name with length 0.\n\n---\n*PR created automatically by Jules for task [5822775389568492176](https://jules.google.com/task/5822775389568492176) started by @ianswett*",
       "createdAt": "2026-09-25T17:23:15Z",
-      "updatedAt": "2026-09-26T21:08:33Z",
+      "updatedAt": "2026-09-28T16:44:16Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
@@ -224421,6 +224688,99 @@
               "updatedAt": "2026-09-26T21:08:33Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPmO3tA",
+          "commit": {
+            "abbreviatedOid": "530d484"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T16:30:26Z",
+          "updatedAt": "2026-09-28T16:30:26Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "This is parallel to text that says each Track Namespace Tuple must contain at least one byte:\n\n\"Each Track Namespace Field Value MUST contain at least one byte. If an endpoint receives a Track Namespace Field with a Track Namespace Field Length of 0, it MUST close the session with a PROTOCOL_VIOLATION.\"\n\nI don't have a strong opinion on whether this should be a PROTOCOL_VIOLATION, but I want to be consistent between these two.",
+              "createdAt": "2026-09-28T16:30:26Z",
+              "updatedAt": "2026-09-28T16:30:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPmPqyg",
+          "commit": {
+            "abbreviatedOid": "530d484"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T16:31:33Z",
+          "updatedAt": "2026-09-28T16:31:33Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "@suhasHere I think it's buying clarity for reading logs and a reduction of edge cases.  Do you have a use case that requires 0 length track names that can be satisfied by giving the track a one character name (_ or ' ')?",
+              "createdAt": "2026-09-28T16:31:33Z",
+              "updatedAt": "2026-09-28T16:31:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPmP_nQ",
+          "commit": {
+            "abbreviatedOid": "530d484"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T16:32:01Z",
+          "updatedAt": "2026-09-28T16:32:02Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "Unless otherwise specified??",
+              "createdAt": "2026-09-28T16:32:01Z",
+              "updatedAt": "2026-09-28T16:32:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPmQESg",
+          "commit": {
+            "abbreviatedOid": "530d484"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-28T16:32:08Z",
+          "updatedAt": "2026-09-28T16:32:08Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPmYNhA",
+          "commit": {
+            "abbreviatedOid": "530d484"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T16:44:16Z",
+          "updatedAt": "2026-09-28T16:44:16Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "yes we can add a character to \"just fill in\".  What I am not seeing is why to force that to implementors. There can be track name of length 0 than fabricated values.\r\n\r\nWe do specify in soem places an empty namespace (zero tuples) means a subscriber is interested in all the prefix right ?",
+              "createdAt": "2026-09-28T16:44:16Z",
+              "updatedAt": "2026-09-28T16:44:16Z"
+            }
+          ]
         }
       ]
     },
@@ -224438,19 +224798,40 @@
       ],
       "body": "Fixes #1933\r\n\r\nAdds a `INCLUDE_PAYLOAD` parameter (0x36) for `SUBSCRIBE`, `FETCH`, and `SUBSCRIBE_TRACKS` messages to allow subscribers to request only object headers and metadata without payloads.\r\n\r\nIt also introduces the `Object Payload Omitted` (0x1) `Object Status` code, allowing publishers to explicitly specify that a payload was omitted due to the `INCLUDE_PAYLOAD` parameter, preserving metadata capabilities for Relays.\r\n\r\n---\r\n*PR created automatically by Jules for task [12281881590640091795](https://jules.google.com/task/12281881590640091795) started by @ianswett*",
       "createdAt": "2026-09-25T18:05:36Z",
-      "updatedAt": "2026-09-25T18:10:09Z",
+      "updatedAt": "2026-09-28T16:33:44Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
+      "baseRefOid": "fb2a6e46ea1144ecd04d07880146dab15ea5a3dc",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "add-include-payload-parameter-12281881590640091795",
-      "headRefOid": "f182468a9e93872ac377b4c6bd7eaac63a047887",
+      "headRefOid": "339ff5d6162b1ed52e72d60465a7cb3121b44348",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPmRFDw",
+          "commit": {
+            "abbreviatedOid": "339ff5d"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T16:33:44Z",
+          "updatedAt": "2026-09-28T16:33:44Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "I would rather see this slightly differently -- leave the original Payload Length but signal in the data plane that the payloads are not present.  This more clearly matches HEAD (Content-Length is present) and provides useful signal to the receiver.",
+              "createdAt": "2026-09-28T16:33:44Z",
+              "updatedAt": "2026-09-28T16:33:44Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 1956,
@@ -224521,9 +224902,9 @@
       "labels": [
         "Design"
       ],
-      "body": "Change `DEFAULT PUBLISHER PRIORITY` from a Track Property to a Message Parameter\r\n\r\nFixes #1270\r\nAn alternative to #1770 ",
+      "body": "Change `DEFAULT PUBLISHER PRIORITY` from a Track Property to a Message Parameter\r\n\r\nFixes #1270\r\nAn alternative to #1770 \r\n\r\nThis might need some text about caching?  Ideally if a FETCH retrieves the same Objects they should come with the correct Priority.",
       "createdAt": "2026-09-25T23:05:49Z",
-      "updatedAt": "2026-09-26T17:13:25Z",
+      "updatedAt": "2026-09-28T16:38:09Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
@@ -224568,6 +224949,32 @@
           "createdAt": "2026-09-26T01:27:54Z",
           "updatedAt": "2026-09-26T01:27:54Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABPmSZGA",
+          "commit": {
+            "abbreviatedOid": "35aedfe"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-28T16:35:46Z",
+          "updatedAt": "2026-09-28T16:38:09Z",
+          "comments": [
+            {
+              "originalPosition": 60,
+              "body": "Or REQUEST_UPDATE",
+              "createdAt": "2026-09-28T16:35:47Z",
+              "updatedAt": "2026-09-28T16:38:09Z"
+            },
+            {
+              "originalPosition": 62,
+              "body": "I think it needs another sentence or two explaining the race hazards.",
+              "createdAt": "2026-09-28T16:37:59Z",
+              "updatedAt": "2026-09-28T16:38:09Z"
+            }
+          ]
         }
       ]
     }
