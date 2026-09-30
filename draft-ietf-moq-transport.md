@@ -3849,7 +3849,6 @@ The table below summarizes the encodings.
 | 0x05 (Next Object) | `Next Object` | open-ended |
 {: #location-filter-forms title="Location Filter forms"}
 
-If a field extends beyond the end of the parameter, the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
 
 If Location Filter Type is 0x01, the StartGroup field specifies a relative number of groups prior to the Next Group,
 hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
