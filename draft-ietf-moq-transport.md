@@ -5905,6 +5905,34 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 
 Issue and pull request numbers are listed with a leading octothorp.
 
+## Since draft-ietf-moq-transport-21
+
+**Session and Control Plane**
+
+* LOCATION_FILTER carries an explicit Location Filter Type that selects which
+  fields follow, replacing the length-inferred encoding (#1913, #1953)
+
+**Notable Editorial Changes**
+
+* Restructure Publisher and Namespace Discovery, add a Namespace Prefix
+  Matching section, and move SUBSCRIBE_TRACKS to Publishing and Receiving
+  Tracks (#1946)
+* Add a Fetch semantics section covering object delivery, gaps (including
+  Descending Group Order), and relay handling (#1895)
+* Rename Forwarding Preference to Delivery Mode, established by the Original
+  Publisher (#1886, #1891, #1914)
+* Describe the Forward State as a subscription being paused (#1940)
+* Define Subscription and Fetch (#1884, #1925)
+* Add per-request shorthand names for REQUEST_OK and REQUEST_ERROR, e.g.
+  SUBSCRIBE_ERROR (#1912)
+* List the allowed parameters in each control message (#1916)
+* Clarify that Largest Object can still be arriving and use it consistently
+  (#1911, #1918)
+* Clarify that FETCH_OK End Location is inclusive (#1910)
+* Clarify how extensions declare support in SETUP (#1921)
+* Scope the auth token cache overflow rule to non-SETUP registrations (#1927)
+* Relay-to-relay communication is out of scope (#1931)
+
 ## Since draft-ietf-moq-transport-20
 
 **Notable Editorial Changes**
