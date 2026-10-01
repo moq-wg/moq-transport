@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-29T04:57:54.602184+00:00",
+  "timestamp": "2026-10-01T04:56:50.984708+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -53511,7 +53511,7 @@
       ],
       "body": "MOQT has Track and Object property scopes but nothing \"in between\", i.e. no general way to attach metadata to a Subgroup or a Group.\n\nSubgroup scope is being emulated for SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT which, \"as an Object Property on the first object in a subgroup, [override] the Track-level value for that subgroup\". And the scope for object property PRIOR_GROUP_ID_GAP is weird, but definitely not scoped to a given object.\n\nUsing object parameters as emulation for wider than object scope has a number of problems.\n1. Mid-group join may miss them\n2. A fetch range may be mid-group\n\nboth of those existed for long time, but reading group without the beginning could be considered transient state, but \n\n3. Filters may exclude this metadata even in \"steady-state\". \n\nFrom general extensibility standpoint, I am missing this metadata when trying to build application on top of MOQT, and first-object as group emulation is, at minimum, hacky. I feel this is a missing extension point and should be there given that object model is the foundation of moqt. \n\nIt seems relatively easy to add subgroup parameters, given that subgroup headers exist, but the single-byte bit-field compressed type is practically full.\nTrue group-level would require more significant changes in the data plane. As would some other generic data-plane metadata carrier. But both of those could bring more resilient mechanism to add metadata. \n\nI understand that this may be quite heavy change, possibly past-deadline, but I feel this should have a dedicated general discussion.\n\nDo people think we should have an additional extension point for metadata in data-plane? Which/where/how? \n",
       "createdAt": "2026-08-24T17:11:49Z",
-      "updatedAt": "2026-09-26T00:51:28Z",
+      "updatedAt": "2026-09-30T17:32:27Z",
       "closedAt": null,
       "comments": [
         {
@@ -53562,6 +53562,20 @@
           "body": "May be I am bit confused of the semantics here when we say Subgroup Default Properties block. Are these properties scope only to a subgroup ? What are the properties we are thinking here ? \n\n\nFor me to better understand the use-case and requirements here, what properties will be useful for mid-group join for a given subscriber ? \n\n",
           "createdAt": "2026-09-26T00:51:28Z",
           "updatedAt": "2026-09-26T00:51:28Z"
+        },
+        {
+          "author": "riedlse",
+          "authorAssociation": "NONE",
+          "body": "Thanks, @suhasHere. In the shape Ian suggested, the block sits in the subgroup header and gives defaults for every object in that subgroup, which an object can still override. Our video tracks use one subgroup per group, so for us subgroup scope and group scope are the same thing.\n\nWhat a mid-group joiner needs from us is the ad-break state for the group it lands in: whether the group is inside a break (the break id), how much of the break remains, the group where content resumes, and the id and offset of the creative that's playing, so the player shows the right ad state and fires the right tracking events. Each value is a few bytes and only changes at group boundaries, since our splices land on group boundaries, but the joiner needs it before it renders its first frame.\n\nToday we carry it in a side track, because object 0 is the only other place for it, and a mid-group joiner or a subscriber with a location filter never sees object 0.\n",
+          "createdAt": "2026-09-29T12:13:27Z",
+          "updatedAt": "2026-09-29T12:13:27Z"
+        },
+        {
+          "author": "michalhosna",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Keep in mind that for relays it's perfectly normal to have mid-group subscribe and never see or care about the first object.\n\nAs I am thinking about this, SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT are broken. If a relay sees only a mid-group subscribe, it will not know what the subgroup delivery timeout is and silently falls back to the Track value. This was already closed as no-op in #1842, but I think the problem there could/should be solved not by data plane vs. control plane, but by attaching the metadata at the correct level and with the correct reliability in the data plane.\n\n---\n\nI don't think a \"Default Properties block\" solves the problem; that sounds like compression for object-level properties. I think we need something semantically at the (sub)group level. Even without covering extensibility, the core spec already has the aforementioned SUBGROUP_DELIVERY_TIMEOUT, which is semantically at the subgroup level (and is ignored on any object other than the first, so making it a default object property wouldn't work as-is).",
+          "createdAt": "2026-09-30T17:32:26Z",
+          "updatedAt": "2026-09-30T17:32:26Z"
         }
       ]
     },
@@ -54407,7 +54421,7 @@
       "labels": [],
       "body": "Was playing around with generating a quint model for the draft and found this trace (1 object per group):\n\nRelay has a paused upstream subscription for the track. Its Largest Object is (0,0).\nOrigin publishes (1,0), not sent because of the pause ([\u00a73.1](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.1)). Largest Object is (0,0) at the relay and (1,0) at the origin.\nDownstream subscriber sends SUBSCRIBE, Next Object, Forward=1.\nRelay responds with SUBSCRIBE_OK, Largest Object (0,0) ([\u00a77.5](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-7.5), [\u00a79.20.18](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-9.20.18)). Next Object is relative to the relay ([\u00a73.1.3](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.1.3)).\nRelay resumes the upstream with REQUEST_UPDATE Forward=1 ([\u00a77.5](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-7.5)). Origin responds with REQUEST_UPDATE_OK, Largest Object (1,0).\nOrigin publishes (2,0), relay forwards it to the subscriber.\n\nThis is legal per draft-21, but the subscriber holds a stale Largest Object and has no way of knowing there is a discontinuity, or that it would have to FETCH (1,0). A fill does not help, because its range is [bounded by the same Largest Object](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.4-2), so it ends at (0,0). [\u00a79.20.18](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-9.20.18) lists REQUEST_UPDATE_OK as an input to the relay's Largest Object, but nothing requires the relay to wait for it before sending SUBSCRIBE_OK.\n\nI was able to get moxygen to reproduce this behaviour with a relay unit test: https://github.com/kidq330/moxygen/commit/c2ee229362cfa8bcf3022690a240f1aa983f9846",
       "createdAt": "2026-09-27T22:53:45Z",
-      "updatedAt": "2026-09-28T17:29:20Z",
+      "updatedAt": "2026-09-29T18:40:16Z",
       "closedAt": null,
       "comments": [
         {
@@ -54423,6 +54437,108 @@
           "body": "I expect there's a similar issue with range filters?  e.g. if the first subscription only wanted Objects with Color=Red, and 1,0 has Color=Blue, the relay won't see it nor update its largest.\n\nIs there also a similar problem if there's an upstream delivery timeout?",
           "createdAt": "2026-09-28T17:29:20Z",
           "updatedAt": "2026-09-28T17:29:20Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "As Alan said, I think we need new text that says you can't send a Largest Object that might be stale. The most obvious example is the upstream subscription is paused or there's no upstream subscription at all.  In those cases, I think it's pretty clear that you shouldn't send your cached Largest Object.",
+          "createdAt": "2026-09-29T18:40:16Z",
+          "updatedAt": "2026-09-29T18:40:16Z"
+        }
+      ]
+    },
+    {
+      "number": 1959,
+      "id": "I_kwDOG2Ho4M8AAAABT-ZjuQ",
+      "title": "Standalone fetch can't use relative location filter",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1959",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The spec says FETCH can have a LOCATION_FILTER, but if that filter uses the \"N groups back\" form, the standalone fetch has no subscription to anchor it.  If it was supposed to be relative, it needs to be in a FILL_PARAMS.",
+      "createdAt": "2026-09-29T18:55:19Z",
+      "updatedAt": "2026-09-30T02:39:05Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Some FETCHes end up crossing into the future, and therefore are truncated.  This seems similar to those?",
+          "createdAt": "2026-09-29T19:47:43Z",
+          "updatedAt": "2026-09-29T19:47:43Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Not quite - in a standalone fetch there\u2019s no subscription to anchor to, so what does it even mean to say FETCH -4?  If it\u2019s intended to be relative to a subscription, send REQUEST_UPDATE + FILL_PARAMS + LOCATION_FILTER -4.\n\nOr, even better - the subscriber does their own subtraction and sends a FETCH with an absolute range.",
+          "createdAt": "2026-09-30T02:39:05Z",
+          "updatedAt": "2026-09-30T02:39:05Z"
+        }
+      ]
+    },
+    {
+      "number": 1961,
+      "id": "I_kwDOG2Ho4M8AAAABT_Fupw",
+      "title": "Text on PUBLISH_SKIPPED is still unclear",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1961",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Publish"
+      ],
+      "body": "Currently we say: \"  If, for example, the publisher disconnects from\na relay and later reconnects and sends a new PUBLISH, the relay MAY send the new\nPUBLISH downstream.\"\n\nI don't think this is helpful, because if you establish a new session, the state is entirely different and the old SUBSCRIBE_TRACKS and PUBLISH_SKIPPED aren't relevant.\n\nIf we added an ID to indicate the SUBSCRIBE_TRACKS that caused a PUBLISH, I think that would make it clear, since we could say \"You won't get a PUBLISH with the ID of the SUBSCRIBE_TRACKS\"",
+      "createdAt": "2026-09-29T19:55:36Z",
+      "updatedAt": "2026-09-29T20:50:38Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I don't think this is helpful, because if you establish a new session, the state is entirely different and the old SUBSCRIBE_TRACKS and PUBLISH_SKIPPED aren't relevant.\n\nIt sounds like you are talking about the publisher <-> relay session?  The subscriber has a single session.",
+          "createdAt": "2026-09-29T20:36:35Z",
+          "updatedAt": "2026-09-29T20:36:35Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "P->R: PUBLISH foo\nR->S: (no credit) PUBLISH_SKIPPED foo\nP->R: disconnects / reconnects -- does the relay have to \nP->R: PUBLISH foo\nR->S: PUBLISH foo\n\n> If we added an ID to indicate the SUBSCRIBE_TRACKS that caused a PUBLISH, I think that would make it clear, since we could say \"You won't get a PUBLISH with the ID of the SUBSCRIBE_TRACKS\"\n\nThis is a different case than the text is describing.  Here the subscriber issues a single SUBSCRIBE_TRACKS: it _can_ get a PUBLISH_SKIPPED and PUBLISH for the same track and SUB_TRACKS",
+          "createdAt": "2026-09-29T20:39:40Z",
+          "updatedAt": "2026-09-29T20:39:40Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Thanks for clarifying, I clearly misread it.  I think it'd be a bit clearer if it said Original Publisher, but I admit it could be any Publisher in theory?",
+          "createdAt": "2026-09-29T20:50:38Z",
+          "updatedAt": "2026-09-29T20:50:38Z"
+        }
+      ]
+    },
+    {
+      "number": 1962,
+      "id": "I_kwDOG2Ho4M8AAAABULL5wg",
+      "title": "FILL_PARAMETERS unclear",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1962",
+      "state": "OPEN",
+      "author": "lminiero",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "I'm having trouble understanding all the ways FILL_PARAMETERS can be used. I _think_ I implemented it correctly for SUBSCRIBE and REQUEST_UPDATE, but the text is unclear when it comes to SUBSCRIBE_TRACKS.\n\nIn 10.20.1, the text says:\n\n> To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a Location Filter and optionally include FILL_PARAMETERS, as described in [Section 5.1.6](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-20#joining-tracks).\n\nThis seems to suggest that you can add a FILL_PARAMETERS to the SUBSCRIBE_TRACKS request, and those will somehow automatically apply to all the PUBLISH triggered accordingly, which seems wrong: the text also says FILL_PARAMETERS can only appear in SUBSCRIBE and REQUEST_UPDATE for subscriptions, and that \"any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid in SUBSCRIBE_TRACKS, unless otherwise specified\", but it still seems flaky.\n\nI wonder if the intended flow when SUBSCRIBE_TRACKS is involved is actually this?\n\n1. subscriber sends SUBSCRIBE_TRACKS\n2. PUBLISH is triggered\n3. subscriber sends REQUEST_UPDATE with FILL_PARAMETERS, after the REQUEST_OK",
+      "createdAt": "2026-09-30T15:24:18Z",
+      "updatedAt": "2026-10-01T03:46:41Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The intent was to have the publisher react like it received that fill params in a subscribe - eg send publish and open a fill fetch stream. The publish will echo the fill params.\n\nFor sure, the text is unclear, and I\u2019m not sure if it actually will work",
+          "createdAt": "2026-10-01T03:46:19Z",
+          "updatedAt": "2026-10-01T03:46:41Z"
         }
       ]
     }
@@ -224257,13 +224373,13 @@
       ],
       "body": "- Namespace Prefix Matching gets its own section under Track.\r\n- SUBSCRIBE_TRACKS moves to its own section under Publishing and Receiving\r\n  Tracks \u2014 it creates subscriptions rather than discovering namespaces.\r\n- Behavior is hoisted out of the five namespace message sections, which now\r\n  carry only a diagram and fields.\r\n- Publishing now precedes Subscribing, and section 4 is tightened: response\r\n  handling was stated three times, authorization in three places.\r\n- A ladder diagram shows the publisher \u2192 relay \u2192 subscriber path.\r\n- Editorial cleanup of some prose\r\n- \r\nsentence-diff (from `draft-21-retro`) against  main: \r\n\r\n2343 of 2379 sentences unchanged.\r\n\r\n * modified 21\r\n * added 22\r\n * removed 23\r\n\r\nFixes #841\r\n",
       "createdAt": "2026-09-14T20:43:34Z",
-      "updatedAt": "2026-09-28T17:15:50Z",
+      "updatedAt": "2026-09-29T19:50:49Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "hoist-discovery-semantics",
-      "headRefOid": "d9b8cb5ea61f22350a00eae0b95d1a1eed1c17d6",
+      "headRefOid": "8058a8439da289b94ecc8fb1702b0d59a3b09f09",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -224543,6 +224659,39 @@
               "updatedAt": "2026-09-28T17:15:51Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABP1ZLuA",
+          "commit": {
+            "abbreviatedOid": "8058a84"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-29T19:49:55Z",
+          "updatedAt": "2026-09-29T19:49:56Z",
+          "comments": [
+            {
+              "originalPosition": 100,
+              "body": "I don't think this sentence does much to address that fact, because it talks about different sessions, but we can fix this in another PR.",
+              "createdAt": "2026-09-29T19:49:55Z",
+              "updatedAt": "2026-09-29T19:49:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABP1ZuHg",
+          "commit": {
+            "abbreviatedOid": "8058a84"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Still LG",
+          "createdAt": "2026-09-29T19:50:49Z",
+          "updatedAt": "2026-09-29T19:50:49Z",
+          "comments": []
         }
       ]
     },
@@ -224561,13 +224710,13 @@
       ],
       "body": "Fixes #1937",
       "createdAt": "2026-09-24T18:51:24Z",
-      "updatedAt": "2026-09-28T16:28:15Z",
+      "updatedAt": "2026-09-30T16:33:57Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-location-enum",
-      "headRefOid": "dad1a41c7eb8764439e4ee845c8f91283c6190bb",
+      "headRefOid": "a10124fd20a11095df3c641fc9b47a6c4f525e31",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -224624,6 +224773,26 @@
               "body": "How can this happen anymore?  It can extend beyond the enclosing message's length maybe, but that is true f any parameter.",
               "createdAt": "2026-09-28T16:27:47Z",
               "updatedAt": "2026-09-28T16:28:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABQAa4Jw",
+          "commit": {
+            "abbreviatedOid": "dad1a41"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-30T16:33:49Z",
+          "updatedAt": "2026-09-30T16:33:49Z",
+          "comments": [
+            {
+              "originalPosition": 60,
+              "body": "Good catch, removed.\n\n\n```suggestion\n```",
+              "createdAt": "2026-09-30T16:33:49Z",
+              "updatedAt": "2026-09-30T16:33:50Z"
             }
           ]
         }
@@ -224977,6 +225146,32 @@
           ]
         }
       ]
+    },
+    {
+      "number": 1960,
+      "id": "PR_kwDOG2Ho4M8AAAABFwtmwQ",
+      "title": "Reject relative Location filter in FETCH",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1960",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes: #1959",
+      "createdAt": "2026-09-29T19:26:11Z",
+      "updatedAt": "2026-09-29T19:26:12Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "fb2a6e46ea1144ecd04d07880146dab15ea5a3dc",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "fetch-relative-filter",
+      "headRefOid": "5c52602f7ca1dbc728017b4ffb0ee612b2e8bb5d",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
