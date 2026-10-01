@@ -300,17 +300,18 @@ Table of Contents
      Normative References
      Informative References
    Appendix A.  Change Log
-     A.1.  Since draft-ietf-moq-transport-20
-     A.2.  Since draft-ietf-moq-transport-19
-     A.3.  Since draft-ietf-moq-transport-18
-     A.4.  Since draft-ietf-moq-transport-17
-     A.5.  Since draft-ietf-moq-transport-16
-     A.6.  Since draft-ietf-moq-transport-15
-     A.7.  Since draft-ietf-moq-transport-14
-     A.8.  Since draft-ietf-moq-transport-13
-     A.9.  Since draft-ietf-moq-transport-12
-     A.10. Since draft-ietf-moq-transport-11
-     A.11. Since draft-ietf-moq-transport-10
+     A.1.  Since draft-ietf-moq-transport-21
+     A.2.  Since draft-ietf-moq-transport-20
+     A.3.  Since draft-ietf-moq-transport-19
+     A.4.  Since draft-ietf-moq-transport-18
+     A.5.  Since draft-ietf-moq-transport-17
+     A.6.  Since draft-ietf-moq-transport-16
+     A.7.  Since draft-ietf-moq-transport-15
+     A.8.  Since draft-ietf-moq-transport-14
+     A.9.  Since draft-ietf-moq-transport-13
+     A.10. Since draft-ietf-moq-transport-12
+     A.11. Since draft-ietf-moq-transport-11
+     A.12. Since draft-ietf-moq-transport-10
    Authors' Addresses
 
 1.  Introduction
@@ -6885,7 +6886,48 @@ Appendix A.  Change Log
 
    Issue and pull request numbers are listed with a leading octothorp.
 
-A.1.  Since draft-ietf-moq-transport-20
+A.1.  Since draft-ietf-moq-transport-21
+
+   *Session and Control Plane*
+
+   *  LOCATION_FILTER carries an explicit Location Filter Type that
+      selects which fields follow, replacing the length-inferred
+      encoding (#1913, #1953)
+
+   *Notable Editorial Changes*
+
+   *  Restructure Publisher and Namespace Discovery, add a Namespace
+      Prefix Matching section, and move SUBSCRIBE_TRACKS to Publishing
+      and Receiving Tracks (#1946)
+
+   *  Add a Fetch semantics section covering object delivery, gaps
+      (including Descending Group Order), and relay handling (#1895)
+
+   *  Rename Forwarding Preference to Delivery Mode, established by the
+      Original Publisher (#1886, #1891, #1914)
+
+   *  Describe the Forward State as a subscription being paused (#1940)
+
+   *  Define Subscription and Fetch (#1884, #1925)
+
+   *  Add per-request shorthand names for REQUEST_OK and REQUEST_ERROR,
+      e.g. SUBSCRIBE_ERROR (#1912)
+
+   *  List the allowed parameters in each control message (#1916)
+
+   *  Clarify that Largest Object can still be arriving and use it
+      consistently (#1911, #1918)
+
+   *  Clarify that FETCH_OK End Location is inclusive (#1910)
+
+   *  Clarify how extensions declare support in SETUP (#1921)
+
+   *  Scope the auth token cache overflow rule to non-SETUP
+      registrations (#1927)
+
+   *  Relay-to-relay communication is out of scope (#1931)
+
+A.2.  Since draft-ietf-moq-transport-20
 
    *Notable Editorial Changes*
 
@@ -6915,7 +6957,7 @@ A.1.  Since draft-ietf-moq-transport-20
       clarifications are included as moves only; the clarifications are
       deferred (#1887, #1888, #1892)
 
-A.2.  Since draft-ietf-moq-transport-19
+A.3.  Since draft-ietf-moq-transport-19
 
    *Session and Control Plane*
 
@@ -7016,7 +7058,7 @@ A.2.  Since draft-ietf-moq-transport-19
    *  Fix LOC and Secure Objects entries in the provisional Property
       registry (#1807, #1818, #1848)
 
-A.3.  Since draft-ietf-moq-transport-18
+A.4.  Since draft-ietf-moq-transport-18
 
    *Session and Control Plane*
 
@@ -7071,7 +7113,7 @@ A.3.  Since draft-ietf-moq-transport-18
 
    *  Clarify Group and Subgroup terminology and object model (#1708)
 
-A.4.  Since draft-ietf-moq-transport-17
+A.5.  Since draft-ietf-moq-transport-17
 
    *Session and Control Plane*
 
@@ -7178,7 +7220,7 @@ A.4.  Since draft-ietf-moq-transport-17
 
    *  Fix grease examples to match 0x7f multiplier (#1569)
 
-A.5.  Since draft-ietf-moq-transport-16
+A.6.  Since draft-ietf-moq-transport-16
 
    *Session and Control Plane*
 
@@ -7279,7 +7321,7 @@ A.5.  Since draft-ietf-moq-transport-16
 
    *  Add generative AI disclosure per IRTF guidelines
 
-A.6.  Since draft-ietf-moq-transport-15
+A.7.  Since draft-ietf-moq-transport-15
 
    *Setup and Control Plane*
 
@@ -7357,7 +7399,7 @@ A.6.  Since draft-ietf-moq-transport-15
 
    *  A Publisher might not use the congestion window (#1408)
 
-A.7.  Since draft-ietf-moq-transport-14
+A.8.  Since draft-ietf-moq-transport-14
 
    *Setup and Control Plane*
 
@@ -7420,7 +7462,7 @@ A.7.  Since draft-ietf-moq-transport-14
 
    *  Clarify joining fetch end location (#1286)
 
-A.8.  Since draft-ietf-moq-transport-13
+A.9.  Since draft-ietf-moq-transport-13
 
    *Setup and Control Plane*
 
@@ -7492,7 +7534,7 @@ A.8.  Since draft-ietf-moq-transport-13
 
    *  Reformat Error Codes (#1091)
 
-A.9.  Since draft-ietf-moq-transport-12
+A.10.  Since draft-ietf-moq-transport-12
 
    *  TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly
       mirror SUBSCRIBE/OK/ERROR (#1015)
@@ -7500,7 +7542,7 @@ A.9.  Since draft-ietf-moq-transport-12
    *  SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE
       (#1049)
 
-A.10.  Since draft-ietf-moq-transport-11
+A.11.  Since draft-ietf-moq-transport-11
 
    *  Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
 
@@ -7526,7 +7568,7 @@ A.10.  Since draft-ietf-moq-transport-11
    *  Add PUBLISH for publisher initiated subscriptions (#995) and fix
       the PUBLISH codepoints (#1048, #1051)
 
-A.11.  Since draft-ietf-moq-transport-10
+A.12.  Since draft-ietf-moq-transport-10
 
    *  Added Common Structure definitions - Location, Key-Value-Pair and
       Reason Phrase
