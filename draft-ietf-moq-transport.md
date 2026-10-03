@@ -994,8 +994,8 @@ inside FILL_PARAMETERS, or the subscription's Location filter if it is
 omitted. The filter is evaluated using the rules for a Fetch in
 {{location-filter}}, so the fill range never extends beyond `Largest
 Object`. When the subscription has no Location filter, or the LOCATION_FILTER
-inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
-`Largest Object`.  The subscriber learns the `Largest Object` from the
+inside FILL_PARAMETERS has Location Filter Type 0x00 (None), the fill range is
+the entire track up to `Largest Object`.  The subscriber learns the `Largest Object` from the
 `LARGEST_OBJECT` parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.
 
 Because the fill range is specified independently of the subscription's
