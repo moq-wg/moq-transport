@@ -251,12 +251,6 @@ Table of Contents
    12. Error Handling
      12.1.  Malformed Tracks
      12.2.  Session Termination Codes
-       12.2.1.  Data Stream Errors (0x20-0x2F)
-       12.2.2.  Control Message Errors (0x30-0x3F)
-       12.2.3.  Session and Setup Errors (0x40-0x4F)
-       12.2.4.  Naming and Encoding Errors (0x50-0x5F)
-       12.2.5.  Other Session Termination Codes
-       12.2.6.  Reason Phrase in Session Termination
      12.3.  Request Error Codes
      12.4.  Publish Done Codes
      12.5.  Stream Reset Error Codes
@@ -919,7 +913,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in
    response to a SUBSCRIBE.  A subscriber MUST send exactly one
    PUBLISH_OK (Section 9.3) or PUBLISH_ERROR in response to a PUBLISH.
-   The peer SHOULD close the session with a protocol error if it
+   The peer SHOULD close the session with UNEXPECTED_MESSAGE if it
    receives more than one.
 
    Either endpoint can initiate a subscription to a track without
@@ -1421,11 +1415,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    SUBSCRIBE_TRACKS_ERROR on the response half of the stream.  If the
    subscriber receives any message other than a SUBSCRIBE_TRACKS_OK or a
    SUBSCRIBE_TRACKS_ERROR as the first message on the response half of
-   the stream, then it MUST close the session with an
-   UNEXPECTED_RESPONSE_MESSAGE.  If the SUBSCRIBE_TRACKS is successful,
-   the publisher will send PUBLISH messages on new bidirectional streams
-   for tracks matching the Namespace Prefix.  If it is an error, the
-   stream will be closed via FIN after SUBSCRIBE_TRACKS_ERROR is sent.
+   the stream, then it MUST close the session with UNEXPECTED_MESSAGE.
+   If the SUBSCRIBE_TRACKS is successful, the publisher will send
+   PUBLISH messages on new bidirectional streams for tracks matching the
+   Namespace Prefix.  If it is an error, the stream will be closed via
+   FIN after SUBSCRIBE_TRACKS_ERROR is sent.
 
    Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
    Track Namespace Prefix that shares a common prefix with an
@@ -1546,7 +1540,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    A subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or
    PUBLISH_NAMESPACE_ERROR as the first message on the bidi stream in
    response to a PUBLISH_NAMESPACE.  The publisher SHOULD close the
-   session with a protocol error if it receives more than one.
+   session with UNEXPECTED_MESSAGE if it receives more than one.
 
    An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
    PUBLISH_NAMESPACE_ERROR to the application to inform the search for
@@ -1593,7 +1587,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    stream.  The publisher MUST send a single SUBSCRIBE_NAMESPACE_OK or
    SUBSCRIBE_NAMESPACE_ERROR as the first message on the response half
    of the stream; if the subscriber receives any other message first, it
-   MUST close the session with an UNEXPECTED_RESPONSE_MESSAGE.
+   MUST close the session with UNEXPECTED_MESSAGE.
 
    On success, the publisher MUST send a NAMESPACE message for each
    namespace it knows that matches the Track Namespace Prefix, and
@@ -1616,7 +1610,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix
    before the corresponding NAMESPACE.  If a subscriber receives a
    NAMESPACE_DONE before the corresponding NAMESPACE, it MUST close the
-   session with a MESSAGE_ORDERING.
+   session with UNEXPECTED_MESSAGE.
 
    A subscriber can receive a PUBLISH_NAMESPACE on a request stream for
    a namespace that falls within an active SUBSCRIBE_NAMESPACE prefix.
@@ -2088,7 +2082,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    PUBLISH, FETCH, PUBLISH_NAMESPACE, SUBSCRIBE_NAMESPACE, and
    SUBSCRIBE_TRACKS.  Bidirectional streams MUST NOT begin with any
    other message type unless negotiated.  If they do, the peer MUST
-   close the Session with an INVALID_STREAM_STATE.  Objects are sent on
+   close the Session with UNEXPECTED_MESSAGE.  Objects are sent on
    unidirectional streams.
 
    As such, a client can initiate a MOQT session, subscribe, and start
@@ -2104,16 +2098,16 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    such streams before the session and control streams are established.
 
    A control stream MUST NOT be closed at the underlying transport layer
-   during the session's lifetime.  Doing so results in the session being
-   closed with an INVALID_STREAM_STATE.
+   during the session's lifetime.  If the control stream is closed, the
+   peer MUST close the session with CLOSED_CONTROL_STREAM.
 
    Prior to receiving the peer's SETUP message, it's unknown what
    extensions a peer will support.  Message Parameters requiring
    negotiation SHOULD NOT be used prior to receiving the peer's SETUP
    message unless the application requires the extension or the endpoint
    knows the peer supports the extension.  If an unsupported Message
-   Parameter is used, the peer will be unable to process it and the
-   session will be terminated.  See Section 9.20.
+   Parameter is used, the peer will be unable to process it and will
+   close the session with INVALID_PARAMETER.  See Section 9.20.
 
 6.3.1.  0-RTT
 
@@ -2218,7 +2212,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
                                   Table 2
 
    An endpoint that receives an unknown stream type MUST close the
-   session.
+   session with INVALID_STREAM_HEADER.
 
    Control streams (SETUP) are described in Section 6.3.  Data streams
    (FETCH_HEADER, SUBGROUP_HEADER) are described in Section 11.  Padding
@@ -2774,8 +2768,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    efficient on the wire and makes it easy to ensure there is only one
    instance of a type when needed.  The previous Type value plus the
    Delta Type MUST NOT be greater than 2^64 - 1.  If a Delta Type is
-   received that would be too large, the Session MUST be closed with a
-   FIELD_VALUE_OVERFLOW.
+   received that would be too large, the Session MUST be closed with
+   DELTA_ENCODING_OVERFLOW.
 
    Key-Value-Pair is used in both the data plane and control plane, but
    is optimized for use in the data plane.
@@ -2796,15 +2790,14 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    *  Length: Only present when Type is odd.  Specifies the length of
       the Value field in bytes.  The maximum length of a value is 2^16-1
       bytes.  If an endpoint receives a length larger than the maximum,
-      it MUST close the session with a FIELD_LENGTH_EXCEEDED.
+      it MUST close the session with FIELD_LENGTH_EXCEEDED.
 
    *  Value: A single variable-length integer when Type is even,
       otherwise a sequence of Length bytes.
 
    If a receiver understands a Type, and the following Value or Length/
    Value does not match the serialization defined by that Type, the
-   receiver MUST close the session with error code
-   KEY_VALUE_FORMATTING_ERROR.
+   receiver MUST close the session with MALFORMED_KEY_VALUE.
 
    Key-Value-Pairs are always parsed with a known byte length, which
    bounds the sequence.  The source of this length varies by context.
@@ -2878,8 +2871,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    *  Reason Phrase Length: A variable-length integer specifying the
       length of the reason phrase in bytes.  The reason phrase length
       has a maximum value of 1024 bytes.  If an endpoint receives a
-      length exceeding the maximum, it MUST close the session with a
-      FIELD_LENGTH_EXCEEDED
+      length exceeding the maximum, it MUST close the session with
+      FIELD_LENGTH_EXCEEDED.
 
    *  Reason Phrase Value: Additional diagnostic information about an
       error condition.  The reason phrase value is encoded as UTF-8
@@ -2938,20 +2931,20 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    Each Track Namespace Field Value MUST contain at least one byte.  If
    an endpoint receives a Track Namespace Field with a Track Namespace
-   Field Length of 0, it MUST close the session with an
-   INVALID_TRACK_NAME.
+   Field Length of 0, it MUST close the session with
+   INVALID_TRACK_NAMESPACE.
 
    If an endpoint receives a Track Namespace consisting of greater than
-   32 Track Namespace Fields, it MUST close the session with an
-   INVALID_TRACK_NAME.
+   32 Track Namespace Fields, it MUST close the session with
+   INVALID_TRACK_NAMESPACE.
 
    The maximum total length of a Full Track Name is 4,096 bytes.  The
    length of a Full Track Name is computed as the sum of the Track
    Namespace Field Length fields and the Track Name Length field.  The
    length of a Track Namespace is the sum of the Track Namespace Field
    Length fields.  If an endpoint receives a Track Namespace or a Full
-   Track Name exceeding 4,096 bytes, it MUST close the session with an
-   INVALID_TRACK_NAME.
+   Track Name exceeding 4,096 bytes, it MUST close the session with
+   FIELD_LENGTH_EXCEEDED.
 
 8.8.  Representing Namespace and Track Names
 
@@ -3051,12 +3044,13 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    *  Token Value - the payload of the Token.  The contents and
       serialization of this payload are defined by the Token Type.
 
-   If the Token structure cannot be decoded, the receiver MUST close the
-   Session with KEY_VALUE_FORMATTING_ERROR.  The receiver of a message
-   attempting to register an Alias which is already registered MUST
-   close the Session with DUPLICATE_AUTH_TOKEN_ALIAS.  The receiver of a
-   message referencing an Alias that is not currently registered MUST
-   reject the message with UNKNOWN_AUTH_TOKEN_ALIAS.
+   If the Token structure cannot be decoded, including an unknown Alias
+   Type, the receiver MUST close the Session with MALFORMED_AUTH_TOKEN.
+   The receiver of a message attempting to register an Alias which is
+   already registered MUST close the Session with
+   DUPLICATE_AUTH_TOKEN_ALIAS.  The receiver of a message referencing an
+   Alias that is not currently registered MUST reject the message with
+   UNKNOWN_AUTH_TOKEN_ALIAS.
 
    The receiver of a message containing a well-formed Token structure
    that is otherwise invalid MUST reject that message with an
@@ -3199,11 +3193,12 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
                                   Table 5
 
    An endpoint that receives an unknown message type MUST close the
-   session.  Control messages have a length to simplify parsing, but no
-   control messages are intended to be ignored.  The length is set to
-   the number of bytes in the Message Body, which is defined by each
-   message type.  If the length does not match the length of the Message
-   Body, the receiver MUST close the session with a MALFORMED_MESSAGE.
+   session with UNEXPECTED_MESSAGE.  Control messages have a length to
+   simplify parsing, but no control messages are intended to be ignored.
+   The length is set to the number of bytes in the Message Body, which
+   is defined by each message type.  If the length does not match the
+   length of the Message Body, the receiver MUST close the session with
+   MALFORMED_MESSAGE.
 
 9.1.  SETUP
 
@@ -3303,7 +3298,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    semantics are defined in Section 8.9.
 
    If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a
-   SETUP message, it MUST close the session with a ROLE_VIOLATION.
+   SETUP message, it MUST close the session with ROLE_VIOLATION.
 
    If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with
    Alias Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it
@@ -3402,7 +3397,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    appropriate error code (e.g., REQUEST_ERROR with error code
    GOING_AWAY).
 
-   The endpoint MUST close the session with a DUPLICATE_GOAWAY
+   The endpoint MUST close the session with UNEXPECTED_MESSAGE
    (Section 12.2) if it receives more than one GOAWAY on the control
    stream or on a single request stream.
 
@@ -3423,11 +3418,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       reused instead.  The new session URI SHOULD use the same scheme as
       the current URI to ensure compatibility.  The maximum length of
       the New Session URI is 8,192 bytes.  If an endpoint receives a
-      length exceeding the maximum, it MUST close the session with a
+      length exceeding the maximum, it MUST close the session with
       FIELD_LENGTH_EXCEEDED.
 
       If a server receives a GOAWAY with a non-zero New Session URI
-      Length it MUST close the session with a ROLE_VIOLATION.
+      Length it MUST close the session with ROLE_VIOLATION.
 
    *  Timeout: The time in milliseconds the sender will wait for
       graceful closure.  When sent on the control stream, the sender
@@ -3477,8 +3472,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       populated in TRACK_STATUS_OK; they are empty in PUBLISH_OK,
       REQUEST_UPDATE_OK, SUBSCRIBE_NAMESPACE_OK and
       PUBLISH_NAMESPACE_OK.  If an endpoint receives Track Properties in
-      one of these messages it MUST close the session with a
-      MISPLACED_TRACK_PROPERTIES.
+      one of these messages it MUST close the session with
+      INVALID_FIELD.
 
 9.4.  REQUEST_ERROR
 
@@ -3502,7 +3497,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    *  Connect URI: The URI to connect to for the redirected request.  If
       the length is zero, the requester SHOULD use the current session's
       URI.  If a server receives a Redirect with a non-zero Connect URI
-      Length it MUST close the session with a ROLE_VIOLATION.
+      Length it MUST close the session with ROLE_VIOLATION.
 
    *  Track Namespace and Track Name: The Track Namespace and Track Name
       to use for the redirected request, together referred to as the
@@ -3512,7 +3507,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and
       MUST be empty; an endpoint that receives a non-empty Track Name in
       a Redirect for a namespace-scoped request MUST close the session
-      with a ROLE_VIOLATION.
+      with INVALID_FIELD.
 
 9.4.2.  REQUEST_ERROR Message Format
 
@@ -3557,7 +3552,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    parameters of a subscription established with PUBLISH.
 
    An endpoint that receives a REQUEST_UPDATE other than in the two
-   cases above MUST close the session with a PROTOCOL_VIOLATION.
+   cases above MUST close the session with UNEXPECTED_MESSAGE.
 
    The receiver of a REQUEST_UPDATE MUST respond with exactly one
    REQUEST_UPDATE_OK or REQUEST_UPDATE_ERROR message indicating if the
@@ -3864,7 +3859,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       the publisher set an incorrect value, reset a stream before the
       SUBGROUP_HEADER, or set the maximum value.  If a subscriber
       receives more streams for a subscription than specified in Stream
-      Count, it MAY close the session with a STREAM_COUNT_EXCEEDED.
+      Count, it MAY close the session with a PROTOCOL_VIOLATION.
 
    *  Error Reason: Provides the reason for subscription error.  See
       Section 8.5.
@@ -3883,8 +3878,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    PUBLISH_STATE_NOTIFY applies only to subscriptions, and is sent only
    by the publisher.  An endpoint that receives a PUBLISH_STATE_NOTIFY
-   for any other request type, or from the subscriber, MUST close the
-   session with a PROTOCOL_VIOLATION.
+   for any other request type MUST close the session with
+   UNEXPECTED_MESSAGE.  A publisher that receives a PUBLISH_STATE_NOTIFY
+   MUST close the session with ROLE_VIOLATION.
 
    A PUBLISH_STATE_NOTIFY carries the parameters whose values have
    changed.  If a parameter is not present, its value is unchanged.  The
@@ -3972,6 +3968,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    *  End Of Track: 1 if all Objects have been published on this Track,
       and the End Location is the final Object in the Track, 0 if not.
+      If an endpoint receives any other value, it MUST close the session
+      with INVALID_FIELD.
 
    *  End Location: The end of the range covered by the FETCH response,
       inclusive.  This is the End Location from the FETCH request
@@ -3979,7 +3977,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       beyond Largest Object at the time the request was processed, or
       the last Object in the Track.  If End Location is smaller than the
       Start Location in the corresponding FETCH the receiver MUST close
-      the session with an INVALID_FETCH_RANGE.
+      the session with INVALID_FIELD.
 
    *  Parameters: The parameters are defined in Section 9.20.  No
       parameters are currently defined for FETCH_OK.
@@ -4180,7 +4178,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    previous Parameter Type in the message, or the Parameter Type itself
    for the first parameter.  Parameters MUST be serialized in ascending
    order by Type.  If the resulting Type would be greater than 2^64 - 1,
-   the endpoint MUST close the session with an INVALID_PARAMETER.
+   the endpoint MUST close the session with DELTA_ENCODING_OVERFLOW.
 
    *  Value: The encoding is specified by each parameter definition.
       The encodings defined in this draft are:
@@ -4235,7 +4233,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Each Message Parameter definition indicates the message types in
    which it can appear, and each control message definition lists the
    parameters it allows.  If a parameter appears in some other type of
-   message, the receiving endpoint MUST close the connection with an
+   message, the receiving endpoint MUST close the session with
    INVALID_PARAMETER.  Note that since Setup Options use a separate
    namespace, it is impossible for Message Parameters to appear in Setup
    messages.
@@ -4391,7 +4389,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    *  If Location Filter Type is 0x05, no fields follow and it specifies
       the Next Object.
 
-   *  Any other Location Filter Type is an INVALID_REQUEST_TYPE.
+   *  If an endpoint receives any other Location Filter Type, it MUST
+      close the session with INVALID_PARAMETER.
 
    The table below summarizes the encodings.
 
@@ -4438,8 +4437,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Otherwise, all fields are absolute.  EndGroupDelta is delta encoded
    from StartGroup, but both the start and end groups are absolute, not
    relative to Largest Object.  If StartGroup + EndGroupDelta exceeds
-   2^64 - 1, the endpoint MUST close the session with a
-   FIELD_VALUE_OVERFLOW.
+   2^64 - 1, the endpoint MUST close the session with
+   DELTA_ENCODING_OVERFLOW.
 
    When EndGroupDelta and EndObject are omitted from a subscription
    filter, the subscription is open-ended.  When they are omitted from a
@@ -4566,7 +4565,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    has for the subscription; FILL_PARAMETERS therefore carries only the
    settings that differ.  An endpoint that receives a parameter inside
    FILL_PARAMETERS that is not listed above MUST close the session with
-   PROTOCOL_VIOLATION.
+   INVALID_PARAMETER.
 
    The value of FILL_PARAMETERS is a separate parameter scope.
    Parameters inside it are not considered to appear in the enclosing
@@ -4706,7 +4705,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    SHOULD be empty.  The allowed values are 0 (do not send Properties)
    or 1 (send Properties), and the default is 1.  If an endpoint
    receives a value outside this range, it MUST close the session with
-   PROTOCOL_VIOLATION.
+   INVALID_PARAMETER.
 
 10.  MOQT Properties
 
@@ -4754,8 +4753,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    DEFAULT PUBLISHER PRIORITY (Property Type 0x0E) is a Track Property
    that specifies the priority of a subscription relative to other
    subscriptions in the same session.  The value is from 0 to 255 and
-   lower numbers get higher priority.  See Section 5.1.  Priorities
-   above 255 are invalid.  Subgroups and Datagrams for this subscription
+   lower numbers get higher priority.  See Section 5.1.  If an endpoint
+   receives a value above 255, it MUST close the session with
+   MALFORMED_KEY_VALUE.  Subgroups and Datagrams for this subscription
    inherit this priority, unless they specifically override it.
 
    If omitted, the Default Publisher Priority is 128.
@@ -4769,7 +4769,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Objects from different groups within the same subscription (see
    Section 5.1).  The allowed values are Ascending (0x1) or Descending
    (0x2).  If an endpoint receives a value outside this range, it MUST
-   close the session with INVALID_PARAMETER.
+   close the session with MALFORMED_KEY_VALUE.
 
    If omitted, the publisher's preference is Ascending (0x1).
 
@@ -4780,7 +4780,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    subscriber can request the Original Publisher to start a new Group by
    including the NEW_GROUP_REQUEST parameter in REQUEST_UPDATE for this
    Track.  If an endpoint receives a value larger than 1, it MUST close
-   the session with INVALID_PARAMETER.
+   the session with MALFORMED_KEY_VALUE.
 
    If omitted, the value is 0.
 
@@ -4927,7 +4927,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    the type of the datagram.  See Section 11.2.1.
 
    An endpoint that receives an unknown datagram type MUST close the
-   session.
+   session with INVALID_STREAM_HEADER.
 
 11.1.  Objects
 
@@ -4962,18 +4962,18 @@ EXT 1 and EXT N can be modified or removed by Relays
    The end of a Subgroup is signaled by closing its stream with a FIN
    (see Section 11.3.2).
 
-   Any other value SHOULD be treated as a protocol error and the session
-   SHOULD be closed with an INVALID_OBJECT_STATUS (Section 12.2).  An
-   Object MUST have an empty payload unless its Object Status value is
-   registered as permitting a payload in the Object Status registry
-   (Section 16.9).  Of the values defined in this document, only Normal
-   (0x0) permits a payload.
+   If an endpoint receives any other value, it SHOULD close the session
+   with INVALID_OBJECT_STATUS (Section 12.2).  An Object MUST have an
+   empty payload unless its Object Status value is registered as
+   permitting a payload in the Object Status registry (Section 16.9).
+   Of the values defined in this document, only Normal (0x0) permits a
+   payload.
 
 11.1.2.  Object Properties
 
    Any Object with status Normal can have properties (Section 8.4).  If
    an endpoint receives properties on an Object with status that is not
-   Normal, it MUST close the session with an INVALID_OBJECT_PROPERTIES.
+   Normal, it MUST close the session with INVALID_OBJECT_STATUS.
 
    Object Properties are visible to relays and are intended to be
    relevant to MOQT Object distribution.  Any Object metadata never
@@ -5039,8 +5039,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    integer that encodes a set of flags.  All values defined in this
    specification fit in a single-byte encoding (values less than 128).
    If a received value has bit 4 set, or has a bit set whose meaning is
-   not specified, the endpoint MUST close the session with a
-   PROTOCOL_VIOLATION.
+   not specified, the endpoint MUST close the session with
+   INVALID_STREAM_HEADER.
 
    The four low-order bits and bit 5 of the Type Flags field determine
    which fields are present in the datagram:
@@ -5049,8 +5049,8 @@ EXT 1 and EXT N can be modified or removed by Relays
       present.  When set to 1, the Object Properties structure defined
       in Section 11.1.2 is present.  When set to 0, the field is absent.
       If an endpoint receives a datagram with the PROPERTIES bit set and
-      an Properties Length of 0, it MUST close the session with an
-      INVALID_OBJECT_PROPERTIES.
+      an Properties Length of 0, it MUST close the session with
+      MALFORMED_OBJECT.
 
    *  The *END_OF_GROUP* bit (0x02) indicates End of Group.  When set to
       1, this indicates that no Object with the same Group ID and an
@@ -5076,7 +5076,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    The following Type Flags values are invalid.  If an endpoint receives
    a datagram with any of these values, it MUST close the session with
-   an INVALID_HEADER_TYPE:
+   INVALID_STREAM_HEADER:
 
    *  Values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02)
       set.
@@ -5088,8 +5088,8 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    If an Object Datagram includes both the STATUS bit and PROPERTIES
    bit, and the Object Status is not Normal (0x0), the endpoint MUST
-   close the session with an INVALID_OBJECT_PROPERTIES, because only
-   Normal Objects can have Properties.
+   close the session with INVALID_OBJECT_STATUS, because only Normal
+   Objects can have Properties.
 
 11.3.  Subgroup Streams
 
@@ -5097,7 +5097,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    or Fetch Header and is followed by one or more sets of serialized
    Object fields.  If a stream ends gracefully (i.e., the stream
    terminates with a FIN) in the middle of a serialized Object, the
-   session SHOULD be closed with a TRUNCATED_STREAM.
+   receiver SHOULD close the session with TRUNCATED_OBJECT.
 
    A publisher SHOULD NOT open more than one stream at a time with the
    same Subgroup Header field values.
@@ -5172,7 +5172,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    The following Type Flags values are invalid.  If an endpoint receives
    a stream header with any of these values, it MUST close the session
-   with an INVALID_HEADER_TYPE:
+   with INVALID_STREAM_HEADER:
 
    *  Values with SUBGROUP_ID_MODE set to 0b11.  This mode is reserved
       for future use.
@@ -5195,12 +5195,12 @@ EXT 1 and EXT N can be modified or removed by Relays
    Subgroup stream if there was one.  The Object ID is the Object ID
    Delta if it's the first Object in the Subgroup stream.  If the
    resulting Object ID would be greater than 2^64 - 1, the endpoint MUST
-   close the session with a DATA_ID_OVERFLOW.  For example, a Subgroup
-   of sequential Object IDs starting at 0 will have 0 for all Object ID
-   Delta values.  A consumer cannot infer information about the
-   existence of Objects between the current and previous Object ID in
-   the Subgroup (e.g. when Object ID Delta is non-zero) unless there is
-   a Prior Object ID Gap property (see Section 10.9).
+   close the session with DELTA_ENCODING_OVERFLOW.  For example, a
+   Subgroup of sequential Object IDs starting at 0 will have 0 for all
+   Object ID Delta values.  A consumer cannot infer information about
+   the existence of Objects between the current and previous Object ID
+   in the Subgroup (e.g. when Object ID Delta is non-zero) unless there
+   is a Prior Object ID Gap property (see Section 10.9).
 
    {
      Object ID Delta (vi64),
@@ -5377,7 +5377,8 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 8
 
-   Any other value 128 or greater is an INVALID_SERIALIZATION_FLAGS.
+   If an endpoint receives any other value 128 or greater, it MUST close
+   the session with MALFORMED_OBJECT.
 
 11.4.1.1.  Flags
 
@@ -5428,8 +5429,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    The first Object MUST include a Group ID Delta and Object ID Delta,
    and these values are the absolute Group ID and Object ID.  If the
    first Object in the FETCH response uses a flag that references fields
-   in the prior Object, the Subscriber MUST close the session with a
-   MISSING_PRIOR_OBJECT.
+   in the prior Object, the Subscriber MUST close the session with
+   MALFORMED_OBJECT.
 
    If the Group ID Delta field is present on an Object other than the
    first, the Group ID is computed from the Group ID Delta and the prior
@@ -5438,7 +5439,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    Group Order is Descending, the Group ID is the prior Object's Group
    ID minus the (Group ID Delta + 1).  If the computed Group ID would be
    less than 0 or greater than 2^64-1, the Subscriber MUST close the
-   Session with error DATA_ID_OVERFLOW.
+   Session with DELTA_ENCODING_OVERFLOW.
 
    When the Group ID Delta field is present, the Object ID is the value
    of Object ID Delta if present.  When the Group ID Delta field is not
@@ -5446,7 +5447,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    Delta if present.  If Object ID Delta is not present, the Object ID
    is the prior Object's ID plus one, regardless of which group it
    belongs to.  If the computed Object ID would be greater than 2^64-1,
-   the Subscriber MUST close the Session with error DATA_ID_OVERFLOW.
+   the Subscriber MUST close the Session with DELTA_ENCODING_OVERFLOW.
 
    The Object Properties structure is defined in Section 11.1.2.
 
@@ -5473,12 +5474,13 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  Prior Subgroup ID: The Subgroup ID from the last actual Object
       before the End of Range indicator.  If there was no prior Object,
-      using a flag that references the prior Subgroup ID is a
-      MISSING_PRIOR_OBJECT.
+      an endpoint that receives a flag referencing the prior Subgroup ID
+      MUST close the session with MALFORMED_OBJECT.
 
    *  Prior Priority: The Priority from the last actual Object before
-      the End of Range indicator.  If there was no prior Object, using a
-      flag that references the prior Priority is a MISSING_PRIOR_OBJECT.
+      the End of Range indicator.  If there was no prior Object, an
+      endpoint that receives a flag referencing the prior Priority MUST
+      close the session with MALFORMED_OBJECT.
 
 11.5.  Padding
 
@@ -5586,115 +5588,21 @@ EXT 1 and EXT N can be modified or removed by Relays
       session.
 
    PROTOCOL_VIOLATION (0x3):  The remote endpoint performed an action
-      that was disallowed by the specification.  Endpoints SHOULD use
-      one of the more specific error codes below when applicable.  An
-      endpoint MAY use this code as a fallback when a more specific code
-      is not available.
+      that was disallowed by the specification and no more specific code
+      applies.
 
-   The following error codes identify specific protocol violations.
-   They are organized into ranges by protocol area; the upper four bits
-   of the code identify the category:
+   Codes from 0x200 to 0x4FF are organized into ranges by category:
 
-   *  0x2X: Data stream errors (Section 12.2.1)
+   *  0x200-0x2FF: Data stream and datagram errors
 
-   *  0x3X: Control message errors (Section 12.2.2)
+   *  0x300-0x3FF: Control stream and control message errors
 
-   *  0x4X: Session and setup errors (Section 12.2.3)
+   *  0x400-0x4FF: Errors that can occur in either
 
-   *  0x5X: Naming and encoding errors (Section 12.2.4)
-
-   An endpoint that receives an unrecognized code within one of these
-   ranges SHOULD treat it as a protocol violation in the corresponding
-   area.
-
-12.2.1.  Data Stream Errors (0x20-0x2F)
-
-   INVALID_HEADER_TYPE (0x20):  An Object Datagram or Subgroup stream
-      header Type field contained an invalid bit combination.
-
-   TRUNCATED_STREAM (0x21):  A data stream ended gracefully (FIN) in the
-      middle of a serialized Object.
-
-   DATA_ID_OVERFLOW (0x22):  A computed Object ID or Group ID would be
-      less than 0 or exceed 2^64-1.
-
-   INVALID_OBJECT_STATUS (0x23):  An Object Status value was received
-      that is not defined by this specification.
-
-   STREAM_COUNT_EXCEEDED (0x24):  More data streams were opened for a
-      subscription than declared in Stream Count.
-
-   INVALID_OBJECT_PROPERTIES (0x25):  An Object with a non-Normal status
-      included properties, or the PROPERTIES bit was set with a
-      Properties Length of zero.
-
-   MISSING_PRIOR_OBJECT (0x26):  A field referenced a prior Object that
-      does not exist, such as the first Object in a FETCH response using
-      a flag that references prior Object fields, or using a flag that
-      references a prior Subgroup ID or Priority after an End of Range
-      indicator with no preceding Object.
-
-   INVALID_SERIALIZATION_FLAGS (0x27):  A Serialization Flags value in a
-      FETCH response was not recognized.
-
-12.2.2.  Control Message Errors (0x30-0x3F)
-
-   MALFORMED_MESSAGE (0x30):  The length field of a control message did
-      not match the actual Message Payload length.
-
-   INVALID_PARAMETER (0x31):  A Message Parameter was unknown,
-      duplicated, appeared in a message type where it is not permitted,
-      had a computed Type exceeding 2^64-1, or had a value outside its
-      defined allowed set.
-
-   INVALID_REQUEST_TYPE (0x32):  A Subscription Filter type or Fetch
-      Type was received that is not defined by this specification.
-
-   DUPLICATE_GOAWAY (0x33):  More than one GOAWAY was received on the
-      control stream or on a single request stream.
-
-   INVALID_FETCH_RANGE (0x34):  The End Location in a FETCH was smaller
-      than the Start Location.
-
-   MISPLACED_TRACK_PROPERTIES (0x35):  Track Properties were present in
-      a message where they must be empty (PUBLISH_OK, REQUEST_UPDATE_OK,
-      SUBSCRIBE_NAMESPACE_OK, or PUBLISH_NAMESPACE_OK).
-
-   UNEXPECTED_RESPONSE_MESSAGE (0x36):  The first message on the
-      response half of a request stream was not REQUEST_OK or
-      REQUEST_ERROR.
-
-12.2.3.  Session and Setup Errors (0x40-0x4F)
-
-   INVALID_STREAM_STATE (0x40):  A bidirectional stream began with an
-      unexpected message type, or the control stream was closed during
-      the session's lifetime.
-
-   ROLE_VIOLATION (0x41):  A message or field was received that is only
-      valid when sent by the other role, such as a server receiving a
-      GOAWAY with a URI, a Redirect with a Connect URI, a non-empty
-      Track Name in a namespace Redirect, or an invalid Auth Token Alias
-      Type in SETUP.
-
-   MESSAGE_ORDERING (0x42):  Messages were received in an order that
-      violates the protocol, such as a NAMESPACE_DONE before its
-      corresponding NAMESPACE.
-
-12.2.4.  Naming and Encoding Errors (0x50-0x5F)
-
-   INVALID_TRACK_NAME (0x50):  A Track Namespace Field had a length of
-      zero, a Track Namespace or Namespace Prefix exceeded 32 fields, or
-      a Full Track Name exceeded 4,096 bytes.
-
-   FIELD_LENGTH_EXCEEDED (0x51):  A field length exceeded its specified
-      maximum: Key-Value Pair value (2^16-1 bytes), Reason Phrase (1,024
-      bytes), or GOAWAY New Session URI (8,192 bytes).
-
-   FIELD_VALUE_OVERFLOW (0x52):  A computed delta value would exceed
-      2^64-1, including Key-Value Pair Delta Type or Group ID in a
-      Subscription Filter.
-
-12.2.5.  Other Session Termination Codes
+   The values reserved for greasing (Section 13) that fall within these
+   ranges are not assigned to a category.  An endpoint that receives any
+   other unrecognized code within one of these ranges can use the range
+   to identify the category of the error.
 
    INVALID_REQUEST_ID (0x4):  The endpoint received a Request ID with an
       incorrect least significant bit for the sender, or a duplicate
@@ -5703,8 +5611,9 @@ EXT 1 and EXT N can be modified or removed by Relays
    DUPLICATE_TRACK_ALIAS (0x5):  The endpoint attempted to use a Track
       Alias that was already in use.
 
-   KEY_VALUE_FORMATTING_ERROR (0x6):  The key-value pair has a
-      formatting error.
+   MALFORMED_KEY_VALUE (0x6):  A Key-Value-Pair (Figure 3), such as a
+      Setup Option or a Property, has a Value that does not match the
+      definition of its Type.
 
    INVALID_PATH (0x8):  The PATH parameter was used by a server, on a
       WebTransport session, or the server does not support the path.
@@ -5732,8 +5641,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    DUPLICATE_AUTH_TOKEN_ALIAS (0x14):  Authorization Token attempted to
       register an Alias that was in use (see Section 8.9).
 
-   MALFORMED_AUTH_TOKEN (0x16):  Invalid Auth Token serialization during
-      registration (see Section 8.9).
+   MALFORMED_AUTH_TOKEN (0x16):  Invalid Auth Token serialization (see
+      Section 8.9).
 
    UNKNOWN_AUTH_TOKEN_ALIAS (0x17):  No registered token found for the
       provided Alias (see Section 8.9).
@@ -5751,19 +5660,52 @@ EXT 1 and EXT N can be modified or removed by Relays
       REQUEST_UPDATE that exceeded the per-stream limit communicated via
       the MAX_REQUEST_UPDATES Setup Option (Section 9.1.7).
 
-12.2.6.  Reason Phrase in Session Termination
+   INVALID_STREAM_HEADER (0x200):  A data stream or datagram has an
+      unknown type or invalid Type Flags.
 
-   When closing a session with any error code, implementations SHOULD
-   include a reason phrase (see Section 8.5) that identifies the
-   specific condition.  Implementations SHOULD format the reason phrase
-   as:
+   MALFORMED_OBJECT (0x201):  The serialization of an Object on a data
+      stream or in a datagram cannot be decoded, for example a flag
+      references a prior Object that does not exist.
 
-   <section-number>: <short description>
+   INVALID_OBJECT_STATUS (0x202):  An Object has an invalid Object
+      Status, or has Properties when its status is not Normal.
 
-   For example, "4.2.1: Object ID overflow" or "3.3: unknown parameter
-   0x42".  The section number refers to the relevant section of this
-   specification.  Including a reason phrase is OPTIONAL; an endpoint
-   concerned about information disclosure MAY omit it.
+   TRUNCATED_OBJECT (0x203):  A data stream ended with a FIN in the
+      middle of an Object.
+
+   MALFORMED_MESSAGE (0x300):  A control message cannot be parsed, for
+      example its length does not match its contents.
+
+   INVALID_FIELD (0x301):  A control message was parsed, but a field has
+      a value that is not allowed.
+
+   INVALID_TRACK_NAMESPACE (0x302):  A Track Namespace does not conform
+      to Section 8.7.
+
+   UNEXPECTED_MESSAGE (0x303):  A control message of an unknown type was
+      received, or a message was received on the wrong stream, in the
+      wrong order, or more times than allowed.
+
+   ROLE_VIOLATION (0x304):  The peer sent a message or field that is not
+      allowed for its role, for example a server receiving a non-empty
+      New Session URI.
+
+   INVALID_PARAMETER (0x305):  A Message Parameter (Section 9.20) is
+      unknown, duplicated, not allowed in the message, or has a value
+      outside its allowed range.
+
+   CLOSED_CONTROL_STREAM (0x306):  The peer closed the control stream
+      (Section 6.3).
+
+   DELTA_ENCODING_OVERFLOW (0x400):  A value decoded from a delta
+      encoding is less than 0 or greater than 2^64 - 1.
+
+   FIELD_LENGTH_EXCEEDED (0x401):  A field or structure is longer than
+      its maximum allowed length.
+
+   When more than one code applies, an endpoint uses
+   DELTA_ENCODING_OVERFLOW or FIELD_LENGTH_EXCEEDED in preference to the
+   other codes.
 
 12.3.  Request Error Codes
 
@@ -6625,93 +6567,77 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 16.11.1.  Session Termination Error Codes
 
-    +=============================+=================+================+
-    | Name                        |       Code      | Specification  |
-    +=============================+=================+================+
-    | NO_ERROR                    |       0x0       | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | INTERNAL_ERROR              |       0x1       | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | UNAUTHORIZED                |       0x2       | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | PROTOCOL_VIOLATION          |       0x3       | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | INVALID_REQUEST_ID          |       0x4       | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | DUPLICATE_TRACK_ALIAS       |       0x5       | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | KEY_VALUE_FORMATTING_ERROR  |       0x6       | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | INVALID_PATH                |       0x8       | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | MALFORMED_PATH              |       0x9       | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | GOAWAY_TIMEOUT              |       0x10      | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | CONTROL_MESSAGE_TIMEOUT     |       0x11      | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | DATA_STREAM_TIMEOUT         |       0x12      | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | AUTH_TOKEN_CACHE_OVERFLOW   |       0x13      | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | DUPLICATE_AUTH_TOKEN_ALIAS  |       0x14      | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | MALFORMED_AUTH_TOKEN        |       0x16      | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | UNKNOWN_AUTH_TOKEN_ALIAS    |       0x17      | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | EXPIRED_AUTH_TOKEN          |       0x18      | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | INVALID_AUTHORITY           |       0x19      | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | MALFORMED_AUTHORITY         |       0x1A      | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | TOO_MANY_REQUEST_UPDATES    |       0x1B      | Section 12.2   |
-    +-----------------------------+-----------------+----------------+
-    | INVALID_HEADER_TYPE         |       0x20      | Section 12.2.1 |
-    +-----------------------------+-----------------+----------------+
-    | TRUNCATED_STREAM            |       0x21      | Section 12.2.1 |
-    +-----------------------------+-----------------+----------------+
-    | DATA_ID_OVERFLOW            |       0x22      | Section 12.2.1 |
-    +-----------------------------+-----------------+----------------+
-    | INVALID_OBJECT_STATUS       |       0x23      | Section 12.2.1 |
-    +-----------------------------+-----------------+----------------+
-    | STREAM_COUNT_EXCEEDED       |       0x24      | Section 12.2.1 |
-    +-----------------------------+-----------------+----------------+
-    | INVALID_OBJECT_PROPERTIES   |       0x25      | Section 12.2.1 |
-    +-----------------------------+-----------------+----------------+
-    | MISSING_PRIOR_OBJECT        |       0x26      | Section 12.2.1 |
-    +-----------------------------+-----------------+----------------+
-    | INVALID_SERIALIZATION_FLAGS |       0x27      | Section 12.2.1 |
-    +-----------------------------+-----------------+----------------+
-    | MALFORMED_MESSAGE           |       0x30      | Section 12.2.2 |
-    +-----------------------------+-----------------+----------------+
-    | INVALID_PARAMETER           |       0x31      | Section 12.2.2 |
-    +-----------------------------+-----------------+----------------+
-    | INVALID_REQUEST_TYPE        |       0x32      | Section 12.2.2 |
-    +-----------------------------+-----------------+----------------+
-    | DUPLICATE_GOAWAY            |       0x33      | Section 12.2.2 |
-    +-----------------------------+-----------------+----------------+
-    | INVALID_FETCH_RANGE         |       0x34      | Section 12.2.2 |
-    +-----------------------------+-----------------+----------------+
-    | MISPLACED_TRACK_PROPERTIES  |       0x35      | Section 12.2.2 |
-    +-----------------------------+-----------------+----------------+
-    | UNEXPECTED_RESPONSE_MESSAGE |       0x36      | Section 12.2.2 |
-    +-----------------------------+-----------------+----------------+
-    | INVALID_STREAM_STATE        |       0x40      | Section 12.2.3 |
-    +-----------------------------+-----------------+----------------+
-    | ROLE_VIOLATION              |       0x41      | Section 12.2.3 |
-    +-----------------------------+-----------------+----------------+
-    | MESSAGE_ORDERING            |       0x42      | Section 12.2.3 |
-    +-----------------------------+-----------------+----------------+
-    | INVALID_TRACK_NAME          |       0x50      | Section 12.2.4 |
-    +-----------------------------+-----------------+----------------+
-    | FIELD_LENGTH_EXCEEDED       |       0x51      | Section 12.2.4 |
-    +-----------------------------+-----------------+----------------+
-    | FIELD_VALUE_OVERFLOW        |       0x52      | Section 12.2.4 |
-    +-----------------------------+-----------------+----------------+
-    | Reserved for greasing       | 0x7f * N + 0x9D | Section 13     |
-    +-----------------------------+-----------------+----------------+
+     +============================+=================+===============+
+     | Name                       |       Code      | Specification |
+     +============================+=================+===============+
+     | NO_ERROR                   |       0x0       | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | INTERNAL_ERROR             |       0x1       | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | UNAUTHORIZED               |       0x2       | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | PROTOCOL_VIOLATION         |       0x3       | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | INVALID_REQUEST_ID         |       0x4       | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | DUPLICATE_TRACK_ALIAS      |       0x5       | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | MALFORMED_KEY_VALUE        |       0x6       | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | INVALID_PATH               |       0x8       | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | MALFORMED_PATH             |       0x9       | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | GOAWAY_TIMEOUT             |       0x10      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | CONTROL_MESSAGE_TIMEOUT    |       0x11      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | DATA_STREAM_TIMEOUT        |       0x12      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | AUTH_TOKEN_CACHE_OVERFLOW  |       0x13      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | DUPLICATE_AUTH_TOKEN_ALIAS |       0x14      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | MALFORMED_AUTH_TOKEN       |       0x16      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | UNKNOWN_AUTH_TOKEN_ALIAS   |       0x17      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | EXPIRED_AUTH_TOKEN         |       0x18      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | INVALID_AUTHORITY          |       0x19      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | MALFORMED_AUTHORITY        |       0x1A      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | TOO_MANY_REQUEST_UPDATES   |       0x1B      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | INVALID_STREAM_HEADER      |      0x200      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | MALFORMED_OBJECT           |      0x201      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | INVALID_OBJECT_STATUS      |      0x202      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | TRUNCATED_OBJECT           |      0x203      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | MALFORMED_MESSAGE          |      0x300      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | INVALID_FIELD              |      0x301      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | INVALID_TRACK_NAMESPACE    |      0x302      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | UNEXPECTED_MESSAGE         |      0x303      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | ROLE_VIOLATION             |      0x304      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | INVALID_PARAMETER          |      0x305      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | CLOSED_CONTROL_STREAM      |      0x306      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | DELTA_ENCODING_OVERFLOW    |      0x400      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | FIELD_LENGTH_EXCEEDED      |      0x401      | Section 12.2  |
+     +----------------------------+-----------------+---------------+
+     | Reserved for greasing      | 0x7f * N + 0x9D | Section 13    |
+     +----------------------------+-----------------+---------------+
 
                                  Table 19
 
