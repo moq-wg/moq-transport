@@ -2934,13 +2934,16 @@ session migration ({{session-migration}}) with an optional URI.  A client MUST
 send a zero-length New Session URI in any GOAWAY, as clients cannot instruct
 servers to initiate connections.
 
-A `GOAWAY` MAY also be sent on a request stream to initiate migration of
-that individual request.  Upon receiving a GOAWAY on a request stream, the
-endpoint SHOULD re-issue that specific request on a session at the specified
-URI (or the current session if no URI is provided), and close the old request
-stream using the appropriate mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).
-This allows, for example, moving the publishers and subscribers of a common set
-of tracks to a common relay without draining their entire session.
+A `GOAWAY` MAY also be sent on a request stream to initiate migration of that
+individual request.  Only the receiver of a request can send GOAWAY on its
+request stream.  If the receiver of a request receives a GOAWAY on that request
+stream, it MUST close the session with a `PROTOCOL_VIOLATION`.  Upon receiving a
+GOAWAY on a request stream, the sender of the request SHOULD re-issue that
+specific request on a session at the specified URI (or the current session if no
+URI is provided), and close the old request stream using the appropriate
+mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).  This allows, for example,
+moving the publishers and subscribers of a set of tracks to a common relay
+without draining their entire session.
 
 The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually unsubscribe from each existing subscription, while a
