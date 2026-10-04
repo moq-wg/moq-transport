@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-01T04:56:50.984708+00:00",
+  "timestamp": "2026-10-04T05:00:25.557056+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -14577,11 +14577,12 @@
         "englishm"
       ],
       "labels": [
+        "Needs PR",
         "Security/DoS"
       ],
       "body": "\r\nIn the security section, we should think about the type of DDOS attacks that can be made against the relays, and then check we have the right things in place for the relays to mitigate them. ",
       "createdAt": "2024-02-08T22:23:02Z",
-      "updatedAt": "2026-06-13T12:52:28Z",
+      "updatedAt": "2026-10-02T17:06:07Z",
       "closedAt": null,
       "comments": [
         {
@@ -28487,7 +28488,7 @@
       "id": "I_kwDOG2Ho4M6vVuYD",
       "title": "Namespace Discovery section needs editing",
       "url": "https://github.com/moq-wg/moq-transport/issues/841",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -28496,8 +28497,8 @@
       ],
       "body": "Going point by point:\n\n- The way it uses terms \"subscriber\" and \"publisher\" is extremely confusing.  In MoQT, publisher sends objects, and subscriber receives them, but nothing in this section is about exchanging MoQT objects.\n- The section talks about publishers being \"authoritative\", but we never define that term.\n- It mentions \"upload or chat applications\" (I have no idea what those are, especially the first one).\n- \"If it has accepted an ANNOUNCE with a namespace that exactly matches the namespace for that track, it SHOULD only request it from the senders of those ANNOUNCE messages.\"  I re-read this twice, and I am still not sure what this requirement does, or why do we have it.\n- The section probably needs more text about how the workflow looks from the publisher side (especially the preamble).",
       "createdAt": "2025-03-24T01:06:19Z",
-      "updatedAt": "2025-03-24T03:24:42Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-01T18:15:51Z",
+      "closedAt": "2026-10-01T18:15:50Z",
       "comments": []
     },
     {
@@ -30715,13 +30716,14 @@
       ],
       "labels": [
         "Needs PR",
+        "Needs Discussion",
         "Security/DoS",
         "Fetch",
         "Filters"
       ],
       "body": "Consider this case:\n\nA track has two subgroups, base layer, with the even objects and enhancement layer, with odd objects.\nBecause of delivery timeout, a caching relay ends up with only the base layer (objects=0, 2, 4, 6, ...)\nA client sends a FETCH for the whole group\n\nThis will generate one FETCH _per object_ from the relay to the upstream.\n\nA solution would be to amend FETCH to have N ranges, eg:\n\n```\nRange {\n  Start (Location),\n  End (Location)\n}\n\nFETCH Message {\n  ...\n  Num Ranges (i),\n  [ Requested Range (Range) ]+\n  ...\n}\n```\n\nI think the response is unambiguous(?), all objects after the End returned in FETCH_OK are implicitly not available yet.",
       "createdAt": "2025-03-30T16:02:32Z",
-      "updatedAt": "2026-06-13T12:44:59Z",
+      "updatedAt": "2026-10-02T15:39:17Z",
       "closedAt": null,
       "comments": [
         {
@@ -30807,6 +30809,41 @@
           "body": "Discussed in London: Updating FETCH to use the 1401 Location Filter proposal seems like it will work.",
           "createdAt": "2026-06-13T12:44:49Z",
           "updatedAt": "2026-06-13T12:44:49Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Can we look at this again in Seattle and either do it or close @mzanaty ?",
+          "createdAt": "2026-10-01T18:54:05Z",
+          "updatedAt": "2026-10-01T18:54:05Z"
+        },
+        {
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think range filters and fill fetch already solve this. No need for multiple ranges in location filters or multiple location filters in fetch or fill fetch, just use multiple fill parameters. If all agree, please close. ",
+          "createdAt": "2026-10-01T19:57:19Z",
+          "updatedAt": "2026-10-01T19:57:19Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": ">  If all agree\n\nI love the optimism.  Welcome to moq-wg.\n\nI think this is slightly different.  \n\nFirst, FILL_PARAMS doesn't come in FETCH - unclear if your suggestion is workable for tracks that have ended.  I think you are suggesting SUBSCRIBE + n x FILL_PARAMS?  I don't think this works because each needs a unique request ID. The best you can do is SUBSCRIBE + n x REQ_UP + FILL_PARAMS.",
+          "createdAt": "2026-10-01T20:30:56Z",
+          "updatedAt": "2026-10-01T20:30:56Z"
+        },
+        {
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Sorry for the brevity, I meant your last example. But I'm not opposed to multiple ranges in location filters if others really want that. It would make them match range filters. But we would have to resurrect the length and revert the enum change. Plus add the same text from range filters for delta encoding start group and omitting things only in the final range. My only concern would be confusion about the max ranges setup option mistakenly applied to location filters. Or maybe it does apply beyond 1? Which could also be confusing. ",
+          "createdAt": "2026-10-01T21:15:46Z",
+          "updatedAt": "2026-10-01T21:15:46Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Honestly, I could live with a single range in FETCH. I think eg filtering on a subgroup probably eliminates the number one case, or one can use object id filter for a discontiguous range in a single group.\nMy cache algorithm is send one upstream fetch per contiguous miss. I\u2019m not in a hurry to complicate it and attempt clever batching schemes, at least not until that is clearly the bottleneck.",
+          "createdAt": "2026-10-02T15:39:17Z",
+          "updatedAt": "2026-10-02T15:39:17Z"
         }
       ]
     },
@@ -32374,13 +32411,12 @@
         "suhasHere"
       ],
       "labels": [
-        "NotTransport",
         "Auth",
         "draft-11"
       ],
       "body": "The Auth Token structure, as defined today, doesn't provide a way to sign and attach the signature.  This goes back to dpop-token idea that was discussed during the interim (https://docs.google.com/presentation/d/12gPovk09BOKqof_OuaD000CLizh9gotq-DatILPUR-k/edit?slide=id.g339295cd5e3_0_89#slide=id.g339295cd5e3_0_89) \n\nThis is very important when traversing to untrusted/proxy relays , to preserve the token misuse.",
       "createdAt": "2025-04-28T21:08:07Z",
-      "updatedAt": "2026-06-18T19:11:06Z",
+      "updatedAt": "2026-10-02T17:04:29Z",
       "closedAt": null,
       "comments": [
         {
@@ -43315,12 +43351,13 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [
+        "Needs Discussion",
         "ABR",
         "Switch"
       ],
       "body": "To date, numerous discussions have been held to understand and devise meaningful solutions for track switching in MOQT. The following is the list of open issues tagged with the ABR label.\n\n- #259 \nThe challenge involves a publisher providing multiple quality versions of the same content (e.g., 360p and 720p video), where the subscriber needs to receive only the best quality version they can handle. The argument is that the publisher knows what it can send and should decide what to send.\n\n- #370 \nPreviously, we implemented this through a probing track and whenever the subscriber needed a probing test, it would subscribe to this track.\n\n- #471 \nIn client-side ABR streaming, the decision to switch to a higher quality stream can lead to excessive bandwidth usage, potentially causing network congestion and degrading the overall user experience. To address this, the proposed solution introduces a \"Less than Best Effort\" (LBE) mechanism. With LBE, higher-quality (but lower-priority) content is transmitted only if the congestion window (CWND) remains below a specified threshold, such as 1.5 times the Bandwidth-Delay Product (BDP). This approach ensures that LBE data does not compete with or crowd out higher-priority traffic, thereby maintaining network stability and prioritizing essential data delivery.\n\n- #475 \nThere's no effective way to keep two subscriptions with identical priority in sync, which becomes problematic when one subscription experiences delays (such as during transcoding), potentially causing them to drift out of sync and impact the quality of experience, especially for low-latency use cases.\n\n- #534 \nThe author proposes allowing for at least padding unidirectional streams, which can then be used for probing.\n\n- #1101 \nThe issue raises concerns about how to achieve a smooth, gapless switch between two synchronized media tracks in MOQT, such as switching video quality (ABR) or audio languages, using the existing SUBSCRIBE and SUBSCRIBE_UPDATE methods, possibly with track priorities. The goal is to avoid both interruptions and duplicate delivery of the same content during the switch, particularly for live streaming. Previous attempts to address this issue with track priorities have led to conflicting approaches, highlighting ambiguities and limitations in the current protocol. The discussion aims to identify and address these shortcomings and initiate work on protocol improvements to enable reliable and seamless track switching.\n\n**What we have now:**\n\nAs advocates of client-side ABR and server-assisted ABR techniques, we implemented the following:\n- The first ABR demo that used client-side information, such as client bandwidth measured on the client side and some congestion signals, such as late-arriving MOQ groups. \n- Bandwidth probing from the relay to assist the client in doing ABR.\n\nWe also proposed a [solution](https://datatracker.ietf.org/doc/draft-gurel-moq-track-switching/) to merge subscribe and unsubscribe operations and do an atomic track switch on the relay and published our results [here](https://ieeexplore.ieee.org/document/11152184) ([Stockholm interim slides](https://datatracker.ietf.org/meeting/interim-2025-moq-09/materials/slides-interim-2025-moq-09-sessa-track-switching-made-easy-in-media-over-quic-transport-00)). Our results showed advantages of letting the (edge) relay control the switching process.\n\nWe believe that a SWITCH message in MOQT is necessary to address the track switching problem properly and pave the way for developing robust ABR implementations. \n\nThis message ensures smooth transitions between alternative tracks, eliminating any gaps or overlaps in content download and transmission during the switch. It also handles cases where the groups/objects are not necessarily arriving at the relay at the same time.\n\nA demo showing ABR with the current messages and parameters is available [here](https://abr.moqtail.dev/). The same demo, featuring a SWITCH message, will be available soon.",
       "createdAt": "2025-11-04T21:28:11Z",
-      "updatedAt": "2026-06-11T21:18:48Z",
+      "updatedAt": "2026-10-02T17:19:02Z",
       "closedAt": null,
       "comments": [
         {
@@ -43674,14 +43711,17 @@
       "state": "OPEN",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "ianswett"
+      ],
       "labels": [
+        "Needs PR",
         "Subscribe",
         "Joining Fetch Dissent"
       ],
       "body": "Assuming Joining FETCH stays as is, there is an optimization to joining at the current Group that I believe is worth considering.\n\nJust because there is a Largest Object, doesn't mean all Objects less than that are available.  This means that a Joining FETCH could be blocked waiting for Objects the Relay has never seen.\n\nFor example, if there was a base layer and a temporal enhancement layer, and the base layer was higher priority, a Relay might have all of the base layer and none of the enhancement layer.  If a Joining FETCH came in, the Subscriber would receive the first Object in the base layer and then be stuck there until the enhancement layer started arriving.\n\nIn some cases, this is just underutilizing the available bandwidth, but in other cases if the enhancement layer doesn't arrive within the delivery timeout, the playback can't begin.\n\nIn contrast, if both the Joining FETCH and SUBSCRIBE start at the beginning of the current Group, the FETCH could skip over any Objects (PR #1331) that are not yet available and then they'd be delivered via SUBSCRIBE.\n\nThe farther back in time the FETCH is, the less likely this is an issue, but I think it could be a substantial issue for the \"Join at the current Group\" case that we expect to be extremely common.",
       "createdAt": "2025-11-05T22:52:36Z",
-      "updatedAt": "2026-04-29T17:32:39Z",
+      "updatedAt": "2026-10-02T17:06:42Z",
       "closedAt": null,
       "comments": [
         {
@@ -43795,6 +43835,13 @@
           "body": "We can't close this until at least https://github.com/moq-wg/moq-transport/pull/1362 is landed.",
           "createdAt": "2026-04-29T17:32:39Z",
           "updatedAt": "2026-04-29T17:32:39Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@ianswett agreed to write a new version of current group now that fill fetch has landed",
+          "createdAt": "2026-10-02T17:06:42Z",
+          "updatedAt": "2026-10-02T17:06:42Z"
         }
       ]
     },
@@ -48194,15 +48241,17 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
-        "vasilvv"
+        "vasilvv",
+        "ianswett"
       ],
       "labels": [
         "Needs PR",
+        "Needs Discussion",
         "Design"
       ],
       "body": "For FETCH, we say:\n\n> If the upstream FETCH fails, the relay sends a REQUEST_ERROR and can reset the unidirectional stream.\n\nI do wonder what logic should be for SUBSCRIBE errors.  Do we need to propagate REQUEST_ERROR code from the original publisher?  Do we want to cache it?  In HTTP, we sometimes want to cache those (to avoid the upstream server being overloaded), and sometimes we don't.",
       "createdAt": "2026-03-30T17:31:36Z",
-      "updatedAt": "2026-06-11T21:15:12Z",
+      "updatedAt": "2026-10-02T16:18:35Z",
       "closedAt": null,
       "comments": [
         {
@@ -48987,7 +49036,7 @@
       ],
       "body": "I was just reading the draft-18 text regarding namespace prefixes and full track names and wanted to clarify the rules for our implementation. \n\nI understand the use-case for zero element namespace prefixes, but wanted to check that publishing a track with a zero element namespace is allowed, and in theory, given the text as it is today, a track with a zero element namespace AND an empty name is also allowed?",
       "createdAt": "2026-05-21T10:50:20Z",
-      "updatedAt": "2026-09-25T17:24:46Z",
+      "updatedAt": "2026-10-02T20:41:56Z",
       "closedAt": null,
       "comments": [
         {
@@ -49045,6 +49094,13 @@
           "body": "I believe there was fairly broad support for: Everything has to be at least one character long, but we'll allow zero tuple namespace, because one might want to be an authoritative publisher for all tracks (ie: The default upstream) or Subscribe to all Namespaces and/or Tracks.\n\nAs Cullen noted, this is similar to the rules around filesystems.  To my knowledge, no filesystems allow zero-length file or directory names.\n\nAlso, it seems like our serialization algorithm might not actually be a bijection as it stands today, which is a fairly major issue that needs fixing.",
           "createdAt": "2026-09-25T16:44:07Z",
           "updatedAt": "2026-09-25T16:44:07Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": ">  Subscribe to all Namespaces and/or Tracks.\n\nI think there's confusion between Track Namespace and Track Namespace _Prefix_.  A Track Namespace Prefix _can_ have 0 tuples -- e.g. I want to SUB_NS * or PUB_NS *.  The question was really: can there be tracks in the 0-tuple _Track Namespace_ (e.g. `--track`).  \n\n> Everything has to be at least one character long, but we'll allow zero tuple namespace\n\nThat solves the bijection problem, but not the issue I was trying to answer.  Can I PUBLISH or SUBSCRIBE to `--track`?",
+          "createdAt": "2026-10-02T20:41:56Z",
+          "updatedAt": "2026-10-02T20:41:56Z"
         }
       ]
     },
@@ -49056,16 +49112,13 @@
       "state": "OPEN",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
-      "assignees": [
-        "martinduke"
-      ],
+      "assignees": [],
       "labels": [
-        "Needs PR",
-        "BLOCKED"
+        "Needs PR"
       ],
       "body": "I don't think the text is clear about what happens when there isn't enough bidi stream credit to send a request. Specifically, does the responsibility to retry lie with MOQT or with the application?\n\nWe got rid of REQUEST_BLOCKED, and it would be sad to pipe OnCanOpenBidiStream() from QUIC all the way up to the application, so it seems worthwhile to just have MOQT track pending bidi streams.\n\nBut we have PUBLISH_BLOCKED, which I guess is a way for a subscriber to SUBSCRIBE (where it might have credit). But this is the inverse of SUBSCRIBE_BLOCKED, where the publisher could potentially deliver the stream, but there's no SUBSCRIBE_BLOCKED message.\n\nAt the very least, the draft should spell out what is required for interoperability, and ideally what MOQT is doing vs. what applications do, so\n(1) What request streams are retried by MOQT vs. requiring the application to do something?\n(2) When is the peer expected to try the SUBSCRIBE/PUBLISH inverse because the other direction is blocked?\n(3) If both directions are blocked, who is responsible for finally opening it? Will we just let the messages cross and let the tiebreaker rules in 5.1 do their thing?\n\nIt would be nice to actually clean this up conceptually as well.\n\n",
       "createdAt": "2026-05-29T22:30:34Z",
-      "updatedAt": "2026-09-25T18:16:47Z",
+      "updatedAt": "2026-10-01T18:51:50Z",
       "closedAt": null,
       "comments": [
         {
@@ -49545,7 +49598,7 @@
       ],
       "body": "Section 10.4 says \"A GOAWAY MAY also be sent on a request stream to initiate migration of that individual request.\" and \"A client MUST send a zero-length New Session URI in any GOAWAY, as clients cannot instruct servers to initiate connections.\"\n\nWe may want to add some further restrictions to this:\n- Only the recipient of a SUBSCRIBE can send a GOAWAY for it.\n- Only the sender of a PUBLISH can send a GOAWAY for it.\n- Only the recipient of a FETCH can send a GOAWAY for it.\n\nIn general, only the endpoint that is sending the data for the track should be able to send a GOAWAY. I don't really see why the other endpoint would want to send a GOAWAY for it.",
       "createdAt": "2026-06-09T14:22:56Z",
-      "updatedAt": "2026-08-13T19:50:38Z",
+      "updatedAt": "2026-10-03T00:00:40Z",
       "closedAt": null,
       "comments": [
         {
@@ -49568,6 +49621,13 @@
           "body": "Here's my specific proposal:\n\nNon-subscriptions are Recipient Only.\n\nSent by subscriber, only publisher can send GOAWAY:\n\nTRACK_STATUS and FETCH\nSUBSCRIBE_NAMESPACE/SUBSCRIBE_TRACKS\n\nSent by publisher, only subscriber can send GOAWAY:\n\nPUBLISH_NAMESPACE --> subscriber only\n\nFor subscriptions it's muddier:\n\nclient PUBLISH --> server can GOAWAY (please publish that over _here_).  Client can GOAWAY (drain), the server can't open a new URI, but we _could_ use this to cause the server to send a SUBSCRIBE to a new namespace/name on the same session.  Not sure we should, though.  Likely there are better ways to accomplish the same -- client can just PUBLISH under the new track.\n\nclient SUBSCRIBE --> server can GOAWAY (please subscribe to that over _here_).  Client cannot GOAWAY (nothing to drain, can't ask the server to publish a track to another URL or under another namespace/name).\n\nserver PUBLISH --> server can GOAWAY (drain), possibly indicate a URI/track/namespace to subscribe instead?  Like client PUBLISH, I'm not sure if the publisher's drain concept should be interpreted by the subscriber to SUBSCRIBE to a specific track - switching verbs is strange?\n\nserver SUBSCRIBE --> server doesn't need GOAWAY here, it can just unsubscribe?  The same verb-switching argument applies - server could ask the client via GOAWAY to go PUBLISH that track elsewhere, but strikes me as odd.  Client can GOAWAY (drain) but the server cannot establish a connection elsewhere, could potentially SUBSCRIBE on the same session to a different track.\n\nI'm not sure that generalizes or not.",
           "createdAt": "2026-08-13T19:50:38Z",
           "updatedAt": "2026-08-13T19:50:38Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Ok, after working though all the cases again, I think we can go with the straightforward answer: only the receiver of a request can send a GOAWAY for it.\n\nThe two cases where e.g. a relay (server) was the initiator of a request were:\n\nRelay sent a PUBLISH\nRelay sent a SUBSCRIBE\n\nWhile it makes sense for the relay to be able to GOAWAY the entire session here, these two specific requests don't really make sense to redirect elsewhere, because it implies a verb change (If the relay sent a PUBLISH and sends a GOAWAY, it means \"go SUBSCRIBE here\").\n\nHowever, the relay would only have sent a PUBLISH or SUBSCRIBE if the client also had sent a SUBSCRIBE_TRACKS or PUBLISH_NAMESPACE, and the relay _is_ the receiver of those.  So it should just leave the subscriptions alone and move the higher level requests.",
+          "createdAt": "2026-10-03T00:00:40Z",
+          "updatedAt": "2026-10-03T00:00:40Z"
         }
       ]
     },
@@ -50054,11 +50114,12 @@
         "fluffy"
       ],
       "labels": [
-        "Needs PR"
+        "Needs PR",
+        "Needs Discussion"
       ],
       "body": "In the moqt URI definition, I think we should require the query to always be in the form of a set of key=value pairs or just key with no value and the some part of the key namespace should be registered in FCFS IANA table. \n\nThis would make it much easier to define extension that used a query parameter and know they did not conflict with others. \n\n(this is likely a extension design level issue) ",
       "createdAt": "2026-06-14T14:28:03Z",
-      "updatedAt": "2026-07-24T09:10:09Z",
+      "updatedAt": "2026-10-02T16:19:11Z",
       "closedAt": null,
       "comments": [
         {
@@ -50279,12 +50340,11 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "NotTransport",
-        "Design"
+        "NotTransport"
       ],
       "body": "Given the  often relays are operated by different operator than clients, figuring out out problems can be very hard.  We should add an RFC 5706 style. Management Considerations section. \n\nThis should add functionally for end subscribers and original publishers to get appropriate management information from the relay about their sessions. ",
       "createdAt": "2026-06-14T14:46:20Z",
-      "updatedAt": "2026-07-22T12:55:15Z",
+      "updatedAt": "2026-10-02T17:02:15Z",
       "closedAt": null,
       "comments": [
         {
@@ -50680,7 +50740,7 @@
       ],
       "body": "I think we have agreed in discussing all the make before break stuff, that if two publishers publish same namespace, the relay needs to upstream the subscribe to both. \n\nThe spec says \n\n> A subscriber MAY send a SUBSCRIBE or FETCH for a track to any\n> publisher. \n\nBut I think it should say \n\n> A subscriber MUST send a SUBSCRIBE for a track to all the\n> publisher. \n\nI don't know that we discussed what to do with FETCH so that is a separate issue of what to do with it but it seems to me like it needs to be the same. \n\n\n",
       "createdAt": "2026-06-14T15:44:03Z",
-      "updatedAt": "2026-09-07T19:30:01Z",
+      "updatedAt": "2026-10-02T22:53:21Z",
       "closedAt": null,
       "comments": [
         {
@@ -50696,6 +50756,13 @@
           "body": "@fluffy I put up a PR that I think would have reduced your confusion that led to this issue. I will say the whole section is on the block for a rewrite, so this might not be the last word.",
           "createdAt": "2026-09-07T19:30:01Z",
           "updatedAt": "2026-09-07T19:30:01Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "#1946 rewrote this sentence:\n\n> A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher.\n\nbecame\n\n> A subscriber MAY send SUBSCRIBE, FETCH or TRACK_STATUS for tracks in a namespace without having \n> received a PUBLISH_NAMESPACE for it.\n\nThe linked PR adds one more sentence which is a forward ref to the relay section which explains the rules you are thinking of.",
+          "createdAt": "2026-10-02T22:53:21Z",
+          "updatedAt": "2026-10-02T22:53:21Z"
         }
       ]
     },
@@ -50743,12 +50810,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Needs Discussion",
+        "Needs PR",
         "Past Deadline"
       ],
       "body": "draft has text that says \n\n> Relays MAY ignore subsequently received Objects or MAY use them to\n> update certain cached fields. Implementations that update the cache\n> need to protect against cache poisoning. The only Object fields that\n> can be updated are the following:\n> 1. Object can transition from existing to not existing in cases\n> where the object is no longer available.\n> 2. Object Properties can be added, removed or updated, subject to\n> the constraints of the specific property.\n\nI think this is going to turn out be a bad idea on two axis.\n\n1. it is going to be insanity to allow things to go from non existing to existing. Other places we say that is not allowed \n\n2. allowing properties to change is going to be a very brittle particularly if only something do it. I think these need be described as the relay ignore any future properties from objects that are currently in cache and uses the cache values. \n\nWe need to phrase carefully because a relay might add a property like the NTP time it sent the object but for what it stores in cache, I think it need to never change. We also don't want clients relying on cache behavior that not all relays support. ",
       "createdAt": "2026-06-14T16:23:57Z",
-      "updatedAt": "2026-07-07T19:15:55Z",
+      "updatedAt": "2026-10-01T18:57:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -50764,6 +50831,13 @@
           "body": "@martinduke @gloinul please review for possible past-deadline and recommended next steps.",
           "createdAt": "2026-07-07T16:28:50Z",
           "updatedAt": "2026-07-07T16:28:50Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Heard that the wg discussed and the direction is - if you get a new object for something already in your cache - throw away the object and do not update the cache.",
+          "createdAt": "2026-10-01T18:56:56Z",
+          "updatedAt": "2026-10-01T18:56:56Z"
         }
       ]
     },
@@ -50784,7 +50858,7 @@
       ],
       "body": "The spec has\n\n> As described in Section 2.1, an endpoint can receive an Object after\n> it has already recorded that the Object does not exist. A caching\n> relay SHOULD NOT cache or forward the Object in this case.\n\nI think this should be a protocol error.  \n",
       "createdAt": "2026-06-14T16:25:50Z",
-      "updatedAt": "2026-08-24T17:18:56Z",
+      "updatedAt": "2026-10-01T19:02:46Z",
       "closedAt": null,
       "comments": [
         {
@@ -50842,6 +50916,13 @@
           "body": "My proposal would be to say if this happens, it is a malformed track. ( thanks Martin for pointing out not protocol error ). ",
           "createdAt": "2026-08-24T17:18:56Z",
           "updatedAt": "2026-08-24T17:18:56Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Heard that the wg talked about having the OP avoid the race by sending UNKNOWN instead of DOES NOT EXIST.  That helps some, but the problem might be that UNKNOWN isn't really a cacheable, and DNE is.  We might need two flavors of unknown - UNKNOWN_TRANSIENT and UNKNOWN_PERMANENT.",
+          "createdAt": "2026-10-01T19:02:46Z",
+          "updatedAt": "2026-10-01T19:02:46Z"
         }
       ]
     },
@@ -51798,11 +51879,12 @@
         "suhasHere"
       ],
       "labels": [
-        "Needs PR"
+        "Needs PR",
+        "Needs Discussion"
       ],
       "body": "The draft says\n\n> Implementations are advised to use timeouts to prevent resource\n> exhaustion attacks by a peer that does not send expected data within\n> an expected time. Each implementation is expected to set its own\n> timeouts.\n\nI think we need more guidance on how to set these and the bounds as this sounds like it likely to lead to high unpredictable results in deployments. \n\n",
       "createdAt": "2026-06-15T01:07:56Z",
-      "updatedAt": "2026-07-20T14:12:29Z",
+      "updatedAt": "2026-10-02T16:48:34Z",
       "closedAt": null,
       "comments": [
         {
@@ -52902,11 +52984,12 @@
         "suhasHere"
       ],
       "labels": [
-        "Needs PR"
+        "Needs PR",
+        "Needs Discussion"
       ],
       "body": "this came as part of msf discussion at IETF Vienna",
       "createdAt": "2026-07-24T14:17:16Z",
-      "updatedAt": "2026-07-30T19:06:36Z",
+      "updatedAt": "2026-10-02T16:48:36Z",
       "closedAt": null,
       "comments": []
     },
@@ -53335,7 +53418,7 @@
       ],
       "body": "The Range Filter introduced in MOQT v19 defines one or more Subgroup Filters, allowing subscribers to specify the subgroups they are interested in receiving. When a relay dynamically filters out one or more subgroups, the receiving subscriber may observe gaps in the Object ID sequence. To explicitly indicate that these missing objects were intentionally omitted by the applied range filters, rather than lost due to network congestion, MOQT may need a new **Prior Subgroup ID Gap** mechanism, analogous to the existing Prior Group ID Gap and Prior Object ID Gap fields.\n\n## Prior Subgroup ID Gap\n\nPrior Subgroup ID Gap only applies to Objects, not Tracks.\n\n- Prior Subgroup ID Gap (Property Type: 0x3F): A variable-length integer containing the number of Subgroups prior to the current Subgroup ID (within the current Group) that do not and will never exist because they were conditionally filtered out.\n \n(or similar spec. defined in 12.9 Prior Object ID Gap) ",
       "createdAt": "2026-08-06T07:03:38Z",
-      "updatedAt": "2026-09-07T20:12:06Z",
+      "updatedAt": "2026-10-02T16:04:34Z",
       "closedAt": null,
       "comments": [
         {
@@ -53379,6 +53462,13 @@
           "body": "@yuyou do you think the wg needs discussion on this issue or are you satisfied with your extension?",
           "createdAt": "2026-09-07T20:11:59Z",
           "updatedAt": "2026-09-07T20:11:59Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@yuyou do you think the wg needs discussion on this issue or are you satisfied with your extension?\n",
+          "createdAt": "2026-10-02T16:04:34Z",
+          "updatedAt": "2026-10-02T16:04:34Z"
         }
       ]
     },
@@ -53390,11 +53480,15 @@
       "state": "OPEN",
       "author": "wilaw",
       "authorAssociation": "CONTRIBUTOR",
-      "assignees": [],
-      "labels": [],
+      "assignees": [
+        "wilaw"
+      ],
+      "labels": [
+        "BLOCKED"
+      ],
       "body": "MSF is an example application which uses MOQT to transmit media data. MSF defines [Track and Object properties to signal that the payload is compressed](https://moq-wg.github.io/msf/draft-ietf-moq-msf.html#compression-signaling), along with an IANA registry to list various popular compression standards which might be used.\n\nThis requirement to signal that payloads are compressed is a general one for any application leveraging MOQT. Instead of having hundreds of applications defining different Track properties all saying that the payload is gzipped, this should be a core transport capability.\n\nSuggestion is for MOQT to define the following properties\n\n**Track Property** : Signals that ALL object payloads in the track are compressed using the specified algorithm.\n\n**Object Property:** Signals compression on individual object payloads using the specified algorithm, allowing a mixture of compressed and uncompressed objects within the same track.\n\nMOQT should also create an IANA registry listing compression types which can be referenced by these properties, for example gzip, Brotli, Zstandard etc. ",
       "createdAt": "2026-08-07T12:35:22Z",
-      "updatedAt": "2026-08-07T17:35:43Z",
+      "updatedAt": "2026-10-02T03:03:09Z",
       "closedAt": null,
       "comments": [
         {
@@ -53403,6 +53497,20 @@
           "body": "If we want to have such properties defined in a reusable place (e.g. not MSF), I would recommend an extension draft rather than the core draft.  The only properties we define in moq-transport are the ones required for basic operation (e.g. delivery timeout, gaps)",
           "createdAt": "2026-08-07T17:35:43Z",
           "updatedAt": "2026-08-07T17:35:43Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@wilaw are you dazzled by my logic above or would you like to have discussion time in Seattle on this issue?",
+          "createdAt": "2026-10-01T19:18:41Z",
+          "updatedAt": "2026-10-01T19:18:41Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think its fine if MSF defines these properties in the moqt registry.  That defnition can still stay in MSF draft.\n\n@wilaw  would that work for you ?",
+          "createdAt": "2026-10-02T03:03:09Z",
+          "updatedAt": "2026-10-02T03:03:09Z"
         }
       ]
     },
@@ -53422,7 +53530,7 @@
       ],
       "body": "I think this is a major interop issue, and it keeps biting me.\n\nThere are implicitly three roles in the moq-transport draft:\n- publisher\n- relay\n- subscriber\n\nWhile not stated, there's an implicit assumption that:\n- **publishers** should send `PUBLISH_NAMESPACE`\n- **subscribers** should send `SUBSCRIBE_NAMESPACE`\n- **relays** should wait for `PUBLISH_NAMESPACE` and `SUBSCRIBE_NAMESPACE`\n\nThe problem is that my library supports:\n- publishers connecting directly to subscribers (P2P): results in both messages\n- relays connecting to other relays (S2S): results in neither message.\n\n**There's no in-transport mechanism to know if the peer will PUBLISH or SUBSCRIBE.** \n\nMy workaround has been to always send both `PUBLISH_NAMESPACE` and `SUBSCRIBE_NAMESPACE`. But that's not ideal,  and then publishers complain that they get `PUBLISH_NAMESPACE` messages for random shit, as they expected the relay to wait for a `SUBSCRIBE_NAMESPACE`.\n\nThe other alternative is to have the application indicate if the peer is a relay just to decide whether to PUBLISH or not. I really don't like this approach.",
       "createdAt": "2026-08-10T17:09:30Z",
-      "updatedAt": "2026-09-07T20:20:25Z",
+      "updatedAt": "2026-10-02T16:05:20Z",
       "closedAt": null,
       "comments": [
         {
@@ -53494,6 +53602,13 @@
           "body": "> [@kixelated](https://github.com/kixelated) did I blow you away with my well-reasoned response or did you lose interest here?\n\nTo be honest, I stopped reading after: \"I suggest you take your argument to the list and see if you can find support.\" \n\nWe can just wait until others care about this so it's not just Luke vs Alan. I think this will be an interop issue for generic clients/CDNs.",
           "createdAt": "2026-09-07T20:20:04Z",
           "updatedAt": "2026-09-07T20:20:25Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@kixelated are you still asking for a change here and if so, what?",
+          "createdAt": "2026-10-02T16:05:20Z",
+          "updatedAt": "2026-10-02T16:05:20Z"
         }
       ]
     },
@@ -53671,10 +53786,12 @@
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion"
+      ],
       "body": "Since we originally discussed using Subscribe ID or Track Alias, Parameters and Track Properties were created.\n\nThere are some known problems with using Track Alias in SUBSCRIBE:\n1) It delays Object delivery if the SUBSCRIBE_OK arrives after the first Object.\n2) In cases when a Track Alias might be reused, it creates complexity, see PR #1856 \n3) It makes resource management of unknown tracks more complex, see https://github.com/englishm/moq-relay-dos/issues/29\n\nMaking Track Alias a Parameter is a fairly straightforward change.",
       "createdAt": "2026-09-01T02:13:17Z",
-      "updatedAt": "2026-09-13T21:53:21Z",
+      "updatedAt": "2026-10-01T18:52:45Z",
       "closedAt": null,
       "comments": [
         {
@@ -53709,14 +53826,32 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
+        "vasilvv",
         "suhasHere"
       ],
-      "labels": [],
+      "labels": [
+        "BLOCKED"
+      ],
       "body": "There are currently at least three ways a subscription can be paused:\n\n1. Explicit request from the subscriber.\n2. Top-N filters.\n3. SSTS.\n\nWe should define how those interact. I believe we currently do that by having all of them change a single FORWARD flag.  If I manually pause all tracks in an SSTS set, will one of them unpause if the best selected track changes?  That would be weird.\n\nRelated PR: #1825\n",
       "createdAt": "2026-09-01T17:04:55Z",
-      "updatedAt": "2026-09-01T17:04:55Z",
+      "updatedAt": "2026-10-01T19:18:00Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@vasilvv is this an extensibility issue in the core transport, or something the Top-N and SSTS extension documents need to address?",
+          "createdAt": "2026-10-01T19:17:18Z",
+          "updatedAt": "2026-10-01T19:17:18Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Or @suhasHere since this issue is assigned to you - any thoughts?",
+          "createdAt": "2026-10-01T19:17:49Z",
+          "updatedAt": "2026-10-01T19:17:49Z"
+        }
+      ]
     },
     {
       "number": 1897,
@@ -53728,13 +53863,13 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "Needs Discussion",
         "Wire Format",
-        "Parked",
         "Fetch"
       ],
       "body": "Especially now that Fill-Fetch has landed (#1673), it's odd to have an End Location in FETCH_OK.\n\nThe End Location is the end of the specified range, unless it's relative or the end of the Fetch goes past Largest Object, in which case you end at Largest Object.\n\nIt's also odd to have 'End Of Track' IMO, because it's another difference with Fill-Fetch and it's not clear it's always necessary and might cause the FETCH_OK to take longer.  ie: Say I receive a FETCH for a single Group in the past, and I'm not currently subscribed to the Track, I don't know whether it has ended yet or not, so I'd need to figure that out.\n\nObservation from reviewing #1895",
       "createdAt": "2026-09-02T12:48:45Z",
-      "updatedAt": "2026-09-08T18:09:12Z",
+      "updatedAt": "2026-10-02T17:02:43Z",
       "closedAt": null,
       "comments": [
         {
@@ -54042,10 +54177,12 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion"
+      ],
       "body": "Assume the latest object received by the relay is `{5, 12}`, and it has the end of group bit set.  What is the value of the Largest Object?  Is it `{5, 12}`, or `{5, UINT64_MAX}`?\n\nFrom the current text, I think it's the earlier.\n\nFrom the semantics we expect from fetch, I would assume it's actually the latter, since you know objects `{5, k}` do not exist for all `k > 12`.",
       "createdAt": "2026-09-08T00:14:00Z",
-      "updatedAt": "2026-09-09T05:51:23Z",
+      "updatedAt": "2026-10-01T19:16:24Z",
       "closedAt": null,
       "comments": [
         {
@@ -54080,7 +54217,7 @@
       "id": "I_kwDOG2Ho4M8AAAABQX5ELw",
       "title": "Consider changing the 'Length' field in Location Filter to an enum",
       "url": "https://github.com/moq-wg/moq-transport/issues/1937",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -54089,8 +54226,8 @@
       ],
       "body": "When reviewing, #1913 I realized that we don't have to use a Length and instead we can use an enum that indicates how many varints followed.  I believe when this was originally designed, Parameters were either varint or TLV, so the design made sense at that time.\n\nThis would allow us to remove the special case for 0, 0 -> Largest Object.  We could also create a 'Null' filter enum value that forwards no Objects like the existing FORWARD param if we wanted to.\n\nFrom a wire format perspective, the length is likely to always be a byte, so its a wash.",
       "createdAt": "2026-09-09T01:26:17Z",
-      "updatedAt": "2026-09-21T16:44:02Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-01T18:17:41Z",
+      "closedAt": "2026-10-01T18:17:41Z",
       "comments": [
         {
           "author": "afrind",
@@ -54138,10 +54275,12 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial"
+      ],
       "body": "In 3.6 \"Mandatory to understand track properties\"\n\n>`For SUBSCRIBE_OK messages: the subscriber MUST cancel the subscription (see [Section 6.4.2.3](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#request-cancellation)). If the subscriber is a relay with pending downstream subscribers, it MUST send REQUEST_ERROR with error code UNSUPPORTED_EXTENSION to the downstream subscribers.\n\nTo cancel the subscription it would set RESET_STREAM with some code. There's no code UNSUPPORTED_EXTENSION so I  suppose it'd just use CANCELED.\n\nBut then it says:\n\n> A publisher that knows a subscriber does not support a Mandatory Track Property SHOULD take the following action:\n> \n> For SUBSCRIBE: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.\n> \n> For FETCH: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.\n> \n> For PUBLISH: do not publish the track to that subscriber.\n\nHow could it ever know this? When it sends a track with an unsupported policy, it'll get back a generic reset code.\n\nYou could add a specific Stream reset code for this, or specify what other means a publisher could find this out. Or you could just delete that block.",
       "createdAt": "2026-09-10T21:30:44Z",
-      "updatedAt": "2026-09-16T21:26:34Z",
+      "updatedAt": "2026-10-01T19:06:51Z",
       "closedAt": null,
       "comments": [
         {
@@ -54279,11 +54418,15 @@
       "state": "OPEN",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
-      "labels": [],
+      "assignees": [
+        "vasilvv"
+      ],
+      "labels": [
+        "BLOCKED"
+      ],
       "body": "What should an original publisher do?  A relay?\n\nDoes sending uint64_max mean that a relay will never send a NEW_GROUP_REQUEST again?",
       "createdAt": "2026-09-17T20:36:21Z",
-      "updatedAt": "2026-09-25T18:25:13Z",
+      "updatedAt": "2026-10-01T19:15:45Z",
       "closedAt": null,
       "comments": [
         {
@@ -54299,6 +54442,20 @@
           "body": "Can't we make NGR values > Largest Group + 1 a protocol violation?",
           "createdAt": "2026-09-25T18:25:13Z",
           "updatedAt": "2026-09-25T18:25:13Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Can't we make NGR values > Largest Group + 1 a protocol violation?\n\nMaybe the subscriber got information from a fresher publisher?  I think what we have is ok.",
+          "createdAt": "2026-10-01T19:06:23Z",
+          "updatedAt": "2026-10-01T19:06:23Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@vasilvv did I convince you this isn't an issue or you want to discuss this in Seattle",
+          "createdAt": "2026-10-01T19:15:42Z",
+          "updatedAt": "2026-10-01T19:15:42Z"
         }
       ]
     },
@@ -54387,10 +54544,12 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs PR"
+      ],
       "body": "In Sec 6.2.4.1 \"Request ID\" it says\n\n> If an endpoint receives a Request ID where the least significant bit is incorrect for the sender, or a duplicate Request ID, it MUST close the session with INVALID_REQUEST_ID.\n\nThis is not really implementable. With infinite memory, the receiver could store all request IDs that have been seen. In the past @afrind suggested that one could use the maximum stream credit has a lower bound on request IDs that could be outstanding. But this doesn't work; first of all, max stream credit is not available in Webtransport APIs. Further, it's not sufficient: in an endpoint sends a bunch of requests and then resets them, the receiver may never process some request IDs, which appears to it exactly as if the peer skipped some request IDs. Thus, the set of missing request IDs is unbounded.\n\n(1) At a minimum, I would like the \"if it detects a duplicate Request ID\" weasel words. \n\nThese 2 other proposals are Past Deadline:\n\n(2) I don't see any use for a request ID in SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, REQUEST_UPDATE, or TRACK_STATUS, and would be happy to delete these fields entirely.\n\n(3) At the maximum level of effort, we could get rid of request IDs entirely and use QUIC stream IDs to reference other requests. This would also be a WT API change, but would allow all the ID validation machinery to be outsourced to QUIC.",
       "createdAt": "2026-09-22T17:25:20Z",
-      "updatedAt": "2026-09-25T18:29:18Z",
+      "updatedAt": "2026-10-01T19:15:04Z",
       "closedAt": null,
       "comments": [
         {
@@ -54406,6 +54565,13 @@
           "body": "Yes, adding text that if you detect a duplicate, you SHOULD/MUST close the session with an error sounds sensible.  I thought we already said that, but maybe not.\n\nOn 3, Alan reminded me that we use Request ID in REQUEST_UPDATE in the resulting Fill-Fetch stream header.",
           "createdAt": "2026-09-25T18:29:17Z",
           "updatedAt": "2026-09-25T18:29:17Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> (3) At the maximum level of effort, we could get rid of request IDs entirely and use QUIC stream IDs to reference other requests. This would also be a WT API change, but would allow all the ID validation machinery to be outsourced to QUIC.\n\nI think this ship sailed many years ago and I think we should just live with request ID in our protocol, and stop suggesting ways to remove it.  WebTransport's wc3 API is close to final.\n\nOn the actual issue, let's soften it to say you close if you detect a duplicate, rather than mandating duplicate detection.",
+          "createdAt": "2026-10-01T19:15:00Z",
+          "updatedAt": "2026-10-01T19:15:00Z"
         }
       ]
     },
@@ -54418,10 +54584,13 @@
       "author": "kidq330",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs PR",
+        "Needs Discussion"
+      ],
       "body": "Was playing around with generating a quint model for the draft and found this trace (1 object per group):\n\nRelay has a paused upstream subscription for the track. Its Largest Object is (0,0).\nOrigin publishes (1,0), not sent because of the pause ([\u00a73.1](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.1)). Largest Object is (0,0) at the relay and (1,0) at the origin.\nDownstream subscriber sends SUBSCRIBE, Next Object, Forward=1.\nRelay responds with SUBSCRIBE_OK, Largest Object (0,0) ([\u00a77.5](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-7.5), [\u00a79.20.18](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-9.20.18)). Next Object is relative to the relay ([\u00a73.1.3](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.1.3)).\nRelay resumes the upstream with REQUEST_UPDATE Forward=1 ([\u00a77.5](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-7.5)). Origin responds with REQUEST_UPDATE_OK, Largest Object (1,0).\nOrigin publishes (2,0), relay forwards it to the subscriber.\n\nThis is legal per draft-21, but the subscriber holds a stale Largest Object and has no way of knowing there is a discontinuity, or that it would have to FETCH (1,0). A fill does not help, because its range is [bounded by the same Largest Object](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.4-2), so it ends at (0,0). [\u00a79.20.18](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-9.20.18) lists REQUEST_UPDATE_OK as an input to the relay's Largest Object, but nothing requires the relay to wait for it before sending SUBSCRIBE_OK.\n\nI was able to get moxygen to reproduce this behaviour with a relay unit test: https://github.com/kidq330/moxygen/commit/c2ee229362cfa8bcf3022690a240f1aa983f9846",
       "createdAt": "2026-09-27T22:53:45Z",
-      "updatedAt": "2026-09-29T18:40:16Z",
+      "updatedAt": "2026-10-01T19:12:57Z",
       "closedAt": null,
       "comments": [
         {
@@ -54444,6 +54613,13 @@
           "body": "As Alan said, I think we need new text that says you can't send a Largest Object that might be stale. The most obvious example is the upstream subscription is paused or there's no upstream subscription at all.  In those cases, I think it's pretty clear that you shouldn't send your cached Largest Object.",
           "createdAt": "2026-09-29T18:40:16Z",
           "updatedAt": "2026-09-29T18:40:16Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think we know what to write, let's make a PR to have something to discuss with the wg in Seattle.",
+          "createdAt": "2026-10-01T19:12:52Z",
+          "updatedAt": "2026-10-01T19:12:52Z"
         }
       ]
     },
@@ -54456,10 +54632,13 @@
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion",
+        "Fetch"
+      ],
       "body": "The spec says FETCH can have a LOCATION_FILTER, but if that filter uses the \"N groups back\" form, the standalone fetch has no subscription to anchor it.  If it was supposed to be relative, it needs to be in a FILL_PARAMS.",
       "createdAt": "2026-09-29T18:55:19Z",
-      "updatedAt": "2026-09-30T02:39:05Z",
+      "updatedAt": "2026-10-01T18:27:45Z",
       "closedAt": null,
       "comments": [
         {
@@ -54475,6 +54654,13 @@
           "body": "Not quite - in a standalone fetch there\u2019s no subscription to anchor to, so what does it even mean to say FETCH -4?  If it\u2019s intended to be relative to a subscription, send REQUEST_UPDATE + FILL_PARAMS + LOCATION_FILTER -4.\n\nOr, even better - the subscriber does their own subtraction and sends a FETCH with an absolute range.",
           "createdAt": "2026-09-30T02:39:05Z",
           "updatedAt": "2026-09-30T02:39:05Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Ian points out that the End of a fetch might also need a live Largest Object.  If that's true, maybe it is ok that the beginning also does?",
+          "createdAt": "2026-10-01T18:27:31Z",
+          "updatedAt": "2026-10-01T18:27:31Z"
         }
       ]
     },
@@ -54486,13 +54672,16 @@
       "state": "OPEN",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "ianswett"
+      ],
       "labels": [
+        "Editorial",
         "Publish"
       ],
       "body": "Currently we say: \"  If, for example, the publisher disconnects from\na relay and later reconnects and sends a new PUBLISH, the relay MAY send the new\nPUBLISH downstream.\"\n\nI don't think this is helpful, because if you establish a new session, the state is entirely different and the old SUBSCRIBE_TRACKS and PUBLISH_SKIPPED aren't relevant.\n\nIf we added an ID to indicate the SUBSCRIBE_TRACKS that caused a PUBLISH, I think that would make it clear, since we could say \"You won't get a PUBLISH with the ID of the SUBSCRIBE_TRACKS\"",
       "createdAt": "2026-09-29T19:55:36Z",
-      "updatedAt": "2026-09-29T20:50:38Z",
+      "updatedAt": "2026-10-01T19:12:17Z",
       "closedAt": null,
       "comments": [
         {
@@ -54515,6 +54704,13 @@
           "body": "Thanks for clarifying, I clearly misread it.  I think it'd be a bit clearer if it said Original Publisher, but I admit it could be any Publisher in theory?",
           "createdAt": "2026-09-29T20:50:38Z",
           "updatedAt": "2026-09-29T20:50:38Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm inclined to close with no action - it's exactly what is says on the tin:\n\n> If, for example, the publisher disconnects from a relay and later reconnects and sends a new PUBLISH, the relay MAY send the new\nPUBLISH downstream.",
+          "createdAt": "2026-10-01T19:12:08Z",
+          "updatedAt": "2026-10-01T19:12:08Z"
         }
       ]
     },
@@ -54527,10 +54723,13 @@
       "author": "lminiero",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion",
+        "Fetch"
+      ],
       "body": "I'm having trouble understanding all the ways FILL_PARAMETERS can be used. I _think_ I implemented it correctly for SUBSCRIBE and REQUEST_UPDATE, but the text is unclear when it comes to SUBSCRIBE_TRACKS.\n\nIn 10.20.1, the text says:\n\n> To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a Location Filter and optionally include FILL_PARAMETERS, as described in [Section 5.1.6](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-20#joining-tracks).\n\nThis seems to suggest that you can add a FILL_PARAMETERS to the SUBSCRIBE_TRACKS request, and those will somehow automatically apply to all the PUBLISH triggered accordingly, which seems wrong: the text also says FILL_PARAMETERS can only appear in SUBSCRIBE and REQUEST_UPDATE for subscriptions, and that \"any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid in SUBSCRIBE_TRACKS, unless otherwise specified\", but it still seems flaky.\n\nI wonder if the intended flow when SUBSCRIBE_TRACKS is involved is actually this?\n\n1. subscriber sends SUBSCRIBE_TRACKS\n2. PUBLISH is triggered\n3. subscriber sends REQUEST_UPDATE with FILL_PARAMETERS, after the REQUEST_OK",
       "createdAt": "2026-09-30T15:24:18Z",
-      "updatedAt": "2026-10-01T03:46:41Z",
+      "updatedAt": "2026-10-01T19:10:54Z",
       "closedAt": null,
       "comments": [
         {
@@ -54539,6 +54738,65 @@
           "body": "The intent was to have the publisher react like it received that fill params in a subscribe - eg send publish and open a fill fetch stream. The publish will echo the fill params.\n\nFor sure, the text is unclear, and I\u2019m not sure if it actually will work",
           "createdAt": "2026-10-01T03:46:19Z",
           "updatedAt": "2026-10-01T03:46:41Z"
+        }
+      ]
+    },
+    {
+      "number": 1963,
+      "id": "I_kwDOG2Ho4M8AAAABUbWmUw",
+      "title": "Parameter Restrictions in REQUEST_UPDATE, SUBSCRIBE_TRACKS",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1963",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Needs PR"
+      ],
+      "body": "In general, the draft dictates the authorized parameters in REQUEST_UPDATE based on what it is updating.\n\nFor example, SUBSCRIBER_PRIORITY can only update SUBSCRIBE, PUBLISH_OK, or FETCH.\n\nBut SUBGROUP_ and OBJECT_DELIVERY_TIMEOUT have no such restriction. This must be an oversight?\n\nFurthermore, 9.18.1 says \"Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid in SUBSCRIBE_TRACKS, unless otherwise specified.\"\n\nEditorially, it is bad that the discussions of individual parameters do not say \"SUBSCRIBE_TRACKS\" where they should, since this is where the implementer goes to figure out what parameters to enforce. More problematically, there are some SUBSCRIBE parameters (e.g. RENDEZVOUS_TIMEOUT) that do not make sense in the context of a SUBSCRIBE_TRACKS, and that isn't called out anywhere. It would be more accurate, IIUC, to say that anything that can appear in PUBLISH_OK can appear in SUBSCRIBE_TRACKS. But rather than play these games, the Parameters should be very explicit about what messages are acceptable.\n\nBetter yet, have three tables:\nParameters vs. every message that is not REQUEST_UPDATE or REQUEST_OK\n\nParameters vs. every type of message that can be REQUEST_UPDATED (All the request types plus PUBLISH_OK)\n\nParameters vs. every flavor of REQUEST_OK. (REQUEST_UPDATE_OK may get painful here because there are many flavors of REQUEST_UPDATE -- this is a bit of an implementation pain point).",
+      "createdAt": "2026-10-01T16:47:56Z",
+      "updatedAt": "2026-10-02T16:06:14Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I did start going down the table route, but it was large and I didn't think high value.  It also added a third place that could get out of sync.  That said, we can definitely tie up the loose ends here.",
+          "createdAt": "2026-10-01T19:10:32Z",
+          "updatedAt": "2026-10-01T19:10:32Z"
+        },
+        {
+          "author": "riedlse",
+          "authorAssociation": "NONE",
+          "body": "On the table route: I (well my uhhhhh Assistant) built the three tables against -22 to see how large they get and what they turn up. They are large (20 parameters across 29 kinds of message), but the proposal replaces the per-parameter \"MAY appear in\" sentences and the per-message lists. Scope would then be stated once instead of twice, rather than in a third place.\n\nEven if the tables don't go in, building them surfaced the loose ends. The two existing statements agree on 550 of 580 cells. The other 30 are contested or undefined, and five of them can end a session between two conformant implementations:\n\nF2: SUBSCRIBE_TRACKS lists 9 parameters, but Parameters on SUBSCRIBE_TRACKS admits any SUBSCRIBE parameter, which adds 7. -22 also says to put LOCATION_FILTER and FILL_PARAMETERS in the SUBSCRIBE_TRACKS to join, while neither the list nor those two definitions allow them there.\nF3: the two delivery timeouts allow any REQUEST_UPDATE, while the REQUEST_UPDATE definition allows them only for a subscription (Martin's first point, 8 cells).\nF4: SUBSCRIBE_TRACKS parameters are \"explicitly communicated in the PUBLISH\", but PUBLISH cannot carry 8 of them, including the Range Filters and FILL_PARAMETERS. So the echo described in #1962 is not allowed either.\nF5: TRACK_STATUS_OK must carry the parameters a SUBSCRIBE_OK would, which includes EXPIRES, but EXPIRES is not allowed there. EXPIRES in every _OK (#1964) fixes this one.\nF7: FILL_TIMEOUT and RENDEZVOUS_TIMEOUT have no stated encoding.\nOn #1964: the current text already allows EXPIRES in five of the six REQUEST_OK flavors, plus SUBSCRIBE_OK and PUBLISH. Only TRACK_STATUS_OK and FETCH_OK lack it. What \"every _OK\" still needs is what expiry does to a request that is not a subscription (F10).\n\nImplementations already diverge here: moq-dev's relay closed the session on parameters the draft allows until moq-dev/moq#4610 this week.\n\nThe two places already drift in open PRs: #1957 says DEFAULT_PUBLISHER_PRIORITY is updated by sending it in PUBLISH_STATE_NOTIFY, but neither its own definition nor the PUBLISH_STATE_NOTIFY list allows it there.\nFiles (attached): findings.md has 21 findings, each with line-cited quotes from the -22 source and a proposed resolution. tables.md has the three tables in kramdown-rfc, with every disputed cell marked \"?\" and its conflicting text quoted. evidence.json has all 580 cells with both quotes and line numbers.\nHappy to turn the tables into a PR if the editors want them. If not, findings.md works as the list of loose ends.\n\n[evidence.json](https://github.com/user-attachments/files/32969922/evidence.json)\n[tables.md](https://github.com/user-attachments/files/32969921/tables.md)\n[findings.md](https://github.com/user-attachments/files/32969923/findings.md)\n\n\n",
+          "createdAt": "2026-10-02T16:06:14Z",
+          "updatedAt": "2026-10-02T16:06:14Z"
+        }
+      ]
+    },
+    {
+      "number": 1964,
+      "id": "I_kwDOG2Ho4M8AAAABUbb2xw",
+      "title": "EXPIRES should be acceptable in more flavors of REQUEST_OK",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1964",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Needs PR"
+      ],
+      "body": "EXPIRES is clearly written as only for Subscriptions. IIUC, it is mostly about AUTH expiring. \n\nA couple of weird things about this:\n* It's legal in PUBLISH even though that is not necessarily tied to a SUBSCRIBE_TRACKS.\n* all the other request types have AUTH, but there's no way to communicate when those tokens expire, because most flavors of REQUEST_OK don't allow it.\n\nI can squint and see that maybe FETCH_OK and TRACK_STATUS_OK shouldn't have EXPIRES, because they are theoretically instantaneous. On the other hand, including EXPIRES in TRACK_STATUS_OK would be useful to say \"you'd better get a new token if you're coming back to SUBSCRIBE.\"\n\nBut it would be clearly useful in SUB_NS to include in EXPIRES.  SUB_TRACKS is arguable.\n\nI can go either way in the edge cases but overall this concept is under-baked.\n\n",
+      "createdAt": "2026-10-01T16:54:42Z",
+      "updatedAt": "2026-10-01T19:08:32Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think EXPIRES should just be legal in all the _OK messages.  As you say, all the requests can contain auth, and I won't stop a FETCH publisher who wants to drop the fetch the instant the auth token expires.",
+          "createdAt": "2026-10-01T19:08:29Z",
+          "updatedAt": "2026-10-01T19:08:29Z"
         }
       ]
     }
@@ -209393,7 +209651,7 @@
       "id": "PR_kwDOG2Ho4M7neV5w",
       "title": "Make Default Publisher Priority an updatable parameter",
       "url": "https://github.com/moq-wg/moq-transport/pull/1770",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "michalhosna",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -209403,14 +209661,14 @@
       ],
       "body": "Treat `DEFAULT_PUBLISHER_PRIORITY` as compression only hop-by-hop parameter. \r\n\r\nFixes: #1270\r\n\r\nSee discussiong there.",
       "createdAt": "2026-06-17T12:39:04Z",
-      "updatedAt": "2026-08-27T16:20:13Z",
+      "updatedAt": "2026-10-02T16:26:01Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e1ae858d5c4009253ea19bfed30e3b58c4399de3",
       "headRepository": "michalhosna/moq-transport",
       "headRefName": "mh/default-publisher-priority",
       "headRefOid": "15cbb8fa23b3d15ed64fddbd47079445162145f5",
-      "closedAt": null,
+      "closedAt": "2026-10-02T16:26:01Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -209428,6 +209686,13 @@
           "body": "Discussed 8/10: there was very little enthusiasm about doing more than what's currently in this PR to solve races, but also very little enthusiasm to do this at all.  The chairs sent out an [email](https://mailarchive.ietf.org/arch/msg/moq/gqei2X0Z9pmxOjirJwYYdILVba8/) on the list:\r\n\r\n> No one on the call would assert that this compression was a critical feature. However, the editors feel that some proponents were not present, so I've initiated this thread to allow any proponents to state the case that this is worth the logical and conceptual problems that it introduces.\r\n\r\nCC: @fluffy ",
           "createdAt": "2026-08-13T18:20:59Z",
           "updatedAt": "2026-08-13T18:20:59Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Moving to #1957",
+          "createdAt": "2026-10-02T16:26:01Z",
+          "updatedAt": "2026-10-02T16:26:01Z"
         }
       ],
       "reviews": [
@@ -210038,18 +210303,17 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Parked",
         "Editorial & Minor Design"
       ],
       "body": "Fixes #1664 ",
       "createdAt": "2026-06-18T03:25:16Z",
-      "updatedAt": "2026-06-29T18:52:43Z",
+      "updatedAt": "2026-10-03T15:27:41Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "385398b17544f9655450b514d506f430d81feebe",
+      "baseRefOid": "98b0a3cf563dd81e433301ac495c4b1e44bd9136",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "protocol-violation-structured-ranges",
-      "headRefOid": "a8192d492483589112aff2de0638c59ac77433a9",
+      "headRefOid": "18e73532a01005ad1dd2759abd4b98ac480c4be2",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -210077,7 +210341,46 @@
           "updatedAt": "2026-06-29T18:52:43Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABQfG6Pg",
+          "commit": {
+            "abbreviatedOid": "252c183"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Thanks again for kicking off this work.  I've merged main in and reviewed.  I'm going to push my proposal as a new commit on top here for comparison.",
+          "createdAt": "2026-10-03T14:56:36Z",
+          "updatedAt": "2026-10-03T15:14:44Z",
+          "comments": [
+            {
+              "originalPosition": 400,
+              "body": "I don't think we need normative text here - particularly the MAY might read overly permissive relative to earlier in the document that specify particular error codes for particular situation.\r\n\r\n...disallowed by the specification and no more specific code applies",
+              "createdAt": "2026-10-03T14:56:36Z",
+              "updatedAt": "2026-10-03T15:14:44Z"
+            },
+            {
+              "originalPosition": 411,
+              "body": "These ranges will be too narrow once we address #881 and redistribute the existing error codes into the control/data ranges.  I recommend we shift left 4 bits and give 256 codes per range.\r\n\r\nAlso, I have a slightly different carve up, basically \r\n\r\nData Plane, Control Plane, Either",
+              "createdAt": "2026-10-03T14:58:48Z",
+              "updatedAt": "2026-10-03T15:14:44Z"
+            },
+            {
+              "originalPosition": 532,
+              "body": "There are several problems with this structuring of the free-form error message.\r\n\r\n1) There are 3 somewhat conflicting normative keywords in this section SHOULD, OPTIONAL and MAY.\r\n2) it references MOQT reason phrase, but this message goes in the QUIC or WebTransport reason phrase section\r\n3) Including specific section numbers is overly prescriptive.  These are changing constantly as the document evolves, and implementations that support multiple versions theoretically need to keep a list of \"which section of the doc requires this check in which version\" in order to conform to a SHOULD\r\n4) Even post RFC, I don't think anyone is enthused about reffing the section numbers in code.  I suppose agents love to do this...\r\n5) Some errors can and will be implementation specific and won't have a section number\r\n\r\nI would leave it as is.  Implementations can (and will) include any message they want.",
+              "createdAt": "2026-10-03T15:03:57Z",
+              "updatedAt": "2026-10-03T15:14:44Z"
+            },
+            {
+              "originalPosition": 561,
+              "body": "I reviewed these and have a slightly different set:\r\n\r\n```\r\n  KEPT\r\n    MALFORMED_MESSAGE (0x30)            -> MALFORMED_MESSAGE (0x30)\r\n    INVALID_OBJECT_STATUS (0x23)        -> INVALID_OBJECT_STATUS (0x22)\r\n                                           + Properties on non-Normal Objects\r\n    INVALID_PARAMETER (0x31)            -> INVALID_PARAMETER (0x35)\r\n                                           - Type delta overflow (to DELTA_ENCODING_OVERFLOW)\r\n    ROLE_VIOLATION (0x41)               -> ROLE_VIOLATION (0x34)\r\n                                           - Track Name in Redirect (to INVALID_FIELD)\r\n    FIELD_LENGTH_EXCEEDED (0x51)        -> FIELD_LENGTH_EXCEEDED (0x41)\r\n                                           + 4,096-byte name limit\r\n\r\n  RENAMED\r\n    INVALID_HEADER_TYPE (0x20)          -> INVALID_STREAM_HEADER (0x20)\r\n                                           + unknown stream/datagram types\r\n    TRUNCATED_STREAM (0x21)             -> TRUNCATED_OBJECT (0x23)\r\n    INVALID_TRACK_NAME (0x50)           -> INVALID_TRACK_NAMESPACE (0x32)\r\n                                           - 4,096-byte limit (to FIELD_LENGTH_EXCEEDED)\r\n    FIELD_VALUE_OVERFLOW (0x52)         -> DELTA_ENCODING_OVERFLOW (0x40)\r\n\r\n  MERGED\r\n    into MALFORMED_OBJECT (0x21):\r\n      MISSING_PRIOR_OBJECT (0x26)\r\n      INVALID_SERIALIZATION_FLAGS (0x27)\r\n    into DELTA_ENCODING_OVERFLOW (0x40):\r\n      DATA_ID_OVERFLOW (0x22)\r\n    into INVALID_PARAMETER (0x35):\r\n      INVALID_REQUEST_TYPE (0x32)         Location Filter Type; Fetch Type is gone\r\n    into INVALID_FIELD (0x31):\r\n      INVALID_FETCH_RANGE (0x34)\r\n      MISPLACED_TRACK_PROPERTIES (0x35)\r\n    into UNEXPECTED_MESSAGE (0x33):\r\n      DUPLICATE_GOAWAY (0x33)\r\n      UNEXPECTED_RESPONSE_MESSAGE (0x36)\r\n      MESSAGE_ORDERING (0x42)\r\n    into PROTOCOL_VIOLATION (0x3):\r\n      STREAM_COUNT_EXCEEDED (0x24)        only a MAY -- returning this code means keeping extra state\r\n\r\n  SPLIT\r\n    INVALID_OBJECT_PROPERTIES (0x25)    non-Normal status         -> INVALID_OBJECT_STATUS\r\n                                        PROPERTIES bit, Length 0  -> MALFORMED_OBJECT\r\n    INVALID_STREAM_STATE (0x40)         closed control stream     -> CLOSED_CONTROL_STREAM\r\n                                        wrong first message       -> UNEXPECTED_MESSAGE\r\n\r\n  NEW\r\n    MALFORMED_OBJECT (0x21)             from MISSING_PRIOR_OBJECT, INVALID_SERIALIZATION_FLAGS,\r\n                                        and part of INVALID_OBJECT_PROPERTIES\r\n    INVALID_FIELD (0x31)                from INVALID_FETCH_RANGE, MISPLACED_TRACK_PROPERTIES\r\n    UNEXPECTED_MESSAGE (0x33)           from DUPLICATE_GOAWAY, UNEXPECTED_RESPONSE_MESSAGE,\r\n                                        MESSAGE_ORDERING, and part of INVALID_STREAM_STATE\r\n    CLOSED_CONTROL_STREAM (0x36)        from part of INVALID_STREAM_STATE\r\n    MALFORMED_KEY_VALUE (0x6)           rename of the existing KEY_VALUE_FORMATTING_ERROR\r\n```",
+              "createdAt": "2026-10-03T15:12:54Z",
+              "updatedAt": "2026-10-03T15:14:44Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 1774,
@@ -217530,10 +217833,12 @@
       "assignees": [
         "suhasHere"
       ],
-      "labels": [],
+      "labels": [
+        "Editorial & Minor Design"
+      ],
       "body": "Addresses #1655 by clarifying who can send `GOAWAY` on a request stream.\n\nNote: this diverges from the original proposal in #1655. Issue #1655 proposed restricting request-stream `GOAWAY` to the **data sender** (publisher). Based on review feedback (thanks @afrind), the rule was generalized to the **request receiver** so it applies uniformly across request types \u2014 including the case where a relay acting as a subscriber wants to redirect an upstream publisher via `GOAWAY` on the request stream.\n\n@sharmafb \u2014 flagging in case the broader rule is a concern relative to the original intent of #1655.",
       "createdAt": "2026-08-08T21:28:25Z",
-      "updatedAt": "2026-08-31T18:49:11Z",
+      "updatedAt": "2026-10-03T15:52:05Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "527686bc5f37fd9f6dcac20eddc8e30f67018718",
@@ -217544,7 +217849,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "See #1966 ",
+          "createdAt": "2026-10-03T00:03:38Z",
+          "updatedAt": "2026-10-03T00:03:38Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M8AAAABJedfpg",
@@ -217596,11 +217909,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "Needs Discussion",
         "Editorial & Minor Design"
       ],
       "body": "Fixes #1828 ",
       "createdAt": "2026-08-09T00:11:07Z",
-      "updatedAt": "2026-08-19T16:34:30Z",
+      "updatedAt": "2026-10-02T16:27:20Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "257d25b9c6fc8fb95226b29dcbe227def4eeff82",
@@ -221076,13 +221390,13 @@
       ],
       "body": "Extracts the SetID evaluation rules into a dedicated Filter Sets subsection under Range Filters and adds worked examples of AND, OR, mixed conjunctions, and relay aggregation.",
       "createdAt": "2026-09-01T21:26:41Z",
-      "updatedAt": "2026-09-24T18:21:00Z",
+      "updatedAt": "2026-10-01T18:18:30Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "7ee597838d926f8189a1f88e442802d435324a1e",
+      "baseRefOid": "52bac14ddf112d8742813e08faafd5b8e2ac7288",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "range-set-id",
-      "headRefOid": "c5c9ea4da39a2b92ef6deaa9f79803bd210bca9f",
+      "headRefOid": "182bb5282298ee46312d05b2d7e8c4c632f385f3",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -222938,24 +223252,24 @@
     {
       "number": 1915,
       "id": "PR_kwDOG2Ho4M8AAAABCawT6A",
-      "title": "Preserve the SUBGROUP_HEADER PROPERTIES bit when forwarding",
+      "title": "Note when to set the SUBGROUP_HEADER PROPERTIES bit",
       "url": "https://github.com/moq-wg/moq-transport/pull/1915",
       "state": "OPEN",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Editorial & Minor Design"
+        "Editorial"
       ],
-      "body": "The PROPERTIES bit applies to every Object on a Subgroup stream, so a relay picks its value when opening the stream downstream, before it has received the rest of the Subgroup. Clearing the bit and then receiving an Object with Properties leaves no legal encoding, since a relay is required to forward Properties.\r\n\r\nTell relays to carry the upstream value over, and to set the bit when they might add Properties of their own.\r\n\r\nFixes: #1073",
+      "body": "The PROPERTIES bit covers every Object in the Subgroup, so its value has to\nbe chosen before the rest of the Subgroup is known. Say that a sender,\nincluding a relay, that might include Properties in a later Object sets it.\n\nFixes: #1073\n\n",
       "createdAt": "2026-09-06T16:55:10Z",
-      "updatedAt": "2026-09-10T19:00:16Z",
+      "updatedAt": "2026-10-02T23:16:37Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "0d265f48ac56e53a41e5385b64851bc2964f4f20",
+      "baseRefOid": "98b0a3cf563dd81e433301ac495c4b1e44bd9136",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "relay-subgroup-properties-bit",
-      "headRefOid": "04456da8e9d3ea21b82e3b1e64489c1e9a51b2d0",
+      "headRefOid": "6be291430314e8358dfd6fdba7dfd63f6e092e44",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -222974,6 +223288,13 @@
           "body": "nvm there's still a new SHOULD - Ed&Min it is",
           "createdAt": "2026-09-09T05:32:11Z",
           "updatedAt": "2026-09-09T05:32:11Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@ianswett I changed this to be non-normative and factual - you better send 1 if you are going to send any properties.  It's purely Editorial now - does that work?",
+          "createdAt": "2026-10-02T23:16:37Z",
+          "updatedAt": "2026-10-02T23:16:37Z"
         }
       ],
       "reviews": [
@@ -223390,7 +223711,7 @@
     {
       "number": 1923,
       "id": "PR_kwDOG2Ho4M8AAAABCkQ-ow",
-      "title": "Clarify who a subscriber can send requests to",
+      "title": "Point Relays at their rules for contacting publishers",
       "url": "https://github.com/moq-wg/moq-transport/pull/1923",
       "state": "OPEN",
       "author": "afrind",
@@ -223399,20 +223720,28 @@
       "labels": [
         "Editorial"
       ],
-      "body": "The sentence about sending to any publisher was read as a rule about how many publishers a request goes to, rather than about which publishers a subscriber is permitted to contact. Say what the permission is in contrast to, add TRACK_STATUS, and note that a Relay is limited to matching publishers, pointing at the rules for selecting among them.\r\n\r\nThis is qualifying an existing MAY and adding TRACK_STATUS.  I think this was the underlying intent so I marked Editorial but could mark Ed&Min Design too.\r\n\r\nFixes: #1701",
+      "body": "The Publishing Namespaces section says a subscriber MAY request tracks\nwithout having received a PUBLISH_NAMESPACE. That is true for a Relay, but\na Relay also has to send SUBSCRIBE to all matching publishers and FETCH to\nat least one, so point at those rules.\n\nFixes: #1701\n\n",
       "createdAt": "2026-09-07T19:28:50Z",
-      "updatedAt": "2026-09-09T04:52:27Z",
+      "updatedAt": "2026-10-02T22:54:49Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "308c061b234935d754ea61e2afd2c983cec39731",
+      "baseRefOid": "98b0a3cf563dd81e433301ac495c4b1e44bd9136",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "editorial-any-publisher",
-      "headRefOid": "7f0581987a063c56d1b9e0f4f5a2f3f003c62b09",
+      "headRefOid": "d970ffee74b601a8a5c1bc41ddc1f4d497de1150",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@ianswett the underlying issue was mostly addressed in #1946, but I also repurposed this PR to forward ref the relay section - see what you think.",
+          "createdAt": "2026-10-02T22:54:49Z",
+          "updatedAt": "2026-10-02T22:54:49Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M8AAAABMspEDA",
@@ -224195,7 +224524,7 @@
       ],
       "body": "And respond with REQUEST_OK in order\r\n\r\nFixes #1653",
       "createdAt": "2026-09-09T19:52:44Z",
-      "updatedAt": "2026-09-09T19:53:17Z",
+      "updatedAt": "2026-10-02T20:56:51Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "24543250a6f3bf260440878a0ecd67fe4d0bb07f",
@@ -224207,7 +224536,28 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABQauovQ",
+          "commit": {
+            "abbreviatedOid": "75f9b58"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "You didn't actually say you need to process them in order, which I think is the crux of the issue.\r\n\r\nAlso, I don't think \"the wire format doesn't allow for out of order therefore it has to be in order\" is good reasoning since we control the wire format.  It sounds like the wg thinks serializing request updates is a good idea, so we're intentionally removing the tools that would allow otherwise.\r\n\r\nHonestly, it's still a bit of a footgun, and a security issue.  I'd still prefer have the correlating request ID on the wire, because then the receiver can say \"hey, you sent me the wrong REQUEST_OK\" rather than being unable to detect the sender is out of sync.  I realize REQUEST_OK doesn't need it in any _other_ case, and having a special message or conditional field is also gross.",
+          "createdAt": "2026-10-02T20:52:47Z",
+          "updatedAt": "2026-10-02T20:56:51Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "```suggestion\r\nresponses to REQUEST_UPDATEs MUST be returned in the order the updates\r\n```",
+              "createdAt": "2026-10-02T20:52:47Z",
+              "updatedAt": "2026-10-02T20:56:51Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 1940,
@@ -224364,7 +224714,7 @@
       "id": "PR_kwDOG2Ho4M8AAAABDgxh7Q",
       "title": "Restructure Publisher and Namespace Discovery, Give Subscribe Tracks it's own section",
       "url": "https://github.com/moq-wg/moq-transport/pull/1946",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -224373,17 +224723,19 @@
       ],
       "body": "- Namespace Prefix Matching gets its own section under Track.\r\n- SUBSCRIBE_TRACKS moves to its own section under Publishing and Receiving\r\n  Tracks \u2014 it creates subscriptions rather than discovering namespaces.\r\n- Behavior is hoisted out of the five namespace message sections, which now\r\n  carry only a diagram and fields.\r\n- Publishing now precedes Subscribing, and section 4 is tightened: response\r\n  handling was stated three times, authorization in three places.\r\n- A ladder diagram shows the publisher \u2192 relay \u2192 subscriber path.\r\n- Editorial cleanup of some prose\r\n- \r\nsentence-diff (from `draft-21-retro`) against  main: \r\n\r\n2343 of 2379 sentences unchanged.\r\n\r\n * modified 21\r\n * added 22\r\n * removed 23\r\n\r\nFixes #841\r\n",
       "createdAt": "2026-09-14T20:43:34Z",
-      "updatedAt": "2026-09-29T19:50:49Z",
+      "updatedAt": "2026-10-01T18:15:54Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "hoist-discovery-semantics",
       "headRefOid": "8058a8439da289b94ecc8fb1702b0d59a3b09f09",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-10-01T18:15:49Z",
+      "mergedAt": "2026-10-01T18:15:49Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "ab76b7e4ed9eb9472b83dbd5b4c8d59516d74959"
+      },
       "comments": [],
       "reviews": [
         {
@@ -224692,6 +225044,19 @@
           "createdAt": "2026-09-29T19:50:49Z",
           "updatedAt": "2026-09-29T19:50:49Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABQOG65g",
+          "commit": {
+            "abbreviatedOid": "8058a84"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-01T18:11:13Z",
+          "updatedAt": "2026-10-01T18:11:13Z",
+          "comments": []
         }
       ]
     },
@@ -224700,27 +225065,30 @@
       "id": "PR_kwDOG2Ho4M8AAAABE_UZTQ",
       "title": "Change Location Filter to an enum",
       "url": "https://github.com/moq-wg/moq-transport/pull/1953",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
         "Wire Format",
+        "Editorial & Minor Design",
         "Filters"
       ],
       "body": "Fixes #1937",
       "createdAt": "2026-09-24T18:51:24Z",
-      "updatedAt": "2026-09-30T16:33:57Z",
+      "updatedAt": "2026-10-01T18:17:44Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-location-enum",
       "headRefOid": "a10124fd20a11095df3c641fc9b47a6c4f525e31",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-10-01T18:17:40Z",
+      "mergedAt": "2026-10-01T18:17:40Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "52bac14ddf112d8742813e08faafd5b8e2ac7288"
+      },
       "comments": [],
       "reviews": [
         {
@@ -224795,6 +225163,19 @@
               "updatedAt": "2026-09-30T16:33:50Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABQM9GMg",
+          "commit": {
+            "abbreviatedOid": "a10124f"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-01T16:24:19Z",
+          "updatedAt": "2026-10-01T16:24:19Z",
+          "comments": []
         }
       ]
     },
@@ -224812,7 +225193,7 @@
       ],
       "body": "Fixes #1636 by requiring that Track Names must have a length > 0, mirroring the existing behavior for Track Namespace Tuples.\n\nUnless otherwise specified (e.g. namespace-scoped requests in REDIRECT messages), an endpoint MUST close the session with a PROTOCOL_VIOLATION if it receives a Track Name with length 0.\n\n---\n*PR created automatically by Jules for task [5822775389568492176](https://jules.google.com/task/5822775389568492176) started by @ianswett*",
       "createdAt": "2026-09-25T17:23:15Z",
-      "updatedAt": "2026-09-28T16:44:16Z",
+      "updatedAt": "2026-10-02T20:51:18Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
@@ -224950,6 +225331,26 @@
               "updatedAt": "2026-09-28T16:44:16Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABQat5XA",
+          "commit": {
+            "abbreviatedOid": "530d484"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-02T20:51:18Z",
+          "updatedAt": "2026-10-02T20:51:18Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "> What I am not seeing is why to force that to implementors\r\n\r\nIt's not strictly required.  But I think empty track names are probably a footgun everyone will regret if we allow them.",
+              "createdAt": "2026-10-02T20:51:18Z",
+              "updatedAt": "2026-10-02T20:51:18Z"
+            }
+          ]
         }
       ]
     },
@@ -224967,7 +225368,7 @@
       ],
       "body": "Fixes #1933\r\n\r\nAdds a `INCLUDE_PAYLOAD` parameter (0x36) for `SUBSCRIBE`, `FETCH`, and `SUBSCRIBE_TRACKS` messages to allow subscribers to request only object headers and metadata without payloads.\r\n\r\nIt also introduces the `Object Payload Omitted` (0x1) `Object Status` code, allowing publishers to explicitly specify that a payload was omitted due to the `INCLUDE_PAYLOAD` parameter, preserving metadata capabilities for Relays.\r\n\r\n---\r\n*PR created automatically by Jules for task [12281881590640091795](https://jules.google.com/task/12281881590640091795) started by @ianswett*",
       "createdAt": "2026-09-25T18:05:36Z",
-      "updatedAt": "2026-09-28T16:33:44Z",
+      "updatedAt": "2026-10-02T20:33:16Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "fb2a6e46ea1144ecd04d07880146dab15ea5a3dc",
@@ -224997,6 +225398,26 @@
               "body": "I would rather see this slightly differently -- leave the original Payload Length but signal in the data plane that the payloads are not present.  This more clearly matches HEAD (Content-Length is present) and provides useful signal to the receiver.",
               "createdAt": "2026-09-28T16:33:44Z",
               "updatedAt": "2026-09-28T16:33:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABQajB1A",
+          "commit": {
+            "abbreviatedOid": "339ff5d"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-02T20:33:16Z",
+          "updatedAt": "2026-10-02T20:33:16Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "Ah I missed that you were spelling this with Object Status, but I'd still like to see the length in there.  I think there's no length when status is not normal.  We could either change that rule to length is not present for EOG/EOT, or we could use sg header bits.\r\nFor datagrams, there is never a length field, it goes to the end of the datagram. This would need a different spelling.",
+              "createdAt": "2026-10-02T20:33:16Z",
+              "updatedAt": "2026-10-02T20:33:17Z"
             }
           ]
         }
@@ -225156,10 +225577,12 @@
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Design"
+      ],
       "body": "Fixes: #1959",
       "createdAt": "2026-09-29T19:26:11Z",
-      "updatedAt": "2026-09-29T19:26:12Z",
+      "updatedAt": "2026-10-03T15:51:53Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "fb2a6e46ea1144ecd04d07880146dab15ea5a3dc",
@@ -225172,6 +225595,118 @@
       "mergeCommit": null,
       "comments": [],
       "reviews": []
+    },
+    {
+      "number": 1965,
+      "id": "PR_kwDOG2Ho4M8AAAABGLO10Q",
+      "title": "Draft 22 release notes",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1965",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-10-01T20:45:44Z",
+      "updatedAt": "2026-10-01T21:31:56Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "52bac14ddf112d8742813e08faafd5b8e2ac7288",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "draft-22-release-notes",
+      "headRefOid": "71926b2fb8eac247936f09fe8a260a6036057da6",
+      "closedAt": "2026-10-01T21:31:53Z",
+      "mergedAt": "2026-10-01T21:31:53Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "98b0a3cf563dd81e433301ac495c4b1e44bd9136"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABQP7RwA",
+          "commit": {
+            "abbreviatedOid": "71926b2"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-01T20:55:57Z",
+          "updatedAt": "2026-10-01T20:55:57Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1966,
+      "id": "PR_kwDOG2Ho4M8AAAABGX8yPw",
+      "title": "Restrict GOAWAY on a request stream to the request receiver",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1966",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial & Minor Design"
+      ],
+      "body": "A GOAWAY on a request stream asks the sender of the request to re-issue it elsewhere, so only the receiver of the request can usefully send one. Say so, make a GOAWAY received by the receiver of a request a PROTOCOL_VIOLATION, and name the sender of the request as the endpoint that re-issues it.\r\n\r\nFixes: #1655",
+      "createdAt": "2026-10-03T00:03:05Z",
+      "updatedAt": "2026-10-03T15:51:28Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "98b0a3cf563dd81e433301ac495c4b1e44bd9136",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "goaway-request-receiver",
+      "headRefOid": "8147d8814f5dd6dc3019a879a0e5c5cb495164f2",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 1967,
+      "id": "PR_kwDOG2Ho4M8AAAABGY1xvQ",
+      "title": "Fill Semantics: describe \"no Location Filter\" as Type 0x00 instead of \"zero-length\"",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1967",
+      "state": "OPEN",
+      "author": "thexeos",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Small editorial fix left over from #1953.\r\n\r\n#1953 changed LOCATION_FILTER from a length-prefixed value to a `Location Filter Type`, but one sentence in Fill Semantics still says the filter inside FILL_PARAMETERS can be \"zero-length.\" A Location Filter no longer has a length, so that wording doesn't map onto the current encoding. It's also ambiguous: two types now carry no fields, 0x00 (None) and 0x05 (Next Object).\r\n\r\nFrom context, the sentence means \"no filter, so the fill covers the whole track.\" That's Type 0x00, which is also byte-for-byte what a zero-length filter looked like before #1953. This PR says that explicitly.\r\n\r\nNo wire change.",
+      "createdAt": "2026-10-03T03:08:47Z",
+      "updatedAt": "2026-10-03T15:50:53Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "98b0a3cf563dd81e433301ac495c4b1e44bd9136",
+      "headRepository": "thexeos/moq-transport",
+      "headRefName": "fill-range-no-filter-type",
+      "headRefOid": "ee76b89896518903b2cd62da8187296727f137a0",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABQfSh6A",
+          "commit": {
+            "abbreviatedOid": "ee76b89"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-03T15:50:41Z",
+          "updatedAt": "2026-10-03T15:50:41Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
