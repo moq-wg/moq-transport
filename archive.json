@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-04T05:00:25.557056+00:00",
+  "timestamp": "2026-10-06T05:34:02.778609+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -18138,7 +18138,7 @@
       ],
       "body": "If two subscriptions have identical priority, the current way to ensure both receive enough data is based on the Object receipt time at the relay.\r\n\r\nIf one subscription experiences a large delay at any stage, which could even include delay in publication of one track vs another for the same content (ie: transcoding), it would be easy for them to become substantially out of sync, potentially impacting QoE, particularly for very low latency use cases.\r\n\r\nThree suggested ways forward include:\r\n 1) Decide this is not a problem we care to solve\r\n 2) Decide we want to enable syncing, but don't care about actual time\r\n 3) Decide we care about actual time for use cases like server-side ABR and include a relative timestamp",
       "createdAt": "2024-06-25T00:49:44Z",
-      "updatedAt": "2026-06-15T20:08:34Z",
+      "updatedAt": "2026-10-05T16:30:49Z",
       "closedAt": null,
       "comments": [
         {
@@ -18371,6 +18371,13 @@
           "body": "See I-D from Luke: https://www.ietf.org/archive/id/draft-lcurley-moq-timestamp-00.html",
           "createdAt": "2026-06-15T20:08:34Z",
           "updatedAt": "2026-06-15T20:08:34Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "See new I-D: https://www.ietf.org/archive/id/draft-frindell-moq-timestamp-00.html",
+          "createdAt": "2026-10-05T16:30:49Z",
+          "updatedAt": "2026-10-05T16:30:49Z"
         }
       ]
     },
@@ -43357,7 +43364,7 @@
       ],
       "body": "To date, numerous discussions have been held to understand and devise meaningful solutions for track switching in MOQT. The following is the list of open issues tagged with the ABR label.\n\n- #259 \nThe challenge involves a publisher providing multiple quality versions of the same content (e.g., 360p and 720p video), where the subscriber needs to receive only the best quality version they can handle. The argument is that the publisher knows what it can send and should decide what to send.\n\n- #370 \nPreviously, we implemented this through a probing track and whenever the subscriber needed a probing test, it would subscribe to this track.\n\n- #471 \nIn client-side ABR streaming, the decision to switch to a higher quality stream can lead to excessive bandwidth usage, potentially causing network congestion and degrading the overall user experience. To address this, the proposed solution introduces a \"Less than Best Effort\" (LBE) mechanism. With LBE, higher-quality (but lower-priority) content is transmitted only if the congestion window (CWND) remains below a specified threshold, such as 1.5 times the Bandwidth-Delay Product (BDP). This approach ensures that LBE data does not compete with or crowd out higher-priority traffic, thereby maintaining network stability and prioritizing essential data delivery.\n\n- #475 \nThere's no effective way to keep two subscriptions with identical priority in sync, which becomes problematic when one subscription experiences delays (such as during transcoding), potentially causing them to drift out of sync and impact the quality of experience, especially for low-latency use cases.\n\n- #534 \nThe author proposes allowing for at least padding unidirectional streams, which can then be used for probing.\n\n- #1101 \nThe issue raises concerns about how to achieve a smooth, gapless switch between two synchronized media tracks in MOQT, such as switching video quality (ABR) or audio languages, using the existing SUBSCRIBE and SUBSCRIBE_UPDATE methods, possibly with track priorities. The goal is to avoid both interruptions and duplicate delivery of the same content during the switch, particularly for live streaming. Previous attempts to address this issue with track priorities have led to conflicting approaches, highlighting ambiguities and limitations in the current protocol. The discussion aims to identify and address these shortcomings and initiate work on protocol improvements to enable reliable and seamless track switching.\n\n**What we have now:**\n\nAs advocates of client-side ABR and server-assisted ABR techniques, we implemented the following:\n- The first ABR demo that used client-side information, such as client bandwidth measured on the client side and some congestion signals, such as late-arriving MOQ groups. \n- Bandwidth probing from the relay to assist the client in doing ABR.\n\nWe also proposed a [solution](https://datatracker.ietf.org/doc/draft-gurel-moq-track-switching/) to merge subscribe and unsubscribe operations and do an atomic track switch on the relay and published our results [here](https://ieeexplore.ieee.org/document/11152184) ([Stockholm interim slides](https://datatracker.ietf.org/meeting/interim-2025-moq-09/materials/slides-interim-2025-moq-09-sessa-track-switching-made-easy-in-media-over-quic-transport-00)). Our results showed advantages of letting the (edge) relay control the switching process.\n\nWe believe that a SWITCH message in MOQT is necessary to address the track switching problem properly and pave the way for developing robust ABR implementations. \n\nThis message ensures smooth transitions between alternative tracks, eliminating any gaps or overlaps in content download and transmission during the switch. It also handles cases where the groups/objects are not necessarily arriving at the relay at the same time.\n\nA demo showing ABR with the current messages and parameters is available [here](https://abr.moqtail.dev/). The same demo, featuring a SWITCH message, will be available soon.",
       "createdAt": "2025-11-04T21:28:11Z",
-      "updatedAt": "2026-10-02T17:19:02Z",
+      "updatedAt": "2026-10-05T22:42:15Z",
       "closedAt": null,
       "comments": [
         {
@@ -43639,6 +43646,20 @@
           "body": "See also #1519 and https://github.com/afrind/moq-transport/pull/18",
           "createdAt": "2026-06-11T21:18:48Z",
           "updatedAt": "2026-06-11T21:18:48Z"
+        },
+        {
+          "author": "riedlse",
+          "authorAssociation": "NONE",
+          "body": "Operator input for the Seattle decision. We're neutral on a dedicated SWITCH message versus SWITCH_FROM (#1674, #1675), but every proposal in this thread shares a precondition the draft doesn't state.\n\nSwitching at \"the next mutual group boundary\", at \"the next mutually numbered group\", or in SWITCH_FROM soft mode is seamless only if Group N covers the same media time on both tracks and starts at a decodable point. Nothing in the text lets a publisher declare that, or lets a subscriber or relay check it before switching.\n\nSSTS has the same dependency. Its draft says tracks in a switching set are time-aligned at group boundaries and leaves that to application knowledge. The first implementation (moqtail/moqtail#374, merged 4 Oct) has the subscriber assign switching sets in PUBLISH_OK, with nothing on the wire to declare or check the alignment.\n\nWe run continuous linear channels over MoQ with server-side ad insertion into one shared broadcast. Every encode, content and ad creatives alike, is cut on one grid of 0.5 s groups, every group starts at an IDR, and splices land on group boundaries. So we guarantee alignment by construction, but have no way to say so. Each channel ships one rendition today, so this is a pipeline guarantee rather than an ABR result.\n\nTwo asks, independent of the mechanism and of what the modes end up being called:\n\n1. State the publisher-side invariant: when a publisher offers tracks as alternatives, equal Group IDs cover the same media time range and every group starts decodable.\n\n2. Let subscribers and relays learn it before switching, per track pair or as a declared set (close to the altTrackGroup idea above). A publisher whose renditions aren't aligned doesn't declare it, so a subscriber knows a Group ID switch isn't safe there.\n\ndraft-frindell-moq-timestamp (posted 5 Oct) may already be most of the mechanism for ask 2: Tracks that share a CLOCK_ID, TIMESCALE and TIMESTAMP_MAPPING start equal Group IDs at the same timestamp, so a subscriber can check alignment before it switches. Saying that explicitly, plus a way to declare that every group starts at a decodable point, would cover it.\n\nEven if the switching algorithm ends up in an extension, this invariant seems to belong in the core text, next to SWITCH_FROM. I'll bring the details to my slot on Wednesday in Seattle.\n",
+          "createdAt": "2026-10-05T16:57:37Z",
+          "updatedAt": "2026-10-05T16:57:37Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> dedicated SWITCH message versus SWITCH_FROM \n\nTo clarify, I think the SWITCH proponents are fine with the SWITCH_FROM parameter - I don't think the group is looking to add a single SWITCH message anymore.  The high-level bit was \"client requested, server executed\", which is preserved.\n\n> only if Group N covers the same media time on both tracks and starts at a decodable point. Nothing in the text lets a publisher declare that, or lets a subscriber or relay check it before switching.\n\nI agree SWITCH_FROM and SSTS are built from this assumption.  I think MSF may make some assertions about this also.\n\n> Tracks that share a CLOCK_ID, TIMESCALE and TIMESTAMP_MAPPING start equal Group IDs at the same timestamp, so a subscriber can check alignment before it switches.\n\nI don't know that inferring \"these tracks have the same content with different encodings\" from the timestamps alone is good.  Perhaps a broadcaster has all the cameras in a sports area on the same clock and timeline.  I think a different publisher property that all tracks with the same content use might be better.  It seems independent of SWITCH / SSTS for now. \n\n> a way to declare that every group starts at a decodable point\n\nMOQT already indicates that publishers should construct tracks this way, from 2.3 Groups:\n\n> Groups SHOULD be independently useful, so Objects within a Group SHOULD NOT depend on Objects in other Groups\n\nAnd definitions: \n\n> A group represents a join point in a track.\n\nI guess this isn't exactly what you asked for, but \"the beginning of the group\" could mean object 0, object 1000 (if that's where the app starts) or objects 0-100 (if i-frames are sliced or something), or 0-100, evens only, if odds are an enhancement subgroup.  Subgroups (section 2.2) has more text on object relationships.  If you think more is necessary, I recommend opening an editorial issue. ",
+          "createdAt": "2026-10-05T22:42:14Z",
+          "updatedAt": "2026-10-05T22:42:14Z"
         }
       ]
     },
@@ -53488,7 +53509,7 @@
       ],
       "body": "MSF is an example application which uses MOQT to transmit media data. MSF defines [Track and Object properties to signal that the payload is compressed](https://moq-wg.github.io/msf/draft-ietf-moq-msf.html#compression-signaling), along with an IANA registry to list various popular compression standards which might be used.\n\nThis requirement to signal that payloads are compressed is a general one for any application leveraging MOQT. Instead of having hundreds of applications defining different Track properties all saying that the payload is gzipped, this should be a core transport capability.\n\nSuggestion is for MOQT to define the following properties\n\n**Track Property** : Signals that ALL object payloads in the track are compressed using the specified algorithm.\n\n**Object Property:** Signals compression on individual object payloads using the specified algorithm, allowing a mixture of compressed and uncompressed objects within the same track.\n\nMOQT should also create an IANA registry listing compression types which can be referenced by these properties, for example gzip, Brotli, Zstandard etc. ",
       "createdAt": "2026-08-07T12:35:22Z",
-      "updatedAt": "2026-10-02T03:03:09Z",
+      "updatedAt": "2026-10-05T15:42:31Z",
       "closedAt": null,
       "comments": [
         {
@@ -53511,6 +53532,13 @@
           "body": "I think its fine if MSF defines these properties in the moqt registry.  That defnition can still stay in MSF draft.\n\n@wilaw  would that work for you ?",
           "createdAt": "2026-10-02T03:03:09Z",
           "updatedAt": "2026-10-02T03:03:09Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@afrind   -  while your logic is always dazzling, I'd still like to discuss this in Seattle if possible :)  I regard compression as a core transport primitive that every application might leverage. Deferring it to an extension seems weird. \n\n@suhasHere  - I'd still like MOQT to define the compression signalling. MSF then either doesn;' have to say anything about it at all, or can recommend its usage or constrain which compression types can be used to constrain client complexity. ",
+          "createdAt": "2026-10-05T15:42:31Z",
+          "updatedAt": "2026-10-05T15:42:31Z"
         }
       ]
     },
@@ -53626,7 +53654,7 @@
       ],
       "body": "MOQT has Track and Object property scopes but nothing \"in between\", i.e. no general way to attach metadata to a Subgroup or a Group.\n\nSubgroup scope is being emulated for SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT which, \"as an Object Property on the first object in a subgroup, [override] the Track-level value for that subgroup\". And the scope for object property PRIOR_GROUP_ID_GAP is weird, but definitely not scoped to a given object.\n\nUsing object parameters as emulation for wider than object scope has a number of problems.\n1. Mid-group join may miss them\n2. A fetch range may be mid-group\n\nboth of those existed for long time, but reading group without the beginning could be considered transient state, but \n\n3. Filters may exclude this metadata even in \"steady-state\". \n\nFrom general extensibility standpoint, I am missing this metadata when trying to build application on top of MOQT, and first-object as group emulation is, at minimum, hacky. I feel this is a missing extension point and should be there given that object model is the foundation of moqt. \n\nIt seems relatively easy to add subgroup parameters, given that subgroup headers exist, but the single-byte bit-field compressed type is practically full.\nTrue group-level would require more significant changes in the data plane. As would some other generic data-plane metadata carrier. But both of those could bring more resilient mechanism to add metadata. \n\nI understand that this may be quite heavy change, possibly past-deadline, but I feel this should have a dedicated general discussion.\n\nDo people think we should have an additional extension point for metadata in data-plane? Which/where/how? \n",
       "createdAt": "2026-08-24T17:11:49Z",
-      "updatedAt": "2026-09-30T17:32:27Z",
+      "updatedAt": "2026-10-05T16:14:18Z",
       "closedAt": null,
       "comments": [
         {
@@ -53691,6 +53719,13 @@
           "body": "Keep in mind that for relays it's perfectly normal to have mid-group subscribe and never see or care about the first object.\n\nAs I am thinking about this, SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT are broken. If a relay sees only a mid-group subscribe, it will not know what the subgroup delivery timeout is and silently falls back to the Track value. This was already closed as no-op in #1842, but I think the problem there could/should be solved not by data plane vs. control plane, but by attaching the metadata at the correct level and with the correct reliability in the data plane.\n\n---\n\nI don't think a \"Default Properties block\" solves the problem; that sounds like compression for object-level properties. I think we need something semantically at the (sub)group level. Even without covering extensibility, the core spec already has the aforementioned SUBGROUP_DELIVERY_TIMEOUT, which is semantically at the subgroup level (and is ignored on any object other than the first, so making it a default object property wouldn't work as-is).",
           "createdAt": "2026-09-30T17:32:26Z",
           "updatedAt": "2026-09-30T17:32:26Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "SUBGROUP_DELIVERY_TIMEOUT is a good example.\n\nWe've sort of created our own problem by starting Subscriptions at Largest Object, even if they're mid subgroup.  By packaging Objects in a Subgroup, the publisher has indicated that you need the first Object to understand the later ones, so why give people the last half of a Subgroup?  Somewhat relevant to #1358",
+          "createdAt": "2026-10-05T16:14:18Z",
+          "updatedAt": "2026-10-05T16:14:18Z"
         }
       ]
     },
@@ -54797,6 +54832,30 @@
           "body": "I think EXPIRES should just be legal in all the _OK messages.  As you say, all the requests can contain auth, and I won't stop a FETCH publisher who wants to drop the fetch the instant the auth token expires.",
           "createdAt": "2026-10-01T19:08:29Z",
           "updatedAt": "2026-10-01T19:08:29Z"
+        }
+      ]
+    },
+    {
+      "number": 1968,
+      "id": "I_kwDOG2Ho4M8AAAABVMhePw",
+      "title": "REDIRECT and request GOAWAY are conceptually similar but syntactically different",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1968",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "A request level GOAWAY and a REQUEST_ERROR redirect are both intended to send the requester somewhere else. One applies before REQUEST_OK and the other after.\n\nFunctionally, I don't understand what is different about the REQUEST_ERROR use case that makes a Full Track Name appropriate that doesn't also apply to request-level GOAWAY.\n\nIn terms of wire image, REQUEST_ERROR has several more error cases to handle this special use case, and APIs to communicate REQUEST_ERROR to the application need a highly conditional field. I would much rather have GOAWAY as a message that can begin the response direction of a stream (with timeout = 0, if need be) than make REQUEST_ERROR processing more complex.",
+      "createdAt": "2026-10-05T18:52:32Z",
+      "updatedAt": "2026-10-05T21:30:29Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Conceptually I see where you are coming from. I have a nagging concern that the spec text will be longer because everywhere we need to say \"_OK or REQUEST_ERROR or GOAWAY\"  can be the first message.\n\nAlso, I think there may be more fields coming in REQUEST_ERROR that might be similar shape.  @fluffy has asked for multiple detail fields like #1724 or #1951, which also impact API.  So let's talk about the group together next week?",
+          "createdAt": "2026-10-05T21:30:29Z",
+          "updatedAt": "2026-10-05T21:30:29Z"
         }
       ]
     }
