@@ -639,7 +639,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response
 to a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK
 ({{message-request-ok}}) or PUBLISH_ERROR in response to a PUBLISH. The peer
-SHOULD close the session with a protocol error if it receives more than one.
+SHOULD close the session with `UNEXPECTED_MESSAGE` if it receives more than one.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -1111,7 +1111,7 @@ The publisher will respond with SUBSCRIBE_TRACKS_OK or SUBSCRIBE_TRACKS_ERROR
 on the response half of the stream. If the subscriber receives any message
 other than a SUBSCRIBE_TRACKS_OK or a SUBSCRIBE_TRACKS_ERROR as the first
 message on the response half of the stream, then it MUST close the session with
-a PROTOCOL_VIOLATION. If the SUBSCRIBE_TRACKS is successful, the publisher will
+`UNEXPECTED_MESSAGE`. If the SUBSCRIBE_TRACKS is successful, the publisher will
 send PUBLISH messages on new bidirectional streams for tracks matching the
 Namespace Prefix. If it is an error, the stream will be closed via FIN after
 SUBSCRIBE_TRACKS_ERROR is sent.
@@ -1228,8 +1228,8 @@ prefix.
 
 A subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or
 PUBLISH_NAMESPACE_ERROR as the first message on the bidi stream in response to
-a PUBLISH_NAMESPACE. The publisher SHOULD close the session with a protocol
-error if it receives more than one.
+a PUBLISH_NAMESPACE. The publisher SHOULD close the session with
+`UNEXPECTED_MESSAGE` if it receives more than one.
 
 An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
 PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
@@ -1274,7 +1274,7 @@ The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream. The
 publisher MUST send a single SUBSCRIBE_NAMESPACE_OK or
 SUBSCRIBE_NAMESPACE_ERROR as the first message on the response half of the
 stream; if the subscriber receives any other message first, it MUST close the
-session with a PROTOCOL_VIOLATION.
+session with `UNEXPECTED_MESSAGE`.
 
 On success, the publisher MUST send a NAMESPACE message for each namespace it
 knows that matches the Track Namespace Prefix, and further NAMESPACE or
@@ -1296,7 +1296,7 @@ error code `PREFIX_OVERLAP`.
 
 The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
 corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
-corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
+corresponding NAMESPACE, it MUST close the session with `UNEXPECTED_MESSAGE`.
 
 A subscriber can receive a PUBLISH_NAMESPACE on a request stream for a
 namespace that falls within an active SUBSCRIBE_NAMESPACE prefix. This
@@ -1725,7 +1725,7 @@ to carry requests.  A request stream begins with one of these seven message type
 TRACK_STATUS, SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Bidirectional streams MUST NOT
 begin with any other message type unless negotiated. If they do, the peer MUST
-close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
+close the Session with `UNEXPECTED_MESSAGE`. Objects are sent on unidirectional
 streams.
 
 As such, a client can initiate a MOQT session, subscribe, and
@@ -1741,15 +1741,16 @@ not supported, it MAY reset such streams before the session and control streams
 are established.
 
 A control stream MUST NOT be closed at the underlying transport layer during the
-session's lifetime.  Doing so results in the session being closed as a
-`PROTOCOL_VIOLATION`.
+session's lifetime.  If the control stream is closed, the peer MUST close the
+session with `CLOSED_CONTROL_STREAM`.
 
 Prior to receiving the peer's SETUP message, it's unknown what extensions
 a peer will support. Message Parameters requiring negotiation SHOULD NOT
 be used prior to receiving the peer's SETUP message unless the application
 requires the extension or the endpoint knows the peer supports the
 extension. If an unsupported Message Parameter is used, the peer will be
-unable to process it and the session will be terminated. See {{message-params}}.
+unable to process it and will close the session with `INVALID_PARAMETER`. See
+{{message-params}}.
 
 ### 0-RTT {#zero-rtt}
 
@@ -1840,7 +1841,8 @@ the type of the stream.
 | 0x132B3E28  | PADDING  ({{padding-streams}})                  |
 |-------------|-------------------------------------------------|
 
-An endpoint that receives an unknown stream type MUST close the session.
+An endpoint that receives an unknown stream type MUST close the session with
+`INVALID_STREAM_HEADER`.
 
 Control streams (SETUP) are described in {{session-init}}.
 Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
@@ -2357,7 +2359,7 @@ or from 0 if there is no previous Type value. This is efficient on the wire
 and makes it easy to ensure there is only one instance of a type when needed.
 The previous Type value plus the Delta Type MUST NOT be greater than 2^64 - 1.
 If a Delta Type is received that would be too large, the Session MUST be closed
-with a `PROTOCOL_VIOLATION`.
+with `DELTA_ENCODING_OVERFLOW`.
 
 Key-Value-Pair is used in both the data plane and control plane, but
 is optimized for use in the data plane.
@@ -2376,14 +2378,14 @@ Key-Value-Pair {
   the type of value and also the subsequent serialization.
 * Length: Only present when Type is odd. Specifies the length of the Value field
   in bytes. The maximum length of a value is 2^16-1 bytes.  If an endpoint
-  receives a length larger than the maximum, it MUST close the session with a
-  `PROTOCOL_VIOLATION`.
+  receives a length larger than the maximum, it MUST close the session with
+  `FIELD_LENGTH_EXCEEDED`.
 * Value: A single variable-length integer when Type is even, otherwise a
   sequence of Length bytes.
 
 If a receiver understands a Type, and the following Value or Length/Value does
 not match the serialization defined by that Type, the receiver MUST close
-the session with error code `KEY_VALUE_FORMATTING_ERROR`.
+the session with `MALFORMED_KEY_VALUE`.
 
 Key-Value-Pairs are always parsed with a known byte length, which bounds
 the sequence. The source of this length varies by context.
@@ -2453,7 +2455,7 @@ Reason Phrase {
 * Reason Phrase Length: A variable-length integer specifying the length of the
   reason phrase in bytes. The reason phrase length has a maximum value of
   1024 bytes. If an endpoint receives a length exceeding the maximum, it MUST
-  close the session with a `PROTOCOL_VIOLATION`
+  close the session with `FIELD_LENGTH_EXCEEDED`.
 
 * Reason Phrase Value: Additional diagnostic information about an error condition.
   The reason phrase value is encoded as UTF-8 string and does not carry information,
@@ -2515,17 +2517,17 @@ Track Namespace Field {
 
 Each Track Namespace Field Value MUST contain at least one byte. If an endpoint
 receives a Track Namespace Field with a Track Namespace Field Length of 0, it
-MUST close the session with a `PROTOCOL_VIOLATION`.
+MUST close the session with `INVALID_TRACK_NAMESPACE`.
 
 If an endpoint receives a Track Namespace consisting of greater than 32 Track
-Namespace Fields, it MUST close the session with a `PROTOCOL_VIOLATION`.
+Namespace Fields, it MUST close the session with `INVALID_TRACK_NAMESPACE`.
 
 The maximum total length of a Full Track Name is 4,096 bytes. The length of a
 Full Track Name is computed as the sum of the Track Namespace Field Length
 fields and the Track Name Length field. The length of a Track Namespace is the
 sum of the Track Namespace Field Length fields. If an endpoint receives a Track
 Namespace or a Full Track Name exceeding 4,096 bytes, it MUST close the session
-with a `PROTOCOL_VIOLATION`.
+with `FIELD_LENGTH_EXCEEDED`.
 
 ## Representing Namespace and Track Names {#namespace-name-format}
 
@@ -2625,8 +2627,9 @@ provided. The Token Value MAY be discarded after processing.
 * Token Value - the payload of the Token. The contents and serialization of this
   payload are defined by the Token Type.
 
-If the Token structure cannot be decoded, the receiver MUST close the Session
-with `KEY_VALUE_FORMATTING_ERROR`.  The receiver of a message attempting to
+If the Token structure cannot be decoded, including an unknown Alias Type, the
+receiver MUST close the Session with `MALFORMED_AUTH_TOKEN`.  The receiver of
+a message attempting to
 register an Alias which is already registered MUST close the Session with
 `DUPLICATE_AUTH_TOKEN_ALIAS`. The receiver of a message referencing an Alias
 that is not currently registered MUST reject the message with
@@ -2765,12 +2768,13 @@ new request stream.
 | 0x5    | REQUEST_ERROR ({{message-request-error}})      | Request          |
 |--------|------------------------------------------------|------------------|
 
-An endpoint that receives an unknown message type MUST close the session.
+An endpoint that receives an unknown message type MUST close the session with
+`UNEXPECTED_MESSAGE`.
 Control messages have a length to simplify parsing, but no control messages
 are intended to be ignored. The length is set to the number of bytes in the
 Message Body, which is defined by each message type.  If the length does not
-match the length of the Message Body, the receiver MUST close the session with a
-`PROTOCOL_VIOLATION`.
+match the length of the Message Body, the receiver MUST close the session with
+`MALFORMED_MESSAGE`.
 
 ## SETUP {#message-setup}
 
@@ -2866,7 +2870,7 @@ The option value is a Token structure, whose wire format and semantics are
 defined in {{auth-token-compression}}.
 
 If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
-message, it MUST close the session with a `PROTOCOL_VIOLATION`.
+message, it MUST close the session with `ROLE_VIOLATION`.
 
 If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with Alias
 Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
@@ -2956,7 +2960,7 @@ though the sender SHOULD avoid initiating requests unless required by migration
 An endpoint that receives a GOAWAY MAY reject new requests with an appropriate
 error code (e.g., REQUEST_ERROR with error code GOING_AWAY).
 
-The endpoint MUST close the session with a `PROTOCOL_VIOLATION`
+The endpoint MUST close the session with `UNEXPECTED_MESSAGE`
 ({{session-termination-codes}}) if it receives more than one GOAWAY on the
 control stream or on a single request stream.
 
@@ -2977,10 +2981,10 @@ GOAWAY Message {
   the current URI is reused instead. The new session URI SHOULD use the same scheme
   as the current URI to ensure compatibility.  The maximum length of the New
   Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
-  maximum, it MUST close the session with a `PROTOCOL_VIOLATION`.
+  maximum, it MUST close the session with `FIELD_LENGTH_EXCEEDED`.
 
   If a server receives a GOAWAY with a non-zero New Session URI Length it MUST
-  close the session with a `PROTOCOL_VIOLATION`.
+  close the session with `ROLE_VIOLATION`.
 
 * Timeout: The time in milliseconds the sender will wait for graceful closure.
   When sent on the control stream, the sender closes the session with
@@ -3024,7 +3028,7 @@ REQUEST_OK Message {
   TRACK_STATUS_OK; they are empty in PUBLISH_OK, REQUEST_UPDATE_OK,
   SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
   receives Track Properties in one of these messages it MUST close the
-  session with a `PROTOCOL_VIOLATION`.
+  session with `INVALID_FIELD`.
 
 ## REQUEST_ERROR {#message-request-error}
 
@@ -3050,7 +3054,7 @@ Redirect {
 * Connect URI: The URI to connect to for the redirected request. If the length is
   zero, the requester SHOULD use the current session's URI. If a server
   receives a Redirect with a non-zero Connect URI Length it MUST close the
-  session with a `PROTOCOL_VIOLATION`.
+  session with `ROLE_VIOLATION`.
 
 * Track Namespace and Track Name: The Track Namespace and Track Name to use
   for the redirected request, together referred to as the Redirect target.
@@ -3058,7 +3062,7 @@ Redirect {
   Track Name is not meaningful for namespace-scoped requests
   (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and MUST be empty;
   an endpoint that receives a non-empty Track Name in a Redirect for a
-  namespace-scoped request MUST close the session with a `PROTOCOL_VIOLATION`.
+  namespace-scoped request MUST close the session with `INVALID_FIELD`.
 
 ### REQUEST_ERROR Message Format
 
@@ -3101,7 +3105,7 @@ same bidi stream as the request to modify it.  A subscriber can also send
 REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.
 
 An endpoint that receives a REQUEST_UPDATE other than in the two cases above
-MUST close the session with a `PROTOCOL_VIOLATION`.
+MUST close the session with `UNEXPECTED_MESSAGE`.
 
 The receiver of a REQUEST_UPDATE MUST respond with exactly one
 REQUEST_UPDATE_OK or REQUEST_UPDATE_ERROR message indicating if the update was
@@ -3406,8 +3410,9 @@ subject to the MAX_REQUEST_UPDATES limit ({{max-request-updates}}).
 
 PUBLISH_STATE_NOTIFY applies only to subscriptions, and is sent only by
 the publisher.  An endpoint that receives a PUBLISH_STATE_NOTIFY for any
-other request type, or from the subscriber, MUST close the session with a
-`PROTOCOL_VIOLATION`.
+other request type MUST close the session with `UNEXPECTED_MESSAGE`.  A
+publisher that receives a PUBLISH_STATE_NOTIFY MUST close the session with
+`ROLE_VIOLATION`.
 
 A PUBLISH_STATE_NOTIFY carries the parameters whose values have changed.
 If a parameter is not present, its value is unchanged.  The semantics of each
@@ -3493,14 +3498,15 @@ FETCH_OK Message {
 {: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
 
 * End Of Track: 1 if all Objects have been published on this Track, and
-  the End Location is the final Object in the Track, 0 if not.
+  the End Location is the final Object in the Track, 0 if not. If an endpoint
+  receives any other value, it MUST close the session with `INVALID_FIELD`.
 
 * End Location: The end of the range covered by the FETCH response, inclusive.
   This is the End Location from the FETCH request Location Filter parameter unless
   the requested range extends beyond Largest Object at the time
   the request was processed, or the last Object in the Track.
   If End Location is smaller than the Start Location in the corresponding FETCH
-  the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
+  the receiver MUST close the session with `INVALID_FIELD`.
 
 * Parameters: The parameters are defined in {{message-params}}.  No parameters
   are currently defined for FETCH_OK.
@@ -3710,7 +3716,7 @@ Type Delta: The difference between this Parameter Type and the previous
    Parameter Type in the message, or the Parameter Type itself for the first
    parameter. Parameters MUST be serialized in ascending order by Type.
    If the resulting Type would be greater than 2^64 - 1, the endpoint
-   MUST close the session with a `PROTOCOL_VIOLATION`.
+   MUST close the session with `DELTA_ENCODING_OVERFLOW`.
 
 * Value: The encoding is specified by each parameter definition.
 The encodings defined in this draft are:
@@ -3726,7 +3732,7 @@ making a request.
 
 All Message Parameters MUST be defined in the negotiated version of MOQT or
 negotiated via Setup Options. An endpoint that receives an unknown Message
-Parameter MUST close the session with `PROTOCOL_VIOLATION`. Because the receiver
+Parameter MUST close the session with `INVALID_PARAMETER`. Because the receiver
 has to understand every Message Parameter, there is no need for a mechanism to
 skip unknown parameters. Because unknown parameters cannot be skipped, the block
 is bounded by a parameter count rather than a length.
@@ -3737,7 +3743,7 @@ the following subsections.
 Senders MUST NOT repeat the same Parameter Type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers SHOULD check that there are no
-unexpected duplicate parameters and close the session with `PROTOCOL_VIOLATION`
+unexpected duplicate parameters and close the session with `INVALID_PARAMETER`
 if found.
 
 The number of Message Parameters is not specifically limited, but the total
@@ -3758,7 +3764,7 @@ is encoded in Track Properties. See {{properties}}.
 Each Message Parameter definition indicates the message types in which
 it can appear, and each control message definition lists the parameters it
 allows. If a parameter appears in some other type of message, the receiving
-endpoint MUST close the connection with a `PROTOCOL_VIOLATION`.
+endpoint MUST close the session with `INVALID_PARAMETER`.
 Note that since Setup Options use a separate namespace, it is impossible for
 Message Parameters to appear in Setup messages.
 
@@ -3862,7 +3868,7 @@ response (see {{message-fetch}}). When it appears inside FILL_PARAMETERS, it
 governs the fill fetch stream and its ordering relative to subscription-delivered
 Objects (see {{priorities}}). The allowed values are Ascending (0x1) or Descending
 (0x2). If an endpoint receives a value outside this range, it MUST
-close the session with `PROTOCOL_VIOLATION`.
+close the session with `INVALID_PARAMETER`.
 
 If omitted from SUBSCRIBE or SUBSCRIBE_TRACKS, the publisher's preference from
 the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
@@ -3896,7 +3902,8 @@ and how they are interpreted.
 * If Location Filter Type is 0x03, StartGroup, StartObject, and EndGroupDelta follow.
 * If Location Filter Type is 0x04, StartGroup, StartObject, EndGroupDelta, and EndObject follow.
 * If Location Filter Type is 0x05, no fields follow and it specifies the Next Object.
-* Any other Location Filter Type is a `PROTOCOL_VIOLATION`.
+* If an endpoint receives any other Location Filter Type, it MUST close the
+  session with `INVALID_PARAMETER`.
 
 The table below summarizes the encodings.
 
@@ -3924,7 +3931,7 @@ computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
 Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
 relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
-the endpoint MUST close the session with a `PROTOCOL_VIOLATION`.
+the endpoint MUST close the session with `DELTA_ENCODING_OVERFLOW`.
 
 When EndGroupDelta and EndObject are omitted from a subscription filter, the
 subscription is open-ended. When they are omitted from a Fetch, the
@@ -4050,7 +4057,7 @@ independent of the subscription's own Location filter.
 A parameter that is omitted from FILL_PARAMETERS takes the value it has for the
 subscription; FILL_PARAMETERS therefore carries only the settings that
 differ. An endpoint that receives a parameter inside FILL_PARAMETERS that is not
-listed above MUST close the session with `PROTOCOL_VIOLATION`.
+listed above MUST close the session with `INVALID_PARAMETER`.
 
 The value of FILL_PARAMETERS is a separate parameter scope. Parameters inside
 it are not considered to appear in the enclosing message for the purposes of
@@ -4108,7 +4115,7 @@ PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
 specifies whether affected subscriptions are paused (see
 {{pausing-subscriptions}}).
 The allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives
-a value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
+a value outside this range, it MUST close the session with `INVALID_PARAMETER`.
 
 In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies whether
 future subscriptions that match the prefix are paused. Existing
@@ -4178,7 +4185,7 @@ messages include Track Properties in the case of SUBSCRIBE_TRACKS. If INCLUDE_PR
 is 0, the Track Properties are still present in the message, but they SHOULD be empty.
 The allowed values are 0 (do not send Properties) or 1 (send Properties), and the
 default is 1. If an endpoint receives a value outside this range, it MUST close the
-session with `PROTOCOL_VIOLATION`.
+session with `INVALID_PARAMETER`.
 
 # MOQT Properties {#moqt-properties}
 
@@ -4224,7 +4231,8 @@ can be cached until implementation constraints cause them to be evicted.
 DEFAULT PUBLISHER PRIORITY (Property Type 0x0E) is a Track Property
 that specifies the priority of a subscription relative to other subscriptions
 in the same session.  The value is from 0 to 255 and lower numbers get higher
-priority.  See {{priorities}}. Priorities above 255 are invalid. Subgroups and
+priority.  See {{priorities}}. If an endpoint receives a value above 255, it
+MUST close the session with `MALFORMED_KEY_VALUE`. Subgroups and
 Datagrams for this subscription inherit this priority, unless they specifically
 override it.
 
@@ -4238,7 +4246,7 @@ It is an enum indicating the publisher's preference for prioritizing Objects
 from different groups within the
 same subscription (see {{priorities}}). The allowed values are Ascending (0x1) or
 Descending (0x2). If an endpoint receives a value outside this range, it MUST
-close the session with `PROTOCOL_VIOLATION`.
+close the session with `MALFORMED_KEY_VALUE`.
 
 If omitted, the publisher's preference is Ascending (0x1).
 
@@ -4249,7 +4257,7 @@ The allowed values are 0 or 1. When the value is 1, it indicates
 that the subscriber can request the Original Publisher to start a new Group
 by including the NEW_GROUP_REQUEST parameter in REQUEST_UPDATE
 for this Track. If an endpoint receives a value larger than 1, it MUST close
-the session with `PROTOCOL_VIOLATION`.
+the session with `MALFORMED_KEY_VALUE`.
 
 If omitted, the value is 0.
 
@@ -4386,7 +4394,8 @@ use SUBGROUP_HEADER or FETCH_HEADER types.
 All MOQT datagrams start with a variable-length integer indicating the type of
 the datagram.  See {{object-datagram}}.
 
-An endpoint that receives an unknown datagram type MUST close the session.
+An endpoint that receives an unknown datagram type MUST close the session with
+`INVALID_STREAM_HEADER`.
 
 ## Objects {#message-object}
 
@@ -4419,8 +4428,8 @@ There is no Object Status value indicating the end of a Subgroup. The end of a
 Subgroup is signaled by closing its stream with a FIN
 (see {{closing-subgroup-streams}}).
 
-Any other value SHOULD be treated as a protocol error and the session SHOULD
-be closed with a `PROTOCOL_VIOLATION` ({{session-termination-codes}}).
+If an endpoint receives any other value, it SHOULD close the session with
+`INVALID_OBJECT_STATUS` ({{session-termination-codes}}).
 An Object MUST have an empty payload unless its Object Status value is
 registered as permitting a payload in the Object Status registry
 ({{iana-object-status}}). Of the values defined in this document, only Normal
@@ -4430,7 +4439,7 @@ registered as permitting a payload in the Object Status registry
 
 Any Object with status Normal can have properties ({{properties}}).
 If an endpoint receives properties on an Object with status that is
-not Normal, it MUST close the session with a `PROTOCOL_VIOLATION`.
+not Normal, it MUST close the session with `INVALID_OBJECT_STATUS`.
 
 Object Properties are visible to relays and are intended to be relevant
 to MOQT Object distribution. Any Object metadata never intended to be accessed
@@ -4497,7 +4506,7 @@ The Type Flags field in the OBJECT_DATAGRAM is a variable-length integer that
 encodes a set of flags. All values defined in this specification fit in a
 single-byte encoding (values less than 128). If a received value has bit 4 set,
 or has a bit set whose meaning is not specified, the endpoint MUST close the
-session with a `PROTOCOL_VIOLATION`.
+session with `INVALID_STREAM_HEADER`.
 
 The four low-order bits and bit 5 of the Type Flags field determine which fields
 are present in the datagram:
@@ -4506,8 +4515,8 @@ are present in the datagram:
   present. When set to 1, the Object Properties structure defined in
   {{object-properties}} is present. When set to 0, the field is absent.
   If an endpoint receives a datagram with the PROPERTIES bit set and an
-  Properties Length of 0, it MUST close the session with a
-  `PROTOCOL_VIOLATION`.
+  Properties Length of 0, it MUST close the session with
+  `MALFORMED_OBJECT`.
 
 * The **END_OF_GROUP** bit (0x02) indicates End of Group. When set to 1, this
   indicates that no Object with the same Group ID and an Object ID greater than
@@ -4530,7 +4539,8 @@ are present in the datagram:
   Object header contains the payload.
 
 The following Type Flags values are invalid. If an endpoint receives a datagram
-with any of these values, it MUST close the session with a `PROTOCOL_VIOLATION`:
+with any of these values, it MUST close the session with
+`INVALID_STREAM_HEADER`:
 
 * Values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set.
 
@@ -4539,16 +4549,16 @@ with any of these values, it MUST close the session with a `PROTOCOL_VIOLATION`:
 * Values with a bit set whose meaning is not specified.
 
 If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
-Object Status is not Normal (0x0), the endpoint MUST close the session with a
-`PROTOCOL_VIOLATION`, because only Normal Objects can have Properties.
+Object Status is not Normal (0x0), the endpoint MUST close the session with
+`INVALID_OBJECT_STATUS`, because only Normal Objects can have Properties.
 
 ## Subgroup Streams
 
 When Objects are sent on streams, the stream begins with a Subgroup or Fetch
 Header and is followed by one or more sets of serialized Object fields.
 If a stream ends gracefully (i.e., the stream terminates with a FIN) in the
-middle of a serialized Object, the session SHOULD be closed with a
-`PROTOCOL_VIOLATION`.
+middle of a serialized Object, the receiver SHOULD close the session with
+`TRUNCATED_OBJECT`.
 
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
 Header field values.
@@ -4616,8 +4626,8 @@ fields are present in the header:
 subgroup stream is the first object published in the subgroup by the original publisher.
 
 The following Type Flags values are invalid. If an endpoint receives a stream
-header with any of these values, it MUST close the session with a
-`PROTOCOL_VIOLATION`:
+header with any of these values, it MUST close the session with
+`INVALID_STREAM_HEADER`:
 
 * Values with SUBGROUP_ID_MODE set to 0b11. This mode
   is reserved for future use.
@@ -4637,8 +4647,8 @@ The Object Status field is only sent if the Object Payload Length is zero.
 The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
 stream if there was one.  The Object ID is the Object ID Delta if it's the first
 Object in the Subgroup stream. If the resulting Object ID would be greater
-than 2^64 - 1, the endpoint MUST close the session with a
-`PROTOCOL_VIOLATION`. For example, a Subgroup of sequential Object IDs
+than 2^64 - 1, the endpoint MUST close the session with
+`DELTA_ENCODING_OVERFLOW`. For example, a Subgroup of sequential Object IDs
 starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
 infer information about the existence of Objects between the current and
 previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
@@ -4803,7 +4813,8 @@ Value | Meaning
 0x10C | End of Unknown Range
 0x20C | End of Timed-Out Range
 
-Any other value 128 or greater is a `PROTOCOL_VIOLATION`.
+If an endpoint receives any other value 128 or greater, it MUST close the
+session with `MALFORMED_OBJECT`.
 
 #### Flags {#fetch-serialization-flags}
 
@@ -4831,7 +4842,7 @@ Bitmask | Condition if set | Condition if not set (0)
 The first Object MUST include a Group ID Delta and Object ID Delta, and
 these values are the absolute Group ID and Object ID. If the first Object in
 the FETCH response uses a flag that references fields in the prior Object,
-the Subscriber MUST close the session with a `PROTOCOL_VIOLATION`.
+the Subscriber MUST close the session with `MALFORMED_OBJECT`.
 
 If the Group ID Delta field is present on an Object other than the first, the
 Group ID is computed from the Group ID Delta and the prior Object's Group ID.
@@ -4839,14 +4850,14 @@ If the Group Order is Ascending, the Group ID is the prior Object's Group ID
 plus the Group ID Delta + 1.  If the Group Order is Descending, the Group ID is
 the prior Object's Group ID minus the (Group ID Delta + 1). If the computed
 Group ID would be less than 0 or greater than 2^64-1, the Subscriber MUST
-close the Session with error 'PROTOCOL_VIOLATION'.
+close the Session with `DELTA_ENCODING_OVERFLOW`.
 
 When the Group ID Delta field is present, the Object ID is the value of Object ID Delta if
 present. When the Group ID Delta field is not present, the Object ID is the prior Object's ID
 plus the Object ID Delta if present. If Object ID Delta is not present, the Object ID is the
 prior Object's ID plus one, regardless of which group it belongs to. If the computed Object ID
-would be greater than 2^64-1, the Subscriber MUST close the Session with error
-'PROTOCOL_VIOLATION'.
+would be greater than 2^64-1, the Subscriber MUST close the Session with
+`DELTA_ENCODING_OVERFLOW`.
 
 The Object Properties structure is defined in {{object-properties}}.
 
@@ -4868,11 +4879,13 @@ the "prior Object", the prior Object fields are determined as follows:
 
 * Prior Group ID and prior Object ID: The values from the End of Range indicator.
 * Prior Subgroup ID: The Subgroup ID from the last actual Object before the
-  End of Range indicator. If there was no prior Object, using a flag that
-  references the prior Subgroup ID is a `PROTOCOL_VIOLATION`.
+  End of Range indicator. If there was no prior Object, an endpoint that
+  receives a flag referencing the prior Subgroup ID MUST close the session
+  with `MALFORMED_OBJECT`.
 * Prior Priority: The Priority from the last actual Object before the End of
-  Range indicator. If there was no prior Object, using a flag that references
-  the prior Priority is a `PROTOCOL_VIOLATION`.
+  Range indicator. If there was no prior Object, an endpoint that receives a
+  flag referencing the prior Priority MUST close the session with
+  `MALFORMED_OBJECT`.
 
 ## Padding {#padding}
 
@@ -4978,7 +4991,18 @@ UNAUTHORIZED (0x2):
 
 PROTOCOL_VIOLATION (0x3):
 : The remote endpoint performed an action that was disallowed by the
-  specification.
+  specification and no more specific code applies.
+
+Codes from 0x200 to 0x4FF are organized into ranges by category:
+
+* 0x200-0x2FF: Data stream and datagram errors
+* 0x300-0x3FF: Control stream and control message errors
+* 0x400-0x4FF: Errors that can occur in either
+
+The values reserved for greasing ({{grease}}) that fall within these ranges are
+not assigned to a category.  An endpoint that receives any other unrecognized
+code within one of these ranges can use the range to identify the category of
+the error.
 
 INVALID_REQUEST_ID (0x4):
 : The endpoint received a Request ID with an incorrect least significant
@@ -4987,8 +5011,9 @@ INVALID_REQUEST_ID (0x4):
 DUPLICATE_TRACK_ALIAS (0x5):
 : The endpoint attempted to use a Track Alias that was already in use.
 
-KEY_VALUE_FORMATTING_ERROR (0x6):
-: The key-value pair has a formatting error.
+MALFORMED_KEY_VALUE (0x6):
+: A Key-Value-Pair ({{moq-key-value-pair}}), such as a Setup Option or a
+  Property, has a Value that does not match the definition of its Type.
 
 INVALID_PATH (0x8):
 : The PATH parameter was used by a server, on a WebTransport session, or the
@@ -5022,8 +5047,7 @@ DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
   {{auth-token-compression}}).
 
 MALFORMED_AUTH_TOKEN (0x16):
-: Invalid Auth Token serialization during registration (see
-  {{auth-token-compression}}).
+: Invalid Auth Token serialization (see {{auth-token-compression}}).
 
 UNKNOWN_AUTH_TOKEN_ALIAS (0x17):
 : No registered token found for the provided Alias (see
@@ -5043,6 +5067,55 @@ TOO_MANY_REQUEST_UPDATES (0x1B):
 : The endpoint received a REQUEST_UPDATE that exceeded the per-stream limit
   communicated via the MAX_REQUEST_UPDATES Setup Option
   ({{max-request-updates}}).
+
+INVALID_STREAM_HEADER (0x200):
+: A data stream or datagram has an unknown type or invalid Type Flags.
+
+MALFORMED_OBJECT (0x201):
+: The serialization of an Object on a data stream or in a datagram cannot be
+  decoded, for example a flag references a prior Object that does not exist.
+
+INVALID_OBJECT_STATUS (0x202):
+: An Object has an invalid Object Status, or has Properties when its status is
+  not Normal.
+
+TRUNCATED_OBJECT (0x203):
+: A data stream ended with a FIN in the middle of an Object.
+
+MALFORMED_MESSAGE (0x300):
+: A control message cannot be parsed, for example its length does not match
+  its contents.
+
+INVALID_FIELD (0x301):
+: A control message was parsed, but a field has a value that is not allowed.
+
+INVALID_TRACK_NAMESPACE (0x302):
+: A Track Namespace does not conform to {{track-namespace-structure}}.
+
+UNEXPECTED_MESSAGE (0x303):
+: A control message of an unknown type was received, or a message was received
+  on the wrong stream, in the wrong order, or more times than allowed.
+
+ROLE_VIOLATION (0x304):
+: The peer sent a message or field that is not allowed for its role, for
+  example a server receiving a non-empty New Session URI.
+
+INVALID_PARAMETER (0x305):
+: A Message Parameter ({{message-params}}) is unknown, duplicated, not allowed
+  in the message, or has a value outside its allowed range.
+
+CLOSED_CONTROL_STREAM (0x306):
+: The peer closed the control stream ({{session-init}}).
+
+DELTA_ENCODING_OVERFLOW (0x400):
+: A value decoded from a delta encoding is less than 0 or greater than
+  2^64 - 1.
+
+FIELD_LENGTH_EXCEEDED (0x401):
+: A field or structure is longer than its maximum allowed length.
+
+When more than one code applies, an endpoint uses DELTA_ENCODING_OVERFLOW or
+FIELD_LENGTH_EXCEEDED in preference to the other codes.
 
 ## Request Error Codes {#request-error-codes}
 
@@ -5801,7 +5874,7 @@ This document does not define any initial entries.
 | PROTOCOL_VIOLATION         | 0x3  | {{session-termination-codes}} |
 | INVALID_REQUEST_ID         | 0x4  | {{session-termination-codes}} |
 | DUPLICATE_TRACK_ALIAS      | 0x5  | {{session-termination-codes}} |
-| KEY_VALUE_FORMATTING_ERROR | 0x6  | {{session-termination-codes}} |
+| MALFORMED_KEY_VALUE        | 0x6  | {{session-termination-codes}} |
 | INVALID_PATH               | 0x8  | {{session-termination-codes}} |
 | MALFORMED_PATH             | 0x9  | {{session-termination-codes}} |
 | GOAWAY_TIMEOUT             | 0x10 | {{session-termination-codes}} |
@@ -5815,6 +5888,19 @@ This document does not define any initial entries.
 | INVALID_AUTHORITY          | 0x19 | {{session-termination-codes}} |
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination-codes}} |
 | TOO_MANY_REQUEST_UPDATES   | 0x1B | {{session-termination-codes}} |
+| INVALID_STREAM_HEADER      | 0x200 | {{session-termination-codes}} |
+| MALFORMED_OBJECT           | 0x201 | {{session-termination-codes}} |
+| INVALID_OBJECT_STATUS      | 0x202 | {{session-termination-codes}} |
+| TRUNCATED_OBJECT           | 0x203 | {{session-termination-codes}} |
+| MALFORMED_MESSAGE          | 0x300 | {{session-termination-codes}} |
+| INVALID_FIELD              | 0x301 | {{session-termination-codes}} |
+| INVALID_TRACK_NAMESPACE    | 0x302 | {{session-termination-codes}} |
+| UNEXPECTED_MESSAGE         | 0x303 | {{session-termination-codes}} |
+| ROLE_VIOLATION             | 0x304 | {{session-termination-codes}} |
+| INVALID_PARAMETER          | 0x305 | {{session-termination-codes}} |
+| CLOSED_CONTROL_STREAM      | 0x306 | {{session-termination-codes}} |
+| DELTA_ENCODING_OVERFLOW    | 0x400 | {{session-termination-codes}} |
+| FIELD_LENGTH_EXCEEDED      | 0x401 | {{session-termination-codes}} |
 | Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
 
 ### REQUEST_ERROR Codes {#iana-request-error}
