@@ -3362,12 +3362,7 @@ when it deletes subscription state.
 
 A publisher that ends a subscription because the authorization token that
 authorized it has expired SHOULD send PUBLISH_DONE with status code
-`EXPIRED_AUTH_TOKEN`. A subscriber that receives it can subscribe again with
-a refreshed token. To avoid the interruption, a subscriber can instead send a
-REQUEST_UPDATE carrying a new AUTHORIZATION_TOKEN before the token expires.
-`EXPIRED_AUTH_TOKEN` refers to the token presented by the subscriber; a relay
-whose own upstream authorization expires and cannot be refreshed uses a
-different status code.
+`EXPIRED_AUTH_TOKEN`.
 
 The format of `PUBLISH_DONE` is as follows:
 
