@@ -1929,8 +1929,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 6.1.  MOQT URI Scheme
 
    An MOQT server is identified using a URI with the "moqt" scheme
-   defined in [MOQT-URI].  Use fragment identifiers, how to use DNS to
-   resolve that URI, and matching with the TLS certificate, and ALPN
+   defined in [MOQT-URI].  Use of fragment identifiers, how to use DNS
+   to resolve that URI, and matching with the TLS certificate, and ALPN
    identifers are specified in [MOQT-URI].
 
 6.1.1.  Fragment Identifiers
