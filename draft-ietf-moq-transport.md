@@ -2950,7 +2950,7 @@ or REQUEST_ERROR message indicating if the update was successful, unless it
 is coalescing failed updates to produce just one REQUEST_ERROR for multiple
 REQUEST_UPDATE messages. Because requests and responses are sent on a single
 in-order stream and REQUEST_OK does not contain a Request ID, REQUEST_OK
-responses to REQUEST_UPDATEs MUST be returned inthe order the updates
+responses to REQUEST_UPDATEs MUST be returned in the order the updates
 were received.
 
 The number of outstanding REQUEST_UPDATEs on a single request stream is
