@@ -6619,11 +6619,11 @@ Normative References
               <https://datatracker.ietf.org/doc/html/draft-ietf-
               webtrans-overview-13>.
 
-   [MOQT-URI] Jennings, C. F. and S. Nandakumar, "DNS and mDNS Discovery
-              for MOQT", Work in Progress, Internet-Draft, draft-
-              jennings-moq-discovery-02, 5 September 2026,
+   [MOQT-URI] Jennings, C. F. and S. Nandakumar, "MOQT URI and
+              Discovery", Work in Progress, Internet-Draft, draft-
+              jennings-moq-uri-00, 7 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-jennings-moq-
-              discovery-02>.
+              uri-00>.
 
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
