@@ -487,8 +487,10 @@ encoded as described in {{track-namespace-structure}}.
 The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace.
 
-Track Name is a sequence of bytes, possibly empty, that identifies an individual
-track within the namespace.
+Track Name is a sequence of bytes that identifies an individual track within
+the namespace. Each Track Name MUST contain at least one byte. If an
+endpoint receives a Track Name with a length of 0, it MUST close the
+session with a `PROTOCOL_VIOLATION`.
 
 In this specification, both the Track Namespace Fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -994,8 +996,8 @@ inside FILL_PARAMETERS, or the subscription's Location filter if it is
 omitted. The filter is evaluated using the rules for a Fetch in
 {{location-filter}}, so the fill range never extends beyond `Largest
 Object`. When the subscription has no Location filter, or the LOCATION_FILTER
-inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
-`Largest Object`.  The subscriber learns the `Largest Object` from the
+inside FILL_PARAMETERS has Location Filter Type 0x00 (None), the fill range is
+the entire track up to `Largest Object`.  The subscriber learns the `Largest Object` from the
 `LARGEST_OBJECT` parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.
 
 Because the fill range is specified independently of the subscription's
@@ -3595,11 +3597,16 @@ All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.
 
+When Parameters of a NAMESPACE change, the NAMESPACE message is sent again
+with the updated Parameters.
+
 ~~~
 NAMESPACE Message {
   Type (vi64) = 0x8,
   Length (16),
   Track Namespace Suffix (..),
+  Number of Parameters (vi64),
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-ns-format title="MOQT NAMESPACE Message"}
@@ -3608,6 +3615,8 @@ NAMESPACE Message {
   namespace as defined in {{track-namespace-structure}} after removing
   namespace tuples included in 'Track Namespace Prefix'
   {{message-subscribe-ns}}.
+
+* Parameters: The parameters are defined in {{message-params}}.
 
 ## NAMESPACE_DONE {#message-namespace-done}
 
