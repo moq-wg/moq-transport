@@ -1534,7 +1534,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    tracks available in namespaces matching the Track Namespace Prefix it
    carries (see Section 2.4.2).  A subscriber MAY send SUBSCRIBE, FETCH
    or TRACK_STATUS for tracks in a namespace without having received a
-   PUBLISH_NAMESPACE for it.
+   PUBLISH_NAMESPACE for it.  A Relay has additional requirements on
+   which publishers receive these requests; see Section 7.6.
 
    The receiver verifies the publisher is authorized to publish tracks
    under this prefix.
