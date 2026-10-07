@@ -3103,10 +3103,13 @@ REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.
 An endpoint that receives a REQUEST_UPDATE other than in the two cases above
 MUST close the session with a `PROTOCOL_VIOLATION`.
 
-The receiver of a REQUEST_UPDATE MUST respond with exactly one
-REQUEST_UPDATE_OK or REQUEST_UPDATE_ERROR message indicating if the update was
-successful, unless it is coalescing failed updates to produce just one
-REQUEST_UPDATE_ERROR for multiple REQUEST_UPDATE messages.
+The receiver of a REQUEST_UPDATE MUST respond with exactly one REQUEST_UPDATE_OK
+or REQUEST_UPDATE_ERROR message indicating if the update was successful, unless it
+is coalescing failed updates to produce just one REQUEST_ERROR for multiple
+REQUEST_UPDATE messages. Because requests and responses are sent on a single
+in-order stream and REQUEST_UPDATE_OK does not contain a Request ID,
+REQUEST_UPDATE_OKs MUST be returned in the order the REQUEST_UPDATEs
+were received.
 
 The number of outstanding REQUEST_UPDATEs on a single request stream is
 limited by the MAX_REQUEST_UPDATES Setup Option ({{max-request-updates}}).
