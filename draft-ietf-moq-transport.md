@@ -3363,6 +3363,10 @@ potentially not delivering some late objects to the application.  The
 subscriber SHOULD send STOP_SENDING on all streams related to the subscription
 when it deletes subscription state.
 
+A publisher that ends a subscription because the authorization token that
+authorized it has expired SHOULD send PUBLISH_DONE with status code
+`EXPIRED_AUTH_TOKEN`.
+
 The format of `PUBLISH_DONE` is as follows:
 
 ~~~
@@ -5169,6 +5173,10 @@ TOO_FAR_BEHIND (0x5):
 EXPIRED (0x6):
 : The publisher reached the timeout specified in SUBSCRIBE_OK.
 
+EXPIRED_AUTH_TOKEN (0x7):
+: The authorization token that authorized the subscription has expired
+  (see {{message-publish-done}}).
+
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
@@ -5856,6 +5864,7 @@ This document does not define any initial entries.
 | GOING_AWAY         | 0x4  | {{publish-done-codes}} |
 | TOO_FAR_BEHIND     | 0x5  | {{publish-done-codes}} |
 | EXPIRED            | 0x6  | {{publish-done-codes}} |
+| EXPIRED_AUTH_TOKEN | 0x7  | {{publish-done-codes}} |
 | UPDATE_FAILED      | 0x8  | {{publish-done-codes}} |
 | EXCESSIVE_LOAD     | 0x9  | {{publish-done-codes}} |
 | MALFORMED_TRACK    | 0x12 | {{publish-done-codes}} |
