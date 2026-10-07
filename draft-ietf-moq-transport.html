@@ -3057,8 +3057,8 @@ inside FILL_PARAMETERS, or the subscription's Location filter if it is
 omitted. The filter is evaluated using the rules for a Fetch in
 <a href="#location-filter" class="auto internal xref">Section 9.20.9</a>, so the fill range never extends beyond <code>Largest
 Object</code>. When the subscription has no Location filter, or the LOCATION_FILTER
-inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
-<code>Largest Object</code>.  The subscriber learns the <code>Largest Object</code> from the
+inside FILL_PARAMETERS has Location Filter Type 0x00 (None), the fill range is
+the entire track up to <code>Largest Object</code>.  The subscriber learns the <code>Largest Object</code> from the
 <code>LARGEST_OBJECT</code> parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
 <p id="section-3.4-3">Because the fill range is specified independently of the subscription's
 Location filter, a subscriber can retrieve a range of Groups prior to
