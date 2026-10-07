@@ -1223,7 +1223,8 @@ PUBLISH_NAMESPACE indicates to the subscriber that the publisher has tracks
 available in namespaces matching the Track Namespace Prefix it carries (see
 {{namespace-prefix-matching}}). A subscriber MAY send SUBSCRIBE, FETCH or
 TRACK_STATUS for tracks in a namespace without having received a
-PUBLISH_NAMESPACE for it.
+PUBLISH_NAMESPACE for it. A Relay has additional requirements on which
+publishers receive these requests; see {{publisher-interactions}}.
 
 The receiver verifies the publisher is authorized to publish tracks under this
 prefix.
