@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 4 April 2027                                      I. Swett, Ed.
+Expires: 10 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          1 October 2026
+                                                          7 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 April 2027.
+   This Internet-Draft will expire on 10 April 2027.
 
 Copyright Notice
 
@@ -4068,10 +4068,15 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    SUBSCRIBE_NAMESPACE, so only the namespace tuples after the 'Track
    Namespace Prefix' are included in the 'Track Namespace Suffix'.
 
+   When Parameters of a NAMESPACE change, the NAMESPACE message is sent
+   again with the updated Parameters.
+
    NAMESPACE Message {
      Type (vi64) = 0x8,
      Length (16),
      Track Namespace Suffix (..),
+     Number of Parameters (vi64),
+     Parameters (..) ...
    }
 
                      Figure 20: MOQT NAMESPACE Message
@@ -4079,6 +4084,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 8.7 after removing namespace
       tuples included in 'Track Namespace Prefix' Section 9.15.
+
+   *  Parameters: The parameters are defined in Section 9.20.
 
 9.17.  NAMESPACE_DONE
 
