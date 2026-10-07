@@ -92,7 +92,7 @@ This document describes the MOQT protocol and is structured as follows:
 * The core concepts and functionality are described first
   * Section 2 {{model}} Object Data Model describes how Objects, Tracks and Namespaces relate
   * Section 3 {{publishing-and-receiving-tracks}} Describes how Objects in Tracks are Published and Retrieved.
-  * Section 4 {{track-discovery}} Describes mechanisms for discovering Namespaces and Tracks
+  * Section 4 {{track-discovery}} Describes mechanisms for discovering Publishers and Namespaces
 
 * Next, the document describes how Objects are transmitted and MOQT Sessions
   * Section 5 {{object-transmission}} Describes ways MOTQ allows a subscriber to influence Object transmission order
@@ -257,6 +257,11 @@ Track:
 
 : A track is a collection of groups. See ({{model-track}}).
 
+Subscription:
+
+: An ongoing relationship in which a publisher delivers newly published
+  objects from a track to a subscriber. See ({{subscriptions}}).
+
 ## Stream Management Terms
 
 This document uses stream management terms described in {{?RFC9000, Section
@@ -268,6 +273,18 @@ correctly when the extension is not used or not supported.
 When this document says an endpoint "resets" a stream, it means the endpoint
 sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
 {{closing-subgroup-streams}} for considerations on choosing between them).
+
+## Response Message Naming
+
+Most requests in MOQT are answered with a common REQUEST_OK
+({{message-request-ok}}) or REQUEST_ERROR ({{message-request-error}}) message.
+This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
+TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
+PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
+corresponding request type.  Likewise, it uses the shorthand SUBSCRIBE_ERROR,
+FETCH_ERROR, PUBLISH_ERROR, SUBSCRIBE_NAMESPACE_ERROR, SUBSCRIBE_TRACKS_ERROR,
+PUBLISH_NAMESPACE_ERROR, TRACK_STATUS_ERROR and REQUEST_UPDATE_ERROR to refer
+to a REQUEST_ERROR sent in response to the corresponding request type.
 
 ## Modularity
 
@@ -481,6 +498,22 @@ information in these fields, for example by restricting them to UTF-8. Any such
 specification needs to specify the canonicalization into the bytes in the Track
 Namespace Fields or Track Name such that exact comparison works.
 
+### Namespace Prefix Matching {#namespace-prefix-matching}
+
+To perform a namespace prefix match, the fields of the prefix are compared
+sequentially against the leading fields of the Track Namespace being
+matched, requiring an exact match for each field.  The prefix matches if all
+fields in the prefix match the leading fields of the Namespace.
+
+The examples below use the serialized name format from
+{{namespace-name-format}}.
+
+The Full Track Name `foo-bar--x` has the namespace `foo-bar`, so it matches
+the prefixes `foo` and `foo-bar`.  It does not match `foobar`.
+
+The prefix `example.2ecom-123` matches the namespaces `example.2ecom-123-100`
+and `example.2ecom-123-200`.
+
 ### Reserved Namespaces {#reserved-namespaces}
 
 MOQT reserves all Track Namespace values whose first tuple field begins with
@@ -559,10 +592,10 @@ initiated and moved to the `Pending` state by either a publisher or a
 subscriber.  A publisher initiates a subscription to a track by
 sending the PUBLISH message.  The subscriber either accepts or rejects
 the subscription using PUBLISH_OK ({{message-request-ok}}) or
-REQUEST_ERROR.  A subscriber
+PUBLISH_ERROR.  A subscriber
 initiates a subscription to a track by sending the SUBSCRIBE message.
 The publisher either accepts or rejects the subscription using
-SUBSCRIBE_OK or REQUEST_ERROR.  Once either of these sequences is
+SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once either of these sequences is
 successful, the subscription moves to the `Established` state and can
 be updated by the subscriber using REQUEST_UPDATE.  Either endpoint
 can terminate an `Established` subscription, moving it to the
@@ -575,45 +608,38 @@ and closing the stream.
 This diagram shows the subscription state machine:
 
 ~~~
-                              +--------+
-                              |  Idle  |
-                              +--------+
-                                |    |
-                      SUBSCRIBE |    | PUBLISH
-                    (subscriber)|    | (publisher)
-                                V    V
-                   +--------------+ +--------------+
-                   | Pending      | | Pending      |
-              +----| (Subscriber) | | (Publisher)  |----+
-              |    +--------------+ +--------------+    |
-              |                 |    |                  |
-REQUEST_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | REQUEST_ERROR
-(publisher)   |      (publisher)|    | (subscriber)     | (subscriber)
-              |                 V    V                  |
-              |            +-------------+              |
-              |            | Established | ------+
-              |            |             |       | REQUEST_UPDATE
-              |            +-------------+ <-----+
-              |                 |    |                  |
-              +--- STOP_SENDING |    | PUBLISH_DONE ----+
-              |     (subscriber)|    | (publisher)      |
-              |                 V    V                  |
-              |            +-------------+              |
-              +----------->| Terminated  | <------------+
-                           +-------------+
+                                +--------+
+                                |  Idle  |
+                                +--------+
+                                  |    |
+                        SUBSCRIBE |    | PUBLISH
+                      (subscriber)|    | (publisher)
+                                  V    V
+                     +--------------+ +--------------+
+                     | Pending      | | Pending      |
+                +----| (Subscriber) | | (Publisher)  |----+
+                |    +--------------+ +--------------+    |
+                |                 |    |                  |
+SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
+(publisher)     |      (publisher)|    | (subscriber)     | (subscriber)
+                |                 V    V                  |
+                |            +-------------+              |
+                |            | Established | ------+
+                |            |             |       | REQUEST_UPDATE
+                |            +-------------+ <-----+
+                |                 |    |                  |
+                +--- STOP_SENDING |    | PUBLISH_DONE ----+
+                |     (subscriber)|    | (publisher)      |
+                |                 V    V                  |
+                |            +-------------+              |
+                +----------->| Terminated  | <------------+
+                             +-------------+
 ~~~
 
-A publisher MUST send exactly one SUBSCRIBE_OK or REQUEST_ERROR in response to
-a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK
-({{message-request-ok}}) or REQUEST_ERROR in response to a PUBLISH. The peer SHOULD close the session with a protocol error
-if it receives more than one.
-
-All `Established` subscriptions have a Forward State which is either 0 or 1.
-The publisher does not send Objects if the Forward State is 0, and does send them
-if the Forward State is 1.  The initiator of the subscription sets the initial
-Forward State in either PUBLISH or SUBSCRIBE.  The subscriber can send
-REQUEST_UPDATE to update the Forward State. Control messages, such as
-PUBLISH_DONE ({{message-publish-done}}) are sent regardless of the forward state.
+A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response
+to a SUBSCRIBE. A subscriber MUST send exactly one PUBLISH_OK
+({{message-request-ok}}) or PUBLISH_ERROR in response to a PUBLISH. The peer
+SHOULD close the session with a protocol error if it receives more than one.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -646,12 +672,25 @@ incurring additional latency.
 Publishers MAY start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with REQUEST_ERROR or sets Forward=0 in REQUEST_UPDATE. It can also result in
+with PUBLISH_ERROR or pauses the subscription (see below). It can also result in
 the Subscriber dropping Objects if its buffering limits are exceeded (see
 {{datagrams}} and {{subgroup-header}}).
 
 An object published or received in a subgroup or datagram is
 **subscription-delivered**.
+
+### Pausing Subscriptions {#pausing-subscriptions}
+
+An `Established` subscription is either paused or not paused. The publisher does
+not send Objects on a paused subscription, and does send them when it is not
+paused.  Control messages, such as PUBLISH_DONE ({{message-publish-done}}), are
+sent regardless of whether the subscription is paused.
+
+The initiator of the subscription sets the initial state by including the
+FORWARD parameter ({{forward-parameter}}) in PUBLISH or SUBSCRIBE. The
+subscriber can pause an `Established` subscription by sending REQUEST_UPDATE
+with FORWARD set to 0, or resume it by sending REQUEST_UPDATE with FORWARD set
+to 1.
 
 ### Subscription State Management
 
@@ -723,7 +762,8 @@ The `Largest Object` is the Object with the largest Location
 ({{location-structure}}) in the Track from the perspective of the publisher
 processing the message. Largest Object updates when the first byte of an Object
 with a Location larger than the previous value is published or received through
-a subscription.
+a subscription.  `Largest Object` therefore identifies an Object that can still
+be arriving.
 
 The `Next Object` is the Location immediately following `Largest Object`, which
 is `{Largest Object.Group, Largest Object.Object + 1}`, or {0, 0} if no content
@@ -742,16 +782,20 @@ an End Location, inclusive.  This range is specified by a Location Filter (see
 Objects with Locations larger than the `Largest Object` at the time the request
 is processed will not be retrieved by a FETCH.  The actual end of the FETCH
 response is indicated in the FETCH_OK End Location (see {{message-fetch-ok}}).
+Because `Largest Object` can identify an Object that is still arriving
+({{largest-object}}), a FETCH whose range includes `Largest Object` includes
+that Object in full; the publisher delivers the remainder as it becomes
+available.
 
-The publisher MUST send exactly one FETCH_OK or REQUEST_ERROR in response to a
-FETCH.  The FETCH_OK or REQUEST_ERROR can come at any time relative to object
+The publisher MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
+FETCH.  The FETCH_OK or FETCH_ERROR can come at any time relative to object
 delivery.  The publisher MAY send Objects in response to a FETCH before the
 FETCH_OK message is sent, but the FETCH_OK MUST NOT be sent until the End
 Location is known.
 
 If no Objects have been published for the track or Start Location is greater
 than the `Largest Object` ({{largest-object}}) the publisher MUST return
-REQUEST_ERROR with error code `INVALID_RANGE`.
+FETCH_ERROR with error code `INVALID_RANGE`.
 
 ### Fetch Object Delivery
 
@@ -807,7 +851,7 @@ UNKNOWN_OBJECT_STATUS ({{stream-reset-codes}}), or indicate the range of unknown
 Objects (`End of Unknown Range`, see {{end-of-range}}) and continue serving
 other known Objects.  When resetting the stream, the publisher can do so
 immediately or after previously sent objects are delivered.  If it has not yet
-sent FETCH_OK, it can send REQUEST_ERROR in addition to resetting the stream.
+sent FETCH_OK, it can send FETCH_ERROR in addition to resetting the stream.
 
 ### Relay Fetch Handling
 
@@ -828,7 +872,7 @@ available Objects in the range.
 ### Fetch State Management
 
 A subscriber keeps FETCH state until it cancels the request
-(see {{request-cancellation}}), receives REQUEST_ERROR, or the FETCH data stream
+(see {{request-cancellation}}), receives FETCH_ERROR, or the FETCH data stream
 receives a FIN or is reset. If the data stream is already open,
 the subscriber wishing to cancel the FETCH MAY send STOP_SENDING for the
 data stream as well as the bidi request stream. It MUST send STOP_SENDING
@@ -841,7 +885,7 @@ the FETCH data stream.
 
 It can remove all FETCH state after closing the data stream with a FIN.
 
-A REQUEST_ERROR indicates that both endpoints can immediately remove state.
+A FETCH_ERROR indicates that both endpoints can immediately remove state.
 Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
 results in error.
@@ -948,16 +992,17 @@ response (see {{message-fetch}}).  This is called a fill fetch stream.
 The **fill range** is the range of Locations selected by the Location filter
 inside FILL_PARAMETERS, or the subscription's Location filter if it is
 omitted. The filter is evaluated using the rules for a Fetch in
-{{location-filters}}, so the fill range never extends beyond `Largest
+{{location-filter}}, so the fill range never extends beyond `Largest
 Object`. When the subscription has no Location filter, or the LOCATION_FILTER
-inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
-`Largest Object`.  The subscriber learns the `Largest Object` from the
+inside FILL_PARAMETERS has Location Filter Type 0x00 (None), the fill range is
+the entire track up to `Largest Object`.  The subscriber learns the `Largest Object` from the
 `LARGEST_OBJECT` parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.
 
 Because the fill range is specified independently of the subscription's
-Location filter, a subscriber can retrieve a range of Groups prior to the live
-edge while the subscription itself starts at the Next Group.  If the fill range
-is empty, or starts after Largest Object, the publisher does not open a fill fetch stream.
+Location filter, a subscriber can retrieve a range of Groups prior to
+`Largest Object` while the subscription itself starts at the Next Group.  If
+the fill range is empty, or starts after Largest Object, the publisher does not
+open a fill fetch stream.
 
 The fill fetch stream inherits the subscription's parameters, including
 subscriber priority, range filters and authorization; parameters carried inside
@@ -982,11 +1027,12 @@ with an open-ended fill range, which the publisher will end at Largest Object.
 ### Opening and Closing Fill Fetch Streams
 
 A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
-REQUEST_UPDATE that carries FILL_PARAMETERS while Forward State is 1.
+REQUEST_UPDATE that carries FILL_PARAMETERS while the subscription is not
+paused (see {{pausing-subscriptions}}).
 
-- FILL_PARAMETERS carried while Forward State is 0 opens no fill fetch stream.
-  Transitioning to Forward State 1 without re-sending FILL_PARAMETERS does not
-  open one either.
+- FILL_PARAMETERS carried while the subscription is paused opens no fill fetch
+  stream.  Resuming the subscription without re-sending FILL_PARAMETERS does
+  not open one either.
 - A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open a new fill
   fetch stream.
 - When the subscription is cancelled, the publisher MUST reset any open fill fetch streams.
@@ -1047,6 +1093,77 @@ that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
 groups. A publisher that does will begin the next group as soon as practical.
 
+## Subscribing to Tracks by Prefix {#subscribe-tracks}
+
+SUBSCRIBE_TRACKS requests subscriptions: the publisher sends PUBLISH
+messages for tracks within matching namespaces, excluding tracks published
+by the subscriber.
+
+A SUBSCRIBE_TRACKS with zero Track Namespace fields indicates the subscriber
+is requesting a Subscription for all Tracks from the publisher.
+
+SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
+a subscriber.  It is useful, for example, when the subscriber does not know
+the exact names of the tracks it wants, or when those tracks will be
+published.
+
+The publisher will respond with SUBSCRIBE_TRACKS_OK or SUBSCRIBE_TRACKS_ERROR
+on the response half of the stream. If the subscriber receives any message
+other than a SUBSCRIBE_TRACKS_OK or a SUBSCRIBE_TRACKS_ERROR as the first
+message on the response half of the stream, then it MUST close the session with
+a PROTOCOL_VIOLATION. If the SUBSCRIBE_TRACKS is successful, the publisher will
+send PUBLISH messages on new bidirectional streams for tracks matching the
+Namespace Prefix. If it is an error, the stream will be closed via FIN after
+SUBSCRIBE_TRACKS_ERROR is sent.
+
+Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
+Track Namespace Prefix that shares a common prefix with an established
+SUBSCRIBE_TRACKS, it MUST respond with SUBSCRIBE_TRACKS_ERROR with error code
+`PREFIX_OVERLAP`.
+
+The publisher MUST ensure the subscriber is authorized to perform this
+namespace subscription.
+
+A SUBSCRIBE_TRACKS is cancelled as described in
+{{request-cancellation}}.
+Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
+from sending further PUBLISH messages, but relays MUST NOT
+send any further PUBLISH messages to a client without knowing the client is
+interested in and authorized to receive the content.
+
+### Filtering SUBSCRIBE_TRACKS
+
+Range Filters {{range-filters}} can be used in SUBSCRIBE_TRACKS to filter
+Tracks in a namespace using the Track Property Filter. Objects published in
+the resulting Subscriptions can be filtered by any Range Filter.
+
+### Parameters on SUBSCRIBE_TRACKS {#parameters-on-subscribe-tracks}
+
+Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
+in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
+publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
+SUBSCRIBE_TRACKS, and explicitly communicated in the PUBLISH.
+When a Parameter is omitted from the SUBSCRIBE_TRACKS and resulting PUBLISH,
+the Subscription uses the default value.
+
+To join Tracks initiated via the resulting PUBLISHes, the subscriber can
+specify a Location Filter and optionally include FILL_PARAMETERS in the
+SUBSCRIBE_TRACKS, or in a REQUEST_UPDATE following PUBLISH_OK, as described
+in {{joining-tracks}}.
+
+### Skipped Tracks
+
+If a Subscription cannot be created because there are no available bidirectional
+streams or any other reason, the Publisher sends a PUBLISH_SKIPPED message on the
+SUBSCRIBE_TRACKS response stream to indicate the Full Track Name of the
+Subscription that was not created. The Publisher MUST NOT send a PUBLISH for a
+Track for a given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent,
+scoped to a single PUBLISH.  If, for example, the publisher disconnects from
+a relay and later reconnects and sends a new PUBLISH, the relay MAY send the new
+PUBLISH downstream.
+If desired, the subscriber can issue a SUBSCRIBE to establish a subscription to
+that track.
+
 ## Mandatory to Understand Track Properties {#mandatory-track-properties}
 
 Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
@@ -1061,107 +1178,125 @@ When an endpoint receives a Mandatory Track Property in PUBLISH,
 SUBSCRIBE_OK, or FETCH_OK that it does not
 understand, it MUST NOT process or forward that track:
 
-* For PUBLISH messages: the subscriber MUST respond with REQUEST_ERROR with
+* For PUBLISH messages: the subscriber MUST respond with PUBLISH_ERROR with
   error code UNSUPPORTED_EXTENSION.
 
 * For SUBSCRIBE_OK messages: the subscriber MUST cancel the subscription
   (see {{request-cancellation}}).  If the subscriber is a relay with pending
-  downstream subscribers, it MUST send REQUEST_ERROR with error code
+  downstream subscribers, it MUST send SUBSCRIBE_ERROR with error code
   UNSUPPORTED_EXTENSION to the downstream subscribers.
 
 * For FETCH_OK messages: the subscriber MUST cancel the fetch
   (see {{request-cancellation}}).  If the subscriber is a relay and has not yet
-  sent a FETCH_OK or REQUEST_ERROR downstream, it MUST send REQUEST_ERROR with
+  sent a FETCH_OK or FETCH_ERROR downstream, it MUST send FETCH_ERROR with
   error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
   relay has already forwarded data on a fetch stream, it MUST reset the stream.
 
 A publisher that knows a subscriber does not support a Mandatory Track Property
 SHOULD take the following action:
 
-* For SUBSCRIBE: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+* For SUBSCRIBE: respond with SUBSCRIBE_ERROR with error code
+  UNSUPPORTED_EXTENSION.
 
-* For FETCH: respond with REQUEST_ERROR with error code UNSUPPORTED_EXTENSION.
+* For FETCH: respond with FETCH_ERROR with error code UNSUPPORTED_EXTENSION.
 
 * For PUBLISH: do not publish the track to that subscriber.
 
-# Namespace Discovery {#track-discovery}
+# Publisher and Namespace Discovery {#track-discovery}
 
-Discovery of MOQT servers is always done out-of-band. Namespace discovery can be
-done in the context of an established MOQT session using SUBSCRIBE_NAMESPACE
-(see {{subscribing-to-namespaces}}).
+Given out-of-band information, a subscriber can
+retrieve tracks from a publisher (including a relay) without any previous MOQT
+messages besides SETUP.  However, MOQT provides in-band messages for a publisher
+to advertise the namespaces it has tracks in, and for a subscriber to discover
+the namespaces a publisher knows.
 
-Given sufficient out of band information, it is valid for a subscriber to send a
-SUBSCRIBE or FETCH message to a publisher (including a relay) without any
-previous MOQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH and
-PUBLISH_NAMESPACE messages provide an in-band means of discovery of publishers
-for a namespace.
-
-The syntax of these messages is described in {{message}}.
-
-
-## Subscribing to Namespaces {#subscribing-to-namespaces}
-
-If the subscriber is aware of a namespace of interest, it can send
-SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS to publishers/relays it has established
-a session with. The Track Namespace Prefix carried in these messages is
-compared against the namespaces known to the receiver using Namespace Prefix
-Matching ({{namespace-prefix-matching}}).
-
-SUBSCRIBE_NAMESPACE requests namespace discovery: the publisher sends relevant
-NAMESPACE and NAMESPACE_DONE messages for namespaces matching the prefix,
-including echoing back Track Namespaces under the prefix that have been published
-to it.
-
-SUBSCRIBE_TRACKS requests track subscriptions: the publisher sends PUBLISH
-messages for tracks within matching namespaces, excluding tracks published
-by the subscriber.
-
-Either message with zero Track Namespace fields indicates the sender is
-interested in all namespaces or all tracks from the receiver, respectively.
-
-By sending SUBSCRIBE_NAMESPACE, the subscriber indicates that it trusts the
-relay to be authoritative for namespaces matching the requested prefix.
-NAMESPACE messages received on the SUBSCRIBE_NAMESPACE response stream inherit
-this trust and do not independently carry authorization.
-
-The subscriber sends SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS on a new
-bidirectional stream and the publisher MUST send a single REQUEST_OK or
-REQUEST_ERROR as the first message on the bidirectional stream in response.
-
-If a Subscription cannot be created because there are no available bidirectional
-streams or any other reason, the Publisher sends a PUBLISH_SKIPPED message on the
-SUBSCRIBE_TRACKS response stream to indicate the Full Track Name of the
-Subscription that was not created. The Publisher MUST NOT send a PUBLISH for a
-Track for a given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent,
-scoped to a single PUBLISH.  If, for example, the publisher disconnects from
-a relay and later reconnects and sends a new PUBLISH, the relay MAY send the new
-PUBLISH downstream.
-If desired, the subscriber can issue a SUBSCRIBE to establish a subscription to
-that track.
-
-The receiver of a REQUEST_OK or REQUEST_ERROR ought to
-forward the result to the application, so the application can decide which other
-publishers to contact, if any.
-
-A SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS is cancelled as described in
-{{request-cancellation}}, by resetting or sending STOP_SENDING on the stream.
-Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
-from sending further PUBLISH messages, but relays MUST NOT
-send any further PUBLISH messages to a client without knowing the client is
-interested in and authorized to receive the content.
+Discovery of MOQT servers is always done out-of-band: MOQT does not specify how
+an endpoint learns where to establish a session. The discovery described in this
+section takes place within an established session.
 
 ## Publishing Namespaces
 
 A publisher MAY send PUBLISH_NAMESPACE messages to any subscriber. A
 PUBLISH_NAMESPACE indicates to the subscriber that the publisher has tracks
-available in that namespace. A subscriber MAY send SUBSCRIBE or FETCH for tracks
-in a namespace without having received a PUBLISH_NAMESPACE for it.
+available in namespaces matching the Track Namespace Prefix it carries (see
+{{namespace-prefix-matching}}). A subscriber MAY send SUBSCRIBE, FETCH or
+TRACK_STATUS for tracks in a namespace without having received a
+PUBLISH_NAMESPACE for it.
 
-If a publisher is the Original Publisher for one or more tracks in a given
-namespace, or is a relay that has received an authorized PUBLISH_NAMESPACE for
-that namespace from an upstream publisher, it MUST send a NAMESPACE message
-that includes this namespace to any subscriber that has sent a
-SUBSCRIBE_NAMESPACE whose prefix matches this namespace.
+The receiver verifies the publisher is authorized to publish tracks under this
+prefix.
+
+A subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or
+PUBLISH_NAMESPACE_ERROR as the first message on the bidi stream in response to
+a PUBLISH_NAMESPACE. The publisher SHOULD close the session with a protocol
+error if it receives more than one.
+
+An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
+PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
+subscribers for a namespace, or to abandon the attempt to publish under this
+namespace.
+
+If a subscriber
+has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
+namespace for a given track, it SHOULD only request the Track from the sender(s) of those
+PUBLISH_NAMESPACE messages.
+
+A PUBLISH_NAMESPACE is withdrawn by cancelling the request
+(see {{request-cancellation}}), although it is not a protocol error for
+the subscriber to send a SUBSCRIBE, FETCH or TRACK_STATUS message for a track
+in a namespace after the namespace is withdrawn.
+
+A subscriber can cancel the request (see {{request-cancellation}}) to revoke
+acceptance of a PUBLISH_NAMESPACE. If the reason for cancellation is expiration
+of authorization credentials, the publisher can send PUBLISH_NAMESPACE again
+on a new bidi stream with refreshed authorization.
+
+While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
+subscribers, it is not a full-fledged routing protocol and does not protect
+against loops. In particular, PUBLISH_NAMESPACE SHOULD NOT
+be used to find paths through richly connected networks of relays.
+
+## Subscribing to Namespaces {#subscribing-to-namespaces}
+
+If the subscriber is aware of a namespace of interest, it can send
+SUBSCRIBE_NAMESPACE to publishers/relays it has established
+a session with. The Track Namespace Prefix it carries is
+compared against the namespaces known to the receiver using Namespace Prefix
+Matching ({{namespace-prefix-matching}}).
+
+SUBSCRIBE_NAMESPACE requests namespace discovery: the publisher responds with
+NAMESPACE and NAMESPACE_DONE messages.
+
+A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the sender is
+interested in all namespaces from the receiver.
+
+The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream. The
+publisher MUST send a single SUBSCRIBE_NAMESPACE_OK or
+SUBSCRIBE_NAMESPACE_ERROR as the first message on the response half of the
+stream; if the subscriber receives any other message first, it MUST close the
+session with a PROTOCOL_VIOLATION.
+
+On success, the publisher MUST send a NAMESPACE message for each namespace it
+knows that matches the Track Namespace Prefix, and further NAMESPACE or
+NAMESPACE_DONE messages as that set changes.  A publisher knows a namespace if
+it is an Original Publisher for one or more tracks in that Namespace Prefix,
+or is a relay that has received an authorized PUBLISH_NAMESPACE for the
+Namespace.
+On error, the stream is immediately closed via FIN.
+
+The namespace in a NAMESPACE message is itself a prefix; tracks can exist in
+namespaces matching it.  A NAMESPACE_DONE indicates the publisher intends to
+stop serving new subscriptions for tracks within that namespace.
+
+
+Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
+Track Namespace Prefix that shares a common prefix with an established
+SUBSCRIBE_NAMESPACE, it MUST respond with SUBSCRIBE_NAMESPACE_ERROR with
+error code `PREFIX_OVERLAP`.
+
+The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
+corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
+corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
 
 A subscriber can receive a PUBLISH_NAMESPACE on a request stream for a
 namespace that falls within an active SUBSCRIBE_NAMESPACE prefix. This
@@ -1171,52 +1306,71 @@ to advertise namespaces within the prefix being discovered. Such a
 PUBLISH_NAMESPACE is valid and MAY carry an AUTHORIZATION TOKEN parameter.
 Its lifetime is independent of the SUBSCRIBE_NAMESPACE stream.
 
-An endpoint SHOULD report the reception of a REQUEST_OK or
-REQUEST_ERROR to the application to inform the search for additional
-subscribers for a namespace, or to abandon the attempt to publish under this
-namespace. A
-subscriber MUST send exactly one REQUEST_OK or REQUEST_ERROR as the first
-message on the bidi stream in response to a PUBLISH_NAMESPACE. The publisher
-SHOULD close the session with a protocol error if it receives more than one.
+A SUBSCRIBE_NAMESPACE is cancelled as described in
+{{request-cancellation}}, by resetting or sending STOP_SENDING on the stream.
 
-A PUBLISH_NAMESPACE is withdrawn by cancelling the request
-(see {{request-cancellation}}), although it is not a protocol error for
-the subscriber to send a SUBSCRIBE or FETCH message for a track in a
-namespace after the namespace is withdrawn.
+### Namespace Subscription Authorization
 
-A subscriber can cancel the request (see {{request-cancellation}}) to revoke
-acceptance of a PUBLISH_NAMESPACE. If the reason for cancellation is expiration
-of authorization credentials, the publisher can send PUBLISH_NAMESPACE again
-on a new bidi stream with refreshed authorization, or close the stream and
-discard associated state.
+The publisher MUST ensure the subscriber is authorized to perform a
+namespace subscription.
 
-While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
-subscribers, it is not a full-fledged routing protocol and does not protect
-against loops and other phenomena. In particular, PUBLISH_NAMESPACE SHOULD NOT
-be used to find paths through richly connected networks of relays.
+By sending SUBSCRIBE_NAMESPACE, the subscriber indicates that it trusts the
+relay to be authoritative for namespaces matching the requested prefix.
+NAMESPACE messages received on the SUBSCRIBE_NAMESPACE response stream inherit
+this trust and do not independently carry authorization.
 
-A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
-has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
-namespace for that track, it SHOULD only request it from the senders of those
-PUBLISH_NAMESPACE messages.
+### Namespace Subscription State Management
 
-## Filtering SUBSCRIBE_TRACKS
+If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
+timely manner because the SUBSCRIBE_NAMESPACE response stream is blocked by flow
+control, the publisher MAY reset the SUBSCRIBE_NAMESPACE response stream.  When
+a subscriber receives a stream reset or FIN on a SUBSCRIBE_NAMESPACE response
+stream, it SHOULD treat this as though each active namespace received a
+NAMESPACE_DONE. Subscriptions established via PUBLISH on separate bidi streams
+are not affected by closure of the SUBSCRIBE_NAMESPACE stream.
 
-Range Filters {{range-filters}} can be used in SUBSCRIBE_TRACKS to filter
-Tracks in a namespace using the Track Property Filter. Objects published in
-the resulting Subscriptions can be filtered by any Range Filter.
+## Namespace Discovery Example
 
-### Relay Resource Protection in Large Namespaces {#large-namespaces}
+In the following example, a publisher advertises a namespace to a relay before
+a subscriber asks that relay for namespaces under a prefix, so the relay
+reports it immediately.  The publisher then advertises a second matching
+namespace, which the relay passes on as it arrives.  When the publisher
+withdraws that advertisement, the relay tells the subscriber the namespace is
+gone.
 
-Relays SHOULD aggregate and propagate filters upstream on subscriptions,
-especially namespace subscriptions,
-to conserve and protect their resources from excessive load.  They MAY
-also impose limits on the number of publishers in a namespace, by rejecting
-or closing namespace subscriptions with the error NAMESPACE_TOO_LARGE, or
-CONFLICTING_FILTERS if too many disjoint filters are requested on downstream
-subscriptions across a large number of subscribers, or PREFIX_OVERLAP if different
-subscribers force an aggregated upstream subscription to overlap.
+~~~
+ Publisher                    Relay                   Subscriber
+     |                          |                          |
+     |    PUBLISH_NAMESPACE     |                          |
+     |       (example-42)       |                          |
+     |------------------------->|                          |
+     |   PUBLISH_NAMESPACE_OK   |                          |
+     |<-------------------------|   SUBSCRIBE_NAMESPACE    |
+     |                          |        (example)         |
+     |                          |<-------------------------|
+     |                          |  SUBSCRIBE_NAMESPACE_OK  |
+     |                          |------------------------->|
+     |                          |        NAMESPACE         |
+     |                          |           (42)           |
+     |                          |------------------------->|
+     |    PUBLISH_NAMESPACE     |                          |
+     |      (example-123)       |                          |
+     |------------------------->|                          |
+     |   PUBLISH_NAMESPACE_OK   |        NAMESPACE         |
+     |<-------------------------|          (123)           |
+     |                          |------------------------->|
+     | cancel PUBLISH_NAMESPACE |                          |
+     |------------------------->|                          |
+     |                          |      NAMESPACE_DONE      |
+     |                          |          (123)           |
+     |                          |------------------------->|
+     |                          |                          |
+~~~
+{: #namespace-discovery-flow title="Namespace discovery through a relay"}
 
+The NAMESPACE and NAMESPACE_DONE messages carry only the suffixes `42` and
+`123`, because the prefix `example` is already known from the
+SUBSCRIBE_NAMESPACE.
 
 # Object Transmission
 
@@ -1837,6 +1991,10 @@ validating subscribe and publish requests at the edge of a network.
 Relays are endpoints, which means they terminate Transport Sessions in order to
 have visibility of MOQT Object metadata.
 
+For the purposes of this specification, a coordinated set of relays are treated
+as a single MOQT relay.  How relays within such a set interconnect, and use
+cases built on relay to relay communication, are out of scope.
+
 ## Caching Relays
 
 Relays MAY cache Objects, but are not required to.
@@ -1870,27 +2028,29 @@ A cache MUST store all fields of an Object defined in {{object-header}},
 with the exception of any Object Properties ({{object-properties}})
 that specify otherwise.
 
-## Forward Handling
+## Paused Subscription Handling
 
-If one or more downstream subscribers to a track have Forward=1, the relay
-MUST set Forward=1 upstream in order to receive and forward the requested
-Objects. When no downstream subscriber has Forward=1, the relay chooses the
-upstream Forward value at its discretion, considering the following
+If one or more downstream subscribers to a track are not paused, the relay
+MUST have an unpaused upstream subscription, in order to receive and
+forward the requested Objects. When all downstream subscribers are paused, the
+relay chooses whether to pause upstream at its discretion, considering the
+following
 tradeoffs and deployment considerations:
 
-  - Setting Forward=1 upstream starts object delivery and pre-warms the
-    relay's cache, so objects are available when a downstream subscriber
-    sets Forward=1. This reduces latency but consumes upstream and publisher
-    resources for content no downstream subscriber is currently receiving.
-  - Setting Forward=0 upstream avoids that work, at the cost of higher
-    latency when forwarding is later enabled.
+  - Leaving the upstream subscription unpaused starts object delivery and
+    pre-warms the relay's cache, so objects are available when a downstream
+    subscriber resumes. This reduces latency but consumes upstream and
+    publisher resources for content no downstream subscriber is currently
+    receiving.
+  - Pausing the upstream subscription avoids that work, at the cost of higher
+    latency when delivery is later resumed.
 
 ## Multiple Publishers
 
-A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or PUBLISH
-messages for the same Track from multiple publishers.  The following sections
-explain how Relays maintain subscriptions to all available publishers for a
-given Track.
+A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace Prefix or
+PUBLISH messages for the same Track from multiple publishers.  The following
+sections explain how Relays maintain subscriptions to all available publishers
+for a given Track.
 
 There is no specified limit to the number of publishers of a Track Namespace or
 Track.  An implementation can use mechanisms such as REQUEST_ERROR or
@@ -1963,22 +2123,36 @@ response to the subscribes and if they are successful, the subscriptions
 to the old relay can be cancelled (see {{request-cancellation}}).
 
 
+## Relay Resource Protection in Large Namespaces {#large-namespaces}
+
+Relays SHOULD aggregate and propagate filters upstream on subscriptions,
+especially namespace subscriptions,
+to conserve and protect their resources from excessive load.  They MAY
+also impose limits on the number of publishers in a namespace, by rejecting
+or closing namespace subscriptions with the error NAMESPACE_TOO_LARGE.
+Relays MAY likewise limit the load imposed by subscribers, by rejecting or
+closing namespace subscriptions with CONFLICTING_FILTERS if too many disjoint
+filters are requested on downstream subscriptions across a large number of
+subscribers, or with PREFIX_OVERLAP if different subscribers force an
+aggregated upstream subscription to overlap.
+
 ## Publisher Interactions
 
 There are two ways to publish through a relay:
 
 1. Send a PUBLISH message for a specific Track to the relay. The relay MAY
-pause the Subscription with REQUEST_UPDATE in Forward State=0 until there are
-known subscribers for new Tracks.
+pause the Subscription with REQUEST_UPDATE (see {{pausing-subscriptions}})
+until there are known subscribers for new Tracks.
 
-2. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
-enables the relay to send SUBSCRIBE or FETCH messages to publishers for Tracks
-in this Namespace in response to requests received from subscribers.
+2. Send a PUBLISH_NAMESPACE message for a Track Namespace Prefix to the relay.
+This enables the relay to send SUBSCRIBE or FETCH messages to publishers for
+Tracks matching that prefix in response to requests received from subscribers.
 
 Relays MUST verify that publishers are authorized to publish the set of Tracks
-whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
-Track Name in PUBLISH. Relays MUST NOT assume that an authorized publisher of a single
-Track is implicitly authorized to publish any other Tracks or Track Namespaces.
+whose Track Namespace matches the Track Namespace Prefix in a
+PUBLISH_NAMESPACE, or the Full Track Name in PUBLISH. Relays MUST NOT assume
+that an authorized publisher of a single Track is implicitly authorized to
+publish any other Tracks or Track Namespaces.
 If a Publisher would like Subscriptions in a Namespace routed to it, it MUST send
 an explicit PUBLISH_NAMESPACE.
 The authorization and identification of the publisher depends on the way the
@@ -1994,22 +2168,13 @@ A Relay connects publishers and subscribers by managing sessions based on the
 Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
 Track Name is matched exactly against existing upstream subscriptions.
 
-Namespace Prefix Matching is further used to decide which publishers receive a
-SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the fields
-in the Track Namespace are matched sequentially, requiring an exact match for
-each field. If the published or subscribed Track Namespace has the same or fewer
-fields than the Track Namespace in the message, it qualifies as a match.
-{: #namespace-prefix-matching}
-
-For example:
-A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
-that sent PUBLISH_NAMESPACE messages with namespace=(foo) or namespace=(foo,
-bar).  It will not match a session with namespace=(foobar).
+Namespace Prefix Matching ({{namespace-prefix-matching}}) is further used to
+decide which publishers receive a SUBSCRIBE and which subscribers receive a
+PUBLISH.
 
 Relays MUST send SUBSCRIBE messages to all matching publishers. This includes
 matching both Established subscriptions on the Full Track Name and Namespace
-Prefix Matching against published Namespaces.  Relays MUST forward
-PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
+Prefix Matching against published Namespaces.
 
 When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
@@ -2021,12 +2186,12 @@ a SUBSCRIBE with FILL_PARAMETERS or FETCHes (see {{fill-semantics}}).
 
 When a Relay receives an authorized SUBSCRIBE for a Track with one or more
 `Established` upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
-SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
-State=0, the Relay MUST send REQUEST_UPDATE with Forward=1 to all publishers.
+SUBSCRIBE is not paused and the upstream subscriptions are paused, the Relay
+MUST resume the upstream subscriptions with REQUEST_UPDATE to all publishers.
 If there are no `Established` upstream subscriptions for the requested Track, the Relay
 MUST send a SUBSCRIBE request to each publisher that has published the
-subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward=1,
-then the Relay MUST use Forward=1 when subscribing upstream.
+subscription's namespace or prefix thereof.  If the SUBSCRIBE is not paused,
+then the Relay MUST NOT pause when subscribing upstream.
 
 When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
 request to each subscriber that has sent SUBSCRIBE_TRACKS for the Track's
@@ -2035,14 +2200,18 @@ holding a downstream SUBSCRIBE awaiting a publisher for this Track (see
 {{rendezvous-timeout}}), it MUST proceed with the SUBSCRIBE and
 MUST NOT also forward the PUBLISH to that subscriber.
 
+When a relay receives an authorized PUBLISH message for a
+Track that has `Established` downstream subscriptions, it MUST respond with
+PUBLISH_OK.  If at least one downstream subscriber for the Track is not
+paused, the Relay MUST resume the upstream subscription with REQUEST_UPDATE,
+if paused.
+
 When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it MUST
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
-matching subscription.  When it receives an authorized PUBLISH message for a
-Track that has `Established` downstream subscriptions, it MUST respond with
-PUBLISH_OK.  If at least one downstream subscriber for the Track has
-Forward State=1, the Relay MUST change the Forward State to 1 with
-REQUEST_UPDATE.
+matching subscription. A Relay does not send PUBLISH_NAMESPACE to a subscriber;
+it advertises namespaces by sending NAMESPACE in response to a matching
+SUBSCRIBE_NAMESPACE (see {{subscribing-to-namespaces}}).
 
 If a Session is closed due to an unknown or invalid control message or Object,
 the Relay MUST NOT propagate that message or Object to another Session, because
@@ -2381,29 +2550,15 @@ is chosen to be generally both filename and URL safe, filename safety is
 platform specific; for instance, on case-insensitive filesystems, track names
 can collide.
 
-### Parsing Serialized Names
-
-When parsing a serialized namespace or track name back to its binary form,
-implementations MUST apply the following rules to ensure a canonical encoding:
-
-* A period (.) MUST be followed by exactly two hexadecimal digits. A trailing period
-  or a period followed by fewer than two hexadecimal digits is invalid.
-
-* The hexadecimal digits following a period (.) MUST be lowercase (a-f). Uppercase
-  hexadecimal digits (A-F) are invalid and MUST cause parsing to fail.
-
-* Bytes that can be represented literally (a-z, A-Z, 0-9, _) MUST NOT appear
-  in their hex-encoded form. For example, `.61` is invalid because `a` must
-  be represented as the literal character `a`. A parser MUST reject such
-  redundant encodings.
-
-These rules ensure that the encoding is bijective: every binary value has
-exactly one valid serialized representation, and every valid serialized
-string maps to exactly one binary value. This property simplifies comparison
-of serialized names without requiring full deserialization.
-
-Implementations that receive an invalid serialized name SHOULD treat it as
-an error. The specific error handling behavior is application-defined.
+Because this format produces exactly one rendering of any given binary value, it
+is bijective: every valid serialized name maps to exactly one binary value, so
+serialized names can be compared without deserializing them. To maintain this
+property, an implementation parsing this format MUST reject a name that does
+not follow the encoding rules exactly, including a period not followed by
+exactly two lowercase hexadecimal digits, or a byte that could have been
+represented literally but was hex-encoded.  For example, `.61` is invalid
+because `a` is represented as the literal character `a`. How an invalid name is
+handled is application-defined.
 
 Example:
 
@@ -2842,11 +2997,6 @@ The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
 TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
 requests.
 
-This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
-TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
-PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
-corresponding request type.
-
 ~~~
 REQUEST_OK Message {
   Type (vi64) = 0x7,
@@ -2858,7 +3008,15 @@ REQUEST_OK Message {
 ~~~
 {: #moq-transport-request-ok format title="MOQT REQUEST_OK Message"}
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The
+  parameters that can appear depend on the request being answered:
+
+  * PUBLISH_OK: EXPIRES
+  * REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT
+  * TRACK_STATUS_OK: LARGEST_OBJECT
+  * SUBSCRIBE_NAMESPACE_OK: EXPIRES
+  * SUBSCRIBE_TRACKS_OK: EXPIRES
+  * PUBLISH_NAMESPACE_OK: EXPIRES
 
 * Track Properties : A sequence of Properties. See {{properties}}. The
   length of Track Properties is the remaining length of the message
@@ -2945,8 +3103,8 @@ REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.
 An endpoint that receives a REQUEST_UPDATE other than in the two cases above
 MUST close the session with a `PROTOCOL_VIOLATION`.
 
-The receiver of a REQUEST_UPDATE MUST respond with exactly one REQUEST_OK
-or REQUEST_ERROR message indicating if the update was successful, unless it
+The receiver of a REQUEST_UPDATE MUST respond with exactly one REQUEST_UPDATE_OK
+or REQUEST_UPDATE_ERROR message indicating if the update was successful, unless it
 is coalescing failed updates to produce just one REQUEST_ERROR for multiple
 REQUEST_UPDATE messages. Because requests and responses are sent on a single
 in-order stream and REQUEST_OK does not contain a Request ID, REQUEST_OK
@@ -2959,7 +3117,7 @@ limited by the MAX_REQUEST_UPDATES Setup Option ({{max-request-updates}}).
 If a parameter previously set on the request is not present in
 `REQUEST_UPDATE`, its value remains unchanged.
 
-There is no mechanism to remove a parameter from a request.
+There is no generic mechanism to remove a parameter from a request.
 
 The format of REQUEST_UPDATE is as follows:
 
@@ -2976,7 +3134,20 @@ REQUEST_UPDATE Message {
 
 * Request ID: See {{request-id}}.
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The
+  parameters that can appear depend on the request being updated:
+
+  * Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
+    SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
+    FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
+    OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST
+  * FETCH: AUTHORIZATION_TOKEN, SUBSCRIBER_PRIORITY
+  * PUBLISH_NAMESPACE: AUTHORIZATION_TOKEN
+  * SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN, TRACK_NAMESPACE_PREFIX
+  * SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, FORWARD, TRACK_PROPERTY_FILTER,
+    TRACK_NAMESPACE_PREFIX
+
+  Range Filters are only allowed from the subscriber (see {{range-filters}}).
 
 ### Updating Subscriptions {#updating-subscriptions}
 
@@ -3008,10 +3179,10 @@ responder MUST close the bidi stream (see {{graceful-request-closure}}).
 A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
 coalesce their processing by applying only the cumulative result.
 Parameter values from later REQUEST_UPDATE messages override values
-from earlier ones. The receiver MUST still send a REQUEST_OK for
+from earlier ones. The receiver MUST still send a REQUEST_UPDATE_OK for
 each successful update, but it is not required to process
 intermediate states individually. If the coalesced REQUEST_UPDATE
-results in REQUEST_ERROR, only a single REQUEST_ERROR will be
+results in an error, only a single REQUEST_UPDATE_ERROR will be
 sent and the sender of the REQUEST_UPDATEs will not always be
 able to determine which caused an error.
 
@@ -3061,7 +3232,12 @@ SUBSCRIBE Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The parameters
+  that can appear in a SUBSCRIBE are OBJECT_DELIVERY_TIMEOUT,
+  AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, FORWARD,
+  SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
+  SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
+  NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -3087,7 +3263,8 @@ SUBSCRIBE_OK Message {
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
   {{track-alias}}).
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The parameters
+  that can appear in a SUBSCRIBE_OK are EXPIRES and LARGEST_OBJECT.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
@@ -3123,10 +3300,13 @@ PUBLISH Message {
 * Track Alias: The identifer used for this track in Subgroups or Datagrams (see
   {{track-alias}}).
 
-* Parameters: The parameters are defined in {{message-params}}. Parameters such
-  as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY, SUBGROUP_DELIVERY_TIMEOUT,
-  OBJECT_DELIVERY_TIMEOUT, and LOCATION FILTER can appear in the Parameters
-  of a PUBLISH to inform the Subscriber of the initial Subscription parameters.
+* Parameters: The parameters are defined in {{message-params}}. The parameters
+  that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
+  AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
+  FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
+  governing delivery, such as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY,
+  SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
+  inform the Subscriber of the initial Subscription parameters.
   If the PUBLISH is the result of a SUBSCRIBE_TRACKS, the parameters are handled
   as described in {{parameters-on-subscribe-tracks}}, otherwise, they represent
   the publisher's initial settings for the subscription, which the subscriber can
@@ -3135,13 +3315,13 @@ PUBLISH Message {
 * Track Properties : A sequence of Properties. See {{properties}}.
 
 A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
-send REQUEST_ERROR with error code `UNINTERESTED`, and abandon reading any
+send PUBLISH_ERROR with error code `UNINTERESTED`, and abandon reading any
 publisher initiated streams associated with that subscription using a
 STOP_SENDING frame.
 
-A publisher that sends the FORWARD parameter ({{forward-parameter}}) equal to 0
-indicates that it will not transmit any objects until the subscriber sets the
-Forward State to 1. If the FORWARD parameter is omitted or equal to 1, the
+A publisher that pauses the subscription (see {{pausing-subscriptions}})
+indicates that it will not transmit any objects until the subscriber resumes
+it. If the subscription is not paused, the
 publisher will start transmitting objects immediately, possibly before
 PUBLISH_OK. Delivery starts at the Next Object relative to the Largest Object
 at the time the publisher begins sending.
@@ -3259,7 +3439,9 @@ PUBLISH_STATE_NOTIFY Message {
 ~~~
 {: #moq-transport-ps-notify-format title="MOQT PUBLISH_STATE_NOTIFY Message"}
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The parameters
+  that can appear in a PUBLISH_STATE_NOTIFY are LARGEST_OBJECT, FORWARD and
+  LOCATION_FILTER.
 
 ## FETCH {#message-fetch}
 
@@ -3289,7 +3471,11 @@ FETCH Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The parameters
+  that can appear in a FETCH are AUTHORIZATION_TOKEN, FILL_TIMEOUT,
+  SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, SUBGROUP_FILTER,
+  OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER and
+  INCLUDE_PROPERTIES.
 
 ## FETCH_OK {#message-fetch-ok}
 
@@ -3319,7 +3505,8 @@ FETCH_OK Message {
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with a `PROTOCOL_VIOLATION`.
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  No parameters
+  are currently defined for FETCH_OK.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
@@ -3331,7 +3518,8 @@ new bidi stream to obtain information about the current status of a given track.
 
 The TRACK_STATUS message format is identical to the SUBSCRIBE message
 ({{message-subscribe-req}}), but subscriber parameters related to Track
-delivery (e.g. SUBSCRIBER_PRIORITY) are not included.
+delivery (e.g. SUBSCRIBER_PRIORITY) are not included.  The parameters that can
+appear in a TRACK_STATUS are AUTHORIZATION_TOKEN and INCLUDE_PROPERTIES.
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
@@ -3339,8 +3527,8 @@ state or send any Objects.  If successful, the publisher responds with a
 TRACK_STATUS_OK with the same parameters and Track Properties it would have
 set in a SUBSCRIBE_OK. Track Alias is not used.  A publisher responds to a
 failed TRACK_STATUS with an
-appropriate REQUEST_ERROR message.  The bidi stream is closed with a FIN after
-TRACK_STATUS_OK or REQUEST_ERROR are sent.
+appropriate TRACK_STATUS_ERROR message.  The bidi stream is closed with a FIN
+after TRACK_STATUS_OK or TRACK_STATUS_ERROR are sent.
 
 Relays without an `Established` subscription MAY forward TRACK_STATUS to one or more
 publishers, or MAY initiate a subscription (subject to authorization) as
@@ -3350,16 +3538,15 @@ REQUEST_UPDATE.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 The publisher sends the PUBLISH_NAMESPACE message as the first message on a
-new bidi stream to advertise that it has tracks available within a Track Namespace.
-The receiver verifies the publisher is authorized to publish tracks under this
-namespace.
+new bidi stream to advertise that it has tracks available in namespaces
+matching a Track Namespace Prefix.
 
 ~~~
 PUBLISH_NAMESPACE Message {
   Type (vi64) = 0x6,
   Length (16),
   Request ID (vi64),
-  Track Namespace (..),
+  Track Namespace Prefix (..),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -3368,10 +3555,12 @@ PUBLISH_NAMESPACE Message {
 
 * Request ID: See {{request-id}}.
 
-* Track Namespace: Identifies a track's namespace as defined in
-  {{track-namespace-structure}}.
+* Track Namespace Prefix: A Track Namespace as defined in
+  {{track-namespace-structure}}, matched as a prefix (see
+  {{namespace-prefix-matching}}).
 
-* Parameters: The parameters are defined in {{message-params}}.
+* Parameters: The parameters are defined in {{message-params}}.  The only
+  parameter that can appear in a PUBLISH_NAMESPACE is AUTHORIZATION_TOKEN.
 
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
@@ -3394,45 +3583,11 @@ SUBSCRIBE_NAMESPACE Message {
 * Request ID: See {{request-id}}.
 
 * Track Namespace Prefix: A Track Namespace structure as described in
-  {{track-namespace-structure}}.  This prefix is matched against track
-  namespaces known to the publisher.  For example, using the serialized format
-  from {{namespace-name-format}}, if the publisher is a relay that has received
-  PUBLISH_NAMESPACE messages for namespaces `example.2ecom-123-100` and
-  `example.2ecom-123-200`, a SUBSCRIBE_NAMESPACE for `example.2ecom-123` would
-  match both.
+  {{track-namespace-structure}}, matched as a prefix (see
+  {{namespace-prefix-matching}}).
 
-* Parameters: The parameters are defined in {{message-params}}.
-
-The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
-of the stream. If the subscriber receives any message other than a REQUEST_OK or a
-REQUEST_ERROR as the first message on the response half of the stream, then it MUST
-close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_NAMESPACE is
-successful, the publisher will send matching NAMESPACE messages on the response
-stream. If it is an error, the stream will be immediately closed via FIN. When
-there are changes to the namespaces being published and the subscriber is
-subscribed to them, the publisher sends the corresponding NAMESPACE or
-NAMESPACE_DONE messages.
-
-Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
-Track Namespace Prefix that shares a common prefix with an established
-SUBSCRIBE_NAMESPACE, it MUST respond with REQUEST_ERROR with error code
-`PREFIX_OVERLAP`.  SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have independent
-overlap spaces (see {{message-subscribe-tracks}}).
-
-The publisher MUST ensure the subscriber is authorized to perform this
-namespace subscription.
-
-The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
-corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
-corresponding NAMESPACE, it MUST close the session with a 'PROTOCOL_VIOLATION'.
-
-If the publisher is unable to send NAMESPACE or NAMESPACE_DONE messages in a
-timely manner because the SUBSCRIBE_NAMESPACE response stream is blocked by flow
-control, the publisher MAY reset the SUBSCRIBE_NAMESPACE response stream.  When
-a subscriber receives a stream reset or FIN on a SUBSCRIBE_NAMESPACE response
-stream, it SHOULD treat this as though each active namespace received a
-NAMESPACE_DONE. Subscriptions established via PUBLISH on separate bidi streams
-are not affected by closure of the SUBSCRIBE_NAMESPACE stream.
+* Parameters: The parameters are defined in {{message-params}}.  The only
+  parameter that can appear in a SUBSCRIBE_NAMESPACE is AUTHORIZATION_TOKEN.
 
 ## NAMESPACE {#message-namespace}
 
@@ -3442,11 +3597,16 @@ All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.
 
+When Parameters of a NAMESPACE change, the NAMESPACE message is sent again
+with the updated Parameters.
+
 ~~~
 NAMESPACE Message {
   Type (vi64) = 0x8,
   Length (16),
   Track Namespace Suffix (..),
+  Number of Parameters (vi64),
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-ns-format title="MOQT NAMESPACE Message"}
@@ -3456,11 +3616,13 @@ NAMESPACE Message {
   namespace tuples included in 'Track Namespace Prefix'
   {{message-subscribe-ns}}.
 
+* Parameters: The parameters are defined in {{message-params}}.
+
 ## NAMESPACE_DONE {#message-namespace-done}
 
-The publisher sends the `NAMESPACE_DONE` control message to indicate its
-intent to stop serving new subscriptions for tracks within the provided Track
-Namespace. All NAMESPACE_DONE messages are in response to a SUBSCRIBE_NAMESPACE,
+The publisher sends the `NAMESPACE_DONE` control message on the response stream
+of a SUBSCRIBE_NAMESPACE request. All NAMESPACE_DONE messages are in response to
+a SUBSCRIBE_NAMESPACE,
 so only the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.
 
@@ -3503,39 +3665,10 @@ SUBSCRIBE_TRACKS Message {
 
 * Parameters: The parameters are defined in {{message-params}}, though they
   are handled differently from the same Parameters on Subscriptions, as outlined
-  below.
-
-The publisher will respond with REQUEST_OK or REQUEST_ERROR on the response half
-of the stream. If the subscriber receives any message other than a REQUEST_OK or a
-REQUEST_ERROR as the first message on the response half of the stream, then it MUST
-close the session with a PROTOCOL_VIOLATION. If the SUBSCRIBE_TRACKS is
-successful, the publisher will send PUBLISH messages on new bidirectional streams
-for tracks within matching namespaces. If it is an error, the stream will be
-closed via FIN after REQUEST_ERROR is sent.
-
-Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
-Track Namespace Prefix that shares a common prefix with an established
-SUBSCRIBE_TRACKS, it MUST respond with REQUEST_ERROR with error code
-`PREFIX_OVERLAP`.  SUBSCRIBE_TRACKS and SUBSCRIBE_NAMESPACE have independent
-overlap spaces (see {{message-subscribe-ns}}).
-
-The publisher MUST ensure the subscriber is authorized to perform this
-namespace subscription.
-
-SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH messages to
-a subscriber.  It is useful for subscribers that are
-only interested in or authorized to access a subset of available tracks.
-
-### Parameters on SUBSCRIBE_TRACKS {#parameters-on-subscribe-tracks}
-
-Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
-in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
-publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS. These Parameters are explicitly communicated in PUBLISH.
-When omitted by the publisher in PUBLISH, the subscriber uses the default value for each.
-
-To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a
-Location Filter and optionally include FILL_PARAMETERS, as described in {{joining-tracks}}.
+  below.  The parameters that can appear in a SUBSCRIBE_TRACKS are
+  AUTHORIZATION_TOKEN, FORWARD, GROUP_ORDER, SUBGROUP_FILTER, OBJECTID_FILTER,
+  PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER and
+  INCLUDE_PROPERTIES.
 
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
@@ -3588,6 +3721,7 @@ The encodings defined in this draft are:
   * varint: A variable-length integer
   * Location: Two consecutive varints (Group, Object)
   * Length-prefixed: A varint length followed by that many bytes
+  * Track Namespace: A sequence of length-prefixed fields ({{track-namespace-structure}})
 
 Message Parameters are intended for the peer only and are not
 forwarded by Relays, though relays can consider received parameter values when
@@ -3625,12 +3759,11 @@ making a request. Track information not specific to the Message or Session
 is encoded in Track Properties. See {{properties}}.
 
 Each Message Parameter definition indicates the message types in which
-it can appear. If it appears in some other type of message, the receiving
+it can appear, and each control message definition lists the parameters it
+allows. If a parameter appears in some other type of message, the receiving
 endpoint MUST close the connection with a `PROTOCOL_VIOLATION`.
 Note that since Setup Options use a separate namespace, it is impossible for
 Message Parameters to appear in Setup messages.
-
-### Allowed Parameters By Control Message
 
 ### AUTHORIZATION TOKEN Parameter {#authorization-token}
 
@@ -3698,15 +3831,15 @@ and wait for a publisher to appear, up to the specified duration. The relay
 does not send SUBSCRIBE_OK until a publisher becomes available. If a publisher
 becomes available within this time, the relay proceeds with the subscription
 normally. If the timeout expires without a publisher, the relay SHOULD respond
-with REQUEST_ERROR with error code TIMEOUT.
+with SUBSCRIBE_ERROR with error code TIMEOUT.
 
 The relay MAY use a shorter timeout than requested by the subscriber. For
 example, a relay might limit the maximum rendezvous timeout to protect its
 resources.
 
 A value of 0 indicates the subscriber does not want to wait and expects an
-immediate response.  The relay MUST immediately return REQUEST_ERROR with error
-code DOES_NOT_EXIST if no publisher is available
+immediate response.  The relay MUST immediately return SUBSCRIBE_ERROR with
+error code DOES_NOT_EXIST if no publisher is available
 
 If RENDEZVOUS_TIMEOUT is absent, the default is 0.
 
@@ -3744,12 +3877,12 @@ SUBSCRIBE, PUBLISH, REQUEST_UPDATE (for a subscription) or
 PUBLISH_STATE_NOTIFY message. It is a Location Filter (see
 {{location-filters}}).
 
-A Location filter parameter has the following length-prefixed structure:
+A Location filter parameter has the following structure:
 
 ~~~
 LOCATION_FILTER Parameter {
   Parameter Type (vi64) = 0x21,
-  Length (vi64),
+  Location Filter Type (vi64),
   [StartGroup (vi64),]
   [StartObject (vi64),]
   [EndGroupDelta (vi64),]
@@ -3757,23 +3890,36 @@ LOCATION_FILTER Parameter {
 }
 ~~~
 
-Length (in bytes) determines how many optional vi64 fields are present.
-A length of 0 indicates no filter, for example to remove the filter in REQUEST_UPDATE.
-  * If only one field is present, it is StartGroup.
-  * If only two fields are present, they are StartGroup and StartObject.
-  * If only three fields are present, they are StartGroup, StartObject, and EndGroupDelta.
+The Location Filter Type dictates which optional variable-length integer fields follow,
+and how they are interpreted.
 
-If only StartGroup is present, it is a relative number of groups prior to the Next Group,
+* If Location Filter Type is 0x00, no fields follow and there is no Location Filter.
+* If Location Filter Type is 0x01, a relative StartGroup follows.
+* If Location Filter Type is 0x02, StartGroup and StartObject follow.
+* If Location Filter Type is 0x03, StartGroup, StartObject, and EndGroupDelta follow.
+* If Location Filter Type is 0x04, StartGroup, StartObject, EndGroupDelta, and EndObject follow.
+* If Location Filter Type is 0x05, no fields follow and it specifies the Next Object.
+* Any other Location Filter Type is a `PROTOCOL_VIOLATION`.
+
+The table below summarizes the encodings.
+
+| Location Filter Type | Start Location | End Location |
+|:---------------------|:---------------|:-------------|
+| 0x00 (None) | no filter | no filter |
+| 0x01 (Relative Start) | relative: `{Largest Object.Group + 1 - StartGroup, 0}` | open-ended |
+| 0x02 (Absolute Start) | absolute: `{StartGroup, StartObject}` | open-ended |
+| 0x03 (Absolute Start, Group End) | absolute: `{StartGroup, StartObject}` | last Object of Group `StartGroup + EndGroupDelta` |
+| 0x04 (Absolute Range) | absolute: `{StartGroup, StartObject}` | `{StartGroup + EndGroupDelta, EndObject}` |
+| 0x05 (Next Object) | `Next Object` | open-ended |
+{: #location-filter-forms title="Location Filter forms"}
+
+
+If Location Filter Type is 0x01, the StartGroup field specifies a relative number of groups prior to the Next Group,
 hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For example:
   * StartGroup=0 will start at the Next Group
   * StartGroup=1 will start at the current group
   * StartGroup=2 will start at 1 group prior to the current group
   * StartGroup=N will start at N-1 groups prior to the current group
-
-If only StartGroup and StartObject are present and both 0, the start Location
-is the Next Object (see {{largest-object}}).  An open-ended filter that starts
-at absolute Location {0, 0} is equivalent to unfiltered, so the subscriber need
-not include a Location filter.
 
 If a relative start group results in a computed absolute group less than 0, the
 computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
@@ -3943,9 +4089,9 @@ does not expire or expires at an unknown time.
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
 in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or
-PUBLISH_STATE_NOTIFY.  It contains the largest Location (see
-{{location-structure}}) in the Track observed by the sending endpoint (see
-{{location-filters}}). If Objects have been published on this Track the
+PUBLISH_STATE_NOTIFY.  It contains the `Largest Object`
+({{largest-object}}) in the Track from the perspective of the sending
+endpoint. If Objects have been published on this Track the
 Publisher MUST include this parameter.
 
 If omitted from a message, the sending endpoint has not published or received
@@ -3962,18 +4108,19 @@ PUBLISH, or REQUEST_UPDATE_OK
 The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
 PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
-specifies the Forwarding State on affected subscriptions (see {{subscriptions}}).
+specifies whether affected subscriptions are paused (see
+{{pausing-subscriptions}}).
 The allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives
 a value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
 
-In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies the
-Forwarding State on future subscriptions that match the prefix. Existing
+In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies whether
+future subscriptions that match the prefix are paused. Existing
 subscriptions are unaffected.
 
 If the parameter is omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY,
 the value for the subscription remains unchanged.  If the parameter is omitted
 from any other message, the default value is 1.  When sent in
-PUBLISH_STATE_NOTIFY, it reports the Forwarding State now in effect at the
+PUBLISH_STATE_NOTIFY, it reports whether the subscription is paused at the
 publisher.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
@@ -4534,7 +4681,7 @@ not limited to:
 * A publisher's decision to end the subscription early
 * A REQUEST_UPDATE moving the subscription's End Group to a smaller Group or
   the Start Location to a larger Location
-* Omitting a Subgroup Object due to the subscriber's Forward State
+* Omitting a Subgroup Object because the subscription is paused
 
 When RESET_STREAM_AT is used, the
 reliable_size SHOULD include the stream header so the receiver can identify the
@@ -4607,8 +4754,8 @@ Subgroups in a Group at once.
 
 A publisher that receives a STOP_SENDING on a Subgroup stream SHOULD NOT attempt
 to open a new stream to deliver additional Objects in that Subgroup.  However,
-if the publisher subsequently receives a REQUEST_UPDATE that changes the Forward
-State from 0 to 1, it MAY open a new stream to deliver Objects in that Subgroup,
+if the publisher subsequently receives a REQUEST_UPDATE that resumes the
+subscription, it MAY open a new stream to deliver Objects in that Subgroup,
 as the update indicates the subscriber has renewed interest in forwarded Objects.
 
 The application SHOULD use a relevant error code when resetting a stream,
@@ -5767,6 +5914,34 @@ document. All AI-generated content was reviewed and approved by the editors.
 RFC Editor's Note: Please remove this section prior to publication of a final version of this document.
 
 Issue and pull request numbers are listed with a leading octothorp.
+
+## Since draft-ietf-moq-transport-21
+
+**Session and Control Plane**
+
+* LOCATION_FILTER carries an explicit Location Filter Type that selects which
+  fields follow, replacing the length-inferred encoding (#1913, #1953)
+
+**Notable Editorial Changes**
+
+* Restructure Publisher and Namespace Discovery, add a Namespace Prefix
+  Matching section, and move SUBSCRIBE_TRACKS to Publishing and Receiving
+  Tracks (#1946)
+* Add a Fetch semantics section covering object delivery, gaps (including
+  Descending Group Order), and relay handling (#1895)
+* Rename Forwarding Preference to Delivery Mode, established by the Original
+  Publisher (#1886, #1891, #1914)
+* Describe the Forward State as a subscription being paused (#1940)
+* Define Subscription and Fetch (#1884, #1925)
+* Add per-request shorthand names for REQUEST_OK and REQUEST_ERROR, e.g.
+  SUBSCRIBE_ERROR (#1912)
+* List the allowed parameters in each control message (#1916)
+* Clarify that Largest Object can still be arriving and use it consistently
+  (#1911, #1918)
+* Clarify that FETCH_OK End Location is inclusive (#1910)
+* Clarify how extensions declare support in SETUP (#1921)
+* Scope the auth token cache overflow rule to non-SETUP registrations (#1927)
+* Relay-to-relay communication is out of scope (#1931)
 
 ## Since draft-ietf-moq-transport-20
 
