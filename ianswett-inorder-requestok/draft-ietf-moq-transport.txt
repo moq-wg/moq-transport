@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 March 2027                                     I. Swett, Ed.
+Expires: 10 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        9 September 2026
+                                                          7 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 March 2027.
+   This Internet-Draft will expire on 10 April 2027.
 
 Copyright Notice
 
@@ -3396,7 +3396,7 @@ Table of Contents
    one REQUEST_ERROR for multiple REQUEST_UPDATE messages.  Because
    requests and responses are sent on a single in-order stream and
    REQUEST_OK does not contain a Request ID, REQUEST_OK responses to
-   REQUEST_UPDATEs MUST be returned inthe order the updates were
+   REQUEST_UPDATEs MUST be returned in the order the updates were
    received.
 
    The number of outstanding REQUEST_UPDATEs on a single request stream
@@ -6640,9 +6640,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-08, 8 September 2026,
+              draft-ietf-scone-protocol-09, 24 September 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-08>.
+              protocol-09>.
 
    [I-D.ietf-webtrans-http2]
               Frindell, A., Kinnear, E., Pauly, T., Thomson, M.,
