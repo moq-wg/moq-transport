@@ -53,7 +53,7 @@ author:
 normative:
   QUIC: RFC9000
   WebTransport: I-D.ietf-webtrans-http3
-  MOQT-URI: I-D.draft-jennings-moq-discovery
+  MOQT-URI: I-D.draft-jennings-moq-uri
 
 informative:
   CAT: I-D.ietf-moq-c4m
