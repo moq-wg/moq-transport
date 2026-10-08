@@ -1583,7 +1583,7 @@ terminate the subscription using PUBLISH_DONE with error `TOO_FAR_BEHIND`.
 An MOQT server is identified using a URI with the "moqt" scheme defined
 in {{!MOQT-URI}}. Use of fragment identifiers, how to use
 DNS to resolve that URI, and matching with the TLS certificate, and ALPN
-identifers are specified in {{!MOQT-URI}}.
+identifiers are specified in {{!MOQT-URI}}.
 
 ### Fragment Identifiers {#moqt-fragment}
 
