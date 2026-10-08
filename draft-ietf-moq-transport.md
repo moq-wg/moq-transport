@@ -53,11 +53,13 @@ author:
 normative:
   QUIC: RFC9000
   WebTransport: I-D.ietf-webtrans-http3
+  MOQT-URI: I-D.draft-jennings-moq-uri
 
 informative:
   CAT: I-D.ietf-moq-c4m
   PPA: I-D.ietf-moq-privacy-pass-auth
   I-D.ietf-moq-secure-objects:
+
 
 --- abstract
 
@@ -1581,23 +1583,10 @@ terminate the subscription using PUBLISH_DONE with error `TOO_FAR_BEHIND`.
 
 ## MOQT URI Scheme {#moqt-uri-scheme}
 
-An MOQT server is identified using a URI with the "moqt" scheme.  The "moqt"
-URI scheme is defined as follows, using definitions from {{!RFC3986}}:
-
-~~~~~~~~~~~~~~~
-moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
-~~~~~~~~~~~~~~~
-
-The `authority` portion MUST NOT contain an empty `host` portion.
-The `moqt` URI scheme supports the `/.well-known/` path prefix defined in
-{{!RFC8615}}.
-
-The `moqt` URI scheme follows the generic URI syntax of {{!RFC3986}} for
-the `authority`, `path-abempty`, and `query` components, including the
-use of reserved characters and percent-encoding defined therein.  A `moqt`
-URI can be converted to an `https` URI by replacing the scheme (see
-{{webtransport}}), so the `path-abempty` and `query` components use the same
-syntax as `https` URIs.
+An MOQT server is identified using a URI with the "moqt" scheme defined
+in {{!MOQT-URI}}. Specification of the URI syntax, how to use
+DNS to resolve that URI, matching with the TLS certificate, and ALPN
+identifiers are specified in {{!MOQT-URI}}.
 
 ### Fragment Identifiers {#moqt-fragment}
 
@@ -1623,43 +1612,6 @@ that registers the fragment type.
 Fragment type identifiers are registered in the "MOQT URI Fragment
 Types" registry ({{iana-fragment-types}}).
 
-### Dereferencing a MOQT URI
-
-The default operation for dereferencing a `moqt` URI is to establish a
-MOQT session to the identified server.
-
-The `moqt` URI scheme has the following security considerations:
-
-- The `authority` component is sent in the TLS SNI extension during
-  connection establishment, exposing the target server identity to
-  on-path observers. Encrypted Client Hello (ECH) {{?RFC9580}} can
-  mitigate this exposure.
-
-- The `path-abempty` and `query` components are visible to the relay
-  that terminates the client's connection.
-
-TODO: Add internationalization statement per RFC 7595 Section 3.6.
-
-The client resolves the `host` subcomponent of the `authority` to one or
-more network addresses, most commonly using DNS A {{?RFC1035}} and AAAA {{?RFC3596}} records.
-
-When SVCB-compatible records {{?RFC9460}} are published for the `authority`,
-a client MAY use them to learn the server's endpoints and supported ALPN
-protocols before connecting. A client using WebTransport resolves the
-`https` URI derived in {{webtransport}} using HTTPS resource records as for
-any `https` origin.
-TODO: reference moqt SVCB record draft once available.
-
-If the port is omitted in the URI, a default port of 443 is used.
-
-The client MAY use either native QUIC or WebTransport. On a QUIC connection,
-the client offers any combination of MOQT ALPNs (e.g. `moqt-1`, `moqt-2`)
-and `h3` that it supports in its TLS ClientHello, in preference order. If the
-server selects an MOQT ALPN, the session proceeds as described in
-{{native-quic}}. If the server selects `h3`, the client establishes a
-WebTransport session as described in {{webtransport}}. On a TCP+TLS
-connection, the client offers `h2` in its TLS ClientHello and establishes a
-WebTransport session as described in {{webtransport}}.
 
 ## Session establishment {#session-establishment}
 
@@ -1684,18 +1636,6 @@ to another protocol when QUIC or WebTransport aren't available.
 
 MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 ({{WebTransport, Section 3.3}}) to perform version negotiation.
-
-The ALPN value {{!RFC7301}} for the final version of this specification
-is `moqt`.
-
-\[\[RFC editor: please remove the remainder of this section before publication.]]
-
-ALPNs used to identify IETF drafts are created by appending
-the draft number to "moqt-". For example, draft-ietf-moq-transport-13
-would be identified as "moqt-13".
-
-Note: Draft versions prior to -15 all used moq-00 ALPN, followed by version
-negotiation in the SETUP messages.
 
 ### WebTransport {#webtransport}
 
@@ -5564,29 +5504,8 @@ terminal escape sequence injection.
 
 TODO: fill out currently missing registries:
 
-* MOQT ALPN values
 * Message types
 * Session-Level Track Names
-
-## URI Scheme Registrations
-
-This document requests the registration of the following URI schemes in the
-"Uniform Resource Identifier (URI) Schemes" registry, per {{!RFC7595}}:
-
-### "moqt" URI Scheme Registration
-
-Scheme name: moqt
-
-Status: Permanent
-
-Applications/protocols that use this scheme name: Media over QUIC Transport
-(MOQT) over native QUIC or WebTransport, as defined in this document.
-
-Contact: IETF MoQ Working Group (moq@ietf.org)
-
-Change controller: IETF
-
-References: This document
 
 ## Media Type Registration {#iana-media-type}
 
