@@ -489,8 +489,10 @@ encoded as described in {{track-namespace-structure}}.
 The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace.
 
-Track Name is a sequence of bytes, possibly empty, that identifies an individual
-track within the namespace.
+Track Name is a sequence of bytes that identifies an individual track within
+the namespace. Each Track Name MUST contain at least one byte. If an
+endpoint receives a Track Name with a length of 0, it MUST close the
+session with a `PROTOCOL_VIOLATION`.
 
 In this specification, both the Track Namespace Fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -996,8 +998,8 @@ inside FILL_PARAMETERS, or the subscription's Location filter if it is
 omitted. The filter is evaluated using the rules for a Fetch in
 {{location-filter}}, so the fill range never extends beyond `Largest
 Object`. When the subscription has no Location filter, or the LOCATION_FILTER
-inside FILL_PARAMETERS is zero-length, the fill range is the entire track up to
-`Largest Object`.  The subscriber learns the `Largest Object` from the
+inside FILL_PARAMETERS has Location Filter Type 0x00 (None), the fill range is
+the entire track up to `Largest Object`.  The subscriber learns the `Largest Object` from the
 `LARGEST_OBJECT` parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.
 
 Because the fill range is specified independently of the subscription's
@@ -1223,7 +1225,8 @@ PUBLISH_NAMESPACE indicates to the subscriber that the publisher has tracks
 available in namespaces matching the Track Namespace Prefix it carries (see
 {{namespace-prefix-matching}}). A subscriber MAY send SUBSCRIBE, FETCH or
 TRACK_STATUS for tracks in a namespace without having received a
-PUBLISH_NAMESPACE for it.
+PUBLISH_NAMESPACE for it. A Relay has additional requirements on which
+publishers receive these requests; see {{publisher-interactions}}.
 
 The receiver verifies the publisher is authorized to publish tracks under this
 prefix.
@@ -3534,11 +3537,16 @@ All NAMESPACE messages are in response to a SUBSCRIBE_NAMESPACE, so only
 the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.
 
+When Parameters of a NAMESPACE change, the NAMESPACE message is sent again
+with the updated Parameters.
+
 ~~~
 NAMESPACE Message {
   Type (vi64) = 0x8,
   Length (16),
   Track Namespace Suffix (..),
+  Number of Parameters (vi64),
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-ns-format title="MOQT NAMESPACE Message"}
@@ -3547,6 +3555,8 @@ NAMESPACE Message {
   namespace as defined in {{track-namespace-structure}} after removing
   namespace tuples included in 'Track Namespace Prefix'
   {{message-subscribe-ns}}.
+
+* Parameters: The parameters are defined in {{message-params}}.
 
 ## NAMESPACE_DONE {#message-namespace-done}
 
@@ -4520,7 +4530,9 @@ fields are present in the header:
   in all Objects in this Subgroup. When set to 1, the Object Properties structure
   defined in {{object-properties}} is present in all Objects; Objects with no
   properties or non-Normal status set Properties Length to 0. When set to 0, the
-  field is never present in this Subgroup.
+  field is never present in this Subgroup. Because the value applies to every
+  Object in the Subgroup, a sender that might include Properties in any later
+  Object, including a relay that might add or forward them, sets this bit to 1.
 
 * The **SUBGROUP_ID_MODE** field (bits 1-2, mask 0x06) is a two-bit field that
   determines the encoding of the Subgroup ID. To extract this value, perform a
