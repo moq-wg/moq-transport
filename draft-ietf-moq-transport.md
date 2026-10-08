@@ -1637,13 +1637,15 @@ uses CONNECT, which is not a safe method. {{?RFC8470}} describes the use of
 0-RTT with HTTP in more detail. If 0-RTT is used with an existing or future
 version of WebTransport, the following would apply to it as well as QUIC.
 
-MOQT Messages and Objects as defined in this draft are safe to replay in most
-circumstances.
+Replay of MOQT Messages and Objects can have the following effects:
 
 * TRACK_STATUS gets the Largest Object and Track Properties, but does not
   change the state of a Track or any Object in the Track.
 * SUBSCRIBE requests Objects be delivered, but does not change the Objects
   being requested.
+* FETCH requests a range of published Objects. Replay does not change those
+  Objects, but can cause repeated retrieval work and traffic, including
+  upstream requests.
 * PUBLISH initiates a Subscription. Objects can be immediately sent to
   the Subscriber. Processing the same Objects multiple times is
   idempotent, as the subscriber or relay can identify and discard
@@ -1651,9 +1653,14 @@ circumstances.
 * SUBSCRIBE_NAMESPACE requests a list of namespaces and the establishment
   of new subscriptions, but does not change the available Namespaces,
   Tracks, or Objects contained within a Track.
+* SUBSCRIBE_TRACKS requests subscriptions to matching Tracks. Replay can
+  cause additional upstream subscriptions and associated traffic.
 * PUBLISH_NAMESPACE requests that Subscriptions under the namespace be sent
   to that Publisher. If a Subscription was sent to the replaying endpoint, it
   would fail because the endpoint cannot complete the handshake.
+* SETUP establishes session configuration and can carry authorization
+  tokens. Replay can cause repeated authorization work or consume single-use
+  tokens. Successful SETUP authorization does not, by itself, prevent replay.
 
 Some potential side effects of replay are:
 
@@ -1669,8 +1676,8 @@ the relay to initiate new upstream Subscriptions. For a SUBSCRIBE_TRACKS
 request, sending that upstream could cause the Relay to receive a number of new
 Subscriptions on the replaying client's behalf.
 
-Relays MAY defer initiating upstream subscriptions until the handshake is complete
-or reject 0-RTT entirely to mitigate resource exhaustion from replayed packets.
+Endpoints MUST apply the replay protections in {{zero-rtt-replay}} before
+performing replay-sensitive actions.
 
 ### Extension Negotiation {#extension-negotiation}
 
@@ -5332,6 +5339,25 @@ Replay protection for authorization tokens is the responsibility of
 the specific token scheme used. Token schemes such as {{CAT}} and
 {{PPA}} include requirements for relays when processing tokens and
 requests.
+
+#### 0-RTT Considerations {#zero-rtt-replay}
+
+An attacker can replay captured QUIC 0-RTT packets without decrypting them
+({{Section 9.2 of ?RFC9001}}). Valid authorization tokens and completion of
+MOQT setup do not, by themselves, prevent such replay.
+
+If the application requires authorization for session establishment, the
+endpoint MUST complete that authorization before executing subsequent
+requests. Each request MUST satisfy the applicable authorization policy
+before execution.
+
+An endpoint MUST defer replay-sensitive actions until the QUIC handshake
+completes. Such actions include initiating upstream subscriptions or FETCH
+requests, redistributing Objects, changing shared caches, and consuming
+single-use authorization tokens.
+
+Endpoints SHOULD limit the resources used to process and buffer early
+messages and MAY reject 0-RTT entirely.
 
 ### Preventing Impersonation {#preventing-impersonation}
 
