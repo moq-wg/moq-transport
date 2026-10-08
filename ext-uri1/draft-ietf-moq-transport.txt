@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 10 April 2027                                     I. Swett, Ed.
+Expires: 11 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          7 October 2026
+                                                          8 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 April 2027.
+   This Internet-Draft will expire on 11 April 2027.
 
 Copyright Notice
 
@@ -1931,7 +1931,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    An MOQT server is identified using a URI with the "moqt" scheme
    defined in [MOQT-URI].  Use of fragment identifiers, how to use DNS
    to resolve that URI, and matching with the TLS certificate, and ALPN
-   identifers are specified in [MOQT-URI].
+   identifiers are specified in [MOQT-URI].
 
 6.1.1.  Fragment Identifiers
 
