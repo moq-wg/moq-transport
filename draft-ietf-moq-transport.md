@@ -597,7 +597,7 @@ the subscription using PUBLISH_OK ({{message-request-ok}}) or
 PUBLISH_ERROR.  A subscriber
 initiates a subscription to a track by sending the SUBSCRIBE message.
 The publisher either accepts or rejects the subscription using
-SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once either of these sequences is
+SUBSCRIBE_OK ({{message-request-ok}}) or SUBSCRIBE_ERROR.  Once either of these sequences is
 successful, the subscription moves to the `Established` state and can
 be updated by the subscriber using REQUEST_UPDATE.  Either endpoint
 can terminate an `Established` subscription, moving it to the
@@ -657,16 +657,13 @@ forwarded back to the endpoint, subject to priority and congestion response
 rules.
 
 An endpoint MAY have multiple concurrent subscriptions to the same Track,
-each identified by a unique Request ID. A publisher MAY assign the same or
-different Track Aliases to these subscriptions.
+each identified by a unique Request ID.
 
 When an Object matches the filters of multiple subscriptions to the same Track,
-the publisher MUST send the Object once for each matching subscription, even
-when those subscriptions share the same Track Alias. Because subscriptions can
-share a Track Alias, the subscriber re-applies each subscription's filter to
-determine which subscription a received Object belongs to. Subscribers SHOULD
-avoid overlapping filters across subscriptions to the same Track, as they are
-responsible for deduplicating any resulting duplicate Objects.
+the publisher MUST send the Object once for each matching subscription.
+Subscribers SHOULD avoid overlapping filters across subscriptions to the same
+Track, as they are responsible for deduplicating any resulting duplicate
+Objects.
 
 A publisher SHOULD begin sending incomplete objects when available to avoid
 incurring additional latency.
@@ -712,51 +709,32 @@ immediately remove relevant state. Objects MUST NOT be sent for requests that
 end with an error.
 
 
-### Track Alias {#track-alias}
+### Identifying Subscriptions in Data {#data-request-id}
 
-To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
-numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
-the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}) or PUBLISH
-({{message-publish}}).
+Subgroups and Datagrams identify the subscription they belong to by the Request
+ID ({{request-id}}) of the SUBSCRIBE or PUBLISH that initiated it, rather than
+the Full Track Name.  Because each subscription has a unique Request ID, every
+received Object belongs to exactly one subscription.
 
-The same Track Alias MUST NOT be used by a publisher to refer to two different
-Tracks simultaneously in the same session. If a subscriber receives a
-PUBLISH or SUBSCRIBE_OK that uses the same Track Alias as a different Track
-with an `Established` subscription, it MUST close the session with error
-`DUPLICATE_TRACK_ALIAS`.
-
-Objects can be sent before the Subscriber knows the Track Alias, requiring
-buffering Objects with an unknown Track Alias. If a Track Alias
-is used for two concurrent subscriptions to the same Track, an
-Object that arrives with the Track Alias could be for either
-Subscription. Reusing the same Track Alias for concurrent
-subscriptions to the same Track can lead to missed delivery
-if objects for the new subscription arrive
-before the control message establishing the shared Alias.
-The Subscriber can assume the Track Alias is reused until
-told otherwise, in order to avoid missing Objects.
-
-To avoid a protocol violation and to ensure the Subscriber knows which Track
-Objects are from, Publishers SHOULD NOT reuse a Track Alias for different Tracks
-within a session, unless it is certain the prior Subscription has been
-completely closed and no Objects are scheduled to be sent or in flight.
+If an endpoint receives a datagram or a new stream with a Request ID it sent
+that does not identify a SUBSCRIBE, it MUST close the session with a
+`PROTOCOL_VIOLATION`.
 
 Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
 retain sufficient state to quickly discard these unwanted Objects, rather than
-treating them as belonging to an unknown Track Alias.
+treating them as belonging to an unknown Request ID.
 
-#### Unknown Track Alias {#unknown-track-alias}
+#### Unknown Request ID {#unknown-request-id}
 
-When an endpoint receives a datagram or a new stream with a Track Alias that
-is not yet associated with an `Established` subscription, it MAY drop the
-data or buffer it briefly to handle reordering with the control message that
-establishes the Track Alias. For streams, the endpoint MAY withhold stream
-flow control beyond the stream header until the Track Alias has been
-established. To prevent deadlocks, endpoints MUST allocate connection flow
-control to control streams before allocating it to any data streams;
-otherwise a receiver might wait for a control message containing a Track
-Alias to release flow control, while the sender waits for flow control to
-send the message.
+Objects for a PUBLISH-initiated subscription can arrive before the PUBLISH.
+When an endpoint receives a datagram or a new stream with a Request ID that it
+did not send and that is not yet associated with a subscription, it MAY drop
+the data or buffer it briefly to handle reordering with the PUBLISH. For
+streams, the endpoint MAY withhold stream flow control beyond the stream header
+until the PUBLISH arrives. To prevent deadlocks, endpoints MUST allocate
+connection flow control to request streams before allocating it to any data
+streams; otherwise a receiver might wait for a PUBLISH to release flow
+control, while the sender waits for flow control to send the message.
 
 ### Largest Object {#largest-object}
 
@@ -2082,8 +2060,8 @@ MUST withhold sending FETCH_OK until it does.  Relays MUST follow the
 constraints on LARGEST_OBJECT defined in {{largest-param}}.
 
 Publishers maintain a list of `Established` downstream subscriptions for
-each Track. Relays use the Track Alias ({{track-alias}}) of an incoming Object
-to identify its Track and find the current subscribers.  Each new Object
+each Track. Relays use the Request ID ({{data-request-id}}) of an incoming
+Object to identify its Track and find the current subscribers.  Each new Object
 belonging to the Track is forwarded to each subscriber, as allowed by the
 subscription's filter (see {{message-subscribe-req}}), and delivered according
 to the priority (see {{priorities}}) and delivery timeout (see
@@ -2108,7 +2086,7 @@ a Track, at the cost of receiving more objects.
 
 A subscriber remains subscribed to a Track at a Relay until it unsubscribes, the
 upstream publisher terminates the subscription, or the subscription expires (see
-{{message-subscribe-ok}}).  A subscription with a filter can reach a state where
+{{expires}}).  A subscription with a filter can reach a state where
 all possible Objects matching the filter have been delivered to the subscriber.
 Since tracking this can be prohibitively expensive, Relays are not required or
 expected to do so.
@@ -2733,7 +2711,7 @@ new request stream.
 |--------|------------------------------------------------|------------------|
 | 0x3    | SUBSCRIBE ({{message-subscribe-req}})          | Request, First   |
 |--------|------------------------------------------------|------------------|
-| 0x4    | SUBSCRIBE_OK ({{message-subscribe-ok}})        | Request          |
+| 0x4    | RESERVED (SUBSCRIBE_OK in <= 22)               | Request          |
 |--------|------------------------------------------------|------------------|
 | 0x22   | PUBLISH_STATE_NOTIFY ({{ps-notify}})           | Request          |
 |--------|------------------------------------------------|------------------|
@@ -2996,9 +2974,9 @@ GOAWAY Message {
 
 ## REQUEST_OK {#message-request-ok}
 
-The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
-TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
-requests.
+The REQUEST_OK message is sent in response to SUBSCRIBE, PUBLISH,
+REQUEST_UPDATE, TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and
+PUBLISH_NAMESPACE requests.
 
 ~~~
 REQUEST_OK Message {
@@ -3014,6 +2992,7 @@ REQUEST_OK Message {
 * Parameters: The parameters are defined in {{message-params}}.  The
   parameters that can appear depend on the request being answered:
 
+  * SUBSCRIBE_OK: EXPIRES, LARGEST_OBJECT
   * PUBLISH_OK: EXPIRES
   * REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT
   * TRACK_STATUS_OK: LARGEST_OBJECT
@@ -3024,7 +3003,7 @@ REQUEST_OK Message {
 * Track Properties : A sequence of Properties. See {{properties}}. The
   length of Track Properties is the remaining length of the message
   after parsing all previous fields. Track Properties are populated in
-  TRACK_STATUS_OK; they are empty in PUBLISH_OK, REQUEST_UPDATE_OK,
+  SUBSCRIBE_OK and TRACK_STATUS_OK; they are empty in PUBLISH_OK, REQUEST_UPDATE_OK,
   SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
   receives Track Properties in one of these messages it MUST close the
   session with a `PROTOCOL_VIOLATION`.
@@ -3239,34 +3218,9 @@ SUBSCRIBE Message {
   SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
   NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
 
-On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
-allowing the subscriber to determine the start group/object when not explicitly
-specified, and start sending objects.
-
-## SUBSCRIBE_OK {#message-subscribe-ok}
-
-A publisher sends a SUBSCRIBE_OK as the first response message on the
-bidi stream for successful subscriptions.
-
-~~~
-SUBSCRIBE_OK Message {
-  Type (vi64) = 0x4,
-  Length (16),
-  Track Alias (vi64),
-  Number of Parameters (vi64),
-  Parameters (..) ...,
-  Track Properties (..),
-}
-~~~
-{: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
-
-* Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}).
-
-* Parameters: The parameters are defined in {{message-params}}.  The parameters
-  that can appear in a SUBSCRIBE_OK are EXPIRES and LARGEST_OBJECT.
-
-* Track Properties : A sequence of Properties. See {{properties}}.
+On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK
+({{message-request-ok}}), allowing the subscriber to determine the start
+group/object when not explicitly specified, and start sending objects.
 
 ## PUBLISH {#message-publish}
 
@@ -3282,7 +3236,6 @@ PUBLISH Message {
   Track Namespace (..),
   Track Name Length (vi64),
   Track Name (..),
-  Track Alias (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...,
   Track Properties (..),
@@ -3296,9 +3249,6 @@ PUBLISH Message {
   ({{track-namespace-structure}})
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}. The parameters
   that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
@@ -3525,8 +3475,7 @@ The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
 TRACK_STATUS_OK with the same parameters and Track Properties it would have
-set in a SUBSCRIBE_OK. Track Alias is not used.  A publisher responds to a
-failed TRACK_STATUS with an
+set in a SUBSCRIBE_OK.  A publisher responds to a failed TRACK_STATUS with an
 appropriate TRACK_STATUS_ERROR message.  The bidi stream is closed with a FIN
 after TRACK_STATUS_OK or TRACK_STATUS_ERROR are sent.
 
@@ -4256,6 +4205,18 @@ the session with `PROTOCOL_VIOLATION`.
 
 If omitted, the value is 0.
 
+## TRACK ALIAS {#track-alias}
+
+TRACK_ALIAS (Property Type 0x12) is a Track Property.  It is a
+variable-length integer that identifies the Track and is unique within the
+MOQT scope ({{track-scope}}): two different Tracks in the same scope MUST NOT
+have the same TRACK_ALIAS.  Applications can use it as a compact substitute
+for the Full Track Name.  How uniqueness is ensured is application-defined.
+
+This property can be added by the Original Publisher, but MUST NOT be added,
+modified or removed by Relays.  A Track MUST NOT have more than one instance
+of this property.
+
 ## Immutable Properties
 
 Immutable Properties (Property Type 0xB) is a Track or Object Property that
@@ -4459,9 +4420,9 @@ Object Property types are registered in the IANA table
 
 ## Datagrams
 
-A single object can be conveyed in a datagram.  The Track Alias field
-({{track-alias}}) indicates the track this Datagram belongs to; see
-{{unknown-track-alias}} for handling of unknown Track Aliases.
+A single object can be conveyed in a datagram.  The Request ID field
+({{data-request-id}}) indicates the subscription this Datagram belongs to; see
+{{unknown-request-id}} for handling of unknown Request IDs.
 
 An Object received in an `OBJECT_DATAGRAM` message has a `Delivery Mode` =
 `Datagram`.
@@ -4485,7 +4446,7 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 ~~~
 OBJECT_DATAGRAM {
   Type Flags (vi64),
-  Track Alias (vi64),
+  Request ID (vi64),
   Group ID (vi64),
   [Object ID (vi64),]
   [Publisher Priority (8),]
@@ -4558,17 +4519,16 @@ Header field values.
 
 ### Subgroup Header {#subgroup-header}
 
-All Objects on a Subgroup stream belong to the track identified by
-`Track Alias` (see {{track-alias}}) and the Subgroup indicated by `Group ID`
+All Objects on a Subgroup stream belong to the subscription identified by
+`Request ID` (see {{data-request-id}}) and the Subgroup indicated by `Group ID`
 and `Subgroup ID` in the SUBGROUP_HEADER.
 
-See {{unknown-track-alias}} for handling of subgroups with unknown Track
-Aliases.
+See {{unknown-request-id}} for handling of subgroups with unknown Request IDs.
 
 ~~~
 SUBGROUP_HEADER {
   Type Flags (vi64),
-  Track Alias (vi64),
+  Request ID (vi64),
   Group ID (vi64),
   [Subgroup ID (vi64),]
   [Publisher Priority (8),]
@@ -4988,9 +4948,6 @@ PROTOCOL_VIOLATION (0x3):
 INVALID_REQUEST_ID (0x4):
 : The endpoint received a Request ID with an incorrect least significant
   bit for the sender, or a duplicate Request ID. See {{request-id}}.
-
-DUPLICATE_TRACK_ALIAS (0x5):
-: The endpoint attempted to use a Track Alias that was already in use.
 
 KEY_VALUE_FORMATTING_ERROR (0x6):
 : The key-value pair has a formatting error.
@@ -5717,6 +5674,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x0B | IMMUTABLE_PROPERTIES | Track, Object | {{immutable-properties}} |
 | 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | {{publisher-priority}} |
 | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track | {{group-order-pref}} |
+| 0x12 | TRACK_ALIAS | Track | {{track-alias}} |
 | 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
 | 0x3C | PRIOR_GROUP_ID_GAP | Object | {{prior-group-id-gap}} |
 | 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
@@ -5805,7 +5763,6 @@ This document does not define any initial entries.
 | UNAUTHORIZED               | 0x2  | {{session-termination-codes}} |
 | PROTOCOL_VIOLATION         | 0x3  | {{session-termination-codes}} |
 | INVALID_REQUEST_ID         | 0x4  | {{session-termination-codes}} |
-| DUPLICATE_TRACK_ALIAS      | 0x5  | {{session-termination-codes}} |
 | KEY_VALUE_FORMATTING_ERROR | 0x6  | {{session-termination-codes}} |
 | INVALID_PATH               | 0x8  | {{session-termination-codes}} |
 | MALFORMED_PATH             | 0x9  | {{session-termination-codes}} |
