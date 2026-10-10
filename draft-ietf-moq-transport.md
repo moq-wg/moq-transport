@@ -688,11 +688,11 @@ not send Objects on a paused subscription, and does send them when it is not
 paused.  Control messages, such as PUBLISH_DONE ({{message-publish-done}}), are
 sent regardless of whether the subscription is paused.
 
-The initiator of the subscription sets the initial state by including the
-FORWARD parameter ({{forward-parameter}}) in PUBLISH or SUBSCRIBE. The
+The initiator of the subscription sets the initial state by using the
+Location Filter ({{location-filter}}) in PUBLISH or SUBSCRIBE. The
 subscriber can pause an `Established` subscription by sending REQUEST_UPDATE
-with FORWARD set to 0, or resume it by sending REQUEST_UPDATE with FORWARD set
-to 1.
+with a Location Filter Type of `No Objects` (0x06) (see {{location-filter}}),
+or resume it by sending REQUEST_UPDATE with a new Location Filter.
 
 ### Subscription State Management
 
@@ -3138,13 +3138,13 @@ REQUEST_UPDATE Message {
   parameters that can appear depend on the request being updated:
 
   * Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
-    SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
+    SUBGROUP_DELIVERY_TIMEOUT, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
     FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
     OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST
   * FETCH: AUTHORIZATION_TOKEN, SUBSCRIBER_PRIORITY
   * PUBLISH_NAMESPACE: AUTHORIZATION_TOKEN
   * SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN, TRACK_NAMESPACE_PREFIX
-  * SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, FORWARD, TRACK_PROPERTY_FILTER,
+  * SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, TRACK_PROPERTY_FILTER,
     TRACK_NAMESPACE_PREFIX
 
   Range Filters are only allowed from the subscriber (see {{range-filters}}).
@@ -3234,7 +3234,7 @@ SUBSCRIBE Message {
 
 * Parameters: The parameters are defined in {{message-params}}.  The parameters
   that can appear in a SUBSCRIBE are OBJECT_DELIVERY_TIMEOUT,
-  AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, FORWARD,
+  AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
   SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
   NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
@@ -3303,8 +3303,8 @@ PUBLISH Message {
 * Parameters: The parameters are defined in {{message-params}}. The parameters
   that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
   AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
-  FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
-  governing delivery, such as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY,
+  SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
+  governing delivery, such as GROUP_ORDER, SUBSCRIBER_PRIORITY,
   SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
   inform the Subscriber of the initial Subscription parameters.
   If the PUBLISH is the result of a SUBSCRIBE_TRACKS, the parameters are handled
@@ -3440,7 +3440,7 @@ PUBLISH_STATE_NOTIFY Message {
 {: #moq-transport-ps-notify-format title="MOQT PUBLISH_STATE_NOTIFY Message"}
 
 * Parameters: The parameters are defined in {{message-params}}.  The parameters
-  that can appear in a PUBLISH_STATE_NOTIFY are LARGEST_OBJECT, FORWARD and
+  that can appear in a PUBLISH_STATE_NOTIFY are LARGEST_OBJECT and
   LOCATION_FILTER.
 
 ## FETCH {#message-fetch}
@@ -3666,7 +3666,7 @@ SUBSCRIBE_TRACKS Message {
 * Parameters: The parameters are defined in {{message-params}}, though they
   are handled differently from the same Parameters on Subscriptions, as outlined
   below.  The parameters that can appear in a SUBSCRIBE_TRACKS are
-  AUTHORIZATION_TOKEN, FORWARD, GROUP_ORDER, SUBGROUP_FILTER, OBJECTID_FILTER,
+  AUTHORIZATION_TOKEN, GROUP_ORDER, SUBGROUP_FILTER, OBJECTID_FILTER,
   PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER and
   INCLUDE_PROPERTIES.
 
@@ -3899,6 +3899,7 @@ and how they are interpreted.
 * If Location Filter Type is 0x03, StartGroup, StartObject, and EndGroupDelta follow.
 * If Location Filter Type is 0x04, StartGroup, StartObject, EndGroupDelta, and EndObject follow.
 * If Location Filter Type is 0x05, no fields follow and it specifies the Next Object.
+* If Location Filter Type is 0x06, no fields follow and it specifies No Objects.
 * Any other Location Filter Type is a `PROTOCOL_VIOLATION`.
 
 The table below summarizes the encodings.
@@ -3911,6 +3912,7 @@ The table below summarizes the encodings.
 | 0x03 (Absolute Start, Group End) | absolute: `{StartGroup, StartObject}` | last Object of Group `StartGroup + EndGroupDelta` |
 | 0x04 (Absolute Range) | absolute: `{StartGroup, StartObject}` | `{StartGroup + EndGroupDelta, EndObject}` |
 | 0x05 (Next Object) | `Next Object` | open-ended |
+| 0x06 (No Objects) | N/A | N/A |
 {: #location-filter-forms title="Location Filter forms"}
 
 
@@ -4102,26 +4104,6 @@ A relay MUST set LARGEST_OBJECT to the largest of the following:
 1. Any LARGEST_OBJECT value received from the upstream publisher in SUBSCRIBE_OK,
 PUBLISH, or REQUEST_UPDATE_OK
 2. The largest Location of an Object received on an upstream subscription
-
-### FORWARD Parameter {#forward-parameter}
-
-The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
-SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
-PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
-specifies whether affected subscriptions are paused (see
-{{pausing-subscriptions}}).
-The allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives
-a value outside this range, it MUST close the session with `PROTOCOL_VIOLATION`.
-
-In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies whether
-future subscriptions that match the prefix are paused. Existing
-subscriptions are unaffected.
-
-If the parameter is omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY,
-the value for the subscription remains unchanged.  If the parameter is omitted
-from any other message, the default value is 1.  When sent in
-PUBLISH_STATE_NOTIFY, it reports whether the subscription is paused at the
-publisher.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
@@ -5691,7 +5673,6 @@ Setup Options SHOULD request a provisional registration.
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
 | 0x0A | FILL_TIMEOUT | {{fill-timeout}} |
-| 0x10 | FORWARD | {{forward-parameter}} |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | LOCATION_FILTER | {{location-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
