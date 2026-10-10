@@ -715,13 +715,25 @@ end with an error.
 ### Track Alias {#track-alias}
 
 To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
-numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
-the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}) or PUBLISH
-({{message-publish}}).
+numeric identifier, rather than the Full Track Name.  This numeric identifier
+is either the Track Alias or the Request ID ({{request-id}}).
+
+If the publisher provides the TRACK_ALIAS parameter ({{track-alias-param}}) in
+SUBSCRIBE_OK, or the Track Alias field in PUBLISH, that can used as the ID when
+sending Objects. Otherwise, only the Request ID of the corresponding SUBSCRIBE
+can be used when sending Objects.
+
+A Track Alias MUST have the parity (least significant bit) of the Publisher
+(i.e., the sender of the PUBLISH or SUBSCRIBE_OK). Because a Request ID always
+has the parity of the Subscriber, this ensures the numeric identifier is
+unambiguous. When an endpoint receives a Datagram or Subgroup Header, it can
+determine if the identifier is a Track Alias or a Request ID by checking its
+least significant bit. If a publisher provides a TRACK_ALIAS with the wrong
+parity, the session MUST be closed with a `PROTOCOL_VIOLATION`.
 
 The same Track Alias MUST NOT be used by a publisher to refer to two different
 Tracks simultaneously in the same session. If a subscriber receives a
-PUBLISH or SUBSCRIBE_OK that uses the same Track Alias as a different Track
+PUBLISH or SUBSCRIBE_OK that specifies a Track Alias already in use by a different Track
 with an `Established` subscription, it MUST close the session with error
 `DUPLICATE_TRACK_ALIAS`.
 
@@ -3252,7 +3264,6 @@ bidi stream for successful subscriptions.
 SUBSCRIBE_OK Message {
   Type (vi64) = 0x4,
   Length (16),
-  Track Alias (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...,
   Track Properties (..),
@@ -3260,11 +3271,8 @@ SUBSCRIBE_OK Message {
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
-* Track Alias: The identifer used for this track in Subgroups or Datagrams (see
-  {{track-alias}}).
-
 * Parameters: The parameters are defined in {{message-params}}.  The parameters
-  that can appear in a SUBSCRIBE_OK are EXPIRES and LARGEST_OBJECT.
+  that can appear in a SUBSCRIBE_OK are EXPIRES, LARGEST_OBJECT, and TRACK_ALIAS.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
@@ -3297,7 +3305,7 @@ PUBLISH Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Track Alias: The identifer used for this track in Subgroups or Datagrams (see
+* Track Alias: A publisher identifier for delivering Objects from this track in Subgroups or Datagrams (see
   {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}. The parameters
@@ -3525,7 +3533,7 @@ The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  If successful, the publisher responds with a
 TRACK_STATUS_OK with the same parameters and Track Properties it would have
-set in a SUBSCRIBE_OK. Track Alias is not used.  A publisher responds to a
+set in a SUBSCRIBE_OK. A publisher responds to a
 failed TRACK_STATUS with an
 appropriate TRACK_STATUS_ERROR message.  The bidi stream is closed with a FIN
 after TRACK_STATUS_OK or TRACK_STATUS_ERROR are sent.
@@ -4183,6 +4191,12 @@ The allowed values are 0 (do not send Properties) or 1 (send Properties), and th
 default is 1. If an endpoint receives a value outside this range, it MUST close the
 session with `PROTOCOL_VIOLATION`.
 
+### TRACK_ALIAS Parameter {#track-alias-param}
+
+The TRACK_ALIAS parameter (Parameter Type 0x36) is a variable-length integer. It MAY appear
+in SUBSCRIBE_OK. It specifies a publisher identifier for delivering Objects from this track in
+Subgroups or Datagrams (see {{track-alias}}).
+
 # MOQT Properties {#moqt-properties}
 
 The following Properties are defined in MOQT. Each Property
@@ -4459,7 +4473,7 @@ Object Property types are registered in the IANA table
 
 ## Datagrams
 
-A single object can be conveyed in a datagram.  The Track Alias field
+A single object can be conveyed in a datagram.  The Track Alias or Request ID field
 ({{track-alias}}) indicates the track this Datagram belongs to; see
 {{unknown-track-alias}} for handling of unknown Track Aliases.
 
@@ -4559,7 +4573,7 @@ Header field values.
 ### Subgroup Header {#subgroup-header}
 
 All Objects on a Subgroup stream belong to the track identified by
-`Track Alias` (see {{track-alias}}) and the Subgroup indicated by `Group ID`
+`Track Alias` or `Request ID` (see {{track-alias}}) and the Subgroup indicated by `Group ID`
 and `Subgroup ID` in the SUBGROUP_HEADER.
 
 See {{unknown-track-alias}} for handling of subgroups with unknown Track
@@ -5704,6 +5718,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 | 0x35 | INCLUDE_PROPERTIES | {{include-properties-param}} |
+| 0x36 | TRACK_ALIAS | {{track-alias-param}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
