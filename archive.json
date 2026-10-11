@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-08T05:14:34.907414+00:00",
+  "timestamp": "2026-10-11T04:51:02.022709+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -29366,7 +29366,7 @@
       ],
       "body": "For FETCH, flow control on the stream can limit the resource consumption.\n\nFor Subscribe, there's no limit to the number of Subgroups that a publisher can publish to simultaneously, which could allow one Track to consume a huge number of streams, potentially starving resources from other subscriptions.\n\nA simple solution would be to add a Parameter to SUBSCRIBE that allows limiting the number of simultaneous unidirectional streams for the subscription.",
       "createdAt": "2025-03-26T17:42:33Z",
-      "updatedAt": "2026-07-23T16:05:34Z",
+      "updatedAt": "2026-10-08T15:07:53Z",
       "closedAt": null,
       "comments": [
         {
@@ -29543,6 +29543,13 @@
           "body": "Discussed in Vienna, it was clear this is a complex issue and most people hadn't thought about this enough and/or read the PR to have a strong opinion, but it was suggested that this might just be an implementation quality problem (ie: Don't use all your streams on one Subscription).\n\nTentative plan is to write an extension draft, and if people want to bring the mechanism in later, we can.",
           "createdAt": "2026-07-23T16:05:34Z",
           "updatedAt": "2026-07-23T16:05:34Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "See extension draft here: https://datatracker.ietf.org/doc/draft-frindell-moq-subscription-flow-control/",
+          "createdAt": "2026-10-08T15:07:53Z",
+          "updatedAt": "2026-10-08T15:07:53Z"
         }
       ]
     },
@@ -42669,7 +42676,7 @@
       ],
       "body": "There was a great goal/wish of MoQ being able to unify the worlds of conversational, live streaming, and VOD applications (https://www.ietf.org/blog/moq-overview/). As side topics, @afrind and I touched a couple of times, e.g., in #1205 and #1309, on support of VOD applications in MOQT. From the discussions, I learned that:\n\n1. For support of VOD applications based on MOQT, only FETCH requests can be used, as for VOD all Objects are \"already published\" or \"from the past\", while SUBCRIBE is only for \"newly published or received\" Objects.\n2. Because of bullet 1, multiple streams cannot be used for VOD, unless Subgroup or Priority based Object filter, e.g., as discussed in #1164, is added to the MOQT draft and allowed to be used with FETCH.\n3. Because Subgroup based streams cannot be used, signalling of priority cannot be in the stream header, while all Objects of one Subgroup are required to have the same priority. (@afrind does not think this is a major issue, which is probably true, but it would be very nice if this aspect can be improved.)\n4. @afrind mentioned, in both #1205 and #1309, that due to lack of information about the consumption/playback rate, a relay cannot effectively serve past content, but rather VOD support with MOQT has to rely on use of many FETCH requests, just like use of many HTTP requests in HTTP adaptive streaming (e.g., DASH and HLS). \n\nBullet 2 depends on #1164, and bullet 3 somehow depends on bullet 2. \n\nOn bullet 4 above, I can think of the following possible ways of conveying information about the consumption/playback rate (i.e., media bitrate) such that relays can use it:\na) Require that catalog tracks are not encrypted, which ensures that relays can access all information in the catalog tracks, including the Bitrate field.\nb) Add an Object Extension Header to convey the bitrate information.\nc) Add a Bitrate Parameter to conveying the bitrate information, and allow this parameter to appear in a TRACK_STATUS_OK and whatever other control messages that deemed useful to have this parameter.\n\nOpinions?",
       "createdAt": "2025-10-17T00:06:23Z",
-      "updatedAt": "2026-06-12T11:27:45Z",
+      "updatedAt": "2026-10-09T13:03:03Z",
       "closedAt": null,
       "comments": [
         {
@@ -42755,6 +42762,13 @@
           "body": "+1 , we decided it doesn't solve the pure subscription way to solve it, but a fetch way. There is also an open issue about , if we can have multiple in parallel fill streams or not.",
           "createdAt": "2026-06-12T11:27:45Z",
           "updatedAt": "2026-06-12T11:27:45Z"
+        },
+        {
+          "author": "yuyou",
+          "authorAssociation": "NONE",
+          "body": "would #1453 a viable solution? ",
+          "createdAt": "2026-10-09T13:03:03Z",
+          "updatedAt": "2026-10-09T13:03:03Z"
         }
       ]
     },
@@ -53882,7 +53896,7 @@
       ],
       "body": "Since we originally discussed using Subscribe ID or Track Alias, Parameters and Track Properties were created.\n\nThere are some known problems with using Track Alias in SUBSCRIBE:\n1) It delays Object delivery if the SUBSCRIBE_OK arrives after the first Object.\n2) In cases when a Track Alias might be reused, it creates complexity, see PR #1856 \n3) It makes resource management of unknown tracks more complex, see https://github.com/englishm/moq-relay-dos/issues/29\n\nMaking Track Alias a Parameter is a fairly straightforward change.",
       "createdAt": "2026-09-01T02:13:17Z",
-      "updatedAt": "2026-10-01T18:52:45Z",
+      "updatedAt": "2026-10-10T00:09:05Z",
       "closedAt": null,
       "comments": [
         {
@@ -53905,6 +53919,13 @@
           "body": "The easiest way to have them coexist is even/odd, but that does mean we'd have a 63 bit space.  I can't imagine that being a problem, but it's a change.\n\nPUBLISH requires a publisher to provide an ID of some sort to associate with Track data.  The current Track Alias is one option.  If we could use stream IDs from the PUBLISH's bidi stream, we could use that, which would have the benefit of limiting the range of Publish IDs one needs to cache.\n\nOne potential benefit of making the Request ID an option for delivering Objects is if two Subscriptions are active for the same Track at the same time, it's possible to use Track Alias for one Subscription and Subscribe ID for the other to avoid potentially ambiguous Object delivery.",
           "createdAt": "2026-09-13T21:53:21Z",
           "updatedAt": "2026-09-13T21:53:21Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I do think this is an improvement from a latency perspective, since you can immediately use Objects if they use the Request ID, but the new flow control draft (https://datatracker.ietf.org/doc/draft-frindell-moq-subscription-flow-control/) mitigates the buffering issues I was quite concerned about.",
+          "createdAt": "2026-10-10T00:09:05Z",
+          "updatedAt": "2026-10-10T00:09:05Z"
         }
       ]
     },
@@ -54930,6 +54951,38 @@
       "body": "`EXPIRED_AUTH_TOKEN` is defined as a Session Termination code (0x18), a REQUEST_ERROR code (0x5) and a Stream Reset code (0x7), but not as a PUBLISH_DONE code.\n\nWhen the token that authorized an established subscription expires, the publisher can only end the subscription with `UNAUTHORIZED` (0x1) or `INTERNAL_ERROR` (0x0). A subscriber can't tell \"your token expired, refresh it and subscribe again\" from \"you're not allowed to subscribe to this track\". The first is routine for long-lived subscriptions such as live events. The second should not be retried.\n\nPUBLISH_NAMESPACE already has guidance for this case: a publisher can send it again \"with refreshed authorization\". Subscriptions have no equivalent.\n\n**Proposal:**\n\n- Add `EXPIRED_AUTH_TOKEN` (0x7) to the PUBLISH_DONE Codes registry. 0x7 is unused there, and it matches the Stream Reset code that has the same meaning.\n- In the PUBLISH_DONE section, say a publisher SHOULD use it when it ends a subscription because the authorizing token expired, and the subscriber can subscribe again with a refreshed token, or avoid the interruption by sending a REQUEST_UPDATE with a new AUTHORIZATION_TOKEN before expiry.\n- Say the code refers to the subscriber's token, so a relay whose own upstream credentials lapse doesn't pass it on to downstream subscribers, who can't fix that.\n\nThis doesn't change behaviour: a receiver that doesn't know the code treats it as `INTERNAL_ERROR`.\n\nRelated: #1724 (identifying which token caused an auth error).\n",
       "createdAt": "2026-10-07T09:53:40Z",
       "updatedAt": "2026-10-07T09:53:40Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 1973,
+      "id": "I_kwDOG2Ho4M8AAAABV_s8jg",
+      "title": "FETCH object encoding an unnecessary error case",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1973",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "11.4.1.1. Flags\n\nWhen the Group ID Delta field is present, the Object ID is the value of Object ID Delta if present. When the Group ID Delta field is not present, the Object ID is the prior Object's ID plus the Object ID Delta if present. If Object ID Delta is not present, the Object ID is the prior Object's ID plus one, regardless of which group it belongs to. If the computed Object ID would be greater than 2^64-1, the Subscriber MUST close the Session with error 'PROTOCOL_VIOLATION'.\n\nUnlike Subgroups, it's ID + Delta, not ID + Delta + 1.  So it's possible to encode two objects with the same ID if the Delta is zero. Furthermore, if the increment were 1 it wouldn't be included at all. So there isn't any reason not to make it Object ID + Delta + 2.",
+      "createdAt": "2026-10-09T00:51:39Z",
+      "updatedAt": "2026-10-09T00:51:39Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 1976,
+      "id": "I_kwDOG2Ho4M8AAAABWTguEQ",
+      "title": "Proposal: Codec Capability Negotiation in MoQ SETUP",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1976",
+      "state": "OPEN",
+      "author": "yuanchao-chris",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "### Background\n\nwe encountered codec compatibility issues due to differences in codec support across browsers.\n\nFor example, some browsers may not support H.265. Without codec capability negotiation, the peer(server side) may publish media that the client cannot decode.\n\nso we refer to WebRTC's SDP negotiation, exchange supported codec lists in SETUP Options, allowing the moq endpoints to publish media using compatible codecs.\n\nThe [MoQ Use Cases and Requirements](https://github.com/moq-wg/moq-requirements/blob/main/draft-ietf-moq-requirements.md#media-negotiation--agility-moq-negotiation) document also identifies media codec negotiation as a requirement under \"Media Negotiation & Agility\".\n\nSo I make this proposal to discuss to provide a lightweight session-level codec negotiation mechanism using SETUP Options..\n\n### Proposal\n\nAdd a new SETUP Option, CODEC_CAPABILITY, for session-level codec capability negotiation.\n\nThe proposed behavior is:\n\n- The client adds its supported audio and video codecs in SETUP.\n\n- The server responds with its supported codecs in SETUP.\n\n- Both endpoints determine the supported codec set.\n\n- All subsequent Tracks within the session MUST use codecs compatible with the negotiated set.\n\n### Wire Format\n```\nCODEC_CAPABILITY {\n  Type (vi64) = TBD,\n  Length (vi64),\n  Version (8),  \n  CodecInfos (...) ...\n}\n\nCodecInfo {\n  Codec String Length (vi64),\n  Codec String (..),  // UTF-8\n}\n```\nThe `Version` field is intended for future extensibility. Currently, each codec represents both encoding and decoding capabilities. If we need to distinguish them in the future, we could introduce a new version. Alternatively, we could simply add a Flags field in CodecInfo to indicate encoding/decoding capabilities, or omit Version for now.\n\nThe `Codec String` follows the [W3C WebCodecs Codec Registry](https://www.w3.org/TR/webcodecs-codec-registry/), same as moq msf draft(https://www.ietf.org/archive/id/draft-ietf-moq-msf-01.html#name-codec)\n\nConsiderations\uff1a An endpoint can send PUBLISH and media Objects immediately after sending SETUP, without waiting for the peer's SETUP response. Therefore, some media Objects may be sent before negotiation is completed. But I think this is acceptable, the publisher can continue sending media before negotiation, and the receiver can discard these media Objects.\n\n",
+      "createdAt": "2026-10-10T13:50:53Z",
+      "updatedAt": "2026-10-10T13:53:47Z",
       "closedAt": null,
       "comments": []
     }
@@ -204242,13 +204295,13 @@
       ],
       "body": "Introduce a new parameter SWITCH_FROM, that can appear in SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE.  The parameter has a Mode enum which can control details of the switching algorithm.  The base algorithm and a single \"Hard\" mode that flips the Forward State are defined.  Subsequent PRs will introduce additional modes.\r\n\r\nThe parameter also has a \"Publish Done\" option which the subscriber uses to control whether the other track is closed or left open after Switch.\r\n\r\nSee #1354\r\nFixes #1519 ",
       "createdAt": "2026-06-14T00:50:19Z",
-      "updatedAt": "2026-09-21T01:57:14Z",
+      "updatedAt": "2026-10-09T20:10:31Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "switch-from-with-enum",
-      "headRefOid": "6e01144404643b0a3f44f56e89fe96923a1f87e7",
+      "headRefOid": "2e762cf15a05054437778502dde1760a71e9d1fa",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -219649,13 +219702,13 @@
       ],
       "body": "Create a new PR that makes Track Alias a Parameter returned in SUBSCRIBE_OK instead of a required field. When Track Alias isn't returned, the Request ID is used to associate Objects with the correct Subscription.\r\n\r\nThis adds `TRACK_ALIAS` to the IANA Message Parameters table, updates `SUBSCRIBE_OK`, adds a parity rule for `Track Alias`, and renames `Track Alias` to `Track Alias or Request ID` in the object headers.\r\n\r\nFixes #1875 \r\n\r\n---\r\n*PR created automatically by Jules for task [13571905536436668031](https://jules.google.com/task/13571905536436668031) started by @ianswett*",
       "createdAt": "2026-09-01T02:32:09Z",
-      "updatedAt": "2026-09-24T18:21:39Z",
+      "updatedAt": "2026-10-09T23:59:59Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
+      "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "make-track-alias-parameter-13571905536436668031",
-      "headRefOid": "7379e5b90e67f71ad97acdca950927633523ca54",
+      "headRefOid": "2abe74c147e2dfe81d9e524edf0116823e7abb4c",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -224933,7 +224986,7 @@
       "labels": [],
       "body": "I tried to use AI to resolve merge conflicts, but it created a new branch.\r\n\r\nFixes #1875 ",
       "createdAt": "2026-09-13T22:12:55Z",
-      "updatedAt": "2026-09-13T22:13:21Z",
+      "updatedAt": "2026-10-10T00:02:17Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
@@ -224959,7 +225012,7 @@
       "labels": [],
       "body": "This submission applies the latest commits from PR #1876 that had merge conflicts with the `main` branch. I successfully brought in the incoming changes that addressed suggestions on the PR and successfully applied them on top of the latest `main`. Afterwards, I executed `make all` to ensure that all build steps passed.\n\n---\n*PR created automatically by Jules for task [12058562043226588960](https://jules.google.com/task/12058562043226588960) started by @ianswett*",
       "createdAt": "2026-09-13T22:13:38Z",
-      "updatedAt": "2026-09-13T22:13:56Z",
+      "updatedAt": "2026-10-10T00:02:17Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
@@ -226139,13 +226192,13 @@
       "labels": [],
       "body": "",
       "createdAt": "2026-10-07T16:19:36Z",
-      "updatedAt": "2026-10-07T16:44:58Z",
+      "updatedAt": "2026-10-08T12:46:59Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "98b0a3cf563dd81e433301ac495c4b1e44bd9136",
+      "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ext-uri1",
-      "headRefOid": "1af81a6cf42c27af47d014f3002bb7001e7876c3",
+      "headRefOid": "4e863ec5df94fdc57191598ab6cafcb23951bb6e",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -226199,6 +226252,118 @@
           ]
         }
       ]
+    },
+    {
+      "number": 1972,
+      "id": "PR_kwDOG2Ho4M8AAAABHb6pUQ",
+      "title": "Clarify MOQT 0-RTT replay protections",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1972",
+      "state": "CLOSED",
+      "author": "manugupt1",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "The 0-RTT guidance omits replay effects for FETCH, SUBSCRIBE_TRACKS, and SETUP, and permits relays to start upstream work before the QUIC handshake completes. This change requires endpoints to defer replay-sensitive actions until handshake completion and links the message analysis to the replay security requirements.\n\nIt also requires any session authorization to complete before subsequent requests execute, preserves authorization checks for each request, and identifies upstream requests, Object redistribution, shared-cache changes, and single-use token consumption as replay-sensitive actions. Endpoints can buffer early messages within resource limits or reject 0-RTT.\n\nFixes moq-wg/moq-transport#1906.\n\nValidation: `make` built the HTML and text drafts successfully; `git diff --check` passed. The build reported existing table-format warnings outside the changed text.\n",
+      "createdAt": "2026-10-08T23:27:41Z",
+      "updatedAt": "2026-10-08T23:29:34Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
+      "headRepository": "manugupt1/mike-moq-transport",
+      "headRefName": "replay-0rtt",
+      "headRefOid": "a44c03e12097fc8b5ec377f7da5e235fbe06df63",
+      "closedAt": "2026-10-08T23:29:34Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 1974,
+      "id": "PR_kwDOG2Ho4M8AAAABHohz6Q",
+      "title": "Add 'No Objects' Location Filter and Remove FORWARD Parameter",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1974",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This PR introduces a new 'No Objects' Location filter type (0x06) to act as the mechanism for pausing and resuming subscriptions, replacing the deprecated `FORWARD` parameter.\r\n\r\nFixes #1352 \r\n\r\n---\r\n*PR created automatically by Jules for task [10118428109436899556](https://jules.google.com/task/10118428109436899556) started by @ianswett*",
+      "createdAt": "2026-10-10T00:12:41Z",
+      "updatedAt": "2026-10-10T00:23:53Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "add-no-objects-remove-forward-10118428109436899556",
+      "headRefOid": "e74c7015afacb2ee23827f5f7f4343103b609bb0",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 1975,
+      "id": "PR_kwDOG2Ho4M8AAAABHqa4xQ",
+      "title": "Fix PR#1876 Make Track Alias a Parameter returned in SUBSCRIBE_OK",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1975",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Make Track Alias a Parameter returned in SUBSCRIBE_OK\n\n---\n*PR created automatically by Jules for task [10332319365080798248](https://jules.google.com/task/10332319365080798248) started by @ianswett*",
+      "createdAt": "2026-10-10T06:16:48Z",
+      "updatedAt": "2026-10-10T06:16:50Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "pr1876-fix-10332319365080798248",
+      "headRefOid": "eb5687da61c0208be3ebbfe15ecdf90d403dc54e",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "google-labs-jules",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "\ud83d\udc4b Jules, reporting for duty! I'm here to lend a hand with this pull request.\n\nWhen you start a review, I'll add a \ud83d\udc40 emoji to each comment to let you know I've read it. I'll focus on feedback directed at me and will do my best to stay out of conversations between you and other bots or reviewers to keep the noise down.\n\nI'll push a commit with your requested changes shortly after. Please note there might be a delay between these steps, but rest assured I'm on the job!\n\nFor more direct control, you can switch me to **Reactive Mode**. When this mode is on, I will only act on comments where you specifically mention me with `@jules`. You can find this option in the **Pull Request** section of your [global Jules UI settings](https://jules.google.com/settings). You can always switch back!\n\nNew to Jules? Learn more at [jules.google/docs](https://jules.google/docs).\n\n---\n*_For security, I will only act on instructions from the user who triggered this task._*",
+          "createdAt": "2026-10-10T06:16:50Z",
+          "updatedAt": "2026-10-10T06:16:50Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 1977,
+      "id": "PR_kwDOG2Ho4M8AAAABHtBo2Q",
+      "title": "Identify subscriptions in data by Request ID instead of Track Alias",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1977",
+      "state": "CLOSED",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Track Alias needed its own uniqueness rules, a duplicate error code, and filter re-application when subscriptions shared an alias. Subgroups and Datagrams now carry the Request ID of the SUBSCRIBE or PUBLISH, so every Object maps to exactly one subscription. With Track Alias gone, SUBSCRIBE_OK becomes a REQUEST_OK. A new TRACK_ALIAS Track Property carries a numeric track identifier that is unique within the MOQT scope.",
+      "createdAt": "2026-10-10T14:32:56Z",
+      "updatedAt": "2026-10-10T14:33:52Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
+      "headRepository": "afrind/moq-transport",
+      "headRefName": "request-id-data-plane",
+      "headRefOid": "b3f5a84bd75f7f22e0c78820c77b9b88140a1ec7",
+      "closedAt": "2026-10-10T14:33:52Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
