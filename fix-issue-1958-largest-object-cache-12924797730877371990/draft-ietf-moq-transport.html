@@ -7050,7 +7050,11 @@ PUBLISH, or REQUEST_UPDATE_OK<a href="#section-9.20.17-4.1.1" class="pilcrow">¶
               <p id="section-9.20.17-4.2.1">The largest Location of an Object received on an upstream subscription<a href="#section-9.20.17-4.2.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-9.20.17-5">However, a relay <span class="bcp14">MUST</span> only compute the <code>Largest Object</code> from an upstream subscription that is currently unpaused, and is either unfiltered or has Location and/or Range filters that match the downstream request. If such an upstream subscription does not exist, the relay <span class="bcp14">MUST NOT</span> use a cached <code>Largest Object</code> to respond to downstream requests. Instead, the relay <span class="bcp14">MUST</span> establish or unpause an upstream subscription and use the resulting LARGEST_OBJECT parameter.<a href="#section-9.20.17-5" class="pilcrow">¶</a></p>
+<p id="section-9.20.17-5">However, a relay <span class="bcp14">MUST</span> only compute the <code>Largest Object</code> from an upstream subscription
+that is currently unpaused, and is either unfiltered or has Location and/or Range
+filters that match the downstream request. If such an upstream subscription does
+not exist, the relay <span class="bcp14">MUST</span> establish or unpause an upstream subscription and use
+the resulting LARGEST_OBJECT parameter.<a href="#section-9.20.17-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="forward-parameter">
