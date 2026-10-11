@@ -4103,6 +4103,8 @@ A relay MUST set LARGEST_OBJECT to the largest of the following:
 PUBLISH, or REQUEST_UPDATE_OK
 2. The largest Location of an Object received on an upstream subscription
 
+However, a relay MUST only compute the `Largest Object` from an upstream subscription that is currently unpaused, and is either unfiltered or has Location and/or Range filters that match the downstream request. If such an upstream subscription does not exist, the relay MUST NOT use a cached `Largest Object` to respond to downstream requests. Instead, the relay MUST establish or unpause an upstream subscription and use the resulting LARGEST_OBJECT parameter.
+
 ### FORWARD Parameter {#forward-parameter}
 
 The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
