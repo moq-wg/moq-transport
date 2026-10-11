@@ -3889,6 +3889,7 @@ and how they are interpreted.
 * If Location Filter Type is 0x03, StartGroup, StartObject, and EndGroupDelta follow.
 * If Location Filter Type is 0x04, StartGroup, StartObject, EndGroupDelta, and EndObject follow.
 * If Location Filter Type is 0x05, no fields follow and it specifies the Next Object.
+* If Location Filter Type is 0x06, no fields follow and it specifies the Largest Group.
 * Any other Location Filter Type is a `PROTOCOL_VIOLATION`.
 
 The table below summarizes the encodings.
@@ -3901,6 +3902,7 @@ The table below summarizes the encodings.
 | 0x03 (Absolute Start, Group End) | absolute: `{StartGroup, StartObject}` | last Object of Group `StartGroup + EndGroupDelta` |
 | 0x04 (Absolute Range) | absolute: `{StartGroup, StartObject}` | `{StartGroup + EndGroupDelta, EndObject}` |
 | 0x05 (Next Object) | `Next Object` | open-ended |
+| 0x06 (Largest Group) | `{Largest Object.Group, 0}` | open-ended |
 {: #location-filter-forms title="Location Filter forms"}
 
 
@@ -3913,6 +3915,12 @@ hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For ex
 
 If a relative start group results in a computed absolute group less than 0, the
 computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
+
+If Location Filter Type is 0x06, delivery starts at `{Largest Object.Group, 0}`.
+This allows a subscriber to receive the complete current group via SUBSCRIBE,
+rather than starting mid-group or waiting for the next group. If there are no
+objects in the track yet, the filter starts at `{0, 0}`, just like Largest
+Object.
 
 Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
