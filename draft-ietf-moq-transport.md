@@ -3920,7 +3920,7 @@ If Location Filter Type is 0x06, delivery starts at `{Largest Object.Group, 0}`.
 This allows a subscriber to receive the complete current group via SUBSCRIBE,
 rather than starting mid-group or waiting for the next group. If there are no
 objects in the track yet, the filter starts at `{0, 0}`, just like Largest
-Object.
+Object. This filter is unnecessary for FETCH, but not a protocol violation.
 
 Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
