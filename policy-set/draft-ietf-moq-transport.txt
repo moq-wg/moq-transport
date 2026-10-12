@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 March 2027                                     I. Swett, Ed.
+Expires: 15 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                       12 September 2026
+                                                         12 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 March 2027.
+   This Internet-Draft will expire on 15 April 2027.
 
 Copyright Notice
 
@@ -95,7 +95,8 @@ Table of Contents
        2.3.1.  Group IDs
      2.4.  Track
        2.4.1.  Track Naming
-       2.4.2.  Reserved Namespaces
+       2.4.2.  Namespace Prefix Matching
+       2.4.3.  Reserved Namespaces
      2.5.  Scope
    3.  Publishing and Receiving Tracks
      3.1.  Subscriptions
@@ -116,11 +117,24 @@ Table of Contents
        3.4.1.  Opening and Closing Fill Fetch Streams
      3.5.  Joining an Ongoing Track
        3.5.1.  Dynamically Starting New Groups
-     3.6.  Mandatory to Understand Track Properties
-   4.  Namespace Discovery
-     4.1.  Advertising Namespaces
+     3.6.  Subscribing to Tracks by Prefix
+       3.6.1.  Filtering SUBSCRIBE_TRACKS
+       3.6.2.  Parameters on SUBSCRIBE_TRACKS
+       3.6.3.  Skipped Tracks
+     3.7.  Multi-Track Selection and Switching
+       3.7.1.  Selection Policies
+       3.7.2.  Selection Sets
+       3.7.3.  Selection Policy Algorithms
+       3.7.4.  Switch Modes
+       3.7.5.  Subscriber-Initiated Switching
+       3.7.6.  Relay Behavior for Selection Sets
+     3.8.  Mandatory to Understand Track Properties
+   4.  Publisher and Namespace Discovery
+     4.1.  Publishing Namespaces
      4.2.  Subscribing to Namespaces
-     4.3.  Subscribing to Tracks by Prefix
+       4.2.1.  Namespace Subscription Authorization
+       4.2.2.  Namespace Subscription State Management
+     4.3.  Namespace Discovery Example
    5.  Object Transmission
      5.1.  Priorities
        5.1.1.  Definitions
@@ -149,10 +163,9 @@ Table of Contents
      7.3.  Multiple Publishers
      7.4.  Subscriber Interactions
        7.4.1.  Graceful Subscriber Relay Switchover
-     7.5.  Aggregating Namespace Subscriptions
+     7.5.  Relay Resource Protection in Large Namespaces
      7.6.  Publisher Interactions
-       7.6.1.  Namespace Prefix Matching
-       7.6.2.  Graceful Publisher Relay Switchover
+       7.6.1.  Graceful Publisher Relay Switchover
      7.7.  Relay Track Handling
      7.8.  Relay Object Handling
    8.  Notational Conventions and Common Structures
@@ -195,7 +208,6 @@ Table of Contents
      9.16. NAMESPACE
      9.17. NAMESPACE_DONE
      9.18. SUBSCRIBE_TRACKS
-       9.18.1.  Parameters on SUBSCRIBE_TRACKS
      9.19. PUBLISH_SKIPPED
      9.20. Control Message Parameters
        9.20.1.  Parameter Scope
@@ -206,19 +218,22 @@ Table of Contents
        9.20.6.  RENDEZVOUS TIMEOUT Parameter
        9.20.7.  SUBSCRIBER PRIORITY Parameter
        9.20.8.  GROUP ORDER Parameter
-       9.20.9.  LOCATION FILTER Parameter
-       9.20.10. SUBGROUP FILTER Parameter
-       9.20.11. OBJECTID FILTER Parameter
-       9.20.12. PRIORITY FILTER Parameter
-       9.20.13. OBJECT PROPERTY FILTER Parameter
-       9.20.14. TRACK PROPERTY FILTER Parameter
-       9.20.15. FILL PARAMETERS Parameter
-       9.20.16. EXPIRES Parameter
-       9.20.17. LARGEST OBJECT Parameter
-       9.20.18. FORWARD Parameter
-       9.20.19. NEW GROUP REQUEST Parameter
-       9.20.20. TRACK_NAMESPACE_PREFIX Parameter
-       9.20.21. INCLUDE_PROPERTIES Parameter
+       9.20.9.  SWITCH_FROM Parameter
+       9.20.10. LOCATION FILTER Parameter
+       9.20.11. SUBGROUP FILTER Parameter
+       9.20.12. OBJECTID FILTER Parameter
+       9.20.13. PRIORITY FILTER Parameter
+       9.20.14. OBJECT PROPERTY FILTER Parameter
+       9.20.15. TRACK PROPERTY FILTER Parameter
+       9.20.16. TRACK SELECTION Parameter
+       9.20.17. SELECTION SET ASSIGNMENT Parameter
+       9.20.18. FILL PARAMETERS Parameter
+       9.20.19. EXPIRES Parameter
+       9.20.20. LARGEST OBJECT Parameter
+       9.20.21. FORWARD Parameter
+       9.20.22. NEW GROUP REQUEST Parameter
+       9.20.23. TRACK_NAMESPACE_PREFIX Parameter
+       9.20.24. INCLUDE_PROPERTIES Parameter
    10. MOQT Properties
      10.1.  SUBGROUP_DELIVERY_TIMEOUT
      10.2.  OBJECT_DELIVERY_TIMEOUT
@@ -226,9 +241,10 @@ Table of Contents
      10.4.  DEFAULT PUBLISHER PRIORITY
      10.5.  DEFAULT PUBLISHER GROUP ORDER
      10.6.  DYNAMIC GROUPS
-     10.7.  Immutable Properties
-     10.8.  Prior Group ID Gap
-     10.9.  Prior Object ID Gap
+     10.7.  SELECTION TIMEOUT
+     10.8.  Immutable Properties
+     10.9.  Prior Group ID Gap
+     10.10. Prior Object ID Gap
    11. Data Streams and Datagrams
      11.1.  Objects
        11.1.1.  Object Status
@@ -282,30 +298,33 @@ Table of Contents
      16.6.  MOQT Auth Token Type
      16.7.  Message Parameters
      16.8.  Properties
-     16.9.  Object Status
-     16.10. Session-Level Track Names
-     16.11. Error Codes
-       16.11.1.  Session Termination Error Codes
-       16.11.2.  REQUEST_ERROR Codes
-       16.11.3.  PUBLISH_DONE Codes
-       16.11.4.  Stream Reset Error Codes
+     16.9.  Selection Policy Algorithms
+     16.10. Switch Modes
+     16.11. Object Status
+     16.12. Session-Level Track Names
+     16.13. Error Codes
+       16.13.1.  Session Termination Error Codes
+       16.13.2.  REQUEST_ERROR Codes
+       16.13.3.  PUBLISH_DONE Codes
+       16.13.4.  Stream Reset Error Codes
    Contributors
    Use of Generative AI
    References
      Normative References
      Informative References
    Appendix A.  Change Log
-     A.1.  Since draft-ietf-moq-transport-20
-     A.2.  Since draft-ietf-moq-transport-19
-     A.3.  Since draft-ietf-moq-transport-18
-     A.4.  Since draft-ietf-moq-transport-17
-     A.5.  Since draft-ietf-moq-transport-16
-     A.6.  Since draft-ietf-moq-transport-15
-     A.7.  Since draft-ietf-moq-transport-14
-     A.8.  Since draft-ietf-moq-transport-13
-     A.9.  Since draft-ietf-moq-transport-12
-     A.10. Since draft-ietf-moq-transport-11
-     A.11. Since draft-ietf-moq-transport-10
+     A.1.  Since draft-ietf-moq-transport-21
+     A.2.  Since draft-ietf-moq-transport-20
+     A.3.  Since draft-ietf-moq-transport-19
+     A.4.  Since draft-ietf-moq-transport-18
+     A.5.  Since draft-ietf-moq-transport-17
+     A.6.  Since draft-ietf-moq-transport-16
+     A.7.  Since draft-ietf-moq-transport-15
+     A.8.  Since draft-ietf-moq-transport-14
+     A.9.  Since draft-ietf-moq-transport-13
+     A.10. Since draft-ietf-moq-transport-12
+     A.11. Since draft-ietf-moq-transport-11
+     A.12. Since draft-ietf-moq-transport-10
    Authors' Addresses
 
 1.  Introduction
@@ -337,7 +356,7 @@ Table of Contents
          Published and Retrieved.
 
       -  Section 4 Section 4 Describes mechanisms for discovering
-         Namespaces and Tracks
+         Publishers and Namespaces
 
    *  Next, the document describes how Objects are transmitted and MOQT
       Sessions
@@ -631,7 +650,7 @@ Table of Contents
    information about the skipped Objects.  Skipped Objects remain in the
    unknown state until they are received or their non-existence is
    signalled, for example in a FETCH stream (see Section 11.4.1) or via
-   a Prior Object ID Gap (see Section 10.9).
+   a Prior Object ID Gap (see Section 10.10).
 
    Since Objects can be delivered out of order, an endpoint can receive
    an Object after it has already recorded that the Object does not
@@ -751,8 +770,10 @@ Table of Contents
    The structured nature of Track Namespace allows relays and
    applications to manipulate prefixes of a namespace.
 
-   Track Name is a sequence of bytes, possibly empty, that identifies an
-   individual track within the namespace.
+   Track Name is a sequence of bytes that identifies an individual track
+   within the namespace.  Each Track Name MUST contain at least one
+   byte.  If an endpoint receives a Track Name with a length of 0, it
+   MUST close the session with a PROTOCOL_VIOLATION.
 
    In this specification, both the Track Namespace Fields and the Track
    Name are not constrained to a specific encoding.  They carry a
@@ -764,7 +785,23 @@ Table of Contents
    the Track Namespace Fields or Track Name such that exact comparison
    works.
 
-2.4.2.  Reserved Namespaces
+2.4.2.  Namespace Prefix Matching
+
+   To perform a namespace prefix match, the fields of the prefix are
+   compared sequentially against the leading fields of the Track
+   Namespace being matched, requiring an exact match for each field.
+   The prefix matches if all fields in the prefix match the leading
+   fields of the Namespace.
+
+   The examples below use the serialized name format from Section 8.8.
+
+   The Full Track Name foo-bar--x has the namespace foo-bar, so it
+   matches the prefixes foo and foo-bar.  It does not match foobar.
+
+   The prefix example.2ecom-123 matches the namespaces example.2ecom-
+   123-100 and example.2ecom-123-200.
+
+2.4.3.  Reserved Namespaces
 
    MOQT reserves all Track Namespace values whose first tuple field
    begins with a period (0x2e, .).  These namespaces MUST NOT be used
@@ -934,6 +971,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    An object published or received in a subgroup or datagram is
    *subscription-delivered*.
 
+   Subscriptions that are members of a Selection Set (Section 3.7) have
+   their forwarding state managed by the selection policy.  The
+   publisher uses PUBLISH_STATE_NOTIFY with Forward=0 or Forward=1 to
+   signal when a subscription is deselected or reselected by the policy.
+
 3.1.1.  Pausing Subscriptions
 
    An Established subscription is either paused or not paused.  The
@@ -943,7 +985,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    subscription is paused.
 
    The initiator of the subscription sets the initial state by including
-   the FORWARD parameter (Section 9.20.18) in PUBLISH or SUBSCRIBE.  The
+   the FORWARD parameter (Section 9.20.21) in PUBLISH or SUBSCRIBE.  The
    subscriber can pause an Established subscription by sending
    REQUEST_UPDATE with FORWARD set to 0, or resume it by sending
    REQUEST_UPDATE with FORWARD set to 1.
@@ -1165,7 +1207,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    A Location filter specifies an inclusive range of Locations or an
    inclusive start Location and an open-ended end location.  Only
    objects with Locations within the inclusive range pass the filter.  A
-   Location filter is encoded as specified in Section 9.20.9.
+   Location filter is encoded as specified in Section 9.20.10.
 
    Subscribers can specify a Location filter on a subscription to
    indicate to the publisher which Objects to send.  Subscriptions
@@ -1243,19 +1285,16 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
 3.3.3.  Combining Filters
 
-   All filter types are combined using logical "AND" operations to
-   further restrict which tracks and objects pass all filter criteria.
-   This includes all Range Filters Section 3.3.2 and Location Filters
-   Section 3.3.1, which can be evaluated in any order.  The Forward
-   parameter is also a type of filter.  The publisher MUST forward only
-   objects that pass all filters.
-
-   Pass = Forward AND Location Filters AND Range Filters
+   Filter types can be combined to further restrict which tracks and
+   objects pass all filter criteria.  Track Selection (Section 3.7) is
+   evaluated first, then Range Filters Section 3.3.2 and Location
+   Filters Section 3.3.1.  The Forward parameter is also a type of
+   filter.  The publisher MUST send only objects that pass all filters.
 
 3.4.  Fill Semantics
 
    A subscription that carries a FILL_PARAMETERS parameter (see
-   Section 9.20.15) causes the publisher to open a unidirectional stream
+   Section 9.20.18) causes the publisher to open a unidirectional stream
    beginning with a FETCH_HEADER (see Section 11.4.1) and delivered as a
    FETCH response (see Section 9.11).  This is called a fill fetch
    stream.
@@ -1263,12 +1302,12 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    The *fill range* is the range of Locations selected by the Location
    filter inside FILL_PARAMETERS, or the subscription's Location filter
    if it is omitted.  The filter is evaluated using the rules for a
-   Fetch in Section 9.20.9, so the fill range never extends beyond
+   Fetch in Section 9.20.10, so the fill range never extends beyond
    Largest Object.  When the subscription has no Location filter, or the
-   LOCATION_FILTER inside FILL_PARAMETERS is zero-length, the fill range
-   is the entire track up to Largest Object.  The subscriber learns the
-   Largest Object from the LARGEST_OBJECT parameter in SUBSCRIBE_OK or
-   REQUEST_UPDATE_OK.
+   LOCATION_FILTER inside FILL_PARAMETERS has Location Filter Type 0x00
+   (None), the fill range is the entire track up to Largest Object.  The
+   subscriber learns the Largest Object from the LARGEST_OBJECT
+   parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.
 
    Because the fill range is specified independently of the
    subscription's Location filter, a subscriber can retrieve a range of
@@ -1338,7 +1377,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    To join a Track at the current Group, the subscriber sends a
    SUBSCRIBE with a Location Filter that starts at the Next Object and a
-   FILL_PARAMETERS parameter (see Section 9.20.15) whose Location filter
+   FILL_PARAMETERS parameter (see Section 9.20.18) whose Location filter
    has StartGroup=1, which fills the current Group from its start.
 
    To join a Track at a past Group, the subscriber sends a SUBSCRIBE
@@ -1366,7 +1405,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    beginning of the Group.  If the Object ID is above the threshold and
    the Track supports dynamic groups, the subscriber sends a
    REQUEST_UPDATE message with the NEW_GROUP_REQUEST parameter equal to
-   the Next Group (see Section 9.20.19).
+   the Next Group (see Section 9.20.22).
 
    Another possible subscriber pattern is to send a SUBSCRIBE with a
    Location Filter that starts at the Next Group and NEW_GROUP_REQUEST
@@ -1374,7 +1413,489 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    indicate if the publisher supports dynamic groups.  A publisher that
    does will begin the next group as soon as practical.
 
-3.6.  Mandatory to Understand Track Properties
+3.6.  Subscribing to Tracks by Prefix
+
+   SUBSCRIBE_TRACKS requests subscriptions: the publisher sends PUBLISH
+   messages for tracks within matching namespaces, excluding tracks
+   published by the subscriber.
+
+   A SUBSCRIBE_TRACKS with zero Track Namespace fields indicates the
+   subscriber is requesting a Subscription for all Tracks from the
+   publisher.
+
+   SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH
+   messages to a subscriber.  It is useful, for example, when the
+   subscriber does not know the exact names of the tracks it wants, or
+   when those tracks will be published.
+
+   The publisher will respond with SUBSCRIBE_TRACKS_OK or
+   SUBSCRIBE_TRACKS_ERROR on the response half of the stream.  If the
+   subscriber receives any message other than a SUBSCRIBE_TRACKS_OK or a
+   SUBSCRIBE_TRACKS_ERROR as the first message on the response half of
+   the stream, then it MUST close the session with a PROTOCOL_VIOLATION.
+   If the SUBSCRIBE_TRACKS is successful, the publisher will send
+   PUBLISH messages on new bidirectional streams for tracks matching the
+   Namespace Prefix.  If it is an error, the stream will be closed via
+   FIN after SUBSCRIBE_TRACKS_ERROR is sent.
+
+   Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
+   Track Namespace Prefix that shares a common prefix with an
+   established SUBSCRIBE_TRACKS, it MUST respond with
+   SUBSCRIBE_TRACKS_ERROR with error code PREFIX_OVERLAP.
+
+   The publisher MUST ensure the subscriber is authorized to perform
+   this namespace subscription.
+
+   A SUBSCRIBE_TRACKS is cancelled as described in Section 6.4.2.3.
+   Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
+   from sending further PUBLISH messages, but relays MUST NOT send any
+   further PUBLISH messages to a client without knowing the client is
+   interested in and authorized to receive the content.
+
+3.6.1.  Filtering SUBSCRIBE_TRACKS
+
+   The TRACK_SELECTION parameter (Section 9.20.16) can be used in
+   SUBSCRIBE_TRACKS to select a subset of tracks in a namespace using a
+   selection policy such as Top-N (Section 3.7.3.1) or Bandwidth-Aware
+   (Section 3.7.3.2).
+
+   Range Filters Section 3.3.2 can be used in SUBSCRIBE_TRACKS to filter
+   Tracks in a namespace using the Track Property Filter.  Objects
+   published in the resulting Subscriptions can be filtered by any Range
+   Filter.
+
+3.6.2.  Parameters on SUBSCRIBE_TRACKS
+
+   Any Parameter that can be specified on a Subscription (ie: in
+   SUBSCRIBE) is valid in SUBSCRIBE_TRACKS, unless otherwise specified.
+   These parameters are used by the publisher as the initial
+   Subscription parameters when a PUBLISH is sent as a result of
+   SUBSCRIBE_TRACKS, and explicitly communicated in the PUBLISH.  When a
+   Parameter is omitted from the SUBSCRIBE_TRACKS and resulting PUBLISH,
+   the Subscription uses the default value.
+
+   To join Tracks initiated via the resulting PUBLISHes, the subscriber
+   can specify a Location Filter and optionally include FILL_PARAMETERS
+   in the SUBSCRIBE_TRACKS, or in a REQUEST_UPDATE following PUBLISH_OK,
+   as described in Section 3.5.
+
+3.6.3.  Skipped Tracks
+
+   If a Subscription cannot be created because there are no available
+   bidirectional streams or any other reason, the Publisher sends a
+   PUBLISH_SKIPPED message on the SUBSCRIBE_TRACKS response stream to
+   indicate the Full Track Name of the Subscription that was not
+   created.  The Publisher MUST NOT send a PUBLISH for a Track for a
+   given SUBSCRIBE_TRACKS after PUBLISH_SKIPPED has been sent, scoped to
+   a single PUBLISH.  If, for example, the publisher disconnects from a
+   relay and later reconnects and sends a new PUBLISH, the relay MAY
+   send the new PUBLISH downstream.  If desired, the subscriber can
+   issue a SUBSCRIBE to establish a subscription to that track.
+
+3.7.  Multi-Track Selection and Switching
+
+   When a subscriber is interested in a set of tracks but only needs a
+   dynamic subset at any given time, the publisher must decide which
+   tracks to forward and adapt that decision as conditions change.
+   Selection Policies provide the mechanism for this: each Selection
+   Policy pairs a Selection Set (which tracks are evaluated together)
+   with a Policy Algorithm (how to choose among them).  A subscription
+   carries an ordered list of Selection Policies, enabling hierarchical
+   selection — for example, first selecting the most active speakers,
+   then picking the best video quality for each.
+
+3.7.1.  Selection Policies
+
+   A *Selection Policy* assigns a Selection Set to a Policy Algorithm.
+   Each subscription carries an ordered list of Selection Policies:
+
+       +--- Ordered List of Selection Policies per track ---------+
+       |                                                          |
+       |  Policy [1]:                                             |
+       |  +------------------+     +--------------------------+   |
+       |  | Selection Set    |  +  | Policy Algorithm         |   |
+       |  | (SetId, grouping)|     | (Top-N / BW-Aware / ...) |   |
+       |  +------------------+     +--------------------------+   |
+       |            |                                             |
+       |       then evaluate (on survivors only)                  |
+       |            v                                             |
+       |  Policy [2]:                                             |
+       |  +------------------+     +--------------------------+   |
+       |  | Selection Set    |  +  | Policy Algorithm         |   |
+       |  | (SetId, grouping)|     | (Top-N / BW-Aware / ...) |   |
+       |  +------------------+     +--------------------------+   |
+       +----------------------------------------------------------+
+
+   When multiple Selection Policies are present, they are evaluated in
+   order: the first policy evaluates all tracks in its set, and each
+   subsequent policy evaluates only the tracks that were selected by the
+   previous policy, within its own selection set.  A track is forwarded
+   only if it is selected by every policy in the list.  The state
+   machine (Section 3.7.2.1) applies to the final selected state after
+   the entire list has been evaluated.
+
+   How Selection Policies are assigned to tracks is described in
+   Section 3.7.2.2.
+
+3.7.2.  Selection Sets
+
+   A *Selection Set* is a group of tracks that are evaluated together by
+   a policy algorithm.  Each set is identified by a Set ID (varint,
+   unique within the session).
+
+   The same track MAY appear in different sets under different Selection
+   Policies in its ordered list.  For example, a video track might be
+   in:
+
+   *  Set 1 under a Top-N policy (competing with all video-hi tracks to
+      determine which users are most active), and
+
+   *  Set 10 under a Bandwidth-Aware policy (grouped with the same
+      user's quality alternatives to determine which resolution to
+      forward).
+
+   Each track in a selection set is either _selected_ (objects are
+   forwarded) or _deselected_ (objects are not forwarded, but the track
+   remains a member of the set).  This allows efficient reselection
+   without re-subscribing.
+
+   A selection set is created when the first track is assigned to its
+   Set ID (via TRACK_SELECTION or SELECTION_SET_ASSIGNMENT).  A set is
+   deleted when all its members are removed.
+
+3.7.2.1.  Track Selection State Machine
+
+   Every track that is a member of a selection set is in one of three
+   states:
+
+                 +--------------+
+                 |   UNKNOWN    |
+                 |  (no state)  |
+                 +--------------+
+                      ^    |
+         UNSUBSCRIBE/ |    | PUBLISH FWD=1
+         PUBLISH_DONE |    | (Newly Selected)
+         (purge state)|    v
+                      |  +-------------------+
+                      |  |     SELECTED      |
+                      |  | (objects forwarded)|
+                      |  +-------------------+
+                      |    ^            |
+                      |    |            |
+                      |    |  PUBLISH_STATE_NOTIFY FWD=0
+                      |    |  (Demoted by policy
+                      |    |   or timed out)
+                      |    |            |
+                      |    |            v
+                 +-----------------------+
+                 |      DESELECTED       |
+                 | (state kept, no fwd)  |
+                 +-----------------------+
+                           ^
+              PUBLISH_STATE_NOTIFY FWD=1
+              (Reselected by policy)
+              transitions back to SELECTED
+
+   UNKNOWN to SELECTED:  The publisher sends PUBLISH with Forward=1.
+      This occurs when a track first enters the selected subset.
+
+   SELECTED to DESELECTED:  The publisher sends PUBLISH_STATE_NOTIFY
+      with Forward=0.  The track leaves the selected subset.  The switch
+      mode determines when this takes effect.
+
+   DESELECTED to SELECTED:  The publisher sends PUBLISH_STATE_NOTIFY
+      with Forward=1.  A previously deselected track re-enters the
+      selected subset.  This also updates the Joining Location.
+
+   DESELECTED to UNKNOWN:  The publisher sends PUBLISH_DONE or receives
+      UNSUBSCRIBE to purge state for this track.  If the track is later
+      selected again, a new PUBLISH is required.
+
+   This state machine is used identically by all selection policies and
+   switch modes.
+
+   Publishers SHOULD retain state for recently deselected tracks to
+   enable efficient reselection via PUBLISH_STATE_NOTIFY (Forward=1)
+   instead of a new PUBLISH message.  Publishers MAY send PUBLISH_DONE
+   to purge old deselected tracks and bound memory usage.
+
+3.7.2.2.  Selection Set Membership
+
+   Tracks are assigned to selection sets through one of three paths,
+   depending on how the track is discovered and subscribed.  In all
+   cases below, a track's selection policies are expressed as an ordered
+   list of entries, where each entry pairs a Set ID with a Policy
+   Algorithm.  The entries are evaluated in order as declaration.
+
+   SUBSCRIBE_TRACKS + TRACK_SELECTION:  The subscriber includes a
+      TRACK_SELECTION parameter (Section 9.20.16) in SUBSCRIBE_TRACKS.
+      Each Policy Entry carries a Set ID and defines a namespace-scoped
+      policy.  All tracks published within the matching namespace are
+      implicitly assigned the ordered list of entries from
+      TRACK_SELECTION.
+
+   REQUEST_UPDATE + SELECTION_SET_ASSIGNMENT (after PUBLISH):  When
+      tracks are discovered dynamically via PUBLISH, the subscriber
+      first accepts the track with REQUEST_OK, then sends a
+      REQUEST_UPDATE carrying a SELECTION_SET_ASSIGNMENT parameter
+      (Section 9.20.17).  This assigns the track's ordered list of
+      policy entries with per-track parameters.  When an entry
+      references a Set ID that was defined in TRACK_SELECTION on
+      SUBSCRIBE_TRACKS, it overrides the TRACK_SELECTION entry for that
+      specific track — allowing per-track customization of namespace-
+      wide defaults.
+
+   SUBSCRIBE + SELECTION_SET_ASSIGNMENT:  For explicit subscriptions
+      where tracks are known upfront, the subscriber includes a
+      SELECTION_SET_ASSIGNMENT parameter (Section 9.20.17) in SUBSCRIBE.
+      This assigns the track's being subscribed to the subscript sets
+      that ordered in the policy list t subscription time.
+
+   A track that is a member of a selection set may be selected or
+   deselected by the selection policy as conditions change (e.g., a
+   higher-ranked track appears in Top-N, or available bandwidth changes
+   in Bandwidth-Aware).
+
+   A track is removed from its selection sets entirely when the
+   subscription ends (UNSUBSCRIBE or PUBLISH_DONE), a new
+   SELECTION_SET_ASSIGNMENT replaces its policy entries, or
+   SELECTION_SET_ASSIGNMENT with Length=0 is received (removes without
+   reassignment).  When a selection set has no remaining members, it is
+   deleted.
+
+3.7.3.  Selection Policy Algorithms
+
+   A selection policy algorithm determines which members of a selection
+   set are in the selected subset.  Algorithms are identified by a
+   Policy ID (varint) and registered in an IANA registry (Section 16.9).
+
+   An endpoint advertises supported algorithms in SETUP via the
+   SELECTION_POLICIES option (Section 9.1.7.2).  An endpoint MUST NOT
+   send a TRACK_SELECTION or SELECTION_SET_ASSIGNMENT with a Policy ID
+   not in the peer's SELECTION_POLICIES list.
+
+   A TRACK_SELECTION parameter contains a chain of zero or more policy
+   entries.  Each policy entry carries its own Set ID, which groups
+   tracks for that policy's evaluation.  When multiple entries are
+   present, they form an ordered pipeline as described in Section 3.7.1.
+
+3.7.3.1.  Policy 0x0: Top-N Selection
+
+   Top-N selects the MaxTracks tracks within a namespace that have the
+   highest values for a specified Track or Object Property.
+
+   The TRACK_SELECTION parameter with Policy ID 0x0 includes:
+
+   *  Property Type (vi64): The Track or Object Property used for
+      ranking.  MUST be even, i.e. a single integer value (see
+      Figure 3).  Object Property values override Track Property values
+      of the same type.
+
+   *  MaxTracks (vi64): Maximum number of tracks selected concurrently.
+      MUST NOT be 0.  MUST NOT exceed MAX_SELECTED_TRACKS
+      (Section 9.1.7.1).  A violation of either is a PROTOCOL_VIOLATION.
+
+   Selection Rules:
+
+   1.  A track is selected if it has published an object with one of the
+       MaxTracks highest values for Property Type among all eligible
+       tracks in the namespace.  As required by SUBSCRIBE_TRACKS
+       (Section 3.6), tracks published by the subscriber are excluded
+       from evaluation and do not count against MaxTracks.
+
+   2.  For tracks with the same value, the track with the earliest
+       delivered object wins the tie breaker, so a selected track
+       remains selected until another track publishes a higher value
+       that demotes it out of the top set.
+
+   3.  SELECTION_TIMEOUT (Track Property 0x40, default 1000
+       milliseconds) limits how long a track remains selected without
+       publishing a new object carrying Property Type.  When the timeout
+       elapses, the track is deselected.
+
+   4.  Objects received with a location lower than the largest received
+       for that track are ignored for selection evaluation.  However, if
+       the track is already selected, such objects still pass the
+       filter.
+
+   5.  When the TRACK_SELECTION is updated via REQUEST_UPDATE, the
+       publisher re-evaluates with the new parameters and signals all
+       resulting changes.
+
+   If a track in the namespace is also individually subscribed via
+   SUBSCRIBE, its state MUST NOT be modified by the Top-N selection.
+   The individually subscribed track does not count against MaxTracks.
+
+   Relay behavior for Top-N is described in Section 3.7.6.
+
+3.7.3.2.  Policy 0x1: Bandwidth-Aware Selection
+
+   Bandwidth-Aware selection picks the highest-quality track within each
+   selection set that fits within the available bandwidth.  It is
+   designed for sets of tracks representing the same content at
+   different bitrates.
+
+   The SELECTION_SET_ASSIGNMENT parameter with Policy ID 0x1 includes:
+
+   *  Throughput Threshold (vi64): Minimum throughput in kbps required
+      to select this track.
+
+   *  Set Weight (vi64): Integer (1-10) establishing proportional
+      bandwidth distribution among sets with the same rank.
+
+   *  Activate Switching (vi64): Selection begins once at least this
+      many tracks are assigned to the set.  0 pauses switching.
+
+   *  Set Rank (8): 8-bit unsigned integer (0-255).  Lower values
+      indicate higher priority.  Sets with lower rank receive their full
+      allocation before sets with higher rank receive any bandwidth.
+
+   The publisher evaluates the selection when a new group arrives on any
+   track in an active selection set.  The algorithm allocates available
+   bandwidth across sets using strict priority by rank, then
+   proportional allocation by weight within each rank tier:
+
+   B_remaining = B_total
+
+   for each distinct rank value r, in ascending order:
+     active_sets = sets with rank == r, enough members to activate
+     sum_weight = sum of set.weight for each set in active_sets
+
+     repeat:
+       for each set in active_sets:
+         set.target = B_remaining * set.weight / sum_weight
+         set.selected = highest-threshold track
+                        where threshold <= set.target
+       remove saturated sets, reallocate unused bandwidth
+     until stable
+
+     B_remaining -= sum of selected thresholds at this rank
+
+   Result: exactly one track per active set has Forward=1.  All other
+   tracks in the set have Forward=0.
+
+   Relay behavior for Bandwidth-Aware is described in Section 3.7.6.
+
+   A selection set is created when the first SELECTION_SET_ASSIGNMENT
+   with its Set ID is received.  Selection begins once the number of
+   assigned tracks meets or exceeds Activate Switching.  A set is
+   deleted when all its members are removed.
+
+3.7.4.  Switch Modes
+
+   A switch mode defines how the transition between tracks is executed
+   at the media delivery level.  Switch modes are used by both
+   publisher-driven transitions (selection sets, Section 3.7) and
+   subscriber-initiated switches (SWITCH_FROM, Section 9.20.9).  Switch
+   modes are identified by a varint and registered in an IANA registry
+   (Section 16.10).
+
+3.7.4.1.  Immediate Switch (Mode 0x0)
+
+      Note: This mode was previously referred to as "Hard Switch" in
+      earlier discussions.
+
+   Immediate Switch MUST be supported by all endpoints that support
+   selection sets or subscriber-initiated switching.
+
+   When a track is deselected (publisher-driven) or suspended
+   (subscriber-driven):
+
+   1.  The publisher immediately stops forwarding new objects for the
+       track.
+
+   2.  Outstanding streams for the track are reset.
+
+   3.  Objects already in flight may still arrive at the subscriber.
+
+   4.  The publisher sends PUBLISH_STATE_NOTIFY with Forward=0.
+
+   When a track is selected (publisher-driven) or activated (subscriber-
+   driven):
+
+   1.  The publisher begins forwarding objects from the joining
+       location.
+
+   2.  The publisher sends PUBLISH (new track) or PUBLISH_STATE_NOTIFY
+       with Forward=1 (reselection or reactivation).
+
+3.7.5.  Subscriber-Initiated Switching
+
+   A subscriber can explicitly switch between two subscriptions by
+   including the SWITCH_FROM parameter (Section 9.20.9) in a SUBSCRIBE
+   or REQUEST_UPDATE on the activating subscription.  This enables
+   subscriber-driven track switching (e.g., ABR quality changes,
+   alternate camera angles) using the same switch mode semantics as
+   publisher-driven selection set transitions.
+
+   On receiving SWITCH_FROM, the publisher:
+
+   1.  Validates that Switch From Request ID identifies an existing
+       subscription and is not the same as the activating subscription's
+       Request ID.  If invalid, the publisher responds with
+       REQUEST_ERROR INVALID_SWITCH.
+
+   2.  Applies the switch mode specified in the SWITCH_FROM parameter to
+       stop delivery on the suspending subscription and begin delivery
+       on the activating subscription.
+
+   3.  If the Publish Done flag is 1, sends PUBLISH_DONE with code
+       SWITCHED_AWAY on the suspending subscription after the switch
+       completes.  Otherwise the suspending subscription remains
+       established for potential reuse.
+
+   If the publisher cannot begin delivery on the activating
+   subscription, it MUST leave the suspending subscription unchanged.
+
+3.7.6.  Relay Behavior for Selection Sets
+
+   A relay implementing selection sets follows the same processing
+   pipeline regardless of policy algorithm:
+
+   1.  Receive objects from upstream and extract property values.
+
+   2.  Evaluate the ordered Selection Policies for each affected track,
+       processing each policy's selection set in order.
+
+   3.  Determine which tracks changed state (promoted or demoted).
+
+   4.  Apply the switch mode and send PUBLISH, PUBLISH_STATE_NOTIFY, or
+       PUBLISH_DONE as appropriate.
+
+3.7.6.1.  Top-N Relay Aggregation
+
+   For namespace-scoped selection sets (Policy 0x0), the relay MUST
+   subscribe to all tracks in the namespace upstream to evaluate the
+   policy.
+
+   A relay maintains a single sorted list of tracks by Property Type
+   value for each selection set, shared across all subscribers.  For
+   each downstream subscriber, the relay excludes that subscriber's own
+   published tracks and selects the top MaxTracks from the remaining
+   tracks.
+
+   When multiple downstream subscribers use Policy 0x0 with the same
+   Property Type on the same namespace, the global sorted list is
+   computed once; per-subscriber evaluation is a filtered walk of that
+   list.  The relay MUST maintain at least Max(MaxTracks_i) + Max(E_i)
+   tracks in its upstream subscription, where MaxTracks_i is the
+   MaxTracks value for each downstream subscriber i and E is the number
+   of that subscriber's own published tracks that appear in the global
+   sorted list.  This ensures the relay has enough candidates to fill
+   every subscriber's top set after per-subscriber exclusions.  If a
+   downstream subscriber increases its MaxTracks via REQUEST_UPDATE, the
+   relay MUST expand its upstream subscription before responding with
+   updated selections.
+
+3.7.6.2.  Bandwidth-Aware Relay Behavior
+
+   For per-track selection sets (Policy 0x1), the relay SHOULD maintain
+   Forward=1 upstream for ALL tracks in a selection set, regardless of
+   downstream forwarding state.  This ensures the relay can immediately
+   begin forwarding a higher-quality track when bandwidth conditions
+   change, without waiting for upstream resubscription.
+
+3.8.  Mandatory to Understand Track Properties
 
    Property types in the range 0x4000-0x7FFF are designated as Mandatory
    Track Properties.  These properties MUST have Track scope.  Mandatory
@@ -1416,169 +1937,183 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    *  For PUBLISH: do not publish the track to that subscriber.
 
-4.  Namespace Discovery
+4.  Publisher and Namespace Discovery
 
-   Namespace Discovery in MOQT enables Subscribers to discover what
-   Namespaces and Tracks are available for subscriptions, as well as the
-   ability to Subscribe to changes in those Namespaces and the Tracks
-   themselves.  MOQT does not define how endpoints find each other.
+   Given out-of-band information, a subscriber can retrieve tracks from
+   a publisher (including a relay) without any previous MOQT messages
+   besides SETUP.  However, MOQT provides in-band messages for a
+   publisher to advertise the namespaces it has tracks in, and for a
+   subscriber to discover the namespaces a publisher knows.
 
-   Discovery in MOQT covers three exchanges:
+   Discovery of MOQT servers is always done out-of-band: MOQT does not
+   specify how an endpoint learns where to establish a session.  The
+   discovery described in this section takes place within an established
+   session.
 
-   *  *Advertisement.* A publisher announces the namespaces it offers,
-      so subscribers can find its tracks without prior knowledge of
-      them.
+4.1.  Publishing Namespaces
 
-   *  *Enumeration.* A subscriber asks a peer which namespaces it
-      currently knows under a given prefix, including both namespaces
-      the publisher originates and those it has learned from upstream.
+   A publisher MAY send PUBLISH_NAMESPACE messages to any subscriber.  A
+   PUBLISH_NAMESPACE indicates to the subscriber that the publisher has
+   tracks available in namespaces matching the Track Namespace Prefix it
+   carries (see Section 2.4.2).  A subscriber MAY send SUBSCRIBE, FETCH
+   or TRACK_STATUS for tracks in a namespace without having received a
+   PUBLISH_NAMESPACE for it.  A Relay has additional requirements on
+   which publishers receive these requests; see Section 7.6.
 
-   *  *Prefix subscription.* A subscriber requests the publisher
-      establish a subscription for every track under a prefix, without
-      naming each one individually.
+   The receiver verifies the publisher is authorized to publish tracks
+   under this prefix.
 
-   Five in-band messages implement these three flows:
+   A subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or
+   PUBLISH_NAMESPACE_ERROR as the first message on the bidi stream in
+   response to a PUBLISH_NAMESPACE.  The publisher SHOULD close the
+   session with a protocol error if it receives more than one.
 
-    +=====================+============+=============================+
-    | Message             | Direction  | Purpose                     |
-    +=====================+============+=============================+
-    | PUBLISH_NAMESPACE   | publisher  | Announce that the publisher |
-    |                     | →          | offers tracks in namespaces |
-    |                     | subscriber | matching a Track Namespace  |
-    |                     |            | Prefix.                     |
-    +---------------------+------------+-----------------------------+
-    | SUBSCRIBE_NAMESPACE | subscriber | Request advertisements of   |
-    |                     | →          | namespaces matching a given |
-    |                     | publisher  | prefix.                     |
-    +---------------------+------------+-----------------------------+
-    | NAMESPACE /         | publisher  | Announce, and later         |
-    | NAMESPACE_DONE      | →          | withdraw, each matching     |
-    |                     | subscriber | namespace on a              |
-    |                     |            | SUBSCRIBE_NAMESPACE stream. |
-    +---------------------+------------+-----------------------------+
-    | SUBSCRIBE_TRACKS    | subscriber | Request forwarding of every |
-    |                     | →          | PUBLISH for tracks whose    |
-    |                     | publisher  | namespace matches a given   |
-    |                     |            | prefix.                     |
-    +---------------------+------------+-----------------------------+
+   An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
+   PUBLISH_NAMESPACE_ERROR to the application to inform the search for
+   additional subscribers for a namespace, or to abandon the attempt to
+   publish under this namespace.
 
-                                 Table 1
+   If a subscriber has accepted a PUBLISH_NAMESPACE with a namespace
+   that exactly matches the namespace for a given track, it SHOULD only
+   request the Track from the sender(s) of those PUBLISH_NAMESPACE
+   messages.
 
-   Each namespace-oriented message uses Namespace Prefix Matching
-   (Section 7.6.1) to identify the set of namespaces it applies to.  A
-   prefix with zero Track Namespace fields matches everything the
-   receiver knows or produces.  None of these exchanges are required to
-   retrieve Objects: a subscriber that already knows a Full Track Name
-   MAY send SUBSCRIBE or FETCH directly.  Discovery is a convenience for
-   the case where the subscriber does not yet know the exact name, or
-   wants to react as publishers come and go.
+   A PUBLISH_NAMESPACE is withdrawn by cancelling the request (see
+   Section 6.4.2.3), although it is not a protocol error for the
+   subscriber to send a SUBSCRIBE, FETCH or TRACK_STATUS message for a
+   track in a namespace after the namespace is withdrawn.
 
-   Namespace Discovery is a hint, not a routing protocol:
-   PUBLISH_NAMESPACE and NAMESPACE do not guard against loops and SHOULD
-   NOT be used to compute paths through richly connected relay networks.
+   A subscriber can cancel the request (see Section 6.4.2.3) to revoke
+   acceptance of a PUBLISH_NAMESPACE.  If the reason for cancellation is
+   expiration of authorization credentials, the publisher can send
+   PUBLISH_NAMESPACE again on a new bidi stream with refreshed
+   authorization.
 
-   Message syntax is defined in Section 9.  The rest of this section
-   describes how each message is used.
-
-4.1.  Advertising Namespaces
-
-   A publisher advertises a Track Namespace Prefix by sending
-   PUBLISH_NAMESPACE on a new bidirectional stream, indicating that it
-   has tracks available in namespaces matching that prefix
-   (Section 7.6.1).  An Original Publisher typically advertises to an
-   upstream relay to signal that it has content to offer, and a relay
-   MAY in turn re-advertise those namespaces to interested subscribers.
-   Advertisement is optional — a subscriber MAY send SUBSCRIBE or FETCH
-   for a namespace it never received a PUBLISH_NAMESPACE for — but it is
-   how publishers signal availability in the absence of out-of-band
-   information.
-
-   The subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or
-   PUBLISH_NAMESPACE_ERROR as the first message on the response stream.
-   The publisher SHOULD close the session with a protocol error if it
-   receives more than one.  Endpoints SHOULD forward the outcome to the
-   application so it can look for other subscribers or abandon the
-   attempt.
-
-   An Original Publisher for a track in a given namespace, or a relay
-   that has accepted a PUBLISH_NAMESPACE for that namespace from
-   upstream, MUST send a NAMESPACE message for it to every subscriber
-   with an active SUBSCRIBE_NAMESPACE whose prefix matches.
-
-   A PUBLISH_NAMESPACE is withdrawn by cancelling its request
-   (Section 6.4.2.3).  Cancellation from the subscriber side revokes
-   acceptance; if the reason is expiration of authorization credentials,
-   the publisher MAY re-advertise on a new stream with refreshed
-   authorization.  It is not a protocol error for a subscriber to
-   SUBSCRIBE or FETCH a track under a withdrawn namespace, but the
-   publisher MAY reject it.
-
-   If a subscriber has accepted a PUBLISH_NAMESPACE whose namespace
-   exactly matches a track it wants, it SHOULD request that track from
-   the sender of the PUBLISH_NAMESPACE.
+   While PUBLISH_NAMESPACE indicates to relays how to connect publishers
+   and subscribers, it is not a full-fledged routing protocol and does
+   not protect against loops.  In particular, PUBLISH_NAMESPACE SHOULD
+   NOT be used to find paths through richly connected networks of
+   relays.
 
 4.2.  Subscribing to Namespaces
 
-   When a subscriber knows a Track Namespace Prefix but not the specific
-   namespaces published under it, it uses SUBSCRIBE_NAMESPACE to
-   enumerate the namespaces the peer currently knows under that prefix,
-   and to receive updates as those namespaces are advertised or
-   withdrawn.
+   If the subscriber is aware of a namespace of interest, it can send
+   SUBSCRIBE_NAMESPACE to publishers/relays it has established a session
+   with.  The Track Namespace Prefix it carries is compared against the
+   namespaces known to the receiver using Namespace Prefix Matching
+   (Section 2.4.2).
 
-   A subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional stream.
-   The publisher MUST respond with a single SUBSCRIBE_NAMESPACE_OK or
-   SUBSCRIBE_NAMESPACE_ERROR as the first message on the stream, and
-   then sends NAMESPACE messages for each matching namespace and
-   NAMESPACE_DONE when a previously advertised namespace goes away.  The
-   set of matching namespaces includes both those the publisher
-   originates and those it has learned about from upstream
-   PUBLISH_NAMESPACE messages.
+   SUBSCRIBE_NAMESPACE requests namespace discovery: the publisher
+   responds with NAMESPACE and NAMESPACE_DONE messages.
 
-   Sending SUBSCRIBE_NAMESPACE is a statement of trust: the subscriber
-   treats the peer as authoritative for namespaces matching the prefix.
-   As a consequence, NAMESPACE messages carried on the response stream
-   inherit that trust and do not independently carry authorization
-   credentials.
+   A SUBSCRIBE_NAMESPACE with zero Track Namespace fields indicates the
+   sender is interested in all namespaces from the receiver.
 
-   A SUBSCRIBE_NAMESPACE is cancelled per Section 6.4.2.3.
+   The subscriber sends SUBSCRIBE_NAMESPACE on a new bidirectional
+   stream.  The publisher MUST send a single SUBSCRIBE_NAMESPACE_OK or
+   SUBSCRIBE_NAMESPACE_ERROR as the first message on the response half
+   of the stream; if the subscriber receives any other message first, it
+   MUST close the session with a PROTOCOL_VIOLATION.
 
-4.3.  Subscribing to Tracks by Prefix
+   On success, the publisher MUST send a NAMESPACE message for each
+   namespace it knows that matches the Track Namespace Prefix, and
+   further NAMESPACE or NAMESPACE_DONE messages as that set changes.  A
+   publisher knows a namespace if it is an Original Publisher for one or
+   more tracks in that Namespace Prefix, or is a relay that has received
+   an authorized PUBLISH_NAMESPACE for the Namespace.  On error, the
+   stream is immediately closed via FIN.
 
-   A subscriber sends SUBSCRIBE_TRACKS on a new bidirectional stream.
-   SUBSCRIBE_TRACKS specifies a Track Namespace Prefix, and the
-   publisher MUST respond with a single SUBSCRIBE_TRACKS_OK or
-   SUBSCRIBE_TRACKS_ERROR.  PUBLISHes for tracks whose namespace matches
-   the given prefix follow, both for tracks the publisher already has
-   and for tracks it subsequently learns about, subject to the filters
-   described below.  PUBLISHes for tracks the subscriber itself is
-   publishing on this session are excluded.  Each such PUBLISH is
-   handled via the normal PUBLISH acceptance flow (see Section 9.8)
-   before it becomes an active subscription.
+   The namespace in a NAMESPACE message is itself a prefix; tracks can
+   exist in namespaces matching it.  A NAMESPACE_DONE indicates the
+   publisher intends to stop serving new subscriptions for tracks within
+   that namespace.
 
-   The subscriber MAY narrow the set of forwarded PUBLISHes by including
-   a TRACK_PROPERTY_FILTER (Section 3.3.2) in SUBSCRIBE_TRACKS.  A
-   TRACK_PROPERTY_FILTER matches Track Properties in each candidate
-   PUBLISH; tracks whose Track Properties do not pass the filter are not
-   advertised via PUBLISH, and no Objects are forwarded for them.  Other
-   Range Filters (and any Location Filter) do not suppress PUBLISH
-   messages; instead, they are carried into each resulting subscription
-   and filter the Objects the publisher forwards on it.
+   Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with
+   a Track Namespace Prefix that shares a common prefix with an
+   established SUBSCRIBE_NAMESPACE, it MUST respond with
+   SUBSCRIBE_NAMESPACE_ERROR with error code PREFIX_OVERLAP.
 
-   If a publisher cannot create a subscription for a particular track
-   (for example, because bidirectional stream credit is exhausted), it
-   sends PUBLISH_SKIPPED on the response stream carrying the Full Track
-   Name that was skipped.  Once PUBLISH_SKIPPED has been sent for a
-   track under a given SUBSCRIBE_TRACKS, the publisher MUST NOT send a
-   PUBLISH for that track under the same SUBSCRIBE_TRACKS.  This
-   restriction is per-track: an upstream original publisher may still
-   reconnect and re-advertise the same track later, in which case the
-   relay MAY forward the new PUBLISH downstream.  A subscriber that
-   wants a skipped track anyway can issue a direct SUBSCRIBE for it.
+   The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix
+   before the corresponding NAMESPACE.  If a subscriber receives a
+   NAMESPACE_DONE before the corresponding NAMESPACE, it MUST close the
+   session with a 'PROTOCOL_VIOLATION'.
 
-   A SUBSCRIBE_TRACKS is cancelled per Section 6.4.2.3.  Cancellation
-   does not stop original publishers from continuing to send PUBLISH
-   messages, but a relay MUST NOT deliver further PUBLISH messages to a
-   client that no longer holds an active subscription authorizing them.
+   A subscriber can receive a PUBLISH_NAMESPACE on a request stream for
+   a namespace that falls within an active SUBSCRIBE_NAMESPACE prefix.
+   This occurs when SUBSCRIBE_NAMESPACE or its response is in flight at
+   the same time as a PUBLISH_NAMESPACE, or when an original publisher
+   sends PUBLISH_NAMESPACE to advertise namespaces within the prefix
+   being discovered.  Such a PUBLISH_NAMESPACE is valid and MAY carry an
+   AUTHORIZATION TOKEN parameter.  Its lifetime is independent of the
+   SUBSCRIBE_NAMESPACE stream.
+
+   A SUBSCRIBE_NAMESPACE is cancelled as described in Section 6.4.2.3,
+   by resetting or sending STOP_SENDING on the stream.
+
+4.2.1.  Namespace Subscription Authorization
+
+   The publisher MUST ensure the subscriber is authorized to perform a
+   namespace subscription.
+
+   By sending SUBSCRIBE_NAMESPACE, the subscriber indicates that it
+   trusts the relay to be authoritative for namespaces matching the
+   requested prefix.  NAMESPACE messages received on the
+   SUBSCRIBE_NAMESPACE response stream inherit this trust and do not
+   independently carry authorization.
+
+4.2.2.  Namespace Subscription State Management
+
+   If the publisher is unable to send NAMESPACE or NAMESPACE_DONE
+   messages in a timely manner because the SUBSCRIBE_NAMESPACE response
+   stream is blocked by flow control, the publisher MAY reset the
+   SUBSCRIBE_NAMESPACE response stream.  When a subscriber receives a
+   stream reset or FIN on a SUBSCRIBE_NAMESPACE response stream, it
+   SHOULD treat this as though each active namespace received a
+   NAMESPACE_DONE.  Subscriptions established via PUBLISH on separate
+   bidi streams are not affected by closure of the SUBSCRIBE_NAMESPACE
+   stream.
+
+4.3.  Namespace Discovery Example
+
+   In the following example, a publisher advertises a namespace to a
+   relay before a subscriber asks that relay for namespaces under a
+   prefix, so the relay reports it immediately.  The publisher then
+   advertises a second matching namespace, which the relay passes on as
+   it arrives.  When the publisher withdraws that advertisement, the
+   relay tells the subscriber the namespace is gone.
+
+    Publisher                    Relay                   Subscriber
+        |                          |                          |
+        |    PUBLISH_NAMESPACE     |                          |
+        |       (example-42)       |                          |
+        |------------------------->|                          |
+        |   PUBLISH_NAMESPACE_OK   |                          |
+        |<-------------------------|   SUBSCRIBE_NAMESPACE    |
+        |                          |        (example)         |
+        |                          |<-------------------------|
+        |                          |  SUBSCRIBE_NAMESPACE_OK  |
+        |                          |------------------------->|
+        |                          |        NAMESPACE         |
+        |                          |           (42)           |
+        |                          |------------------------->|
+        |    PUBLISH_NAMESPACE     |                          |
+        |      (example-123)       |                          |
+        |------------------------->|                          |
+        |   PUBLISH_NAMESPACE_OK   |        NAMESPACE         |
+        |<-------------------------|          (123)           |
+        |                          |------------------------->|
+        | cancel PUBLISH_NAMESPACE |                          |
+        |------------------------->|                          |
+        |                          |      NAMESPACE_DONE      |
+        |                          |          (123)           |
+        |                          |------------------------->|
+        |                          |                          |
+
+               Figure 1: Namespace discovery through a relay
+
+   The NAMESPACE and NAMESPACE_DONE messages carry only the suffixes 42
+   and 123, because the prefix example is already known from the
+   SUBSCRIBE_NAMESPACE.
 
 5.  Object Transmission
 
@@ -1806,7 +2341,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
     | timeout |                           |                           |
     +---------+---------------------------+---------------------------+
 
-           Table 2: Comparison of the delivery timeout mechanisms
+           Table 1: Comparison of the delivery timeout mechanisms
 
    Publishers can, at their discretion, discontinue forwarding Objects
    before either timeout occurs, subject to stream closure and ordering
@@ -2100,7 +2635,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
              | 0x132B3E28 | PADDING (Section 11.5.1)         |
              +------------+----------------------------------+
 
-                                  Table 3
+                                  Table 2
 
    An endpoint that receives an unknown stream type MUST close the
    session.
@@ -2197,7 +2732,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    The track names and namespaces available under the .session namespace
    are defined by extensions to this specification and registered with
-   IANA (see Section 16.10).
+   IANA (see Section 16.12).
 
 6.6.  Termination
 
@@ -2357,7 +2892,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    relay does not have sufficient information to send a FETCH_OK
    immediately in response to a FETCH, it MUST withhold sending FETCH_OK
    until it does.  Relays MUST follow the constraints on LARGEST_OBJECT
-   defined in Section 9.20.17.
+   defined in Section 9.20.20.
 
    Publishers maintain a list of Established downstream subscriptions
    for each Track.  Relays use the Track Alias (Section 3.1.3) of an
@@ -2408,23 +2943,19 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    subscriptions to the old relay can be cancelled (see
    Section 6.4.2.3).
 
-7.5.  Aggregating Namespace Subscriptions
+7.5.  Relay Resource Protection in Large Namespaces
 
-   Relays SHOULD aggregate namespace subscriptions (SUBSCRIBE_NAMESPACE
-   and SUBSCRIBE_TRACKS) and propagate filters upstream to protect their
-   own resources and those of their upstream peers.  When aggregation is
-   not sufficient, a relay MAY reject or close namespace subscriptions
-   using:
-
-   *  NAMESPACE_TOO_LARGE — the matching namespace population is beyond
-      what the relay is willing to serve.
-
-   *  CONFLICTING_FILTERS — too many disjoint filters are being demanded
-      across downstream subscribers to aggregate efficiently.
-
-   *  PREFIX_OVERLAP — different subscribers' prefixes would force an
-      aggregated upstream subscription to overlap in a way the relay
-      cannot reconcile.
+   Relays SHOULD aggregate and propagate filters upstream on
+   subscriptions, especially namespace subscriptions including Track
+   Selection, to conserve and protect their resources from excessive
+   load.  They MAY also impose limits on the number of publishers in a
+   namespace, by rejecting or closing namespace subscriptions with the
+   error NAMESPACE_TOO_LARGE.  Relays MAY likewise limit the load
+   imposed by subscribers, by rejecting or closing namespace
+   subscriptions with CONFLICTING_FILTERS if too many disjoint filters
+   are requested on downstream subscriptions across a large number of
+   subscribers, or with PREFIX_OVERLAP if different subscribers force an
+   aggregated upstream subscription to overlap.
 
 7.6.  Publisher Interactions
 
@@ -2460,42 +2991,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    message is sent, its Full Track Name is matched exactly against
    existing upstream subscriptions.
 
-7.6.1.  Namespace Prefix Matching
-
-   Namespace Prefix Matching is used to route subscriptions and
-   namespace announcements.  In this process, the fields in the Track
-   Namespace are matched sequentially, requiring an exact match for each
-   field.  Two namespaces match if either is a field-wise prefix of the
-   other; that is, one has the same or fewer fields than the other and
-   all of its fields are equal.
-
-   Examples follow, using the canonical encoding from Section 8.8 for
-   'Candidate'.  Each row compares a Prefix (the Track Namespace
-   announced in PUBLISH_NAMESPACE or subscribed to in
-   SUBSCRIBE_NAMESPACE) against a Candidate (either another Track
-   Namespace or a Full Track Name in SUBSCRIBE).
-
-       +=========+=============+========+=========================+
-       | Prefix  | Candidate   | Match? | Why                     |
-       +=========+=============+========+=========================+
-       | foo     | foo         | Yes    | identical               |
-       +---------+-------------+--------+-------------------------+
-       | foo     | foo-bar     | Yes    | prefix by field         |
-       +---------+-------------+--------+-------------------------+
-       | foo     | foo-bar-baz | Yes    | prefix by field         |
-       +---------+-------------+--------+-------------------------+
-       | foo     | foo-bar--x  | Yes    | matches Full Track Name |
-       +---------+-------------+--------+-------------------------+
-       | foo     | foobar      | No     | first fields differ     |
-       +---------+-------------+--------+-------------------------+
-       | foo     | fo          | No     | first fields differ     |
-       +---------+-------------+--------+-------------------------+
-       | foo-bar | foo         | No     | additional field bar    |
-       +---------+-------------+--------+-------------------------+
-       | (empty) | anything    | Yes    | zero-field prefix       |
-       +---------+-------------+--------+-------------------------+
-
-                                 Table 4
+   Namespace Prefix Matching (Section 2.4.2) is further used to decide
+   which publishers receive a SUBSCRIBE and which subscribers receive a
+   PUBLISH.
 
    Relays MUST send SUBSCRIBE messages to all matching publishers.  This
    includes matching both Established subscriptions on the Full Track
@@ -2547,7 +3045,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    force an unrelated Session, which might be handling other
    subscriptions, to be closed.
 
-7.6.2.  Graceful Publisher Relay Switchover
+7.6.1.  Graceful Publisher Relay Switchover
 
    This section describes a behavior that a publisher MAY implement to
    improve user experience when a relay sends a GOAWAY or the publisher
@@ -2630,7 +3128,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
     | 11111111     | 9              | 64     | 0-18446744073709551615 |
     +--------------+----------------+--------+------------------------+
 
-                   Table 5: Summary of Integer Encodings
+                   Table 3: Summary of Integer Encodings
 
    The following table contains some example encodings:
 
@@ -2654,7 +3152,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
            | 0xffffffffffffffffff | 18,446,744,073,709,551,615 |
            +----------------------+----------------------------+
 
-                     Table 6: Example Integer Encodings
+                     Table 4: Example Integer Encodings
 
    Variable-length integers do not need to be encoded using the minimum
    number of bytes; any encoding length that can represent the value is
@@ -2674,7 +3172,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Object (vi64)
    }
 
-                        Figure 1: Location structure
+                        Figure 2: Location structure
 
    In this document, a Location can be expressed in the form of
    {GroupID, ObjectID}, where GroupID and ObjectID indicate the Group ID
@@ -2708,7 +3206,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Value (..)
    }
 
-                       Figure 2: MOQT Key-Value-Pair
+                       Figure 3: MOQT Key-Value-Pair
 
    *  Delta Type: an unsigned variable-length integer identifying the
       Type as a delta encoded value from the previous Type, if any.  The
@@ -2745,7 +3243,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    If a Relay does not support a Property, it MUST NOT be modified, MUST
    be forwarded, and MUST be cached with the Track or Object, unless it
-   is a Mandatory Track Property as described in Section 3.6.  If a
+   is a Mandatory Track Property as described in Section 3.8.  If a
    Track or Object arrives with a different set of unknown properties
    than previously cached, the most recent set SHOULD replace any cached
    values, removing any unknown values not present in the new set.
@@ -2758,7 +3256,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    the Property to downstream subscribers and MUST cache it with the
    Track or Object if the Track or Object is cached.
 
-   Properties are serialized as Key-Value-Pairs (see Figure 2).  Track
+   Properties are serialized as Key-Value-Pairs (see Figure 3).  Track
    Properties always appear as the final field in the messages that
    carry them; their length is the remaining bytes of the message after
    all preceding fields have been consumed.  Object Properties
@@ -2934,7 +3432,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      [Token Value (..)]
    }
 
-                         Figure 3: Token structure
+                         Figure 4: Token structure
 
    *  Alias Type - an integer defining both the serialization and the
       processing behavior of the receiver.  This Alias type has the
@@ -3056,7 +3554,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Message Body (..),
    }
 
-                       Figure 4: MOQT Control Message
+                       Figure 5: MOQT Control Message
 
    The following Message Types are defined.  The Stream column indicates
    which stream type each message is sent on: Control indicates the
@@ -3118,7 +3616,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
     |    0x5 | REQUEST_ERROR (Section 9.4)         | Request          |
     +--------+-------------------------------------+------------------+
 
-                                  Table 7
+                                  Table 5
 
    An endpoint that receives an unknown message type MUST close the
    session.  Control messages have a length to simplify parsing, but no
@@ -3149,9 +3647,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Setup Options (..) ...,
    }
 
-                        Figure 5: MOQT SETUP Message
+                        Figure 6: MOQT SETUP Message
 
-   Setup Options are serialized as Key-Value-Pairs Figure 2, spanning
+   Setup Options are serialized as Key-Value-Pairs Figure 3, spanning
    the entire message payload, bounded by the message Length field.
    Setup Options use a namespace that is constant across all MOQT
    versions, separate from Message Parameters.  Receivers MUST ignore
@@ -3208,7 +3706,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    of token Aliases.
 
    The token size is calculated as 16 bytes + the size of the Token
-   Value field (see Figure 3).  The total size as restricted by the
+   Value field (see Figure 4).  The total size as restricted by the
    MAX_AUTH_TOKEN_CACHE_SIZE option is calculated as the sum of the
    token sizes for all registered tokens (Alias Type value of 0x01)
    minus the sum of the token sizes for all deregistered tokens (Alias
@@ -3290,6 +3788,36 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    MAX_REQUEST_UPDATES outstanding REQUEST_UPDATEs, it MUST close the
    session with TOO_MANY_REQUEST_UPDATES.
 
+9.1.7.1.  MAX SELECTED TRACKS
+
+   The MAX_SELECTED_TRACKS option (Type 0x09) limits the maximum number
+   of tracks the peer may have in the selected state concurrently,
+   across all selection sets.  The default value is 0, so if not
+   specified, selection sets are not supported.  If this limit is
+   exceeded, an endpoint MUST close the session with a
+   PROTOCOL_VIOLATION.
+
+9.1.7.2.  SELECTION POLICIES
+
+   The SELECTION_POLICIES option (Type 0x0A) lists the selection policy
+   algorithms the endpoint supports.  It is encoded as a Count (vi64)
+   followed by Count Policy ID (vi64) values.  The default is an empty
+   list, meaning selection sets are not supported.  An endpoint MUST NOT
+   send a TRACK_SELECTION or SELECTION_SET_ASSIGNMENT with a Policy ID
+   not in the peer's SELECTION_POLICIES list.  Selection sets are usable
+   when both MAX_SELECTED_TRACKS is non-zero and SELECTION_POLICIES is
+   non-empty.
+
+9.1.7.3.  MAX CHAINED POLICIES
+
+   The MAX_CHAINED_POLICIES option (Type 0x0C) limits the number of
+   policy entries the peer MAY specify in a single TRACK_SELECTION
+   parameter.  The default value is 1, meaning policy chaining is not
+   supported unless explicitly negotiated.  A value of 0 is equivalent
+   to 1.  Implementations SHOULD support at least 4 chained policies.
+   An endpoint MUST NOT send a TRACK_SELECTION with a Policy Count
+   exceeding the peer's MAX_CHAINED_POLICIES value.
+
 9.2.  GOAWAY
 
    An endpoint sends a GOAWAY message on its control stream to inform
@@ -3319,7 +3847,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    Sending a GOAWAY does not prevent the sender from initiating new
    requests, though the sender SHOULD avoid initiating requests unless
-   required by migration (see (Section 7.4.1 and Section 7.6.2).  An
+   required by migration (see (Section 7.4.1 and Section 7.6.1).  An
    endpoint that receives a GOAWAY MAY reject new requests with an
    appropriate error code (e.g., REQUEST_ERROR with error code
    GOING_AWAY).
@@ -3336,7 +3864,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Timeout (vi64),
    }
 
-                       Figure 6: MOQT GOAWAY Message
+                       Figure 7: MOQT GOAWAY Message
 
    *  New Session URI: When received by a client, indicates where the
       client can connect to continue this session or re-issue this
@@ -3376,7 +3904,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Track Properties (..),
    }
 
-                     Figure 7: MOQT REQUEST_OK Message
+                     Figure 8: MOQT REQUEST_OK Message
 
    *  Parameters: The parameters are defined in Section 9.20.  The
       parameters that can appear depend on the request being answered:
@@ -3447,7 +3975,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      [Redirect (Redirect),]
    }
 
-                    Figure 8: MOQT REQUEST_ERROR Message
+                    Figure 9: MOQT REQUEST_ERROR Message
 
    *  Error Code: Identifies an integer error code for request failure.
 
@@ -3505,7 +4033,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                   Figure 9: MOQT REQUEST_UPDATE Message
+                   Figure 10: MOQT REQUEST_UPDATE Message
 
    *  Request ID: See Section 6.4.2.1.
 
@@ -3514,9 +4042,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
       -  Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
          SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY,
-         LOCATION_FILTER, FILL_PARAMETERS, SUBGROUP_FILTER,
+         LOCATION_FILTER, FILL_PARAMETERS, SWITCH_FROM, SUBGROUP_FILTER,
          OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-         NEW_GROUP_REQUEST
+         NEW_GROUP_REQUEST, SELECTION_SET_ASSIGNMENT
 
       -  FETCH: AUTHORIZATION_TOKEN, SUBSCRIBER_PRIORITY
 
@@ -3526,7 +4054,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
          TRACK_NAMESPACE_PREFIX
 
       -  SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, FORWARD,
-         TRACK_PROPERTY_FILTER, TRACK_NAMESPACE_PREFIX
+         TRACK_PROPERTY_FILTER, TRACK_NAMESPACE_PREFIX, TRACK_SELECTION
 
       Range Filters are only allowed from the subscriber (see
       Section 3.3.2).
@@ -3536,7 +4064,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    When a subscriber decreases the Start Location of the Location Filter
    (see Section 3.3.1), the Start Location can be smaller than the
    Track's Largest Object, similar to a new Subscription.  Including
-   FILL_PARAMETERS (see Section 9.20.15) in the REQUEST_UPDATE causes
+   FILL_PARAMETERS (see Section 9.20.18) in the REQUEST_UPDATE causes
    the publisher to deliver the new fill range by opening a new fill
    fetch stream (see Section 3.4).  FETCH can also be used to retrieve
    any necessary Objects with Locations less than or equal to the
@@ -3575,7 +4103,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    A subscriber can update the Track Namespace Prefix of an established
    SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS by including the
-   TRACK_NAMESPACE_PREFIX parameter (Section 9.20.20) in a
+   TRACK_NAMESPACE_PREFIX parameter (Section 9.20.23) in a
    REQUEST_UPDATE.  The overlap restriction applies independently per
    type: the new prefix MUST NOT share a common prefix with any other
    active SUBSCRIBE_NAMESPACE (for a SUBSCRIBE_NAMESPACE update) or
@@ -3592,7 +4120,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    SUBSCRIBE initiates a subscription to a track.  The associated
    parameters determine the range and mechanism of object delivery; the
    Location Filter (see Section 3.3.1) selects which Objects are sent,
-   and a FILL_PARAMETERS parameter (see Section 9.20.15) additionally
+   and a FILL_PARAMETERS parameter (see Section 9.20.18) additionally
    retrieves the fill range on a fill fetch stream (see Section 3.4).
 
    The format of SUBSCRIBE is as follows:
@@ -3608,7 +4136,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                     Figure 10: MOQT SUBSCRIBE Message
+                     Figure 11: MOQT SUBSCRIBE Message
 
    *  Request ID: See Section 6.4.2.1.
 
@@ -3622,9 +4150,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       parameters that can appear in a SUBSCRIBE are
       OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT,
       SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY,
-      LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS, SUBGROUP_FILTER,
-      OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-      NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
+      LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS, SWITCH_FROM,
+      SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
+      OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST, INCLUDE_PROPERTIES and
+      SELECTION_SET_ASSIGNMENT.
 
    On successful subscription, the publisher MUST reply with a
    SUBSCRIBE_OK, allowing the subscriber to determine the start group/
@@ -3644,7 +4173,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Track Properties (..),
    }
 
-                    Figure 11: MOQT SUBSCRIBE_OK Message
+                    Figure 12: MOQT SUBSCRIBE_OK Message
 
    *  Track Alias: The identifer used for this track in Subgroups or
       Datagrams (see Section 3.1.3).
@@ -3674,7 +4203,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Track Properties (..),
    }
 
-                      Figure 12: MOQT PUBLISH Message
+                      Figure 13: MOQT PUBLISH Message
 
    *  Request ID: See Section 6.4.2.1.
 
@@ -3697,7 +4226,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER, inform the Subscriber
       of the initial Subscription parameters.  If the PUBLISH is the
       result of a SUBSCRIBE_TRACKS, the parameters are handled as
-      described in Section 9.18.1, otherwise, they represent the
+      described in Section 3.6.2, otherwise, they represent the
       publisher's initial settings for the subscription, which the
       subscriber can change.
 
@@ -3765,7 +4294,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Error Reason (Reason Phrase)
    }
 
-                    Figure 13: MOQT PUBLISH_DONE Message
+                    Figure 14: MOQT PUBLISH_DONE Message
 
    *  Status Code: An integer status code indicating why the
       subscription ended.
@@ -3818,7 +4347,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    requested the change.
 
    The publisher MUST include the LARGEST_OBJECT parameter
-   (Section 9.20.17), if known, in PUBLISH_STATE_NOTIFY so the
+   (Section 9.20.20), if known, in PUBLISH_STATE_NOTIFY so the
    subscriber can determine the point in the Track at which the change
    took effect.
 
@@ -3834,7 +4363,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                Figure 14: MOQT PUBLISH_STATE_NOTIFY Message
+                Figure 15: MOQT PUBLISH_STATE_NOTIFY Message
 
    *  Parameters: The parameters are defined in Section 9.20.  The
       parameters that can appear in a PUBLISH_STATE_NOTIFY are
@@ -3859,7 +4388,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                       Figure 15: MOQT FETCH Message
+                       Figure 16: MOQT FETCH Message
 
    *  Request ID: See Section 6.4.2.1.
 
@@ -3890,7 +4419,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Track Properties (..),
    }
 
-                      Figure 16: MOQT FETCH_OK Message
+                      Figure 17: MOQT FETCH_OK Message
 
    *  End Of Track: 1 if all Objects have been published on this Track,
       and the End Location is the final Object in the Track, 0 if not.
@@ -3940,9 +4469,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    The publisher sends the PUBLISH_NAMESPACE message as the first
    message on a new bidi stream to advertise that it has tracks
-   available in namespaces matching a Track Namespace Prefix.  The
-   receiver verifies the publisher is authorized to publish tracks under
-   this prefix.
+   available in namespaces matching a Track Namespace Prefix.
 
    PUBLISH_NAMESPACE Message {
      Type (vi64) = 0x6,
@@ -3953,12 +4480,12 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                 Figure 17: MOQT PUBLISH_NAMESPACE Message
+                 Figure 18: MOQT PUBLISH_NAMESPACE Message
 
    *  Request ID: See Section 6.4.2.1.
 
    *  Track Namespace Prefix: A Track Namespace as defined in
-      Section 8.7, matched as a prefix (see Section 7.6.1).
+      Section 8.7, matched as a prefix (see Section 2.4.2).
 
    *  Parameters: The parameters are defined in Section 9.20.  The only
       parameter that can appear in a PUBLISH_NAMESPACE is
@@ -3979,58 +4506,16 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                Figure 18: MOQT SUBSCRIBE_NAMESPACE Message
+                Figure 19: MOQT SUBSCRIBE_NAMESPACE Message
 
    *  Request ID: See Section 6.4.2.1.
 
    *  Track Namespace Prefix: A Track Namespace structure as described
-      in Section 8.7.  This prefix is matched against track namespaces
-      known to the publisher.  For example, using the serialized format
-      from Section 8.8, if the publisher is a relay that has received
-      PUBLISH_NAMESPACE messages for namespaces example.2ecom-123-100
-      and example.2ecom-123-200, a SUBSCRIBE_NAMESPACE for
-      example.2ecom-123 would match both.
+      in Section 8.7, matched as a prefix (see Section 2.4.2).
 
    *  Parameters: The parameters are defined in Section 9.20.  The only
       parameter that can appear in a SUBSCRIBE_NAMESPACE is
       AUTHORIZATION_TOKEN.
-
-   The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
-   SUBSCRIBE_NAMESPACE_ERROR on the response half of the stream.  If the
-   subscriber receives any message other than a SUBSCRIBE_NAMESPACE_OK
-   or a SUBSCRIBE_NAMESPACE_ERROR as the first message on the response
-   half of the stream, then it MUST close the session with a
-   PROTOCOL_VIOLATION.  If the SUBSCRIBE_NAMESPACE is successful, the
-   publisher will send matching NAMESPACE messages on the response
-   stream.  If it is an error, the stream will be immediately closed via
-   FIN.  When there are changes to the namespaces being published and
-   the subscriber is subscribed to them, the publisher sends the
-   corresponding NAMESPACE or NAMESPACE_DONE messages.
-
-   Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with
-   a Track Namespace Prefix that shares a common prefix with an
-   established SUBSCRIBE_NAMESPACE, it MUST respond with
-   SUBSCRIBE_NAMESPACE_ERROR with error code PREFIX_OVERLAP.
-   SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have independent overlap
-   spaces (see Section 9.18).
-
-   The publisher MUST ensure the subscriber is authorized to perform
-   this namespace subscription.
-
-   The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix
-   before the corresponding NAMESPACE.  If a subscriber receives a
-   NAMESPACE_DONE before the corresponding NAMESPACE, it MUST close the
-   session with a 'PROTOCOL_VIOLATION'.
-
-   If the publisher is unable to send NAMESPACE or NAMESPACE_DONE
-   messages in a timely manner because the SUBSCRIBE_NAMESPACE response
-   stream is blocked by flow control, the publisher MAY reset the
-   SUBSCRIBE_NAMESPACE response stream.  When a subscriber receives a
-   stream reset or FIN on a SUBSCRIBE_NAMESPACE response stream, it
-   SHOULD treat this as though each active namespace received a
-   NAMESPACE_DONE.  Subscriptions established via PUBLISH on separate
-   bidi streams are not affected by closure of the SUBSCRIBE_NAMESPACE
-   stream.
 
 9.16.  NAMESPACE
 
@@ -4038,32 +4523,34 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    except it is sent on the response stream of a SUBSCRIBE_NAMESPACE
    request.  All NAMESPACE messages are in response to a
    SUBSCRIBE_NAMESPACE, so only the namespace tuples after the 'Track
-   Namespace Prefix' are included in the 'Track Namespace Suffix'.  The
-   Track Namespace Prefix from the SUBSCRIBE_NAMESPACE followed by the
-   Track Namespace Suffix is the Track Namespace Prefix the publisher
-   advertised, so tracks can exist in namespaces matching that prefix
-   (see Section 7.6.1).
+   Namespace Prefix' are included in the 'Track Namespace Suffix'.
+
+   When Parameters of a NAMESPACE change, the NAMESPACE message is sent
+   again with the updated Parameters.
 
    NAMESPACE Message {
      Type (vi64) = 0x8,
      Length (16),
      Track Namespace Suffix (..),
+     Number of Parameters (vi64),
+     Parameters (..) ...
    }
 
-                     Figure 19: MOQT NAMESPACE Message
+                     Figure 20: MOQT NAMESPACE Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 8.7 after removing namespace
       tuples included in 'Track Namespace Prefix' Section 9.15.
 
+   *  Parameters: The parameters are defined in Section 9.20.
+
 9.17.  NAMESPACE_DONE
 
-   The publisher sends the NAMESPACE_DONE control message to indicate
-   its intent to stop serving new subscriptions for tracks within the
-   provided Track Namespace.  All NAMESPACE_DONE messages are in
-   response to a SUBSCRIBE_NAMESPACE, so only the namespace tuples after
-   the 'Track Namespace Prefix' are included in the 'Track Namespace
-   Suffix'.
+   The publisher sends the NAMESPACE_DONE control message on the
+   response stream of a SUBSCRIBE_NAMESPACE request.  All NAMESPACE_DONE
+   messages are in response to a SUBSCRIBE_NAMESPACE, so only the
+   namespace tuples after the 'Track Namespace Prefix' are included in
+   the 'Track Namespace Suffix'.
 
    NAMESPACE_DONE Message {
      Type (vi64) = 0xE,
@@ -4071,7 +4558,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Track Namespace Suffix (..)
    }
 
-                   Figure 20: MOQT NAMESPACE_DONE Message
+                   Figure 21: MOQT NAMESPACE_DONE Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 8.7.  The namespace begins with
@@ -4093,7 +4580,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                  Figure 21: MOQT SUBSCRIBE_TRACKS Message
+                  Figure 22: MOQT SUBSCRIBE_TRACKS Message
 
    *  Request ID: See Section 6.4.2.1.
 
@@ -4108,44 +4595,6 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       GROUP_ORDER, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
       OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER and
       INCLUDE_PROPERTIES.
-
-   The publisher will respond with SUBSCRIBE_TRACKS_OK or
-   SUBSCRIBE_TRACKS_ERROR on the response half of the stream.  If the
-   subscriber receives any message other than a SUBSCRIBE_TRACKS_OK or a
-   SUBSCRIBE_TRACKS_ERROR as the first message on the response half of
-   the stream, then it MUST close the session with a PROTOCOL_VIOLATION.
-   If the SUBSCRIBE_TRACKS is successful, the publisher will send
-   PUBLISH messages on new bidirectional streams for tracks within
-   matching namespaces.  If it is an error, the stream will be closed
-   via FIN after SUBSCRIBE_TRACKS_ERROR is sent.
-
-   Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
-   Track Namespace Prefix that shares a common prefix with an
-   established SUBSCRIBE_TRACKS, it MUST respond with
-   SUBSCRIBE_TRACKS_ERROR with error code PREFIX_OVERLAP.
-   SUBSCRIBE_TRACKS and SUBSCRIBE_NAMESPACE have independent overlap
-   spaces (see Section 9.15).
-
-   The publisher MUST ensure the subscriber is authorized to perform
-   this namespace subscription.
-
-   SUBSCRIBE_TRACKS is not required for a publisher to send PUBLISH
-   messages to a subscriber.  It is useful for subscribers that are only
-   interested in or authorized to access a subset of available tracks.
-
-9.18.1.  Parameters on SUBSCRIBE_TRACKS
-
-   Any Parameter that can be specified on a Subscription (ie: in
-   SUBSCRIBE) is valid in SUBSCRIBE_TRACKS, unless otherwise specified.
-   These parameters are used by the publisher as the initial
-   Subscription parameters when a PUBLISH is sent as a result of
-   SUBSCRIBE_TRACKS.  These Parameters are explicitly communicated in
-   PUBLISH.  When omitted by the publisher in PUBLISH, the subscriber
-   uses the default value for each.
-
-   To join Tracks initiated via the resulting PUBLISHes, the subscriber
-   can specify a Location Filter and optionally include FILL_PARAMETERS,
-   as described in Section 3.5.
 
 9.19.  PUBLISH_SKIPPED
 
@@ -4164,7 +4613,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Track Name (..),
    }
 
-                  Figure 22: MOQT PUBLISH_SKIPPED Message
+                  Figure 23: MOQT PUBLISH_SKIPPED Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 8.7.  The namespace begins with
@@ -4183,7 +4632,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Value (..)
    }
 
-                        Figure 23: Message Parameter
+                        Figure 24: Message Parameter
 
    Type Delta: The difference between this Parameter Type and the
    previous Parameter Type in the message, or the Parameter Type itself
@@ -4201,6 +4650,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       -  Location: Two consecutive varints (Group, Object)
 
       -  Length-prefixed: A varint length followed by that many bytes
+
+      -  Track Namespace: A sequence of length-prefixed fields
+         (Section 8.7)
 
    Message Parameters are intended for the peer only and are not
    forwarded by Relays, though relays can consider received parameter
@@ -4283,7 +4735,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a
    FETCH message, or inside a FILL_PARAMETERS parameter (see
-   Section 9.20.15) in a SUBSCRIBE or REQUEST_UPDATE (for a
+   Section 9.20.18) in a SUBSCRIBE or REQUEST_UPDATE (for a
    subscription), where it applies to the fill fetch stream.
 
    It is the maximum total duration in milliseconds a relay SHOULD spend
@@ -4344,7 +4796,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    The GROUP_ORDER parameter (Parameter Type 0x22) is a uint8.  It MAY
    appear in a SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, or FETCH, or inside
-   a FILL_PARAMETERS parameter (see Section 9.20.15).
+   a FILL_PARAMETERS parameter (see Section 9.20.18).
 
    Its value indicates how to prioritize Objects from different groups
    within the same subscription (see Section 5.1), or how to order
@@ -4359,79 +4811,109 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    preference from the Track is used.  If omitted from FETCH, the
    receiver uses Ascending (0x1).
 
-9.20.9.  LOCATION FILTER Parameter
+9.20.9.  SWITCH_FROM Parameter
+
+   The SWITCH_FROM parameter (Parameter Type 0x24) MAY appear in a
+   SUBSCRIBE or REQUEST_UPDATE (for a subscription) message.
+
+   SWITCH_FROM {
+     Type (vi64) = 0x24,
+     Length (vi64),
+     Switch From Request ID (vi64),
+     Mode (vi64),
+     Publish Done (1),
+     Reserved Bits (7),
+   }
+
+   Switch From Request ID identifies the subscription to suspend.  Mode
+   selects the switch mode (Section 3.7.4) to apply.  An endpoint that
+   receives a Mode value not in the IANA Switch Modes registry MUST
+   close the session with PROTOCOL_VIOLATION.
+
+   Publish Done: If 1, the publisher sends PUBLISH_DONE with code
+   SWITCHED_AWAY on the suspending subscription after the switch
+   completes (see Section 3.7.5).
+
+   Reserved Bits: MUST be 0.  An endpoint that receives a non-zero value
+   MUST close the session with PROTOCOL_VIOLATION.
+
+9.20.10.  LOCATION FILTER Parameter
 
    The LOCATION_FILTER parameter (Parameter Type 0x21) MAY appear in a
    FETCH, SUBSCRIBE, PUBLISH, REQUEST_UPDATE (for a subscription) or
    PUBLISH_STATE_NOTIFY message.  It is a Location Filter (see
    Section 3.3.1).
 
-   A Location filter parameter has the following length-prefixed
-   structure:
+   A Location filter parameter has the following structure:
 
    LOCATION_FILTER Parameter {
      Parameter Type (vi64) = 0x21,
-     Length (vi64),
+     Location Filter Type (vi64),
      [StartGroup (vi64),]
      [StartObject (vi64),]
      [EndGroupDelta (vi64),]
      [EndObject (vi64),]
    }
 
-   The optional variable-length integer fields are decoded in the order
-   shown until Length bytes have been consumed.  A length of 0 indicates
-   no filter, for example to remove the filter in REQUEST_UPDATE.  How
-   many fields are decoded determines which fields they are, and how the
-   filter is interpreted: * If only one field is present, it is a
-   relative StartGroup.  * If only two fields are present, they are
-   StartGroup and StartObject.  * If only three fields are present, they
-   are StartGroup, StartObject, and EndGroupDelta.
+   The Location Filter Type dictates which optional variable-length
+   integer fields follow, and how they are interpreted.
+
+   *  If Location Filter Type is 0x00, no fields follow and there is no
+      Location Filter.
+
+   *  If Location Filter Type is 0x01, a relative StartGroup follows.
+
+   *  If Location Filter Type is 0x02, StartGroup and StartObject
+      follow.
+
+   *  If Location Filter Type is 0x03, StartGroup, StartObject, and
+      EndGroupDelta follow.
+
+   *  If Location Filter Type is 0x04, StartGroup, StartObject,
+      EndGroupDelta, and EndObject follow.
+
+   *  If Location Filter Type is 0x05, no fields follow and it specifies
+      the Next Object.
+
+   *  Any other Location Filter Type is a PROTOCOL_VIOLATION.
 
    The table below summarizes the encodings.
 
-   +==========================+====================+==================+
-   | Fields present           | Start Location     | End Location     |
-   +==========================+====================+==================+
-   | none (Length 0)          | no filter          | no filter        |
-   +--------------------------+--------------------+------------------+
-   | StartGroup               | relative: {Largest | open-ended       |
-   |                          | Object.Group + 1 - |                  |
-   |                          | StartGroup, 0}     |                  |
-   +--------------------------+--------------------+------------------+
-   | StartGroup, StartObject, | Next Object        | open-ended       |
-   | both 0                   |                    |                  |
-   +--------------------------+--------------------+------------------+
-   | StartGroup, StartObject, | absolute:          | open-ended       |
-   | not both 0               | {StartGroup,       |                  |
-   |                          | StartObject}       |                  |
-   +--------------------------+--------------------+------------------+
-   | StartGroup, StartObject, | absolute:          | last Object of   |
-   | EndGroupDelta            | {StartGroup,       | Group StartGroup |
-   |                          | StartObject}       | + EndGroupDelta  |
-   +--------------------------+--------------------+------------------+
-   | StartGroup, StartObject, | absolute:          | {StartGroup +    |
-   | EndGroupDelta, EndObject | {StartGroup,       | EndGroupDelta,   |
-   |                          | StartObject}       | EndObject}       |
-   +--------------------------+--------------------+------------------+
+        +================+====================+==================+
+        | Location       | Start Location     | End Location     |
+        | Filter Type    |                    |                  |
+        +================+====================+==================+
+        | 0x00 (None)    | no filter          | no filter        |
+        +----------------+--------------------+------------------+
+        | 0x01 (Relative | relative: {Largest | open-ended       |
+        | Start)         | Object.Group + 1 - |                  |
+        |                | StartGroup, 0}     |                  |
+        +----------------+--------------------+------------------+
+        | 0x02 (Absolute | absolute:          | open-ended       |
+        | Start)         | {StartGroup,       |                  |
+        |                | StartObject}       |                  |
+        +----------------+--------------------+------------------+
+        | 0x03 (Absolute | absolute:          | last Object of   |
+        | Start, Group   | {StartGroup,       | Group StartGroup |
+        | End)           | StartObject}       | + EndGroupDelta  |
+        +----------------+--------------------+------------------+
+        | 0x04 (Absolute | absolute:          | {StartGroup +    |
+        | Range)         | {StartGroup,       | EndGroupDelta,   |
+        |                | StartObject}       | EndObject}       |
+        +----------------+--------------------+------------------+
+        | 0x05 (Next     | Next Object        | open-ended       |
+        | Object)        |                    |                  |
+        +----------------+--------------------+------------------+
 
-                      Table 8: Location Filter forms
+                      Table 6: Location Filter forms
 
-   If a field extends beyond the end of the parameter, more than four
-   fields are present, or an integer field extends beyond the given
-   Length, the endpoint MUST close the session with a
-   PROTOCOL_VIOLATION.
-
-   If only StartGroup is present, it is a relative number of groups
-   prior to the Next Group, hence the start Location is {Largest
-   Object.Group + 1 - StartGroup, 0}. For example: * StartGroup=0 will
-   start at the Next Group * StartGroup=1 will start at the current
-   group * StartGroup=2 will start at 1 group prior to the current group
-   * StartGroup=N will start at N-1 groups prior to the current group
-
-   If only StartGroup and StartObject are present and both 0, the start
-   Location is the Next Object (see Section 3.1.4).  An open-ended
-   filter that starts at absolute Location {0, 0} is equivalent to
-   unfiltered, so the subscriber need not include a Location filter.
+   If Location Filter Type is 0x01, the StartGroup field specifies a
+   relative number of groups prior to the Next Group, hence the start
+   Location is {Largest Object.Group + 1 - StartGroup, 0}. For example:
+   * StartGroup=0 will start at the Next Group * StartGroup=1 will start
+   at the current group * StartGroup=2 will start at 1 group prior to
+   the current group * StartGroup=N will start at N-1 groups prior to
+   the current group
 
    If a relative start group results in a computed absolute group less
    than 0, the computed value is set to 0; if greater than 2^64 - 1, it
@@ -4455,7 +4937,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    the value is unchanged.  When sent in PUBLISH_STATE_NOTIFY, it
    reports the Location Filter now in effect at the publisher.
 
-9.20.10.  SUBGROUP FILTER Parameter
+9.20.11.  SUBGROUP FILTER Parameter
 
    The SUBGROUP_FILTER parameter (Type 0x25) selects objects with
    specified Ranges of Subgroup ID.  See Section 3.3.2 and Section 8.6.
@@ -4467,7 +4949,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      [Range (..) ...]
    }
 
-9.20.11.  OBJECTID FILTER Parameter
+9.20.12.  OBJECTID FILTER Parameter
 
    The OBJECTID_FILTER parameter (Type 0x26) selects objects with
    specified Ranges of Object ID.  See Section 3.3.2 and Section 8.6.
@@ -4479,7 +4961,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      [Range (..) ...]
    }
 
-9.20.12.  PRIORITY FILTER Parameter
+9.20.13.  PRIORITY FILTER Parameter
 
    The PRIORITY_FILTER parameter (Type 0x27) selects objects with
    specified Ranges of Publisher Priority.  See Section 3.3.2 and
@@ -4494,11 +4976,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      [Range (..) ...]
    }
 
-9.20.13.  OBJECT PROPERTY FILTER Parameter
+9.20.14.  OBJECT PROPERTY FILTER Parameter
 
    The OBJECT_PROPERTY_FILTER parameter (Type 0x28) selects objects with
    required Ranges of Property Value for a required Object Property Type
-   which MUST be even, i.e. a single integer value (see Figure 2),
+   which MUST be even, i.e. a single integer value (see Figure 3),
    otherwise the endpoint MUST reject this with REQUEST_ERROR with error
    code INVALID_FILTER.  See Section 3.3.2 and Section 8.6.
 
@@ -4510,11 +4992,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      [Range (..) ...]
    }
 
-9.20.14.  TRACK PROPERTY FILTER Parameter
+9.20.15.  TRACK PROPERTY FILTER Parameter
 
    The TRACK_PROPERTY_FILTER parameter (Type 0x29) selects tracks with
    required Ranges of Property Value for a required Track Property Type
-   which MUST be even, i.e. a single integer value (see Figure 2),
+   which MUST be even, i.e. a single integer value (see Figure 3),
    otherwise the endpoint MUST reject this with REQUEST_ERROR with error
    code INVALID_FILTER.  See Section 3.3.2 and Section 8.6.
 
@@ -4526,7 +5008,128 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      [Range (..) ...]
    }
 
-9.20.15.  FILL PARAMETERS Parameter
+9.20.16.  TRACK SELECTION Parameter
+
+   The TRACK_SELECTION parameter (Parameter Type 0x30) MAY appear in a
+   SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.  It declares
+   selection policies spanning all tracks in the matching namespace.
+   These serve as defaults for every track in the namespace; a
+   SELECTION_SET_ASSIGNMENT in REQUEST_OK (PUBLISH_OK) or REQUEST_UPDATE
+   MAY override a specific entry for an individual track.
+
+   TRACK_SELECTION {
+     Type (vi64) = 0x30,
+     Length (vi64),
+     Policy Count (vi64),
+     Policy Entry (..) ...,
+   }
+
+   Policy Entry {
+     Set ID (vi64),
+     Policy ID (vi64),
+     Switch Mode (vi64),
+     [Policy-specific fields]
+   }
+
+   A Length of 0 indicates no selection (all tracks pass), which can be
+   used to remove the selection via REQUEST_UPDATE.
+
+   Policy Count is the number of Policy Entry values that follow.  When
+   Policy Count is 1, only a single policy is applied.  When Policy
+   Count is greater than 1, policies are chained as described in
+   Section 3.7.3.  Policy Count MUST NOT exceed the peer's
+   MAX_CHAINED_POLICIES value.  An endpoint that receives a
+   TRACK_SELECTION with a Policy Count exceeding this limit MUST close
+   the session with a PROTOCOL_VIOLATION.
+
+   Each Policy Entry contains a Set ID that groups tracks for this
+   policy's evaluation, a Policy ID identifying the selection policy
+   (Section 3.7.3), a Switch Mode identifying how transitions are
+   executed (Section 3.7.4), and policy-specific fields.
+
+   For Policy 0x0 (Top-N), the policy-specific fields are:
+
+     Property Type (vi64),
+     MaxTracks (vi64),
+
+   Property Type identifies the Track or Object Property used for
+   ranking.  It MUST be an even value, i.e., a single integer value (see
+   Figure 3).  An endpoint MUST close the session with
+   PROTOCOL_VIOLATION if Property Type is odd.  MaxTracks specifies the
+   maximum number of tracks to select.  MaxTracks MUST NOT be zero; an
+   endpoint MUST close the session with PROTOCOL_VIOLATION if it
+   receives a MaxTracks of zero.  MaxTracks MUST NOT exceed the peer's
+   MAX_SELECTED_TRACKS setup option value.
+
+   For Policy 0x1 (Bandwidth-Aware), the policy-specific fields are:
+
+     Throughput Threshold Default (vi64),
+     Set Weight Default (vi64),
+     Set Rank Default (8),
+
+   Throughput Threshold Default is the minimum throughput in kbps
+   required to select a track when the track does not have an explicit
+   Throughput Threshold Track Property.  Set Weight Default and Set Rank
+   Default are used when the corresponding Track Properties are absent.
+   These defaults MUST be applied by the publisher for any track that
+   lacks the corresponding per-track property values.  See
+   Section 9.20.17 for per-track assignment of Policy 0x1 fields and
+   Section 3.7.3.2 for the full policy definition.
+
+   An endpoint MUST NOT send a TRACK_SELECTION with a Policy ID not in
+   the peer's SELECTION_POLICIES (Section 9.1.7.2) list.  An endpoint
+   that receives a TRACK_SELECTION with an unsupported Policy ID MUST
+   close the session with PROTOCOL_VIOLATION.
+
+9.20.17.  SELECTION SET ASSIGNMENT Parameter
+
+   The SELECTION_SET_ASSIGNMENT parameter (Parameter Type 0x36) MAY
+   appear in SUBSCRIBE or REQUEST_UPDATE (for a subscription).  It
+   assigns the track to one or more selection sets (Section 3.7) by
+   providing an ordered list of Selection Entry values.  When an entry
+   references a Set ID that was defined in TRACK_SELECTION on
+   SUBSCRIBE_TRACKS, it overrides that entry's parameters for this
+   specific track.
+
+   SELECTION_SET_ASSIGNMENT {
+     Type (vi64) = 0x36,
+     Length (vi64),
+     Entry Count (vi64),
+     Selection Entry (..) ...,
+   }
+
+   Selection Entry {
+     Set ID (vi64),
+     Policy ID (vi64),
+     [Policy-specific fields]
+   }
+
+   A Length of 0 removes the track from all of its current selection
+   sets.
+
+   Entry Count is the number of Selection Entry values that follow.
+   Each Selection Entry contains a Set ID identifying the selection set
+   and a Policy ID identifying the selection policy, followed by policy-
+   specific fields.  The entries are ordered and correspond to the
+   policy chain: each entry's policy is evaluated in order as described
+   in Section 3.7.3.
+
+   For Policy 0x0 (Top-N), the policy-specific fields are empty.  The
+   Set ID references a Top-N set whose parameters (Property Type,
+   MaxTracks) are defined in the TRACK_SELECTION parameter on
+   SUBSCRIBE_TRACKS.
+
+   For Policy 0x1 (Bandwidth-Aware), the policy-specific fields are:
+
+     Throughput Threshold (vi64),
+     Set Weight (vi64),
+     Activate Switching (vi64),
+     Set Rank (8),
+
+   An endpoint MUST NOT send a SELECTION_SET_ASSIGNMENT with a Policy ID
+   not in the peer's SELECTION_POLICIES (Section 9.1.7.2) list.
+
+9.20.18.  FILL PARAMETERS Parameter
 
    The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-
    prefixed encoding.  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE
@@ -4538,30 +5141,30 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    The following parameters MAY appear inside FILL_PARAMETERS:
 
-       +================+========================+================+
-       | Parameter Type | Parameter Name         | Specification  |
-       +================+========================+================+
-       | 0x0A           | FILL_TIMEOUT           | Section 9.20.5 |
-       +----------------+------------------------+----------------+
-       | 0x20           | SUBSCRIBER_PRIORITY    | Section 9.20.7 |
-       +----------------+------------------------+----------------+
-       | 0x21           | LOCATION_FILTER        | Section 9.20.9 |
-       +----------------+------------------------+----------------+
-       | 0x22           | GROUP_ORDER            | Section 9.20.8 |
-       +----------------+------------------------+----------------+
-       | 0x25           | SUBGROUP_FILTER        | Section 3.3.2  |
-       +----------------+------------------------+----------------+
-       | 0x26           | OBJECTID_FILTER        | Section 3.3.2  |
-       +----------------+------------------------+----------------+
-       | 0x27           | PRIORITY_FILTER        | Section 3.3.2  |
-       +----------------+------------------------+----------------+
-       | 0x28           | OBJECT_PROPERTY_FILTER | Section 3.3.2  |
-       +----------------+------------------------+----------------+
+       +================+========================+=================+
+       | Parameter Type | Parameter Name         | Specification   |
+       +================+========================+=================+
+       | 0x0A           | FILL_TIMEOUT           | Section 9.20.5  |
+       +----------------+------------------------+-----------------+
+       | 0x20           | SUBSCRIBER_PRIORITY    | Section 9.20.7  |
+       +----------------+------------------------+-----------------+
+       | 0x21           | LOCATION_FILTER        | Section 9.20.10 |
+       +----------------+------------------------+-----------------+
+       | 0x22           | GROUP_ORDER            | Section 9.20.8  |
+       +----------------+------------------------+-----------------+
+       | 0x25           | SUBGROUP_FILTER        | Section 3.3.2   |
+       +----------------+------------------------+-----------------+
+       | 0x26           | OBJECTID_FILTER        | Section 3.3.2   |
+       +----------------+------------------------+-----------------+
+       | 0x27           | PRIORITY_FILTER        | Section 3.3.2   |
+       +----------------+------------------------+-----------------+
+       | 0x28           | OBJECT_PROPERTY_FILTER | Section 3.3.2   |
+       +----------------+------------------------+-----------------+
 
-                                 Table 9
+                                  Table 7
 
    The LOCATION_FILTER inside FILL_PARAMETERS selects the fill range and
-   is evaluated using the rules for a Fetch (see Section 9.20.9); it is
+   is evaluated using the rules for a Fetch (see Section 9.20.10); it is
    independent of the subscription's own Location filter.
 
    A parameter that is omitted from FILL_PARAMETERS takes the value it
@@ -4579,7 +5182,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    only to the message that carries it, so the sticky-parameter rules in
    Section 9.5 do not apply to it.
 
-9.20.16.  EXPIRES Parameter
+9.20.19.  EXPIRES Parameter
 
    The EXPIRES parameter (Parameter Type 0x8) is a varint.  It MAY
    appear in SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE_NAMESPACE_OK,
@@ -4602,7 +5205,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    If the EXPIRES parameter is 0 or is not present in a message, the
    subscription does not expire or expires at an unknown time.
 
-9.20.17.  LARGEST OBJECT Parameter
+9.20.20.  LARGEST OBJECT Parameter
 
    The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location.  It
    MAY appear in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK,
@@ -4622,7 +5225,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    2.  The largest Location of an Object received on an upstream
        subscription
 
-9.20.18.  FORWARD Parameter
+9.20.21.  FORWARD Parameter
 
    The FORWARD parameter (Parameter Type 0x10) is a uint8.  It MAY
    appear in SUBSCRIBE, REQUEST_UPDATE (for a subscription or a
@@ -4642,7 +5245,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    default value is 1.  When sent in PUBLISH_STATE_NOTIFY, it reports
    whether the subscription is paused at the publisher.
 
-9.20.19.  NEW GROUP REQUEST Parameter
+9.20.22.  NEW GROUP REQUEST Parameter
 
    The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint.
    It MAY appear in SUBSCRIBE or REQUEST_UPDATE for a subscription.  It
@@ -4687,7 +5290,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    After sending a NEW_GROUP_REQUEST upstream, the request is considered
    outstanding until the Largest Group increases.
 
-9.20.20.  TRACK_NAMESPACE_PREFIX Parameter
+9.20.23.  TRACK_NAMESPACE_PREFIX Parameter
 
    The TRACK_NAMESPACE_PREFIX parameter (Parameter Type 0x34) uses the
    Track Namespace encoding described in Section 8.7.  It MAY appear in
@@ -4697,7 +5300,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    subscription of the same type in the same session, the receiver MUST
    respond with REQUEST_ERROR with error code PREFIX_OVERLAP.
 
-9.20.21.  INCLUDE_PROPERTIES Parameter
+9.20.24.  INCLUDE_PROPERTIES Parameter
 
    The INCLUDE_PROPERTIES parameter (Parameter Type 0x35) is a uint8.
    It MAY appear in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS.
@@ -4786,10 +5389,18 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    If omitted, the value is 0.
 
-10.7.  Immutable Properties
+10.7.  SELECTION TIMEOUT
+
+   SELECTION_TIMEOUT (Property Type 0x40) is a Track Property.  Its
+   value is a varint representing milliseconds.  If omitted, the value
+   is 1000 milliseconds.  It limits how long a track remains selected
+   without publishing a new object carrying the selection property.  See
+   Section 3.7.3.1.
+
+10.8.  Immutable Properties
 
    Immutable Properties (Property Type 0xB) is a Track or Object
-   Property that contains a sequence of Key-Value-Pairs (see Figure 2)
+   Property that contains a sequence of Key-Value-Pairs (see Figure 3)
    that are themselves Track or Object Properties, respectively.
 
    Immutable Properties {
@@ -4842,7 +5453,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    An Object MUST NOT contain more than one instance of this property.
 
-10.8.  Prior Group ID Gap
+10.9.  Prior Group ID Gap
 
    Prior Group ID Gap only applies to Objects, not Tracks.
 
@@ -4881,7 +5492,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    An Object MUST NOT contain more than one instance of this property.
 
-10.9.  Prior Object ID Gap
+10.10.  Prior Object ID Gap
 
    Prior Object ID Gap only applies to Objects, not Tracks.
 
@@ -4968,7 +5579,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    SHOULD be closed with a PROTOCOL_VIOLATION (Section 12.2).  An Object
    MUST have an empty payload unless its Object Status value is
    registered as permitting a payload in the Object Status registry
-   (Section 16.9).  Of the values defined in this document, only Normal
+   (Section 16.11).  Of the values defined in this document, only Normal
    (0x0) permits a payload.
 
 11.1.2.  Object Properties
@@ -4985,11 +5596,11 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    Object Properties set by the Original Publisher that are intended to
    be visible to relays, but not modified by them, SHOULD be placed in
-   Immutable Properties (Section 10.7), which enables end-to-end
+   Immutable Properties (Section 10.8), which enables end-to-end
    authentication schemes.
 
    Object Properties are serialized as a length in bytes followed by
-   Key-Value-Pairs (see Figure 2).
+   Key-Value-Pairs (see Figure 3).
 
    Object Properties {
      Properties Length (vi64),
@@ -5035,7 +5646,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      [Object Payload (..),]
    }
 
-                      Figure 24: MOQT OBJECT_DATAGRAM
+                      Figure 25: MOQT OBJECT_DATAGRAM
 
    The Type Flags field in the OBJECT_DATAGRAM is a variable-length
    integer that encodes a set of flags.  All values defined in this
@@ -5121,7 +5732,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      [Publisher Priority (8),]
    }
 
-                      Figure 25: MOQT SUBGROUP_HEADER
+                      Figure 26: MOQT SUBGROUP_HEADER
 
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Delivery Mode = Subgroup.
@@ -5138,7 +5749,10 @@ EXT 1 and EXT N can be modified or removed by Relays
       Object Properties structure defined in Section 11.1.2 is present
       in all Objects; Objects with no properties or non-Normal status
       set Properties Length to 0.  When set to 0, the field is never
-      present in this Subgroup.
+      present in this Subgroup.  Because the value applies to every
+      Object in the Subgroup, a sender that might include Properties in
+      any later Object, including a relay that might add or forward
+      them, sets this bit to 1.
 
    *  The *SUBGROUP_ID_MODE* field (bits 1-2, mask 0x06) is a two-bit
       field that determines the encoding of the Subgroup ID.  To extract
@@ -5202,7 +5816,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    Delta values.  A consumer cannot infer information about the
    existence of Objects between the current and previous Object ID in
    the Subgroup (e.g. when Object ID Delta is non-zero) unless there is
-   a Prior Object ID Gap property (see Section 10.9).
+   a Prior Object ID Gap property (see Section 10.10).
 
    {
      Object ID Delta (vi64),
@@ -5212,7 +5826,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      [Object Payload (..),]
    }
 
-                   Figure 26: MOQT Subgroup Object Fields
+                   Figure 27: MOQT Subgroup Object Fields
 
 11.3.2.  Closing Subgroup Streams
 
@@ -5342,7 +5956,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      Request ID (vi64),
    }
 
-                        Figure 27: MOQT FETCH_HEADER
+                        Figure 28: MOQT FETCH_HEADER
 
    Each Object sent on a FETCH stream after the FETCH_HEADER has the
    following format:
@@ -5358,7 +5972,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      [Object Payload (..),]
    }
 
-                    Figure 28: MOQT Fetch Object Fields
+                    Figure 29: MOQT Fetch Object Fields
 
    The Serialization Flags field defines the serialization of the
    Object.  It is a variable-length integer.  When less than 128, the
@@ -5377,7 +5991,7 @@ EXT 1 and EXT N can be modified or removed by Relays
                    | 0x20C | End of Timed-Out Range    |
                    +-------+---------------------------+
 
-                                  Table 10
+                                  Table 8
 
    Any other value 128 or greater is a PROTOCOL_VIOLATION.
 
@@ -5399,7 +6013,7 @@ EXT 1 and EXT N can be modified or removed by Relays
     | 0x03  | The Subgroup ID field is present                       |
     +-------+--------------------------------------------------------+
 
-                                 Table 11
+                                 Table 9
 
    *Independent flag bits:* Each of the following is an independent
    boolean; a set bit (1) indicates the corresponding condition is true.
@@ -5425,7 +6039,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      |         |                          | least significant bits  |
      +---------+--------------------------+-------------------------+
 
-                                 Table 12
+                                 Table 10
 
    The first Object MUST include a Group ID Delta and Object ID Delta,
    and these values are the absolute Group ID and Object ID.  If the
@@ -5505,7 +6119,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      Padding Data (..) = 0x00..
    }
 
-                       Figure 29: MOQT Padding Stream
+                       Figure 30: MOQT Padding Stream
 
    The receiver MUST discard all data received on a padding stream to
    prevent exhausting flow control.
@@ -5524,7 +6138,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      Padding Data (..) = 0x00..
    }
 
-                      Figure 30: MOQT Padding Datagram
+                      Figure 31: MOQT Padding Datagram
 
    The receiver MUST discard all data received in a padding datagram.
 
@@ -5649,7 +6263,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 12.3.  Request Error Codes
 
    The application SHOULD use a relevant error code in REQUEST_ERROR
-   (Section 9.4), as defined below and assigned in Section 16.11.2.
+   (Section 9.4), as defined below and assigned in Section 16.13.2.
    Most codepoints have identical meanings for various request types,
    but some have request-specific meanings.
 
@@ -5679,7 +6293,7 @@ EXT 1 and EXT N can be modified or removed by Relays
       indicate when the request can be retried.
 
    UNSUPPORTED_EXTENSION:  The track contains a Mandatory Track Property
-      (see Section 3.6) that the endpoint does not understand.
+      (see Section 3.8) that the endpoint does not understand.
 
    REDIRECT:  The request cannot be fulfilled by this endpoint, but
       could succeed at the location specified in the Redirect structure.
@@ -5734,6 +6348,10 @@ EXT 1 and EXT N can be modified or removed by Relays
       parameters conflict among too many subscribers to aggregate the
       subscription upstream or otherwise efficiently service it.
 
+   INVALID_SWITCH:  In response to a SUBSCRIBE or REQUEST_UPDATE
+      carrying SWITCH_FROM, the track switch cannot be performed (see
+      Section 3.7.5).
+
 12.4.  Publish Done Codes
 
    The application SHOULD use a relevant status code in PUBLISH_DONE
@@ -5764,6 +6382,10 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    EXCESSIVE_LOAD (0x9):  The publisher is overloaded and is terminating
       the subscription.
+
+   SWITCHED_AWAY (0x13):  The subscriber switched delivery away from
+      this subscription using the SWITCH_FROM parameter (see
+      Section 3.7.5).
 
 12.5.  Stream Reset Error Codes
 
@@ -5817,13 +6439,13 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  Properties (Section 16.8)
 
-   *  Session Termination Error Codes (Section 16.11.1)
+   *  Session Termination Error Codes (Section 16.13.1)
 
-   *  REQUEST_ERROR Codes (Section 16.11.2)
+   *  REQUEST_ERROR Codes (Section 16.13.2)
 
-   *  PUBLISH_DONE Codes (Section 16.11.3)
+   *  PUBLISH_DONE Codes (Section 16.13.3)
 
-   *  Stream Reset Error Codes (Section 16.11.4)
+   *  Stream Reset Error Codes (Section 16.13.4)
 
    *  MOQT Auth Token Type
 
@@ -6245,27 +6867,33 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 16.4.  Setup Options
 
-      +=================+===========================+===============+
-      |            Type | Name                      | Specification |
-      +=================+===========================+===============+
-      |            0x01 | PATH                      | Section 9.1.2 |
-      +-----------------+---------------------------+---------------+
-      |            0x03 | AUTHORIZATION_TOKEN       | Section 9.1.4 |
-      +-----------------+---------------------------+---------------+
-      |            0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | Section 9.1.3 |
-      +-----------------+---------------------------+---------------+
-      |            0x05 | AUTHORITY                 | Section 9.1.1 |
-      +-----------------+---------------------------+---------------+
-      |            0x06 | MAX_FILTER_RANGES         | Section 9.1.6 |
-      +-----------------+---------------------------+---------------+
-      |            0x07 | MOQT_IMPLEMENTATION       | Section 9.1.5 |
-      +-----------------+---------------------------+---------------+
-      |            0x08 | MAX_REQUEST_UPDATES       | Section 9.1.7 |
-      +-----------------+---------------------------+---------------+
-      | 0x7f * N + 0x9D | Reserved for greasing     | Section 13    |
-      +-----------------+---------------------------+---------------+
+     +=================+===========================+=================+
+     |            Type | Name                      | Specification   |
+     +=================+===========================+=================+
+     |            0x01 | PATH                      | Section 9.1.2   |
+     +-----------------+---------------------------+-----------------+
+     |            0x03 | AUTHORIZATION_TOKEN       | Section 9.1.4   |
+     +-----------------+---------------------------+-----------------+
+     |            0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | Section 9.1.3   |
+     +-----------------+---------------------------+-----------------+
+     |            0x05 | AUTHORITY                 | Section 9.1.1   |
+     +-----------------+---------------------------+-----------------+
+     |            0x06 | MAX_FILTER_RANGES         | Section 9.1.6   |
+     +-----------------+---------------------------+-----------------+
+     |            0x07 | MOQT_IMPLEMENTATION       | Section 9.1.5   |
+     +-----------------+---------------------------+-----------------+
+     |            0x08 | MAX_REQUEST_UPDATES       | Section 9.1.7   |
+     +-----------------+---------------------------+-----------------+
+     |            0x09 | MAX_SELECTED_TRACKS       | Section 9.1.7.1 |
+     +-----------------+---------------------------+-----------------+
+     |            0x0A | SELECTION_POLICIES        | Section 9.1.7.2 |
+     +-----------------+---------------------------+-----------------+
+     |            0x0C | MAX_CHAINED_POLICIES      | Section 9.1.7.3 |
+     +-----------------+---------------------------+-----------------+
+     | 0x7f * N + 0x9D | Reserved for greasing     | Section 13      |
+     +-----------------+---------------------------+-----------------+
 
-                                  Table 13
+                                  Table 11
 
    Endpoints MUST ignore unknown Setup Options as specified in
    Section 9.1.
@@ -6291,7 +6919,7 @@ EXT 1 and EXT N can be modified or removed by Relays
                    |  0x3 | USE_VALUE | Section 8.9   |
                    +------+-----------+---------------+
 
-                                 Table 14
+                                 Table 12
 
 16.6.  MOQT Auth Token Type
 
@@ -6303,7 +6931,7 @@ EXT 1 and EXT N can be modified or removed by Relays
         | 0x7f * N + 0x9D | Reserved for greasing | Section 13    |
         +-----------------+-----------------------+---------------+
 
-                                  Table 15
+                                  Table 13
 
 16.7.  Message Parameters
 
@@ -6318,40 +6946,46 @@ EXT 1 and EXT N can be modified or removed by Relays
      +----------------+---------------------------+-----------------+
      | 0x06           | SUBGROUP_DELIVERY_TIMEOUT | Section 9.20.3  |
      +----------------+---------------------------+-----------------+
-     | 0x08           | EXPIRES                   | Section 9.20.16 |
+     | 0x08           | EXPIRES                   | Section 9.20.19 |
      +----------------+---------------------------+-----------------+
-     | 0x09           | LARGEST_OBJECT            | Section 9.20.17 |
+     | 0x09           | LARGEST_OBJECT            | Section 9.20.20 |
      +----------------+---------------------------+-----------------+
      | 0x0A           | FILL_TIMEOUT              | Section 9.20.5  |
      +----------------+---------------------------+-----------------+
-     | 0x10           | FORWARD                   | Section 9.20.18 |
+     | 0x10           | FORWARD                   | Section 9.20.21 |
      +----------------+---------------------------+-----------------+
      | 0x20           | SUBSCRIBER_PRIORITY       | Section 9.20.7  |
      +----------------+---------------------------+-----------------+
-     | 0x21           | LOCATION_FILTER           | Section 9.20.9  |
+     | 0x21           | LOCATION_FILTER           | Section 9.20.10 |
      +----------------+---------------------------+-----------------+
      | 0x22           | GROUP_ORDER               | Section 9.20.8  |
      +----------------+---------------------------+-----------------+
-     | 0x23           | FILL_PARAMETERS           | Section 9.20.15 |
+     | 0x23           | FILL_PARAMETERS           | Section 9.20.18 |
      +----------------+---------------------------+-----------------+
-     | 0x25           | SUBGROUP_FILTER           | Section 9.20.10 |
+     | 0x24           | SWITCH_FROM               | Section 9.20.9  |
      +----------------+---------------------------+-----------------+
-     | 0x26           | OBJECTID_FILTER           | Section 9.20.11 |
+     | 0x25           | SUBGROUP_FILTER           | Section 9.20.11 |
      +----------------+---------------------------+-----------------+
-     | 0x27           | PRIORITY_FILTER           | Section 9.20.12 |
+     | 0x26           | OBJECTID_FILTER           | Section 9.20.12 |
      +----------------+---------------------------+-----------------+
-     | 0x28           | OBJECT_PROPERTY_FILTER    | Section 9.20.13 |
+     | 0x27           | PRIORITY_FILTER           | Section 9.20.13 |
      +----------------+---------------------------+-----------------+
-     | 0x29           | TRACK_PROPERTY_FILTER     | Section 9.20.14 |
+     | 0x28           | OBJECT_PROPERTY_FILTER    | Section 9.20.14 |
      +----------------+---------------------------+-----------------+
-     | 0x32           | NEW_GROUP_REQUEST         | Section 9.20.19 |
+     | 0x29           | TRACK_PROPERTY_FILTER     | Section 9.20.15 |
      +----------------+---------------------------+-----------------+
-     | 0x34           | TRACK_NAMESPACE_PREFIX    | Section 9.20.20 |
+     | 0x30           | TRACK_SELECTION           | Section 9.20.16 |
      +----------------+---------------------------+-----------------+
-     | 0x35           | INCLUDE_PROPERTIES        | Section 9.20.21 |
+     | 0x32           | NEW_GROUP_REQUEST         | Section 9.20.22 |
+     +----------------+---------------------------+-----------------+
+     | 0x34           | TRACK_NAMESPACE_PREFIX    | Section 9.20.23 |
+     +----------------+---------------------------+-----------------+
+     | 0x35           | INCLUDE_PROPERTIES        | Section 9.20.24 |
+     +----------------+---------------------------+-----------------+
+     | 0x36           | SELECTION_SET_ASSIGNMENT  | Section 9.20.17 |
      +----------------+---------------------------+-----------------+
 
-                                 Table 16
+                                 Table 14
 
    *  Message Parameters - List which params can be repeated in the
       table.
@@ -6369,7 +7003,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    |     0x06 | SUBGROUP_DELIVERY_TIMEOUT     | Track, | Section 10.1  |
    |          |                               | Object |               |
    +----------+-------------------------------+--------+---------------+
-   |     0x0B | IMMUTABLE_PROPERTIES          | Track, | Section 10.7  |
+   |     0x0B | IMMUTABLE_PROPERTIES          | Track, | Section 10.8  |
    |          |                               | Object |               |
    +----------+-------------------------------+--------+---------------+
    |     0x0E | DEFAULT_PUBLISHER_PRIORITY    | Track  | Section 10.4  |
@@ -6378,16 +7012,18 @@ EXT 1 and EXT N can be modified or removed by Relays
    +----------+-------------------------------+--------+---------------+
    |     0x30 | DYNAMIC_GROUPS                | Track  | Section 10.6  |
    +----------+-------------------------------+--------+---------------+
-   |     0x3C | PRIOR_GROUP_ID_GAP            | Object | Section 10.8  |
+   |     0x40 | SELECTION_TIMEOUT             | Track  | Section 10.7  |
    +----------+-------------------------------+--------+---------------+
-   |     0x3E | PRIOR_OBJECT_ID_GAP           | Object | Section 10.9  |
+   |     0x3C | PRIOR_GROUP_ID_GAP            | Object | Section 10.9  |
+   +----------+-------------------------------+--------+---------------+
+   |     0x3E | PRIOR_OBJECT_ID_GAP           | Object | Section 10.10 |
    +----------+-------------------------------+--------+---------------+
    |     0x7f | Reserved for greasing         | Any    | Section 13    |
    |    * N + |                               |        |               |
    |     0x9D |                               |        |               |
    +----------+-------------------------------+--------+---------------+
 
-                                  Table 17
+                                  Table 15
 
    The following table contains provisional registrations for other
    active drafts in the moq wg.  These entries share the same Property
@@ -6416,7 +7052,7 @@ EXT 1 and EXT N can be modified or removed by Relays
     |0x32| PADDING             |Object| draft-ietf-moq-secure-objects |
     +----+---------------------+------+-------------------------------+
 
-                                  Table 18
+                                  Table 16
 
    Endpoints MUST ignore unknown Property types, skipping them according
    to the Key-Value-Pair encoding; odd types use their length field,
@@ -6437,7 +7073,7 @@ EXT 1 and EXT N can be modified or removed by Relays
          encoding, no registration permitted)
 
       -  0x4000 to 0x7FFF: Reserved for Mandatory Track Properties (see
-         Section 3.6).  Properties registered in this range MUST have
+         Section 3.8).  Properties registered in this range MUST have
          Track scope; Object scope properties MUST NOT be registered in
          this range.
 
@@ -6449,7 +7085,37 @@ EXT 1 and EXT N can be modified or removed by Relays
       from uncoordinated sources may encounter different semantics for
       the same code points, creating potential collision risks.
 
-16.9.  Object Status
+16.9.  Selection Policy Algorithms
+
+   This document establishes the "MOQT Selection Policies" registry.
+   The registration policy is Specification Required (per [RFC8126],
+   Section 4.6).
+
+             +===========+=================+=================+
+             | Policy ID | Name            | Specification   |
+             +===========+=================+=================+
+             |       0x0 | Top-N           | Section 3.7.3.1 |
+             +-----------+-----------------+-----------------+
+             |       0x1 | Bandwidth-Aware | Section 3.7.3.2 |
+             +-----------+-----------------+-----------------+
+
+                                  Table 17
+
+16.10.  Switch Modes
+
+   This document establishes the "MOQT Switch Modes" registry.  The
+   registration policy is Specification Required (per [RFC8126],
+   Section 4.6).
+
+                  +======+===========+=================+
+                  | Mode | Name      | Specification   |
+                  +======+===========+=================+
+                  |  0x0 | Immediate | Section 3.7.4.1 |
+                  +------+-----------+-----------------+
+
+                                 Table 18
+
+16.11.  Object Status
 
    This document establishes a registry for Object Status values (see
    Section 11.1.1).  The "Payload" column indicates whether an Object
@@ -6471,7 +7137,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    Required policy ([RFC8126], Section 4.6).  Each registration MUST
    indicate whether the status permits a payload.
 
-16.10.  Session-Level Track Names
+16.12.  Session-Level Track Names
 
    This document establishes a registry for session-level track names
    under the .session namespace (see Section 6.5).  The registration
@@ -6502,9 +7168,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    This document does not define any initial entries.
 
-16.11.  Error Codes
+16.13.  Error Codes
 
-16.11.1.  Session Termination Error Codes
+16.13.1.  Session Termination Error Codes
 
      +============================+=================+===============+
      | Name                       |       Code      | Specification |
@@ -6554,7 +7220,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                  Table 21
 
-16.11.2.  REQUEST_ERROR Codes
+16.13.2.  REQUEST_ERROR Codes
 
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
@@ -6591,6 +7257,8 @@ EXT 1 and EXT N can be modified or removed by Relays
         +-----------------------+-----------------+---------------+
         | REDIRECT              |       0x34      | Section 12.3  |
         +-----------------------+-----------------+---------------+
+        | INVALID_SWITCH        |       0x32      | Section 12.3  |
+        +-----------------------+-----------------+---------------+
         | CONFLICTING_FILTERS   |       0x35      | Section 12.3  |
         +-----------------------+-----------------+---------------+
         | INVALID_FILTER        |       0x36      | Section 12.3  |
@@ -6600,7 +7268,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 22
 
-16.11.3.  PUBLISH_DONE Codes
+16.13.3.  PUBLISH_DONE Codes
 
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
@@ -6623,12 +7291,14 @@ EXT 1 and EXT N can be modified or removed by Relays
         +-----------------------+-----------------+---------------+
         | MALFORMED_TRACK       |       0x12      | Section 12.4  |
         +-----------------------+-----------------+---------------+
+        | SWITCHED_AWAY         |       0x13      | Section 12.4  |
+        +-----------------------+-----------------+---------------+
         | Reserved for greasing | 0x7f * N + 0x9D | Section 13    |
         +-----------------------+-----------------+---------------+
 
                                   Table 23
 
-16.11.4.  Stream Reset Error Codes
+16.13.4.  Stream Reset Error Codes
 
         +=======================+=================+===============+
         | Name                  |       Code      | Specification |
@@ -6820,9 +7490,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-08, 8 September 2026,
+              draft-ietf-scone-protocol-09, 24 September 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-08>.
+              protocol-09>.
 
    [I-D.ietf-webtrans-http2]
               Frindell, A., Kinnear, E., Pauly, T., Thomson, M.,
@@ -6894,7 +7564,48 @@ Appendix A.  Change Log
 
    Issue and pull request numbers are listed with a leading octothorp.
 
-A.1.  Since draft-ietf-moq-transport-20
+A.1.  Since draft-ietf-moq-transport-21
+
+   *Session and Control Plane*
+
+   *  LOCATION_FILTER carries an explicit Location Filter Type that
+      selects which fields follow, replacing the length-inferred
+      encoding (#1913, #1953)
+
+   *Notable Editorial Changes*
+
+   *  Restructure Publisher and Namespace Discovery, add a Namespace
+      Prefix Matching section, and move SUBSCRIBE_TRACKS to Publishing
+      and Receiving Tracks (#1946)
+
+   *  Add a Fetch semantics section covering object delivery, gaps
+      (including Descending Group Order), and relay handling (#1895)
+
+   *  Rename Forwarding Preference to Delivery Mode, established by the
+      Original Publisher (#1886, #1891, #1914)
+
+   *  Describe the Forward State as a subscription being paused (#1940)
+
+   *  Define Subscription and Fetch (#1884, #1925)
+
+   *  Add per-request shorthand names for REQUEST_OK and REQUEST_ERROR,
+      e.g. SUBSCRIBE_ERROR (#1912)
+
+   *  List the allowed parameters in each control message (#1916)
+
+   *  Clarify that Largest Object can still be arriving and use it
+      consistently (#1911, #1918)
+
+   *  Clarify that FETCH_OK End Location is inclusive (#1910)
+
+   *  Clarify how extensions declare support in SETUP (#1921)
+
+   *  Scope the auth token cache overflow rule to non-SETUP
+      registrations (#1927)
+
+   *  Relay-to-relay communication is out of scope (#1931)
+
+A.2.  Since draft-ietf-moq-transport-20
 
    *Notable Editorial Changes*
 
@@ -6924,7 +7635,7 @@ A.1.  Since draft-ietf-moq-transport-20
       clarifications are included as moves only; the clarifications are
       deferred (#1887, #1888, #1892)
 
-A.2.  Since draft-ietf-moq-transport-19
+A.3.  Since draft-ietf-moq-transport-19
 
    *Session and Control Plane*
 
@@ -7025,7 +7736,7 @@ A.2.  Since draft-ietf-moq-transport-19
    *  Fix LOC and Secure Objects entries in the provisional Property
       registry (#1807, #1818, #1848)
 
-A.3.  Since draft-ietf-moq-transport-18
+A.4.  Since draft-ietf-moq-transport-18
 
    *Session and Control Plane*
 
@@ -7080,7 +7791,7 @@ A.3.  Since draft-ietf-moq-transport-18
 
    *  Clarify Group and Subgroup terminology and object model (#1708)
 
-A.4.  Since draft-ietf-moq-transport-17
+A.5.  Since draft-ietf-moq-transport-17
 
    *Session and Control Plane*
 
@@ -7187,7 +7898,7 @@ A.4.  Since draft-ietf-moq-transport-17
 
    *  Fix grease examples to match 0x7f multiplier (#1569)
 
-A.5.  Since draft-ietf-moq-transport-16
+A.6.  Since draft-ietf-moq-transport-16
 
    *Session and Control Plane*
 
@@ -7288,7 +7999,7 @@ A.5.  Since draft-ietf-moq-transport-16
 
    *  Add generative AI disclosure per IRTF guidelines
 
-A.6.  Since draft-ietf-moq-transport-15
+A.7.  Since draft-ietf-moq-transport-15
 
    *Setup and Control Plane*
 
@@ -7366,7 +8077,7 @@ A.6.  Since draft-ietf-moq-transport-15
 
    *  A Publisher might not use the congestion window (#1408)
 
-A.7.  Since draft-ietf-moq-transport-14
+A.8.  Since draft-ietf-moq-transport-14
 
    *Setup and Control Plane*
 
@@ -7429,7 +8140,7 @@ A.7.  Since draft-ietf-moq-transport-14
 
    *  Clarify joining fetch end location (#1286)
 
-A.8.  Since draft-ietf-moq-transport-13
+A.9.  Since draft-ietf-moq-transport-13
 
    *Setup and Control Plane*
 
@@ -7501,7 +8212,7 @@ A.8.  Since draft-ietf-moq-transport-13
 
    *  Reformat Error Codes (#1091)
 
-A.9.  Since draft-ietf-moq-transport-12
+A.10.  Since draft-ietf-moq-transport-12
 
    *  TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly
       mirror SUBSCRIBE/OK/ERROR (#1015)
@@ -7509,7 +8220,7 @@ A.9.  Since draft-ietf-moq-transport-12
    *  SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE
       (#1049)
 
-A.10.  Since draft-ietf-moq-transport-11
+A.11.  Since draft-ietf-moq-transport-11
 
    *  Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
 
@@ -7535,7 +8246,7 @@ A.10.  Since draft-ietf-moq-transport-11
    *  Add PUBLISH for publisher initiated subscriptions (#995) and fix
       the PUBLISH codepoints (#1048, #1051)
 
-A.11.  Since draft-ietf-moq-transport-10
+A.12.  Since draft-ietf-moq-transport-10
 
    *  Added Common Structure definitions - Location, Key-Value-Pair and
       Reason Phrase
