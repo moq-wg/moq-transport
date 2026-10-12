@@ -1002,9 +1002,13 @@ the entire track up to `Largest Object`.  The subscriber learns the `Largest Obj
 
 Because the fill range is specified independently of the subscription's
 Location filter, a subscriber can retrieve a range of Groups prior to
-`Largest Object` while the subscription itself starts at the Next Group.  If
-the fill range is empty, or starts after Largest Object, the publisher does not
-open a fill fetch stream.
+`Largest Object` via a fill fetch stream while the subscription itself
+starts at the Next Group.  If the fill range is empty, or starts after
+Largest Object, the publisher does not open a fill fetch stream.
+
+If a subscription omits `FILL_PARAMETERS`, no fill fetch stream is opened
+and any past objects matching the subscription's Location filter are
+delivered using normal subscription streams.
 
 The fill fetch stream inherits the subscription's parameters, including
 subscriber priority, range filters and authorization; parameters carried inside
@@ -3323,8 +3327,11 @@ A publisher that pauses the subscription (see {{pausing-subscriptions}})
 indicates that it will not transmit any objects until the subscriber resumes
 it. If the subscription is not paused, the
 publisher will start transmitting objects immediately, possibly before
-PUBLISH_OK. Delivery starts at the Next Object relative to the Largest Object
-at the time the publisher begins sending.
+PUBLISH_OK. If the `FILL_PARAMETERS` parameter is not present, delivery
+starts at the beginning of the Location filter. If `FILL_PARAMETERS`
+is present, delivery starts at the `Next Object` relative to the `Largest Object`
+at the time the publisher begins sending, or the beginning of the Location filter,
+whichever is larger.
 
 
 ## PUBLISH_DONE {#message-publish-done}
