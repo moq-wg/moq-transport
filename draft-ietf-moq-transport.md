@@ -1204,8 +1204,8 @@ elapses before the track delivers an object that remains in the top N,
 either of which deselect the track.  The publisher MUST send a
 PUBLISH_STATE_NOTIFY message with Forward=0 when a track is deselected.
 The publisher MUST send a PUBLISH_STATE_NOTIFY message with Forward=1 when a
-deselected track is reselected, which also updates the Joining Location
-as described in {{joining-fetches}}.
+deselected track is reselected, which also updates the Largest Object
+as described in {{joining-tracks}}.
 
 Recently deselected tracks SHOULD be kept in a list to avoid more PUBLISH
 messages in case a deselected track is reselected.  A relay SHOULD limit
