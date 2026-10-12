@@ -3889,7 +3889,7 @@ and how they are interpreted.
 * If Location Filter Type is 0x03, StartGroup, StartObject, and EndGroupDelta follow.
 * If Location Filter Type is 0x04, StartGroup, StartObject, EndGroupDelta, and EndObject follow.
 * If Location Filter Type is 0x05, no fields follow and it specifies the Next Object.
-* If Location Filter Type is 0x06, no fields follow and it specifies the Largest Group.
+* If Location Filter Type is 0x06, no fields follow and it specifies the Largest Group Fill.
 * Any other Location Filter Type is a `PROTOCOL_VIOLATION`.
 
 The table below summarizes the encodings.
@@ -3902,7 +3902,7 @@ The table below summarizes the encodings.
 | 0x03 (Absolute Start, Group End) | absolute: `{StartGroup, StartObject}` | last Object of Group `StartGroup + EndGroupDelta` |
 | 0x04 (Absolute Range) | absolute: `{StartGroup, StartObject}` | `{StartGroup + EndGroupDelta, EndObject}` |
 | 0x05 (Next Object) | `Next Object` | open-ended |
-| 0x06 (Largest Group) | `{Largest Object.Group, 0}` | open-ended |
+| 0x06 (Largest Group Fill) | `{Largest Object.Group, 0}` | open-ended |
 {: #location-filter-forms title="Location Filter forms"}
 
 
