@@ -1142,8 +1142,8 @@ the resulting Subscriptions can be filtered by any Range Filter.
 ### Top Tracks Filters
 
 The TOP_TRACKS_FILTER parameter {{top-tracks-filter}} selects a specified
-number (N) of tracks within a namespace with the highest Property ValuesExpand commentComment on line R1866Resolved
-for a specified Track or Object Property Type which MUST be even, i.e.Expand commentComment on line R1867Resolved
+number (N) of tracks within a namespace with the highest Property Values
+for a specified Track or Object Property Type which MUST be even, i.e.
 a single integer value (see {{moq-key-value-pair}}).  Object Property
 values override any Track Property values of the same type.
 
