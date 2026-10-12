@@ -6789,7 +6789,7 @@ computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.<a h
 This allows a subscriber to receive the complete current group via SUBSCRIBE,
 rather than starting mid-group or waiting for the next group. If there are no
 objects in the track yet, the filter starts at <code>{0, 0}</code>, just like Largest
-Object.<a href="#section-9.20.9-10" class="pilcrow">¶</a></p>
+Object. This filter is unnecessary for FETCH, but not a protocol violation.<a href="#section-9.20.9-10" class="pilcrow">¶</a></p>
 <p id="section-9.20.9-11">Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
 relative to <code>Largest Object</code>.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
