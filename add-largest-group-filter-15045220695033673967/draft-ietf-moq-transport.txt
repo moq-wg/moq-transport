@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 14 April 2027                                     I. Swett, Ed.
+Expires: 15 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         11 October 2026
+                                                         12 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 April 2027.
+   This Internet-Draft will expire on 15 April 2027.
 
 Copyright Notice
 
@@ -4386,7 +4386,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       the Next Object.
 
    *  If Location Filter Type is 0x06, no fields follow and it specifies
-      the Largest Group.
+      the Largest Group Fill.
 
    *  Any other Location Filter Type is a PROTOCOL_VIOLATION.
 
@@ -4418,7 +4418,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
         | Object)        |                    |                  |
         +----------------+--------------------+------------------+
         | 0x06 (Largest  | {Largest           | open-ended       |
-        | Group)         | Object.Group, 0}   |                  |
+        | Group Fill)    | Object.Group, 0}   |                  |
         +----------------+--------------------+------------------+
 
                       Table 6: Location Filter forms
