@@ -7162,9 +7162,11 @@ effective. A REQUEST_UPDATE that contains DEFAULT_PUBLISHER_PRIORITY <span class
 also contain the LARGEST_OBJECT Parameter, and the Subscriber <span class="bcp14">SHOULD</span> close
 the session with 'INVALID_PARAMETER' if it detects this.<a href="#section-9.20.21-2" class="pilcrow">¶</a></p>
 <p id="section-9.20.21-3">A REQUEST_UPDATE elicits a REQUEST_UPDATE_OK in response, allowing
-the Publisher to know that the Subscriber learned about the new Priority.
-The Publisher <span class="bcp14">MAY</span> include the updated Priority with Datagrams and Subgroups to
-ensure the Subscriber learns the new Priority as quickly as possible.<a href="#section-9.20.21-3" class="pilcrow">¶</a></p>
+the Publisher to know that the Subscriber has received the new Priority.
+The Subscriber can receive the REQUEST_UPDATE or PUBLISH_STATE_NOTIFY
+with the updated DEFAULT_PUBLISHER_PRIORITY after receiving Objects
+that the new Priority applies to.  If the Subscriber is a Relay, that could cause
+the Relay to incorrectly schedule Objects for some time.<a href="#section-9.20.21-3" class="pilcrow">¶</a></p>
 <p id="section-9.20.21-4">When caching, the Objects final Priority <span class="bcp14">SHOULD</span> be stored, even if the Object
 initially arrived with a different Priority.<a href="#section-9.20.21-4" class="pilcrow">¶</a></p>
 <p id="section-9.20.21-5">If omitted, the Default Publisher Priority is 128.<a href="#section-9.20.21-5" class="pilcrow">¶</a></p>
