@@ -4806,7 +4806,7 @@ Value | Meaning
 0x10C | End of Unknown Range
 0x20C | End of Timed-Out Range
 
-If an endpoint receives any other value 128 or greater, it MUST close the
+If an endpoint receives any other value greater than 127, it MUST close the
 session with `MALFORMED_OBJECT`.
 
 #### Flags {#fetch-serialization-flags}
