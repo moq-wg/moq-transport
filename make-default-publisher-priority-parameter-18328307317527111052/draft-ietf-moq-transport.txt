@@ -4713,7 +4713,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
 9.20.21.  DEFAULT PUBLISHER PRIORITY Parameter
 
-   The DEFAULT PUBLISHER PRIORITY parameter (Parameter Type 0x37) is a
+   The DEFAULT PUBLISHER PRIORITY parameter (Parameter Type 0x36) is a
    uint8 that specifies the priority of a subscription relative to other
    subscriptions in the same session.  It MAY appear in SUBSCRIBE_OK,
    PUBLISH, or TRACK_STATUS_OK.  The value is from 0 to 255 and lower
