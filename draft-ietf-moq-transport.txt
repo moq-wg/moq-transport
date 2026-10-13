@@ -3833,6 +3833,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    on all streams related to the subscription when it deletes
    subscription state.
 
+   A publisher that ends a subscription because the authorization token
+   that authorized it has expired SHOULD send PUBLISH_DONE with status
+   code EXPIRED_AUTH_TOKEN.
+
    The format of PUBLISH_DONE is as follows:
 
    PUBLISH_DONE Message {
@@ -5764,6 +5768,9 @@ EXT 1 and EXT N can be modified or removed by Relays
    EXPIRED (0x6):  The publisher reached the timeout specified in
       SUBSCRIBE_OK.
 
+   EXPIRED_AUTH_TOKEN (0x7):  The authorization token that authorized
+      the subscription has expired (see Section 9.9).
+
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 12.1).
 
@@ -6624,6 +6631,8 @@ EXT 1 and EXT N can be modified or removed by Relays
         | TOO_FAR_BEHIND        |       0x5       | Section 12.4  |
         +-----------------------+-----------------+---------------+
         | EXPIRED               |       0x6       | Section 12.4  |
+        +-----------------------+-----------------+---------------+
+        | EXPIRED_AUTH_TOKEN    |       0x7       | Section 12.4  |
         +-----------------------+-----------------+---------------+
         | UPDATE_FAILED         |       0x8       | Section 12.4  |
         +-----------------------+-----------------+---------------+
