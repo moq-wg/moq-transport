@@ -4198,11 +4198,10 @@ Datagrams for this subscription inherit this priority, unless they specifically
 override it.
 
 This Parameter can be updated while a Subscription is active by sending
-a PUBLISH_STATE_NOTIFY or REQUEST_UPDATE with a DEFAULT_PUBLISHER_PRIORITY
-and a LARGEST_OBJECT parameter to indicate when the new priority became
-effective. A REQUEST_UPDATE that contains DEFAULT_PUBLISHER_PRIORITY MUST
-also contain the LARGEST_OBJECT Parameter, and the Subscriber SHOULD close
-the session with 'INVALID_PARAMETER' if it detects this.
+a PUBLISH_STATE_NOTIFY or REQUEST_UPDATE containing it. The message MUST
+also contain the LARGEST_OBJECT parameter to indicate when the new priority
+became effective, and a Subscriber that receives one without it SHOULD close
+the session with `INVALID_PARAMETER`.
 
 A REQUEST_UPDATE elicits a REQUEST_UPDATE_OK in response, allowing
 the Publisher to know that the Subscriber has received the new Priority.
