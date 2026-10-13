@@ -2937,13 +2937,16 @@ session migration ({{session-migration}}) with an optional URI.  A client MUST
 send a zero-length New Session URI in any GOAWAY, as clients cannot instruct
 servers to initiate connections.
 
-A `GOAWAY` MAY also be sent on a request stream to initiate migration of
-that individual request.  Upon receiving a GOAWAY on a request stream, the
-endpoint SHOULD re-issue that specific request on a session at the specified
-URI (or the current session if no URI is provided), and close the old request
-stream using the appropriate mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).
-This allows, for example, moving the publishers and subscribers of a common set
-of tracks to a common relay without draining their entire session.
+A `GOAWAY` MAY also be sent on a request stream to initiate migration of that
+individual request.  Only the receiver of a request can send GOAWAY on its
+request stream.  If the receiver of a request receives a GOAWAY on that request
+stream, it MUST close the session with a `PROTOCOL_VIOLATION`.  Upon receiving a
+GOAWAY on a request stream, the sender of the request SHOULD re-issue that
+specific request on a session at the specified URI (or the current session if no
+URI is provided), and close the old request stream using the appropriate
+mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).  This allows, for example,
+moving the publishers and subscribers of a set of tracks to a common relay
+without draining their entire session.
 
 The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually unsubscribe from each existing subscription, while a
@@ -3362,6 +3365,10 @@ closed. A subscriber MAY discard subscription state earlier, at the cost of
 potentially not delivering some late objects to the application.  The
 subscriber SHOULD send STOP_SENDING on all streams related to the subscription
 when it deletes subscription state.
+
+A publisher that ends a subscription because the authorization token that
+authorized it has expired SHOULD send PUBLISH_DONE with status code
+`EXPIRED_AUTH_TOKEN`.
 
 The format of `PUBLISH_DONE` is as follows:
 
@@ -5177,6 +5184,10 @@ TOO_FAR_BEHIND (0x5):
 EXPIRED (0x6):
 : The publisher reached the timeout specified in SUBSCRIBE_OK.
 
+EXPIRED_AUTH_TOKEN (0x7):
+: The authorization token that authorized the subscription has expired
+  (see {{message-publish-done}}).
+
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
   {{malformed-tracks}}).
@@ -5864,6 +5875,7 @@ This document does not define any initial entries.
 | GOING_AWAY         | 0x4  | {{publish-done-codes}} |
 | TOO_FAR_BEHIND     | 0x5  | {{publish-done-codes}} |
 | EXPIRED            | 0x6  | {{publish-done-codes}} |
+| EXPIRED_AUTH_TOKEN | 0x7  | {{publish-done-codes}} |
 | UPDATE_FAILED      | 0x8  | {{publish-done-codes}} |
 | EXCESSIVE_LOAD     | 0x9  | {{publish-done-codes}} |
 | MALFORMED_TRACK    | 0x12 | {{publish-done-codes}} |
