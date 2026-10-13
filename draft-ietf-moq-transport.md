@@ -1080,11 +1080,12 @@ groups. A publisher that does will begin the next group as soon as practical.
 ## Track Switching {#track-switching}
 
 A subscriber can stop delivery on one subscription (the _suspending
-subscription_) and start delivery on another, possibly new subscription
-(the _activating subscription_) in a single message by
-including the SWITCH_FROM parameter ({{switch-from}}) in a SUBSCRIBE or
-REQUEST_UPDATE on the activating subscription's request stream.  This enables
-subscriber initiated track switching (e.g., ABR quality changes, alternate camera angles, or meeting participants) coordinated by the publisher.
+subscription_) and start delivery on another, possibly new subscription (the
+_activating subscription_) in a single message by including the SWITCH_FROM
+parameter ({{switch-from}}) in a SUBSCRIBE or REQUEST_UPDATE on the activating
+subscription's request stream.  This enables subscriber initiated track
+switching (e.g., ABR quality changes, alternate camera angles, or meeting
+participants) coordinated by the publisher.
 
 On receiving a message containing SWITCH_FROM, the publisher:
 
@@ -1104,11 +1105,11 @@ On receiving a message containing SWITCH_FROM, the publisher:
    the activating track is known.
 
 3. Waits until it is ready to publish the Switch Object (defined below), while
-   continuing to deliver objects on the suspending subscription.
-   In Immediate mode, the publisher skips this step and proceeds once the
-   response in step 2 has been sent.  In other modes, this wait ensures delivery
-   on the suspending subscription does not stop before the activating
-   subscription can deliver data.
+   continuing to deliver objects on the suspending subscription.  In Immediate
+   mode, the publisher skips this step and proceeds once the response in step 2
+   has been sent.  In other modes, this wait ensures delivery on the suspending
+   subscription does not stop before the activating subscription can deliver
+   data.
 
    When the activating subscription does not open a fill fetch stream, the
    Switch Object is the first subscription-delivered Object that passes the
@@ -1131,20 +1132,20 @@ On receiving a message containing SWITCH_FROM, the publisher:
 4. Stops delivery on the suspending subscription, depending on the Mode:
 
    * Mode Immediate (0x0) and Mode Continuous Objects (0x1): pauses the
-     suspending subscription and resets any
-     outstanding streams, including fill fetch streams.  The suspending
-     subscription is paused without regard to the Switch Object's position.
-     When the two Tracks are related, such as renditions of the same content,
-     the subscriber can observe a gap or an overlap.
+     suspending subscription and resets any outstanding streams, including fill
+     fetch streams.  The suspending subscription is paused without regard to the
+     Switch Object's position.  When the two Tracks are related, such as
+     renditions of the same content, the subscriber can observe a gap or an
+     overlap.
 
-   * Mode Group Aligned (0x2): when Switch Object's Group is greater than zero, the
-     publisher updates the suspending subscription's End Group to the Switch
+   * Mode Group Aligned (0x2): when Switch Object's Group is greater than zero,
+     the publisher updates the suspending subscription's End Group to the Switch
      Object's Group - 1. The publisher also resets any outstanding streams,
      including fill fetch streams, for groups greater than or equal to the
-     Switch Object's Group.  If the Switch Object's Group is zero, the Group Aligned
-     mode behaves like Continuous Objects mode. Group Aligned mode
-     is effective when the activating and suspending Tracks use aligned Group
-     IDs.  For example, if the Switch Object is in Group N, the suspending
+     Switch Object's Group.  If the Switch Object's Group is zero, the Group
+     Aligned mode behaves like Continuous Objects mode. Group Aligned mode is
+     effective when the activating and suspending Tracks use aligned Group IDs.
+     For example, if the Switch Object is in Group N, the suspending
      subscription delivers all Objects whose Group ID is less than N, and the
      activating subscription starts with the Switch Object.
 
@@ -1156,8 +1157,8 @@ On receiving a message containing SWITCH_FROM, the publisher:
 
 6. Optionally ends the suspending subscription with PUBLISH_DONE with code
    SWITCHED_AWAY, when the Publish Done flag in SWITCH_FROM ({{switch-from}}) is
-   1.  In Group Aligned mode, the publisher waits until after it has sent all data
-   matching the suspend subscription's LOCATION_FILTER before sending
+   1.  In Group Aligned mode, the publisher waits until after it has sent all
+   data matching the suspend subscription's LOCATION_FILTER before sending
    PUBLISH_DONE.
 
 Changes to the suspending subscription while a switch is outstanding are
