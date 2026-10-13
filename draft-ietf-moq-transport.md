@@ -1417,7 +1417,7 @@ scheduled.
 
 `Publisher Priority` is a priority number associated with an individual
 schedulable object.  A default for the subscription is specified in the
-DEFAULT_PUBLISHER_PRIORITY Track Property ({{publisher-priority}}). Publisher
+DEFAULT_PUBLISHER_PRIORITY Parameter ({{publisher-priority}}). Publisher
 priority can also be set per subgroup or datagram in the subgroup header or
 datagram (see {{data-streams}}), which overrides the default.
 
@@ -2017,7 +2017,7 @@ fields that can be updated are the following:
    to the constraints of the specific property.
 
 An endpoint that receives a duplicate Object with a different Delivery
-Mode, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
+Mode, Subgroup ID or Payload MUST treat the track as Malformed.
 
 For ranges of objects that do not exist, relays MAY change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
@@ -3023,7 +3023,7 @@ REQUEST_OK Message {
 
   * PUBLISH_OK: EXPIRES
   * REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT
-  * TRACK_STATUS_OK: LARGEST_OBJECT
+  * TRACK_STATUS_OK: LARGEST_OBJECT, DEFAULT_PUBLISHER_PRIORITY
   * SUBSCRIBE_NAMESPACE_OK: EXPIRES
   * SUBSCRIBE_TRACKS_OK: EXPIRES
   * PUBLISH_NAMESPACE_OK: EXPIRES
@@ -3276,7 +3276,7 @@ SUBSCRIBE_OK Message {
   {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}.  The parameters
-  that can appear in a SUBSCRIBE_OK are EXPIRES and LARGEST_OBJECT.
+  that can appear in a SUBSCRIBE_OK are EXPIRES, LARGEST_OBJECT, and DEFAULT_PUBLISHER_PRIORITY.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
@@ -3313,7 +3313,7 @@ PUBLISH Message {
   {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}. The parameters
-  that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
+  that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT, DEFAULT_PUBLISHER_PRIORITY,
   AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
   FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
   governing delivery, such as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY,
@@ -4191,6 +4191,35 @@ would share a common prefix with another active subscription of the same type
 in the same session, the receiver MUST respond with REQUEST_ERROR with error
 code `PREFIX_OVERLAP`.
 
+### DEFAULT PUBLISHER PRIORITY Parameter {#publisher-priority}
+
+The DEFAULT_PUBLISHER_PRIORITY parameter (Parameter Type 0x36) is a uint8
+that specifies the priority of a subscription relative to other subscriptions
+in the same session. It MAY appear in SUBSCRIBE_OK, PUBLISH, or TRACK_STATUS_OK,
+PUBLISH_STATE_NOTIFY, and REQUEST_UPDATE.
+The value is from 0 to 255 and lower numbers get higher
+priority.  See {{priorities}}. Priorities above 255 are invalid. Subgroups and
+Datagrams for this subscription inherit this priority, unless they specifically
+override it.
+
+This Parameter can be updated while a Subscription is active by sending
+a PUBLISH_STATE_NOTIFY or REQUEST_UPDATE containing it. The message MUST
+also contain the LARGEST_OBJECT parameter to indicate when the new priority
+became effective, and a Subscriber that receives one without it SHOULD close
+the session with `INVALID_PARAMETER`.
+
+A REQUEST_UPDATE elicits a REQUEST_UPDATE_OK in response, allowing
+the Publisher to know that the Subscriber has received the new Priority.
+The Subscriber can receive the REQUEST_UPDATE or PUBLISH_STATE_NOTIFY
+with the updated DEFAULT_PUBLISHER_PRIORITY after receiving Objects
+that the new Priority applies to.  If the Subscriber is a Relay, that could cause
+the Relay to incorrectly schedule Objects for some time.
+
+When caching, the Object's final Priority SHOULD be stored, even if the Object
+initially arrived with a different Priority.
+
+If omitted, the Default Publisher Priority is 128.
+
 ### INCLUDE_PROPERTIES Parameter {#include-properties-param}
 
 The INCLUDE_PROPERTIES parameter (Parameter Type 0x35) is a uint8. It MAY appear
@@ -4240,18 +4269,6 @@ Objects have expired from cache, their state becomes unknown (see
 
 If MAX_CACHE_DURATION is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
-
-## DEFAULT PUBLISHER PRIORITY {#publisher-priority}
-
-DEFAULT PUBLISHER PRIORITY (Property Type 0x0E) is a Track Property
-that specifies the priority of a subscription relative to other subscriptions
-in the same session.  The value is from 0 to 255 and lower numbers get higher
-priority.  See {{priorities}}. If an endpoint receives a value above 255, it
-MUST close the session with `MALFORMED_KEY_VALUE`. Subgroups and
-Datagrams for this subscription inherit this priority, unless they specifically
-override it.
-
-If omitted, the Default Publisher Priority is 128.
 
 ## DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
 
@@ -5793,6 +5810,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 | 0x35 | INCLUDE_PROPERTIES | {{include-properties-param}} |
+| 0x36 | DEFAULT_PUBLISHER_PRIORITY | {{publisher-priority}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
@@ -5804,7 +5822,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x04 | MAX_CACHE_DURATION | Track | {{max-cache-duration}} |
 | 0x06 | SUBGROUP_DELIVERY_TIMEOUT | Track, Object | {{subgroup-delivery-timeout-ext}} |
 | 0x0B | IMMUTABLE_PROPERTIES | Track, Object | {{immutable-properties}} |
-| 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | {{publisher-priority}} |
+| 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | Deprecated |
 | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track | {{group-order-pref}} |
 | 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
 | 0x3C | PRIOR_GROUP_ID_GAP | Object | {{prior-group-id-gap}} |
