@@ -3105,7 +3105,7 @@ MUST close the session with a `PROTOCOL_VIOLATION`.
 
 The receiver of a REQUEST_UPDATE MUST respond with exactly one REQUEST_UPDATE_OK
 or REQUEST_UPDATE_ERROR message indicating if the update was successful, unless it
-is coalescing failed updates to produce just one REQUEST_ERROR for multiple
+is coalescing failed updates to produce just one REQUEST_UPDATE_ERROR for multiple
 REQUEST_UPDATE messages. Because requests and responses are sent on a single
 in-order stream and REQUEST_UPDATE_OK does not contain a Request ID,
 REQUEST_UPDATE_OKs MUST be returned in the order the REQUEST_UPDATEs
