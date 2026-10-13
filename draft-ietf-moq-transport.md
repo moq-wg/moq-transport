@@ -4188,7 +4188,7 @@ code `PREFIX_OVERLAP`.
 
 ### DEFAULT PUBLISHER PRIORITY Parameter {#publisher-priority}
 
-The DEFAULT PUBLISHER PRIORITY parameter (Parameter Type 0x36) is a uint8
+The DEFAULT_PUBLISHER_PRIORITY parameter (Parameter Type 0x36) is a uint8
 that specifies the priority of a subscription relative to other subscriptions
 in the same session. It MAY appear in SUBSCRIBE_OK, PUBLISH, or TRACK_STATUS_OK.
 The value is from 0 to 255 and lower numbers get higher
@@ -4199,7 +4199,11 @@ override it.
 This Parameter can be updated while a Subscription is active by sending
 a PUBLISH_STATE_NOTIFY or REQUEST_UPDATE with a DEFAULT_PUBLISHER_PRIORITY
 and a LARGEST_OBJECT parameter to indicate when the new priority became
-effective. A REQUEST_UPDATE elicits a REQUEST_UPDATE_OK in response, allowing
+effective. A REQUEST_UPDATE that contains DEFAULT_PUBLISHER_PRIORITY MUST
+also contain the LARGEST_OBJECT Parameter, and the Subscriber SHOULD close
+the session with 'INVALID_PARAMETER' if it detects this.
+
+A REQUEST_UPDATE elicits a REQUEST_UPDATE_OK in response, allowing
 the Publisher to know that the Subscriber learned about the new Priority.
 The Publisher MAY include the updated Priority with Datagrams and Subgroups to
 ensure the Subscriber learns the new Priority as quickly as possible.
