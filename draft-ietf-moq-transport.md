@@ -4190,7 +4190,8 @@ code `PREFIX_OVERLAP`.
 
 The DEFAULT_PUBLISHER_PRIORITY parameter (Parameter Type 0x36) is a uint8
 that specifies the priority of a subscription relative to other subscriptions
-in the same session. It MAY appear in SUBSCRIBE_OK, PUBLISH, or TRACK_STATUS_OK.
+in the same session. It MAY appear in SUBSCRIBE_OK, PUBLISH, or TRACK_STATUS_OK,
+PUBLISH_STATE_NOTIFY, and REQUEST_UPDATE.
 The value is from 0 to 255 and lower numbers get higher
 priority.  See {{priorities}}. Priorities above 255 are invalid. Subgroups and
 Datagrams for this subscription inherit this priority, unless they specifically
@@ -4210,7 +4211,7 @@ with the updated DEFAULT_PUBLISHER_PRIORITY after receiving Objects
 that the new Priority applies to.  If the Subscriber is a Relay, that could cause
 the Relay to incorrectly schedule Objects for some time.
 
-When caching, the Objects final Priority SHOULD be stored, even if the Object
+When caching, the Object's final Priority SHOULD be stored, even if the Object
 initially arrived with a different Priority.
 
 If omitted, the Default Publisher Priority is 128.
