@@ -1731,10 +1731,10 @@ begin with any other message type unless negotiated. If they do, the peer MUST
 close the Session with `UNEXPECTED_MESSAGE`. Objects are sent on unidirectional
 streams.
 
-As such, a client can initiate a MOQT session, subscribe, and
-start publishing Objects all in parallel. When this is done before the
-handshake completes using 0-RTT, the security implications described in
-{{zero-rtt}} apply.
+As such, a client can initiate a MOQT session and send requests in parallel.
+However, there are restrictions on these requests as described in {{message-setup}}.
+When this is done before the handshake completes using 0-RTT, the security
+implications described in {{zero-rtt}} apply.
 
 Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
@@ -1746,14 +1746,6 @@ are established.
 A control stream MUST NOT be closed at the underlying transport layer during the
 session's lifetime.  If the control stream is closed, the peer MUST close the
 session with `CLOSED_CONTROL_STREAM`.
-
-Prior to receiving the peer's SETUP message, it's unknown what extensions
-a peer will support. Message Parameters requiring negotiation SHOULD NOT
-be used prior to receiving the peer's SETUP message unless the application
-requires the extension or the endpoint knows the peer supports the
-extension. If an unsupported Message Parameter is used, the peer will be
-unable to process it and will close the session with `INVALID_PARAMETER`. See
-{{message-params}}.
 
 ### 0-RTT {#zero-rtt}
 
@@ -2786,6 +2778,8 @@ stream (see {{session-init}}); it allows the endpoints to agree on the initial
 configuration before any other control messages are exchanged. An endpoint that
 is not offering extensions which modify control message semantics MAY pipeline
 other control messages after SETUP without waiting for the peer's SETUP.
+Endpoints SHOULD NOT send such requests (and related Objects) that offer such
+extensions before receiving the peer SETUP. 
 
 The messages contain a sequence of key-value pairs called Setup Options; the
 semantics and format of which can vary based on whether the client or server is
