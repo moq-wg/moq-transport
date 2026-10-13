@@ -4716,10 +4716,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    The DEFAULT_PUBLISHER_PRIORITY parameter (Parameter Type 0x36) is a
    uint8 that specifies the priority of a subscription relative to other
    subscriptions in the same session.  It MAY appear in SUBSCRIBE_OK,
-   PUBLISH, or TRACK_STATUS_OK.  The value is from 0 to 255 and lower
-   numbers get higher priority.  See Section 5.1.  Priorities above 255
-   are invalid.  Subgroups and Datagrams for this subscription inherit
-   this priority, unless they specifically override it.
+   PUBLISH, or TRACK_STATUS_OK, PUBLISH_STATE_NOTIFY, and
+   REQUEST_UPDATE.  The value is from 0 to 255 and lower numbers get
+   higher priority.  See Section 5.1.  Priorities above 255 are invalid.
+   Subgroups and Datagrams for this subscription inherit this priority,
+   unless they specifically override it.
 
    This Parameter can be updated while a Subscription is active by
    sending a PUBLISH_STATE_NOTIFY or REQUEST_UPDATE with a
@@ -4737,7 +4738,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Subscriber is a Relay, that could cause the Relay to incorrectly
    schedule Objects for some time.
 
-   When caching, the Objects final Priority SHOULD be stored, even if
+   When caching, the Object's final Priority SHOULD be stored, even if
    the Object initially arrived with a different Priority.
 
    If omitted, the Default Publisher Priority is 128.

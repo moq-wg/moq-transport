@@ -7150,7 +7150,8 @@ code <code>PREFIX_OVERLAP</code>.<a href="#section-9.20.20-1" class="pilcrow">¶
           </h4>
 <p id="section-9.20.21-1">The DEFAULT_PUBLISHER_PRIORITY parameter (Parameter Type 0x36) is a uint8
 that specifies the priority of a subscription relative to other subscriptions
-in the same session. It <span class="bcp14">MAY</span> appear in SUBSCRIBE_OK, PUBLISH, or TRACK_STATUS_OK.
+in the same session. It <span class="bcp14">MAY</span> appear in SUBSCRIBE_OK, PUBLISH, or TRACK_STATUS_OK,
+PUBLISH_STATE_NOTIFY, and REQUEST_UPDATE.
 The value is from 0 to 255 and lower numbers get higher
 priority.  See <a href="#priorities" class="auto internal xref">Section 5.1</a>. Priorities above 255 are invalid. Subgroups and
 Datagrams for this subscription inherit this priority, unless they specifically
@@ -7167,7 +7168,7 @@ The Subscriber can receive the REQUEST_UPDATE or PUBLISH_STATE_NOTIFY
 with the updated DEFAULT_PUBLISHER_PRIORITY after receiving Objects
 that the new Priority applies to.  If the Subscriber is a Relay, that could cause
 the Relay to incorrectly schedule Objects for some time.<a href="#section-9.20.21-3" class="pilcrow">¶</a></p>
-<p id="section-9.20.21-4">When caching, the Objects final Priority <span class="bcp14">SHOULD</span> be stored, even if the Object
+<p id="section-9.20.21-4">When caching, the Object's final Priority <span class="bcp14">SHOULD</span> be stored, even if the Object
 initially arrived with a different Priority.<a href="#section-9.20.21-4" class="pilcrow">¶</a></p>
 <p id="section-9.20.21-5">If omitted, the Default Publisher Priority is 128.<a href="#section-9.20.21-5" class="pilcrow">¶</a></p>
 </section>
