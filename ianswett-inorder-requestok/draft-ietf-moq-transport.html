@@ -5677,22 +5677,33 @@ same bidi stream as the request to modify it.  A subscriber can also send
 REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.<a href="#section-9.5-1" class="pilcrow">¶</a></p>
 <p id="section-9.5-2">An endpoint that receives a REQUEST_UPDATE other than in the two cases above
 <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.5-2" class="pilcrow">¶</a></p>
-<p id="section-9.5-3">The receiver of a REQUEST_UPDATE <span class="bcp14">MUST</span> respond with exactly one REQUEST_UPDATE_OK
-or REQUEST_UPDATE_ERROR message indicating if the update was successful, unless it
-is coalescing failed updates to produce just one REQUEST_UPDATE_ERROR for multiple
-REQUEST_UPDATE messages. Because requests and responses are sent on a single
+<p id="section-9.5-3">REQUEST_UPDATE messages <span class="bcp14">MUST</span> be processed in order to guarantee
+consistent behavior. The receiver of a REQUEST_UPDATE <span class="bcp14">MUST</span> respond with
+exactly one REQUEST_UPDATE_OK or REQUEST_UPDATE_ERROR message indicating if
+the update was successful, unless it is coalescing failed updates to produce
+just one REQUEST_UPDATE_ERROR for multiple REQUEST_UPDATE messages.
+Because REQUEST_UPDATE and REQUEST_UPDATE_OKs are sent on a single
 in-order stream and REQUEST_UPDATE_OK does not contain a Request ID,
 REQUEST_UPDATE_OKs <span class="bcp14">MUST</span> be returned in the order the REQUEST_UPDATEs
 were received.<a href="#section-9.5-3" class="pilcrow">¶</a></p>
-<p id="section-9.5-4">The number of outstanding REQUEST_UPDATEs on a single request stream is
-limited by the MAX_REQUEST_UPDATES Setup Option (<a href="#max-request-updates" class="auto internal xref">Section 9.1.7</a>).<a href="#section-9.5-4" class="pilcrow">¶</a></p>
-<p id="section-9.5-5">If a parameter previously set on the request is not present in
-<code>REQUEST_UPDATE</code>, its value remains unchanged.<a href="#section-9.5-5" class="pilcrow">¶</a></p>
-<p id="section-9.5-6">There is no generic mechanism to remove a parameter from a request.<a href="#section-9.5-6" class="pilcrow">¶</a></p>
-<p id="section-9.5-7">The format of REQUEST_UPDATE is as follows:<a href="#section-9.5-7" class="pilcrow">¶</a></p>
+<p id="section-9.5-4">A receiver of multiple REQUEST_UPDATE messages on the same stream <span class="bcp14">MAY</span>
+coalesce their processing by applying only the cumulative result.
+Parameter values from later REQUEST_UPDATE messages override values
+from earlier ones. The receiver <span class="bcp14">MUST</span> still send a REQUEST_UPDATE_OK for
+each successful update, but it is not required to process
+intermediate states individually. If the coalesced REQUEST_UPDATE
+results in an error, only a single REQUEST_UPDATE_ERROR will be
+sent and the sender of the REQUEST_UPDATEs will not always be
+able to determine which caused an error.<a href="#section-9.5-4" class="pilcrow">¶</a></p>
+<p id="section-9.5-5">The number of outstanding REQUEST_UPDATEs on a single request stream is
+limited by the MAX_REQUEST_UPDATES Setup Option (<a href="#max-request-updates" class="auto internal xref">Section 9.1.7</a>).<a href="#section-9.5-5" class="pilcrow">¶</a></p>
+<p id="section-9.5-6">If a parameter previously set on the request is not present in
+<code>REQUEST_UPDATE</code>, its value remains unchanged.<a href="#section-9.5-6" class="pilcrow">¶</a></p>
+<p id="section-9.5-7">There is no generic mechanism to remove a parameter from a request.<a href="#section-9.5-7" class="pilcrow">¶</a></p>
+<p id="section-9.5-8">The format of REQUEST_UPDATE is as follows:<a href="#section-9.5-8" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_update-message"></span><div id="moq-transport-request-update-format">
 <figure id="figure-10">
-          <div class="alignLeft art-text artwork" id="section-9.5-8.1">
+          <div class="alignLeft art-text artwork" id="section-9.5-9.1">
 <pre>
 REQUEST_UPDATE Message {
   Type (vi64) = 0x2,
@@ -5708,35 +5719,35 @@ REQUEST_UPDATE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.5-9.1">
-            <p id="section-9.5-9.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 6.4.2.1</a>.<a href="#section-9.5-9.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.5-10.1">
+            <p id="section-9.5-10.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 6.4.2.1</a>.<a href="#section-9.5-10.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.5-9.2">
-            <p id="section-9.5-9.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  The
-parameters that can appear depend on the request being updated:<a href="#section-9.5-9.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.5-10.2">
+            <p id="section-9.5-10.2.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  The
+parameters that can appear depend on the request being updated:<a href="#section-9.5-10.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-9.5-9.2.2.1">
-                <p id="section-9.5-9.2.2.1.1">Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
+<li class="normal" id="section-9.5-10.2.2.1">
+                <p id="section-9.5-10.2.2.1.1">Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
 SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
 FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
-OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST<a href="#section-9.5-9.2.2.1.1" class="pilcrow">¶</a></p>
+OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST<a href="#section-9.5-10.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.5-9.2.2.2">
-                <p id="section-9.5-9.2.2.2.1">FETCH: AUTHORIZATION_TOKEN, SUBSCRIBER_PRIORITY<a href="#section-9.5-9.2.2.2.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-9.5-10.2.2.2">
+                <p id="section-9.5-10.2.2.2.1">FETCH: AUTHORIZATION_TOKEN, SUBSCRIBER_PRIORITY<a href="#section-9.5-10.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.5-9.2.2.3">
-                <p id="section-9.5-9.2.2.3.1">PUBLISH_NAMESPACE: AUTHORIZATION_TOKEN<a href="#section-9.5-9.2.2.3.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-9.5-10.2.2.3">
+                <p id="section-9.5-10.2.2.3.1">PUBLISH_NAMESPACE: AUTHORIZATION_TOKEN<a href="#section-9.5-10.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.5-9.2.2.4">
-                <p id="section-9.5-9.2.2.4.1">SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN, TRACK_NAMESPACE_PREFIX<a href="#section-9.5-9.2.2.4.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-9.5-10.2.2.4">
+                <p id="section-9.5-10.2.2.4.1">SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN, TRACK_NAMESPACE_PREFIX<a href="#section-9.5-10.2.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.5-9.2.2.5">
-                <p id="section-9.5-9.2.2.5.1">SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, FORWARD, TRACK_PROPERTY_FILTER,
-TRACK_NAMESPACE_PREFIX<a href="#section-9.5-9.2.2.5.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-9.5-10.2.2.5">
+                <p id="section-9.5-10.2.2.5.1">SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, FORWARD, TRACK_PROPERTY_FILTER,
+TRACK_NAMESPACE_PREFIX<a href="#section-9.5-10.2.2.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
-<p id="section-9.5-9.2.3">
-Range Filters are only allowed from the subscriber (see <a href="#range-filters" class="auto internal xref">Section 3.3.2</a>).<a href="#section-9.5-9.2.3" class="pilcrow">¶</a></p>
+<p id="section-9.5-10.2.3">
+Range Filters are only allowed from the subscriber (see <a href="#range-filters" class="auto internal xref">Section 3.3.2</a>).<a href="#section-9.5-10.2.3" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <div id="updating-subscriptions">
@@ -5765,15 +5776,6 @@ PUBLISH_DONE with error code <code>UPDATE_FAILED</code>. When a REQUEST_UPDATE f
 a FETCH, the publisher <span class="bcp14">MUST</span> reset the FETCH data stream. When a REQUEST_UPDATE
 fails for a SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS or PUBLISH_NAMESPACE, the
 responder <span class="bcp14">MUST</span> close the bidi stream (see <a href="#graceful-request-closure" class="auto internal xref">Section 6.4.2.2</a>).<a href="#section-9.5.1-4" class="pilcrow">¶</a></p>
-<p id="section-9.5.1-5">A receiver of multiple REQUEST_UPDATE messages on the same stream <span class="bcp14">MAY</span>
-coalesce their processing by applying only the cumulative result.
-Parameter values from later REQUEST_UPDATE messages override values
-from earlier ones. The receiver <span class="bcp14">MUST</span> still send a REQUEST_UPDATE_OK for
-each successful update, but it is not required to process
-intermediate states individually. If the coalesced REQUEST_UPDATE
-results in an error, only a single REQUEST_UPDATE_ERROR will be
-sent and the sender of the REQUEST_UPDATEs will not always be
-able to determine which caused an error.<a href="#section-9.5.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="updating-namespace-subscriptions">
