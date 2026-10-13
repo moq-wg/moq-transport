@@ -3553,16 +3553,6 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    An endpoint that receives a REQUEST_UPDATE other than in the two
    cases above MUST close the session with a PROTOCOL_VIOLATION.
 
-   REQUEST_UPDATE messages MUST be processed in order to guarantee
-   consistent behavior.  The receiver of a REQUEST_UPDATE MUST respond
-   with exactly one REQUEST_UPDATE_OK or REQUEST_UPDATE_ERROR message
-   indicating if the update was successful, unless it is coalescing
-   failed updates to produce just one REQUEST_UPDATE_ERROR for multiple
-   REQUEST_UPDATE messages.  Because REQUEST_UPDATE and
-   REQUEST_UPDATE_OKs are sent on a single in-order stream and
-   REQUEST_UPDATE_OK does not contain a Request ID, REQUEST_UPDATE_OKs
-   MUST be returned in the order the REQUEST_UPDATEs were received.
-
    A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
    coalesce their processing by applying only the cumulative result.
    Parameter values from later REQUEST_UPDATE messages override values
@@ -3572,6 +3562,16 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    results in an error, only a single REQUEST_UPDATE_ERROR will be sent
    and the sender of the REQUEST_UPDATEs will not always be able to
    determine which caused an error.
+
+   REQUEST_UPDATE messages MUST be processed in order to guarantee
+   consistent behavior.  The receiver of a REQUEST_UPDATE MUST respond
+   with exactly one REQUEST_UPDATE_OK or REQUEST_UPDATE_ERROR message
+   indicating if the update was successful, unless it is coalescing
+   failed updates to produce just one REQUEST_UPDATE_ERROR for multiple
+   REQUEST_UPDATE messages.  Because REQUEST_UPDATE and
+   REQUEST_UPDATE_OKs are sent on a single in-order stream and
+   REQUEST_UPDATE_OK does not contain a Request ID, REQUEST_UPDATE_OKs
+   MUST be returned in the order the REQUEST_UPDATEs were received.
 
    The number of outstanding REQUEST_UPDATEs on a single request stream
    is limited by the MAX_REQUEST_UPDATES Setup Option (Section 9.1.7).
