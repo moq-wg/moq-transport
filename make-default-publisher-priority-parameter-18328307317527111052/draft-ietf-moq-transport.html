@@ -7149,10 +7149,15 @@ priority.  See <a href="#priorities" class="auto internal xref">Section 5.1</a>.
 Datagrams for this subscription inherit this priority, unless they specifically
 override it.<a href="#section-9.20.21-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.21-2">This Parameter can be updated while a Subscription is active by sending
-a PUBLISH_STATE_NOTIFY with a DEFAULT_PUBLISHER_PRIORITY and a
-LARGEST_OBJECT parameter to indicate when the new priority became
-effective.<a href="#section-9.20.21-2" class="pilcrow">¶</a></p>
-<p id="section-9.20.21-3">If omitted, the Default Publisher Priority is 128.<a href="#section-9.20.21-3" class="pilcrow">¶</a></p>
+a PUBLISH_STATE_NOTIFY or REQUEST_UPDATE with a DEFAULT_PUBLISHER_PRIORITY
+and a LARGEST_OBJECT parameter to indicate when the new priority became
+effective. A REQUEST_UPDATE elicits a REQUEST_UPDATE_OK in response, allowing
+the Publisher to know that the Subscriber learned about the new Priority. The Publisher <span class="bcp14">MAY</span>
+include the updated Priority with Datagrams and Subgroups to ensure the Subscriber
+learns the new Priority as quickly as possible.<a href="#section-9.20.21-2" class="pilcrow">¶</a></p>
+<p id="section-9.20.21-3">When caching, the Objects final Priority <span class="bcp14">SHOULD</span> be stored, even if the Object initially arrived
+with a different Priority.<a href="#section-9.20.21-3" class="pilcrow">¶</a></p>
+<p id="section-9.20.21-4">If omitted, the Default Publisher Priority is 128.<a href="#section-9.20.21-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="include-properties-param">
