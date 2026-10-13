@@ -4188,7 +4188,7 @@ code `PREFIX_OVERLAP`.
 
 ### DEFAULT PUBLISHER PRIORITY Parameter {#publisher-priority}
 
-The DEFAULT PUBLISHER PRIORITY parameter (Parameter Type 0x37) is a uint8
+The DEFAULT PUBLISHER PRIORITY parameter (Parameter Type 0x36) is a uint8
 that specifies the priority of a subscription relative to other subscriptions
 in the same session. It MAY appear in SUBSCRIBE_OK, PUBLISH, or TRACK_STATUS_OK.
 The value is from 0 to 255 and lower numbers get higher
