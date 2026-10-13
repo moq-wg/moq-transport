@@ -4723,7 +4723,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    unless they specifically override it.
 
    This Parameter can be updated while a Subscription is active by
-   sending  a PUBLISH_STATE_NOTIFY or REQUEST_UPDATE containing it.  The
+   sending a PUBLISH_STATE_NOTIFY or REQUEST_UPDATE containing it.  The
    message MUST also contain the LARGEST_OBJECT parameter to indicate
    when the new priority became effective, and a Subscriber that
    receives one without it SHOULD close the session with

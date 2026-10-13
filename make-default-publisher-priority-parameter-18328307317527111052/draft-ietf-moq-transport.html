@@ -7157,7 +7157,7 @@ priority.  See <a href="#priorities" class="auto internal xref">Section 5.1</a>.
 Datagrams for this subscription inherit this priority, unless they specifically
 override it.<a href="#section-9.20.21-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.21-2">This Parameter can be updated while a Subscription is active by sending
- a PUBLISH_STATE_NOTIFY or REQUEST_UPDATE containing it. The message <span class="bcp14">MUST</span>
+a PUBLISH_STATE_NOTIFY or REQUEST_UPDATE containing it. The message <span class="bcp14">MUST</span>
 also contain the LARGEST_OBJECT parameter to indicate when the new priority
 became effective, and a Subscriber that receives one without it <span class="bcp14">SHOULD</span> close
 the session with <code>INVALID_PARAMETER</code>.<a href="#section-9.20.21-2" class="pilcrow">¶</a></p>
