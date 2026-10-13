@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 10 April 2027                                     I. Swett, Ed.
+Expires: 16 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          7 October 2026
+                                                         13 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 April 2027.
+   This Internet-Draft will expire on 16 April 2027.
 
 Copyright Notice
 
@@ -3375,13 +3375,16 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    connections.
 
    A GOAWAY MAY also be sent on a request stream to initiate migration
-   of that individual request.  Upon receiving a GOAWAY on a request
-   stream, the endpoint SHOULD re-issue that specific request on a
+   of that individual request.  Only the receiver of a request can send
+   GOAWAY on its request stream.  If the receiver of a request receives
+   a GOAWAY on that request stream, it MUST close the session with a
+   PROTOCOL_VIOLATION.  Upon receiving a GOAWAY on a request stream, the
+   sender of the request SHOULD re-issue that specific request on a
    session at the specified URI (or the current session if no URI is
    provided), and close the old request stream using the appropriate
    mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).  This allows,
-   for example, moving the publishers and subscribers of a common set of
-   tracks to a common relay without draining their entire session.
+   for example, moving the publishers and subscribers of a set of tracks
+   to a common relay without draining their entire session.
 
    The GOAWAY message does not impact subscription state.  A subscriber
    SHOULD individually unsubscribe from each existing subscription,
