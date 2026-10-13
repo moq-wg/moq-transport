@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 6 April 2027                                      I. Swett, Ed.
+Expires: 16 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          3 October 2026
+                                                         13 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 April 2027.
+   This Internet-Draft will expire on 16 April 2027.
 
 Copyright Notice
 
@@ -5377,8 +5377,8 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                   Table 8
 
-   If an endpoint receives any other value 128 or greater, it MUST close
-   the session with MALFORMED_OBJECT.
+   If an endpoint receives any other value greater than 127, it MUST
+   close the session with MALFORMED_OBJECT.
 
 11.4.1.1.  Flags
 
