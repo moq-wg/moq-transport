@@ -4713,7 +4713,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
 9.20.21.  DEFAULT PUBLISHER PRIORITY Parameter
 
-   The DEFAULT PUBLISHER PRIORITY parameter (Parameter Type 0x36) is a
+   The DEFAULT_PUBLISHER_PRIORITY parameter (Parameter Type 0x36) is a
    uint8 that specifies the priority of a subscription relative to other
    subscriptions in the same session.  It MAY appear in SUBSCRIBE_OK,
    PUBLISH, or TRACK_STATUS_OK.  The value is from 0 to 255 and lower
@@ -4724,11 +4724,16 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    This Parameter can be updated while a Subscription is active by
    sending a PUBLISH_STATE_NOTIFY or REQUEST_UPDATE with a
    DEFAULT_PUBLISHER_PRIORITY and a LARGEST_OBJECT parameter to indicate
-   when the new priority became effective.  A REQUEST_UPDATE elicits a
-   REQUEST_UPDATE_OK in response, allowing the Publisher to know that
-   the Subscriber learned about the new Priority.  The Publisher MAY
-   include the updated Priority with Datagrams and Subgroups to ensure
-   the Subscriber learns the new Priority as quickly as possible.
+   when the new priority became effective.  A REQUEST_UPDATE that
+   contains DEFAULT_PUBLISHER_PRIORITY MUST also contain the
+   LARGEST_OBJECT Parameter, and the Subscriber SHOULD close the session
+   with 'INVALID_PARAMETER' if it detects this.
+
+   A REQUEST_UPDATE elicits a REQUEST_UPDATE_OK in response, allowing
+   the Publisher to know that the Subscriber learned about the new
+   Priority.  The Publisher MAY include the updated Priority with
+   Datagrams and Subgroups to ensure the Subscriber learns the new
+   Priority as quickly as possible.
 
    When caching, the Objects final Priority SHOULD be stored, even if
    the Object initially arrived with a different Priority.

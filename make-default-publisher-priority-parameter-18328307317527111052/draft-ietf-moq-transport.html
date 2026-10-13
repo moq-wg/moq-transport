@@ -7148,7 +7148,7 @@ code <code>PREFIX_OVERLAP</code>.<a href="#section-9.20.20-1" class="pilcrow">¶
           <h4 id="name-default-publisher-priority-">
 <a href="#section-9.20.21" class="section-number selfRef">9.20.21. </a><a href="#name-default-publisher-priority-" class="section-name selfRef">DEFAULT PUBLISHER PRIORITY Parameter</a>
           </h4>
-<p id="section-9.20.21-1">The DEFAULT PUBLISHER PRIORITY parameter (Parameter Type 0x36) is a uint8
+<p id="section-9.20.21-1">The DEFAULT_PUBLISHER_PRIORITY parameter (Parameter Type 0x36) is a uint8
 that specifies the priority of a subscription relative to other subscriptions
 in the same session. It <span class="bcp14">MAY</span> appear in SUBSCRIBE_OK, PUBLISH, or TRACK_STATUS_OK.
 The value is from 0 to 255 and lower numbers get higher
@@ -7158,13 +7158,16 @@ override it.<a href="#section-9.20.21-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.21-2">This Parameter can be updated while a Subscription is active by sending
 a PUBLISH_STATE_NOTIFY or REQUEST_UPDATE with a DEFAULT_PUBLISHER_PRIORITY
 and a LARGEST_OBJECT parameter to indicate when the new priority became
-effective. A REQUEST_UPDATE elicits a REQUEST_UPDATE_OK in response, allowing
+effective. A REQUEST_UPDATE that contains DEFAULT_PUBLISHER_PRIORITY <span class="bcp14">MUST</span>
+also contain the LARGEST_OBJECT Parameter, and the Subscriber <span class="bcp14">SHOULD</span> close
+the session with 'INVALID_PARAMETER' if it detects this.<a href="#section-9.20.21-2" class="pilcrow">¶</a></p>
+<p id="section-9.20.21-3">A REQUEST_UPDATE elicits a REQUEST_UPDATE_OK in response, allowing
 the Publisher to know that the Subscriber learned about the new Priority.
 The Publisher <span class="bcp14">MAY</span> include the updated Priority with Datagrams and Subgroups to
-ensure the Subscriber learns the new Priority as quickly as possible.<a href="#section-9.20.21-2" class="pilcrow">¶</a></p>
-<p id="section-9.20.21-3">When caching, the Objects final Priority <span class="bcp14">SHOULD</span> be stored, even if the Object
-initially arrived with a different Priority.<a href="#section-9.20.21-3" class="pilcrow">¶</a></p>
-<p id="section-9.20.21-4">If omitted, the Default Publisher Priority is 128.<a href="#section-9.20.21-4" class="pilcrow">¶</a></p>
+ensure the Subscriber learns the new Priority as quickly as possible.<a href="#section-9.20.21-3" class="pilcrow">¶</a></p>
+<p id="section-9.20.21-4">When caching, the Objects final Priority <span class="bcp14">SHOULD</span> be stored, even if the Object
+initially arrived with a different Priority.<a href="#section-9.20.21-4" class="pilcrow">¶</a></p>
+<p id="section-9.20.21-5">If omitted, the Default Publisher Priority is 128.<a href="#section-9.20.21-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="include-properties-param">
