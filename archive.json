@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-11T04:51:02.022709+00:00",
+  "timestamp": "2026-10-13T06:05:26.427102+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -51338,7 +51338,8 @@
       "author": "fluffy",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
-        "fluffy"
+        "fluffy",
+        "afrind"
       ],
       "labels": [
         "Needs Discussion",
@@ -51346,7 +51347,7 @@
       ],
       "body": "The draft says \n\n> If\n> the subscriber specifies a Fill Timeout larger than the relay is\n> willing to wait, the relay MAY use a shorter timeout without\n> informing the subscriber.\n\nI don't like the idea that relay can use a shorter time, perhaps 0, without the subscriber knowing that happened. Could we design a way to inform what was used, or negotiate a lower bound that will not be shortened, or return an error when this happens. \n\nClients will need this information to be able to sort out why a request failed and what to do about it. \n\n",
       "createdAt": "2026-06-14T19:53:10Z",
-      "updatedAt": "2026-09-03T01:15:07Z",
+      "updatedAt": "2026-10-11T16:36:07Z",
       "closedAt": null,
       "comments": [
         {
@@ -51397,6 +51398,13 @@
           "body": "I think we are talking past each other. Lets find some time to  discuss this on one of the calls ",
           "createdAt": "2026-09-03T01:14:52Z",
           "updatedAt": "2026-09-03T01:15:07Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@fluffy and I synced offline, but we both forgot to record the outcome.  We will resync.\n\nI remember at least that one concern is that when there are arrangements between clients and vendors (e.g. I'm paying for a 5s fill timeout) and not getting a clear signal about whether the vendor honored it.  e.g. the client gets a TIMEOUT after 1s - was that a bug on the vendor side or the client side or works as designed etc.\n\nPerhaps that concern can be mitigated through a more specific mlog event?\n\nI still remain open to adding a SETUP option that advertises the publisher max here, but I find it inconsistent so would prefer not to.",
+          "createdAt": "2026-10-11T16:35:40Z",
+          "updatedAt": "2026-10-11T16:35:40Z"
         }
       ]
     },
@@ -53477,7 +53485,7 @@
       "id": "I_kwDOG2Ho4M8AAAABLrScng",
       "title": "[MOQT] New Prior Subgroup ID Gap",
       "url": "https://github.com/moq-wg/moq-transport/issues/1845",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "yuyou",
       "authorAssociation": "NONE",
       "assignees": [
@@ -53488,8 +53496,8 @@
       ],
       "body": "The Range Filter introduced in MOQT v19 defines one or more Subgroup Filters, allowing subscribers to specify the subgroups they are interested in receiving. When a relay dynamically filters out one or more subgroups, the receiving subscriber may observe gaps in the Object ID sequence. To explicitly indicate that these missing objects were intentionally omitted by the applied range filters, rather than lost due to network congestion, MOQT may need a new **Prior Subgroup ID Gap** mechanism, analogous to the existing Prior Group ID Gap and Prior Object ID Gap fields.\n\n## Prior Subgroup ID Gap\n\nPrior Subgroup ID Gap only applies to Objects, not Tracks.\n\n- Prior Subgroup ID Gap (Property Type: 0x3F): A variable-length integer containing the number of Subgroups prior to the current Subgroup ID (within the current Group) that do not and will never exist because they were conditionally filtered out.\n \n(or similar spec. defined in 12.9 Prior Object ID Gap) ",
       "createdAt": "2026-08-06T07:03:38Z",
-      "updatedAt": "2026-10-02T16:04:34Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-11T17:20:54Z",
+      "closedAt": "2026-10-11T17:20:54Z",
       "comments": [
         {
           "author": "afrind",
@@ -53539,6 +53547,20 @@
           "body": "@yuyou do you think the wg needs discussion on this issue or are you satisfied with your extension?\n",
           "createdAt": "2026-10-02T16:04:34Z",
           "updatedAt": "2026-10-02T16:04:34Z"
+        },
+        {
+          "author": "yuyou",
+          "authorAssociation": "NONE",
+          "body": "Our extension works without the suggested subgroup gap idea. I was seeking for some potential use cases. Agree to close this one if it is not clear enough.",
+          "createdAt": "2026-10-11T16:49:52Z",
+          "updatedAt": "2026-10-11T16:49:52Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Closing for now.  We can continue discussion on the extension draft.",
+          "createdAt": "2026-10-11T17:20:54Z",
+          "updatedAt": "2026-10-11T17:20:54Z"
         }
       ]
     },
@@ -53558,7 +53580,7 @@
       ],
       "body": "MSF is an example application which uses MOQT to transmit media data. MSF defines [Track and Object properties to signal that the payload is compressed](https://moq-wg.github.io/msf/draft-ietf-moq-msf.html#compression-signaling), along with an IANA registry to list various popular compression standards which might be used.\n\nThis requirement to signal that payloads are compressed is a general one for any application leveraging MOQT. Instead of having hundreds of applications defining different Track properties all saying that the payload is gzipped, this should be a core transport capability.\n\nSuggestion is for MOQT to define the following properties\n\n**Track Property** : Signals that ALL object payloads in the track are compressed using the specified algorithm.\n\n**Object Property:** Signals compression on individual object payloads using the specified algorithm, allowing a mixture of compressed and uncompressed objects within the same track.\n\nMOQT should also create an IANA registry listing compression types which can be referenced by these properties, for example gzip, Brotli, Zstandard etc. ",
       "createdAt": "2026-08-07T12:35:22Z",
-      "updatedAt": "2026-10-06T21:10:38Z",
+      "updatedAt": "2026-10-12T22:02:02Z",
       "closedAt": null,
       "comments": [
         {
@@ -53595,6 +53617,13 @@
           "body": "I'd like to keep moq-transport to the core set of things that would be extremely difficult to add in another document later.  Adding properties that signal application properties don't intersect with the core object model or pub/sub mechanics.\n\nI can add this to the needs-discussion list.",
           "createdAt": "2026-10-06T21:10:33Z",
           "updatedAt": "2026-10-06T21:10:33Z"
+        },
+        {
+          "author": "michalhosna",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "+1 On having it more universal than MSF.\n+1 For extension draft. This feels like something that doesn't need to be in core. ",
+          "createdAt": "2026-10-12T22:02:02Z",
+          "updatedAt": "2026-10-12T22:02:02Z"
         }
       ]
     },
@@ -53603,7 +53632,7 @@
       "id": "I_kwDOG2Ho4M8AAAABMLugqg",
       "title": "to PUBLISH_NAMESPACE or to not PUBLISH_NAMESPACE",
       "url": "https://github.com/moq-wg/moq-transport/issues/1854",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -53614,8 +53643,8 @@
       ],
       "body": "I think this is a major interop issue, and it keeps biting me.\n\nThere are implicitly three roles in the moq-transport draft:\n- publisher\n- relay\n- subscriber\n\nWhile not stated, there's an implicit assumption that:\n- **publishers** should send `PUBLISH_NAMESPACE`\n- **subscribers** should send `SUBSCRIBE_NAMESPACE`\n- **relays** should wait for `PUBLISH_NAMESPACE` and `SUBSCRIBE_NAMESPACE`\n\nThe problem is that my library supports:\n- publishers connecting directly to subscribers (P2P): results in both messages\n- relays connecting to other relays (S2S): results in neither message.\n\n**There's no in-transport mechanism to know if the peer will PUBLISH or SUBSCRIBE.** \n\nMy workaround has been to always send both `PUBLISH_NAMESPACE` and `SUBSCRIBE_NAMESPACE`. But that's not ideal,  and then publishers complain that they get `PUBLISH_NAMESPACE` messages for random shit, as they expected the relay to wait for a `SUBSCRIBE_NAMESPACE`.\n\nThe other alternative is to have the application indicate if the peer is a relay just to decide whether to PUBLISH or not. I really don't like this approach.",
       "createdAt": "2026-08-10T17:09:30Z",
-      "updatedAt": "2026-10-02T16:05:20Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-11T17:19:30Z",
+      "closedAt": "2026-10-11T16:33:32Z",
       "comments": [
         {
           "author": "kixelated",
@@ -53693,6 +53722,20 @@
           "body": "@kixelated are you still asking for a change here and if so, what?",
           "createdAt": "2026-10-02T16:05:20Z",
           "updatedAt": "2026-10-02T16:05:20Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "https://www.ietf.org/archive/id/draft-lcurley-moq-solicit-00.html\n\n^ my solution but tbh, we should wait for others to run into the same issue",
+          "createdAt": "2026-10-11T16:33:32Z",
+          "updatedAt": "2026-10-11T16:33:32Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think this comes down to the fact that relay clients who are mesh peers need different behavior, and a relay needs a way of identifying those peers.  Most folks in the wg aren't building meshes using MOQT yet, and it's explicitly out of scope in the transport document.  moq-solicit providing a SETUP signal (hey I have a lot of tracks/namespaces _you_ might be interested in) is part of it, but I think it's leaving something out with respect to authentication and authorization.  I shouldn't be able to impersonate a relay mesh peer just by a SETUP flag.",
+          "createdAt": "2026-10-11T17:19:30Z",
+          "updatedAt": "2026-10-11T17:19:30Z"
         }
       ]
     },
@@ -54702,7 +54745,7 @@
       ],
       "body": "Was playing around with generating a quint model for the draft and found this trace (1 object per group):\n\nRelay has a paused upstream subscription for the track. Its Largest Object is (0,0).\nOrigin publishes (1,0), not sent because of the pause ([\u00a73.1](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.1)). Largest Object is (0,0) at the relay and (1,0) at the origin.\nDownstream subscriber sends SUBSCRIBE, Next Object, Forward=1.\nRelay responds with SUBSCRIBE_OK, Largest Object (0,0) ([\u00a77.5](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-7.5), [\u00a79.20.18](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-9.20.18)). Next Object is relative to the relay ([\u00a73.1.3](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.1.3)).\nRelay resumes the upstream with REQUEST_UPDATE Forward=1 ([\u00a77.5](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-7.5)). Origin responds with REQUEST_UPDATE_OK, Largest Object (1,0).\nOrigin publishes (2,0), relay forwards it to the subscriber.\n\nThis is legal per draft-21, but the subscriber holds a stale Largest Object and has no way of knowing there is a discontinuity, or that it would have to FETCH (1,0). A fill does not help, because its range is [bounded by the same Largest Object](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.4-2), so it ends at (0,0). [\u00a79.20.18](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-9.20.18) lists REQUEST_UPDATE_OK as an input to the relay's Largest Object, but nothing requires the relay to wait for it before sending SUBSCRIBE_OK.\n\nI was able to get moxygen to reproduce this behaviour with a relay unit test: https://github.com/kidq330/moxygen/commit/c2ee229362cfa8bcf3022690a240f1aa983f9846",
       "createdAt": "2026-09-27T22:53:45Z",
-      "updatedAt": "2026-10-01T19:12:57Z",
+      "updatedAt": "2026-10-11T21:12:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -54732,6 +54775,13 @@
           "body": "I think we know what to write, let's make a PR to have something to discuss with the wg in Seattle.",
           "createdAt": "2026-10-01T19:12:52Z",
           "updatedAt": "2026-10-01T19:12:52Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I wrote a PR for this, but there are some details I wasn't sure about.\n\nIf a new Subscriber comes in and asks for Red, and there's an existing Subscription for Red.  Can you use the Largest Object you've seen, even though it might not be the actual largest Object?  I said yes, because I don't think it causes any problems, but I can see someone saying that you have to do a no-op REQUEST_UPDATE to get the Largest Object from upstream in that case.\n\nDelivery Timeout is a similar one.  Again, I think if the upstream subscription satisfies the new downstream subscription, it's ok to send the Largest Object you've seen.\n\nI think this would matter less if we didn't have this hard switchover from Fetch to Subscribe delivery at Largest Object.",
+          "createdAt": "2026-10-11T21:12:36Z",
+          "updatedAt": "2026-10-11T21:12:36Z"
         }
       ]
     },
@@ -54979,10 +55029,69 @@
       "author": "yuanchao-chris",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "NotTransport"
+      ],
       "body": "### Background\n\nwe encountered codec compatibility issues due to differences in codec support across browsers.\n\nFor example, some browsers may not support H.265. Without codec capability negotiation, the peer(server side) may publish media that the client cannot decode.\n\nso we refer to WebRTC's SDP negotiation, exchange supported codec lists in SETUP Options, allowing the moq endpoints to publish media using compatible codecs.\n\nThe [MoQ Use Cases and Requirements](https://github.com/moq-wg/moq-requirements/blob/main/draft-ietf-moq-requirements.md#media-negotiation--agility-moq-negotiation) document also identifies media codec negotiation as a requirement under \"Media Negotiation & Agility\".\n\nSo I make this proposal to discuss to provide a lightweight session-level codec negotiation mechanism using SETUP Options..\n\n### Proposal\n\nAdd a new SETUP Option, CODEC_CAPABILITY, for session-level codec capability negotiation.\n\nThe proposed behavior is:\n\n- The client adds its supported audio and video codecs in SETUP.\n\n- The server responds with its supported codecs in SETUP.\n\n- Both endpoints determine the supported codec set.\n\n- All subsequent Tracks within the session MUST use codecs compatible with the negotiated set.\n\n### Wire Format\n```\nCODEC_CAPABILITY {\n  Type (vi64) = TBD,\n  Length (vi64),\n  Version (8),  \n  CodecInfos (...) ...\n}\n\nCodecInfo {\n  Codec String Length (vi64),\n  Codec String (..),  // UTF-8\n}\n```\nThe `Version` field is intended for future extensibility. Currently, each codec represents both encoding and decoding capabilities. If we need to distinguish them in the future, we could introduce a new version. Alternatively, we could simply add a Flags field in CodecInfo to indicate encoding/decoding capabilities, or omit Version for now.\n\nThe `Codec String` follows the [W3C WebCodecs Codec Registry](https://www.w3.org/TR/webcodecs-codec-registry/), same as moq msf draft(https://www.ietf.org/archive/id/draft-ietf-moq-msf-01.html#name-codec)\n\nConsiderations\uff1a An endpoint can send PUBLISH and media Objects immediately after sending SETUP, without waiting for the peer's SETUP response. Therefore, some media Objects may be sent before negotiation is completed. But I think this is acceptable, the publisher can continue sending media before negotiation, and the receiver can discard these media Objects.\n\n",
       "createdAt": "2026-10-10T13:50:53Z",
-      "updatedAt": "2026-10-10T13:53:47Z",
+      "updatedAt": "2026-10-12T06:58:00Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This seems like a reasonable proposal, but I think it should be an extension document rather than a part of the core transport.\n\nI also wonder about using strings instead of numeric code points, but I'm not overly opinionated.",
+          "createdAt": "2026-10-11T14:49:54Z",
+          "updatedAt": "2026-10-11T14:49:54Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Thinking a little more, the problem with this is that SETUP is negotiated hop-by-hop, but the option pertains only to the endpoints.  Relays between the publishers and subscribers technically don't support any codecs, or support all of them, depending on how you look at it.\n\nI think the transport is offering a different set of mechanisms that might help subscribers with this use case.\n\nFor example, the publisher can send a PUBLISH for each track it has, including track properties identifying the codec, and FORWARD set to 0.  No media would flow through until a subscriber (or relay) sent REQUEST_UPDATE with FORWARD=1.  Subscribers can also use SUBSCRIBE_TRACKS with a Track Property filter, which solicits a PUBLISH only for matching tracks.\n\nCatalogs (layered on top of MOQT) are another mechanism achieving this aim.  The publisher sends a catalog with all the available tracks and their properties, and the subscribers ask for only the tracks they can decode.",
+          "createdAt": "2026-10-11T14:55:53Z",
+          "updatedAt": "2026-10-11T14:55:53Z"
+        },
+        {
+          "author": "yuanchao-chris",
+          "authorAssociation": "NONE",
+          "body": "Track Properties, Filters, and Catalogs can address codec compatibility, but they may introduce additional latency.\n\nFor example, in a 1:1 conversation with an AI agent, if codec capabilities are exchanged during SETUP, the agent can directly choose a compatible codec before publishing. Otherwise, it may need to publish multiple tracks with different properties for downstream selection, introducing additional signaling delays or miss media objects.\n\nAdditionally, in multi-party scenarios, a Relay could aggregate codec capabilities from downstream subscribers and provide this information to the Publisher(may use REQUEST_UPDATE message), to make better codec decisions early, of course this aggregate logic is  application-level concern, is not part of the MoQT specification.\n\n",
+          "createdAt": "2026-10-12T06:57:20Z",
+          "updatedAt": "2026-10-12T06:58:00Z"
+        }
+      ]
+    },
+    {
+      "number": 1983,
+      "id": "I_kwDOG2Ho4M8AAAABWtWDPA",
+      "title": "Enable AASVG for the ascii art figures",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1983",
+      "state": "OPEN",
+      "author": "gloinul",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I usually read the HTML version. If we enable aasvg we will have nicer figures in the specification.\nhttps://github.com/martinthomson/aasvg\n\nThere is currently an issue with build environment where not all parts have been upgrade. This requires one to do a work around:\n```\nnpm i --save aasvg@0.4.3\ngit add package.json\ngit commit\n```\n\nOr alternative if one don't have the local environment and only run github is to add the package.json file to the repository root with the file content being:\n```\n{\n  \"dependencies\": {\n    \"aasvg\": \"^0.4.3\"\n  }\n}\n```\n \nThe above is from the issue thread: https://github.com/martinthomson/aasvg/issues/25\n",
+      "createdAt": "2026-10-12T18:56:34Z",
+      "updatedAt": "2026-10-12T18:56:50Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 1984,
+      "id": "I_kwDOG2Ho4M8AAAABWvQJ8w",
+      "title": "Is it safe to start parsing a FETCH stream and delivering objects to the application before FETCH_OK?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/1984",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Needs Discussion",
+        "Fetch"
+      ],
+      "body": "This was fine before Mandatory to Implement Properties, but now it's unclear.  If e.g. the MTI property changes how the parser interprets the FETCH stream, then we need to hold parsing til the OK arrives.\n\nWe specifically wanted to allow _sending_ fetch data before the OK, although part of the reason is that FETCH_OK has End Location, which may require an upstream trip if the relay didn't have a live view.  However, that might change with #1897, which would narrow that cases why FETCH_OK might ever be delayed.\n\nStill, it would be nice if we could just leave it like it is now.\n",
+      "createdAt": "2026-10-12T21:48:52Z",
+      "updatedAt": "2026-10-12T21:49:04Z",
       "closedAt": null,
       "comments": []
     }
@@ -204295,7 +204404,7 @@
       ],
       "body": "Introduce a new parameter SWITCH_FROM, that can appear in SUBSCRIBE, PUBLISH_OK or REQUEST_UPDATE.  The parameter has a Mode enum which can control details of the switching algorithm.  The base algorithm and a single \"Hard\" mode that flips the Forward State are defined.  Subsequent PRs will introduce additional modes.\r\n\r\nThe parameter also has a \"Publish Done\" option which the subscriber uses to control whether the other track is closed or left open after Switch.\r\n\r\nSee #1354\r\nFixes #1519 ",
       "createdAt": "2026-06-14T00:50:19Z",
-      "updatedAt": "2026-10-09T20:10:31Z",
+      "updatedAt": "2026-10-12T19:25:53Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7d3dcad351352288314b9267e765d5a06dfb748b",
@@ -204320,6 +204429,13 @@
           "body": "@suhasHere : we are blocked on your review.  Please review ASAP.",
           "createdAt": "2026-07-14T13:39:56Z",
           "updatedAt": "2026-07-14T13:39:56Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think we need to go back go basic requirements here and this has been very helpful. I can see 3 different things we might be trying to do. If the client is asking the relay to switch from track A to B. \r\n\r\n1. Keep sending me A until you can send me a useful version of B that I can use to replace A then stop A and start B.\r\n\r\n2. Stop sending me A right now as I can't deal with the bandwidth and send me B as soon as there is something I can useful decode. ( I thought this was hard mode but looking back I can not find there was ever a clear agreement on any of this)\r\n\r\n3. A and B have aligned groups. Keep sending me A until there is a good point to switch to B then send me B. \r\n\r\nI think you are describing 1 and I was thinking 2 and all three seem useful. \r\n\r\nIf we can clarify this, would it help sort out all the detailed comments ? In general, if track B never comes, nothing the relay can do can fix that. The key thing the relay needs to do is not double my bandwidth usage on an already congested link. ",
+          "createdAt": "2026-10-12T19:25:53Z",
+          "updatedAt": "2026-10-12T19:25:53Z"
         }
       ],
       "reviews": [
@@ -205859,6 +205975,88 @@
               "body": "There are 3 distinct error cases in the algorithm:\r\n\r\n\"From ID\" doesn't refer to an active subscription\r\n\"From ID\" is the same ID as \"To ID\"\r\nRequest contains both Forward=0 and SWITCH_FROM -- though it sounds like some folks want to make this case not an error.\r\n\r\nIf we really want 2 or 3 distinct codes, we can add them.",
               "createdAt": "2026-09-21T00:35:24Z",
               "updatedAt": "2026-09-21T00:35:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABRuZ4Rg",
+          "commit": {
+            "abbreviatedOid": "2e762cf"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-11T18:46:27Z",
+          "updatedAt": "2026-10-11T19:00:51Z",
+          "comments": [
+            {
+              "originalPosition": 55,
+              "body": "It might help to add a clarifying sentence in here that said something like like \"If the switch object group was N, this will ensure only objects from the new track with a group of  N or above are delivered but objects from the old stream with a group less than N are delivered. \". I'm not sure this will help but I think it helps explain the intent and people gets lost on details what the boundaries of N-1 mean. ",
+              "createdAt": "2026-10-11T18:46:27Z",
+              "updatedAt": "2026-10-11T19:00:51Z"
+            },
+            {
+              "originalPosition": 27,
+              "body": "The \"wait until\" is the part of this that always causes me confusion. It makes me think that the later steps don't happen until the relay has received the switch object. \n\nI don't get the need to wait. It seems that the filters, fill fetches etc can be set up immediately. ",
+              "createdAt": "2026-10-11T18:52:11Z",
+              "updatedAt": "2026-10-11T19:00:51Z"
+            },
+            {
+              "originalPosition": 42,
+              "body": "This paragraph seems wrong to me.  If no objects are ever received on the new track  and the mode was Immediate, well the old subscribption is still paused. ",
+              "createdAt": "2026-10-11T18:54:42Z",
+              "updatedAt": "2026-10-11T19:00:51Z"
+            },
+            {
+              "originalPosition": 45,
+              "body": "Tracking outstanding transaction *after* a OK has been sent for them does not make sense to me.  This seems like a pain to implement and really the wrong thing to do. When a client asks to switch from A to B, just do it. If nothing every arrives on B, the client can take care of switching to something that will. ",
+              "createdAt": "2026-10-11T18:56:21Z",
+              "updatedAt": "2026-10-11T19:00:51Z"
+            },
+            {
+              "originalPosition": 66,
+              "body": "in immediate mode, does this wait for the switching object ?",
+              "createdAt": "2026-10-11T18:58:05Z",
+              "updatedAt": "2026-10-11T19:00:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABRvhGWw",
+          "commit": {
+            "abbreviatedOid": "2e762cf"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-12T00:16:52Z",
+          "updatedAt": "2026-10-12T00:24:45Z",
+          "comments": [
+            {
+              "originalPosition": 27,
+              "body": "> It makes me think that the later steps don't happen until the relay has received the switch object.\r\n\r\nThat is the correct read.  Maybe the confusion is that sometimes, perhaps commonly, the wait condition is satisfied **immediately**, or almost immediately, so there's no need to wait:\r\n\r\n1) Switching from A to B at Current Group, with Fill Fetch, and the relay has all of the current group cached --> no wait.\r\n2) Switching from A to B at Next Object, relay already has live subscription to B --> switches on receipt of next B object from upstream\r\n\r\nThe times when the wait might be longer:\r\n\r\n1) Switching from A to B at a specific, future group --> A continues to deliver and the relay only executes the switch when it arrives.\r\n2) Switching from A to B with fill fetch 1 group back, but that group is not cached -> relay has to go upstream to get the first object of the fill before the switch.\r\n\r\nThe purpose of the wait is based on the principle that you don't want to stop e.g. Alice's track until you have some part of Bob's, and it is entirely why SWITCH_FROM can't be accomplished purely from the client side.",
+              "createdAt": "2026-10-12T00:16:52Z",
+              "updatedAt": "2026-10-12T00:24:45Z"
+            },
+            {
+              "originalPosition": 42,
+              "body": "If you want to stop the old track immediately, without waiting or coordination - **you should not be using SWITCH_FROM at all**.  Send REQUEST_UPDATE Forward=0 or UNSUBSCRIBE on the old subscription.\r\n\r\nIf you ask the relay to SWITCH_FROM Alice to Bob, then it keeps delivering Alice's track until Bob shows up.  The \"Immediate\" part means there's no attempt to coordinate or align the data between these tracks.",
+              "createdAt": "2026-10-12T00:19:56Z",
+              "updatedAt": "2026-10-12T00:24:45Z"
+            },
+            {
+              "originalPosition": 45,
+              "body": "> When a client asks to switch from A to B, just do it. If nothing every arrives on B, the client can take care of switching to something that will.\r\n\r\nAgain, it seems like if you aren't asking for a relay coordinated switch at all, or if you are, it's not clear to me what you are coordinating.  If you want to stop A and start B in any order, unconditionally, without waiting, just send a message on each request stream.",
+              "createdAt": "2026-10-12T00:22:15Z",
+              "updatedAt": "2026-10-12T00:24:45Z"
+            },
+            {
+              "originalPosition": 66,
+              "body": "Yes it does.",
+              "createdAt": "2026-10-12T00:24:13Z",
+              "updatedAt": "2026-10-12T00:24:45Z"
             }
           ]
         }
@@ -216809,7 +217007,7 @@
       "id": "PR_kwDOG2Ho4M71-Nom",
       "title": "Top Tracks Filter",
       "url": "https://github.com/moq-wg/moq-transport/pull/1830",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "mzanaty",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -216818,14 +217016,14 @@
       ],
       "body": "Added Top Tracks Filter (was Track Filter in PR#1508 / PR#1401).",
       "createdAt": "2026-07-24T17:47:02Z",
-      "updatedAt": "2026-08-27T15:24:29Z",
+      "updatedAt": "2026-10-12T01:47:42Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e1ae858d5c4009253ea19bfed30e3b58c4399de3",
       "headRepository": "mzanaty/moq-transport",
       "headRefName": "patch-6",
       "headRefOid": "eafe29e32fd6509b94df92c634fa48a52f0aaa0a",
-      "closedAt": null,
+      "closedAt": "2026-10-12T01:47:41Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -216927,6 +217125,13 @@
           "body": "I will update our Relay server with the Top Track Filter initial implementation. It supports SETUP negotiation and filters like object propertiees.\r\n\r\nThe relay-side aggregation has not been done yet but it would be the next feature to explore. ",
           "createdAt": "2026-08-26T07:21:16Z",
           "updatedAt": "2026-08-26T07:21:16Z"
+        },
+        {
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Moved to new PR#1981 due to the big reflow conflicts.",
+          "createdAt": "2026-10-12T01:47:41Z",
+          "updatedAt": "2026-10-12T01:47:41Z"
         }
       ],
       "reviews": [
@@ -226020,7 +226225,7 @@
       ],
       "body": "A GOAWAY on a request stream asks the sender of the request to re-issue it elsewhere, so only the receiver of the request can usefully send one. Say so, make a GOAWAY received by the receiver of a request a PROTOCOL_VIOLATION, and name the sender of the request as the endpoint that re-issues it.\r\n\r\nFixes: #1655",
       "createdAt": "2026-10-03T00:03:05Z",
-      "updatedAt": "2026-10-07T18:56:04Z",
+      "updatedAt": "2026-10-11T19:47:05Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "98b0a3cf563dd81e433301ac495c4b1e44bd9136",
@@ -226057,6 +226262,19 @@
           "body": "",
           "createdAt": "2026-10-07T18:56:03Z",
           "updatedAt": "2026-10-07T18:56:03Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABRum6Xw",
+          "commit": {
+            "abbreviatedOid": "8147d88"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-11T19:47:05Z",
+          "updatedAt": "2026-10-11T19:47:05Z",
           "comments": []
         }
       ]
@@ -226310,21 +226528,21 @@
       "id": "PR_kwDOG2Ho4M8AAAABHqa4xQ",
       "title": "Fix PR#1876 Make Track Alias a Parameter returned in SUBSCRIBE_OK",
       "url": "https://github.com/moq-wg/moq-transport/pull/1975",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Make Track Alias a Parameter returned in SUBSCRIBE_OK\n\n---\n*PR created automatically by Jules for task [10332319365080798248](https://jules.google.com/task/10332319365080798248) started by @ianswett*",
       "createdAt": "2026-10-10T06:16:48Z",
-      "updatedAt": "2026-10-10T06:16:50Z",
+      "updatedAt": "2026-10-11T20:48:55Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "pr1876-fix-10332319365080798248",
       "headRefOid": "eb5687da61c0208be3ebbfe15ecdf90d403dc54e",
-      "closedAt": null,
+      "closedAt": "2026-10-11T20:48:55Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -226359,6 +226577,227 @@
       "headRefName": "request-id-data-plane",
       "headRefOid": "b3f5a84bd75f7f22e0c78820c77b9b88140a1ec7",
       "closedAt": "2026-10-10T14:33:52Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 1978,
+      "id": "PR_kwDOG2Ho4M8AAAABH2_R_Q",
+      "title": "Fix relay largest object cache for downstream subscriptions",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1978",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #1958\r\n\r\nThis PR addresses the issue where a relay could report a stale `Largest Object` to new downstream subscriptions when the upstream subscription was paused or had disjoint filters.\r\n\r\n---\r\n*PR created automatically by Jules for task [12924797730877371990](https://jules.google.com/task/12924797730877371990) started by @ianswett*",
+      "createdAt": "2026-10-11T21:12:54Z",
+      "updatedAt": "2026-10-11T21:25:49Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "fix-issue-1958-largest-object-cache-12924797730877371990",
+      "headRefOid": "fd1146e918a66909893d37561668f2052befc0fc",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABRu7uFA",
+          "commit": {
+            "abbreviatedOid": "fd1146e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-11T21:25:49Z",
+          "updatedAt": "2026-10-11T21:25:49Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 1979,
+      "id": "PR_kwDOG2Ho4M8AAAABH3wFSQ",
+      "title": "Add Largest Group Fill Location Filter Type (0x06)",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1979",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Resolves https://github.com/moq-wg/moq-transport/issues/1358 by integrating the Largest Group proposal directly into the base MOQT specification.\r\n\r\nThis PR adds a new `Location Filter Type` 0x06 for Largest Group Fill. When a client subscribes with this filter, delivery begins at the start of the current largest group (`{Largest Object.Group, 0}`), ensuring a complete group is received via the normal SUBSCRIBE path without needing a separate JOINING FETCH. If the track is empty, it starts at `{0, 0}` like the Largest Object filter.\r\n\r\nAlong the lines of: https://datatracker.ietf.org/doc/draft-lcurley-moq-largest-group/\r\n\r\n---\r\n*PR created automatically by Jules for task [15045220695033673967](https://jules.google.com/task/15045220695033673967) started by @ianswett*",
+      "createdAt": "2026-10-11T23:26:19Z",
+      "updatedAt": "2026-10-12T00:07:52Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "add-largest-group-filter-15045220695033673967",
+      "headRefOid": "e77afd105c71ec24e15d3c656112861fbd2ea883",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABRvfINA",
+          "commit": {
+            "abbreviatedOid": "83d765f"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-12T00:05:59Z",
+          "updatedAt": "2026-10-12T00:06:00Z",
+          "comments": [
+            {
+              "originalPosition": 84,
+              "body": "```suggestion\nObject. This filter is unnecessary for FETCH, but not a protocol violation.\n```",
+              "createdAt": "2026-10-12T00:05:59Z",
+              "updatedAt": "2026-10-12T00:06:00Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 1980,
+      "id": "PR_kwDOG2Ho4M8AAAABH4JfUQ",
+      "title": "RFC: Update Subscribe-style delivery rules for Past Objects",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1980",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #1358\r\n\r\nUpdate Subscribe-style delivery rules for Past Objects when FILL_PARAMETERS is omitted by sending them instead of excluding them.\r\n\r\nWhen a subscription requests Objects from the past (via its LOCATION_FILTER) but does not include a FILL_PARAMETERS block, the publisher no longer opens a single Fill Fetch stream. Instead, the publisher will deliver the requested Past Objects using the normal \"Subscribe-style\" stream delivery mechanism. If FILL_PARAMETERS is present, the publisher continues to deliver Past Objects via a Fill Fetch stream.\r\n\r\n---\r\n*PR created automatically by Jules for task [13669243239659900576](https://jules.google.com/task/13669243239659900576) started by @ianswett*",
+      "createdAt": "2026-10-12T00:44:46Z",
+      "updatedAt": "2026-10-12T00:56:30Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "fix-subscribe-style-past-objects-13669243239659900576",
+      "headRefOid": "e78819994e4c3e0583810c3a5ef7da5355f084c2",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 1981,
+      "id": "PR_kwDOG2Ho4M8AAAABH4fO2A",
+      "title": "Top Tracks Filter",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1981",
+      "state": "OPEN",
+      "author": "mzanaty",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Add Top Tracks Filter under Filtering SUBSCRIBE_TRACKS.\nAdd new setup option, filter parameter, track property, and update tables of types for each.",
+      "createdAt": "2026-10-12T01:45:26Z",
+      "updatedAt": "2026-10-12T12:24:17Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
+      "headRepository": "mzanaty/moq-transport",
+      "headRefName": "patch-5",
+      "headRefOid": "9b8baa2e7c7028102328f61ad17cf6c09299ef09",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "gloinul",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A general question. If I want 15 audio and 5 video top-tracks, then if I understand this correctly I need to have those tracks in different namespace prefixes, thus I may end up with a name space structure like this <session-prefix:media-type:user structure>. Does that integrate cleanly if I want to express synchronization of the tracks for each user? ",
+          "createdAt": "2026-10-12T07:35:41Z",
+          "updatedAt": "2026-10-12T07:35:41Z"
+        },
+        {
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@gloinul, yes, different namespace prefixes are needed for different top n filters, such as your examples. Synchronization of tracks can use any app defined indicator, such as user in your example, or other MOQ mechanisms in LOC (wall clock timestamps), MSF (media/event timelines), or the newly proposed timestamp extenstion draft from Alan/Ian.",
+          "createdAt": "2026-10-12T12:24:17Z",
+          "updatedAt": "2026-10-12T12:24:17Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABRvy_RQ",
+          "commit": {
+            "abbreviatedOid": "0195248"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-12T01:48:24Z",
+          "updatedAt": "2026-10-12T01:49:26Z",
+          "comments": [
+            {
+              "originalPosition": 37,
+              "body": "End of line has some git comment appended ",
+              "createdAt": "2026-10-12T01:48:24Z",
+              "updatedAt": "2026-10-12T01:49:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABRv3x5A",
+          "commit": {
+            "abbreviatedOid": "9b8baa2"
+          },
+          "author": "mzanaty",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-12T02:12:32Z",
+          "updatedAt": "2026-10-12T02:12:32Z",
+          "comments": [
+            {
+              "originalPosition": 37,
+              "body": "Fixed ",
+              "createdAt": "2026-10-12T02:12:32Z",
+              "updatedAt": "2026-10-12T02:12:32Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 1982,
+      "id": "PR_kwDOG2Ho4M8AAAABIBtvcg",
+      "title": "add selection sets and policy",
+      "url": "https://github.com/moq-wg/moq-transport/pull/1982",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This proposes a way have a common framework for extensions like Top-N, SSTS and unifies with Switch From. \r\n\r\nSome slides that help explain this are at \r\nhttps://cisco.app.box.com/s/q48fxo9zeibkvonlf42uncc16m9z891j\r\n\r\n",
+      "createdAt": "2026-10-12T18:47:14Z",
+      "updatedAt": "2026-10-12T18:52:40Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "policy-set",
+      "headRefOid": "c873d4b20d7b23e1bfa652c8dfc3e62343b00d0b",
+      "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
