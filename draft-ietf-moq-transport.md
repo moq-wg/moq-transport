@@ -1480,7 +1480,7 @@ begin with any other message type unless negotiated. If they do, the peer MUST
 close the Session with a `PROTOCOL_VIOLATION`. Objects are sent on unidirectional
 streams.
 
-As such, a client can initiate a MOQT session and requests all in parallel.
+As such, a client can initiate a MOQT session and send requests in parallel.
 However, there are restrictions on these requests as described in {{message-setup}}.
 When this is done before the handshake completes using 0-RTT, the security
 implications described in {{zero-rtt}} apply.
