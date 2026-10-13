@@ -2513,6 +2513,8 @@ stream (see {{session-init}}); it allows the endpoints to agree on the initial
 configuration before any other control messages are exchanged. An endpoint that
 is not offering extensions which modify control message semantics MAY pipeline
 other control messages after SETUP without waiting for the peer's SETUP.
+Endpoints SHOULD NOT sned such requests (and related Objects) that offer such
+extensions before receiving the peer SETUP. 
 
 The messages contain a sequence of key-value pairs called Setup Options; the
 semantics and format of which can vary based on whether the client or server is
