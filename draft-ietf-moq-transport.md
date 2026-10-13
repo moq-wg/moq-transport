@@ -1094,6 +1094,9 @@ On receiving a message containing SWITCH_FROM, the publisher:
    SWITCH_FROM has a FORWARD parameter equal to 0, the publisher responds with
    REQUEST_ERROR `INVALID_SWITCH`.  Note it is not an error if the suspending
    subscription is already paused or the activating subscription is unpaused.
+   When a REQUEST_UPDATE fails with `INVALID_SWITCH`, the publisher does not
+   apply any of its parameters and does not terminate the activating
+   subscription, notwithstanding {{message-request-update}}.
 
 2. Ensures the activating subscription is established, applies the new
    LOCATION_FILTER, if any, and unpauses the subscription.  The publisher then
@@ -1102,6 +1105,8 @@ On receiving a message containing SWITCH_FROM, the publisher:
 
 3. Waits until it is ready to publish the Switch Object (defined below), while
    continuing to deliver objects on the suspending subscription.
+   In Immediate mode, the publisher skips this step and proceeds once the
+   response in step 2 has been sent.
 
    When the activating subscription does not open a fill fetch stream, the
    Switch Object is the first subscription-delivered Object that passes the
@@ -1123,19 +1128,20 @@ On receiving a message containing SWITCH_FROM, the publisher:
 
 4. Stops delivery on the suspending subscription, depending on the Mode:
 
-   * Mode Immediate (0x0): pauses the suspending subscription and resets any
+   * Mode Immediate (0x0) and Mode Continuous Objects (0x1): pauses the
+     suspending subscription and resets any
      outstanding streams, including fill fetch streams.
 
-   * Mode Aligned (0x1): when Switch Object's Group is greater than zero, the
+   * Mode Group Aligned (0x2): when Switch Object's Group is greater than zero, the
      publisher updates the suspending subscription's End Group to the Switch
      Object's Group - 1. The publisher also resets any outstanding streams,
      including fill fetch streams, for groups greater than or equal to the
-     Switch Object's Group.  If the Switch Object's Group is zero, the Aligned
-     mode behaves like Immediate mode. As the name suggests, Aligned mode
+     Switch Object's Group.  If the Switch Object's Group is zero, the Group Aligned
+     mode behaves like Continuous Objects mode. Group Aligned mode
      is effective when the activating and suspending Tracks use aligned Group
      IDs.
 
-   In either mode, Objects already in flight can still be received by the
+   In all modes, Objects already in flight can still be received by the
    subscriber.
 
 5. Sends PUBLISH_STATE_NOTIFY ({{ps-notify}}) on the suspending subscription's
@@ -1143,9 +1149,15 @@ On receiving a message containing SWITCH_FROM, the publisher:
 
 6. Optionally ends the suspending subscription with PUBLISH_DONE with code
    SWITCHED_AWAY, when the Publish Done flag in SWITCH_FROM ({{switch-from}}) is
-   1.  In Aligned Mode, the publisher waits until after it has sent all data
+   1.  In Group Aligned mode, the publisher waits until after it has sent all data
    matching the suspend subscription's LOCATION_FILTER before sending
    PUBLISH_DONE.
+
+Changes to the suspending subscription while a switch is outstanding are
+applied normally and do not cancel the switch.  If the suspending
+subscription has ended by the time the switch executes, step 4 and
+later steps are skipped.  Multiple outstanding SWITCH_FROMs can name the
+same suspending subscription; each executes independently.
 
 ### Relay Handling of SWITCH_FROM {#relay-switch-from}
 
@@ -1153,7 +1165,10 @@ Relays ordinarily handle the switch locally, applying any relative start group
 computation from {{location-filter}} using locally observed state for the
 activating track and servicing any fill fetch stream from cache and upstream
 sources.  When a relay performs the switch operation, it MUST NOT forward the
-SWITCH_FROM parameter upstream.
+SWITCH_FROM parameter upstream.  A relay that does not perform the switch
+locally can include its own SWITCH_FROM in the upstream SUBSCRIBE or
+REQUEST_UPDATE.  This is only possible when both tracks share an upstream
+session.
 
 ## Mandatory to Understand Track Properties {#mandatory-track-properties}
 
@@ -3904,8 +3919,9 @@ SWITCH_FROM {
 
 * Mode: A vi64 enum selecting how the suspending subscription is stopped. Modes
   are registered in the IANA table "MOQT SWITCH_FROM Modes"
-  ({{iana-switch-from-modes}}); the following modes are defined: Immediate (0x0)
-  and Aligned (0x1). An endpoint that receives a Mode value that is not defined
+  ({{iana-switch-from-modes}}); the following modes are defined: Immediate
+  (0x0), Continuous Objects (0x1), and Group Aligned (0x2). An endpoint that
+  receives a Mode value that is not defined
   MUST close the session with `PROTOCOL_VIOLATION`. See {{track-switching}}.
 
 * Publish Done: If 1, the publisher sends PUBLISH_DONE on the suspending
@@ -5775,7 +5791,8 @@ policy is First Come First Served (per {{!RFC8126, Section 4.4}}).
 | Mode | Name | Specification |
 |-----:|:-----|:--------------|
 | 0x0  | Immediate | {{switch-from}} |
-| 0x1  | Aligned   | {{switch-from}} |
+| 0x1  | Continuous Objects | {{switch-from}} |
+| 0x2  | Group Aligned | {{switch-from}} |
 
 ## Properties {#iana-properties}
 
