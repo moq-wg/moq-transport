@@ -6446,7 +6446,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      +----------------+----------------------------+-----------------+
      | 0x35           | INCLUDE_PROPERTIES         | Section 9.20.22 |
      +----------------+----------------------------+-----------------+
-     | 0x37           | DEFAULT_PUBLISHER_PRIORITY | Section 9.20.21 |
+     | 0x36           | DEFAULT_PUBLISHER_PRIORITY | Section 9.20.21 |
      +----------------+----------------------------+-----------------+
 
                                   Table 14
