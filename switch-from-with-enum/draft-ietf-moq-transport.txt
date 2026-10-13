@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 April 2027                                     I. Swett, Ed.
+Expires: 16 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                          9 October 2026
+                                                         13 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 April 2027.
+   This Internet-Draft will expire on 16 April 2027.
 
 Copyright Notice
 
@@ -1396,7 +1396,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
        If the message carrying SWITCH_FROM has a FORWARD parameter equal
        to 0, the publisher responds with REQUEST_ERROR INVALID_SWITCH.
        Note it is not an error if the suspending subscription is already
-       paused or the activating subscription is unpaused.
+       paused or the activating subscription is unpaused.  When a
+       REQUEST_UPDATE fails with INVALID_SWITCH, the publisher does not
+       apply any of its parameters and does not terminate the activating
+       subscription, notwithstanding Section 9.5.
 
    2.  Ensures the activating subscription is established, applies the
        new LOCATION_FILTER, if any, and unpauses the subscription.  The
@@ -1405,7 +1408,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    3.  Waits until it is ready to publish the Switch Object (defined
        below), while continuing to deliver objects on the suspending
-       subscription.
+       subscription.  In Immediate mode, the publisher skips this step
+       and proceeds once the response in step 2 has been sent.  In other
+       modes, this wait ensures delivery on the suspending subscription
+       does not stop before the activating subscription can deliver
+       data.
 
        When the activating subscription does not open a fill fetch
        stream, the Switch Object is the first subscription-delivered
@@ -1430,21 +1437,29 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    4.  Stops delivery on the suspending subscription, depending on the
        Mode:
 
-       *  Mode Immediate (0x0): pauses the suspending subscription and
-          resets any outstanding streams, including fill fetch streams.
+       *  Mode Immediate (0x0) and Mode Continuous Objects (0x1): pauses
+          the suspending subscription and resets any outstanding
+          streams, including fill fetch streams.  The suspending
+          subscription is paused without regard to the Switch Object's
+          position.  When the two Tracks are related, such as renditions
+          of the same content, the subscriber can observe a gap or an
+          overlap.
 
-       *  Mode Aligned (0x1): when Switch Object's Group is greater than
-          zero, the publisher updates the suspending subscription's End
-          Group to the Switch Object's Group - 1.  The publisher also
-          resets any outstanding streams, including fill fetch streams,
-          for groups greater than or equal to the Switch Object's Group.
-          If the Switch Object's Group is zero, the Aligned mode behaves
-          like Immediate mode.  As the name suggests, Aligned mode is
-          effective when the activating and suspending Tracks use
-          aligned Group IDs.
+       *  Mode Group Aligned (0x2): when Switch Object's Group is
+          greater than zero, the publisher updates the suspending
+          subscription's End Group to the Switch Object's Group - 1.
+          The publisher also resets any outstanding streams, including
+          fill fetch streams, for groups greater than or equal to the
+          Switch Object's Group.  If the Switch Object's Group is zero,
+          the Group Aligned mode behaves like Continuous Objects mode.
+          Group Aligned mode is effective when the activating and
+          suspending Tracks use aligned Group IDs.  For example, if the
+          Switch Object is in Group N, the suspending subscription
+          delivers all Objects whose Group ID is less than N, and the
+          activating subscription starts with the Switch Object.
 
-       In either mode, Objects already in flight can still be received
-       by the subscriber.
+       In all modes, Objects already in flight can still be received by
+       the subscriber.
 
    5.  Sends PUBLISH_STATE_NOTIFY (Section 9.10) on the suspending
        subscription's stream, reporting changed parameters and including
@@ -1454,9 +1469,15 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
        with code SWITCHED_AWAY, when the Publish Done flag in
        SWITCH_FROM (Section 9.20.9) is
 
-       1.  In Aligned Mode, the publisher waits until after it has sent
-           all data matching the suspend subscription's LOCATION_FILTER
-           before sending PUBLISH_DONE.
+       1.  In Group Aligned mode, the publisher waits until after it has
+           sent all data matching the suspend subscription's
+           LOCATION_FILTER before sending PUBLISH_DONE.
+
+   Changes to the suspending subscription while a switch is outstanding
+   are applied normally and do not cancel the switch.  If the suspending
+   subscription has ended by the time the switch executes, step 4 and
+   later steps are skipped.  Multiple outstanding SWITCH_FROMs can name
+   the same suspending subscription; each executes independently.
 
 3.6.1.  Relay Handling of SWITCH_FROM
 
@@ -1464,7 +1485,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    start group computation from Section 9.20.10 using locally observed
    state for the activating track and servicing any fill fetch stream
    from cache and upstream sources.  When a relay performs the switch
-   operation, it MUST NOT forward the SWITCH_FROM parameter upstream.
+   operation, it MUST NOT forward the SWITCH_FROM parameter upstream.  A
+   relay that does not perform the switch locally can include its own
+   SWITCH_FROM in the upstream SUBSCRIBE or REQUEST_UPDATE.  This is
+   only possible when both tracks share an upstream session.
 
 3.7.  Mandatory to Understand Track Properties
 
@@ -4408,9 +4432,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    *  Mode: A vi64 enum selecting how the suspending subscription is
       stopped.  Modes are registered in the IANA table "MOQT SWITCH_FROM
       Modes" (Section 16.8); the following modes are defined: Immediate
-      (0x0) and Aligned (0x1).  An endpoint that receives a Mode value
-      that is not defined MUST close the session with
-      PROTOCOL_VIOLATION.  See Section 3.6.
+      (0x0), Continuous Objects (0x1), and Group Aligned (0x2).  An
+      endpoint that receives a Mode value that is not defined MUST close
+      the session with PROTOCOL_VIOLATION.  See Section 3.6.
 
    *  Publish Done: If 1, the publisher sends PUBLISH_DONE on the
       suspending subscription as described in Section 3.6.
@@ -6435,15 +6459,17 @@ EXT 1 and EXT N can be modified or removed by Relays
    Section 9.20.9).  The registration policy is First Come First Served
    (per [RFC8126], Section 4.4).
 
-                   +======+===========+================+
-                   | Mode | Name      | Specification  |
-                   +======+===========+================+
-                   |  0x0 | Immediate | Section 9.20.9 |
-                   +------+-----------+----------------+
-                   |  0x1 | Aligned   | Section 9.20.9 |
-                   +------+-----------+----------------+
+              +======+====================+================+
+              | Mode | Name               | Specification  |
+              +======+====================+================+
+              |  0x0 | Immediate          | Section 9.20.9 |
+              +------+--------------------+----------------+
+              |  0x1 | Continuous Objects | Section 9.20.9 |
+              +------+--------------------+----------------+
+              |  0x2 | Group Aligned      | Section 9.20.9 |
+              +------+--------------------+----------------+
 
-                                  Table 15
+                                 Table 15
 
 16.9.  Properties
 
