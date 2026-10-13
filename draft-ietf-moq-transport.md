@@ -1106,7 +1106,9 @@ On receiving a message containing SWITCH_FROM, the publisher:
 3. Waits until it is ready to publish the Switch Object (defined below), while
    continuing to deliver objects on the suspending subscription.
    In Immediate mode, the publisher skips this step and proceeds once the
-   response in step 2 has been sent.
+   response in step 2 has been sent.  In other modes, this wait ensures delivery
+   on the suspending subscription does not stop before the activating
+   subscription can deliver data.
 
    When the activating subscription does not open a fill fetch stream, the
    Switch Object is the first subscription-delivered Object that passes the
@@ -1130,7 +1132,10 @@ On receiving a message containing SWITCH_FROM, the publisher:
 
    * Mode Immediate (0x0) and Mode Continuous Objects (0x1): pauses the
      suspending subscription and resets any
-     outstanding streams, including fill fetch streams.
+     outstanding streams, including fill fetch streams.  The suspending
+     subscription is paused without regard to the Switch Object's position.
+     When the two Tracks are related, such as renditions of the same content,
+     the subscriber can observe a gap or an overlap.
 
    * Mode Group Aligned (0x2): when Switch Object's Group is greater than zero, the
      publisher updates the suspending subscription's End Group to the Switch
@@ -1139,7 +1144,9 @@ On receiving a message containing SWITCH_FROM, the publisher:
      Switch Object's Group.  If the Switch Object's Group is zero, the Group Aligned
      mode behaves like Continuous Objects mode. Group Aligned mode
      is effective when the activating and suspending Tracks use aligned Group
-     IDs.
+     IDs.  For example, if the Switch Object is in Group N, the suspending
+     subscription delivers all Objects whose Group ID is less than N, and the
+     activating subscription starts with the Switch Object.
 
    In all modes, Objects already in flight can still be received by the
    subscriber.
