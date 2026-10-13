@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 15 April 2027                                     I. Swett, Ed.
+Expires: 16 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         12 October 2026
+                                                         13 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 April 2027.
+   This Internet-Draft will expire on 16 April 2027.
 
 Copyright Notice
 
@@ -3375,13 +3375,16 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    connections.
 
    A GOAWAY MAY also be sent on a request stream to initiate migration
-   of that individual request.  Upon receiving a GOAWAY on a request
-   stream, the endpoint SHOULD re-issue that specific request on a
+   of that individual request.  Only the receiver of a request can send
+   GOAWAY on its request stream.  If the receiver of a request receives
+   a GOAWAY on that request stream, it MUST close the session with a
+   PROTOCOL_VIOLATION.  Upon receiving a GOAWAY on a request stream, the
+   sender of the request SHOULD re-issue that specific request on a
    session at the specified URI (or the current session if no URI is
    provided), and close the old request stream using the appropriate
    mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).  This allows,
-   for example, moving the publishers and subscribers of a common set of
-   tracks to a common relay without draining their entire session.
+   for example, moving the publishers and subscribers of a set of tracks
+   to a common relay without draining their entire session.
 
    The GOAWAY message does not impact subscription state.  A subscriber
    SHOULD individually unsubscribe from each existing subscription,
@@ -3829,6 +3832,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    objects to the application.  The subscriber SHOULD send STOP_SENDING
    on all streams related to the subscription when it deletes
    subscription state.
+
+   A publisher that ends a subscription because the authorization token
+   that authorized it has expired SHOULD send PUBLISH_DONE with status
+   code EXPIRED_AUTH_TOKEN.
 
    The format of PUBLISH_DONE is as follows:
 
@@ -5774,6 +5781,9 @@ EXT 1 and EXT N can be modified or removed by Relays
    EXPIRED (0x6):  The publisher reached the timeout specified in
       SUBSCRIBE_OK.
 
+   EXPIRED_AUTH_TOKEN (0x7):  The authorization token that authorized
+      the subscription has expired (see Section 9.9).
+
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 12.1).
 
@@ -6634,6 +6644,8 @@ EXT 1 and EXT N can be modified or removed by Relays
         | TOO_FAR_BEHIND        |       0x5       | Section 12.4  |
         +-----------------------+-----------------+---------------+
         | EXPIRED               |       0x6       | Section 12.4  |
+        +-----------------------+-----------------+---------------+
+        | EXPIRED_AUTH_TOKEN    |       0x7       | Section 12.4  |
         +-----------------------+-----------------+---------------+
         | UPDATE_FAILED         |       0x8       | Section 12.4  |
         +-----------------------+-----------------+---------------+

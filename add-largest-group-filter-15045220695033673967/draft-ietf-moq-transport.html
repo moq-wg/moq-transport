@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 15 April 2027</td>
+<td class="center">Expires 16 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-12" class="published">12 October 2026</time>
+<time datetime="2026-10-13" class="published">13 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-15">15 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-16">16 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 15 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 16 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -5448,13 +5448,16 @@ it intends to close the session soon.  When sent by a server, it can initiate
 session migration (<a href="#session-migration" class="auto internal xref">Section 6.6.1</a>) with an optional URI.  A client <span class="bcp14">MUST</span>
 send a zero-length New Session URI in any GOAWAY, as clients cannot instruct
 servers to initiate connections.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
-<p id="section-9.2-2">A <code>GOAWAY</code> <span class="bcp14">MAY</span> also be sent on a request stream to initiate migration of
-that individual request.  Upon receiving a GOAWAY on a request stream, the
-endpoint <span class="bcp14">SHOULD</span> re-issue that specific request on a session at the specified
-URI (or the current session if no URI is provided), and close the old request
-stream using the appropriate mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).
-This allows, for example, moving the publishers and subscribers of a common set
-of tracks to a common relay without draining their entire session.<a href="#section-9.2-2" class="pilcrow">¶</a></p>
+<p id="section-9.2-2">A <code>GOAWAY</code> <span class="bcp14">MAY</span> also be sent on a request stream to initiate migration of that
+individual request.  Only the receiver of a request can send GOAWAY on its
+request stream.  If the receiver of a request receives a GOAWAY on that request
+stream, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.  Upon receiving a
+GOAWAY on a request stream, the sender of the request <span class="bcp14">SHOULD</span> re-issue that
+specific request on a session at the specified URI (or the current session if no
+URI is provided), and close the old request stream using the appropriate
+mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).  This allows, for example,
+moving the publishers and subscribers of a set of tracks to a common relay
+without draining their entire session.<a href="#section-9.2-2" class="pilcrow">¶</a></p>
 <p id="section-9.2-3">The GOAWAY message does not impact subscription state. A subscriber
 <span class="bcp14">SHOULD</span> individually unsubscribe from each existing subscription, while a
 publisher <span class="bcp14">MAY</span> reject new requests after sending a GOAWAY.<a href="#section-9.2-3" class="pilcrow">¶</a></p>
@@ -6000,10 +6003,13 @@ closed. A subscriber <span class="bcp14">MAY</span> discard subscription state e
 potentially not delivering some late objects to the application.  The
 subscriber <span class="bcp14">SHOULD</span> send STOP_SENDING on all streams related to the subscription
 when it deletes subscription state.<a href="#section-9.9-5" class="pilcrow">¶</a></p>
-<p id="section-9.9-6">The format of <code>PUBLISH_DONE</code> is as follows:<a href="#section-9.9-6" class="pilcrow">¶</a></p>
+<p id="section-9.9-6">A publisher that ends a subscription because the authorization token that
+authorized it has expired <span class="bcp14">SHOULD</span> send PUBLISH_DONE with status code
+<code>EXPIRED_AUTH_TOKEN</code>.<a href="#section-9.9-6" class="pilcrow">¶</a></p>
+<p id="section-9.9-7">The format of <code>PUBLISH_DONE</code> is as follows:<a href="#section-9.9-7" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_done-message"></span><div id="moq-transport-subscribe-fin-format">
 <figure id="figure-14">
-          <div class="alignLeft art-text artwork" id="section-9.9-7.1">
+          <div class="alignLeft art-text artwork" id="section-9.9-8.1">
 <pre>
 PUBLISH_DONE Message {
   Type (vi64) = 0xB,
@@ -6019,11 +6025,11 @@ PUBLISH_DONE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.9-8.1">
-            <p id="section-9.9-8.1.1">Status Code: An integer status code indicating why the subscription ended.<a href="#section-9.9-8.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.9-9.1">
+            <p id="section-9.9-9.1.1">Status Code: An integer status code indicating why the subscription ended.<a href="#section-9.9-9.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.9-8.2">
-            <p id="section-9.9-8.2.1">Stream Count: An integer indicating the number of data streams the publisher
+          <li class="normal" id="section-9.9-9.2">
+            <p id="section-9.9-9.2.1">Stream Count: An integer indicating the number of data streams the publisher
 opened for this subscription, including streams that contained no Objects (e.g.,
 an empty Subgroup) and including any fill fetch streams (see
 <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>).  This helps the subscriber know if it has received
@@ -6037,13 +6043,13 @@ opened for the subscription, it <span class="bcp14">MUST</span> set Stream Count
 the publisher set an incorrect value, reset a stream before the SUBGROUP_HEADER,
 or set the maximum value.  If a subscriber receives more streams for a
 subscription than specified in Stream Count, it <span class="bcp14">MAY</span> close the session with a
-<code>PROTOCOL_VIOLATION</code>.<a href="#section-9.9-8.2.1" class="pilcrow">¶</a></p>
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-9.9-9.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.9-8.3">
-            <p id="section-9.9-8.3.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 8.5</a>.<a href="#section-9.9-8.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.9-9.3">
+            <p id="section-9.9-9.3.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 8.5</a>.<a href="#section-9.9-9.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-9.9-9">The status codes used in PUBLISH_DONE are defined in <a href="#publish-done-codes" class="auto internal xref">Section 12.4</a>.<a href="#section-9.9-9" class="pilcrow">¶</a></p>
+<p id="section-9.9-10">The status codes used in PUBLISH_DONE are defined in <a href="#publish-done-codes" class="auto internal xref">Section 12.4</a>.<a href="#section-9.9-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="ps-notify">
@@ -8501,21 +8507,27 @@ its implementation defined limit.<a href="#section-12.4-2.10.1" class="pilcrow">
             <p id="section-12.4-2.12.1">The publisher reached the timeout specified in SUBSCRIBE_OK.<a href="#section-12.4-2.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.4-2.13">MALFORMED_TRACK (0x12):</dt>
+<dt id="section-12.4-2.13">EXPIRED_AUTH_TOKEN (0x7):</dt>
           <dd style="margin-left: 1.5em" id="section-12.4-2.14">
-            <p id="section-12.4-2.14.1">A relay publisher detected that the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-12.4-2.14.1" class="pilcrow">¶</a></p>
+            <p id="section-12.4-2.14.1">The authorization token that authorized the subscription has expired
+(see <a href="#message-publish-done" class="auto internal xref">Section 9.9</a>).<a href="#section-12.4-2.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.4-2.15">UPDATE_FAILED (0x8):</dt>
+<dt id="section-12.4-2.15">MALFORMED_TRACK (0x12):</dt>
           <dd style="margin-left: 1.5em" id="section-12.4-2.16">
-            <p id="section-12.4-2.16.1">REQUEST_UPDATE failed on this subscription (see
-<a href="#message-request-update" class="auto internal xref">Section 9.5</a>).<a href="#section-12.4-2.16.1" class="pilcrow">¶</a></p>
+            <p id="section-12.4-2.16.1">A relay publisher detected that the track was malformed (see
+<a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-12.4-2.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.4-2.17">EXCESSIVE_LOAD (0x9):</dt>
+<dt id="section-12.4-2.17">UPDATE_FAILED (0x8):</dt>
           <dd style="margin-left: 1.5em" id="section-12.4-2.18">
-            <p id="section-12.4-2.18.1">The publisher is overloaded and is terminating the subscription.<a href="#section-12.4-2.18.1" class="pilcrow">¶</a></p>
+            <p id="section-12.4-2.18.1">REQUEST_UPDATE failed on this subscription (see
+<a href="#message-request-update" class="auto internal xref">Section 9.5</a>).<a href="#section-12.4-2.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.4-2.19">EXCESSIVE_LOAD (0x9):</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-2.20">
+            <p id="section-12.4-2.20.1">The publisher is overloaded and is terminating the subscription.<a href="#section-12.4-2.20.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -10095,6 +10107,13 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">EXPIRED</td>
                 <td class="text-center" rowspan="1" colspan="1">0x6</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <a href="#publish-done-codes" class="auto internal xref">Section 12.4</a>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">EXPIRED_AUTH_TOKEN</td>
+                <td class="text-center" rowspan="1" colspan="1">0x7</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#publish-done-codes" class="auto internal xref">Section 12.4</a>
 </td>
