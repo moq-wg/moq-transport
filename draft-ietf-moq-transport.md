@@ -5799,7 +5799,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 | 0x35 | INCLUDE_PROPERTIES | {{include-properties-param}} |
-| 0x37 | DEFAULT_PUBLISHER_PRIORITY | {{publisher-priority}} |
+| 0x36 | DEFAULT_PUBLISHER_PRIORITY | {{publisher-priority}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
