@@ -3148,7 +3148,7 @@ sending Objects that are too old, but ensures that if Objects depend
 upon one another, the entire Subgroup is delivered.<a href="#section-3.5-4" class="pilcrow">¶</a></p>
 <p id="section-3.5-5">Delivery of Objects in the Largest Group is best effort. A publisher that
 cannot ncomplete a Subgroup it opened in the Largest Group resets it with
-LARGEST_GROUP_UNAVAILABLE (<a href="#stream-reset-codes" class="auto internal xref">Section 12.5</a>).<a href="#section-3.5-5" class="pilcrow">¶</a></p>
+SUBGROUP_UNAVAILALBLE (<a href="#stream-reset-codes" class="auto internal xref">Section 12.5</a>).<a href="#section-3.5-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="joining-tracks">
@@ -8736,7 +8736,7 @@ of the next Object in the requested range.<a href="#section-12.5-2.14.1" class="
             <p id="section-12.5-2.18.1">The endpoint is overloaded and is resetting this stream.<a href="#section-12.5-2.18.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.5-2.19">LARGEST_GROUP_UNAVAILABLE (0xA):</dt>
+<dt id="section-12.5-2.19">SUBGROUP_UNAVAILALBLE (0xA):</dt>
           <dd style="margin-left: 1.5em" id="section-12.5-2.20">
             <p id="section-12.5-2.20.1">The publisher is unable to complete a Subgroup in the Largest Group (see
 <a href="#largest-group-delivery" class="auto internal xref">Section 3.5</a>).<a href="#section-12.5-2.20.1" class="pilcrow">¶</a></p>
@@ -10473,7 +10473,7 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 </td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">LARGEST_GROUP_UNAVAILABLE</td>
+                <td class="text-left" rowspan="1" colspan="1">SUBGROUP_UNAVAILALBLE</td>
                 <td class="text-center" rowspan="1" colspan="1">0xA</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#stream-reset-codes" class="auto internal xref">Section 12.5</a>

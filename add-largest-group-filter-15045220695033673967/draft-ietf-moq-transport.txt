@@ -1378,7 +1378,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    Delivery of Objects in the Largest Group is best effort.  A publisher
    that cannot ncomplete a Subgroup it opened in the Largest Group
-   resets it with LARGEST_GROUP_UNAVAILABLE (Section 12.5).
+   resets it with SUBGROUP_UNAVAILALBLE (Section 12.5).
 
 3.6.  Joining an Ongoing Track
 
@@ -5937,8 +5937,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    EXCESSIVE_LOAD (0x9):  The endpoint is overloaded and is resetting
       this stream.
 
-   LARGEST_GROUP_UNAVAILABLE (0xA):  The publisher is unable to complete
-      a Subgroup in the Largest Group (see Section 3.5).
+   SUBGROUP_UNAVAILALBLE (0xA):  The publisher is unable to complete a
+      Subgroup in the Largest Group (see Section 3.5).
 
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 12.1).
@@ -6800,33 +6800,33 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 16.11.4.  Stream Reset Error Codes
 
-      +===========================+=================+===============+
-      | Name                      |       Code      | Specification |
-      +===========================+=================+===============+
-      | INTERNAL_ERROR            |       0x0       | Section 12.5  |
-      +---------------------------+-----------------+---------------+
-      | CANCELLED                 |       0x1       | Section 12.5  |
-      +---------------------------+-----------------+---------------+
-      | DELIVERY_TIMEOUT          |       0x2       | Section 12.5  |
-      +---------------------------+-----------------+---------------+
-      | SESSION_CLOSED            |       0x3       | Section 12.5  |
-      +---------------------------+-----------------+---------------+
-      | GOING_AWAY                |       0x4       | Section 12.5  |
-      +---------------------------+-----------------+---------------+
-      | TOO_FAR_BEHIND            |       0x5       | Section 12.5  |
-      +---------------------------+-----------------+---------------+
-      | UNKNOWN_OBJECT_STATUS     |       0x6       | Section 12.5  |
-      +---------------------------+-----------------+---------------+
-      | EXPIRED_AUTH_TOKEN        |       0x7       | Section 12.5  |
-      +---------------------------+-----------------+---------------+
-      | EXCESSIVE_LOAD            |       0x9       | Section 12.5  |
-      +---------------------------+-----------------+---------------+
-      | LARGEST_GROUP_UNAVAILABLE |       0xA       | Section 12.5  |
-      +---------------------------+-----------------+---------------+
-      | MALFORMED_TRACK           |       0x12      | Section 12.5  |
-      +---------------------------+-----------------+---------------+
-      | Reserved for greasing     | 0x7f * N + 0x9D | Section 13    |
-      +---------------------------+-----------------+---------------+
+        +=======================+=================+===============+
+        | Name                  |       Code      | Specification |
+        +=======================+=================+===============+
+        | INTERNAL_ERROR        |       0x0       | Section 12.5  |
+        +-----------------------+-----------------+---------------+
+        | CANCELLED             |       0x1       | Section 12.5  |
+        +-----------------------+-----------------+---------------+
+        | DELIVERY_TIMEOUT      |       0x2       | Section 12.5  |
+        +-----------------------+-----------------+---------------+
+        | SESSION_CLOSED        |       0x3       | Section 12.5  |
+        +-----------------------+-----------------+---------------+
+        | GOING_AWAY            |       0x4       | Section 12.5  |
+        +-----------------------+-----------------+---------------+
+        | TOO_FAR_BEHIND        |       0x5       | Section 12.5  |
+        +-----------------------+-----------------+---------------+
+        | UNKNOWN_OBJECT_STATUS |       0x6       | Section 12.5  |
+        +-----------------------+-----------------+---------------+
+        | EXPIRED_AUTH_TOKEN    |       0x7       | Section 12.5  |
+        +-----------------------+-----------------+---------------+
+        | EXCESSIVE_LOAD        |       0x9       | Section 12.5  |
+        +-----------------------+-----------------+---------------+
+        | SUBGROUP_UNAVAILALBLE |       0xA       | Section 12.5  |
+        +-----------------------+-----------------+---------------+
+        | MALFORMED_TRACK       |       0x12      | Section 12.5  |
+        +-----------------------+-----------------+---------------+
+        | Reserved for greasing | 0x7f * N + 0x9D | Section 13    |
+        +-----------------------+-----------------+---------------+
 
                                   Table 22
 
