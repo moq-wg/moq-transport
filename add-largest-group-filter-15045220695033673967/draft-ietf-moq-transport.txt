@@ -5807,9 +5807,6 @@ EXT 1 and EXT N can be modified or removed by Relays
       request at this time.  The sender SHOULD use the Retry Interval to
       indicate when the request can be retried.
 
-   LARGEST_GROUP_UNAVAILABLE (0xA):  The publisher is unable to complete
-      a Subgroup in the Largest Group (see Section 3.5).
-
    UNSUPPORTED_EXTENSION:  The track contains a Mandatory Track Property
       (see Section 3.8) that the endpoint does not understand.
 
@@ -5932,6 +5929,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    EXCESSIVE_LOAD (0x9):  The endpoint is overloaded and is resetting
       this stream.
+
+   LARGEST_GROUP_UNAVAILABLE (0xA):  The publisher is unable to complete
+      a Subgroup in the Largest Group (see Section 3.5).
 
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 12.1).

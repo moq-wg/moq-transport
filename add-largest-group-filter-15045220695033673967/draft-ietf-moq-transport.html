@@ -8523,21 +8523,15 @@ within the timeout.<a href="#section-12.3-2.6.1" class="pilcrow">¶</a></p>
 sender <span class="bcp14">SHOULD</span> use the Retry Interval to indicate when the request can be retried.<a href="#section-12.3-2.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.3-2.17">LARGEST_GROUP_UNAVAILABLE (0xA):</dt>
+<dt id="section-12.3-2.17">UNSUPPORTED_EXTENSION:</dt>
           <dd style="margin-left: 1.5em" id="section-12.3-2.18">
-            <p id="section-12.3-2.18.1">The publisher is unable to complete a Subgroup in the Largest Group (see
-<a href="#largest-group-delivery" class="auto internal xref">Section 3.5</a>).<a href="#section-12.3-2.18.1" class="pilcrow">¶</a></p>
+            <p id="section-12.3-2.18.1">The track contains a Mandatory Track Property
+(see <a href="#mandatory-track-properties" class="auto internal xref">Section 3.8</a>) that the endpoint does not understand.<a href="#section-12.3-2.18.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.3-2.19">UNSUPPORTED_EXTENSION:</dt>
+<dt id="section-12.3-2.19">REDIRECT:</dt>
           <dd style="margin-left: 1.5em" id="section-12.3-2.20">
-            <p id="section-12.3-2.20.1">The track contains a Mandatory Track Property
-(see <a href="#mandatory-track-properties" class="auto internal xref">Section 3.8</a>) that the endpoint does not understand.<a href="#section-12.3-2.20.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-12.3-2.21">REDIRECT:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.3-2.22">
-            <p id="section-12.3-2.22.1">The request cannot be fulfilled by this endpoint, but could succeed at the
+            <p id="section-12.3-2.20.1">The request cannot be fulfilled by this endpoint, but could succeed at the
 location specified in the Redirect structure. The requester <span class="bcp14">SHOULD</span> establish a
 new session to the provided URI (if present) and retry the request using the
 Redirect target. A Retry Interval of 0 indicates the original request <span class="bcp14">SHOULD NOT</span> be retried as sent;
@@ -8549,7 +8543,7 @@ redirects from upstream
 and <span class="bcp14">MAY</span> forward a REDIRECT response to matching downstream requests. A relay
 <span class="bcp14">MAY</span> cache a REDIRECT response for up to Retry Interval
 milliseconds and use it to respond to subsequent matching requests without
-forwarding them upstream.<a href="#section-12.3-2.22.1" class="pilcrow">¶</a></p>
+forwarding them upstream.<a href="#section-12.3-2.20.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -8736,10 +8730,16 @@ of the next Object in the requested range.<a href="#section-12.5-2.14.1" class="
             <p id="section-12.5-2.18.1">The endpoint is overloaded and is resetting this stream.<a href="#section-12.5-2.18.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.5-2.19">MALFORMED_TRACK (0x12):</dt>
+<dt id="section-12.5-2.19">LARGEST_GROUP_UNAVAILABLE (0xA):</dt>
           <dd style="margin-left: 1.5em" id="section-12.5-2.20">
-            <p id="section-12.5-2.20.1">A relay publisher detected that the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-12.5-2.20.1" class="pilcrow">¶</a></p>
+            <p id="section-12.5-2.20.1">The publisher is unable to complete a Subgroup in the Largest Group (see
+<a href="#largest-group-delivery" class="auto internal xref">Section 3.5</a>).<a href="#section-12.5-2.20.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.5-2.21">MALFORMED_TRACK (0x12):</dt>
+          <dd style="margin-left: 1.5em" id="section-12.5-2.22">
+            <p id="section-12.5-2.22.1">A relay publisher detected that the track was malformed (see
+<a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-12.5-2.22.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
