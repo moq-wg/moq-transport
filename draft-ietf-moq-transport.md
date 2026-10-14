@@ -5207,10 +5207,6 @@ EXCESSIVE_LOAD:
 : The responder is overloaded and cannot process the request at this time. The
 sender SHOULD use the Retry Interval to indicate when the request can be retried.
 
-LARGEST_GROUP_UNAVAILABLE (0xA):
-: The publisher is unable to complete a Subgroup in the Largest Group (see
-  {{largest-group-delivery}}).
-
 UNSUPPORTED_EXTENSION:
 : The track contains a Mandatory Track Property
 (see {{mandatory-track-properties}}) that the endpoint does not understand.
@@ -5344,6 +5340,10 @@ EXPIRED_AUTH_TOKEN (0x7):
 
 EXCESSIVE_LOAD (0x9):
 : The endpoint is overloaded and is resetting this stream.
+
+LARGEST_GROUP_UNAVAILABLE (0xA):
+: The publisher is unable to complete a Subgroup in the Largest Group (see
+  {{largest-group-delivery}}).
 
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
