@@ -1377,8 +1377,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    upon one another, the entire Subgroup is delivered.
 
    Delivery of Objects in the Largest Group is best effort.  A publisher
-   that cannot ncomplete a Subgroup it opened in the Largest Group
-   resets it with SUBGROUP_UNAVAILALBLE (Section 12.5).
+   that cannot complete a Subgroup it opened in the Largest Group resets
+   it with SUBGROUP_UNAVAILABLE (Section 12.5).
 
 3.6.  Joining an Ongoing Track
 
