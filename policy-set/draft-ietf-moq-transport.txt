@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 15 April 2027                                     I. Swett, Ed.
+Expires: 17 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         12 October 2026
+                                                         14 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 April 2027.
+   This Internet-Draft will expire on 17 April 2027.
 
 Copyright Notice
 
@@ -1852,7 +1852,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    A relay implementing selection sets follows the same processing
    pipeline regardless of policy algorithm:
 
-   1.  Receive objects from upstream and extract property values.
+   1.  Receive an object from upstream and extract property values.
 
    2.  Evaluate the ordered Selection Policies for each affected track,
        processing each policy's selection set in order.
