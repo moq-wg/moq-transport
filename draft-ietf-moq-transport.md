@@ -1537,7 +1537,7 @@ it MUST leave the suspending subscription unchanged.
 A relay implementing selection sets follows the same processing pipeline
 regardless of policy algorithm:
 
-1. Receive objects from upstream and extract property values.
+1. Receive an object from upstream and extract property values.
 
 2. Evaluate the ordered Selection Policies for each affected track,
    processing each policy's selection set in order.
