@@ -1090,9 +1090,7 @@ Filter {{location-filters}} that starts at the Next Object.  Delivery begins
 with the next Object and can begin mid-group.
 
 To join a Track at the current Group, the subscriber sends a SUBSCRIBE with a
-Location Filter that starts at the Next Object and a FILL_PARAMETERS parameter
-(see {{fill-parameters}}) whose Location filter has StartGroup=1, which fills
-the current Group from its start.
+Location Filter that starts at the Largest Group {{largest-group-delivery}}.
 
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a
 FILL_PARAMETERS parameter whose Location filter selects the intended Groups,
