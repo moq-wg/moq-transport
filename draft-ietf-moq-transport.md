@@ -1076,7 +1076,7 @@ upon one another, the entire Subgroup is delivered.
 
 Delivery of Objects in the Largest Group is best effort. A publisher that
 cannot ncomplete a Subgroup it opened in the Largest Group resets it with
-LARGEST_GROUP_UNAVAILABLE ({{stream-reset-codes}}).
+SUBGROUP_UNAVAILALBLE ({{stream-reset-codes}}).
 
 ## Joining an Ongoing Track {#joining-tracks}
 
@@ -5348,7 +5348,7 @@ EXPIRED_AUTH_TOKEN (0x7):
 EXCESSIVE_LOAD (0x9):
 : The endpoint is overloaded and is resetting this stream.
 
-LARGEST_GROUP_UNAVAILABLE (0xA):
+SUBGROUP_UNAVAILALBLE (0xA):
 : The publisher is unable to complete a Subgroup in the Largest Group (see
   {{largest-group-delivery}}).
 
@@ -6025,7 +6025,7 @@ This document does not define any initial entries.
 | UNKNOWN_OBJECT_STATUS | 0x6  | {{stream-reset-codes}}   |
 | EXPIRED_AUTH_TOKEN    | 0x7  | {{stream-reset-codes}}   |
 | EXCESSIVE_LOAD        | 0x9  | {{stream-reset-codes}}   |
-| LARGEST_GROUP_UNAVAILABLE | 0xA | {{stream-reset-codes}} |
+| SUBGROUP_UNAVAILALBLE | 0xA | {{stream-reset-codes}} |
 | MALFORMED_TRACK       | 0x12 | {{stream-reset-codes}}   |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
