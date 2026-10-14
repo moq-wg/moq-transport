@@ -3164,9 +3164,7 @@ will have different approaches for when to begin a new Group.<a href="#section-3
 Filter <a href="#location-filters" class="auto internal xref">Section 3.3.1</a> that starts at the Next Object.  Delivery begins
 with the next Object and can begin mid-group.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
 <p id="section-3.6-3">To join a Track at the current Group, the subscriber sends a SUBSCRIBE with a
-Location Filter that starts at the Next Object and a FILL_PARAMETERS parameter
-(see <a href="#fill-parameters" class="auto internal xref">Section 9.20.15</a>) whose Location filter has StartGroup=1, which fills
-the current Group from its start.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
+Location Filter that starts at the Largest Group <a href="#largest-group-delivery" class="auto internal xref">Section 3.5</a>.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
 <p id="section-3.6-4">To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a
 FILL_PARAMETERS parameter whose Location filter selects the intended Groups,
 which can be relative.  The publisher delivers the fill range on a fill fetch
