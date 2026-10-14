@@ -1075,8 +1075,8 @@ sending Objects that are too old, but ensures that if Objects depend
 upon one another, the entire Subgroup is delivered.
 
 Delivery of Objects in the Largest Group is best effort. A publisher that
-cannot ncomplete a Subgroup it opened in the Largest Group resets it with
-SUBGROUP_UNAVAILALBLE ({{stream-reset-codes}}).
+cannot complete a Subgroup it opened in the Largest Group resets it with
+SUBGROUP_UNAVAILABLE ({{stream-reset-codes}}).
 
 ## Joining an Ongoing Track {#joining-tracks}
 
