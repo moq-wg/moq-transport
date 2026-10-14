@@ -1064,12 +1064,18 @@ The publisher MUST begin each Subgroup in the Largest Group with the lowest
 Object ID published by the Original Publisher in that Subgroup. A relay MUST NOT
 deliver an Object in a Subgroup of the Largest Group until every prior Object
 in that Subgroup has been received, is known not to exist, or has been retrieved
-from upstream. An Established upstream subscription that started before the
-Largest Group typically delivers these Objects; otherwise, a relay can
-subscribe upstream with this filter or use FETCH.
+from upstream. If a previously established Subscription caused these Objects to be
+cached, they can be immediately delivered; otherwise, a relay can subscribe
+upstream with this filter.
 
-Delivery of Objects in the Largest Group is best effort. A publisher that cannot
-complete a Subgroup it opened in the Largest Group resets it with
+If a Subscriber specifies the OBJECT_SUBGROUP_TIMEOUT or
+SUBGROUP_DELIVERY_TIMEOUT Parameters, Subgroups or Datagrams
+SHOULD NOT be sent if they already exceed the delivery timeout. This avoids
+sending Objects that are too old, but ensures that if Objects depend
+upon one another, the entire Subgroup is delivered.
+
+Delivery of Objects in the Largest Group is best effort. A publisher that
+cannot ncomplete a Subgroup it opened in the Largest Group resets it with
 LARGEST_GROUP_UNAVAILABLE ({{stream-reset-codes}}).
 
 ## Joining an Ongoing Track {#joining-tracks}
