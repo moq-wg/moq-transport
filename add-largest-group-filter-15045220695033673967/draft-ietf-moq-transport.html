@@ -3138,12 +3138,17 @@ are subscription-delivered, including those already published or cached.<a href=
 Object ID published by the Original Publisher in that Subgroup. A relay <span class="bcp14">MUST NOT</span>
 deliver an Object in a Subgroup of the Largest Group until every prior Object
 in that Subgroup has been received, is known not to exist, or has been retrieved
-from upstream. An Established upstream subscription that started before the
-Largest Group typically delivers these Objects; otherwise, a relay can
-subscribe upstream with this filter or use FETCH.<a href="#section-3.5-3" class="pilcrow">¶</a></p>
-<p id="section-3.5-4">Delivery of Objects in the Largest Group is best effort. A publisher that cannot
-complete a Subgroup it opened in the Largest Group resets it with
-LARGEST_GROUP_UNAVAILABLE (<a href="#stream-reset-codes" class="auto internal xref">Section 12.5</a>).<a href="#section-3.5-4" class="pilcrow">¶</a></p>
+from upstream. If a previously established Subscription caused these Objects to be
+cached, they can be immediately delivered; otherwise, a relay can subscribe
+upstream with this filter.<a href="#section-3.5-3" class="pilcrow">¶</a></p>
+<p id="section-3.5-4">If a Subscriber specifies the OBJECT_SUBGROUP_TIMEOUT or
+SUBGROUP_DELIVERY_TIMEOUT Parameters, Subgroups or Datagrams
+<span class="bcp14">SHOULD NOT</span> be sent if they already exceed the delivery timeout. This avoids
+sending Objects that are too old, but ensures that if Objects depend
+upon one another, the entire Subgroup is delivered.<a href="#section-3.5-4" class="pilcrow">¶</a></p>
+<p id="section-3.5-5">Delivery of Objects in the Largest Group is best effort. A publisher that
+cannot ncomplete a Subgroup it opened in the Largest Group resets it with
+LARGEST_GROUP_UNAVAILABLE (<a href="#stream-reset-codes" class="auto internal xref">Section 12.5</a>).<a href="#section-3.5-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="joining-tracks">

@@ -1366,13 +1366,19 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Subgroup.  A relay MUST NOT deliver an Object in a Subgroup of the
    Largest Group until every prior Object in that Subgroup has been
    received, is known not to exist, or has been retrieved from upstream.
-   An Established upstream subscription that started before the Largest
-   Group typically delivers these Objects; otherwise, a relay can
-   subscribe upstream with this filter or use FETCH.
+   If a previously established Subscription caused these Objects to be
+   cached, they can be immediately delivered; otherwise, a relay can
+   subscribe upstream with this filter.
+
+   If a Subscriber specifies the OBJECT_SUBGROUP_TIMEOUT or
+   SUBGROUP_DELIVERY_TIMEOUT Parameters, Subgroups or Datagrams SHOULD
+   NOT be sent if they already exceed the delivery timeout.  This avoids
+   sending Objects that are too old, but ensures that if Objects depend
+   upon one another, the entire Subgroup is delivered.
 
    Delivery of Objects in the Largest Group is best effort.  A publisher
-   that cannot complete a Subgroup it opened in the Largest Group resets
-   it with LARGEST_GROUP_UNAVAILABLE (Section 12.5).
+   that cannot ncomplete a Subgroup it opened in the Largest Group
+   resets it with LARGEST_GROUP_UNAVAILABLE (Section 12.5).
 
 3.6.  Joining an Ongoing Track
 
