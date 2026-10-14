@@ -2223,6 +2223,38 @@ the Relay MUST NOT propagate that message or Object to another Session, because
 it would enable a single Session error to force an unrelated Session, which
 might be handling other subscriptions, to be closed.
 
+### Caching and Propagation of Request Errors {#relay-request-error}
+
+When all of the upstream requests have failed with a REQUEST_ERROR
+({{message-request-error}}), the Relay rejects the downstream request with its
+own REQUEST_ERROR message.  If at least one of the upstream requests succeeds,
+the Relay uses that and ignores the errors from other upstream requests.
+
+When rejecting a downstream request due to an upstream REQUEST_ERROR, a Relay
+MAY propagate the upstream Error Code, Error Reason, Retry Interval, and
+Redirect (if present) downstream. However, Relays SHOULD NOT propagate error
+codes that apply to the upstream hop or session rather than the downstream
+request, such as `UNAUTHORIZED`, `MALFORMED_AUTH_TOKEN`, `EXPIRED_AUTH_TOKEN`,
+or `GOING_AWAY` (for example, when the Relay itself is unauthorized upstream
+rather than the downstream subscriber).  In such cases, the Relay SHOULD
+use `INTERNAL_ERROR` or another applicable error code.
+
+When an upstream REQUEST_ERROR is propagated and has a Retry Interval greater
+than `1`, a Relay MAY cache the error response for up to `Retry Interval - 1`
+milliseconds and use it to respond to subsequent downstream requests for the
+same track without forwarding them upstream. A REQUEST_ERROR with a Retry
+Interval of `0` (do not retry) or `1` (retry immediately) MUST NOT be cached.
+
+Whenever a Relay sends a REQUEST_ERROR derived from an upstream response
+(either after waiting for other upstream publishers or when serving a cached
+error), it MUST reduce the Retry Interval by the time elapsed since the
+upstream REQUEST_ERROR was received; if that would lead to Retry Interval
+reaching the value of 1 or lower, the cached error MUST be evicted.  In
+addition to subtracting the time elapsed, it can apply randomization as
+described in {{message-request-error}}.  If a Relay receives a new authorized
+PUBLISH or PUBLISH_NAMESPACE that matches a cached REQUEST_ERROR (such as
+`DOES_NOT_EXIST`), it MUST evict the cached error.
+
 ### Graceful Publisher Relay Switchover {#graceful-publisher-switchover}
 
 This section describes a behavior that a publisher MAY implement to improve
@@ -3099,7 +3131,9 @@ If a request is retryable with the same parameters at a later time, the sender
 of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
 the risk of synchronized retry storms, the sender can apply randomization to
 each retry interval so that retries are spread out over time.  A Retry Interval
-value of 1 indicates the request can be retried immediately.
+value of 1 indicates the request can be retried immediately. See
+{{relay-request-error}} for how Relays cache and propagate REQUEST_ERROR
+messages using the Retry Interval.
 
 The error codes used in REQUEST_ERROR are defined in {{request-error-codes}}.
 
@@ -5183,11 +5217,8 @@ it does not prevent the requester from following a Redirect to a different
 URI or Redirect target. This error code can appear in
 response to SUBSCRIBE, FETCH, TRACK_STATUS, PUBLISH, PUBLISH_NAMESPACE,
 SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Relays are not required to follow
-redirects from upstream
-and MAY forward a REDIRECT response to matching downstream requests. A relay
-MAY cache a REDIRECT response for up to Retry Interval
-milliseconds and use it to respond to subsequent matching requests without
-forwarding them upstream.
+redirects from upstream and MAY forward or cache a REDIRECT response as
+described in {{relay-request-error}}.
 
 Below are errors for use by the publisher. They can appear in response to
 SUBSCRIBE, FETCH, TRACK_STATUS, SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS,
