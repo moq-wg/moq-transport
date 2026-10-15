@@ -278,7 +278,7 @@ sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
 
 Most requests in MOQT are answered with a common REQUEST_OK
 ({{message-request-ok}}) or REQUEST_ERROR ({{message-request-error}}) message.
-This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
+This document uses the shorthand PUBLISH_OK, FETCH_OK, REQUEST_UPDATE_OK,
 TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
 PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
 corresponding request type.  Likewise, it uses the shorthand SUBSCRIBE_ERROR,
@@ -2771,7 +2771,7 @@ new request stream.
 |--------|------------------------------------------------|------------------|
 | 0x16   | FETCH ({{message-fetch}})                      | Request, First   |
 |--------|------------------------------------------------|------------------|
-| 0x18   | FETCH_OK ({{message-fetch-ok}})                | Request          |
+| 0x18   | RESERVED (FETCH_OK in <= 22)                   | Request          |
 |--------|------------------------------------------------|------------------|
 | 0xD    | TRACK_STATUS ({{message-track-status}})        | Request, First   |
 |--------|------------------------------------------------|------------------|
@@ -3039,7 +3039,7 @@ GOAWAY Message {
 
 ## REQUEST_OK {#message-request-ok}
 
-The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
+The REQUEST_OK message is sent in response to PUBLISH, FETCH, REQUEST_UPDATE,
 TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
 requests.
 
@@ -3058,6 +3058,7 @@ REQUEST_OK Message {
   parameters that can appear depend on the request being answered:
 
   * PUBLISH_OK: EXPIRES
+  * FETCH_OK: EXPIRES, LARGEST_OBJECT
   * REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT
   * TRACK_STATUS_OK: EXPIRES, LARGEST_OBJECT
   * SUBSCRIBE_NAMESPACE_OK: EXPIRES
@@ -3067,8 +3068,9 @@ REQUEST_OK Message {
 * Track Properties : A sequence of Properties. See {{properties}}. The
   length of Track Properties is the remaining length of the message
   after parsing all previous fields. Track Properties are populated in
-  TRACK_STATUS_OK; they are empty in PUBLISH_OK, REQUEST_UPDATE_OK,
-  SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
+  TRACK_STATUS_OK and FETCH_OK; they are empty in PUBLISH_OK,
+  REQUEST_UPDATE_OK, SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an
+  endpoint
   receives Track Properties in one of these messages it MUST close the
   session with `INVALID_FIELD`.
 
@@ -3564,28 +3566,6 @@ FETCH Message {
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, SUBGROUP_FILTER,
   OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER and
   INCLUDE_PROPERTIES.
-
-## FETCH_OK {#message-fetch-ok}
-
-A publisher sends a FETCH_OK as the first message on the bidi stream in response
-to a successful fetch.
-
-~~~
-FETCH_OK Message {
-  Type (vi64) = 0x18,
-  Length (vi64),
-  Number of Parameters (vi64),
-  Parameters (..) ...
-  Track Properties (..),
-}
-~~~
-{: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
-
-* Parameters: The parameters are defined in {{message-params}}.  The
-  parameters that can appear in a FETCH_OK are EXPIRES and LARGEST_OBJECT.
-
-* Track Properties : A sequence of Properties. See {{properties}}.
-
 
 ## TRACK_STATUS {#message-track-status}
 
