@@ -4871,7 +4871,7 @@ close the Session with `DELTA_ENCODING_OVERFLOW`.
 
 When the Group ID Delta field is present, the Object ID is the value of Object ID Delta if
 present. When the Group ID Delta field is not present, the Object ID is the prior Object's ID
-plus the Object ID Delta if present. If Object ID Delta is not present, the Object ID is the
+plus the Object ID Delta + 2 if present. If Object ID Delta is not present, the Object ID is the
 prior Object's ID plus one, regardless of which group it belongs to. If the computed Object ID
 would be greater than 2^64-1, the Subscriber MUST close the Session with
 `DELTA_ENCODING_OVERFLOW`.
