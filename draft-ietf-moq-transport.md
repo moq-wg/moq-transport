@@ -3130,6 +3130,17 @@ present when the Error Code is `REDIRECT`.  An endpoint that receives a
 REQUEST_ERROR with Error Code `REDIRECT` and no REDIRECT Error Detail MUST
 close the session with `MALFORMED_MESSAGE`.
 
+#### UNSUPPORTED_PROPERTY {#error-detail-unsupported-property}
+
+The UNSUPPORTED_PROPERTY Error Detail (Type 0x02) contains the Property Type
+(vi64) of a Mandatory Track Property ({{mandatory-track-properties}}) that the
+sender does not understand.  It accompanies Error Code `UNSUPPORTED_EXTENSION`.
+A sender that rejects a request with `UNSUPPORTED_EXTENSION` SHOULD include
+one UNSUPPORTED_PROPERTY Error Detail for each Mandatory Track Property it does
+not understand.  Multiple instances of this type are allowed.  A Relay that
+propagates `UNSUPPORTED_EXTENSION` downstream SHOULD include the
+UNSUPPORTED_PROPERTY Error Details it received.
+
 ## REQUEST_UPDATE {#message-request-update}
 
 The sender of a request (SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
@@ -5200,6 +5211,8 @@ sender SHOULD use the Retry Interval to indicate when the request can be retried
 UNSUPPORTED_EXTENSION:
 : The track contains a Mandatory Track Property
 (see {{mandatory-track-properties}}) that the endpoint does not understand.
+The UNSUPPORTED_PROPERTY Error Detail ({{error-detail-unsupported-property}})
+identifies which property.
 
 REDIRECT:
 : The request cannot be fulfilled by this endpoint, but could succeed at the
@@ -5921,6 +5934,7 @@ the Type field of Error Details in REQUEST_ERROR ({{error-details}}).
 | Type | Name | Specification |
 |-----:|:-----|:--------------|
 | 0x01 | REDIRECT | {{error-detail-redirect}} |
+| 0x02 | UNSUPPORTED_PROPERTY | {{error-detail-unsupported-property}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 New Error Detail types are registered using the Specification Required
