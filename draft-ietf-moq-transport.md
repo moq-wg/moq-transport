@@ -997,8 +997,9 @@ omitted. The filter is evaluated using the rules for a Fetch in
 {{location-filter}}, so the fill range never extends beyond `Largest
 Object`. When the subscription has no Location filter, or the LOCATION_FILTER
 inside FILL_PARAMETERS has Location Filter Type 0x00 (None), the fill range is
-the entire track up to `Largest Object`.  The subscriber learns the `Largest Object` from the
-`LARGEST_OBJECT` parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.
+the entire track up to `Largest Object`.  The subscriber learns the `Largest
+Object` from the `LARGEST_OBJECT` parameter in SUBSCRIBE_OK, PUBLISH or
+REQUEST_UPDATE_OK.
 
 Because the fill range is specified independently of the subscription's
 Location filter, a subscriber can retrieve a range of Groups prior to
@@ -1012,10 +1013,9 @@ FILL_PARAMETERS override them for the fill fetch stream.  FILL_TIMEOUT (see
 {{fill-timeout}}) applies to fill fetch streams in the same way it applies to a
 FETCH.
 
-The FETCH_HEADER on the fill fetch stream carries the Request ID of the message
-that initiated it: the SUBSCRIBE Request ID for the initial fill, or the
-REQUEST_UPDATE Request ID for a subsequent fill.  As a result of
-REQUEST_UPDATE, a subscription can have
+The FETCH_HEADER on the fill fetch stream carries the subscription's Request
+ID for an initial fill, or the REQUEST_UPDATE Request ID for a subsequent
+fill.  As a result of REQUEST_UPDATE, a subscription can have
 multiple fill fetch streams open at once, each identified by its Request ID;
 opening a new fill fetch stream does not implicitly cancel any previously
 opened fill fetch streams.
@@ -1029,8 +1029,8 @@ with an open-ended fill range, which the publisher will end at Largest Object.
 ### Opening and Closing Fill Fetch Streams
 
 A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
-REQUEST_UPDATE that carries FILL_PARAMETERS while the subscription is not
-paused (see {{pausing-subscriptions}}).
+REQUEST_UPDATE, or sends a PUBLISH, that carries FILL_PARAMETERS while the
+subscription is not paused (see {{pausing-subscriptions}}).
 
 - FILL_PARAMETERS carried while the subscription is paused opens no fill fetch
   stream.  Resuming the subscription without re-sending FILL_PARAMETERS does
@@ -3315,7 +3315,8 @@ PUBLISH Message {
 * Parameters: The parameters are defined in {{message-params}}. The parameters
   that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
   AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
-  FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
+  FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER and
+  FILL_PARAMETERS.  Those
   governing delivery, such as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY,
   SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
   inform the Subscriber of the initial Subscription parameters.
@@ -3685,8 +3686,8 @@ SUBSCRIBE_TRACKS Message {
   are handled differently from the same Parameters on Subscriptions, as outlined
   below.  The parameters that can appear in a SUBSCRIBE_TRACKS are
   AUTHORIZATION_TOKEN, FORWARD, GROUP_ORDER, SUBGROUP_FILTER, OBJECTID_FILTER,
-  PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER and
-  INCLUDE_PROPERTIES.
+  PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER,
+  INCLUDE_PROPERTIES and FILL_PARAMETERS.
 
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
@@ -3818,9 +3819,8 @@ for the same track.
 ### FILL TIMEOUT Parameter {#fill-timeout}
 
 The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a FETCH message,
-or inside a FILL_PARAMETERS parameter (see {{fill-parameters}}) in a SUBSCRIBE
-or REQUEST_UPDATE (for a subscription), where it applies to the fill fetch
-stream.
+or inside a FILL_PARAMETERS parameter (see {{fill-parameters}}), where it
+applies to the fill fetch stream.
 
 It is the maximum total duration in milliseconds a relay SHOULD spend waiting
 for upstream sources to provide Objects that are not immediately available
@@ -4046,7 +4046,8 @@ TRACK_PROPERTY_FILTER {
 ### FILL PARAMETERS Parameter {#fill-parameters}
 
 The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-prefixed
-encoding. It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a subscription)
+encoding. It MAY appear in a SUBSCRIBE, SUBSCRIBE_TRACKS, PUBLISH or
+REQUEST_UPDATE (for a subscription)
 message. Its value is a sequence of Parameters that apply to the fill fetch
 stream (see {{fill-semantics}}), encoded as if they were Parameters for a
 separate message (see {{message-parameters}}).  Its presence is what requests a
