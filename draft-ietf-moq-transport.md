@@ -793,7 +793,9 @@ The publisher MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
 FETCH.  The FETCH_OK or FETCH_ERROR can come at any time relative to object
 delivery.  The publisher MAY send Objects in response to a FETCH before the
 FETCH_OK message is sent, but the FETCH_OK MUST NOT be sent until the End
-Location is known.
+Location is known.  A subscriber can parse Objects on the FETCH data stream
+before receiving FETCH_OK, but cannot interpret Object payloads or Object
+Properties until it has received the Track Properties.
 
 If no Objects have been published for the track or Start Location is greater
 than the `Largest Object` ({{largest-object}}) the publisher MUST return
@@ -1175,6 +1177,11 @@ being forwarded to or processed by endpoints that do not understand them.
 
 An Object received with a Mandatory Track Property as an Object Property is
 malformed (see {{malformed-tracks}}).
+
+A Mandatory Track Property MUST NOT change the format of data streams, so
+that a receiver can parse Objects before receiving the Track Properties (see
+{{fetch}}).  A Mandatory Track Property can change how Object payloads and
+Object Properties are interpreted.
 
 When an endpoint receives a Mandatory Track Property in PUBLISH,
 SUBSCRIBE_OK, or FETCH_OK that it does not
