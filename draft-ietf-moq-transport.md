@@ -3908,7 +3908,8 @@ LOCATION_FILTER Parameter {
 }
 ~~~
 
-The Location Filter Type dictates which optional variable-length integer fields follow,
+The LOCATION_FILTER value is not length-prefixed.  The Location Filter Type
+dictates which optional variable-length integer fields follow,
 and how they are interpreted.
 
 * If Location Filter Type is 0x00, no fields follow and there is no Location Filter.
@@ -4045,12 +4046,12 @@ TRACK_PROPERTY_FILTER {
 
 ### FILL PARAMETERS Parameter {#fill-parameters}
 
-The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-prefixed
-encoding. It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a subscription)
-message. Its value is a sequence of Parameters that apply to the fill fetch
-stream (see {{fill-semantics}}), encoded as if they were Parameters for a
-separate message (see {{message-parameters}}).  Its presence is what requests a
-fill fetch stream; a subscription with no FILL_PARAMETERS opens none.
+The FILL_PARAMETERS parameter (Parameter Type 0x23) MAY appear in a SUBSCRIBE or
+REQUEST_UPDATE (for a subscription) message. Its value is a Number of Parameters
+(vi64) followed by that many Parameters that apply to the fill fetch stream
+(see {{fill-semantics}}), encoded as if they were Parameters for a separate
+message (see {{message-params}}).  A fill fetch stream is opened only when
+FILL_PARAMETERS is present.
 
 The following parameters MAY appear inside FILL_PARAMETERS:
 
