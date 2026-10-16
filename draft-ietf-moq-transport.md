@@ -1177,7 +1177,7 @@ An Object received with a Mandatory Track Property as an Object Property is
 malformed (see {{malformed-tracks}}).
 
 When an endpoint receives a Mandatory Track Property in PUBLISH,
-SUBSCRIBE_OK, or FETCH_OK that it does not
+SUBSCRIBE_OK, FETCH_OK, or TRACK_STATUS_OK that it does not
 understand, it MUST NOT process or forward that track:
 
 * For PUBLISH messages: the subscriber MUST respond with PUBLISH_ERROR with
@@ -1194,6 +1194,10 @@ understand, it MUST NOT process or forward that track:
   error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
   relay has already forwarded data on a fetch stream, it MUST reset the stream.
 
+* For TRACK_STATUS_OK messages: if the subscriber is a relay with pending
+  downstream TRACK_STATUS requests, it MUST send TRACK_STATUS_ERROR with error
+  code UNSUPPORTED_EXTENSION to the downstream requesters.
+
 A publisher that knows a subscriber does not support a Mandatory Track Property
 SHOULD take the following action:
 
@@ -1201,6 +1205,9 @@ SHOULD take the following action:
   UNSUPPORTED_EXTENSION.
 
 * For FETCH: respond with FETCH_ERROR with error code UNSUPPORTED_EXTENSION.
+
+* For TRACK_STATUS: respond with TRACK_STATUS_ERROR with error code
+  UNSUPPORTED_EXTENSION.
 
 * For PUBLISH: do not publish the track to that subscriber.
 
