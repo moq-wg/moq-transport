@@ -1118,10 +1118,9 @@ send PUBLISH messages on new bidirectional streams for tracks matching the
 Namespace Prefix. If it is an error, the stream will be closed via FIN after
 SUBSCRIBE_TRACKS_ERROR is sent.
 
-Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
-Track Namespace Prefix that shares a common prefix with an established
-SUBSCRIBE_TRACKS, it MUST respond with SUBSCRIBE_TRACKS_ERROR with error code
-`PREFIX_OVERLAP`.
+Each PUBLISH sent as a result of a SUBSCRIBE_TRACKS carries the
+SUBSCRIBE_TRACKS_ID parameter ({{subscribe-tracks-id}}).  If a Track matches
+more than one SUBSCRIBE_TRACKS, the publisher sends a PUBLISH for each.
 
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
@@ -1291,11 +1290,6 @@ The namespace in a NAMESPACE message is itself a prefix; tracks can exist in
 namespaces matching it.  A NAMESPACE_DONE indicates the publisher intends to
 stop serving new subscriptions for tracks within that namespace.
 
-
-Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
-Track Namespace Prefix that shares a common prefix with an established
-SUBSCRIBE_NAMESPACE, it MUST respond with SUBSCRIBE_NAMESPACE_ERROR with
-error code `PREFIX_OVERLAP`.
 
 The publisher MUST NOT send NAMESPACE_DONE for a namespace suffix before the
 corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
@@ -2138,8 +2132,7 @@ or closing namespace subscriptions with the error NAMESPACE_TOO_LARGE.
 Relays MAY likewise limit the load imposed by subscribers, by rejecting or
 closing namespace subscriptions with CONFLICTING_FILTERS if too many disjoint
 filters are requested on downstream subscriptions across a large number of
-subscribers, or with PREFIX_OVERLAP if different subscribers force an
-aggregated upstream subscription to overlap.
+subscribers.
 
 ## Publisher Interactions
 
@@ -3203,13 +3196,9 @@ responder MUST close the bidi stream (see {{graceful-request-closure}}).
 A subscriber can update the Track Namespace Prefix of an established
 SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS by including the
 TRACK_NAMESPACE_PREFIX parameter ({{track-namespace-prefix-param}}) in a
-REQUEST_UPDATE.  The overlap restriction applies independently per type: the
-new prefix MUST NOT share a common prefix with any other active
-SUBSCRIBE_NAMESPACE (for a SUBSCRIBE_NAMESPACE update) or SUBSCRIBE_TRACKS
-(for a SUBSCRIBE_TRACKS update) in the same session.  If the update is
-accepted, NAMESPACE and NAMESPACE_DONE messages following the
-REQUEST_OK will contain Track Namespace suffixes relative to the
-updated prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
+REQUEST_UPDATE.  If the update is accepted, NAMESPACE and NAMESPACE_DONE
+messages following the REQUEST_OK will contain Track Namespace suffixes
+relative to the updated prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
 no effect on existing subscriptions.  If the subscriber is no longer
 interested it can cancel the corresponding bidirectional stream.
 
@@ -3315,7 +3304,8 @@ PUBLISH Message {
 * Parameters: The parameters are defined in {{message-params}}. The parameters
   that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
   AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
-  FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
+  FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER and
+  SUBSCRIBE_TRACKS_ID.  Those
   governing delivery, such as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY,
   SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
   inform the Subscriber of the initial Subscription parameters.
@@ -4186,10 +4176,13 @@ outstanding until the Largest Group increases.
 The TRACK_NAMESPACE_PREFIX parameter (Parameter Type 0x34) uses the Track
 Namespace encoding described in {{track-namespace-structure}}.  It MAY appear in
 REQUEST_UPDATE for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It
-updates the Track Namespace Prefix for that subscription.  If the new prefix
-would share a common prefix with another active subscription of the same type
-in the same session, the receiver MUST respond with REQUEST_ERROR with error
-code `PREFIX_OVERLAP`.
+updates the Track Namespace Prefix for that subscription.
+
+### SUBSCRIBE_TRACKS_ID Parameter {#subscribe-tracks-id}
+
+The SUBSCRIBE_TRACKS_ID parameter (Parameter Type 0x36) is a varint. It
+appears only in a PUBLISH sent as a result of a SUBSCRIBE_TRACKS, and contains
+that SUBSCRIBE_TRACKS's Request ID.
 
 ### INCLUDE_PROPERTIES Parameter {#include-properties-param}
 
@@ -5215,12 +5208,6 @@ UNINTERESTED:
 
 Errors below can only be used in response to one message type.
 
-PREFIX_OVERLAP:
-: In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
-shares a common prefix with another subscription of the same type in the same session.
-SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have independent overlap spaces, so a
-SUBSCRIBE_NAMESPACE and a SUBSCRIBE_TRACKS may share the same prefix.
-
 NAMESPACE_TOO_LARGE:
 : In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
 matches more publishers than the relay is willing to enumerate.
@@ -5793,6 +5780,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 | 0x35 | INCLUDE_PROPERTIES | {{include-properties-param}} |
+| 0x36 | SUBSCRIBE_TRACKS_ID | {{subscribe-tracks-id}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
@@ -5940,7 +5928,6 @@ This document does not define any initial entries.
 | INVALID_RANGE              | 0x11 | {{request-error-codes}} |
 | MALFORMED_TRACK            | 0x12 | {{request-error-codes}} |
 | UNINTERESTED               | 0x20 | {{request-error-codes}} |
-| PREFIX_OVERLAP             | 0x30 | {{request-error-codes}} |
 | NAMESPACE_TOO_LARGE        | 0x31 | {{request-error-codes}} |
 | UNSUPPORTED_EXTENSION      | 0x33 | {{request-error-codes}} |
 | REDIRECT                   | 0x34 | {{request-error-codes}} |
