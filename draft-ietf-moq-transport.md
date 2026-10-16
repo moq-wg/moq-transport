@@ -850,9 +850,9 @@ of Objects it will not serialize with an End of Range indicator (see
 out.  A publisher SHOULD NOT use `End of Non-Existent Range` in a FETCH response
 except to split a range of Objects that will not be serialized into those that are
 known not to exist and those with unknown or timed out status, or to mark the end
-of the Track.  If the last Object in the response is known to end the Track, the
-publisher MUST follow it with an `End of Non-Existent Range` at
-`{2^64-1, 2^64-1}`.
+of a Group or the Track.  If the last Object in the response is known to end its
+Group or the Track, the publisher MUST follow it with an `End of Non-Existent
+Range` at `{Group ID, 2^64-1}`, or `{2^64-1, 2^64-1}` for the Track.
 
 If a Publisher receives a FETCH with a range that includes one or more Objects
 with unknown state, it can choose to reset the FETCH data stream with
