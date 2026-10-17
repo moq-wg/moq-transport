@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 April 2027                                     I. Swett, Ed.
+Expires: 20 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         16 October 2026
+                                                         17 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 April 2027.
+   This Internet-Draft will expire on 20 April 2027.
 
 Copyright Notice
 
@@ -1076,8 +1076,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    response to a FETCH before the FETCH_OK message is sent, but the
    FETCH_OK MUST NOT be sent until the End Location is known.  A
    subscriber can parse Objects on the FETCH data stream before
-   receiving FETCH_OK, but cannot interpret Object payloads or Object
-   Properties until it has received the Track Properties.
+   receiving FETCH_OK, but cannot interpret Object Properties that can
+   depend upon Track Properties until it has received the Track
+   Properties.
 
    If no Objects have been published for the track or Start Location is
    greater than the Largest Object (Section 3.1.4) the publisher MUST

@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 19 April 2027</td>
+<td class="center">Expires 20 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-16" class="published">16 October 2026</time>
+<time datetime="2026-10-17" class="published">17 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-19">19 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-20">20 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 19 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 20 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2847,8 +2847,8 @@ FETCH.  The FETCH_OK or FETCH_ERROR can come at any time relative to object
 delivery.  The publisher <span class="bcp14">MAY</span> send Objects in response to a FETCH before the
 FETCH_OK message is sent, but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the End
 Location is known.  A subscriber can parse Objects on the FETCH data stream
-before receiving FETCH_OK, but cannot interpret Object payloads or Object
-Properties until it has received the Track Properties.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+before receiving FETCH_OK, but cannot interpret Object Properties
+that can depend upon Track Properties until it has received the Track Properties.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.2-4">If no Objects have been published for the track or Start Location is greater
 than the <code>Largest Object</code> (<a href="#largest-object" class="auto internal xref">Section 3.1.4</a>) the publisher <span class="bcp14">MUST</span> return
 FETCH_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
