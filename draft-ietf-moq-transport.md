@@ -1141,12 +1141,15 @@ the resulting Subscriptions can be filtered by any Range Filter.
 
 ### Parameters on SUBSCRIBE_TRACKS {#parameters-on-subscribe-tracks}
 
-Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
-in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
-publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS, and explicitly communicated in the PUBLISH.
-When a Parameter is omitted from the SUBSCRIBE_TRACKS and resulting PUBLISH,
-the Subscription uses the default value.
+The parameters that can appear in SUBSCRIBE_TRACKS are listed in
+{{message-subscribe-tracks}}.  AUTHORIZATION_TOKEN and TRACK_PROPERTY_FILTER
+apply to the SUBSCRIBE_TRACKS itself.  The publisher uses the others as the
+initial Subscription parameters when a PUBLISH is sent as a result of
+SUBSCRIBE_TRACKS, and includes those in the PUBLISH.
+When a Parameter is omitted from the SUBSCRIBE_TRACKS and resulting
+PUBLISH, the Subscription uses the default value.  Parameters that only apply
+to a SUBSCRIBE for a single Track, such as RENDEZVOUS_TIMEOUT and
+NEW_GROUP_REQUEST, cannot appear in SUBSCRIBE_TRACKS.
 
 To join Tracks initiated via the resulting PUBLISHes, the subscriber can
 specify a Location Filter and optionally include FILL_PARAMETERS in the
@@ -3684,9 +3687,10 @@ SUBSCRIBE_TRACKS Message {
 * Parameters: The parameters are defined in {{message-params}}, though they
   are handled differently from the same Parameters on Subscriptions, as outlined
   below.  The parameters that can appear in a SUBSCRIBE_TRACKS are
-  AUTHORIZATION_TOKEN, FORWARD, GROUP_ORDER, SUBGROUP_FILTER, OBJECTID_FILTER,
-  PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER and
-  INCLUDE_PROPERTIES.
+  OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT,
+  FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
+  SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
+  TRACK_PROPERTY_FILTER and INCLUDE_PROPERTIES.
 
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
@@ -3798,7 +3802,8 @@ defined in {{auth-token-compression}}.
 ### SUBGROUP_DELIVERY_TIMEOUT Parameter {#subgroup-delivery-timeout}
 
 The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a varint. It
-MAY appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
+MAY appear in a SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, or REQUEST_UPDATE (for a
+subscription) message.  Its
 semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
@@ -3808,7 +3813,8 @@ for the same track.
 ### OBJECT_DELIVERY_TIMEOUT Parameter {#object-delivery-timeout}
 
 The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a varint. It
-MAY appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
+MAY appear in a SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, or REQUEST_UPDATE (for a
+subscription) message.  Its
 semantics are defined in {{delivery-timeouts}}.
 
 This parameter is intended to be specific to a subscription, so it SHOULD NOT
@@ -3817,10 +3823,9 @@ for the same track.
 
 ### FILL TIMEOUT Parameter {#fill-timeout}
 
-The FILL_TIMEOUT parameter (Parameter Type 0x0A) MAY appear in a FETCH message,
-or inside a FILL_PARAMETERS parameter (see {{fill-parameters}}) in a SUBSCRIBE
-or REQUEST_UPDATE (for a subscription), where it applies to the fill fetch
-stream.
+The FILL_TIMEOUT parameter (Parameter Type 0x0A) is a varint. It MAY appear in
+a FETCH message, or inside a FILL_PARAMETERS parameter (see
+{{fill-parameters}}), where it applies to the fill fetch stream.
 
 It is the maximum total duration in milliseconds a relay SHOULD spend waiting
 for upstream sources to provide Objects that are not immediately available
@@ -3837,8 +3842,8 @@ shorter timeout without informing the subscriber.
 
 ### RENDEZVOUS TIMEOUT Parameter {#rendezvous-timeout}
 
-The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) MAY appear in a
-SUBSCRIBE message.
+The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) is a varint. It MAY
+appear in a SUBSCRIBE message.
 
 It is the duration in milliseconds the subscriber is willing to wait for a
 publisher to become available. This applies when a relay receives a SUBSCRIBE
@@ -3864,8 +3869,9 @@ If RENDEZVOUS_TIMEOUT is absent, the default is 0.
 ### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
 
 The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It MAY
-appear in a SUBSCRIBE, PUBLISH, FETCH, or REQUEST_UPDATE
-(for a subscription or FETCH). It is an integer expressing the priority of a
+appear in a SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, FETCH, or REQUEST_UPDATE
+(for a subscription or FETCH), or inside a FILL_PARAMETERS parameter (see
+{{fill-parameters}}). It is an integer expressing the priority of a
 subscription relative to other subscriptions and fetch responses in the same
 session. Lower numbers get higher priority. See {{priorities}}.
 
@@ -3891,8 +3897,9 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
 ### LOCATION FILTER Parameter {#location-filter}
 
 The LOCATION_FILTER parameter (Parameter Type 0x21) MAY appear in a FETCH,
-SUBSCRIBE, PUBLISH, REQUEST_UPDATE (for a subscription) or
-PUBLISH_STATE_NOTIFY message. It is a Location Filter (see
+SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, REQUEST_UPDATE (for a subscription) or
+PUBLISH_STATE_NOTIFY message, or inside a FILL_PARAMETERS parameter (see
+{{fill-parameters}}). It is a Location Filter (see
 {{location-filters}}).
 
 A Location filter parameter has the following structure:
@@ -4046,8 +4053,8 @@ TRACK_PROPERTY_FILTER {
 ### FILL PARAMETERS Parameter {#fill-parameters}
 
 The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-prefixed
-encoding. It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a subscription)
-message. Its value is a sequence of Parameters that apply to the fill fetch
+encoding. It MAY appear in a SUBSCRIBE, SUBSCRIBE_TRACKS, or REQUEST_UPDATE
+(for a subscription) message. Its value is a sequence of Parameters that apply to the fill fetch
 stream (see {{fill-semantics}}), encoded as if they were Parameters for a
 separate message (see {{message-parameters}}).  Its presence is what requests a
 fill fetch stream; a subscription with no FILL_PARAMETERS opens none.
