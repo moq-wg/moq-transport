@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 April 2027                                     I. Swett, Ed.
+Expires: 20 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         16 October 2026
+                                                         17 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 April 2027.
+   This Internet-Draft will expire on 20 April 2027.
 
 Copyright Notice
 
@@ -4390,9 +4390,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      [EndObject (vi64),]
    }
 
-   The LOCATION_FILTER value is not length-prefixed.  The Location
-   Filter Type dictates which optional variable-length integer fields
-   follow, and how they are interpreted.
+   The Location Filter Type dictates which optional variable-length
+   integer fields follow, and how they are interpreted.
 
    *  If Location Filter Type is 0x00, no fields follow and there is no
       Location Filter.
