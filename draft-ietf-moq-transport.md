@@ -3908,8 +3908,7 @@ LOCATION_FILTER Parameter {
 }
 ~~~
 
-The LOCATION_FILTER value is not length-prefixed.  The Location Filter Type
-dictates which optional variable-length integer fields follow,
+The Location Filter Type dictates which optional variable-length integer fields follow,
 and how they are interpreted.
 
 * If Location Filter Type is 0x00, no fields follow and there is no Location Filter.
