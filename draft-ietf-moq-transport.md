@@ -1145,8 +1145,8 @@ The parameters that can appear in SUBSCRIBE_TRACKS are listed in
 {{message-subscribe-tracks}}.  AUTHORIZATION_TOKEN and TRACK_PROPERTY_FILTER
 apply to the SUBSCRIBE_TRACKS itself.  The publisher uses the others as the
 initial Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS, and includes those that can appear in PUBLISH in the
-PUBLISH.  When a Parameter is omitted from the SUBSCRIBE_TRACKS and resulting
+SUBSCRIBE_TRACKS, and includes those in the PUBLISH.
+When a Parameter is omitted from the SUBSCRIBE_TRACKS and resulting
 PUBLISH, the Subscription uses the default value.  Parameters that only apply
 to a SUBSCRIBE for a single Track, such as RENDEZVOUS_TIMEOUT and
 NEW_GROUP_REQUEST, cannot appear in SUBSCRIBE_TRACKS.
