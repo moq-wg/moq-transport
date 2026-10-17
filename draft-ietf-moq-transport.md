@@ -794,8 +794,8 @@ FETCH.  The FETCH_OK or FETCH_ERROR can come at any time relative to object
 delivery.  The publisher MAY send Objects in response to a FETCH before the
 FETCH_OK message is sent, but the FETCH_OK MUST NOT be sent until the End
 Location is known.  A subscriber can parse Objects on the FETCH data stream
-before receiving FETCH_OK, but cannot interpret Object payloads or Object
-Properties until it has received the Track Properties.
+before receiving FETCH_OK, but cannot interpret Object Properties
+that can depend upon Track Properties until it has received the Track Properties.
 
 If no Objects have been published for the track or Start Location is greater
 than the `Largest Object` ({{largest-object}}) the publisher MUST return
