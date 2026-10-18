@@ -5572,6 +5572,12 @@ might be starved indefinitely during congestion.  The publisher and
 subscriber MUST cancel a stream, preferably the one with the lowest
 priority, after reaching a resource limit.
 
+A larger MAX_CONTROL_MESSAGE_SIZE ({{max-control-message-size}}) allows larger
+Parameters, such as Authorization Tokens, but an endpoint that buffers complete
+control messages commits that much memory per stream.  Such an endpoint needs
+to grant enough flow control for a complete message on each stream, or the
+endpoints can deadlock.
+
 
 ## Timeouts  {#security-timeouts}
 
