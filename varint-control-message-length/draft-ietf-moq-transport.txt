@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 April 2027                                     I. Swett, Ed.
+Expires: 21 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         16 October 2026
+                                                         18 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 April 2027.
+   This Internet-Draft will expire on 21 April 2027.
 
 Copyright Notice
 
@@ -6164,6 +6164,12 @@ EXT 1 and EXT N can be modified or removed by Relays
    Streams might be starved indefinitely during congestion.  The
    publisher and subscriber MUST cancel a stream, preferably the one
    with the lowest priority, after reaching a resource limit.
+
+   A larger MAX_CONTROL_MESSAGE_SIZE (Section 9.1.8) allows larger
+   Parameters, such as Authorization Tokens, but an endpoint that
+   buffers complete control messages commits that much memory per
+   stream.  Such an endpoint needs to grant enough flow control for a
+   complete message on each stream, or the endpoints can deadlock.
 
 15.6.  Timeouts
 
