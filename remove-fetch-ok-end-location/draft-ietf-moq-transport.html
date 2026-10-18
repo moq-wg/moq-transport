@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 19 April 2027</td>
+<td class="center">Expires 21 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-16" class="published">16 October 2026</time>
+<time datetime="2026-10-18" class="published">18 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-19">19 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-21">21 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 19 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 21 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2846,12 +2846,9 @@ FETCH.  The FETCH_OK or FETCH_ERROR can come at any time relative to object
 delivery.  The publisher <span class="bcp14">MAY</span> send Objects in response to a FETCH before the
 FETCH_OK message is sent, but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the publisher
 knows whether <code>Largest Object</code> is within the requested range.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
-<p id="section-3.2-4">If the publisher knows that the Track has ended within the requested range, it
-<span class="bcp14">MUST</span> end the response with an End of Non-Existent Range indicator (see
-<a href="#end-of-range" class="auto internal xref">Section 11.4.1.2</a>) with Group ID and Object ID 2^64-1.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
-<p id="section-3.2-5">If no Objects have been published for the track or Start Location is greater
+<p id="section-3.2-4">If no Objects have been published for the track or Start Location is greater
 than the <code>Largest Object</code> (<a href="#largest-object" class="auto internal xref">Section 3.1.4</a>) the publisher <span class="bcp14">MUST</span> return
-FETCH_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-3.2-5" class="pilcrow">¶</a></p>
+FETCH_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
 <div id="fetch-object-delivery">
 <section id="section-3.2.1">
           <h4 id="name-fetch-object-delivery">
@@ -2900,7 +2897,10 @@ of Objects it will not serialize with an End of Range indicator (see
 <a href="#end-of-range" class="auto internal xref">Section 11.4.1.2</a>), identifying those Objects as non-existent, unknown, or timed
 out.  A publisher <span class="bcp14">SHOULD NOT</span> use <code>End of Non-Existent Range</code> in a FETCH response
 except to split a range of Objects that will not be serialized into those that are
-known not to exist and those with unknown or timed out status.<a href="#section-3.2.2-7" class="pilcrow">¶</a></p>
+known not to exist and those with unknown or timed out status, or to mark the end
+of the Track.  If the last Object in the response is known to end the Track, the
+publisher <span class="bcp14">MUST</span> follow it with an <code>End of Non-Existent Range</code> at
+<code>{2^64-1, 2^64-1}</code>.<a href="#section-3.2.2-7" class="pilcrow">¶</a></p>
 <p id="section-3.2.2-8">If a Publisher receives a FETCH with a range that includes one or more Objects
 with unknown state, it can choose to reset the FETCH data stream with
 UNKNOWN_OBJECT_STATUS (<a href="#stream-reset-codes" class="auto internal xref">Section 12.5</a>), or indicate the range of unknown
@@ -7013,7 +7013,7 @@ PUBLISH_STATE_NOTIFY.  It contains the <code>Largest Object</code>
 (<a href="#largest-object" class="auto internal xref">Section 3.1.4</a>) in the Track from the perspective of the sending
 endpoint. If Objects have been published on this Track the
 Publisher <span class="bcp14">MUST</span> include this parameter, except in FETCH_OK, where it is
-included only when <code>Largest Object</code> is within the requested range (see
+only required when <code>Largest Object</code> is within the requested range (see
 <a href="#fetch" class="auto internal xref">Section 3.2</a>).<a href="#section-9.19.17-1" class="pilcrow">¶</a></p>
 <p id="section-9.19.17-2">If omitted from a message other than FETCH_OK, the sending endpoint has not
 published or received any Objects in the Track.<a href="#section-9.19.17-2" class="pilcrow">¶</a></p>

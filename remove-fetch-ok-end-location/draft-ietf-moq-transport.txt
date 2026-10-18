@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 April 2027                                     I. Swett, Ed.
+Expires: 21 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         16 October 2026
+                                                         18 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 April 2027.
+   This Internet-Draft will expire on 21 April 2027.
 
 Copyright Notice
 
@@ -1079,10 +1079,6 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    FETCH_OK MUST NOT be sent until the publisher knows whether Largest
    Object is within the requested range.
 
-   If the publisher knows that the Track has ended within the requested
-   range, it MUST end the response with an End of Non-Existent Range
-   indicator (see Section 11.4.1.2) with Group ID and Object ID 2^64-1.
-
    If no Objects have been published for the track or Start Location is
    greater than the Largest Object (Section 3.1.4) the publisher MUST
    return FETCH_ERROR with error code INVALID_RANGE.
@@ -1142,7 +1138,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    existent, unknown, or timed out.  A publisher SHOULD NOT use End of
    Non-Existent Range in a FETCH response except to split a range of
    Objects that will not be serialized into those that are known not to
-   exist and those with unknown or timed out status.
+   exist and those with unknown or timed out status, or to mark the end
+   of the Track.  If the last Object in the response is known to end the
+   Track, the publisher MUST follow it with an End of Non-Existent Range
+   at {2^64-1, 2^64-1}.
 
    If a Publisher receives a FETCH with a range that includes one or
    more Objects with unknown state, it can choose to reset the FETCH
@@ -4606,7 +4605,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Largest Object (Section 3.1.4) in the Track from the perspective of
    the sending endpoint.  If Objects have been published on this Track
    the Publisher MUST include this parameter, except in FETCH_OK, where
-   it is included only when Largest Object is within the requested range
+   it is only required when Largest Object is within the requested range
    (see Section 3.2).
 
    If omitted from a message other than FETCH_OK, the sending endpoint
