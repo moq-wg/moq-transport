@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 April 2027                                     I. Swett, Ed.
+Expires: 21 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         16 October 2026
+                                                         18 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 April 2027.
+   This Internet-Draft will expire on 21 April 2027.
 
 Copyright Notice
 
@@ -1138,11 +1138,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    existent, unknown, or timed out.  A publisher SHOULD NOT use End of
    Non-Existent Range in a FETCH response except to split a range of
    Objects that will not be serialized into those that are known not to
-   exist and those with unknown or timed out status, or to mark the end
-   of a Group or the Track.  If the last Object in the response is known
-   to end its Group or the Track, the publisher MUST follow it with an
-   End of Non-Existent Range at {Group ID, 2^64-1}, or {2^64-1, 2^64-1}
-   for the Track.
+   exist and those with unknown or timed out status.  The publisher MUST
+   follow an Object known to end the Track with End of Track, and MUST
+   follow the last Object in the response with End of Group if it is
+   known to end its Group (see Section 11.4.1.2).
 
    If a Publisher receives a FETCH with a range that includes one or
    more Objects with unknown state, it can choose to reset the FETCH
@@ -4606,7 +4605,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Largest Object (Section 3.1.4) in the Track from the perspective of
    the sending endpoint.  If Objects have been published on this Track
    the Publisher MUST include this parameter, except in FETCH_OK, where
-   it is included only when Largest Object is within the requested range
+   it is only required when Largest Object is within the requested range
    (see Section 3.2).
 
    If omitted from a message other than FETCH_OK, the sending endpoint
@@ -5365,7 +5364,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    The Serialization Flags field defines the serialization of the
    Object.  It is a variable-length integer.  When less than 128, the
    bits represent flags described in Section 11.4.1.1.  When 128 or
-   greater, the value signals a range indicator; the defined values are:
+   greater, the value signals an indicator; the defined values are:
 
    *Reserved Serialization Flags values:*
 
@@ -5377,6 +5376,10 @@ EXT 1 and EXT N can be modified or removed by Relays
                    | 0x10C | End of Unknown Range      |
                    +-------+---------------------------+
                    | 0x20C | End of Timed-Out Range    |
+                   +-------+---------------------------+
+                   | 0x80  | End of Group              |
+                   +-------+---------------------------+
+                   | 0x81  | End of Track              |
                    +-------+---------------------------+
 
                                   Table 8
@@ -5468,6 +5471,11 @@ EXT 1 and EXT N can be modified or removed by Relays
    with Locations between the last serialized Object, if any, and this
    Location, inclusive, either do not exist (when Serialization Flags is
    0x8C), are unknown (0x10C), or timed out (0x20C).
+
+   When Serialization Flags is 0x80 (End of Group) or 0x81 (End of
+   Track), no other fields are present.  The prior Object is the last
+   Object in its Group, or in the Track, respectively.  End of Track
+   also indicates End of Group.  The prior Object ID becomes 2^64-1.
 
    When an Object follows an End of Range indicator and uses flags that
    reference the "prior Object", the prior Object fields are determined
