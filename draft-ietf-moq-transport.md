@@ -3257,7 +3257,8 @@ SUBSCRIBE Message {
   AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, FORWARD,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
   SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-  SUBGROUP_PROPERTY_FILTER, NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
+  SUBGROUP_PROPERTY_FILTER, NEW_GROUP_REQUEST, INCLUDE_PROPERTIES and
+  SKIP_SUBGROUP_PROPERTIES.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -3500,7 +3501,7 @@ FETCH Message {
   that can appear in a FETCH are AUTHORIZATION_TOKEN, FILL_TIMEOUT,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, SUBGROUP_FILTER,
   OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-  SUBGROUP_PROPERTY_FILTER and INCLUDE_PROPERTIES.
+  SUBGROUP_PROPERTY_FILTER, INCLUDE_PROPERTIES and SKIP_SUBGROUP_PROPERTIES.
 
 ## FETCH_OK {#message-fetch-ok}
 
@@ -4092,6 +4093,7 @@ The following parameters MAY appear inside FILL_PARAMETERS:
 | 0x27 | PRIORITY_FILTER | {{range-filters}} |
 | 0x28 | OBJECT_PROPERTY_FILTER | {{range-filters}} |
 | 0x2A | SUBGROUP_PROPERTY_FILTER | {{range-filters}} |
+| 0x36 | SKIP_SUBGROUP_PROPERTIES | {{skip-subgroup-properties}} |
 
 The LOCATION_FILTER inside FILL_PARAMETERS selects the fill range and is
 evaluated using the rules for a Fetch (see {{location-filter}}); it is
@@ -4229,6 +4231,48 @@ is 0, the Track Properties are still present in the message, but they SHOULD be 
 The allowed values are 0 (do not send Properties) or 1 (send Properties), and the
 default is 1. If an endpoint receives a value outside this range, it MUST close the
 session with `INVALID_PARAMETER`.
+
+### SKIP_SUBGROUP_PROPERTIES Parameter {#skip-subgroup-properties}
+
+The SKIP_SUBGROUP_PROPERTIES parameter (Parameter Type 0x36) uses
+Length-prefixed encoding. It MAY appear in SUBSCRIBE, FETCH or
+FILL_PARAMETERS. It covers Subgroups whose Subgroup
+Properties ({{subgroup-properties}}) the subscriber already has.  A subscriber
+covers only Subgroups whose Subgroup Properties it keeps for the lifetime of the
+request.
+
+~~~
+SKIP_SUBGROUP_PROPERTIES {
+  Type (vi64) = 0x36,
+  Length (vi64),
+  Subgroup Set (..) ...
+}
+
+Subgroup Set {
+  Start Group Delta (vi64),
+  End Group Delta (vi64),
+  Number of Subgroups (vi64),
+  Subgroup ID Delta (vi64) ...
+}
+~~~
+
+Each Subgroup Set entry covers the listed Subgroup IDs in every Group from
+Start Group to End Group, inclusive.  Entries can overlap and can list the same
+Subgroup.  If Number of Subgroups is 0, the endpoint
+MUST close the session with `INVALID_PARAMETER`.
+
+Start Group is delta encoded from the prior Subgroup Set entry's Start Group (or
+from 0 for the first entry), and End Group is delta encoded from its own Start
+Group.  The Subgroup ID Delta + 1 is added to the previous Subgroup ID in the
+entry if there was one.  The Subgroup ID is the Subgroup ID Delta if it's the
+first in the entry.  For example, Subgroups 1, 2, 4 and 9 encode as 1, 0, 1, 4.
+If a computed value would exceed 2^64-1, the endpoint MUST close the session
+with `DELTA_ENCODING_OVERFLOW`.
+
+For a covered Subgroup that has Subgroup Properties, the publisher SHOULD send
+a Properties Length of 0 in place of them (see {{subgroup-properties}}).
+
+If omitted from SUBSCRIBE or FETCH, no Subgroups are covered.
 
 # MOQT Properties {#moqt-properties}
 
@@ -4624,8 +4668,14 @@ Subgroup Properties {
 }
 ~~~
 
-A Subgroup without Subgroup Properties omits the field.  If an endpoint receives
-a Properties Length of 0, it MUST close the session with `MALFORMED_STREAM`.
+A Subgroup without Subgroup Properties omits the field.
+
+A Properties Length of 0 indicates that the publisher omitted the Subgroup
+Properties because the request the data belongs to covers the Subgroup (see
+{{skip-subgroup-properties}}).  The omission does not remove or modify them.  If an
+endpoint receives a Properties Length of 0 for a Subgroup that is not covered
+by any request the data can belong to, it MUST close the session with
+`MALFORMED_STREAM`.
 
 ### Subgroup Header {#subgroup-header}
 
@@ -5876,6 +5926,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 | 0x35 | INCLUDE_PROPERTIES | {{include-properties-param}} |
+| 0x36 | SKIP_SUBGROUP_PROPERTIES | {{skip-subgroup-properties}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
