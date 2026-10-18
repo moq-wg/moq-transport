@@ -1132,7 +1132,8 @@ The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
 
 A SUBSCRIBE_TRACKS is cancelled as described in
-{{request-cancellation}}.
+{{request-cancellation}}.  Cancelling a SUBSCRIBE_TRACKS has no effect on
+existing subscriptions.
 Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
 from sending further PUBLISH messages, but relays MUST NOT
 send any further PUBLISH messages to a client without knowing the client is
@@ -3279,9 +3280,13 @@ SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS by including the
 TRACK_NAMESPACE_PREFIX parameter ({{track-namespace-prefix-param}}) in a
 REQUEST_UPDATE.  If the update is accepted, NAMESPACE and NAMESPACE_DONE
 messages following the REQUEST_OK will contain Track Namespace suffixes
-relative to the updated prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
-no effect on existing subscriptions.  If the subscriber is no longer
-interested it can cancel the corresponding bidirectional stream.
+relative to the updated prefix.  For a SUBSCRIBE_NAMESPACE, the REQUEST_OK
+implies a NAMESPACE_DONE for each advertised namespace that no longer matches
+the prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
+no effect on existing subscriptions, and the publisher MUST NOT send another
+PUBLISH for a Track it already published for that SUBSCRIBE_TRACKS.  If the
+subscriber is no longer interested in a Track it can cancel the corresponding
+bidirectional stream.
 
 ## SUBSCRIBE {#message-subscribe-req}
 
