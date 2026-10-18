@@ -850,8 +850,9 @@ of Objects it will not serialize with an End of Range indicator (see
 out.  A publisher SHOULD NOT use `End of Non-Existent Range` in a FETCH response
 except to split a range of Objects that will not be serialized into those that are
 known not to exist and those with unknown or timed out status.  The publisher
-MUST follow an Object known to end the Track with `End of Track` (see
-{{end-of-range}}).
+MUST follow an Object known to end the Track with `End of Track`, and MUST
+follow the last Object in the response with `End of Group` if it is known to
+end its Group (see {{end-of-range}}).
 
 If a Publisher receives a FETCH with a range that includes one or more Objects
 with unknown state, it can choose to reset the FETCH data stream with
@@ -4804,6 +4805,7 @@ Value | Meaning
 0x8C  | End of Non-Existent Range
 0x10C | End of Unknown Range
 0x20C | End of Timed-Out Range
+0x80  | End of Group
 0x81  | End of Track
 
 If an endpoint receives any other value greater than 127, it MUST close the
@@ -4867,9 +4869,10 @@ Properties are not present. All Objects with Locations between the last
 serialized Object, if any, and this Location, inclusive, either do not exist
 (when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).
 
-When Serialization Flags is 0x81 (End of Track), no other fields are present.
-The prior Object is the last Object in the Track.  The prior Object ID becomes
-2^64-1.
+When Serialization Flags is 0x80 (End of Group) or 0x81 (End of Track), no
+other fields are present.  The prior Object is the last Object in its Group, or
+in the Track, respectively.  End of Track also indicates End of Group.  The
+prior Object ID becomes 2^64-1.
 
 When an Object follows an End of Range indicator and uses flags that reference
 the "prior Object", the prior Object fields are determined as follows:
