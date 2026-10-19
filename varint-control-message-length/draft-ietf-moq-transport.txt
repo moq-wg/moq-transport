@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 21 April 2027                                     I. Swett, Ed.
+Expires: 22 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         18 October 2026
+                                                         19 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 April 2027.
+   This Internet-Draft will expire on 22 April 2027.
 
 Copyright Notice
 
@@ -4251,7 +4251,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    with INVALID_PARAMETER if found.
 
    The number of Message Parameters is not specifically limited, but the
-   total length of a control message is limited to 2^16-1 bytes.
+   total length of a control message is limited by
+   MAX_CONTROL_MESSAGE_SIZE (Section 9.1.8).
 
    Message Parameters in SUBSCRIBE and FETCH MUST NOT cause the
    publisher to alter the payload of the objects it sends, as that would
