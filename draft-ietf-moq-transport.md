@@ -351,8 +351,6 @@ Group ID: The identifier of the Object's Group (see {{model-group}}) within the 
 
 Object ID: The order of the object within the group.
 
-Publisher Priority: An integer indicating the publisher's priority for the Object ({{priorities}}).
-
 Delivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram. The Original Publisher establishes an Object's Delivery Mode by how it first transmits the Object. In a subscription, an Object MUST be sent according to its Delivery Mode.
 
 Subgroup ID: The identifier of the Object's Subgroup (see {{model-subgroup}}) within the Group. Objects sent in Datagrams do not have a Subgroup ID.
@@ -930,8 +928,8 @@ advances past the end of the current Location Filter.
 Range Filters are parameters in SUBSCRIBE, FETCH, or SUBSCRIBE_TRACKS that
 tell a publisher to filter tracks (via TRACK PROPERTY FILTER), subgroups (via SUBGROUP PROPERTY FILTER) and objects
 according to subscriber-provided criteria.  Range filters are specified as
-ranges of integer values in Track, Subgroup, and Object Properties and other
-Object header fields (Subgroup ID, Object ID, and Publisher Priority).
+ranges of integer values in Track, Subgroup, and Object Properties,
+Publisher Priority, and Object header fields (Subgroup ID and Object ID).
 There are six Range Filter parameter types, 0x25-0x2A.  They share the
 encoding specified in {{range-filter-structure}}.
 
@@ -1422,9 +1420,9 @@ scheduled.
 
 `Publisher Priority` is a priority number associated with an individual
 schedulable object.  A default for the subscription is specified in the
-DEFAULT_PUBLISHER_PRIORITY Track Property ({{publisher-priority}}). Publisher
-priority can also be set per subgroup or datagram in the subgroup header or
-datagram (see {{data-streams}}), which overrides the default.
+PUBLISHER_PRIORITY Track Property ({{publisher-priority}}). Publisher
+priority can also be set per subgroup or datagram in the PUBLISHER_PRIORITY
+Subgroup or Object Property, which overrides the default.
 
 `Group Order` is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
@@ -1842,7 +1840,7 @@ the type of the stream.
 |------------:|:------------------------------------------------|
 | 0x05        | FETCH_HEADER  ({{fetch-header}})                |
 |-------------|-------------------------------------------------|
-| 0bXXX1XXXX  | SUBGROUP_HEADER  ({{subgroup-header}})          |
+| 0b0XX1XXXX  | SUBGROUP_HEADER  ({{subgroup-header}})          |
 |-------------|-------------------------------------------------|
 | 0x2F00      | SETUP ({{message-setup}})                       |
 |-------------|-------------------------------------------------|
@@ -2022,7 +2020,7 @@ fields that can be updated are the following:
    to the constraints of the specific property.
 
 An endpoint that receives a duplicate Object with a different Delivery
-Mode, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
+Mode, Subgroup ID or Payload MUST treat the track as Malformed.
 
 For ranges of objects that do not exist, relays MAY change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
@@ -4000,7 +3998,7 @@ Ranges of Publisher Priority.  See {{range-filters}} and
 {{range-filter-structure}}.
 If a decoded value exceeds 255, the endpoint MUST reject this with
 REQUEST_ERROR with error code INVALID_FILTER since Publisher Priority
-is an 8-bit field.
+values are at most 255.
 
 ~~~
 PRIORITY_FILTER {
@@ -4266,17 +4264,17 @@ Objects have expired from cache, their state becomes unknown (see
 If MAX_CACHE_DURATION is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
 
-## DEFAULT PUBLISHER PRIORITY {#publisher-priority}
+## PUBLISHER PRIORITY {#publisher-priority}
 
-DEFAULT PUBLISHER PRIORITY (Property Type 0x0E) is a Track Property
-that specifies the priority of a subscription relative to other subscriptions
-in the same session.  The value is from 0 to 255 and lower numbers get higher
+PUBLISHER_PRIORITY (Property Type 0x0E) is a Track and Subgroup Property.  For
+Objects with Delivery Mode Datagram, it is an Object Property.  It specifies the
+Publisher Priority.  The value is from 0 to 255 and lower numbers get higher
 priority.  See {{priorities}}. If an endpoint receives a value above 255, it
 MUST close the session with `MALFORMED_KEY_VALUE`. Subgroups and
-Datagrams for this subscription inherit this priority, unless they specifically
-override it.
+Datagrams of this Track inherit the Track Property value, unless they
+override it with a Subgroup or Object Property.
 
-If omitted, the Default Publisher Priority is 128.
+If omitted from the Track, the Publisher Priority is 128.
 
 ## DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
 
@@ -4537,7 +4535,6 @@ OBJECT_DATAGRAM {
   Track Alias (vi64),
   Group ID (vi64),
   [Object ID (vi64),]
-  [Publisher Priority (8),]
   [Properties (..),]
   [Object Status (vi64),]
   [Object Payload (..),]
@@ -4551,7 +4548,7 @@ single-byte encoding (values less than 128). If a received value has bit 4 set,
 or has a bit set whose meaning is not specified, the endpoint MUST close the
 session with `INVALID_STREAM_HEADER`.
 
-The four low-order bits and bit 5 of the Type Flags field determine which fields
+Bits 0-2 and bit 5 of the Type Flags field determine which fields
 are present in the datagram:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is
@@ -4568,11 +4565,6 @@ are present in the datagram:
 * The **ZERO_OBJECT_ID** bit (0x04) indicates when the Object ID field is
   present.  When set to 1, the Object ID field is omitted and the Object ID
   is 0. When set to 0, the Object ID field is present.
-
-* The **DEFAULT_PRIORITY** bit (0x08) indicates when the Priority field is
-  present. When set to 1, the Priority field is omitted and this Object inherits
-  the Publisher Priority specified in the control message that established the
-  subscription. When set to 0, the Priority field is present.
 
 * The **STATUS** bit (0x20) indicates whether the datagram contains an Object
   Status or Object Payload. When set to 1, the Object Status field is present
@@ -4640,7 +4632,6 @@ SUBGROUP_HEADER {
   Track Alias (vi64),
   Group ID (vi64),
   [Subgroup ID (vi64),]
-  [Publisher Priority (8),]
   [Subgroup Properties (..),]
 }
 ~~~
@@ -4650,8 +4641,8 @@ All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Delivery Mode` = `Subgroup`.
 
 The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
-encodes a set of flags. All values defined in this specification are less
-than 256.
+encodes a set of flags. All values defined in this specification fit in a
+single-byte encoding (values less than 128).
 
 Bit 4 is always set to 1. The other bits are defined as follows:
 
@@ -4680,18 +4671,12 @@ Bit 4 is always set to 1. The other bits are defined as follows:
   Object received on the stream do not exist. This does not apply when the data
   stream is reset.
 
-* The **DEFAULT_PRIORITY** bit (0x20) indicates when the Priority field is
-  present. When set to 1, the Priority field is omitted and this Subgroup
-  inherits the Publisher Priority specified in the control message that
-  established the subscription. When set to 0, the Priority field is present in
-  the Subgroup header.
+* The **SUBGROUP_PROPERTIES** bit (0x20) indicates when the Subgroup Properties
+  field ({{subgroup-properties}}) is present in the Subgroup header. When set to
+  0, the Subgroup has no Subgroup Properties.
 
 * The **FIRST_OBJECT** bit (0x40) indicates that the first object in this
 subgroup stream is the first object published in the subgroup by the original publisher.
-
-* The **SUBGROUP_PROPERTIES** bit (0x80) indicates when the Subgroup Properties
-  field ({{subgroup-properties}}) is present in the Subgroup header. When set to
-  0, the Subgroup has no Subgroup Properties.
 
 The following Type Flags values are invalid. If an endpoint receives a stream
 header with any of these values, it MUST close the session with
@@ -4702,7 +4687,8 @@ header with any of these values, it MUST close the session with
 
 * Values where bit 4 is not set. Bit 4 MUST be 1 for SUBGROUP_HEADER.
 
-* Values of 256 or greater.
+* Values of 128 or greater (i.e., any value that requires more than a one-byte
+  variable-length integer encoding).
 
 To send an Object with `Delivery Mode` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
@@ -4860,7 +4846,6 @@ format:
   [Group ID Delta (vi64),]
   [Subgroup ID (vi64),]
   [Object ID Delta (vi64),]
-  [Publisher Priority (8),]
   [Properties (..),]
   Object Payload Length (vi64),
   [Object Payload (..),]
@@ -4904,9 +4889,11 @@ Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
 0x04 | Object ID Delta is present | Object ID is the prior Object's ID plus one
 0x08 | Group ID Delta is present | Group ID is the prior Object's Group ID
-0x10 | Priority field is present | Priority is the prior Object's Priority
 0x20 | Properties field is present | Properties field is not present
 0x40 | Datagram: ignore the two least significant bits | Decode the Subgroup ID as indicated by the two least significant bits
+
+Bit 0x10 is reserved.  If an endpoint receives Serialization Flags less than
+128 with bit 0x10 set, it MUST close the session with `MALFORMED_STREAM`.
 
 The first Object MUST include a Group ID Delta and Object ID Delta, and
 these values are the absolute Group ID and Object ID. If the first Object in
@@ -4938,7 +4925,7 @@ MUST ignore the bits.
 #### End of Range {#end-of-range}
 
 When Serialization Flags indicates an End of Range (e.g. values 0x8C, 0x10C, or
-0x20C), the Group ID and Object ID fields are present.  Subgroup ID, Priority and
+0x20C), the Group ID and Object ID fields are present.  Subgroup ID and
 Properties are not present. All Objects with Locations between the last
 serialized Object, if any, and this Location, inclusive, either do not exist
 (when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).
@@ -4951,10 +4938,6 @@ the "prior Object", the prior Object fields are determined as follows:
   End of Range indicator. If there was no prior Object, an endpoint that
   receives a flag referencing the prior Subgroup ID MUST close the session
   with `MALFORMED_STREAM`.
-* Prior Priority: The Priority from the last actual Object before the End of
-  Range indicator. If there was no prior Object, an endpoint that receives a
-  flag referencing the prior Priority MUST close the session with
-  `MALFORMED_STREAM`.
 
 #### Subgroup Entry {#fetch-subgroup-entry}
 
@@ -5038,27 +5021,24 @@ to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
-1.  An Object with a particular Subgroup ID is received, but its
-     Publisher Priority is different from that of the previous Object with the same
-     Subgroup ID.
-2. An Object is received whose Object ID is larger than the final Object in the
+1. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-3. A Subgroup is received over multiple transport streams terminated by FIN with
+2. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-4. An Object is received in a Group whose Object
+3. An Object is received in a Group whose Object
    ID is larger than the final Object in the Group.  The final Object in a Group
    is the Object with Status END_OF_GROUP, or the last Object before a FIN in a
    Subgroup which has the END_OF_GROUP bit set.  If the end of a Group is
    implicitly determined via a gap in a FETCH response, the final Object in the
    Group remains unknown.
-5. An Object is received whose Group and Object ID are larger than
+4. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
    with Status END_OF_TRACK or the last Object sent in a FETCH whose response
    indicated End of Track.
-6. The same Object is received more than once with different Payload or
+5. The same Object is received more than once with different Payload or
    other immutable properties.
-7. An Object is received with a different Delivery Mode than previously
+6. An Object is received with a different Delivery Mode than previously
    observed.
 
 The above list of conditions is not considered exhaustive.
@@ -5885,7 +5865,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x04 | MAX_CACHE_DURATION | Track | {{max-cache-duration}} |
 | 0x06 | SUBGROUP_DELIVERY_TIMEOUT | Track, Subgroup | {{subgroup-delivery-timeout-ext}} |
 | 0x0B | IMMUTABLE_PROPERTIES | Track, Subgroup, Object | {{immutable-properties}} |
-| 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | {{publisher-priority}} |
+| 0x0E | PUBLISHER_PRIORITY | Track, Subgroup, Object | {{publisher-priority}} |
 | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track | {{group-order-pref}} |
 | 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
 | 0x3C | PRIOR_GROUP_ID_GAP | Subgroup, Object | {{prior-group-id-gap}} |
