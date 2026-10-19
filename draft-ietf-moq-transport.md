@@ -1519,11 +1519,9 @@ there is no timeout set.
 The publisher communicates both timeout values as a Track Property; the
 subscriber communicates them as Message Parameters.
 
-SUBGROUP_DELIVERY_TIMEOUT can also be set as a Subgroup Property, overriding the
-Track-level value for that subgroup.
-
-OBJECT_DELIVERY_TIMEOUT can also be set as a Subgroup Property, overriding the
-Track-level value for the objects of that subgroup.
+SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT can also be set as
+Subgroup Properties, overriding their respective Track-level value for that
+subgroup.
 
 For each type of timeout, if both the publisher's value and the subscriber's
 value are non-zero, the smaller of the two is used.
