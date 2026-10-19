@@ -3775,7 +3775,8 @@ unexpected duplicate parameters and close the session with `INVALID_PARAMETER`
 if found.
 
 The number of Message Parameters is not specifically limited, but the total
-length of a control message is limited to 2^16-1 bytes.
+length of a control message is limited by MAX_CONTROL_MESSAGE_SIZE
+({{max-control-message-size}}).
 
 Message Parameters in SUBSCRIBE and FETCH MUST NOT cause the
 publisher to alter the payload of the objects it sends, as that would violate
