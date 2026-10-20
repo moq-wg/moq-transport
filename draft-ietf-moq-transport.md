@@ -1872,9 +1872,11 @@ Request ID. Only
 request messages include a Request ID; response messages do not, since
 they are sent on the same bidirectional stream as the request.
 
-If an endpoint receives a Request ID where the least significant bit is
-incorrect for the sender, or a duplicate Request ID, it MUST close the
-session with `INVALID_REQUEST_ID`.
+An endpoint MUST NOT reuse a Request ID within a session.  If an endpoint
+receives a Request ID where the least significant bit is incorrect for the
+sender, it MUST close the session with `INVALID_REQUEST_ID`.  If an endpoint
+detects a duplicate Request ID, it MUST close the session with
+`INVALID_REQUEST_ID`.
 
 
 #### Graceful Request Stream Closure {#graceful-request-closure}
