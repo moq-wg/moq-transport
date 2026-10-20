@@ -2181,10 +2181,9 @@ Namespace Prefix Matching ({{namespace-prefix-matching}}) is further used to
 decide which publishers receive a SUBSCRIBE and which subscribers receive a
 PUBLISH.
 
-Relays MUST send a SUBSCRIBE to each matching publisher. This includes
+Relays MUST send at least one SUBSCRIBE to each matching publisher. This includes
 matching both Established subscriptions on the Full Track Name and Namespace
-Prefix Matching against published Namespaces.  A publisher that matches more
-than one way receives a single SUBSCRIBE.
+Prefix Matching against published Namespaces.
 
 When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
@@ -2219,7 +2218,8 @@ if paused.
 When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it MUST
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
-matching subscription. A Relay does not send PUBLISH_NAMESPACE to a subscriber;
+matching subscription, unless it already has a subscription to that Track from
+that publisher. A Relay does not send PUBLISH_NAMESPACE to a subscriber;
 it advertises namespaces by sending NAMESPACE in response to a matching
 SUBSCRIBE_NAMESPACE (see {{subscribing-to-namespaces}}).
 
