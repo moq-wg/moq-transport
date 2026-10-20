@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 22 April 2027                                     I. Swett, Ed.
+Expires: 23 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         19 October 2026
+                                                         20 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 April 2027.
+   This Internet-Draft will expire on 23 April 2027.
 
 Copyright Notice
 
@@ -2242,9 +2242,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Request ID; response messages do not, since they are sent on the same
    bidirectional stream as the request.
 
-   If an endpoint receives a Request ID where the least significant bit
-   is incorrect for the sender, or a duplicate Request ID, it MUST close
-   the session with INVALID_REQUEST_ID.
+   An endpoint MUST NOT reuse a Request ID within a session.  If an
+   endpoint receives a Request ID where the least significant bit is
+   incorrect for the sender, it MUST close the session with
+   INVALID_REQUEST_ID.  If an endpoint detects a duplicate Request ID,
+   it MUST close the session with INVALID_REQUEST_ID.
 
 6.4.2.2.  Graceful Request Stream Closure
 
