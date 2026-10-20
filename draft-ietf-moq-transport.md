@@ -4907,16 +4907,40 @@ MUST ignore the bits.
 
 #### End of Range {#end-of-range}
 
-When Serialization Flags indicates an End of Range (e.g. values 0x8C, 0x10C, or
-0x20C), the Group ID and Object ID fields are present.  Subgroup ID, Priority and
-Properties are not present. All Objects with Locations between the last
-serialized Object, if any, and this Location, inclusive, either do not exist
-(when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).
+When the Serialization Flags field indicates an End of Range (0x8C, 0x10C, or
+0x20C), the Group ID Delta and Object ID Delta fields are always present.
+Subgroup ID, Priority and Properties are not present. All Objects with Locations
+between the last serialized Object, if any, and the Location decoded from this
+indicator, inclusive, either do not exist (when Serialization Flags is 0x8C),
+are unknown (0x10C), or timed out (0x20C).
+
+##### ID Decoding {#end-of-range-id-decoding}
+
+If this End of Range indicator is the first entry after the FETCH_HEADER, both
+fields encode absolute IDs. Otherwise, the prior Group ID and prior Object ID
+are the decoded IDs of the most recent preceding Object or End of Range
+indicator.
+
+For subsequent indicators, the Group ID is the prior Group ID plus Group ID
+Delta for Ascending Group Order, or minus Group ID Delta for Descending Group
+Order. If Group ID Delta is zero, the Object ID is the prior Object ID plus
+Object ID Delta + 1; otherwise, Object ID Delta is the absolute Object ID.
+
+An Object ID Delta of zero therefore advances the Object ID by one within the
+same Group. The +1 offset differs from the +2 offset for Objects within a Group
+in {{fetch-serialization-flags}} because End of Range indicators always include
+Object ID Delta and cannot omit it to indicate an increment of one.
+
+If either decoded ID is less than zero or greater than 2^64-1, the Subscriber
+MUST close the Session with `DELTA_ENCODING_OVERFLOW`.
+
+##### Prior Object Fields
 
 When an Object follows an End of Range indicator and uses flags that reference
 the "prior Object", the prior Object fields are determined as follows:
 
-* Prior Group ID and prior Object ID: The values from the End of Range indicator.
+* Prior Group ID and prior Object ID: The decoded values from the End of Range
+  indicator.
 * Prior Subgroup ID: The Subgroup ID from the last actual Object before the
   End of Range indicator. If there was no prior Object, an endpoint that
   receives a flag referencing the prior Subgroup ID MUST close the session
