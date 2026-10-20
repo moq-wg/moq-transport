@@ -4889,15 +4889,25 @@ MUST ignore the bits.
 #### End of Range {#end-of-range}
 
 When Serialization Flags indicates an End of Range (e.g. values 0x8C, 0x10C, or
-0x20C), the Group ID and Object ID fields are present.  Subgroup ID, Priority and
-Properties are not present. All Objects with Locations between the last
-serialized Object, if any, and this Location, inclusive, either do not exist
+0x20C), the Group ID Delta and Object ID Delta fields are present. Subgroup ID,
+Priority and Properties are not present. All Objects with Locations between the
+last serialized Object, if any, and this Location, inclusive, either do not exist
 (when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).
+
+If no Object or End of Range indicator precedes the indicator on the FETCH
+stream, both fields encode absolute IDs. Otherwise, the prior IDs are taken
+from the preceding Object or End of Range indicator. The Group ID is the
+prior Group ID plus Group ID Delta for Ascending Group Order, or minus
+Group ID Delta for Descending Group Order. If Group ID Delta is zero, the
+Object ID is the prior Object ID plus Object ID Delta; otherwise, Object ID
+Delta is the absolute Object ID. If either decoded ID is outside 0 to
+2^64-1, the Subscriber MUST close the Session with `DELTA_ENCODING_OVERFLOW`.
 
 When an Object follows an End of Range indicator and uses flags that reference
 the "prior Object", the prior Object fields are determined as follows:
 
-* Prior Group ID and prior Object ID: The values from the End of Range indicator.
+* Prior Group ID and prior Object ID: The decoded values from the End of Range
+  indicator.
 * Prior Subgroup ID: The Subgroup ID from the last actual Object before the
   End of Range indicator. If there was no prior Object, an endpoint that
   receives a flag referencing the prior Subgroup ID MUST close the session
