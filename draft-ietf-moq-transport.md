@@ -1027,6 +1027,11 @@ An object delivered on the fill fetch stream is **fill-delivered**.  When the
 fill range overlaps the subscription's Location filter, an object can be both
 fill-delivered and subscription-delivered.
 
+When LOCATION_FILTER is present inside FILL_PARAMETERS, a subscriber that wants
+each Object delivered at most once uses the Next Object Subscription Location
+Filter coupled with an open-ended fill range, which the publisher will end at
+Largest Object.
+
 ### Fill with Subscribe style delivery
 
 When LOCATION_FILTER is omitted from FILL_PARAMETERS, the publisher MAY deliver
@@ -1043,11 +1048,6 @@ fetch stream.  A Group MUST NOT be split between a fill fetch stream and
 subscription delivery, with the exception of the current Group when
 FIRST_SUBSCRIBE_GROUP is omitted.  If FIRST_SUBSCRIBE_GROUP is equal to the
 start Group of the fill range, the publisher does not open a fill fetch stream.
-
-When LOCATION_FILTER is present inside FILL_PARAMETERS, a subscriber that wants
-each Object delivered at most once uses the Next Object Subscription Location
-Filter coupled with an open-ended fill range, which the publisher will end at
-Largest Object.
 
 ### Opening and Closing Fill Fetch Streams
 
