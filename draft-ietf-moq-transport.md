@@ -4162,10 +4162,9 @@ the fill range are subscription-delivered.
 
 An endpoint MUST close the session with `INVALID_PARAMETER` if it receives
 FIRST_SUBSCRIBE_GROUP in response to a SUBSCRIBE or REQUEST_UPDATE that did not
-include FILL_PARAMETERS or whose FILL_PARAMETERS included a LOCATION_FILTER, in
-a message that does not include LARGEST_OBJECT, or with a Group ID smaller than
-the Start Group of the subscription's Location Filter or greater than
-`Largest Object.Group`.
+include FILL_PARAMETERS or whose FILL_PARAMETERS included a LOCATION_FILTER, or
+if the Group ID is smaller than the Start Group of the subscription's Location
+Filter or greater than `Largest Object.Group`.
 
 ### FORWARD Parameter {#forward-parameter}
 
