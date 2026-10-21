@@ -1305,7 +1305,10 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-fill-semantics" class="internal xref">Fill Semantics</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.1">
-                    <p id="section-toc.1-1.3.2.4.2.1.1"><a href="#section-3.4.1" class="auto internal xref">3.4.1</a>.  <a href="#name-opening-and-closing-fill-fe" class="internal xref">Opening and Closing Fill Fetch Streams</a></p>
+                    <p id="section-toc.1-1.3.2.4.2.1.1"><a href="#section-3.4.1" class="auto internal xref">3.4.1</a>.  <a href="#name-fill-with-subscribe-style-d" class="internal xref">Fill with Subscribe style delivery</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.2">
+                    <p id="section-toc.1-1.3.2.4.2.2.1"><a href="#section-3.4.2" class="auto internal xref">3.4.2</a>.  <a href="#name-opening-and-closing-fill-fe" class="internal xref">Opening and Closing Fill Fetch Streams</a></p>
 </li>
                 </ul>
 </li>
@@ -3087,7 +3090,12 @@ opened fill fetch streams.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
 <p id="section-3.4-6">An object delivered on the fill fetch stream is <strong>fill-delivered</strong>.  When the
 fill range overlaps the subscription's Location filter, an object can be both
 fill-delivered and subscription-delivered.<a href="#section-3.4-6" class="pilcrow">¶</a></p>
-<p id="section-3.4-7">When LOCATION_FILTER is omitted from FILL_PARAMETERS, the publisher <span class="bcp14">MAY</span> deliver
+<div id="fill-with-subscribe-style-delivery">
+<section id="section-3.4.1">
+          <h4 id="name-fill-with-subscribe-style-d">
+<a href="#section-3.4.1" class="section-number selfRef">3.4.1. </a><a href="#name-fill-with-subscribe-style-d" class="section-name selfRef">Fill with Subscribe style delivery</a>
+          </h4>
+<p id="section-3.4.1-1">When LOCATION_FILTER is omitted from FILL_PARAMETERS, the publisher <span class="bcp14">MAY</span> deliver
 the current Group and/or contiguous preceding Groups in the fill range as
 subscription-delivered Objects in subgroups and datagrams instead of on the fill
 fetch stream.  When doing so, the publisher includes the FIRST_SUBSCRIBE_GROUP
@@ -3100,35 +3108,37 @@ range with Group IDs less than FIRST_SUBSCRIBE_GROUP <span class="bcp14">MUST</s
 fetch stream.  A Group <span class="bcp14">MUST NOT</span> be split between a fill fetch stream and
 subscription delivery, with the exception of the current Group when
 FIRST_SUBSCRIBE_GROUP is omitted.  If FIRST_SUBSCRIBE_GROUP is equal to the
-start Group of the fill range, the publisher does not open a fill fetch stream.<a href="#section-3.4-7" class="pilcrow">¶</a></p>
-<p id="section-3.4-8">When LOCATION_FILTER is present inside FILL_PARAMETERS, a subscriber that wants
+start Group of the fill range, the publisher does not open a fill fetch stream.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-2">When LOCATION_FILTER is present inside FILL_PARAMETERS, a subscriber that wants
 each Object delivered at most once uses the Next Object Subscription Location
 Filter coupled with an open-ended fill range, which the publisher will end at
-Largest Object.<a href="#section-3.4-8" class="pilcrow">¶</a></p>
+Largest Object.<a href="#section-3.4.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
 <div id="opening-and-closing-fill-fetch-streams">
-<section id="section-3.4.1">
+<section id="section-3.4.2">
           <h4 id="name-opening-and-closing-fill-fe">
-<a href="#section-3.4.1" class="section-number selfRef">3.4.1. </a><a href="#name-opening-and-closing-fill-fe" class="section-name selfRef">Opening and Closing Fill Fetch Streams</a>
+<a href="#section-3.4.2" class="section-number selfRef">3.4.2. </a><a href="#name-opening-and-closing-fill-fe" class="section-name selfRef">Opening and Closing Fill Fetch Streams</a>
           </h4>
-<p id="section-3.4.1-1">A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
+<p id="section-3.4.2-1">A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
 REQUEST_UPDATE that carries FILL_PARAMETERS while the subscription is not
 paused (see <a href="#pausing-subscriptions" class="auto internal xref">Section 3.1.1</a>), unless the entire fill range is
-subscription-delivered.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
+subscription-delivered.<a href="#section-3.4.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.4.1-2.1">
-              <p id="section-3.4.1-2.1.1">FILL_PARAMETERS carried while the subscription is paused opens no fill fetch
+<li class="normal" id="section-3.4.2-2.1">
+              <p id="section-3.4.2-2.1.1">FILL_PARAMETERS carried while the subscription is paused opens no fill fetch
 stream.  Resuming the subscription without re-sending FILL_PARAMETERS does
-not open one either.<a href="#section-3.4.1-2.1.1" class="pilcrow">¶</a></p>
+not open one either.<a href="#section-3.4.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.4.1-2.2">
-              <p id="section-3.4.1-2.2.1">A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open a new fill
-fetch stream.<a href="#section-3.4.1-2.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-3.4.2-2.2">
+              <p id="section-3.4.2-2.2.1">A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open a new fill
+fetch stream.<a href="#section-3.4.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.4.1-2.3">
-              <p id="section-3.4.1-2.3.1">When the subscription is cancelled, the publisher <span class="bcp14">MUST</span> reset any open fill fetch streams.<a href="#section-3.4.1-2.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-3.4.2-2.3">
+              <p id="section-3.4.2-2.3.1">When the subscription is cancelled, the publisher <span class="bcp14">MUST</span> reset any open fill fetch streams.<a href="#section-3.4.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-3.4.1-3">The publisher signals that the fill is complete by closing the stream with a
+<p id="section-3.4.2-3">The publisher signals that the fill is complete by closing the stream with a
 FIN once all objects in the fill range prior to FIRST_SUBSCRIBE_GROUP (or
 Largest Object if omitted) have been delivered.  Because there is
 no REQUEST_ERROR associated with a fill fetch stream, the publisher signals a
@@ -3137,7 +3147,7 @@ it immediately after the FETCH_HEADER if necessary.  A subscriber can cancel a
 fill fetch stream independently using STOP_SENDING.  Resetting or
 cancelling a fill fetch stream, by either endpoint, does not affect the
 subscription, which continues to deliver objects using subscribe subgroups and
-datagrams.<a href="#section-3.4.1-3" class="pilcrow">¶</a></p>
+datagrams.<a href="#section-3.4.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

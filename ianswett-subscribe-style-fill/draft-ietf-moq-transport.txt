@@ -114,7 +114,8 @@ Table of Contents
        3.3.2.  Range Filters
        3.3.3.  Combining Filters
      3.4.  Fill Semantics
-       3.4.1.  Opening and Closing Fill Fetch Streams
+       3.4.1.  Fill with Subscribe style delivery
+       3.4.2.  Opening and Closing Fill Fetch Streams
      3.5.  Joining an Ongoing Track
        3.5.1.  Dynamically Starting New Groups
      3.6.  Subscribing to Tracks by Prefix
@@ -1322,6 +1323,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    When the fill range overlaps the subscription's Location filter, an
    object can be both fill-delivered and subscription-delivered.
 
+3.4.1.  Fill with Subscribe style delivery
+
    When LOCATION_FILTER is omitted from FILL_PARAMETERS, the publisher
    MAY deliver the current Group and/or contiguous preceding Groups in
    the fill range as subscription-delivered Objects in subgroups and
@@ -1345,7 +1348,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Subscription Location Filter coupled with an open-ended fill range,
    which the publisher will end at Largest Object.
 
-3.4.1.  Opening and Closing Fill Fetch Streams
+3.4.2.  Opening and Closing Fill Fetch Streams
 
    A publisher opens a fill fetch stream when it processes a SUBSCRIBE
    or REQUEST_UPDATE that carries FILL_PARAMETERS while the subscription
