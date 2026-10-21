@@ -3090,6 +3090,10 @@ opened fill fetch streams.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
 <p id="section-3.4-6">An object delivered on the fill fetch stream is <strong>fill-delivered</strong>.  When the
 fill range overlaps the subscription's Location filter, an object can be both
 fill-delivered and subscription-delivered.<a href="#section-3.4-6" class="pilcrow">¶</a></p>
+<p id="section-3.4-7">When LOCATION_FILTER is present inside FILL_PARAMETERS, a subscriber that wants
+each Object delivered at most once uses the Next Object Subscription Location
+Filter coupled with an open-ended fill range, which the publisher will end at
+Largest Object.<a href="#section-3.4-7" class="pilcrow">¶</a></p>
 <div id="fill-with-subscribe-style-delivery">
 <section id="section-3.4.1">
           <h4 id="name-fill-with-subscribe-style-d">
@@ -3109,10 +3113,6 @@ fetch stream.  A Group <span class="bcp14">MUST NOT</span> be split between a fi
 subscription delivery, with the exception of the current Group when
 FIRST_SUBSCRIBE_GROUP is omitted.  If FIRST_SUBSCRIBE_GROUP is equal to the
 start Group of the fill range, the publisher does not open a fill fetch stream.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-2">When LOCATION_FILTER is present inside FILL_PARAMETERS, a subscriber that wants
-each Object delivered at most once uses the Next Object Subscription Location
-Filter coupled with an open-ended fill range, which the publisher will end at
-Largest Object.<a href="#section-3.4.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="opening-and-closing-fill-fetch-streams">
