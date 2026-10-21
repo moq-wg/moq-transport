@@ -7120,10 +7120,9 @@ than on a fill fetch stream (see <a href="#fill-semantics" class="auto internal 
 the fill range are subscription-delivered.<a href="#section-9.20.18-2" class="pilcrow">¶</a></p>
 <p id="section-9.20.18-3">An endpoint <span class="bcp14">MUST</span> close the session with <code>INVALID_PARAMETER</code> if it receives
 FIRST_SUBSCRIBE_GROUP in response to a SUBSCRIBE or REQUEST_UPDATE that did not
-include FILL_PARAMETERS or whose FILL_PARAMETERS included a LOCATION_FILTER, in
-a message that does not include LARGEST_OBJECT, or with a Group ID smaller than
-the Start Group of the subscription's Location Filter or greater than
-<code>Largest Object.Group</code>.<a href="#section-9.20.18-3" class="pilcrow">¶</a></p>
+include FILL_PARAMETERS or whose FILL_PARAMETERS included a LOCATION_FILTER, or
+if the Group ID is smaller than the Start Group of the subscription's Location
+Filter or greater than <code>Largest Object.Group</code>.<a href="#section-9.20.18-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="forward-parameter">
