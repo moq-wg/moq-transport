@@ -1027,6 +1027,8 @@ An object delivered on the fill fetch stream is **fill-delivered**.  When the
 fill range overlaps the subscription's Location filter, an object can be both
 fill-delivered and subscription-delivered.
 
+### Fill with Subscribe style delivery
+
 When LOCATION_FILTER is omitted from FILL_PARAMETERS, the publisher MAY deliver
 the current Group and/or contiguous preceding Groups in the fill range as
 subscription-delivered Objects in subgroups and datagrams instead of on the fill
