@@ -799,6 +799,9 @@ If no Objects have been published for the track or Start Location is greater
 than the `Largest Object` ({{largest-object}}) the publisher MUST return
 FETCH_ERROR with error code `INVALID_RANGE`.
 
+If the Location filter is relative (see {{location-filter}}), the publisher
+MUST return REQUEST_ERROR with error code `INVALID_RANGE`.
+
 ### Fetch Object Delivery
 
 The publisher creates a single unidirectional stream (see {{fetch-streams}})
@@ -1869,9 +1872,11 @@ Request ID. Only
 request messages include a Request ID; response messages do not, since
 they are sent on the same bidirectional stream as the request.
 
-If an endpoint receives a Request ID where the least significant bit is
-incorrect for the sender, or a duplicate Request ID, it MUST close the
-session with `INVALID_REQUEST_ID`.
+An endpoint MUST NOT reuse a Request ID within a session.  If an endpoint
+receives a Request ID where the least significant bit is incorrect for the
+sender, it MUST close the session with `INVALID_REQUEST_ID`.  If an endpoint
+detects a duplicate Request ID, it MUST close the session with
+`INVALID_REQUEST_ID`.
 
 
 #### Graceful Request Stream Closure {#graceful-request-closure}
@@ -3113,10 +3118,25 @@ REQUEST_UPDATE to modify parameters of a subscription established with PUBLISH.
 An endpoint that receives a REQUEST_UPDATE other than in the two cases above
 MUST close the session with `UNEXPECTED_MESSAGE`.
 
-The receiver of a REQUEST_UPDATE MUST respond with exactly one
-REQUEST_UPDATE_OK or REQUEST_UPDATE_ERROR message indicating if the update was
-successful, unless it is coalescing failed updates to produce just one
-REQUEST_UPDATE_ERROR for multiple REQUEST_UPDATE messages.
+A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
+coalesce their processing by applying only the cumulative result.
+Parameter values from later REQUEST_UPDATE messages override values
+from earlier ones. The receiver MUST still send a REQUEST_UPDATE_OK for
+each successful update, but it is not required to process
+intermediate states individually. If the coalesced REQUEST_UPDATE
+results in an error, only a single REQUEST_UPDATE_ERROR will be
+sent and the sender of the REQUEST_UPDATEs will not always be
+able to determine which caused an error.
+
+REQUEST_UPDATE messages MUST be processed in order to guarantee
+consistent behavior. The receiver of a REQUEST_UPDATE MUST respond with
+exactly one REQUEST_UPDATE_OK or REQUEST_UPDATE_ERROR message indicating if
+the update was successful, unless it is coalescing failed updates to produce
+just one REQUEST_UPDATE_ERROR for multiple REQUEST_UPDATE messages.
+Because REQUEST_UPDATE and REQUEST_UPDATE_OKs are sent on a single
+in-order stream and REQUEST_UPDATE_OK does not contain a Request ID,
+REQUEST_UPDATE_OKs MUST be returned in the order the REQUEST_UPDATEs
+were received.
 
 The number of outstanding REQUEST_UPDATEs on a single request stream is
 limited by the MAX_REQUEST_UPDATES Setup Option ({{max-request-updates}}).
@@ -3182,16 +3202,6 @@ PUBLISH_DONE with error code `UPDATE_FAILED`. When a REQUEST_UPDATE fails for
 a FETCH, the publisher MUST reset the FETCH data stream. When a REQUEST_UPDATE
 fails for a SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS or PUBLISH_NAMESPACE, the
 responder MUST close the bidi stream (see {{graceful-request-closure}}).
-
-A receiver of multiple REQUEST_UPDATE messages on the same stream MAY
-coalesce their processing by applying only the cumulative result.
-Parameter values from later REQUEST_UPDATE messages override values
-from earlier ones. The receiver MUST still send a REQUEST_UPDATE_OK for
-each successful update, but it is not required to process
-intermediate states individually. If the coalesced REQUEST_UPDATE
-results in an error, only a single REQUEST_UPDATE_ERROR will be
-sent and the sender of the REQUEST_UPDATEs will not always be
-able to determine which caused an error.
 
 ### Updating Namespace Subscriptions
 
