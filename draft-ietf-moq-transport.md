@@ -1025,12 +1025,9 @@ opened fill fetch streams.
 
 An object delivered on the fill fetch stream is **fill-delivered**.  When the
 fill range overlaps the subscription's Location filter, an object can be both
-fill-delivered and subscription-delivered.
-
-When LOCATION_FILTER is present inside FILL_PARAMETERS, a subscriber that wants
-each Object delivered at most once uses the Next Object Subscription Location
-Filter coupled with an open-ended fill range, which the publisher will end at
-Largest Object.
+fill-delivered and subscription-delivered. A subscriber that wants each Object
+delivered exactly once uses the Next Object Subscription Location Filter coupled
+with an open-ended fill range, which the publisher will end at Largest Object.
 
 ### Fill with Subscribe style delivery
 
