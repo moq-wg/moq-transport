@@ -3035,7 +3035,7 @@ REQUEST_OK Message {
 
   * PUBLISH_OK: EXPIRES
   * REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT
-  * TRACK_STATUS_OK: LARGEST_OBJECT
+  * TRACK_STATUS_OK: EXPIRES, LARGEST_OBJECT
   * SUBSCRIBE_NAMESPACE_OK: EXPIRES
   * SUBSCRIBE_TRACKS_OK: EXPIRES
   * PUBLISH_NAMESPACE_OK: EXPIRES
@@ -3535,8 +3535,8 @@ FETCH_OK Message {
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with `INVALID_FIELD`.
 
-* Parameters: The parameters are defined in {{message-params}}.  No parameters
-  are currently defined for FETCH_OK.
+* Parameters: The parameters are defined in {{message-params}}.  The only
+  parameter that can appear in a FETCH_OK is EXPIRES.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
@@ -4098,14 +4098,16 @@ message that carries it, so the sticky-parameter rules in
 ### EXPIRES Parameter {#expires}
 
 The EXPIRES parameter (Parameter Type 0x8) is a varint. It MAY appear in
-SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK,
-PUBLISH_NAMESPACE_OK, or REQUEST_UPDATE_OK. It encodes the time
+PUBLISH, SUBSCRIBE_OK, FETCH_OK, or any REQUEST_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
-the subscription. The sender will terminate the subscription using PUBLISH_DONE
-or by cancelling the request (see {{request-cancellation}}).  This value is advisory and the sender
-can terminate the subscription prior to or after the expiry time.
+the request (see {{message-publish-done}} and {{request-cancellation}}).
+This value is advisory and the sender
+can terminate the request prior to or after the expiry time.
 
-The receiver of the parameter can attempt to extend the subscription by sending
+EXPIRES in TRACK_STATUS_OK indicates the value the sender would have included
+in a SUBSCRIBE_OK for the same Track.
+
+The receiver of the parameter can attempt to extend the request by sending
 a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
 more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
 REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
@@ -4113,7 +4115,7 @@ value in REQUEST_UPDATE_OK. Relays that send this parameter and applications tha
 receive it MAY introduce jitter to prevent many endpoints from updating
 simultaneously.
 
-If the EXPIRES parameter is 0 or is not present in a message, the subscription
+If the EXPIRES parameter is 0 or is not present in a message, the request
 does not expire or expires at an unknown time.
 
 ### LARGEST OBJECT Parameter {#largest-param}
