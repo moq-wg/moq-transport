@@ -4064,6 +4064,9 @@ REQUEST_UPDATE (for a subscription) message. Its value is a Number of Parameters
 message (see {{message-params}}).  A fill fetch stream is opened only when
 FILL_PARAMETERS is present.
 
+See {{forward-parameter}} for the description of how the FORWARD state of the
+subscription can defer the creation of a fill fetch stream.
+
 The following parameters MAY appear inside FILL_PARAMETERS:
 
 | Parameter Type | Parameter Name | Specification |
@@ -4092,8 +4095,10 @@ it are not considered to appear in the enclosing message for the purposes of
 inside FILL_PARAMETERS.
 
 FILL_PARAMETERS is not retained as subscription state. It applies only to the
-message that carries it, so the sticky-parameter rules in
-{{message-request-update}} do not apply to it.
+message that carries it. Its presence or absence in subsequent REQUEST_UPDATE
+messages has no effect on the fill fetch stream. The presence of another
+FILL_PARAMETERS parameter in REQUEST_UPDATE spawns a different fill fetch
+stream.
 
 ### EXPIRES Parameter {#expires}
 
@@ -4136,6 +4141,9 @@ A relay MUST set LARGEST_OBJECT to the largest of the following:
 PUBLISH, or REQUEST_UPDATE_OK
 2. The largest Location of an Object received on an upstream subscription
 
+See {{forward-parameter}} for how LARGEST_OBJECT with relative values interacts
+with the FORWARD parameter.
+
 ### FORWARD Parameter {#forward-parameter}
 
 The FORWARD parameter (Parameter Type 0x10) is a uint8. It MAY appear in
@@ -4155,6 +4163,21 @@ the value for the subscription remains unchanged.  If the parameter is omitted
 from any other message, the default value is 1.  When sent in
 PUBLISH_STATE_NOTIFY, it reports whether the subscription is paused at the
 publisher.
+
+Both fill fetch streams and LOCATION_FILTER parameters with relative values
+are bounded by the value of LARGEST_OBJECT. When FORWARD is set to 1 via
+REQUEST_UPDATE, the "associated" LARGEST_OBJECT comes in the corresponding
+REQUEST_UPDATE_OK. When it is set via PUBLISH_STATE_NOTIFY, the "associated"
+LARGEST_OBJECT comes in the same PUBLISH_STATE_NOTIFY.
+
+When a subscriber sends FILL_PARAMETERS in a message and the FORWARD state is
+0 after that message is processed, the fill fetch stream is deferred. It will
+not start until FORWARD is set to 1, and will be bound by the LARGEST_OBJECT
+associated with setting FORWARD. However, once initiated, further changes to
+FORWARD state have no effect on existing fill fetch streams.
+
+A LOCATION_FILTER with relative values for a subscription anchors to the
+associated LARGEST_OBJECT each time FORWARD transitions from 0 to 1.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
