@@ -6935,12 +6935,12 @@ TRACK_PROPERTY_FILTER {
           <h4 id="name-fill-parameters-parameter">
 <a href="#section-9.20.15" class="section-number selfRef">9.20.15. </a><a href="#name-fill-parameters-parameter" class="section-name selfRef">FILL PARAMETERS Parameter</a>
           </h4>
-<p id="section-9.20.15-1">The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-prefixed
-encoding. It <span class="bcp14">MAY</span> appear in a SUBSCRIBE or REQUEST_UPDATE (for a subscription)
-message. Its value is a sequence of Parameters that apply to the fill fetch
-stream (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>), encoded as if they were Parameters for a
-separate message (see <a href="#message-parameters" class="auto internal xref">Section 16.7</a>).  Its presence is what requests a
-fill fetch stream; a subscription with no FILL_PARAMETERS opens none.<a href="#section-9.20.15-1" class="pilcrow">¶</a></p>
+<p id="section-9.20.15-1">The FILL_PARAMETERS parameter (Parameter Type 0x23) <span class="bcp14">MAY</span> appear in a SUBSCRIBE or
+REQUEST_UPDATE (for a subscription) message. Its value is a Number of Parameters
+(vi64) followed by that many Parameters that apply to the fill fetch stream
+(see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>), encoded as if they were Parameters for a separate
+message (see <a href="#message-params" class="auto internal xref">Section 9.20</a>).  A fill fetch stream is opened only when
+FILL_PARAMETERS is present.<a href="#section-9.20.15-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.15-2">The following parameters <span class="bcp14">MAY</span> appear inside FILL_PARAMETERS:<a href="#section-9.20.15-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-7">
             <caption><a href="#table-7" class="selfRef">Table 7</a></caption>

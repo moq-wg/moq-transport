@@ -4551,13 +4551,12 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
 9.20.15.  FILL PARAMETERS Parameter
 
-   The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-
-   prefixed encoding.  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE
-   (for a subscription) message.  Its value is a sequence of Parameters
+   The FILL_PARAMETERS parameter (Parameter Type 0x23) MAY appear in a
+   SUBSCRIBE or REQUEST_UPDATE (for a subscription) message.  Its value
+   is a Number of Parameters (vi64) followed by that many Parameters
    that apply to the fill fetch stream (see Section 3.4), encoded as if
-   they were Parameters for a separate message (see Section 16.7).  Its
-   presence is what requests a fill fetch stream; a subscription with no
-   FILL_PARAMETERS opens none.
+   they were Parameters for a separate message (see Section 9.20).  A
+   fill fetch stream is opened only when FILL_PARAMETERS is present.
 
    The following parameters MAY appear inside FILL_PARAMETERS:
 
