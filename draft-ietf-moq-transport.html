@@ -7105,11 +7105,10 @@ publisher.<a href="#section-9.20.18-3" class="pilcrow">¶</a></p>
 in SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber <span class="bcp14">MUST NOT</span> send
-this parameter in REQUEST_UPDATE if the Track did not
-include the DYNAMIC_GROUPS Property with value 1.  A subscriber <span class="bcp14">MAY</span>
+this parameter in REQUEST_UPDATE if it has received the Track's Properties and
+they did not include the DYNAMIC_GROUPS Property with value 1.  A subscriber <span class="bcp14">MAY</span>
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
-original publisher does not support dynamic Groups, it ignores the parameter in that
-case.<a href="#section-9.20.19-1" class="pilcrow">¶</a></p>
+original publisher does not support dynamic Groups, it ignores the parameter.<a href="#section-9.20.19-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.19-2">When an Original Publisher that supports dynamic Groups receives a
 NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
 it <span class="bcp14">SHOULD</span> end the current Group and begin a new Group as soon as practical.  The
