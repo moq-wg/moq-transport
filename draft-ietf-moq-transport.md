@@ -278,7 +278,7 @@ sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
 
 Most requests in MOQT are answered with a common REQUEST_OK
 ({{message-request-ok}}) or REQUEST_ERROR ({{message-request-error}}) message.
-This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
+This document uses the shorthand PUBLISH_OK, FETCH_OK, REQUEST_UPDATE_OK,
 TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
 PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
 corresponding request type.  Likewise, it uses the shorthand SUBSCRIBE_ERROR,
@@ -782,9 +782,11 @@ an End Location, inclusive.  This range is specified by a Location Filter (see
 ({{largest-object}}) respectively.
 
 Objects with Locations larger than the `Largest Object` at the time the request
-is processed will not be retrieved by a FETCH.  The actual end of the FETCH
-response is indicated in the FETCH_OK End Location (see {{message-fetch-ok}}).
-Because `Largest Object` can identify an Object that is still arriving
+is processed will not be retrieved by a FETCH.  If `Largest Object` is within
+the requested range, the FETCH response ends at `Largest Object` and the
+publisher MUST include the LARGEST_OBJECT parameter ({{largest-param}}) in
+FETCH_OK.  Otherwise, the response ends at the requested End Location.  Because
+`Largest Object` can identify an Object that is still arriving
 ({{largest-object}}), a FETCH whose range includes `Largest Object` includes
 that Object in full; the publisher delivers the remainder as it becomes
 available.
@@ -792,8 +794,8 @@ available.
 The publisher MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
 FETCH.  The FETCH_OK or FETCH_ERROR can come at any time relative to object
 delivery.  The publisher MAY send Objects in response to a FETCH before the
-FETCH_OK message is sent, but the FETCH_OK MUST NOT be sent until the End
-Location is known.
+FETCH_OK message is sent, but the FETCH_OK MUST NOT be sent until the publisher
+knows whether `Largest Object` is within the requested range.
 
 If no Objects have been published for the track or Start Location is greater
 than the `Largest Object` ({{largest-object}}) the publisher MUST return
@@ -827,11 +829,13 @@ the Group and Object IDs in the response stream that are not otherwise marked
 indicate objects that do not exist (see {{object-states}}).  When one or more
 Range Filters are present, unmarked gaps indicate objects in the unknown state.
 
+In this section, End Location refers to the LARGEST_OBJECT in FETCH_OK if
+present, and the requested End Location otherwise (see {{fetch}}).
+
 For Ascending Group Order, and Descending Group Order where Start and End
 Location are in the same group, gaps include ranges between the Start
 Location and the first object in the stream; between objects in the stream; and
-between the last object in the stream and the End Location indicated in
-FETCH_OK.
+between the last object in the stream and the End Location.
 
 For Descending Group Order where Start and End Location are in different groups,
 the first expected Object in the stream is `{End Location.Group, 0}` and the
@@ -848,7 +852,9 @@ of Objects it will not serialize with an End of Range indicator (see
 {{end-of-range}}), identifying those Objects as non-existent, unknown, or timed
 out.  A publisher SHOULD NOT use `End of Non-Existent Range` in a FETCH response
 except to split a range of Objects that will not be serialized into those that are
-known not to exist and those with unknown or timed out status.
+known not to exist and those with unknown or timed out status.  The publisher
+MUST follow an Object known to end the Track with `End of Track` (see
+{{end-of-range}}).
 
 If a Publisher receives a FETCH with a range that includes one or more Objects
 with unknown state, it can choose to reset the FETCH data stream with
@@ -2753,7 +2759,7 @@ new request stream.
 |--------|------------------------------------------------|------------------|
 | 0x16   | FETCH ({{message-fetch}})                      | Request, First   |
 |--------|------------------------------------------------|------------------|
-| 0x18   | FETCH_OK ({{message-fetch-ok}})                | Request          |
+| 0x18   | RESERVED (FETCH_OK in <= 22)                   | Request          |
 |--------|------------------------------------------------|------------------|
 | 0xD    | TRACK_STATUS ({{message-track-status}})        | Request, First   |
 |--------|------------------------------------------------|------------------|
@@ -3008,7 +3014,7 @@ GOAWAY Message {
 
 ## REQUEST_OK {#message-request-ok}
 
-The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
+The REQUEST_OK message is sent in response to PUBLISH, FETCH, REQUEST_UPDATE,
 TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
 requests.
 
@@ -3027,6 +3033,7 @@ REQUEST_OK Message {
   parameters that can appear depend on the request being answered:
 
   * PUBLISH_OK: EXPIRES
+  * FETCH_OK: LARGEST_OBJECT
   * REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT
   * TRACK_STATUS_OK: LARGEST_OBJECT
   * SUBSCRIBE_NAMESPACE_OK: EXPIRES
@@ -3036,8 +3043,9 @@ REQUEST_OK Message {
 * Track Properties : A sequence of Properties. See {{properties}}. The
   length of Track Properties is the remaining length of the message
   after parsing all previous fields. Track Properties are populated in
-  TRACK_STATUS_OK; they are empty in PUBLISH_OK, REQUEST_UPDATE_OK,
-  SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
+  TRACK_STATUS_OK and FETCH_OK; they are empty in PUBLISH_OK,
+  REQUEST_UPDATE_OK, SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an
+  endpoint
   receives Track Properties in one of these messages it MUST close the
   session with `INVALID_FIELD`.
 
@@ -3498,41 +3506,6 @@ FETCH Message {
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, SUBGROUP_FILTER,
   OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER and
   INCLUDE_PROPERTIES.
-
-## FETCH_OK {#message-fetch-ok}
-
-A publisher sends a FETCH_OK as the first message on the bidi stream in response
-to a successful fetch.
-
-~~~
-FETCH_OK Message {
-  Type (vi64) = 0x18,
-  Length (16),
-  End Of Track (8),
-  End Location (Location),
-  Number of Parameters (vi64),
-  Parameters (..) ...
-  Track Properties (..),
-}
-~~~
-{: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
-
-* End Of Track: 1 if all Objects have been published on this Track, and
-  the End Location is the final Object in the Track, 0 if not. If an endpoint
-  receives any other value, it MUST close the session with `INVALID_FIELD`.
-
-* End Location: The end of the range covered by the FETCH response, inclusive.
-  This is the End Location from the FETCH request Location Filter parameter unless
-  the requested range extends beyond Largest Object at the time
-  the request was processed, or the last Object in the Track.
-  If End Location is smaller than the Start Location in the corresponding FETCH
-  the receiver MUST close the session with `INVALID_FIELD`.
-
-* Parameters: The parameters are defined in {{message-params}}.  No parameters
-  are currently defined for FETCH_OK.
-
-* Track Properties : A sequence of Properties. See {{properties}}.
-
 
 ## TRACK_STATUS {#message-track-status}
 
@@ -4112,19 +4085,21 @@ does not expire or expires at an unknown time.
 ### LARGEST OBJECT Parameter {#largest-param}
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
-in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or
+in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, FETCH_OK, or
 PUBLISH_STATE_NOTIFY.  It contains the `Largest Object`
 ({{largest-object}}) in the Track from the perspective of the sending
 endpoint. If Objects have been published on this Track the
-Publisher MUST include this parameter.
+Publisher MUST include this parameter, except in FETCH_OK, where it is
+only required when `Largest Object` is within the requested range (see
+{{fetch}}).
 
-If omitted from a message, the sending endpoint has not published or received
-any Objects in the Track.
+If omitted from a message other than FETCH_OK, the sending endpoint has not
+published or received any Objects in the Track.
 
 A relay MUST set LARGEST_OBJECT to the largest of the following:
 
 1. Any LARGEST_OBJECT value received from the upstream publisher in SUBSCRIBE_OK,
-PUBLISH, or REQUEST_UPDATE_OK
+PUBLISH, REQUEST_UPDATE_OK, or FETCH_OK
 2. The largest Location of an Object received on an upstream subscription
 
 ### FORWARD Parameter {#forward-parameter}
@@ -4826,7 +4801,7 @@ format:
 The Serialization Flags field defines the serialization of the Object. It is
 a variable-length integer. When less than 128, the bits represent flags
 described in {{fetch-serialization-flags}}. When 128 or greater, the value
-signals a range indicator; the defined values are:
+signals an indicator; the defined values are:
 
 **Reserved Serialization Flags values:**
 
@@ -4834,6 +4809,7 @@ Value | Meaning
 0x8C  | End of Non-Existent Range
 0x10C | End of Unknown Range
 0x20C | End of Timed-Out Range
+0x81  | End of Track
 
 If an endpoint receives any other value greater than 127, it MUST close the
 session with `MALFORMED_OBJECT`.
@@ -4895,6 +4871,10 @@ When Serialization Flags indicates an End of Range (e.g. values 0x8C, 0x10C, or
 Properties are not present. All Objects with Locations between the last
 serialized Object, if any, and this Location, inclusive, either do not exist
 (when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).
+
+When Serialization Flags is 0x81 (End of Track), no other fields are present.
+The prior Object is the last Object in the Track.  The prior Object ID becomes
+2^64-1.
 
 When an Object follows an End of Range indicator and uses flags that reference
 the "prior Object", the prior Object fields are determined as follows:
@@ -4980,8 +4960,7 @@ include:
    Group remains unknown.
 5. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
-   with Status END_OF_TRACK or the last Object sent in a FETCH whose response
-   indicated End of Track.
+   with Status END_OF_TRACK.
 6. The same Object is received more than once with different Payload or
    other immutable properties.
 7. An Object is received with a different Delivery Mode than previously
