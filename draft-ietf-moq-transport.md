@@ -102,7 +102,7 @@ This document describes the MOQT protocol and is structured as follows:
 * Then the document describes how Control Messages and Objects are serialized and sent
   * Section 8 {{notational-conventions-and-common-structures}} Notational Conventions and Common Structures details structures used by subsequent sections
   * Section 9 {{message}} Control Messages details how Control Messages are sent, including their wire encoding
-  * Section 10 {{moqt-properties}} MOQT Properties describes Track and Object properties defined in the core protocol
+  * Section 10 {{moqt-properties}} MOQT Properties describes Track, Subgroup, and Object properties defined in the core protocol
   * Section 11 {{data-streams}} Data streams describes the mapping and serialization of Objects onto streams and datagrams
 
 * Finally, the document discusses deployment related considerations
@@ -350,8 +350,6 @@ Track Namespace and Track Name: The track this object belongs to.
 Group ID: The identifier of the Object's Group (see {{model-group}}) within the Track.
 
 Object ID: The order of the object within the group.
-
-Publisher Priority: An integer indicating the publisher's priority for the Object ({{priorities}}).
 
 Delivery Mode: An enumeration indicating whether an Object is sent in a Subgroup or Datagram. The Original Publisher establishes an Object's Delivery Mode by how it first transmits the Object. In a subscription, an Object MUST be sent according to its Delivery Mode.
 
@@ -751,7 +749,7 @@ When an endpoint receives a datagram or a new stream with a Track Alias that
 is not yet associated with an `Established` subscription, it MAY drop the
 data or buffer it briefly to handle reordering with the control message that
 establishes the Track Alias. For streams, the endpoint MAY withhold stream
-flow control beyond the stream header until the Track Alias has been
+flow control beyond the Track Alias until the Track Alias has been
 established. To prevent deadlocks, endpoints MUST allocate connection flow
 control to control streams before allocating it to any data streams;
 otherwise a receiver might wait for a control message containing a Track
@@ -931,11 +929,11 @@ advances past the end of the current Location Filter.
 ### Range Filters {#range-filters}
 
 Range Filters are parameters in SUBSCRIBE, FETCH, or SUBSCRIBE_TRACKS that
-tell a publisher to filter tracks (via TRACK PROPERTY FILTER) and objects
+tell a publisher to filter tracks (via TRACK PROPERTY FILTER), subgroups (via SUBGROUP PROPERTY FILTER) and objects
 according to subscriber-provided criteria.  Range filters are specified as
-ranges of integer values in Track and Object Properties and other
-Object header fields (Subgroup ID, Object ID, and Publisher Priority).
-There are five Range Filter parameter types, 0x25-0x29.  They share the
+ranges of integer values in Track, Subgroup, and Object Properties,
+Publisher Priority, and Object header fields (Subgroup ID and Object ID).
+There are six Range Filter parameter types, 0x25-0x2A.  They share the
 encoding specified in {{range-filter-structure}}.
 
 An object matches the filter if its value falls within any Range (i.e., Ranges
@@ -952,7 +950,7 @@ SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
 All other filter parameters MAY appear multiple times in a FETCH, SUBSCRIBE,
 SUBSCRIBE_TRACKS, or REQUEST_UPDATE (on a subscription, from the subscriber only)
 message.  If the same combination of Parameter Type, SetID, and Property Type
-(only in the Track and Object Property Filters) repeat in any message,
+(only in the Track, Subgroup, and Object Property Filters) repeat in any message,
 an endpoint MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
 
 In REQUEST_UPDATE, Length of 0 removes the filter; non-zero replaces it
@@ -972,7 +970,12 @@ will not be forwarded nor will any Objects.
 
 The Object Property Filter can be used to filter Objects with required
 Object Property types and values.  It only filters Object Properties,
-and does not evaluate Track Properties in PUBLISH messages.
+and does not evaluate Track Properties in PUBLISH messages or Subgroup Properties.
+
+The Subgroup Property Filter can be used to filter Subgroups with required
+Subgroup Property types and values.  An Object passes this filter if its
+Subgroup does.  Objects sent in Datagrams do not belong to a Subgroup and are not
+affected by this filter.
 
 ### Combining Filters
 
@@ -1176,7 +1179,7 @@ Properties. These properties MUST have Track scope. Mandatory Track Properties
 have special handling rules that prevent tracks with required properties from
 being forwarded to or processed by endpoints that do not understand them.
 
-An Object received with a Mandatory Track Property as an Object Property is
+An Object or Subgroup received with a Mandatory Track Property as an Object or Subgroup Property is
 malformed (see {{malformed-tracks}}).
 
 When an endpoint receives a Mandatory Track Property in PUBLISH,
@@ -1427,9 +1430,9 @@ scheduled.
 
 `Publisher Priority` is a priority number associated with an individual
 schedulable object.  A default for the subscription is specified in the
-DEFAULT_PUBLISHER_PRIORITY Track Property ({{publisher-priority}}). Publisher
-priority can also be set per subgroup or datagram in the subgroup header or
-datagram (see {{data-streams}}), which overrides the default.
+PUBLISHER_PRIORITY Track Property ({{publisher-priority}}). Publisher
+priority can also be set per subgroup or datagram in the PUBLISHER_PRIORITY
+Subgroup or Object Property, which overrides the default.
 
 `Group Order` is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
@@ -1522,14 +1525,14 @@ are expressed in milliseconds and both are optional; a value of 0 means that
 there is no timeout set.
 
 The publisher communicates both timeout values as a Track Property; the
-subscriber communicates them as Message Parameters.  Either timeout value can
-also be set as an Object Property on the first object in a subgroup, overriding
-the Track-level value for that subgroup.  If either timeout is set as an Object
-Property on any object other than the first in a subgroup, it is ignored.  For
-each type of timeout, the
-publisher's value is the Object Property when present on the first object of the
-subgroup, and the Track Property otherwise.  If both the publisher's value and
-the subscriber's value are non-zero, the smaller of the two is used.
+subscriber communicates them as Message Parameters.
+
+SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT can also be set as
+Subgroup Properties, overriding their respective Track-level value for that
+subgroup.
+
+For each type of timeout, if both the publisher's value and the subscriber's
+value are non-zero, the smaller of the two is used.
 
 If the OBJECT_DELIVERY_TIMEOUT is not zero, the MOQT implementation MUST retain
 the time at which the last header byte of every object has been either
@@ -2029,7 +2032,7 @@ fields that can be updated are the following:
    to the constraints of the specific property.
 
 An endpoint that receives a duplicate Object with a different Delivery
-Mode, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
+Mode, Subgroup ID or Payload MUST treat the track as Malformed.
 
 For ranges of objects that do not exist, relays MAY change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
@@ -2044,6 +2047,7 @@ cache or forward the Object in this case.
 A cache MUST store all fields of an Object defined in {{object-header}},
 with the exception of any Object Properties ({{object-properties}})
 that specify otherwise.
+A cache MUST also store the Subgroup Properties ({{subgroup-properties}}) of every Subgroup of which it caches at least one Object, unless a property specifies otherwise.
 
 ## Paused Subscription Handling
 
@@ -2405,9 +2409,9 @@ the session with `MALFORMED_KEY_VALUE`.
 Key-Value-Pairs are always parsed with a known byte length, which bounds
 the sequence. The source of this length varies by context.
 
-## Track and Object Properties {#properties}
+## Track, Subgroup, and Object Properties {#properties}
 
-Tracks and Objects can have additional relay-visible fields, known as
+Tracks, Subgroups, and Objects can have additional relay-visible fields, known as
 Properties, which do not require negotiation, and can be used to alter
 MOQT Object distribution.
 
@@ -2417,8 +2421,8 @@ specifications define the type and value of the property, along with any rules
 concerning processing, modification, caching and forwarding.
 
 If a Relay does not support a Property, it MUST NOT be modified, MUST be
-forwarded, and MUST be cached with the Track or Object, unless it is a Mandatory
-Track Property as described in {{mandatory-track-properties}}.  If a Track or Object
+forwarded, and MUST be cached with the Track, Subgroup, or Object, unless it is a Mandatory
+Track Property as described in {{mandatory-track-properties}}.  If a Track, Subgroup, or Object
 arrives with a different set of unknown properties than previously cached,
 the most recent set SHOULD replace any cached values, removing any unknown
 values not present in the new set.  Relays MUST NOT attempt to merge sets
@@ -2427,13 +2431,13 @@ of unknown properties received in different messages.
 If a Relay supports a Property, it MUST follow the processing rules in the
 Property's definition.  Unless those rules permit otherwise, a Relay MUST NOT
 modify, add, or remove the Property; it MUST forward the Property to downstream
-subscribers and MUST cache it with the Track or Object if the Track or Object is
+subscribers and MUST cache it with the Track, Subgroup, or Object if the Track, Subgroup, or Object is
 cached.
 
 Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
 Track Properties always appear as the final field in the messages that
 carry them; their length is the remaining bytes of the message after all
-preceding fields have been consumed. Object Properties ({{object-properties}})
+preceding fields have been consumed. Subgroup Properties ({{subgroup-properties}}) and Object Properties ({{object-properties}})
 are preceded by an explicit length field.
 
 Property types are registered in the IANA table 'MOQ Properties'.
@@ -3174,7 +3178,7 @@ REQUEST_UPDATE Message {
   * Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
     SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
     FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
-    OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST
+    OBJECT_PROPERTY_FILTER, SUBGROUP_PROPERTY_FILTER, NEW_GROUP_REQUEST
   * FETCH: AUTHORIZATION_TOKEN, SUBSCRIBER_PRIORITY
   * PUBLISH_NAMESPACE: AUTHORIZATION_TOKEN
   * SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN, TRACK_NAMESPACE_PREFIX
@@ -3261,7 +3265,7 @@ SUBSCRIBE Message {
   AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, FORWARD,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
   SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-  NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
+  SUBGROUP_PROPERTY_FILTER, NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -3503,8 +3507,8 @@ FETCH Message {
 * Parameters: The parameters are defined in {{message-params}}.  The parameters
   that can appear in a FETCH are AUTHORIZATION_TOKEN, FILL_TIMEOUT,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, SUBGROUP_FILTER,
-  OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER and
-  INCLUDE_PROPERTIES.
+  OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
+  SUBGROUP_PROPERTY_FILTER and INCLUDE_PROPERTIES.
 
 ## FETCH_OK {#message-fetch-ok}
 
@@ -3697,8 +3701,8 @@ SUBSCRIBE_TRACKS Message {
   are handled differently from the same Parameters on Subscriptions, as outlined
   below.  The parameters that can appear in a SUBSCRIBE_TRACKS are
   AUTHORIZATION_TOKEN, FORWARD, GROUP_ORDER, SUBGROUP_FILTER, OBJECTID_FILTER,
-  PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER and
-  INCLUDE_PROPERTIES.
+  PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, SUBGROUP_PROPERTY_FILTER,
+  TRACK_PROPERTY_FILTER and INCLUDE_PROPERTIES.
 
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
@@ -4006,7 +4010,7 @@ Ranges of Publisher Priority.  See {{range-filters}} and
 {{range-filter-structure}}.
 If a decoded value exceeds 255, the endpoint MUST reject this with
 REQUEST_ERROR with error code INVALID_FILTER since Publisher Priority
-is an 8-bit field.
+values are at most 255.
 
 ~~~
 PRIORITY_FILTER {
@@ -4055,6 +4059,25 @@ TRACK_PROPERTY_FILTER {
 }
 ~~~
 
+### SUBGROUP PROPERTY FILTER Parameter {#subgroup-property-filter}
+
+The SUBGROUP_PROPERTY_FILTER parameter (Type 0x2A) selects Subgroups that
+have required Ranges of Property Value for a required Subgroup Property
+Type which MUST be even, i.e. a single integer value
+(see {{moq-key-value-pair}}), otherwise the endpoint MUST reject this with
+REQUEST_ERROR with error code INVALID_FILTER. See {{range-filters}} and
+{{range-filter-structure}}.
+
+~~~
+SUBGROUP_PROPERTY_FILTER {
+  Type (vi64) = 0x2A,
+  Length (vi64),
+  [SetID (8)],
+  [Property Type (vi64)],
+  [Range (..) ...]
+}
+~~~
+
 ### FILL PARAMETERS Parameter {#fill-parameters}
 
 The FILL_PARAMETERS parameter (Parameter Type 0x23) MAY appear in a SUBSCRIBE or
@@ -4076,6 +4099,7 @@ The following parameters MAY appear inside FILL_PARAMETERS:
 | 0x26 | OBJECTID_FILTER | {{range-filters}} |
 | 0x27 | PRIORITY_FILTER | {{range-filters}} |
 | 0x28 | OBJECT_PROPERTY_FILTER | {{range-filters}} |
+| 0x2A | SUBGROUP_PROPERTY_FILTER | {{range-filters}} |
 
 The LOCATION_FILTER inside FILL_PARAMETERS selects the fill range and is
 evaluated using the rules for a Fetch (see {{location-filter}}); it is
@@ -4218,7 +4242,8 @@ session with `INVALID_PARAMETER`.
 # MOQT Properties {#moqt-properties}
 
 The following Properties are defined in MOQT. Each Property
-specifies whether it can be used with Tracks, Objects, or both.
+specifies whether it can be used with Tracks, Subgroups, Objects, or a
+combination of them.
 
 Property types in ranges reserved for application-specific use
 (0x78-0x7F, 0x3800-0x3FFF) are not defined by MOQT.
@@ -4226,17 +4251,15 @@ See {{properties}} for usage guidance.
 
 ## SUBGROUP_DELIVERY_TIMEOUT {#subgroup-delivery-timeout-ext}
 
-SUBGROUP_DELIVERY_TIMEOUT (Property Type 0x06) is a Track and Object Property.
-It is a variable-length integer.  Its semantics are defined in {{delivery-timeouts}}.  As an
-Object Property on the first object in a subgroup, it overrides the Track-level
-value for that subgroup; it is ignored on any other object in the subgroup.
+SUBGROUP_DELIVERY_TIMEOUT (Property Type 0x06) is a Track and Subgroup Property.
+It is a variable-length integer.  Its semantics are defined in {{delivery-timeouts}}.  As a
+Subgroup Property, it overrides the Track-level value for that subgroup.
 
 ## OBJECT_DELIVERY_TIMEOUT {#object-delivery-timeout-ext}
 
-OBJECT_DELIVERY_TIMEOUT (Property Type 0x02) is a Track and Object Property.
-It is a variable-length integer.  Its semantics are defined in {{delivery-timeouts}}.  As an
-Object Property on the first object in a subgroup, it overrides the Track-level
-value for that subgroup; it is ignored on any other object in the subgroup.
+OBJECT_DELIVERY_TIMEOUT (Property Type 0x02) is a Track and Subgroup Property.
+It is a variable-length integer.  Its semantics are defined in {{delivery-timeouts}}.  As a
+Subgroup Property, it overrides the Track-level value for the objects of that subgroup.
 
 ## MAX CACHE DURATION {#max-cache-duration}
 
@@ -4254,17 +4277,17 @@ Objects have expired from cache, their state becomes unknown (see
 If MAX_CACHE_DURATION is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.
 
-## DEFAULT PUBLISHER PRIORITY {#publisher-priority}
+## PUBLISHER PRIORITY {#publisher-priority}
 
-DEFAULT PUBLISHER PRIORITY (Property Type 0x0E) is a Track Property
-that specifies the priority of a subscription relative to other subscriptions
-in the same session.  The value is from 0 to 255 and lower numbers get higher
+PUBLISHER_PRIORITY (Property Type 0x0E) is a Track and Subgroup Property.  For
+Objects with Delivery Mode Datagram, it is an Object Property.  It specifies the
+Publisher Priority.  The value is from 0 to 255 and lower numbers get higher
 priority.  See {{priorities}}. If an endpoint receives a value above 255, it
 MUST close the session with `MALFORMED_KEY_VALUE`. Subgroups and
-Datagrams for this subscription inherit this priority, unless they specifically
-override it.
+Datagrams of this Track inherit the Track Property value, unless they
+override it with a Subgroup or Object Property.
 
-If omitted, the Default Publisher Priority is 128.
+If omitted from the Track, the Publisher Priority is 128.
 
 ## DEFAULT PUBLISHER GROUP ORDER {#group-order-pref}
 
@@ -4291,9 +4314,9 @@ If omitted, the value is 0.
 
 ## Immutable Properties
 
-Immutable Properties (Property Type 0xB) is a Track or Object Property that
+Immutable Properties (Property Type 0xB) is a Track, Subgroup, or Object Property that
 contains a sequence of Key-Value-Pairs (see {{moq-key-value-pair}}) that are
-themselves Track or Object Properties, respectively.
+themselves Track, Subgroup, or Object Properties, respectively.
 
 ~~~
 Immutable Properties {
@@ -4307,7 +4330,7 @@ This Property can be added by the Original Publisher, but MUST NOT be added by
 Relays. This Property MUST NOT be modified or removed and the serialization
 (e.g. variable-length integer encodings) of the Key-Value-Pairs MUST NOT
 change). Like other Properties, Relays MUST cache Immutable Properties if the
-Object or Track are cached and MUST forward it. Relays MAY decode and view
+Object, Subgroup, or Track is cached and MUST forward it. Relays MAY decode and view
 the Properties in the Key-Value-Pairs.
 
 Unless specified by a particular Property specification, Properties
@@ -4322,7 +4345,7 @@ the Property specification.
 A Track is considered malformed (see {{malformed-tracks}}) if any of the
 following conditions are detected:
 
- * An Object contains an Immutable Properties property that contains another
+ * An Object or Subgroup contains an Immutable Properties property that contains another
    Immutable Properties key.
  * A Key-Value-Pair cannot be parsed.
 
@@ -4344,25 +4367,28 @@ y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
 ~~~
 
-An Object MUST NOT contain more than one instance of this property.
+A Subgroup or Object MUST NOT contain more than one instance of this property.
 
 ## Prior Group ID Gap
 
-Prior Group ID Gap only applies to Objects, not Tracks.
+Prior Group ID Gap is a Subgroup Property.  For Objects with Delivery Mode
+Datagram, it is an Object Property.
 
 Prior Group ID Gap (Property Type 0x3C) is a variable-length integer
 containing the number of Groups prior to the current Group that do not, and will
 never, exist. For example, if the Original Publisher is publishing an Object in
 Group 7 and knows it will never publish any Objects in Group 8 or Group 9, it
-can include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it
+can include Prior Group ID Gap = 2 in any number of Subgroups or Datagram Objects in Group 10, as it
 sees fit.  A Track is considered malformed (see {{malformed-tracks}}) if any of
 the following conditions are detected:
 
- * An Object contains more than one instance of Prior Group ID Gap.
- * A Group contains more than one Object with different values for Prior Group
+ * A Subgroup or Object contains more than one instance of Prior Group ID Gap.
+ * A Group contains Subgroups or Objects with different values for Prior Group
     ID Gap.
- * An Object has a Prior Group ID Gap larger than the Group ID.
- * An endpoint receives an Object with a Prior Group ID Gap covering an Object
+ * A Subgroup or Object has a Prior Group ID Gap larger than the Group ID.
+ * An Object with Delivery Mode Subgroup carries Prior Group ID Gap as an
+   Object Property.
+ * An endpoint receives a Subgroup or Object with a Prior Group ID Gap covering an Object
    it previously received.
  * An endpoint receives an Object with a Group ID within a previously
    communicated gap.
@@ -4373,12 +4399,12 @@ cannot infer any information about the existence of prior groups (see
 {{group-ids}}).
 
 This property can be added by the Original Publisher, but MUST NOT be added by
-relays. This property MAY be removed by a relay when the object in question is
+relays. This property MAY be removed by a relay when the Group in question is
 served via FETCH, and the gap that the property communicates is already
 communicated implicitly in the FETCH response; it MUST NOT be modified or
 removed otherwise.
 
-An Object MUST NOT contain more than one instance of this property.
+A Subgroup or Object MUST NOT contain more than one instance of this property.
 
 ## Prior Object ID Gap
 
@@ -4522,7 +4548,6 @@ OBJECT_DATAGRAM {
   Track Alias (vi64),
   Group ID (vi64),
   [Object ID (vi64),]
-  [Publisher Priority (8),]
   [Properties (..),]
   [Object Status (vi64),]
   [Object Payload (..),]
@@ -4536,7 +4561,7 @@ single-byte encoding (values less than 128). If a received value has bit 4 set,
 or has a bit set whose meaning is not specified, the endpoint MUST close the
 session with `INVALID_STREAM_HEADER`.
 
-The four low-order bits and bit 5 of the Type Flags field determine which fields
+Bits 0-2 and bit 5 of the Type Flags field determine which fields
 are present in the datagram:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is
@@ -4544,7 +4569,7 @@ are present in the datagram:
   {{object-properties}} is present. When set to 0, the field is absent.
   If an endpoint receives a datagram with the PROPERTIES bit set and an
   Properties Length of 0, it MUST close the session with
-  `MALFORMED_OBJECT`.
+  `MALFORMED_STREAM`.
 
 * The **END_OF_GROUP** bit (0x02) indicates End of Group. When set to 1, this
   indicates that no Object with the same Group ID and an Object ID greater than
@@ -4553,11 +4578,6 @@ are present in the datagram:
 * The **ZERO_OBJECT_ID** bit (0x04) indicates when the Object ID field is
   present.  When set to 1, the Object ID field is omitted and the Object ID
   is 0. When set to 0, the Object ID field is present.
-
-* The **DEFAULT_PRIORITY** bit (0x08) indicates when the Priority field is
-  present. When set to 1, the Priority field is omitted and this Object inherits
-  the Publisher Priority specified in the control message that established the
-  subscription. When set to 0, the Priority field is present.
 
 * The **STATUS** bit (0x20) indicates whether the datagram contains an Object
   Status or Object Payload. When set to 1, the Object Status field is present
@@ -4585,11 +4605,30 @@ Object Status is not Normal (0x0), the endpoint MUST close the session with
 When Objects are sent on streams, the stream begins with a Subgroup or Fetch
 Header and is followed by one or more sets of serialized Object fields.
 If a stream ends gracefully (i.e., the stream terminates with a FIN) in the
-middle of a serialized Object, the receiver SHOULD close the session with
-`TRUNCATED_OBJECT`.
+middle of the stream header, a serialized Object, an End of Range indicator or a FETCH Subgroup entry, the receiver SHOULD close the session with
+`TRUNCATED_STREAM`.
 
-A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
-Header field values.
+A publisher SHOULD NOT open more than one stream at a time with the same Track
+Alias, Group ID and Subgroup ID.
+
+### Subgroup Properties {#subgroup-properties}
+
+Subgroup Properties are sent in the SUBGROUP_HEADER ({{subgroup-header}}) and in
+a Subgroup entry of a FETCH response ({{fetch-subgroup-entry}}).  Objects sent in
+Datagrams have no Subgroup Properties.
+
+Subgroup Properties are serialized as a length in bytes followed by
+Key-Value-Pairs (see {{moq-key-value-pair}}).
+
+~~~
+Subgroup Properties {
+  Properties Length (vi64),
+  Properties (..),
+}
+~~~
+
+A Subgroup without Subgroup Properties omits the field.  If an endpoint receives
+a Properties Length of 0, it MUST close the session with `MALFORMED_STREAM`.
 
 ### Subgroup Header {#subgroup-header}
 
@@ -4606,7 +4645,7 @@ SUBGROUP_HEADER {
   Track Alias (vi64),
   Group ID (vi64),
   [Subgroup ID (vi64),]
-  [Publisher Priority (8),]
+  [Subgroup Properties (..),]
 }
 ~~~
 {: #object-header-format title="MOQT SUBGROUP_HEADER"}
@@ -4618,8 +4657,7 @@ The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
 encodes a set of flags. All values defined in this specification fit in a
 single-byte encoding (values less than 128).
 
-Bit 4 is always set to 1. The four low-order bits and bits 5-6 determine which
-fields are present in the header:
+Bit 4 is always set to 1. The other bits are defined as follows:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is present
   in all Objects in this Subgroup. When set to 1, the Object Properties structure
@@ -4646,11 +4684,9 @@ fields are present in the header:
   Object received on the stream do not exist. This does not apply when the data
   stream is reset.
 
-* The **DEFAULT_PRIORITY** bit (0x20) indicates when the Priority field is
-  present. When set to 1, the Priority field is omitted and this Subgroup
-  inherits the Publisher Priority specified in the control message that
-  established the subscription. When set to 0, the Priority field is present in
-  the Subgroup header.
+* The **SUBGROUP_PROPERTIES** bit (0x20) indicates when the Subgroup Properties
+  field ({{subgroup-properties}}) is present in the Subgroup header. When set to
+  0, the Subgroup has no Subgroup Properties.
 
 * The **FIRST_OBJECT** bit (0x40) indicates that the first object in this
 subgroup stream is the first object published in the subgroup by the original publisher.
@@ -4823,7 +4859,6 @@ format:
   [Group ID Delta (vi64),]
   [Subgroup ID (vi64),]
   [Object ID Delta (vi64),]
-  [Publisher Priority (8),]
   [Properties (..),]
   Object Payload Length (vi64),
   [Object Payload (..),]
@@ -4834,7 +4869,8 @@ format:
 The Serialization Flags field defines the serialization of the Object. It is
 a variable-length integer. When less than 128, the bits represent flags
 described in {{fetch-serialization-flags}}. When 128 or greater, the value
-signals a range indicator; the defined values are:
+signals a range indicator ({{end-of-range}}) or a Subgroup entry
+({{fetch-subgroup-entry}}); the defined values are:
 
 **Reserved Serialization Flags values:**
 
@@ -4842,9 +4878,10 @@ Value | Meaning
 0x8C  | End of Non-Existent Range
 0x10C | End of Unknown Range
 0x20C | End of Timed-Out Range
+0x40C | Subgroup entry
 
 If an endpoint receives any other value greater than 127, it MUST close the
-session with `MALFORMED_OBJECT`.
+session with `MALFORMED_STREAM`.
 
 #### Flags {#fetch-serialization-flags}
 
@@ -4865,14 +4902,16 @@ Bitmask | Condition if set | Condition if not set (0)
 --------|------------------|---------------------
 0x04 | Object ID Delta is present | Object ID is the prior Object's ID plus one
 0x08 | Group ID Delta is present | Group ID is the prior Object's Group ID
-0x10 | Priority field is present | Priority is the prior Object's Priority
 0x20 | Properties field is present | Properties field is not present
 0x40 | Datagram: ignore the two least significant bits | Decode the Subgroup ID as indicated by the two least significant bits
+
+Bit 0x10 is reserved.  If an endpoint receives Serialization Flags less than
+128 with bit 0x10 set, it MUST close the session with `MALFORMED_STREAM`.
 
 The first Object MUST include a Group ID Delta and Object ID Delta, and
 these values are the absolute Group ID and Object ID. If the first Object in
 the FETCH response uses a flag that references fields in the prior Object,
-the Subscriber MUST close the session with `MALFORMED_OBJECT`.
+the Subscriber MUST close the session with `MALFORMED_STREAM`.
 
 If the Group ID Delta field is present on an Object other than the first, the
 Group ID is computed from the Group ID Delta and the prior Object's Group ID.
@@ -4899,7 +4938,7 @@ MUST ignore the bits.
 #### End of Range {#end-of-range}
 
 When Serialization Flags indicates an End of Range (e.g. values 0x8C, 0x10C, or
-0x20C), the Group ID and Object ID fields are present.  Subgroup ID, Priority and
+0x20C), the Group ID and Object ID fields are present.  Subgroup ID and
 Properties are not present. All Objects with Locations between the last
 serialized Object, if any, and this Location, inclusive, either do not exist
 (when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).
@@ -4911,11 +4950,34 @@ the "prior Object", the prior Object fields are determined as follows:
 * Prior Subgroup ID: The Subgroup ID from the last actual Object before the
   End of Range indicator. If there was no prior Object, an endpoint that
   receives a flag referencing the prior Subgroup ID MUST close the session
-  with `MALFORMED_OBJECT`.
-* Prior Priority: The Priority from the last actual Object before the End of
-  Range indicator. If there was no prior Object, an endpoint that receives a
-  flag referencing the prior Priority MUST close the session with
-  `MALFORMED_OBJECT`.
+  with `MALFORMED_STREAM`.
+
+#### Subgroup Entry {#fetch-subgroup-entry}
+
+A Subgroup entry carries the Subgroup Properties ({{subgroup-properties}}) of
+the Subgroup identified by Group ID and Subgroup ID.
+
+~~~
+{
+  Serialization Flags (vi64) = 0x40C,
+  Group ID (vi64),
+  Subgroup ID (vi64),
+  Subgroup Properties (..),
+}
+~~~
+{: #fetch-subgroup-entry-format title="MOQT Fetch Subgroup Entry"}
+
+For each Subgroup that has Subgroup Properties and of which it sends at least one Object, the publisher MUST send exactly
+one Subgroup entry, immediately before the first Object of that Subgroup it sends on the
+fetch stream.  If no entry immediately precedes that Object, the Subgroup has no Subgroup
+Properties.
+If an endpoint receives a Subgroup entry followed by anything other than an
+Object of that Subgroup, including a FIN, or a Subgroup entry after an Object of that Subgroup, it MUST
+close the session with `MALFORMED_STREAM`.
+
+The entry is not an Object: it does not change the prior Object fields used to
+decode the next Object, and it does not count as the first Object in the FETCH
+response.
 
 ## Padding {#padding}
 
@@ -4972,27 +5034,24 @@ to MOQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
-1.  An Object with a particular Subgroup ID is received, but its
-     Publisher Priority is different from that of the previous Object with the same
-     Subgroup ID.
-2. An Object is received whose Object ID is larger than the final Object in the
+1. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-3. A Subgroup is received over multiple transport streams terminated by FIN with
+2. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-4. An Object is received in a Group whose Object
+3. An Object is received in a Group whose Object
    ID is larger than the final Object in the Group.  The final Object in a Group
    is the Object with Status END_OF_GROUP, or the last Object before a FIN in a
    Subgroup which has the END_OF_GROUP bit set.  If the end of a Group is
    implicitly determined via a gap in a FETCH response, the final Object in the
    Group remains unknown.
-5. An Object is received whose Group and Object ID are larger than
+4. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
    with Status END_OF_TRACK or the last Object sent in a FETCH whose response
    indicated End of Track.
-6. The same Object is received more than once with different Payload or
+5. The same Object is received more than once with different Payload or
    other immutable properties.
-7. An Object is received with a different Delivery Mode than previously
+6. An Object is received with a different Delivery Mode than previously
    observed.
 
 The above list of conditions is not considered exhaustive.
@@ -5101,16 +5160,17 @@ TOO_MANY_REQUEST_UPDATES (0x1B):
 INVALID_STREAM_HEADER (0x200):
 : A data stream or datagram has an unknown type or invalid Type Flags.
 
-MALFORMED_OBJECT (0x201):
-: The serialization of an Object on a data stream or in a datagram cannot be
-  decoded, for example a flag references a prior Object that does not exist.
+MALFORMED_STREAM (0x201):
+: Data on a data stream or in a datagram violates its serialization rules, for example a flag
+  references a prior Object that does not exist.
 
 INVALID_OBJECT_STATUS (0x202):
 : An Object has an invalid Object Status, or has Properties when its status is
   not Normal.
 
-TRUNCATED_OBJECT (0x203):
-: A data stream ended with a FIN in the middle of an Object.
+TRUNCATED_STREAM (0x203):
+: A data stream ended with a FIN in the middle of the stream header, an Object,
+  an End of Range indicator or a FETCH Subgroup entry.
 
 MALFORMED_MESSAGE (0x300):
 : A control message cannot be parsed, for example its length does not match
@@ -5419,7 +5479,7 @@ securely identified, authorized to use resources of the peer, provide
 confidentiality and integrity to prevent third party attacks and limit
 monitoring and leakage of privacy sensitive information. The relays
 within the chain from original publisher to end subscribers will have
-access to Track names, Track Properties, Object Properties, as well as the object's content
+access to Track names, Track Properties, Subgroup Properties, Object Properties, as well as the object's content
 unless it is end-to-end encrypted {{sec-media}}.
 
 Publishers, including Relays, require authorization to prevent unauthorized
@@ -5534,7 +5594,7 @@ original publishers are subject to several considerations. The first
 is source authenticity, i.e. to know that the received media objects
 are what the original publisher actually published. In addition to
 the media objects, it can also be important to authenticate some
-Track and Object Properties. For example, timestamps are crucial to
+Track, Subgroup, and Object Properties. For example, timestamps are crucial to
 understand where on the timeline this media fragment belongs.
 
 The second aspect is content confidentiality. Beyond direct relay
@@ -5803,6 +5863,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x27 | PRIORITY_FILTER | {{priority-filter}} |
 | 0x28 | OBJECT_PROPERTY_FILTER | {{object-property-filter}} |
 | 0x29 | TRACK_PROPERTY_FILTER | {{track-property-filter}} |
+| 0x2A | SUBGROUP_PROPERTY_FILTER | {{subgroup-property-filter}} |
 | 0x32 | NEW_GROUP_REQUEST | {{new-group-request}} |
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 | 0x35 | INCLUDE_PROPERTIES | {{include-properties-param}} |
@@ -5813,14 +5874,14 @@ Setup Options SHOULD request a provisional registration.
 
 | Type | Name | Scope | Specification |
 |-----:|:-----|:------|:--------------|
-| 0x02 | OBJECT_DELIVERY_TIMEOUT | Track, Object | {{object-delivery-timeout-ext}} |
+| 0x02 | OBJECT_DELIVERY_TIMEOUT | Track, Subgroup | {{object-delivery-timeout-ext}} |
 | 0x04 | MAX_CACHE_DURATION | Track | {{max-cache-duration}} |
-| 0x06 | SUBGROUP_DELIVERY_TIMEOUT | Track, Object | {{subgroup-delivery-timeout-ext}} |
-| 0x0B | IMMUTABLE_PROPERTIES | Track, Object | {{immutable-properties}} |
-| 0x0E | DEFAULT_PUBLISHER_PRIORITY | Track | {{publisher-priority}} |
+| 0x06 | SUBGROUP_DELIVERY_TIMEOUT | Track, Subgroup | {{subgroup-delivery-timeout-ext}} |
+| 0x0B | IMMUTABLE_PROPERTIES | Track, Subgroup, Object | {{immutable-properties}} |
+| 0x0E | PUBLISHER_PRIORITY | Track, Subgroup, Object | {{publisher-priority}} |
 | 0x22 | DEFAULT_PUBLISHER_GROUP_ORDER | Track | {{group-order-pref}} |
 | 0x30 | DYNAMIC_GROUPS | Track | {{dynamic-groups}} |
-| 0x3C | PRIOR_GROUP_ID_GAP | Object | {{prior-group-id-gap}} |
+| 0x3C | PRIOR_GROUP_ID_GAP | Subgroup, Object | {{prior-group-id-gap}} |
 | 0x3E | PRIOR_OBJECT_ID_GAP | Object | {{prior-object-id-gap}} |
 | 0x7f * N + 0x9D | Reserved for greasing | Any | {{grease}} |
 
@@ -5851,8 +5912,8 @@ types are skipped by parsing a variable-length integer value.
     no registration permitted)
   - 0x4000 to 0x7FFF: Reserved for Mandatory Track Properties
     (see {{mandatory-track-properties}}). Properties registered in this range
-    MUST have Track scope; Object scope properties MUST NOT be registered in
-    this range.
+    MUST have Track scope; Subgroup or Object scope properties MUST NOT be
+    registered in this range.
   - 0x8000 and above: First Come First Served
 
   Code points reserved for application-specific use will never be allocated
@@ -5923,9 +5984,9 @@ This document does not define any initial entries.
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination-codes}} |
 | TOO_MANY_REQUEST_UPDATES   | 0x1B | {{session-termination-codes}} |
 | INVALID_STREAM_HEADER      | 0x200 | {{session-termination-codes}} |
-| MALFORMED_OBJECT           | 0x201 | {{session-termination-codes}} |
+| MALFORMED_STREAM           | 0x201 | {{session-termination-codes}} |
 | INVALID_OBJECT_STATUS      | 0x202 | {{session-termination-codes}} |
-| TRUNCATED_OBJECT           | 0x203 | {{session-termination-codes}} |
+| TRUNCATED_STREAM           | 0x203 | {{session-termination-codes}} |
 | MALFORMED_MESSAGE          | 0x300 | {{session-termination-codes}} |
 | INVALID_FIELD              | 0x301 | {{session-termination-codes}} |
 | INVALID_TRACK_NAMESPACE    | 0x302 | {{session-termination-codes}} |
