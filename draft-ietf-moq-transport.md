@@ -4073,7 +4073,7 @@ fill fetch stream (see {{fill-semantics}}), encoded as if they were Parameters
 for a separate message (see {{message-params}}).  A fill fetch stream is opened
 only when FILL_PARAMETERS is present.
 
-See {{forward-parameter}} for the description of how the FORWARD state of teh
+See {{forward-parameter}} for the description of how the FORWARD state of the
 subscription can defer the creation of a fill fetch stream.
 
 The following parameters MAY appear inside FILL_PARAMETERS:
@@ -4173,20 +4173,20 @@ from any other message, the default value is 0.  When sent in
 PUBLISH_STATE_NOTIFY, it reports whether the subscription is paused at the
 publisher.
 
-If FORWARD is set to 0 on a subscription at the time a fill fetch begins, the
-fill fetch is deferred until forward is set to 1. However, changing FORWARD to 0
-has no effect on existing fill fetches for that subscription. The bound of a
-deferred fill fetch response will be the LARGEST_OBJECT in response to the
-REQUEST_UPDATE that first sets FORWARD to 1. Subsequent changes from 0 to 1
-have no effect on existing fill fetches.
+Both fill fetch streams and LOCATION_FILTER parameters with relative values
+are bounded by the value of LARGEST_OBJECT. When FORWARD is set to 1 via
+REQUEST_UPDATE, the "associated" LARGEST_OBJECT comes in the corresponding
+REQUEST_UPDATE_OK. When it is set via PUBLISH_STATE_NOTIFY, the "associated"
+LARGEST_OBJECT comes in the same PUBLISH_STATE_NOTIFY.
 
-If a subscription has an active LOCATION_FILTER parameter with relative values,
-it re-anchors its bound to LARGEST_OBJECT for every transaction that sets FORWARD
-from 0 to 1. Therefore, a REQUEST_UPDATE that sets FORWARD to 1 causes
-LOCATION_FILTER to anchor (or re-anchor) to the LARGEST_OBJECT in the subsequent
-REQUEST_UPDATE_OK. A PUBLISH_STATE_NOTIFY that sets FORWARD to 1 causes
-LOCATION_FILTER to anchor (or re-anchor) to the LARGEST_OBJECT in
-PUBLISH_STATE_NOTIFY.
+When a subscriber sends FILL_PARAMETERS in a message and the FORWARD state is
+0 after that message is processed, the fill fetch stream is deferred. It will
+not start until FORWARD is set to 1, and will be bound by the LARGEST_OBJECT
+associated with setting FORWARD. However, once initiated, further changes to
+FORWARD state have no effect on existing fill fetch streams.
+
+A LOCATION_FILTER with relative values for a subscription anchors to the
+associated LARGEST_OBJECT each time FORWARD transitions from 0 to 1.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
