@@ -5569,7 +5569,7 @@ parameters that can appear depend on the request being answered:<a href="#sectio
                 <p id="section-9.3-3.1.2.2.1">REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT<a href="#section-9.3-3.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.3-3.1.2.3">
-                <p id="section-9.3-3.1.2.3.1">TRACK_STATUS_OK: LARGEST_OBJECT<a href="#section-9.3-3.1.2.3.1" class="pilcrow">¶</a></p>
+                <p id="section-9.3-3.1.2.3.1">TRACK_STATUS_OK: EXPIRES, LARGEST_OBJECT<a href="#section-9.3-3.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.3-3.1.2.4">
                 <p id="section-9.3-3.1.2.4.1">SUBSCRIBE_NAMESPACE_OK: EXPIRES<a href="#section-9.3-3.1.2.4.1" class="pilcrow">¶</a></p>
@@ -6217,8 +6217,8 @@ If End Location is smaller than the Start Location in the corresponding FETCH
 the receiver <span class="bcp14">MUST</span> close the session with <code>INVALID_FIELD</code>.<a href="#section-9.12-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.12-3.3">
-            <p id="section-9.12-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  No parameters
-are currently defined for FETCH_OK.<a href="#section-9.12-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.12-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  The only
+parameter that can appear in a FETCH_OK is EXPIRES.<a href="#section-9.12-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.12-3.4">
             <p id="section-9.12-3.4.1">Track Properties : A sequence of Properties. See <a href="#properties" class="auto internal xref">Section 8.4</a>.<a href="#section-9.12-3.4.1" class="pilcrow">¶</a></p>
@@ -7041,21 +7041,22 @@ message that carries it, so the sticky-parameter rules in
 <a href="#section-9.20.16" class="section-number selfRef">9.20.16. </a><a href="#name-expires-parameter" class="section-name selfRef">EXPIRES Parameter</a>
           </h4>
 <p id="section-9.20.16-1">The EXPIRES parameter (Parameter Type 0x8) is a varint. It <span class="bcp14">MAY</span> appear in
-SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK,
-PUBLISH_NAMESPACE_OK, or REQUEST_UPDATE_OK. It encodes the time
+PUBLISH, SUBSCRIBE_OK, FETCH_OK, or any REQUEST_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
-the subscription. The sender will terminate the subscription using PUBLISH_DONE
-or by cancelling the request (see <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>).  This value is advisory and the sender
-can terminate the subscription prior to or after the expiry time.<a href="#section-9.20.16-1" class="pilcrow">¶</a></p>
-<p id="section-9.20.16-2">The receiver of the parameter can attempt to extend the subscription by sending
+the request (see <a href="#message-publish-done" class="auto internal xref">Section 9.9</a> and <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>).
+This value is advisory and the sender
+can terminate the request prior to or after the expiry time.<a href="#section-9.20.16-1" class="pilcrow">¶</a></p>
+<p id="section-9.20.16-2">EXPIRES in TRACK_STATUS_OK indicates the value the sender would have included
+in a SUBSCRIBE_OK for the same Track.<a href="#section-9.20.16-2" class="pilcrow">¶</a></p>
+<p id="section-9.20.16-3">The receiver of the parameter can attempt to extend the request by sending
 a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
 more updated AUTHORIZATION_TOKENs, it <span class="bcp14">SHOULD</span> include those in the
 REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
 value in REQUEST_UPDATE_OK. Relays that send this parameter and applications that
 receive it <span class="bcp14">MAY</span> introduce jitter to prevent many endpoints from updating
-simultaneously.<a href="#section-9.20.16-2" class="pilcrow">¶</a></p>
-<p id="section-9.20.16-3">If the EXPIRES parameter is 0 or is not present in a message, the subscription
-does not expire or expires at an unknown time.<a href="#section-9.20.16-3" class="pilcrow">¶</a></p>
+simultaneously.<a href="#section-9.20.16-3" class="pilcrow">¶</a></p>
+<p id="section-9.20.16-4">If the EXPIRES parameter is 0 or is not present in a message, the request
+does not expire or expires at an unknown time.<a href="#section-9.20.16-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="largest-param">
