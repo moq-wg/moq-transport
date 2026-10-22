@@ -3261,7 +3261,7 @@ being forwarded to or processed by endpoints that do not understand them.<a href
 <p id="section-3.7-2">An Object received with a Mandatory Track Property as an Object Property is
 malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-3.7-2" class="pilcrow">¶</a></p>
 <p id="section-3.7-3">When an endpoint receives a Mandatory Track Property in PUBLISH,
-SUBSCRIBE_OK, or FETCH_OK that it does not
+SUBSCRIBE_OK, FETCH_OK, or TRACK_STATUS_OK that it does not
 understand, it <span class="bcp14">MUST NOT</span> process or forward that track:<a href="#section-3.7-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.7-4.1">
@@ -3281,6 +3281,11 @@ sent a FETCH_OK or FETCH_ERROR downstream, it <span class="bcp14">MUST</span> se
 error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
 relay has already forwarded data on a fetch stream, it <span class="bcp14">MUST</span> reset the stream.<a href="#section-3.7-4.3.1" class="pilcrow">¶</a></p>
 </li>
+          <li class="normal" id="section-3.7-4.4">
+            <p id="section-3.7-4.4.1">For TRACK_STATUS_OK messages: if the subscriber is a relay with pending
+downstream TRACK_STATUS requests, it <span class="bcp14">MUST</span> send TRACK_STATUS_ERROR with error
+code UNSUPPORTED_EXTENSION to the downstream requesters.<a href="#section-3.7-4.4.1" class="pilcrow">¶</a></p>
+</li>
         </ul>
 <p id="section-3.7-5">A publisher that knows a subscriber does not support a Mandatory Track Property
 <span class="bcp14">SHOULD</span> take the following action:<a href="#section-3.7-5" class="pilcrow">¶</a></p>
@@ -3293,7 +3298,11 @@ UNSUPPORTED_EXTENSION.<a href="#section-3.7-6.1.1" class="pilcrow">¶</a></p>
             <p id="section-3.7-6.2.1">For FETCH: respond with FETCH_ERROR with error code UNSUPPORTED_EXTENSION.<a href="#section-3.7-6.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.7-6.3">
-            <p id="section-3.7-6.3.1">For PUBLISH: do not publish the track to that subscriber.<a href="#section-3.7-6.3.1" class="pilcrow">¶</a></p>
+            <p id="section-3.7-6.3.1">For TRACK_STATUS: respond with TRACK_STATUS_ERROR with error code
+UNSUPPORTED_EXTENSION.<a href="#section-3.7-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.7-6.4">
+            <p id="section-3.7-6.4.1">For PUBLISH: do not publish the track to that subscriber.<a href="#section-3.7-6.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
