@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 21 April 2027                                     I. Swett, Ed.
+Expires: 26 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         18 October 2026
+                                                         23 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 April 2027.
+   This Internet-Draft will expire on 26 April 2027.
 
 Copyright Notice
 
@@ -629,7 +629,7 @@ Table of Contents
 
    2.  The Object is known to exist.
 
-   3.  The Object is lost.  Its state is unknown and can be cached, but
+   3.  The Object is gone.  Its state is unknown and can be cached, but
        the Object can still be received later.
 
    4.  The state of the Object is unknown, either because it has not yet
@@ -645,7 +645,7 @@ Table of Contents
            +-----------+   |   +-----------+
            |               v               |
            |           +-------+           |
-           |           | Lost  |           |
+           |           | Gone  |           |
            |           +-------+           |
            |            |     |            |
            |      +-----+     +-----+      |
@@ -664,8 +664,8 @@ Table of Contents
 
    A publisher MUST NOT signal that an Object does not exist unless it
    knows the Object has never existed and never will; otherwise it
-   signals that the Object is lost or unknown.  Receiving an Object that
-   was recorded as lost or unknown is not an error.
+   signals that the Object is gone or unknown.  Receiving an Object that
+   was recorded as gone or unknown is not an error.
 
    Whenever the publisher communicates that certain objects do not
    exist, this fact is expressed as a contiguous range of non-existent
@@ -1150,10 +1150,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    When the cause of the gap differs from the default, the publisher
    marks the range of Objects it will not serialize with an End of Range
    indicator (see Section 11.4.1.2), identifying those Objects as non-
-   existent, unknown, lost, or timed out.  A publisher SHOULD NOT use
+   existent, unknown, gone, or timed out.  A publisher SHOULD NOT use
    End of Non-Existent Range in a FETCH response except to split a range
    of Objects that will not be serialized into those that are known not
-   to exist and those with unknown, lost or timed out status.
+   to exist and those with unknown, gone or timed out status.
 
    If a Publisher receives a FETCH with a range that includes one or
    more Objects with unknown state, it can choose to reset the FETCH
@@ -2425,7 +2425,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    to an equivalent object with an End of Group status, or a Prior Group
    ID Gap property could be removed in FETCH, where it's redundant.
 
-   A relay MAY cache that a range of Objects is lost (see
+   A relay MAY cache that a range of Objects is gone (see
    Section 2.1.2).  If it later receives one of those Objects, it can
    cache and forward the Object.  A relay does not cache unknown or
    timed out ranges.
@@ -5416,7 +5416,7 @@ EXT 1 and EXT N can be modified or removed by Relays
                    +-------+---------------------------+
                    | 0x20C | End of Timed-Out Range    |
                    +-------+---------------------------+
-                   | 0x40C | End of Lost Range         |
+                   | 0x40C | End of Gone Range         |
                    +-------+---------------------------+
 
                                   Table 8
@@ -5507,7 +5507,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    Subgroup ID, Priority and Properties are not present.  All Objects
    with Locations between the last serialized Object, if any, and this
    Location, inclusive, either do not exist (when Serialization Flags is
-   0x8C), are unknown (0x10C), are timed out (0x20C), or are lost
+   0x8C), are unknown (0x10C), are timed out (0x20C), or are gone
    (0x40C).
 
    When an Object follows an End of Range indicator and uses flags that
