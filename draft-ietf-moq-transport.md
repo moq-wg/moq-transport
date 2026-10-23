@@ -1183,7 +1183,7 @@ An Object received with a Mandatory Track Property as an Object Property is
 malformed (see {{malformed-tracks}}).
 
 When an endpoint receives a Mandatory Track Property in PUBLISH,
-SUBSCRIBE_OK, or FETCH_OK that it does not
+SUBSCRIBE_OK, FETCH_OK, or TRACK_STATUS_OK that it does not
 understand, it MUST NOT process or forward that track:
 
 * For PUBLISH messages: the subscriber MUST respond with PUBLISH_ERROR with
@@ -1200,6 +1200,10 @@ understand, it MUST NOT process or forward that track:
   error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
   relay has already forwarded data on a fetch stream, it MUST reset the stream.
 
+* For TRACK_STATUS_OK messages: if the subscriber is a relay with pending
+  downstream TRACK_STATUS requests, it MUST send TRACK_STATUS_ERROR with error
+  code UNSUPPORTED_EXTENSION to the downstream requesters.
+
 A publisher that knows a subscriber does not support a Mandatory Track Property
 SHOULD take the following action:
 
@@ -1207,6 +1211,9 @@ SHOULD take the following action:
   UNSUPPORTED_EXTENSION.
 
 * For FETCH: respond with FETCH_ERROR with error code UNSUPPORTED_EXTENSION.
+
+* For TRACK_STATUS: respond with TRACK_STATUS_ERROR with error code
+  UNSUPPORTED_EXTENSION.
 
 * For PUBLISH: do not publish the track to that subscriber.
 
@@ -3031,7 +3038,7 @@ REQUEST_OK Message {
 
   * PUBLISH_OK: EXPIRES
   * REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT
-  * TRACK_STATUS_OK: LARGEST_OBJECT
+  * TRACK_STATUS_OK: EXPIRES, LARGEST_OBJECT
   * SUBSCRIBE_NAMESPACE_OK: EXPIRES
   * SUBSCRIBE_TRACKS_OK: EXPIRES
   * PUBLISH_NAMESPACE_OK: EXPIRES
@@ -3531,8 +3538,8 @@ FETCH_OK Message {
   If End Location is smaller than the Start Location in the corresponding FETCH
   the receiver MUST close the session with `INVALID_FIELD`.
 
-* Parameters: The parameters are defined in {{message-params}}.  No parameters
-  are currently defined for FETCH_OK.
+* Parameters: The parameters are defined in {{message-params}}.  The only
+  parameter that can appear in a FETCH_OK is EXPIRES.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
@@ -4057,12 +4064,12 @@ TRACK_PROPERTY_FILTER {
 
 ### FILL PARAMETERS Parameter {#fill-parameters}
 
-The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-prefixed
-encoding. It MAY appear in a SUBSCRIBE, SUBSCRIBE_TRACKS, or REQUEST_UPDATE
-(for a subscription) message. Its value is a sequence of Parameters that apply to the fill fetch
-stream (see {{fill-semantics}}), encoded as if they were Parameters for a
-separate message (see {{message-parameters}}).  Its presence is what requests a
-fill fetch stream; a subscription with no FILL_PARAMETERS opens none.
+The FILL_PARAMETERS parameter (Parameter Type 0x23) MAY appear in a SUBSCRIBE,
+SUBSCRIBE_TRACKS, or REQUEST_UPDATE (for a subscription) message. Its value is a
+Number of Parameters (vi64) followed by that many Parameters that apply to the
+fill fetch stream (see {{fill-semantics}}), encoded as if they were Parameters
+for a separate message (see {{message-params}}).  A fill fetch stream is opened
+only when FILL_PARAMETERS is present.
 
 The following parameters MAY appear inside FILL_PARAMETERS:
 
@@ -4098,14 +4105,16 @@ message that carries it, so the sticky-parameter rules in
 ### EXPIRES Parameter {#expires}
 
 The EXPIRES parameter (Parameter Type 0x8) is a varint. It MAY appear in
-SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK,
-PUBLISH_NAMESPACE_OK, or REQUEST_UPDATE_OK. It encodes the time
+PUBLISH, SUBSCRIBE_OK, FETCH_OK, or any REQUEST_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
-the subscription. The sender will terminate the subscription using PUBLISH_DONE
-or by cancelling the request (see {{request-cancellation}}).  This value is advisory and the sender
-can terminate the subscription prior to or after the expiry time.
+the request (see {{message-publish-done}} and {{request-cancellation}}).
+This value is advisory and the sender
+can terminate the request prior to or after the expiry time.
 
-The receiver of the parameter can attempt to extend the subscription by sending
+EXPIRES in TRACK_STATUS_OK indicates the value the sender would have included
+in a SUBSCRIBE_OK for the same Track.
+
+The receiver of the parameter can attempt to extend the request by sending
 a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
 more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
 REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
@@ -4113,7 +4122,7 @@ value in REQUEST_UPDATE_OK. Relays that send this parameter and applications tha
 receive it MAY introduce jitter to prevent many endpoints from updating
 simultaneously.
 
-If the EXPIRES parameter is 0 or is not present in a message, the subscription
+If the EXPIRES parameter is 0 or is not present in a message, the request
 does not expire or expires at an unknown time.
 
 ### LARGEST OBJECT Parameter {#largest-param}
@@ -4160,11 +4169,10 @@ The NEW_GROUP_REQUEST parameter (Parameter Type 0x32) is a varint. It MAY appear
 in SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber MUST NOT send
-this parameter in REQUEST_UPDATE if the Track did not
-include the DYNAMIC_GROUPS Property with value 1.  A subscriber MAY
+this parameter in REQUEST_UPDATE if it has received the Track's Properties and
+they did not include the DYNAMIC_GROUPS Property with value 1.  A subscriber MAY
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
-original publisher does not support dynamic Groups, it ignores the parameter in that
-case.
+original publisher does not support dynamic Groups, it ignores the parameter.
 
 When an Original Publisher that supports dynamic Groups receives a
 NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
@@ -4883,7 +4891,7 @@ close the Session with `DELTA_ENCODING_OVERFLOW`.
 
 When the Group ID Delta field is present, the Object ID is the value of Object ID Delta if
 present. When the Group ID Delta field is not present, the Object ID is the prior Object's ID
-plus the Object ID Delta if present. If Object ID Delta is not present, the Object ID is the
+plus the Object ID Delta + 2 if present. If Object ID Delta is not present, the Object ID is the
 prior Object's ID plus one, regardless of which group it belongs to. If the computed Object ID
 would be greater than 2^64-1, the Subscriber MUST close the Session with
 `DELTA_ENCODING_OVERFLOW`.
