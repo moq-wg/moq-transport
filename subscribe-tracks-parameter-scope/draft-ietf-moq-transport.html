@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 25 April 2027</td>
+<td class="center">Expires 26 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-22" class="published">22 October 2026</time>
+<time datetime="2026-10-23" class="published">23 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-25">25 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-26">26 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 25 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 26 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3264,7 +3264,7 @@ being forwarded to or processed by endpoints that do not understand them.<a href
 <p id="section-3.7-2">An Object received with a Mandatory Track Property as an Object Property is
 malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-3.7-2" class="pilcrow">¶</a></p>
 <p id="section-3.7-3">When an endpoint receives a Mandatory Track Property in PUBLISH,
-SUBSCRIBE_OK, or FETCH_OK that it does not
+SUBSCRIBE_OK, FETCH_OK, or TRACK_STATUS_OK that it does not
 understand, it <span class="bcp14">MUST NOT</span> process or forward that track:<a href="#section-3.7-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.7-4.1">
@@ -3284,6 +3284,11 @@ sent a FETCH_OK or FETCH_ERROR downstream, it <span class="bcp14">MUST</span> se
 error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
 relay has already forwarded data on a fetch stream, it <span class="bcp14">MUST</span> reset the stream.<a href="#section-3.7-4.3.1" class="pilcrow">¶</a></p>
 </li>
+          <li class="normal" id="section-3.7-4.4">
+            <p id="section-3.7-4.4.1">For TRACK_STATUS_OK messages: if the subscriber is a relay with pending
+downstream TRACK_STATUS requests, it <span class="bcp14">MUST</span> send TRACK_STATUS_ERROR with error
+code UNSUPPORTED_EXTENSION to the downstream requesters.<a href="#section-3.7-4.4.1" class="pilcrow">¶</a></p>
+</li>
         </ul>
 <p id="section-3.7-5">A publisher that knows a subscriber does not support a Mandatory Track Property
 <span class="bcp14">SHOULD</span> take the following action:<a href="#section-3.7-5" class="pilcrow">¶</a></p>
@@ -3296,7 +3301,11 @@ UNSUPPORTED_EXTENSION.<a href="#section-3.7-6.1.1" class="pilcrow">¶</a></p>
             <p id="section-3.7-6.2.1">For FETCH: respond with FETCH_ERROR with error code UNSUPPORTED_EXTENSION.<a href="#section-3.7-6.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.7-6.3">
-            <p id="section-3.7-6.3.1">For PUBLISH: do not publish the track to that subscriber.<a href="#section-3.7-6.3.1" class="pilcrow">¶</a></p>
+            <p id="section-3.7-6.3.1">For TRACK_STATUS: respond with TRACK_STATUS_ERROR with error code
+UNSUPPORTED_EXTENSION.<a href="#section-3.7-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.7-6.4">
+            <p id="section-3.7-6.4.1">For PUBLISH: do not publish the track to that subscriber.<a href="#section-3.7-6.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5563,7 +5572,7 @@ parameters that can appear depend on the request being answered:<a href="#sectio
                 <p id="section-9.3-3.1.2.2.1">REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT<a href="#section-9.3-3.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.3-3.1.2.3">
-                <p id="section-9.3-3.1.2.3.1">TRACK_STATUS_OK: LARGEST_OBJECT<a href="#section-9.3-3.1.2.3.1" class="pilcrow">¶</a></p>
+                <p id="section-9.3-3.1.2.3.1">TRACK_STATUS_OK: EXPIRES, LARGEST_OBJECT<a href="#section-9.3-3.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.3-3.1.2.4">
                 <p id="section-9.3-3.1.2.4.1">SUBSCRIBE_NAMESPACE_OK: EXPIRES<a href="#section-9.3-3.1.2.4.1" class="pilcrow">¶</a></p>
@@ -6211,8 +6220,8 @@ If End Location is smaller than the Start Location in the corresponding FETCH
 the receiver <span class="bcp14">MUST</span> close the session with <code>INVALID_FIELD</code>.<a href="#section-9.12-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.12-3.3">
-            <p id="section-9.12-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  No parameters
-are currently defined for FETCH_OK.<a href="#section-9.12-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.12-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  The only
+parameter that can appear in a FETCH_OK is EXPIRES.<a href="#section-9.12-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.12-3.4">
             <p id="section-9.12-3.4.1">Track Properties : A sequence of Properties. See <a href="#properties" class="auto internal xref">Section 8.4</a>.<a href="#section-9.12-3.4.1" class="pilcrow">¶</a></p>
@@ -6942,12 +6951,12 @@ TRACK_PROPERTY_FILTER {
           <h4 id="name-fill-parameters-parameter">
 <a href="#section-9.20.15" class="section-number selfRef">9.20.15. </a><a href="#name-fill-parameters-parameter" class="section-name selfRef">FILL PARAMETERS Parameter</a>
           </h4>
-<p id="section-9.20.15-1">The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-prefixed
-encoding. It <span class="bcp14">MAY</span> appear in a SUBSCRIBE, SUBSCRIBE_TRACKS, or REQUEST_UPDATE
-(for a subscription) message. Its value is a sequence of Parameters that apply to the fill fetch
-stream (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>), encoded as if they were Parameters for a
-separate message (see <a href="#message-parameters" class="auto internal xref">Section 16.7</a>).  Its presence is what requests a
-fill fetch stream; a subscription with no FILL_PARAMETERS opens none.<a href="#section-9.20.15-1" class="pilcrow">¶</a></p>
+<p id="section-9.20.15-1">The FILL_PARAMETERS parameter (Parameter Type 0x23) <span class="bcp14">MAY</span> appear in a SUBSCRIBE,
+SUBSCRIBE_TRACKS, or REQUEST_UPDATE (for a subscription) message. Its value is a
+Number of Parameters (vi64) followed by that many Parameters that apply to the
+fill fetch stream (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>), encoded as if they were Parameters
+for a separate message (see <a href="#message-params" class="auto internal xref">Section 9.20</a>).  A fill fetch stream is opened
+only when FILL_PARAMETERS is present.<a href="#section-9.20.15-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.15-2">The following parameters <span class="bcp14">MAY</span> appear inside FILL_PARAMETERS:<a href="#section-9.20.15-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-7">
             <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
@@ -7039,21 +7048,22 @@ message that carries it, so the sticky-parameter rules in
 <a href="#section-9.20.16" class="section-number selfRef">9.20.16. </a><a href="#name-expires-parameter" class="section-name selfRef">EXPIRES Parameter</a>
           </h4>
 <p id="section-9.20.16-1">The EXPIRES parameter (Parameter Type 0x8) is a varint. It <span class="bcp14">MAY</span> appear in
-SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK,
-PUBLISH_NAMESPACE_OK, or REQUEST_UPDATE_OK. It encodes the time
+PUBLISH, SUBSCRIBE_OK, FETCH_OK, or any REQUEST_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
-the subscription. The sender will terminate the subscription using PUBLISH_DONE
-or by cancelling the request (see <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>).  This value is advisory and the sender
-can terminate the subscription prior to or after the expiry time.<a href="#section-9.20.16-1" class="pilcrow">¶</a></p>
-<p id="section-9.20.16-2">The receiver of the parameter can attempt to extend the subscription by sending
+the request (see <a href="#message-publish-done" class="auto internal xref">Section 9.9</a> and <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>).
+This value is advisory and the sender
+can terminate the request prior to or after the expiry time.<a href="#section-9.20.16-1" class="pilcrow">¶</a></p>
+<p id="section-9.20.16-2">EXPIRES in TRACK_STATUS_OK indicates the value the sender would have included
+in a SUBSCRIBE_OK for the same Track.<a href="#section-9.20.16-2" class="pilcrow">¶</a></p>
+<p id="section-9.20.16-3">The receiver of the parameter can attempt to extend the request by sending
 a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
 more updated AUTHORIZATION_TOKENs, it <span class="bcp14">SHOULD</span> include those in the
 REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
 value in REQUEST_UPDATE_OK. Relays that send this parameter and applications that
 receive it <span class="bcp14">MAY</span> introduce jitter to prevent many endpoints from updating
-simultaneously.<a href="#section-9.20.16-2" class="pilcrow">¶</a></p>
-<p id="section-9.20.16-3">If the EXPIRES parameter is 0 or is not present in a message, the subscription
-does not expire or expires at an unknown time.<a href="#section-9.20.16-3" class="pilcrow">¶</a></p>
+simultaneously.<a href="#section-9.20.16-3" class="pilcrow">¶</a></p>
+<p id="section-9.20.16-4">If the EXPIRES parameter is 0 or is not present in a message, the request
+does not expire or expires at an unknown time.<a href="#section-9.20.16-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="largest-param">
@@ -7112,11 +7122,10 @@ publisher.<a href="#section-9.20.18-3" class="pilcrow">¶</a></p>
 in SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber <span class="bcp14">MUST NOT</span> send
-this parameter in REQUEST_UPDATE if the Track did not
-include the DYNAMIC_GROUPS Property with value 1.  A subscriber <span class="bcp14">MAY</span>
+this parameter in REQUEST_UPDATE if it has received the Track's Properties and
+they did not include the DYNAMIC_GROUPS Property with value 1.  A subscriber <span class="bcp14">MAY</span>
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
-original publisher does not support dynamic Groups, it ignores the parameter in that
-case.<a href="#section-9.20.19-1" class="pilcrow">¶</a></p>
+original publisher does not support dynamic Groups, it ignores the parameter.<a href="#section-9.20.19-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.19-2">When an Original Publisher that supports dynamic Groups receives a
 NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
 it <span class="bcp14">SHOULD</span> end the current Group and begin a new Group as soon as practical.  The
@@ -8037,7 +8046,7 @@ Group ID would be less than 0 or greater than 2^64-1, the Subscriber <span class
 close the Session with <code>DELTA_ENCODING_OVERFLOW</code>.<a href="#section-11.4.1.1-6" class="pilcrow">¶</a></p>
 <p id="section-11.4.1.1-7">When the Group ID Delta field is present, the Object ID is the value of Object ID Delta if
 present. When the Group ID Delta field is not present, the Object ID is the prior Object's ID
-plus the Object ID Delta if present. If Object ID Delta is not present, the Object ID is the
+plus the Object ID Delta + 2 if present. If Object ID Delta is not present, the Object ID is the
 prior Object's ID plus one, regardless of which group it belongs to. If the computed Object ID
 would be greater than 2^64-1, the Subscriber <span class="bcp14">MUST</span> close the Session with
 <code>DELTA_ENCODING_OVERFLOW</code>.<a href="#section-11.4.1.1-7" class="pilcrow">¶</a></p>

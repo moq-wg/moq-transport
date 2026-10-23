@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 25 April 2027                                     I. Swett, Ed.
+Expires: 26 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         22 October 2026
+                                                         23 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 April 2027.
+   This Internet-Draft will expire on 26 April 2027.
 
 Copyright Notice
 
@@ -1489,8 +1489,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Property is malformed (see Section 12.1).
 
    When an endpoint receives a Mandatory Track Property in PUBLISH,
-   SUBSCRIBE_OK, or FETCH_OK that it does not understand, it MUST NOT
-   process or forward that track:
+   SUBSCRIBE_OK, FETCH_OK, or TRACK_STATUS_OK that it does not
+   understand, it MUST NOT process or forward that track:
 
    *  For PUBLISH messages: the subscriber MUST respond with
       PUBLISH_ERROR with error code UNSUPPORTED_EXTENSION.
@@ -1508,6 +1508,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       downstream fetch requester.  If the relay has already forwarded
       data on a fetch stream, it MUST reset the stream.
 
+   *  For TRACK_STATUS_OK messages: if the subscriber is a relay with
+      pending downstream TRACK_STATUS requests, it MUST send
+      TRACK_STATUS_ERROR with error code UNSUPPORTED_EXTENSION to the
+      downstream requesters.
+
    A publisher that knows a subscriber does not support a Mandatory
    Track Property SHOULD take the following action:
 
@@ -1515,6 +1520,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       UNSUPPORTED_EXTENSION.
 
    *  For FETCH: respond with FETCH_ERROR with error code
+      UNSUPPORTED_EXTENSION.
+
+   *  For TRACK_STATUS: respond with TRACK_STATUS_ERROR with error code
       UNSUPPORTED_EXTENSION.
 
    *  For PUBLISH: do not publish the track to that subscriber.
@@ -3471,7 +3479,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
       -  REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT
 
-      -  TRACK_STATUS_OK: LARGEST_OBJECT
+      -  TRACK_STATUS_OK: EXPIRES, LARGEST_OBJECT
 
       -  SUBSCRIBE_NAMESPACE_OK: EXPIRES
 
@@ -4000,8 +4008,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       Start Location in the corresponding FETCH the receiver MUST close
       the session with INVALID_FIELD.
 
-   *  Parameters: The parameters are defined in Section 9.20.  No
-      parameters are currently defined for FETCH_OK.
+   *  Parameters: The parameters are defined in Section 9.20.  The only
+      parameter that can appear in a FETCH_OK is EXPIRES.
 
    *  Track Properties : A sequence of Properties.  See Section 8.4.
 
@@ -4558,13 +4566,13 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
 9.20.15.  FILL PARAMETERS Parameter
 
-   The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-
-   prefixed encoding.  It MAY appear in a SUBSCRIBE, SUBSCRIBE_TRACKS,
-   or REQUEST_UPDATE (for a subscription) message.  Its value is a
-   sequence of Parameters that apply to the fill fetch stream (see
+   The FILL_PARAMETERS parameter (Parameter Type 0x23) MAY appear in a
+   SUBSCRIBE, SUBSCRIBE_TRACKS, or REQUEST_UPDATE (for a subscription)
+   message.  Its value is a Number of Parameters (vi64) followed by that
+   many Parameters that apply to the fill fetch stream (see
    Section 3.4), encoded as if they were Parameters for a separate
-   message (see Section 16.7).  Its presence is what requests a fill
-   fetch stream; a subscription with no FILL_PARAMETERS opens none.
+   message (see Section 9.20).  A fill fetch stream is opened only when
+   FILL_PARAMETERS is present.
 
    The following parameters MAY appear inside FILL_PARAMETERS:
 
@@ -4612,17 +4620,18 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 9.20.16.  EXPIRES Parameter
 
    The EXPIRES parameter (Parameter Type 0x8) is a varint.  It MAY
-   appear in SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE_NAMESPACE_OK,
-   SUBSCRIBE_TRACKS_OK, PUBLISH_NAMESPACE_OK, or REQUEST_UPDATE_OK.  It
+   appear in PUBLISH, SUBSCRIBE_OK, FETCH_OK, or any REQUEST_OK.  It
    encodes the time in milliseconds after which the sender of the
-   parameter will terminate the subscription.  The sender will terminate
-   the subscription using PUBLISH_DONE or by cancelling the request (see
+   parameter will terminate the request (see Section 9.9 and
    Section 6.4.2.3).  This value is advisory and the sender can
-   terminate the subscription prior to or after the expiry time.
+   terminate the request prior to or after the expiry time.
 
-   The receiver of the parameter can attempt to extend the subscription
-   by sending a REQUEST_UPDATE with 0 or more updated parameters.  If
-   the receiver has one or more updated AUTHORIZATION_TOKENs, it SHOULD
+   EXPIRES in TRACK_STATUS_OK indicates the value the sender would have
+   included in a SUBSCRIBE_OK for the same Track.
+
+   The receiver of the parameter can attempt to extend the request by
+   sending a REQUEST_UPDATE with 0 or more updated parameters.  If the
+   receiver has one or more updated AUTHORIZATION_TOKENs, it SHOULD
    include those in the REQUEST_UPDATE.  If the extension is granted,
    the sender includes a new EXPIRES value in REQUEST_UPDATE_OK.  Relays
    that send this parameter and applications that receive it MAY
@@ -4630,7 +4639,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    simultaneously.
 
    If the EXPIRES parameter is 0 or is not present in a message, the
-   subscription does not expire or expires at an unknown time.
+   request does not expire or expires at an unknown time.
 
 9.20.17.  LARGEST OBJECT Parameter
 
@@ -4679,11 +4688,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    represents the largest Group ID in the Track known by the subscriber,
    plus 1.  A value of 0 indicates that the subscriber has no Group
    information for the Track.  A subscriber MUST NOT send this parameter
-   in REQUEST_UPDATE if the Track did not include the DYNAMIC_GROUPS
-   Property with value 1.  A subscriber MAY include this parameter in
-   SUBSCRIBE without foreknowledge of support.  If the original
-   publisher does not support dynamic Groups, it ignores the parameter
-   in that case.
+   in REQUEST_UPDATE if it has received the Track's Properties and they
+   did not include the DYNAMIC_GROUPS Property with value 1.  A
+   subscriber MAY include this parameter in SUBSCRIBE without
+   foreknowledge of support.  If the original publisher does not support
+   dynamic Groups, it ignores the parameter.
 
    When an Original Publisher that supports dynamic Groups receives a
    NEW_GROUP_REQUEST with a value of 0 or a value larger than the
@@ -5480,8 +5489,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    When the Group ID Delta field is present, the Object ID is the value
    of Object ID Delta if present.  When the Group ID Delta field is not
    present, the Object ID is the prior Object's ID plus the Object ID
-   Delta if present.  If Object ID Delta is not present, the Object ID
-   is the prior Object's ID plus one, regardless of which group it
+   Delta + 2 if present.  If Object ID Delta is not present, the Object
+   ID is the prior Object's ID plus one, regardless of which group it
    belongs to.  If the computed Object ID would be greater than 2^64-1,
    the Subscriber MUST close the Session with DELTA_ENCODING_OVERFLOW.
 
