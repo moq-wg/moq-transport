@@ -7069,8 +7069,8 @@ in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or
 PUBLISH_STATE_NOTIFY.  It contains the <code>Largest Object</code>
 (<a href="#largest-object" class="auto internal xref">Section 3.1.4</a>) in the Track from the perspective of the sending
 endpoint. If Objects have been published on this Track the
-Publisher <span class="bcp14">MUST</span> include this parameter on messages it sends, except for
-REQUEST_UPDATE, which cannot carry it.<a href="#section-9.20.17-1" class="pilcrow">¶</a></p>
+Publisher <span class="bcp14">MUST</span> include this parameter on messages it sends, when those
+messages are allowed to carry LARGEST_OBJECT.<a href="#section-9.20.17-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.17-2">If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.<a href="#section-9.20.17-2" class="pilcrow">¶</a></p>
 <p id="section-9.20.17-3">A relay <span class="bcp14">MUST</span> set LARGEST_OBJECT to the largest of the following:<a href="#section-9.20.17-3" class="pilcrow">¶</a></p>
