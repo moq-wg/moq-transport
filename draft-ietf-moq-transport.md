@@ -4125,8 +4125,8 @@ in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or
 PUBLISH_STATE_NOTIFY.  It contains the `Largest Object`
 ({{largest-object}}) in the Track from the perspective of the sending
 endpoint. If Objects have been published on this Track the
-Publisher MUST include this parameter on messages it sends, except for
-REQUEST_UPDATE, which cannot carry it.
+Publisher MUST include this parameter on messages it sends, when those
+messages are allowed to carry LARGEST_OBJECT.
 
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
