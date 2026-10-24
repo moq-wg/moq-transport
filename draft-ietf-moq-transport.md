@@ -5583,6 +5583,27 @@ Implementations are advised to use timeouts to prevent resource
 exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own timeouts.
 
+Places where an endpoint waits on its peer include, but are not limited to:
+
+* A response to a request
+* The rest of a stream header or Object on a data stream, including a stream
+  whose Track Alias is not yet known (see {{unknown-track-alias}})
+* The next Object or FIN on an open Subgroup or FETCH stream
+* The next Subgroup or Datagram in a subscription
+* The data stream for a FETCH
+* The data streams counted in PUBLISH_DONE ({{message-publish-done}})
+* Session closure after GOAWAY ({{message-goaway}})
+
+Appropriate values depend on the deployment and the applications using it,
+which a relay often cannot observe, so implementations typically make them
+configurable.  Shorter timeouts release resources sooner, but can terminate
+slow peers that are behaving correctly.  Longer timeouts let a misbehaving peer
+hold resources longer.  Delivery timeouts ({{delivery-timeouts}}) are chosen by
+peers, so an endpoint does not rely on them to bound how long it waits.  When a
+timeout fires, the endpoint can take the narrowest action available, such as
+cancelling one request or stream instead of closing the session, and use the
+most specific error code so the peer knows what failed.
+
 ### Idle Connection Handling
 
 The transport connection (e.g., QUIC) underlying a MOQT session can close due to
