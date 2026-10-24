@@ -371,7 +371,7 @@ possible states:
 2. The Object is known to exist.
 3. The Object is Gone.  Its state is unknown and can be cached, but the Object
    can still be received later.
-4. The state of the Object is unknown, either because it has not yet been
+4. The state of the Object is Unknown, either because it has not yet been
    received, or it has not yet been produced.
 
 An Object moves to a state when the endpoint receives the Object or a signal of
@@ -397,15 +397,15 @@ that state.
 {: #object-state-diagram title="Object States"}
 
 A gap in the observed Object IDs does not by itself convey any information about
-the skipped Objects. Skipped Objects remain in the unknown state until they are
+the skipped Objects. Skipped Objects remain in the Unknown state until they are
 received or their non-existence is signalled, for example in a FETCH stream (see
 {{fetch-header}}) or via a Prior Object ID Gap (see {{prior-object-id-gap}}).
 
 A publisher MUST NOT signal that an Object does not exist unless it knows the
 Object has never existed and never will; otherwise it signals that the Object is
-Gone or unknown.  For example, a publisher that restarts without state and
+Gone or Unknown.  For example, a publisher that restarts without state and
 resumes a Track at a new Group signals Objects before that Group as Gone in
-FETCH responses.  Receiving an Object that was recorded as Gone or unknown is
+FETCH responses.  Receiving an Object that was recorded as Gone or Unknown is
 not an error.
 
 Whenever the publisher communicates that certain objects do not exist, this
@@ -847,7 +847,7 @@ not have the Object in cache).
 Unless the request included Range Filters (see {{range-filters}}), any gaps in
 the Group and Object IDs in the response stream that are not otherwise marked
 indicate objects that do not exist (see {{object-states}}).  When one or more
-Range Filters are present, unmarked gaps indicate objects in the unknown state.
+Range Filters are present, unmarked gaps indicate objects in the Unknown state.
 
 For Ascending Group Order, and Descending Group Order where Start and End
 Location are in the same group, gaps include ranges between the Start
@@ -867,14 +867,14 @@ by a FIN.
 
 When the cause of the gap differs from the default, the publisher marks the range
 of Objects it will not serialize with an End of Range indicator (see
-{{end-of-range}}), identifying those Objects as non-existent, unknown, Gone, or
+{{end-of-range}}), identifying those Objects as non-existent, Unknown, Gone, or
 timed out.  A publisher SHOULD NOT use `End of Non-Existent Range` in a FETCH response
 except to split a range of Objects that will not be serialized into those that are
-known not to exist and those with unknown, Gone or timed out status.
+known not to exist and those with Unknown, Gone or timed out status.
 
 If a Publisher receives a FETCH with a range that includes one or more Objects
-with unknown state, it can choose to reset the FETCH data stream with
-UNKNOWN_OBJECT_STATUS ({{stream-reset-codes}}), or indicate the range of unknown
+with Unknown state, it can choose to reset the FETCH data stream with
+UNKNOWN_OBJECT_STATUS ({{stream-reset-codes}}), or indicate the range of Unknown
 Objects (`End of Unknown Range`, see {{end-of-range}}) and continue serving
 other known Objects.  When resetting the stream, the publisher can do so
 immediately or after previously sent objects are delivered.  If it has not yet
@@ -885,9 +885,9 @@ sent FETCH_OK, it can send FETCH_ERROR in addition to resetting the stream.
 A relay that has cached objects from the beginning of the range MAY start
 sending objects immediately in response to a FETCH.  When a relay encounters
 Objects within the requested range that are not immediately available and have
-unknown status, it issues one or more upstream FETCHes to retrieve them.
+Unknown status, it issues one or more upstream FETCHes to retrieve them.
 
-If an upstream FETCH fails, the relay indicates the range of unknown Objects or
+If an upstream FETCH fails, the relay indicates the range of Unknown Objects or
 resets the FETCH data stream, as described above.
 
 The Fill Timeout (see {{fill-timeout}}) represents a total budget
@@ -2048,7 +2048,7 @@ where it's redundant.
 
 A relay MAY cache that a range of Objects is Gone (see {{object-states}}).  If
 it later receives one of those Objects, it can cache and forward the Object.  A
-relay does not cache unknown or timed out ranges.
+relay does not cache Unknown or timed out ranges.
 
 A cache MUST store all fields of an Object defined in {{object-header}},
 with the exception of any Object Properties ({{object-properties}})
@@ -4256,7 +4256,7 @@ relay MUST NOT start forwarding any individual Object received through this
 subscription or fetch after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier in a
 multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes unknown (see
+Objects have expired from cache, their state becomes Unknown (see
 {{model-object}}).
 
 If MAX_CACHE_DURATION is not sent by the publisher, the Objects
@@ -4911,7 +4911,7 @@ When Serialization Flags indicates an End of Range (e.g. values 0x8C, 0x10C, or
 0x20C), the Group ID and Object ID fields are present.  Subgroup ID, Priority and
 Properties are not present. All Objects with Locations between the last
 serialized Object, if any, and this Location, inclusive, either do not exist
-(when Serialization Flags is 0x8C), are unknown (0x10C), are timed out (0x20C),
+(when Serialization Flags is 0x8C), are Unknown (0x10C), are timed out (0x20C),
 or are Gone (0x40C).
 
 When an Object follows an End of Range indicator and uses flags that reference
