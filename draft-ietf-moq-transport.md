@@ -1238,6 +1238,10 @@ publishers receive these requests; see {{publisher-interactions}}.
 The receiver verifies the publisher is authorized to publish tracks under this
 prefix.
 
+A publisher can send more than one PUBLISH_NAMESPACE for the same Track
+Namespace Prefix in a session.  The namespace remains published until all of
+them are withdrawn.
+
 A subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or
 PUBLISH_NAMESPACE_ERROR as the first message on the bidi stream in response to
 a PUBLISH_NAMESPACE. The publisher SHOULD close the session with
@@ -2188,7 +2192,7 @@ Namespace Prefix Matching ({{namespace-prefix-matching}}) is further used to
 decide which publishers receive a SUBSCRIBE and which subscribers receive a
 PUBLISH.
 
-Relays MUST send SUBSCRIBE messages to all matching publishers. This includes
+Relays MUST send at least one SUBSCRIBE to each matching publisher. This includes
 matching both Established subscriptions on the Full Track Name and Namespace
 Prefix Matching against published Namespaces.
 
@@ -2225,7 +2229,8 @@ if paused.
 When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it MUST
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
-matching subscription. A Relay does not send PUBLISH_NAMESPACE to a subscriber;
+matching subscription, unless it already has a subscription to that Track from
+that publisher. A Relay does not send PUBLISH_NAMESPACE to a subscriber;
 it advertises namespaces by sending NAMESPACE in response to a matching
 SUBSCRIBE_NAMESPACE (see {{subscribing-to-namespaces}}).
 
