@@ -2417,12 +2417,17 @@ MOQT Object distribution.
 
 Properties are defined in {{moqt-properties}} as well as external
 specifications and are registered in an IANA table {{iana}}. These
-specifications define the type and value of the property, along with any rules
-concerning processing, modification, caching and forwarding.
+specifications define the type and value of the property, whether multiple
+instances are allowed on a single Track or Object, and any rules concerning
+processing, modification, caching and forwarding.  An endpoint that supports a
+Property and receives more than one instance where multiple are not allowed
+MUST treat the Track as malformed (see {{malformed-tracks}}).
 
 If a Relay does not support a Property, it MUST NOT be modified, MUST be
 forwarded, and MUST be cached with the Track or Object, unless it is a Mandatory
-Track Property as described in {{mandatory-track-properties}}.  If a Track or Object
+Track Property as described in {{mandatory-track-properties}}.  A Relay MUST
+assume multiple instances of a Property it does not support are allowed.  If a
+Track or Object
 arrives with a different set of unknown properties than previously cached,
 the most recent set SHOULD replace any cached values, removing any unknown
 values not present in the new set.  Relays MUST NOT attempt to merge sets
