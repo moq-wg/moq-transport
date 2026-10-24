@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 26 April 2027                                     I. Swett, Ed.
+Expires: 27 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         23 October 2026
+                                                         24 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 April 2027.
+   This Internet-Draft will expire on 27 April 2027.
 
 Copyright Notice
 
@@ -629,10 +629,10 @@ Table of Contents
 
    2.  The Object is known to exist.
 
-   3.  The Object is gone.  Its state is unknown and can be cached, but
+   3.  The Object is Gone.  Its state is unknown and can be cached, but
        the Object can still be received later.
 
-   4.  The state of the Object is unknown, either because it has not yet
+   4.  The state of the Object is Unknown, either because it has not yet
        been received, or it has not yet been produced.
 
    An Object moves to a state when the endpoint receives the Object or a
@@ -658,14 +658,17 @@ Table of Contents
 
    A gap in the observed Object IDs does not by itself convey any
    information about the skipped Objects.  Skipped Objects remain in the
-   unknown state until they are received or their non-existence is
+   Unknown state until they are received or their non-existence is
    signalled, for example in a FETCH stream (see Section 11.4.1) or via
    a Prior Object ID Gap (see Section 10.9).
 
    A publisher MUST NOT signal that an Object does not exist unless it
    knows the Object has never existed and never will; otherwise it
-   signals that the Object is gone or unknown.  Receiving an Object that
-   was recorded as gone or unknown is not an error.
+   signals that the Object is Gone or Unknown.  For example, a publisher
+   that restarts without state and resumes a Track at a new Group
+   signals Objects before that Group as Gone in FETCH responses.
+   Receiving an Object that was recorded as Gone or Unknown is not an
+   error.
 
    Whenever the publisher communicates that certain objects do not
    exist, this fact is expressed as a contiguous range of non-existent
@@ -1128,7 +1131,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    gaps in the Group and Object IDs in the response stream that are not
    otherwise marked indicate objects that do not exist (see
    Section 2.1.2).  When one or more Range Filters are present, unmarked
-   gaps indicate objects in the unknown state.
+   gaps indicate objects in the Unknown state.
 
    For Ascending Group Order, and Descending Group Order where Start and
    End Location are in the same group, gaps include ranges between the
@@ -1150,15 +1153,15 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    When the cause of the gap differs from the default, the publisher
    marks the range of Objects it will not serialize with an End of Range
    indicator (see Section 11.4.1.2), identifying those Objects as non-
-   existent, unknown, gone, or timed out.  A publisher SHOULD NOT use
+   existent, Unknown, Gone, or timed out.  A publisher SHOULD NOT use
    End of Non-Existent Range in a FETCH response except to split a range
    of Objects that will not be serialized into those that are known not
-   to exist and those with unknown, gone or timed out status.
+   to exist and those with Unknown, Gone or timed out status.
 
    If a Publisher receives a FETCH with a range that includes one or
-   more Objects with unknown state, it can choose to reset the FETCH
+   more Objects with Unknown state, it can choose to reset the FETCH
    data stream with UNKNOWN_OBJECT_STATUS (Section 12.5), or indicate
-   the range of unknown Objects (End of Unknown Range, see
+   the range of Unknown Objects (End of Unknown Range, see
    Section 11.4.1.2) and continue serving other known Objects.  When
    resetting the stream, the publisher can do so immediately or after
    previously sent objects are delivered.  If it has not yet sent
@@ -1170,10 +1173,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    A relay that has cached objects from the beginning of the range MAY
    start sending objects immediately in response to a FETCH.  When a
    relay encounters Objects within the requested range that are not
-   immediately available and have unknown status, it issues one or more
+   immediately available and have Unknown status, it issues one or more
    upstream FETCHes to retrieve them.
 
-   If an upstream FETCH fails, the relay indicates the range of unknown
+   If an upstream FETCH fails, the relay indicates the range of Unknown
    Objects or resets the FETCH data stream, as described above.
 
    The Fill Timeout (see Section 9.20.5) represents a total budget for
@@ -2425,9 +2428,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    to an equivalent object with an End of Group status, or a Prior Group
    ID Gap property could be removed in FETCH, where it's redundant.
 
-   A relay MAY cache that a range of Objects is gone (see
+   A relay MAY cache that a range of Objects is Gone (see
    Section 2.1.2).  If it later receives one of those Objects, it can
-   cache and forward the Object.  A relay does not cache unknown or
+   cache and forward the Object.  A relay does not cache Unknown or
    timed out ranges.
 
    A cache MUST store all fields of an Object defined in Section 2.1.1,
@@ -4782,7 +4785,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    the beginning of the Object was received.  This means Objects earlier
    in a multi-object stream will expire earlier than Objects later in
    the stream.  Once Objects have expired from cache, their state
-   becomes unknown (see Section 2.1).
+   becomes Unknown (see Section 2.1).
 
    If MAX_CACHE_DURATION is not sent by the publisher, the Objects can
    be cached until implementation constraints cause them to be evicted.
@@ -5507,7 +5510,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    Subgroup ID, Priority and Properties are not present.  All Objects
    with Locations between the last serialized Object, if any, and this
    Location, inclusive, either do not exist (when Serialization Flags is
-   0x8C), are unknown (0x10C), are timed out (0x20C), or are gone
+   0x8C), are Unknown (0x10C), are timed out (0x20C), or are Gone
    (0x40C).
 
    When an Object follows an End of Range indicator and uses flags that
