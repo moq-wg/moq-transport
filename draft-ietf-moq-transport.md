@@ -4077,7 +4077,10 @@ inside FILL_PARAMETERS.
 
 FILL_PARAMETERS is not retained as subscription state. It applies only to the
 message that carries it, so the sticky-parameter rules in
-{{message-request-update}} do not apply to it.
+{{message-request-update}} do not apply to it.  A REQUEST_UPDATE containing
+FILL_PARAMETERS cannot be coalesced with other REQUEST_UPDATEs.  A publisher
+can reject a REQUEST_UPDATE containing FILL_PARAMETERS with `EXCESSIVE_LOAD` if
+it has too many active fill fetch streams.
 
 ### EXPIRES Parameter {#expires}
 
