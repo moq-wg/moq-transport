@@ -1174,6 +1174,7 @@ Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
 Properties. These properties MUST have Track scope. Mandatory Track Properties
 have special handling rules that prevent tracks with required properties from
 being forwarded to or processed by endpoints that do not understand them.
+Grease values ({{grease}}) in this range are not Mandatory Track Properties.
 
 An Object received with a Mandatory Track Property as an Object Property is
 malformed (see {{malformed-tracks}}).
