@@ -6185,7 +6185,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    *  The rest of a stream header or Object on a data stream, including
       a stream whose Track Alias is not yet known (see Section 3.1.3.1)
 
-   *  The next Object or FIN on an open Subgroup
+   *  The next Object or FIN on an open Subgroup or FETCH stream
 
    *  The next Subgroup or Datagram in a subscription
 
