@@ -363,25 +363,50 @@ Object Payload: A possibly empty sequence of bytes.
 
 ### Object States
 
-From the perspective of a subscriber or a cache, an Object can be in three
+From the perspective of a subscriber or a cache, an Object can be in four
 possible states:
 
 1. The Object is known to not exist. This state is permanent.  All signals
    that an Object does not exist are authoritative.
-2. The Object is known to exist. From this state, it can transition to not
-   existing, but not vice versa.
-3. The state of the Object is unknown, either because it has not yet been
+2. The Object is known to exist.
+3. The Object is Gone.  Its state is unknown and can be cached, but the Object
+   can still be received later.
+4. The state of the Object is Unknown, either because it has not yet been
    received, or it has not yet been produced.
 
+An Object moves to a state when the endpoint receives the Object or a signal of
+that state.
+
+~~~
+                   +---------+
+                   | Unknown |
+                   +---------+
+                    |   |   |
+        +-----------+   |   +-----------+
+        |               v               |
+        |           +-------+           |
+        |           | Gone  |           |
+        |           +-------+           |
+        |            |     |            |
+        |      +-----+     +-----+      |
+        v      v                 v      v
+    +----------------+     +----------------+
+    |     Exists     |     | Does Not Exist |
+    +----------------+     +----------------+
+~~~
+{: #object-state-diagram title="Object States"}
+
 A gap in the observed Object IDs does not by itself convey any information about
-the skipped Objects. Skipped Objects remain in the unknown state until they are
+the skipped Objects. Skipped Objects remain in the Unknown state until they are
 received or their non-existence is signalled, for example in a FETCH stream (see
 {{fetch-header}}) or via a Prior Object ID Gap (see {{prior-object-id-gap}}).
 
-Since Objects can be delivered out of order, an endpoint can receive an Object
-after it has already recorded that the Object does not exist (e.g., via a FETCH
-gap from one source and delayed delivery via a subscription).  This is not a
-protocol error and the Track is not malformed.
+A publisher MUST NOT signal that an Object does not exist unless it knows the
+Object has never existed and never will; otherwise it signals that the Object is
+Gone or Unknown.  For example, a publisher that restarts without state and
+resumes a Track at a new Group signals Objects before that Group as Gone in
+FETCH responses.  Receiving an Object that was recorded as Gone or Unknown is
+not an error.
 
 Whenever the publisher communicates that certain objects do not exist, this
 fact is expressed as a contiguous range of non-existent objects and
@@ -825,7 +850,7 @@ not have the Object in cache).
 Unless the request included Range Filters (see {{range-filters}}), any gaps in
 the Group and Object IDs in the response stream that are not otherwise marked
 indicate objects that do not exist (see {{object-states}}).  When one or more
-Range Filters are present, unmarked gaps indicate objects in the unknown state.
+Range Filters are present, unmarked gaps indicate objects in the Unknown state.
 
 For Ascending Group Order, and Descending Group Order where Start and End
 Location are in the same group, gaps include ranges between the Start
@@ -845,13 +870,13 @@ by a FIN.
 
 When the cause of the gap differs from the default, the publisher marks the range
 of Objects it will not serialize with an End of Range indicator (see
-{{end-of-range}}), identifying those Objects as non-existent, unknown, or timed
-out.  A publisher SHOULD NOT use `End of Non-Existent Range` in a FETCH response
+{{end-of-range}}), identifying those Objects as non-existent, Unknown, Gone, or
+timed out.  A publisher SHOULD NOT use `End of Non-Existent Range` in a FETCH response
 except to split a range of Objects that will not be serialized into those that are
-known not to exist and those with unknown or timed out status.
+known not to exist and those with Unknown, Gone or timed out status.
 
 If a Publisher receives a FETCH with a range that includes one or more Objects
-with unknown state, it indicates the range of unknown Objects (`End of Unknown
+with Unknown state, it indicates the range of Unknown Objects (`End of Unknown
 Range`, see {{end-of-range}}) and continues serving other known Objects.
 
 ### Relay Fetch Handling
@@ -859,9 +884,9 @@ Range`, see {{end-of-range}}) and continues serving other known Objects.
 A relay that has cached objects from the beginning of the range MAY start
 sending objects immediately in response to a FETCH.  When a relay encounters
 Objects within the requested range that are not immediately available and have
-unknown status, it issues one or more upstream FETCHes to retrieve them.
+Unknown status, it issues one or more upstream FETCHes to retrieve them.
 
-If an upstream FETCH fails, the relay indicates the range of unknown Objects,
+If an upstream FETCH fails, the relay indicates the range of Unknown Objects,
 as described above, unless the Track is malformed (see {{malformed-tracks}}).
 
 The Fill Timeout (see {{fill-timeout}}) represents a total budget
@@ -2019,13 +2044,9 @@ A caching relay saves Objects to its cache identified by the Object's Full Track
 Name, Group ID and Object ID. If multiple objects are received with the same
 Full Track Name, Group ID and Object ID, Relays MAY ignore subsequently received
 Objects or MAY use them to update certain cached fields. Implementations that
-update the cache need to protect against cache poisoning.  The only Object
-fields that can be updated are the following:
-
-1. Object can transition from existing to not existing in cases where the
-   object is no longer available.
-2. Object Properties can be added, removed or updated, subject
-   to the constraints of the specific property.
+update the cache need to protect against cache poisoning.  Only Object
+Properties can be added, removed or updated, subject to the constraints of the
+specific property.
 
 An endpoint that receives a duplicate Object with a different Delivery
 Mode, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
@@ -2036,9 +2057,9 @@ change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
 of Group status, or a Prior Group ID Gap property could be removed in FETCH,
 where it's redundant.
 
-As described in {{model-object}}, an endpoint can receive an Object after it has
-already recorded that the Object does not exist.  A caching relay SHOULD NOT
-cache or forward the Object in this case.
+A relay MAY cache that a range of Objects is Gone (see {{object-states}}).  If
+it later receives one of those Objects, it can cache and forward the Object.  A
+relay does not cache Unknown or timed out ranges.
 
 A cache MUST store all fields of an Object defined in {{object-header}},
 with the exception of any Object Properties ({{object-properties}})
@@ -4251,7 +4272,7 @@ relay MUST NOT start forwarding any individual Object received through this
 subscription or fetch after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier in a
 multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes unknown (see
+Objects have expired from cache, their state becomes Unknown (see
 {{model-object}}).
 
 If MAX_CACHE_DURATION is not sent by the publisher, the Objects
@@ -4845,6 +4866,7 @@ Value | Meaning
 0x8C  | End of Non-Existent Range
 0x10C | End of Unknown Range
 0x20C | End of Timed-Out Range
+0x40C | End of Gone Range
 
 If an endpoint receives any other value greater than 127, it MUST close the
 session with `MALFORMED_OBJECT`.
@@ -4905,7 +4927,8 @@ When Serialization Flags indicates an End of Range (e.g. values 0x8C, 0x10C, or
 0x20C), the Group ID and Object ID fields are present.  Subgroup ID, Priority and
 Properties are not present. All Objects with Locations between the last
 serialized Object, if any, and this Location, inclusive, either do not exist
-(when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).
+(when Serialization Flags is 0x8C), are Unknown (0x10C), are timed out (0x20C),
+or are Gone (0x40C).
 
 When an Object follows an End of Range indicator and uses flags that reference
 the "prior Object", the prior Object fields are determined as follows:
@@ -4997,6 +5020,8 @@ include:
    other immutable properties.
 7. An Object is received with a different Delivery Mode than previously
    observed.
+8. An Object is received after it has been recorded as not existing, or is
+   signalled as not existing after it was received (see {{object-states}}).
 
 The above list of conditions is not considered exhaustive.
 
