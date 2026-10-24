@@ -369,7 +369,7 @@ possible states:
 1. The Object is known to not exist. This state is permanent.  All signals
    that an Object does not exist are authoritative.
 2. The Object is known to exist.
-3. The Object is gone.  Its state is unknown and can be cached, but the Object
+3. The Object is Gone.  Its state is unknown and can be cached, but the Object
    can still be received later.
 4. The state of the Object is unknown, either because it has not yet been
    received, or it has not yet been produced.
@@ -403,7 +403,9 @@ received or their non-existence is signalled, for example in a FETCH stream (see
 
 A publisher MUST NOT signal that an Object does not exist unless it knows the
 Object has never existed and never will; otherwise it signals that the Object is
-gone or unknown.  Receiving an Object that was recorded as gone or unknown is
+Gone or unknown.  For example, a publisher that restarts without state and
+resumes a Track at a new Group signals Objects before that Group as Gone in
+FETCH responses.  Receiving an Object that was recorded as Gone or unknown is
 not an error.
 
 Whenever the publisher communicates that certain objects do not exist, this
@@ -865,10 +867,10 @@ by a FIN.
 
 When the cause of the gap differs from the default, the publisher marks the range
 of Objects it will not serialize with an End of Range indicator (see
-{{end-of-range}}), identifying those Objects as non-existent, unknown, gone, or
+{{end-of-range}}), identifying those Objects as non-existent, unknown, Gone, or
 timed out.  A publisher SHOULD NOT use `End of Non-Existent Range` in a FETCH response
 except to split a range of Objects that will not be serialized into those that are
-known not to exist and those with unknown, gone or timed out status.
+known not to exist and those with unknown, Gone or timed out status.
 
 If a Publisher receives a FETCH with a range that includes one or more Objects
 with unknown state, it can choose to reset the FETCH data stream with
@@ -2044,7 +2046,7 @@ change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
 of Group status, or a Prior Group ID Gap property could be removed in FETCH,
 where it's redundant.
 
-A relay MAY cache that a range of Objects is gone (see {{object-states}}).  If
+A relay MAY cache that a range of Objects is Gone (see {{object-states}}).  If
 it later receives one of those Objects, it can cache and forward the Object.  A
 relay does not cache unknown or timed out ranges.
 
@@ -4910,7 +4912,7 @@ When Serialization Flags indicates an End of Range (e.g. values 0x8C, 0x10C, or
 Properties are not present. All Objects with Locations between the last
 serialized Object, if any, and this Location, inclusive, either do not exist
 (when Serialization Flags is 0x8C), are unknown (0x10C), are timed out (0x20C),
-or are gone (0x40C).
+or are Gone (0x40C).
 
 When an Object follows an End of Range indicator and uses flags that reference
 the "prior Object", the prior Object fields are determined as follows:
