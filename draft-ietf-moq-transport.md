@@ -2721,7 +2721,7 @@ formatted as follows:
 ~~~
 MOQT Control Message {
   Message Type (vi64),
-  Message Length (16),
+  Message Length (vi64),
   Message Body (..),
 }
 ~~~
@@ -2793,7 +2793,11 @@ Control messages have a length to simplify parsing, but no control messages
 are intended to be ignored. The length is set to the number of bytes in the
 Message Body, which is defined by each message type.  If the length does not
 match the length of the Message Body, the receiver MUST close the session with
-`MALFORMED_MESSAGE`.
+`MALFORMED_MESSAGE`.  An endpoint MUST NOT send a control message with a length
+larger than the peer's MAX_CONTROL_MESSAGE_SIZE ({{max-control-message-size}}).
+If an endpoint receives a control message with a length larger than its
+MAX_CONTROL_MESSAGE_SIZE, it MUST close the session with
+`FIELD_LENGTH_EXCEEDED`.
 
 ## SETUP {#message-setup}
 
@@ -2813,7 +2817,7 @@ The wire format of the Setup message is as follows:
 ~~~
 SETUP Message {
   Type (vi64) = 0x2F00,
-  Length (16),
+  Length (vi64),
   Setup Options (..) ...,
 }
 ~~~
@@ -2948,6 +2952,15 @@ If an endpoint receives a REQUEST_UPDATE on a stream that already has
 MAX_REQUEST_UPDATES outstanding REQUEST_UPDATEs, it MUST close the session
 with `TOO_MANY_REQUEST_UPDATES`.
 
+### MAX_CONTROL_MESSAGE_SIZE {#max-control-message-size}
+
+The MAX_CONTROL_MESSAGE_SIZE option (Option Type 0x09) communicates the maximum
+length, in bytes, of a control message the endpoint is willing to receive (see
+{{message}}).  The value is encoded as a variable-length integer and MUST be at
+least 65535.  If not present, the default value is 65535.  Until an endpoint
+receives the peer's SETUP, it uses the default value, including for SETUP
+itself.
+
 
 ## GOAWAY {#message-goaway}
 
@@ -2989,7 +3002,7 @@ control stream or on a single request stream.
 ~~~
 GOAWAY Message {
   Type (vi64) = 0x10,
-  Length (16),
+  Length (vi64),
   New Session URI Length (vi64),
   New Session URI (..),
   Timeout (vi64),
@@ -3026,7 +3039,7 @@ requests.
 ~~~
 REQUEST_OK Message {
   Type (vi64) = 0x7,
-  Length (16),
+  Length (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...,
   Track Properties (..),
@@ -3091,7 +3104,7 @@ Redirect {
 ~~~
 REQUEST_ERROR Message {
   Type (vi64) = 0x5,
-  Length (16),
+  Length (vi64),
   Error Code (vi64),
   Retry Interval (vi64),
   Error Reason (Reason Phrase),
@@ -3162,7 +3175,7 @@ The format of REQUEST_UPDATE is as follows:
 ~~~
 REQUEST_UPDATE Message {
   Type (vi64) = 0x2,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
@@ -3242,7 +3255,7 @@ The format of SUBSCRIBE is as follows:
 ~~~
 SUBSCRIBE Message {
   Type (vi64) = 0x3,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
@@ -3279,7 +3292,7 @@ bidi stream for successful subscriptions.
 ~~~
 SUBSCRIBE_OK Message {
   Type (vi64) = 0x4,
-  Length (16),
+  Length (vi64),
   Track Alias (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...,
@@ -3305,7 +3318,7 @@ authorized to publish this track.
 ~~~
 PUBLISH Message {
   Type (vi64) = 0x1D,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
@@ -3400,7 +3413,7 @@ The format of `PUBLISH_DONE` is as follows:
 ~~~
 PUBLISH_DONE Message {
   Type (vi64) = 0xB,
-  Length (16),
+  Length (vi64),
   Status Code (vi64),
   Stream Count (vi64),
   Error Reason (Reason Phrase)
@@ -3465,7 +3478,7 @@ The format of PUBLISH_STATE_NOTIFY is as follows:
 ~~~
 PUBLISH_STATE_NOTIFY Message {
   Type (vi64) = 0x22,
-  Length (16),
+  Length (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -3486,7 +3499,7 @@ The format of FETCH is as follows:
 ~~~
 FETCH Message {
   Type (vi64) = 0x16,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
@@ -3518,7 +3531,7 @@ to a successful fetch.
 ~~~
 FETCH_OK Message {
   Type (vi64) = 0x18,
-  Length (16),
+  Length (vi64),
   End Of Track (8),
   End Location (Location),
   Number of Parameters (vi64),
@@ -3578,7 +3591,7 @@ matching a Track Namespace Prefix.
 ~~~
 PUBLISH_NAMESPACE Message {
   Type (vi64) = 0x6,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace Prefix (..),
   Number of Parameters (vi64),
@@ -3605,7 +3618,7 @@ published namespaces, as well as future updates to the set.
 ~~~
 SUBSCRIBE_NAMESPACE Message {
   Type (vi64) = 0x50,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace Prefix (..),
   Number of Parameters (vi64),
@@ -3637,7 +3650,7 @@ with the updated Parameters.
 ~~~
 NAMESPACE Message {
   Type (vi64) = 0x8,
-  Length (16),
+  Length (vi64),
   Track Namespace Suffix (..),
   Number of Parameters (vi64),
   Parameters (..) ...
@@ -3663,7 +3676,7 @@ in the 'Track Namespace Suffix'.
 ~~~
 NAMESPACE_DONE Message {
   Type (vi64) = 0xE,
-  Length (16),
+  Length (vi64),
   Track Namespace Suffix (..)
 }
 ~~~
@@ -3682,7 +3695,7 @@ namespaces, as well as future track publications within those namespaces.
 ~~~
 SUBSCRIBE_TRACKS Message {
   Type (vi64) = 0x51,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace Prefix (..),
   Number of Parameters (vi64),
@@ -3716,7 +3729,7 @@ response to a SUBSCRIBE_TRACKS, so only the namespace tuples after the
 ~~~
 PUBLISH_SKIPPED Message {
   Type (vi64) = 0xF,
-  Length (16),
+  Length (vi64),
   Track Namespace Suffix (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -3779,7 +3792,8 @@ unexpected duplicate parameters and close the session with `INVALID_PARAMETER`
 if found.
 
 The number of Message Parameters is not specifically limited, but the total
-length of a control message is limited to 2^16-1 bytes.
+length of a control message is limited by MAX_CONTROL_MESSAGE_SIZE
+({{max-control-message-size}}).
 
 Message Parameters in SUBSCRIBE and FETCH MUST NOT cause the
 publisher to alter the payload of the objects it sends, as that would violate
@@ -5576,6 +5590,12 @@ might be starved indefinitely during congestion.  The publisher and
 subscriber MUST cancel a stream, preferably the one with the lowest
 priority, after reaching a resource limit.
 
+A larger MAX_CONTROL_MESSAGE_SIZE ({{max-control-message-size}}) allows larger
+Parameters, such as Authorization Tokens, but an endpoint that buffers complete
+control messages commits that much memory per stream.  Such an endpoint needs
+to grant enough flow control for a complete message on each stream, or the
+endpoints can deadlock.
+
 
 ## Timeouts  {#security-timeouts}
 
@@ -5758,6 +5778,7 @@ This registry is initially empty.
 | 0x06 | MAX_FILTER_RANGES | {{max-filter-ranges}} |
 | 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
 | 0x08 | MAX_REQUEST_UPDATES | {{max-request-updates}} |
+| 0x09 | MAX_CONTROL_MESSAGE_SIZE | {{max-control-message-size}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 Endpoints MUST ignore unknown Setup Options as specified in
