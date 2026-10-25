@@ -3058,35 +3058,6 @@ The REQUEST_ERROR message is sent in response to any request (SUBSCRIBE, FETCH,
 PUBLISH, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS,
 REQUEST_UPDATE).
 
-### Redirect Structure {#redirect-structure}
-
-A Redirect provides a way for an endpoint to direct the peer to retry a
-request at a different URI and/or for a different Full Track Name.  It is
-carried in the REDIRECT Error Detail ({{error-detail-redirect}}).
-
-~~~
-Redirect {
-  Connect URI Length (vi64),
-  Connect URI (..),
-  Track Namespace (..),
-  Track Name Length (vi64),
-  Track Name (..),
-}
-~~~
-
-* Connect URI: The URI to connect to for the redirected request. If the length is
-  zero, the requester SHOULD use the current session's URI. If a server
-  receives a Redirect with a non-zero Connect URI Length it MUST close the
-  session with `ROLE_VIOLATION`.
-
-* Track Namespace and Track Name: The Track Namespace and Track Name to use
-  for the redirected request, together referred to as the Redirect target.
-
-  Track Name is not meaningful for namespace-scoped requests
-  (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and MUST be empty;
-  an endpoint that receives a non-empty Track Name in a Redirect for a
-  namespace-scoped request MUST close the session with `INVALID_FIELD`.
-
 ### REQUEST_ERROR Message Format
 
 ~~~
@@ -3145,6 +3116,35 @@ The REDIRECT Error Detail (Type 0x01) contains a Redirect structure
 present when the Error Code is `REDIRECT`.  An endpoint that receives a
 REQUEST_ERROR with Error Code `REDIRECT` and no REDIRECT Error Detail MUST
 close the session with `MALFORMED_MESSAGE`.
+
+##### Redirect Structure {#redirect-structure}
+
+A Redirect provides a way for an endpoint to direct the peer to retry a
+request at a different URI and/or for a different Full Track Name.  It is
+carried in the REDIRECT Error Detail ({{error-detail-redirect}}).
+
+~~~
+Redirect {
+  Connect URI Length (vi64),
+  Connect URI (..),
+  Track Namespace (..),
+  Track Name Length (vi64),
+  Track Name (..),
+}
+~~~
+
+* Connect URI: The URI to connect to for the redirected request. If the length is
+  zero, the requester SHOULD use the current session's URI. If a server
+  receives a Redirect with a non-zero Connect URI Length it MUST close the
+  session with `ROLE_VIOLATION`.
+
+* Track Namespace and Track Name: The Track Namespace and Track Name to use
+  for the redirected request, together referred to as the Redirect target.
+
+  Track Name is not meaningful for namespace-scoped requests
+  (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and MUST be empty;
+  an endpoint that receives a non-empty Track Name in a Redirect for a
+  namespace-scoped request MUST close the session with `INVALID_FIELD`.
 
 ## REQUEST_UPDATE {#message-request-update}
 
