@@ -3111,20 +3111,16 @@ Detail whether it also applies to the downstream request.
 
 #### REDIRECT {#error-detail-redirect}
 
-The REDIRECT Error Detail (Type 0x01) contains a Redirect structure
-({{redirect-structure}}).  It accompanies Error Code `REDIRECT` and MUST be
-present when the Error Code is `REDIRECT`.  An endpoint that receives a
-REQUEST_ERROR with Error Code `REDIRECT` and no REDIRECT Error Detail MUST
-close the session with `MALFORMED_MESSAGE`.
-
-##### Redirect Structure {#redirect-structure}
-
-A Redirect provides a way for an endpoint to direct the peer to retry a
-request at a different URI and/or for a different Full Track Name.  It is
-carried in the REDIRECT Error Detail ({{error-detail-redirect}}).
+The REDIRECT Error Detail directs the requester to retry a request at a
+different URI and/or for a different Full Track Name.  It accompanies Error
+Code `REDIRECT` and MUST be present when the Error Code is `REDIRECT`.  An
+endpoint that receives a REQUEST_ERROR with Error Code `REDIRECT` and no
+REDIRECT Error Detail MUST close the session with `MALFORMED_MESSAGE`.
 
 ~~~
-Redirect {
+REDIRECT Error Detail {
+  Type (vi64) = 0x01,
+  Length (vi64),
   Connect URI Length (vi64),
   Connect URI (..),
   Track Namespace (..),
