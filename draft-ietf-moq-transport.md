@@ -1031,12 +1031,12 @@ A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
 REQUEST_UPDATE that carries FILL_PARAMETERS while the subscription is not
 paused (see {{pausing-subscriptions}}).
 
-- FILL_PARAMETERS carried while the subscription is paused opens no fill fetch
-  stream.  Resuming the subscription without re-sending FILL_PARAMETERS does
-  not open one either.
 - A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open a new fill
   fetch stream.
 - When the subscription is cancelled, the publisher MUST reset any open fill fetch streams.
+
+{{paused-parameter}} describes the interaction between FILL_PARAMETERS and
+PAUSED.
 
 The publisher signals that the fill is complete by closing the stream with a
 FIN once all objects in the fill range have been delivered.  Because there is
@@ -4073,8 +4073,8 @@ fill fetch stream (see {{fill-semantics}}), encoded as if they were Parameters
 for a separate message (see {{message-params}}).  A fill fetch stream is opened
 only when FILL_PARAMETERS is present.
 
-See {{forward-parameter}} for the description of how the FORWARD state of the
-subscription can defer the creation of a fill fetch stream.
+See {{paused-parameter}} for the description of how the PAUSED state of the
+subscription interacts with FILL_PARAMETERS.
 
 The following parameters MAY appear inside FILL_PARAMETERS:
 
@@ -4105,7 +4105,7 @@ inside FILL_PARAMETERS.
 
 FILL_PARAMETERS is not retained as subscription state. It applies only to the
 message that carries it. Its presence or absence in subsequent REQUEST_UPDATE
-messages has no effect on the fill fetch stream. The presence of another
+messages has no effect existing fill fetch streams. The presence of another
 FILL_PARAMETERS parameter in REQUEST_UPDATE spawns a different fill fetch
 stream.
 
@@ -4157,9 +4157,9 @@ with the PAUSED parameter.
 
 The PAUSED parameter (Parameter Type 0x11) is a uint8. It MAY appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
-PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
-specifies whether affected subscriptions are paused (see
-{{pausing-subscriptions}}).
+PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It specifies whether
+affected subscriptions are paused (see {{pausing-subscriptions}}).
+
 The allowed values are 0 (unpaused) or 1 (paused). If an endpoint receives
 a value outside this range, it MUST close the session with `INVALID_PARAMETER`.
 
@@ -4173,20 +4173,17 @@ from any other message, the default value is 0.  When sent in
 PUBLISH_STATE_NOTIFY, it reports whether the subscription is paused at the
 publisher.
 
-Both fill fetch streams and LOCATION_FILTER parameters with relative values
-are bounded by the value of LARGEST_OBJECT. When FORWARD is set to 1 via
-REQUEST_UPDATE, the "associated" LARGEST_OBJECT comes in the corresponding
-REQUEST_UPDATE_OK. When it is set via PUBLISH_STATE_NOTIFY, the "associated"
-LARGEST_OBJECT comes in the same PUBLISH_STATE_NOTIFY.
+A FILL_PARAMETERS parameters is ignored if it arrives when PAUSED is set to 1,
+or if the same messages sets PAUSED to 1.  However, further changes to PAUSED
+have no effect on existing fill fetches for that subscription.
 
-When a subscriber sends FILL_PARAMETERS in a message and the FORWARD state is
-0 after that message is processed, the fill fetch stream is deferred. It will
-not start until FORWARD is set to 1, and will be bound by the LARGEST_OBJECT
-associated with setting FORWARD. However, once initiated, further changes to
-FORWARD state have no effect on existing fill fetch streams.
-
-A LOCATION_FILTER with relative values for a subscription anchors to the
-associated LARGEST_OBJECT each time FORWARD transitions from 0 to 1.
+If a subscription has an active LOCATION_FILTER parameter with relative values,
+it re-anchors its bound to LARGEST_OBJECT for every transaction that sets PAUSED
+from 1 to 0. Therefore, a REQUEST_UPDATE that sets PAUSED to 0 causes
+LOCATION_FILTER to anchor (or re-anchor) to the LARGEST_OBJECT in the subsequent
+REQUEST_UPDATE_OK. A PUBLISH_STATE_NOTIFY that sets PAUSED to 0 causes
+LOCATION_FILTER to anchor (or re-anchor) to the LARGEST_OBJECT in
+PUBLISH_STATE_NOTIFY.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
