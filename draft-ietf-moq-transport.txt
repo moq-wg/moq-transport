@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 April 2027                                     I. Swett, Ed.
+Expires: 29 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         24 October 2026
+                                                         26 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 April 2027.
+   This Internet-Draft will expire on 29 April 2027.
 
 Copyright Notice
 
@@ -220,7 +220,7 @@ Table of Contents
        9.20.15. FILL PARAMETERS Parameter
        9.20.16. EXPIRES Parameter
        9.20.17. LARGEST OBJECT Parameter
-       9.20.18. FORWARD Parameter
+       9.20.18. PAUSED Parameter
        9.20.19. NEW GROUP REQUEST Parameter
        9.20.20. TRACK_NAMESPACE_PREFIX Parameter
        9.20.21. INCLUDE_PROPERTIES Parameter
@@ -967,10 +967,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    subscription is paused.
 
    The initiator of the subscription sets the initial state by including
-   the FORWARD parameter (Section 9.20.18) in PUBLISH or SUBSCRIBE.  The
+   the PAUSED parameter (Section 9.20.18) in PUBLISH or SUBSCRIBE.  The
    subscriber can pause an Established subscription by sending
-   REQUEST_UPDATE with FORWARD set to 0, or resume it by sending
-   REQUEST_UPDATE with FORWARD set to 1.
+   REQUEST_UPDATE with PAUSED set to 1, or resume it by sending
+   REQUEST_UPDATE with PAUSED set to 0.
 
 3.1.2.  Subscription State Management
 
@@ -1269,11 +1269,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    All filter types are combined using logical "AND" operations to
    further restrict which tracks and objects pass all filter criteria.
    This includes all Range Filters Section 3.3.2 and Location Filters
-   Section 3.3.1, which can be evaluated in any order.  The Forward
+   Section 3.3.1, which can be evaluated in any order.  The Paused
    parameter is also a type of filter.  The publisher MUST forward only
    objects that pass all filters.
 
-   Pass = Forward AND Location Filters AND Range Filters
+   Pass = (NOT Paused) AND Location Filters AND Range Filters
 
 3.4.  Fill Semantics
 
@@ -3623,7 +3623,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       parameters that can appear depend on the request being updated:
 
       -  Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
-         SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY,
+         SUBGROUP_DELIVERY_TIMEOUT, PAUSED, SUBSCRIBER_PRIORITY,
          LOCATION_FILTER, FILL_PARAMETERS, SUBGROUP_FILTER,
          OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
          NEW_GROUP_REQUEST
@@ -3635,7 +3635,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       -  SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN,
          TRACK_NAMESPACE_PREFIX
 
-      -  SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, FORWARD,
+      -  SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, PAUSED,
          TRACK_PROPERTY_FILTER, TRACK_NAMESPACE_PREFIX
 
       Range Filters are only allowed from the subscriber (see
@@ -3721,7 +3721,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    *  Parameters: The parameters are defined in Section 9.20.  The
       parameters that can appear in a SUBSCRIBE are
       OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT,
-      SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY,
+      SUBGROUP_DELIVERY_TIMEOUT, PAUSED, SUBSCRIBER_PRIORITY,
       LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS, SUBGROUP_FILTER,
       OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
       NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
@@ -3790,9 +3790,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    *  Parameters: The parameters are defined in Section 9.20.  The
       parameters that can appear in a PUBLISH are
       OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
-      SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT, FORWARD,
+      SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT, PAUSED,
       SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
-      governing delivery, such as FORWARD, GROUP_ORDER,
+      governing delivery, such as PAUSED, GROUP_ORDER,
       SUBSCRIBER_PRIORITY, SUBGROUP_DELIVERY_TIMEOUT,
       OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER, inform the Subscriber
       of the initial Subscription parameters.  If the PUBLISH is the
@@ -3943,7 +3943,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    *  Parameters: The parameters are defined in Section 9.20.  The
       parameters that can appear in a PUBLISH_STATE_NOTIFY are
-      LARGEST_OBJECT, FORWARD and LOCATION_FILTER.
+      LARGEST_OBJECT, PAUSED and LOCATION_FILTER.
 
 9.11.  FETCH
 
@@ -4170,7 +4170,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       they are handled differently from the same Parameters on
       Subscriptions, as outlined below.  The parameters that can appear
       in a SUBSCRIBE_TRACKS are OBJECT_DELIVERY_TIMEOUT,
-      AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, FORWARD,
+      AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, PAUSED,
       SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER,
       FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER,
       PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER and
@@ -4663,15 +4663,15 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    2.  The largest Location of an Object received on an upstream
        subscription
 
-9.20.18.  FORWARD Parameter
+9.20.18.  PAUSED Parameter
 
-   The FORWARD parameter (Parameter Type 0x10) is a uint8.  It MAY
-   appear in SUBSCRIBE, REQUEST_UPDATE (for a subscription or a
+   The PAUSED parameter (Parameter Type 0x11) is a uint8.  It MAY appear
+   in SUBSCRIBE, REQUEST_UPDATE (for a subscription or a
    SUBSCRIBE_TRACKS request), PUBLISH, SUBSCRIBE_TRACKS and
    PUBLISH_STATE_NOTIFY.  It specifies whether affected subscriptions
-   are paused (see Section 3.1.1).  The allowed values are 0 (don't
-   forward) or 1 (forward).  If an endpoint receives a value outside
-   this range, it MUST close the session with INVALID_PARAMETER.
+   are paused (see Section 3.1.1).  The allowed values are 0 (unpaused)
+   or 1 (paused).  If an endpoint receives a value outside this range,
+   it MUST close the session with INVALID_PARAMETER.
 
    In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies
    whether future subscriptions that match the prefix are paused.
@@ -4680,7 +4680,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    If the parameter is omitted from REQUEST_UPDATE or
    PUBLISH_STATE_NOTIFY, the value for the subscription remains
    unchanged.  If the parameter is omitted from any other message, the
-   default value is 1.  When sent in PUBLISH_STATE_NOTIFY, it reports
+   default value is 0.  When sent in PUBLISH_STATE_NOTIFY, it reports
    whether the subscription is paused at the publisher.
 
 9.20.19.  NEW GROUP REQUEST Parameter
@@ -6431,7 +6431,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      +----------------+---------------------------+-----------------+
      | 0x0A           | FILL_TIMEOUT              | Section 9.20.5  |
      +----------------+---------------------------+-----------------+
-     | 0x10           | FORWARD                   | Section 9.20.18 |
+     | 0x11           | PAUSED                    | Section 9.20.18 |
      +----------------+---------------------------+-----------------+
      | 0x20           | SUBSCRIBER_PRIORITY       | Section 9.20.7  |
      +----------------+---------------------------+-----------------+

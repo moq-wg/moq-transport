@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 27 April 2027</td>
+<td class="center">Expires 29 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-24" class="published">24 October 2026</time>
+<time datetime="2026-10-26" class="published">26 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-27">27 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-29">29 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 27 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 29 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1665,7 +1665,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                     <p id="section-toc.1-1.9.2.20.2.17.1"><a href="#section-9.20.17" class="auto internal xref">9.20.17</a>. <a href="#name-largest-object-parameter" class="internal xref">LARGEST OBJECT Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.20.2.18">
-                    <p id="section-toc.1-1.9.2.20.2.18.1"><a href="#section-9.20.18" class="auto internal xref">9.20.18</a>. <a href="#name-forward-parameter" class="internal xref">FORWARD Parameter</a></p>
+                    <p id="section-toc.1-1.9.2.20.2.18.1"><a href="#section-9.20.18" class="auto internal xref">9.20.18</a>. <a href="#name-paused-parameter" class="internal xref">PAUSED Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.20.2.19">
                     <p id="section-toc.1-1.9.2.20.2.19.1"><a href="#section-9.20.19" class="auto internal xref">9.20.19</a>. <a href="#name-new-group-request-parameter" class="internal xref">NEW GROUP REQUEST Parameter</a></p>
@@ -2731,10 +2731,10 @@ not send Objects on a paused subscription, and does send them when it is not
 paused.  Control messages, such as PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.9</a>), are
 sent regardless of whether the subscription is paused.<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-3.1.1-2">The initiator of the subscription sets the initial state by including the
-FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.20.18</a>) in PUBLISH or SUBSCRIBE. The
+PAUSED parameter (<a href="#paused-parameter" class="auto internal xref">Section 9.20.18</a>) in PUBLISH or SUBSCRIBE. The
 subscriber can pause an <code>Established</code> subscription by sending REQUEST_UPDATE
-with FORWARD set to 0, or resume it by sending REQUEST_UPDATE with FORWARD set
-to 1.<a href="#section-3.1.1-2" class="pilcrow">¶</a></p>
+with PAUSED set to 1, or resume it by sending REQUEST_UPDATE with PAUSED set
+to 0.<a href="#section-3.1.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscription-state-management">
@@ -3032,11 +3032,11 @@ and does not evaluate Track Properties in PUBLISH messages.<a href="#section-3.3
 to further restrict which tracks and objects pass all filter criteria.
 This includes all Range Filters <a href="#range-filters" class="auto internal xref">Section 3.3.2</a> and Location
 Filters <a href="#location-filters" class="auto internal xref">Section 3.3.1</a>, which can be evaluated in any order.
-The Forward parameter is also a type of filter.  The publisher <span class="bcp14">MUST</span>
+The Paused parameter is also a type of filter.  The publisher <span class="bcp14">MUST</span>
 forward only objects that pass all filters.<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.3.3-2">
 <pre>
-Pass = Forward AND Location Filters AND Range Filters
+Pass = (NOT Paused) AND Location Filters AND Range Filters
 </pre><a href="#section-3.3.3-2" class="pilcrow">¶</a>
 </div>
 </section>
@@ -5754,7 +5754,7 @@ parameters that can appear depend on the request being updated:<a href="#section
 <ul class="normal">
 <li class="normal" id="section-9.5-10.2.2.1">
                 <p id="section-9.5-10.2.2.1.1">Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
-SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
+SUBGROUP_DELIVERY_TIMEOUT, PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
 FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
 OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST<a href="#section-9.5-10.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
@@ -5768,7 +5768,7 @@ OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST<a href="#section-9.5-10.2.2.1.1" class
                 <p id="section-9.5-10.2.2.4.1">SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN, TRACK_NAMESPACE_PREFIX<a href="#section-9.5-10.2.2.4.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.5-10.2.2.5">
-                <p id="section-9.5-10.2.2.5.1">SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, FORWARD, TRACK_PROPERTY_FILTER,
+                <p id="section-9.5-10.2.2.5.1">SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, PAUSED, TRACK_PROPERTY_FILTER,
 TRACK_NAMESPACE_PREFIX<a href="#section-9.5-10.2.2.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
@@ -5870,7 +5870,7 @@ SUBSCRIBE Message {
           <li class="normal" id="section-9.6-4.4">
             <p id="section-9.6-4.4.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  The parameters
 that can appear in a SUBSCRIBE are OBJECT_DELIVERY_TIMEOUT,
-AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, FORWARD,
+AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, PAUSED,
 SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
 SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
 NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.<a href="#section-9.6-4.4.1" class="pilcrow">¶</a></p>
@@ -5970,8 +5970,8 @@ PUBLISH Message {
             <p id="section-9.8-3.5.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>. The parameters
 that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
 AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
-FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
-governing delivery, such as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY,
+PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
+governing delivery, such as PAUSED, GROUP_ORDER, SUBSCRIBER_PRIORITY,
 SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
 inform the Subscriber of the initial Subscription parameters.
 If the PUBLISH is the result of a SUBSCRIBE_TRACKS, the parameters are handled
@@ -6124,7 +6124,7 @@ PUBLISH_STATE_NOTIFY Message {
 <ul class="normal">
 <li class="normal" id="section-9.10-9.1">
             <p id="section-9.10-9.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  The parameters
-that can appear in a PUBLISH_STATE_NOTIFY are LARGEST_OBJECT, FORWARD and
+that can appear in a PUBLISH_STATE_NOTIFY are LARGEST_OBJECT, PAUSED and
 LOCATION_FILTER.<a href="#section-9.10-9.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -6455,7 +6455,7 @@ namespaces known to the publisher.<a href="#section-9.18-3.2.1" class="pilcrow">
 are handled differently from the same Parameters on Subscriptions, as outlined
 below.  The parameters that can appear in a SUBSCRIBE_TRACKS are
 OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT,
-FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
+PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
 SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
 TRACK_PROPERTY_FILTER and INCLUDE_PROPERTIES.<a href="#section-9.18-3.3.1" class="pilcrow">¶</a></p>
 </li>
@@ -7091,24 +7091,24 @@ PUBLISH, or REQUEST_UPDATE_OK<a href="#section-9.20.17-4.1.1" class="pilcrow">¶
           </ol>
 </section>
 </div>
-<div id="forward-parameter">
+<div id="paused-parameter">
 <section id="section-9.20.18">
-          <h4 id="name-forward-parameter">
-<a href="#section-9.20.18" class="section-number selfRef">9.20.18. </a><a href="#name-forward-parameter" class="section-name selfRef">FORWARD Parameter</a>
+          <h4 id="name-paused-parameter">
+<a href="#section-9.20.18" class="section-number selfRef">9.20.18. </a><a href="#name-paused-parameter" class="section-name selfRef">PAUSED Parameter</a>
           </h4>
-<p id="section-9.20.18-1">The FORWARD parameter (Parameter Type 0x10) is a uint8. It <span class="bcp14">MAY</span> appear in
+<p id="section-9.20.18-1">The PAUSED parameter (Parameter Type 0x11) is a uint8. It <span class="bcp14">MAY</span> appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
 PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
 specifies whether affected subscriptions are paused (see
 <a href="#pausing-subscriptions" class="auto internal xref">Section 3.1.1</a>).
-The allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives
+The allowed values are 0 (unpaused) or 1 (paused). If an endpoint receives
 a value outside this range, it <span class="bcp14">MUST</span> close the session with <code>INVALID_PARAMETER</code>.<a href="#section-9.20.18-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.18-2">In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies whether
 future subscriptions that match the prefix are paused. Existing
 subscriptions are unaffected.<a href="#section-9.20.18-2" class="pilcrow">¶</a></p>
 <p id="section-9.20.18-3">If the parameter is omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY,
 the value for the subscription remains unchanged.  If the parameter is omitted
-from any other message, the default value is 1.  When sent in
+from any other message, the default value is 0.  When sent in
 PUBLISH_STATE_NOTIFY, it reports whether the subscription is paused at the
 publisher.<a href="#section-9.20.18-3" class="pilcrow">¶</a></p>
 </section>
@@ -9446,10 +9446,10 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
 </td>
             </tr>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">0x10</td>
-              <td class="text-left" rowspan="1" colspan="1">FORWARD</td>
+              <td class="text-left" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">PAUSED</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#forward-parameter" class="auto internal xref">Section 9.20.18</a>
+                <a href="#paused-parameter" class="auto internal xref">Section 9.20.18</a>
 </td>
             </tr>
             <tr>
