@@ -3964,6 +3964,13 @@ hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For ex
 If a relative start group results in a computed absolute group less than 0, the
 computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
 
+The Largest Object used in the computation is the value of the parameter in the
+SUBSCRIBE_OK, FETCH_OK, or REQUEST_UPDATE_OK in response to the message that
+contains the LARGEST_OBJECT parameter. If LOCATION_FILTER is provided in
+PUBLISH_STATE_NOTIFY, the filter anchors off the LARGEST_OBJECT included in the
+same message. If LARGEST_OBJECT is omitted, all objects will have a location
+larger than LARGEST_OBJECT.
+
 Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
 relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
