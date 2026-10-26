@@ -4177,13 +4177,10 @@ A FILL_PARAMETERS parameter is ignored if it arrives when PAUSED is set to 1,
 or if the same message sets PAUSED to 1.  However, further changes to PAUSED
 have no effect on existing fill fetches for that subscription.
 
-If a subscription has an active LOCATION_FILTER parameter with relative values,
-it re-anchors its bound to LARGEST_OBJECT for every transaction that sets PAUSED
-from 1 to 0. Therefore, a REQUEST_UPDATE that sets PAUSED to 0 causes
-LOCATION_FILTER to anchor (or re-anchor) to the LARGEST_OBJECT in the subsequent
-REQUEST_UPDATE_OK. A PUBLISH_STATE_NOTIFY that sets PAUSED to 0 causes
-LOCATION_FILTER to anchor (or re-anchor) to the LARGEST_OBJECT in
-PUBLISH_STATE_NOTIFY.
+LOCATION_FILTER parameters are not affected by changes to PAUSED state, except
+that objects are not actually delivered to a subscription if paused. In
+particular, relative LOCATION_FILTERs do not update their bounds when PAUSED
+state changes.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
