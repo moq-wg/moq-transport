@@ -4173,7 +4173,7 @@ from any other message, the default value is 0.  When sent in
 PUBLISH_STATE_NOTIFY, it reports whether the subscription is paused at the
 publisher.
 
-A FILL_PARAMETERS parameters is ignored if it arrives when PAUSED is set to 1,
+A FILL_PARAMETERS parameter is ignored if it arrives when PAUSED is set to 1,
 or if the same message sets PAUSED to 1.  However, further changes to PAUSED
 have no effect on existing fill fetches for that subscription.
 
