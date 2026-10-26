@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 26 April 2027                                     I. Swett, Ed.
+Expires: 29 April 2027                                     I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         23 October 2026
+                                                         26 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 April 2027.
+   This Internet-Draft will expire on 29 April 2027.
 
 Copyright Notice
 
@@ -4639,9 +4639,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    MAY appear in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK,
    TRACK_STATUS_OK, or PUBLISH_STATE_NOTIFY.  It contains the Largest
    Object (Section 3.1.4) in the Track from the perspective of the
-   sending endpoint.  If Objects have been published on this Track the
-   Publisher MUST include this parameter on messages it sends, when
-   those messages are allowed to carry LARGEST_OBJECT.
+   sending endpoint.  If Objects have been published on this Track, the
+   publisher MUST include this parameter in response to messages that
+   contain LOCATION_FILTER (except when the response is REQUEST_ERROR),
+   and include it in PUBLISH_STATE_NOTIFY messages that contain LOCATION
+   FILTER.
 
    If omitted from a message, the sending endpoint has not published or
    received any Objects in the Track.
