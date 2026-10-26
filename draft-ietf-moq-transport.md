@@ -2427,6 +2427,7 @@ Property as described in {{mandatory-track-properties}}, the Relay:
 * MUST NOT modify the Property.
 * MUST forward the Property.
 * MUST cache the Property with the Track or Object.
+* MUST allow multiple instances of the Property.
 
 If a Track or Object
 arrives with a different set of unknown properties than previously cached,
@@ -2441,6 +2442,10 @@ Property's definition.  Unless those rules permit otherwise:
 * A Relay MUST forward the Property to downstream subscribers.
 * A Relay MUST cache the Property with the Track or Object if the Track or
   Object is cached.
+* A Track or Object MUST NOT contain more than one instance of the Property.
+
+An endpoint that supports a Property and receives more instances of it than
+allowed MUST treat the Track as malformed (see {{malformed-tracks}}).
 
 Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
 Track Properties always appear as the final field in the messages that
@@ -5010,6 +5015,8 @@ include:
    other immutable properties.
 7. An Object is received with a different Delivery Mode than previously
    observed.
+8. A Track or Object contains more than one instance of a Property that does
+   not allow multiple instances (see {{properties}}).
 
 The above list of conditions is not considered exhaustive.
 
