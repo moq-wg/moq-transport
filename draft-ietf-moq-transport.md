@@ -4125,8 +4125,9 @@ in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or
 PUBLISH_STATE_NOTIFY.  It contains the `Largest Object`
 ({{largest-object}}) in the Track from the perspective of the sending
 endpoint. If Objects have been published on this Track, the publisher MUST
-include this parameter in response to messages that contain LOCATION_FILTER, and 
-include it in PUBLISH_STATE_NOTIFY messages that contain LOCATION FILTER.
+include this parameter in response to messages that contain LOCATION_FILTER
+(except when the response is REQUEST_ERROR), and include it in
+PUBLISH_STATE_NOTIFY messages that contain LOCATION FILTER.
 
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
