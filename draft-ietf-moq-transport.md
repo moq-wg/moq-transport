@@ -4174,7 +4174,7 @@ PUBLISH_STATE_NOTIFY, it reports whether the subscription is paused at the
 publisher.
 
 A FILL_PARAMETERS parameters is ignored if it arrives when PAUSED is set to 1,
-or if the same messages sets PAUSED to 1.  However, further changes to PAUSED
+or if the same message sets PAUSED to 1.  However, further changes to PAUSED
 have no effect on existing fill fetches for that subscription.
 
 If a subscription has an active LOCATION_FILTER parameter with relative values,
