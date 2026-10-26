@@ -4073,6 +4073,9 @@ fill fetch stream (see {{fill-semantics}}), encoded as if they were Parameters
 for a separate message (see {{message-params}}).  A fill fetch stream is opened
 only when FILL_PARAMETERS is present.
 
+See {{forward-parameter}} for the description of how the FORWARD state of teh
+subscription can defer the creation of a fill fetch stream.
+
 The following parameters MAY appear inside FILL_PARAMETERS:
 
 | Parameter Type | Parameter Name | Specification |
@@ -4101,8 +4104,10 @@ it are not considered to appear in the enclosing message for the purposes of
 inside FILL_PARAMETERS.
 
 FILL_PARAMETERS is not retained as subscription state. It applies only to the
-message that carries it, so the sticky-parameter rules in
-{{message-request-update}} do not apply to it.
+message that carries it. Its presence or absence in subsequent REQUEST_UPDATE
+messages has no effect on the fill fetch stream. The presence of another
+FILL_PARAMETERS parameter in REQUEST_UPDATE spawns a different fill fetch
+stream.
 
 ### EXPIRES Parameter {#expires}
 
@@ -4145,6 +4150,9 @@ A relay MUST set LARGEST_OBJECT to the largest of the following:
 PUBLISH, or REQUEST_UPDATE_OK
 2. The largest Location of an Object received on an upstream subscription
 
+See {{paused-parameter}} for how LARGEST_OBJECT with relative values interacts
+with the PAUSED parameter.
+
 ### PAUSED Parameter {#paused-parameter}
 
 The PAUSED parameter (Parameter Type 0x11) is a uint8. It MAY appear in
@@ -4164,6 +4172,21 @@ the value for the subscription remains unchanged.  If the parameter is omitted
 from any other message, the default value is 0.  When sent in
 PUBLISH_STATE_NOTIFY, it reports whether the subscription is paused at the
 publisher.
+
+If FORWARD is set to 0 on a subscription at the time a fill fetch begins, the
+fill fetch is deferred until forward is set to 1. However, changing FORWARD to 0
+has no effect on existing fill fetches for that subscription. The bound of a
+deferred fill fetch response will be the LARGEST_OBJECT in response to the
+REQUEST_UPDATE that first sets FORWARD to 1. Subsequent changes from 0 to 1
+have no effect on existing fill fetches.
+
+If a subscription has an active LOCATION_FILTER parameter with relative values,
+it re-anchors its bound to LARGEST_OBJECT for every transaction that sets FORWARD
+from 0 to 1. Therefore, a REQUEST_UPDATE that sets FORWARD to 1 causes
+LOCATION_FILTER to anchor (or re-anchor) to the LARGEST_OBJECT in the subsequent
+REQUEST_UPDATE_OK. A PUBLISH_STATE_NOTIFY that sets FORWARD to 1 causes
+LOCATION_FILTER to anchor (or re-anchor) to the LARGEST_OBJECT in
+PUBLISH_STATE_NOTIFY.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
