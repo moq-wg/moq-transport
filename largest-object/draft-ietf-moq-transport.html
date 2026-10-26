@@ -6821,18 +6821,24 @@ hence the start Location is <code>{Largest Object.Group + 1 - StartGroup, 0}</co
   * StartGroup=N will start at N-1 groups prior to the current group<a href="#section-9.20.9-8" class="pilcrow">¶</a></p>
 <p id="section-9.20.9-9">If a relative start group results in a computed absolute group less than 0, the
 computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.<a href="#section-9.20.9-9" class="pilcrow">¶</a></p>
-<p id="section-9.20.9-10">Otherwise, all fields are absolute.  EndGroupDelta is delta
+<p id="section-9.20.9-10">The Largest Object used in the computation is the value of the parameter in the
+SUBSCRIBE_OK, FETCH_OK, or REQUEST_UPDATE_OK in response to the message that
+contains the LARGEST_OBJECT parameter. If LOCATION_FILTER is provided in
+PUBLISH_STATE_NOTIFY, the filter anchors off the LARGEST_OBJECT included in the
+same message. If LARGEST_OBJECT is omitted, all objects will have a location
+larger than LARGEST_OBJECT.<a href="#section-9.20.9-10" class="pilcrow">¶</a></p>
+<p id="section-9.20.9-11">Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
 relative to <code>Largest Object</code>.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
-the endpoint <span class="bcp14">MUST</span> close the session with <code>DELTA_ENCODING_OVERFLOW</code>.<a href="#section-9.20.9-10" class="pilcrow">¶</a></p>
-<p id="section-9.20.9-11">When EndGroupDelta and EndObject are omitted from a subscription filter, the
+the endpoint <span class="bcp14">MUST</span> close the session with <code>DELTA_ENCODING_OVERFLOW</code>.<a href="#section-9.20.9-11" class="pilcrow">¶</a></p>
+<p id="section-9.20.9-12">When EndGroupDelta and EndObject are omitted from a subscription filter, the
 subscription is open-ended. When they are omitted from a Fetch, the
-EndGroup and EndObject are <code>Largest Object</code>.<a href="#section-9.20.9-11" class="pilcrow">¶</a></p>
-<p id="section-9.20.9-12">When EndObject is omitted, the filter includes all objects in the End Group.<a href="#section-9.20.9-12" class="pilcrow">¶</a></p>
-<p id="section-9.20.9-13">If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
+EndGroup and EndObject are <code>Largest Object</code>.<a href="#section-9.20.9-12" class="pilcrow">¶</a></p>
+<p id="section-9.20.9-13">When EndObject is omitted, the filter includes all objects in the End Group.<a href="#section-9.20.9-13" class="pilcrow">¶</a></p>
+<p id="section-9.20.9-14">If omitted from FETCH or SUBSCRIBE, the fetch or subscription is
 unfiltered.  If omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY, the
 value is unchanged.  When sent in PUBLISH_STATE_NOTIFY, it reports the
-Location Filter now in effect at the publisher.<a href="#section-9.20.9-13" class="pilcrow">¶</a></p>
+Location Filter now in effect at the publisher.<a href="#section-9.20.9-14" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subgroup-filter">
