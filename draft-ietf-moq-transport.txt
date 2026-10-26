@@ -1479,7 +1479,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Track Properties.  These properties MUST have Track scope.  Mandatory
    Track Properties have special handling rules that prevent tracks with
    required properties from being forwarded to or processed by endpoints
-   that do not understand them.
+   that do not understand them.  Grease values (Section 13) in this
+   range are not Mandatory Track Properties.
 
    An Object received with a Mandatory Track Property as an Object
    Property is malformed (see Section 12.1).

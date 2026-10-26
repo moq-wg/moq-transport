@@ -3256,7 +3256,8 @@ that track.<a href="#section-3.6.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.7-1">Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
 Properties. These properties <span class="bcp14">MUST</span> have Track scope. Mandatory Track Properties
 have special handling rules that prevent tracks with required properties from
-being forwarded to or processed by endpoints that do not understand them.<a href="#section-3.7-1" class="pilcrow">¶</a></p>
+being forwarded to or processed by endpoints that do not understand them.
+Grease values (<a href="#grease" class="auto internal xref">Section 13</a>) in this range are not Mandatory Track Properties.<a href="#section-3.7-1" class="pilcrow">¶</a></p>
 <p id="section-3.7-2">An Object received with a Mandatory Track Property as an Object Property is
 malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-3.7-2" class="pilcrow">¶</a></p>
 <p id="section-3.7-3">When an endpoint receives a Mandatory Track Property in PUBLISH,
