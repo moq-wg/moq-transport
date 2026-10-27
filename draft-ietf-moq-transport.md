@@ -4924,7 +4924,8 @@ indicator.
 For subsequent indicators, the Group ID is the prior Group ID plus Group ID
 Delta for Ascending Group Order, or minus Group ID Delta for Descending Group
 Order. If Group ID Delta is zero, the Object ID is the prior Object ID plus
-Object ID Delta + 1; otherwise, Object ID Delta is the absolute Object ID.
+Object ID Delta + 1. When Group ID Delta is nonzero, the Object ID Delta field
+contains the absolute Object ID in the new Group.
 
 An Object ID Delta of zero therefore advances the Object ID by one within the
 same Group. The +1 offset differs from the +2 offset for Objects within a Group
