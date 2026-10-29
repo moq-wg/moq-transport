@@ -3059,13 +3059,69 @@ The REQUEST_ERROR message is sent in response to any request (SUBSCRIBE, FETCH,
 PUBLISH, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS,
 REQUEST_UPDATE).
 
-### Redirect Structure {#redirect-structure}
-
-A Redirect provides a way for an endpoint to direct the peer to retry a
-request at a different URI and/or for a different Full Track Name.
+### REQUEST_ERROR Message Format
 
 ~~~
-Redirect {
+REQUEST_ERROR Message {
+  Type (vi64) = 0x5,
+  Length (16),
+  Error Code (vi64),
+  Retry Interval (vi64),
+  Error Reason (Reason Phrase),
+  Error Details (..) ...,
+}
+~~~
+{: #moq-transport-request-error format title="MOQT REQUEST_ERROR Message"}
+
+* Error Code: Identifies an integer error code for request failure.
+
+* Retry Interval: The minimum time (in milliseconds) before the request SHOULD be
+  sent again, plus one. If the value is 0, the request SHOULD NOT be retried.
+
+* Error Reason: Provides a text description of the request error. See
+ {{reason-phrase}}.
+
+* Error Details: Structured information about the error, serialized as
+  Key-Value-Pairs ({{moq-key-value-pair}}) spanning the remainder of the
+  message, bounded by the message Length field.  See {{error-details}}.
+
+If a request is retryable with the same parameters at a later time, the sender
+of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
+the risk of synchronized retry storms, the sender can apply randomization to
+each retry interval so that retries are spread out over time.  A Retry Interval
+value of 1 indicates the request can be retried immediately.
+
+The error codes used in REQUEST_ERROR are defined in {{request-error-codes}}.
+
+### Error Details {#error-details}
+
+Error Details carry structured information that helps the requester act on a
+REQUEST_ERROR.  Each Error Detail type specifies which Error Codes it can
+accompany.  Error Detail types are registered in the "MOQT Error Detail Types"
+registry ({{iana-error-details}}).
+
+Receivers MUST ignore unknown Error Detail types, and MUST ignore a known
+Error Detail type that accompanies an Error Code it is not defined for.
+Senders MUST NOT repeat the same Error Detail type in a message unless the
+type's definition explicitly allows multiple instances.  Receivers MUST allow
+duplicates of unknown Error Detail types.
+
+Error Details describe the request error in the Session where the error
+occurred.  A Relay that propagates an upstream error downstream decides for each
+Error Detail whether it also applies to the downstream request.
+
+#### REDIRECT {#error-detail-redirect}
+
+The REDIRECT Error Detail directs the requester to retry a request at a
+different URI and/or for a different Full Track Name.  It accompanies Error
+Code `REDIRECT` and MUST be present when the Error Code is `REDIRECT`.  An
+endpoint that receives a REQUEST_ERROR with Error Code `REDIRECT` and no
+REDIRECT Error Detail MUST close the session with `MALFORMED_MESSAGE`.
+
+~~~
+REDIRECT Error Detail {
+  Type (vi64) = 0x01,
+  Length (vi64),
   Connect URI Length (vi64),
   Connect URI (..),
   Track Namespace (..),
@@ -3086,39 +3142,6 @@ Redirect {
   (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and MUST be empty;
   an endpoint that receives a non-empty Track Name in a Redirect for a
   namespace-scoped request MUST close the session with `INVALID_FIELD`.
-
-### REQUEST_ERROR Message Format
-
-~~~
-REQUEST_ERROR Message {
-  Type (vi64) = 0x5,
-  Length (16),
-  Error Code (vi64),
-  Retry Interval (vi64),
-  Error Reason (Reason Phrase),
-  [Redirect (Redirect),]
-}
-~~~
-{: #moq-transport-request-error format title="MOQT REQUEST_ERROR Message"}
-
-* Error Code: Identifies an integer error code for request failure.
-
-* Retry Interval: The minimum time (in milliseconds) before the request SHOULD be
-  sent again, plus one. If the value is 0, the request SHOULD NOT be retried.
-
-* Error Reason: Provides a text description of the request error. See
- {{reason-phrase}}.
-
-* Redirect: Present only when Error Code is REDIRECT. See
-  {{redirect-structure}}.
-
-If a request is retryable with the same parameters at a later time, the sender
-of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
-the risk of synchronized retry storms, the sender can apply randomization to
-each retry interval so that retries are spread out over time.  A Retry Interval
-value of 1 indicates the request can be retried immediately.
-
-The error codes used in REQUEST_ERROR are defined in {{request-error-codes}}.
 
 ## REQUEST_UPDATE {#message-request-update}
 
@@ -5122,8 +5145,8 @@ TRUNCATED_OBJECT (0x203):
 : A data stream ended with a FIN in the middle of an Object.
 
 MALFORMED_MESSAGE (0x300):
-: A control message cannot be parsed, for example its length does not match
-  its contents.
+: A control message cannot be parsed or is missing a required element, for
+  example its length does not match its contents.
 
 INVALID_FIELD (0x301):
 : A control message was parsed, but a field has a value that is not allowed.
@@ -5198,8 +5221,8 @@ UNSUPPORTED_EXTENSION:
 
 REDIRECT:
 : The request cannot be fulfilled by this endpoint, but could succeed at the
-location specified in the Redirect structure. The requester SHOULD establish a
-new session to the provided URI (if present) and retry the request using the
+location specified in the REDIRECT Error Detail ({{error-detail-redirect}}).
+The requester SHOULD establish a new session to the provided URI (if present) and retry the request using the
 Redirect target. A Retry Interval of 0 indicates the original request SHOULD NOT be retried as sent;
 it does not prevent the requester from following a Redirect to a different
 URI or Redirect target. This error code can appear in
@@ -5341,6 +5364,7 @@ The following registries include GREASE reservations:
 - Properties ({{iana-properties}})
 - Session Termination Error Codes ({{iana-session-termination}})
 - REQUEST_ERROR Codes ({{iana-request-error}})
+- Error Detail Types ({{iana-error-details}})
 - PUBLISH_DONE Codes ({{iana-publish-done}})
 - Stream Reset Error Codes ({{iana-reset-stream}})
 - MOQT Auth Token Type
@@ -5355,6 +5379,8 @@ arbitrary values. Endpoints MUST ignore unknown Setup Options as specified
 in {{message-setup}}.
 
 Unknown Properties MUST be handled as specified in {{properties}}.
+
+Unknown Error Detail types MUST be ignored as specified in {{error-details}}.
 
 Receipt of an unknown error code in any error context (Session Termination,
 REQUEST_ERROR, PUBLISH_DONE, or Data Stream Reset) MUST be treated as
@@ -5921,6 +5947,21 @@ Each registration must include:
 | Specification | Reference to the defining specification |
 
 This document does not define any initial entries.
+
+## Error Detail Types {#iana-error-details}
+
+This document establishes the "MOQT Error Detail Types" registry, governing
+the Type field of Error Details in REQUEST_ERROR ({{error-details}}).
+
+| Type | Name | Specification |
+|-----:|:-----|:--------------|
+| 0x01 | REDIRECT | {{error-detail-redirect}} |
+| 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
+
+New Error Detail types are registered using the Specification Required
+policy ({{!RFC8126, Section 4.6}}).  Provisional registrations are
+permitted to allow experimentation and avoid codepoint collisions
+between independent implementations.
 
 ## Error Codes {#iana-error-codes}
 
