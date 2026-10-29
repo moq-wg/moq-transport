@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 27 April 2027</td>
+<td class="center">Expires 2 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-24" class="published">24 October 2026</time>
+<time datetime="2026-10-29" class="published">29 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-27">27 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-02">2 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 27 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 2 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2394,8 +2394,8 @@ that an Object does not exist are authoritative.<a href="#section-2.1.2-2.1.1" c
               <p id="section-2.1.2-2.2.1">The Object is known to exist.<a href="#section-2.1.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-2.1.2-2.3">
-              <p id="section-2.1.2-2.3.1">The Object is Gone.  Its state is unknown and can be cached, but the Object
-can still be received later.<a href="#section-2.1.2-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-2.1.2-2.3.1">The Object is Gone.  The original publisher cannot deliver the Object and
+will not be able to, but does not know whether it exists.<a href="#section-2.1.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-2.1.2-2.4">
               <p id="section-2.1.2-2.4.1">The state of the Object is Unknown, either because it has not yet been
@@ -2403,7 +2403,8 @@ received, or it has not yet been produced.<a href="#section-2.1.2-2.4.1" class="
 </li>
           </ol>
 <p id="section-2.1.2-3">An Object moves to a state when the endpoint receives the Object or a signal of
-that state.<a href="#section-2.1.2-3" class="pilcrow">¶</a></p>
+that state.  When a cached Object or state expires (see <a href="#max-cache-duration" class="auto internal xref">Section 10.3</a>),
+the Object returns to Unknown.<a href="#section-2.1.2-3" class="pilcrow">¶</a></p>
 <span id="name-object-states-2"></span><div id="object-state-diagram">
 <figure id="figure-1">
             <div class="alignLeft art-text artwork" id="section-2.1.2-4.1">
@@ -2436,9 +2437,11 @@ received or their non-existence is signalled, for example in a FETCH stream (see
 <p id="section-2.1.2-6">A publisher <span class="bcp14">MUST NOT</span> signal that an Object does not exist unless it knows the
 Object has never existed and never will; otherwise it signals that the Object is
 Gone or Unknown.  For example, a publisher that restarts without state and
-resumes a Track at a new Group signals Objects before that Group as Gone in
-FETCH responses.  Receiving an Object that was recorded as Gone or Unknown is
-not an error.<a href="#section-2.1.2-6" class="pilcrow">¶</a></p>
+resumes a Track at a new Group, or that retains only recent history, signals
+earlier Objects as Gone in FETCH responses.  Only the original publisher
+originates Gone (see <a href="#relay-fetch-handling" class="auto internal xref">Section 3.2.3</a>).  Because another source can
+still hold a Gone Object, receiving an Object that was recorded as Gone or
+Unknown is not an error.<a href="#section-2.1.2-6" class="pilcrow">¶</a></p>
 <p id="section-2.1.2-7">Whenever the publisher communicates that certain objects do not exist, this
 fact is expressed as a contiguous range of non-existent objects and
 by including Properties indicating the group/object gaps; MOQT
@@ -2945,9 +2948,13 @@ Range</code>, see <a href="#end-of-range" class="auto internal xref">Section 11.
 <p id="section-3.2.3-1">A relay that has cached objects from the beginning of the range <span class="bcp14">MAY</span> start
 sending objects immediately in response to a FETCH.  When a relay encounters
 Objects within the requested range that are not immediately available and have
-Unknown status, it issues one or more upstream FETCHes to retrieve them.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
+Unknown status, it issues one or more upstream FETCHes to retrieve them.  It
+does not issue upstream FETCHes for Objects it has cached as Gone or as not
+existing.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.2.3-2">If an upstream FETCH fails, the relay indicates the range of Unknown Objects,
-as described above, unless the Track is malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-3.2.3-2" class="pilcrow">¶</a></p>
+as described above, unless the Track is malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).
+A relay <span class="bcp14">MUST NOT</span> signal Objects as Gone unless it received that signal from
+upstream.<a href="#section-3.2.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.2.3-3">The Fill Timeout (see <a href="#fill-timeout" class="auto internal xref">Section 9.20.5</a>) represents a total budget
 for all upstream FETCHes generated by a single request. If the budget is
 exhausted, the relay reports any remaining unavailable Objects as Timed-Out gaps
@@ -7249,9 +7256,8 @@ the number of milliseconds an Object can be served from a cache. If present, the
 relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through this
 subscription or fetch after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier in a
-multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes Unknown (see
-<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-10.3-2" class="pilcrow">¶</a></p>
+multi-object stream will expire earlier than Objects later in the stream.  The
+same limit applies to cached Does Not Exist and Gone states.<a href="#section-10.3-2" class="pilcrow">¶</a></p>
 <p id="section-10.3-3">If MAX_CACHE_DURATION is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.<a href="#section-10.3-3" class="pilcrow">¶</a></p>
 </section>
@@ -10632,7 +10638,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
         <dd>
-<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-09</span>, <time datetime="2026-09-24" class="refDate">24 September 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-09">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-09</a>&gt;</span>. </dd>
+<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-10</span>, <time datetime="2026-10-28" class="refDate">28 October 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-10">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-10</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-http2">[I-D.ietf-webtrans-http2]</dt>
         <dd>
