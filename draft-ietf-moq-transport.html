@@ -4334,18 +4334,35 @@ relay authorizes a user are outside the scope of this specification.<a href="#se
 <p id="section-7.4-2">The relay <span class="bcp14">MUST</span> have an <code>Established</code> upstream subscription before sending
 SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
-<span class="bcp14">MUST</span> withhold sending FETCH_OK until it does.  Relays <span class="bcp14">MUST</span> follow the
-constraints on LARGEST_OBJECT defined in <a href="#largest-param" class="auto internal xref">Section 9.19.17</a>.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
-<p id="section-7.4-3">Publishers maintain a list of <code>Established</code> downstream subscriptions for
+<span class="bcp14">MUST</span> withhold sending FETCH_OK until it does.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
+<p id="section-7.4-3">A relay <span class="bcp14">MUST</span> set LARGEST_OBJECT (<a href="#largest-param" class="auto internal xref">Section 9.19.17</a>) to the largest of the
+following:<a href="#section-7.4-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-7.4-4">
+<li id="section-7.4-4.1">
+            <p id="section-7.4-4.1.1">Any LARGEST_OBJECT value received from the upstream publisher in
+SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK or
+PUBLISH_STATE_NOTIFY<a href="#section-7.4-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-7.4-4.2">
+            <p id="section-7.4-4.2.1">The largest Location of an Object received on an upstream subscription<a href="#section-7.4-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-7.4-5">However, a relay <span class="bcp14">MUST</span> only compute the <code>Largest Object</code> from an upstream subscription
+that is currently unpaused, and is either unfiltered or has Location and/or Range
+filters that match or are wider than the downstream request. If such an upstream
+subscription does not exist, the relay <span class="bcp14">MUST</span> establish, widen or unpause an
+upstream subscription, or send a TRACK_STATUS, and use
+the resulting LARGEST_OBJECT parameter.<a href="#section-7.4-5" class="pilcrow">¶</a></p>
+<p id="section-7.4-6">Publishers maintain a list of <code>Established</code> downstream subscriptions for
 each Track. Relays use the Track Alias (<a href="#track-alias" class="auto internal xref">Section 3.1.3</a>) of an incoming Object
 to identify its Track and find the current subscribers.  Each new Object
 belonging to the Track is forwarded to each subscriber, as allowed by the
 subscription's filter (see <a href="#message-subscribe-req" class="auto internal xref">Section 9.6</a>), and delivered according
 to the priority (see <a href="#priorities" class="auto internal xref">Section 5.1</a>) and delivery timeout (see
-<a href="#delivery-timeouts" class="auto internal xref">Section 5.2</a>).<a href="#section-7.4-3" class="pilcrow">¶</a></p>
-<p id="section-7.4-4">A relay <span class="bcp14">MUST NOT</span> reorder or drop objects received on a multi-object stream when
-forwarding to subscribers.<a href="#section-7.4-4" class="pilcrow">¶</a></p>
-<p id="section-7.4-5">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given Track when
+<a href="#delivery-timeouts" class="auto internal xref">Section 5.2</a>).<a href="#section-7.4-6" class="pilcrow">¶</a></p>
+<p id="section-7.4-7">A relay <span class="bcp14">MUST NOT</span> reorder or drop objects received on a multi-object stream when
+forwarding to subscribers.<a href="#section-7.4-7" class="pilcrow">¶</a></p>
+<p id="section-7.4-8">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given Track when
 multiple subscribers request the same Track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 Track. The published content received from the upstream subscription
@@ -4357,13 +4374,13 @@ remove some or all filters, or make additional subscriptions to the same Track.
 Multiple subscriptions to the same Track with non-disjoint filter sets will result in
 duplicate objects arriving at the relay.  Using wider upstream filters can protect the
 relay from churn as subscribers with disparate filters subscribe and unsubscribe from
-a Track, at the cost of receiving more objects.<a href="#section-7.4-5" class="pilcrow">¶</a></p>
-<p id="section-7.4-6">A subscriber remains subscribed to a Track at a Relay until it unsubscribes, the
+a Track, at the cost of receiving more objects.<a href="#section-7.4-8" class="pilcrow">¶</a></p>
+<p id="section-7.4-9">A subscriber remains subscribed to a Track at a Relay until it unsubscribes, the
 upstream publisher terminates the subscription, or the subscription expires (see
 <a href="#message-subscribe-ok" class="auto internal xref">Section 9.7</a>).  A subscription with a filter can reach a state where
 all possible Objects matching the filter have been delivered to the subscriber.
 Since tracking this can be prohibitively expensive, Relays are not required or
-expected to do so.<a href="#section-7.4-6" class="pilcrow">¶</a></p>
+expected to do so.<a href="#section-7.4-9" class="pilcrow">¶</a></p>
 <div id="graceful-subscriber-switchover">
 <section id="section-7.4.1">
           <h4 id="name-graceful-subscriber-relay-s">
@@ -7099,16 +7116,7 @@ only required when <code>Largest Object</code> is within the requested range (se
 <a href="#fetch" class="auto internal xref">Section 3.2</a>).<a href="#section-9.19.17-1" class="pilcrow">¶</a></p>
 <p id="section-9.19.17-2">If omitted from a message other than FETCH_OK, the sending endpoint has not
 published or received any Objects in the Track.<a href="#section-9.19.17-2" class="pilcrow">¶</a></p>
-<p id="section-9.19.17-3">A relay <span class="bcp14">MUST</span> set LARGEST_OBJECT to the largest of the following:<a href="#section-9.19.17-3" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-9.19.17-4">
-<li id="section-9.19.17-4.1">
-              <p id="section-9.19.17-4.1.1">Any LARGEST_OBJECT value received from the upstream publisher in SUBSCRIBE_OK,
-PUBLISH, REQUEST_UPDATE_OK, or FETCH_OK<a href="#section-9.19.17-4.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li id="section-9.19.17-4.2">
-              <p id="section-9.19.17-4.2.1">The largest Location of an Object received on an upstream subscription<a href="#section-9.19.17-4.2.1" class="pilcrow">¶</a></p>
-</li>
-          </ol>
+<p id="section-9.19.17-3">A relay sets LARGEST_OBJECT as described in <a href="#subscriber-interactions" class="auto internal xref">Section 7.4</a>.<a href="#section-9.19.17-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="paused-parameter">
