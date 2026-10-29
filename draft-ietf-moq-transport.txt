@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 29 April 2027                                     I. Swett, Ed.
+Expires: 2 May 2027                                        I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         26 October 2026
+                                                         29 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 April 2027.
+   This Internet-Draft will expire on 2 May 2027.
 
 Copyright Notice
 
@@ -6178,6 +6178,35 @@ EXT 1 and EXT N can be modified or removed by Relays
    an expected time.  Each implementation is expected to set its own
    timeouts.
 
+   Places where an endpoint waits on its peer include, but are not
+   limited to:
+
+   *  A response to a request
+
+   *  The rest of a stream header or Object on a data stream, including
+      a stream whose Track Alias is not yet known (see Section 3.1.3.1)
+
+   *  The next Object or FIN on an open Subgroup or FETCH stream
+
+   *  The next Subgroup or Datagram in a subscription
+
+   *  The data stream for a FETCH
+
+   *  The data streams counted in PUBLISH_DONE (Section 9.9)
+
+   *  Session closure after GOAWAY (Section 9.2)
+
+   Appropriate values depend on the deployment and the applications
+   using it, which a relay often cannot observe, so implementations
+   typically make them configurable.  Shorter timeouts release resources
+   sooner, but can terminate slow peers that are behaving correctly.
+   Longer timeouts let a misbehaving peer hold resources longer.
+   Delivery timeouts (Section 5.2) are chosen by peers, so an endpoint
+   does not rely on them to bound how long it waits.  When a timeout
+   fires, the endpoint can take the narrowest action available, such as
+   cancelling one request or stream instead of closing the session, and
+   use the most specific error code so the peer knows what failed.
+
 15.6.1.  Idle Connection Handling
 
    The transport connection (e.g., QUIC) underlying a MOQT session can
@@ -6954,9 +6983,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-09, 24 September 2026,
+              draft-ietf-scone-protocol-10, 28 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-09>.
+              protocol-10>.
 
    [I-D.ietf-webtrans-http2]
               Frindell, A., Kinnear, E., Pauly, T., Thomson, M.,
