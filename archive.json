@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-27T04:16:55.859576+00:00",
+  "timestamp": "2026-10-29T04:57:57.968276+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -43824,7 +43824,7 @@
       ],
       "body": "Assuming Joining FETCH stays as is, there is an optimization to joining at the current Group that I believe is worth considering.\n\nJust because there is a Largest Object, doesn't mean all Objects less than that are available.  This means that a Joining FETCH could be blocked waiting for Objects the Relay has never seen.\n\nFor example, if there was a base layer and a temporal enhancement layer, and the base layer was higher priority, a Relay might have all of the base layer and none of the enhancement layer.  If a Joining FETCH came in, the Subscriber would receive the first Object in the base layer and then be stuck there until the enhancement layer started arriving.\n\nIn some cases, this is just underutilizing the available bandwidth, but in other cases if the enhancement layer doesn't arrive within the delivery timeout, the playback can't begin.\n\nIn contrast, if both the Joining FETCH and SUBSCRIBE start at the beginning of the current Group, the FETCH could skip over any Objects (PR #1331) that are not yet available and then they'd be delivered via SUBSCRIBE.\n\nThe farther back in time the FETCH is, the less likely this is an issue, but I think it could be a substantial issue for the \"Join at the current Group\" case that we expect to be extremely common.",
       "createdAt": "2025-11-05T22:52:36Z",
-      "updatedAt": "2026-10-21T14:36:18Z",
+      "updatedAt": "2026-10-27T07:37:40Z",
       "closedAt": null,
       "comments": [
         {
@@ -43959,6 +43959,13 @@
           "body": "> 19\\. Since [@kixelated](https://github.com/kixelated) opened [#1614](https://github.com/moq-wg/moq-transport/issues/1614), this issue remains fundamentally about Head-of-line blocking on missing enhancement layers.  This is addressed with FILL_TIMEOUT=0.\n\nFILL_TIMEOUT doesn't actually help this problem in practice, at least from every way I've tried to look at it.  I'm not sure if we want a separate issue for it, but FILL_TIMEOUT seems of very limited use, because a fill timeout of 0 just checks if the Objects are in cache.  And longer values are difficult to pick, because you have no idea how far away the next relay is.\n\nThe original hope is that you could do FILL_TIMEOUT=0 and Subscribe to both the past and current groups for a range, and that would naturally give you all the Objects whenever they were published.  But the way FILL_TIMEOUT works, that doesn't happen and instead if you want all the Objects and you don't want duplicates, you need to have the Subscribe start at Next Object and the Fill-Fetch end at Largest Object and wait for the Fetch.\n\nWe've created a weird situation where getting all the Objects from the recent past exactly once and not missing Objects is quite suboptimal.  #2033 hopefully can fix that, but I now question whether FILL_TIMEOUT was useful at all?",
           "createdAt": "2026-10-21T14:36:17Z",
           "updatedAt": "2026-10-21T14:36:17Z"
+        },
+        {
+          "author": "supurazako",
+          "authorAssociation": "NONE",
+          "body": "I may be misunderstanding the semantics or implementation, but I wanted to ask about the purpose of [`FIRST_SUBSCRIBE_GROUP` in PR #2033](https://github.com/moq-wg/moq-transport/pull/2033).\n\nSince the latest Group continues to advance while `FIRST_SUBSCRIBE_GROUP` names a specific Group ID, is the cutoff intended to remain fixed for the fill range of a particular SUBSCRIBE or REQUEST_UPDATE, with subsequently created Groups delivered through the ongoing subscription? Or has updating the cutoff as the live edge advances also been considered?\n\nIf it is fixed per request, what should guide the Publisher\u2019s choice? For example, if Group 100 is current and the fill range is 95\u2013100, how should it choose between 99 and 100? I\u2019m also unsure how a moving cutoff would interact with Groups already delivered or in flight. Has that been discussed?",
+          "createdAt": "2026-10-27T07:37:40Z",
+          "updatedAt": "2026-10-27T07:37:40Z"
         }
       ]
     },
@@ -232559,13 +232566,13 @@
       ],
       "body": "Fixes #2026\n",
       "createdAt": "2026-10-20T19:37:25Z",
-      "updatedAt": "2026-10-26T18:25:47Z",
+      "updatedAt": "2026-10-27T18:43:26Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "7fc5f7c47c71ba29b39178302e4dd98f70d964e6",
+      "baseRefOid": "e404b9c72f23889f13b0389211e08465230d8502",
       "headRepository": "sharmafb/moq-transport",
       "headRefName": "issue-2026-fetch-range-deltas",
-      "headRefOid": "3048ddc75bfd37b1d31f88c4d2ea5572e6e7b755",
+      "headRefOid": "e604383501747a0cb1a2e104ac4068796ab6c678",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -232595,6 +232602,46 @@
               "body": "This is now under #### End of Range -- maybe deserves it's own section on decoding?\r\n\r\nAlso note conflict with #2006 ",
               "createdAt": "2026-10-26T18:25:43Z",
               "updatedAt": "2026-10-26T18:25:47Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABUhsK7Q",
+          "commit": {
+            "abbreviatedOid": "3048ddc"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-27T18:39:53Z",
+          "updatedAt": "2026-10-27T18:39:54Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "Changed it to \"If this End of Range indicator is the first entry after the FETCH_HEADER, both fields encode absolute IDs.\" for more clarity.",
+              "createdAt": "2026-10-27T18:39:53Z",
+              "updatedAt": "2026-10-27T18:39:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABUhsoJg",
+          "commit": {
+            "abbreviatedOid": "3048ddc"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-27T18:40:28Z",
+          "updatedAt": "2026-10-27T18:40:28Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "#2006\u2019s +2 rule relies on ordinary FETCH objects being able to omit the field to convey +1. Range indicators lack that shortcut, so applying +2 unchanged would prevent them from expressing a one-step advance. Added some more text to clarify this.",
+              "createdAt": "2026-10-27T18:40:28Z",
+              "updatedAt": "2026-10-27T18:40:28Z"
             }
           ]
         }
@@ -233383,7 +233430,7 @@
       ],
       "body": "Fixes: #1992",
       "createdAt": "2026-10-24T17:40:37Z",
-      "updatedAt": "2026-10-25T17:32:20Z",
+      "updatedAt": "2026-10-27T16:51:22Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "namespace-prefix-update",
       "baseRefOid": "09545b55bab8f00492e467b77591c2d688463dad",
@@ -233408,6 +233455,19 @@
           "createdAt": "2026-10-25T17:32:20Z",
           "updatedAt": "2026-10-25T17:32:20Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABUgU1IQ",
+          "commit": {
+            "abbreviatedOid": "1cb9bd4"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-27T16:51:22Z",
+          "updatedAt": "2026-10-27T16:51:22Z",
+          "comments": []
         }
       ]
     },
@@ -233423,7 +233483,7 @@
       "labels": [],
       "body": "Fixes #2027. Alternative to #2038.\n\nThe diff is smaller than it looks; review commit by commit.\n\nThe lists are an editorial call: I do think that this many MUSTs read better as bullet lists. They also highlight that the two lists are worded differently, even though, until now, they seemed to mean the same thing.\n\nCompared to #2038:\n\n- The rules are in the appropriate paragraphs.\n- The default leaves existing definitions unchanged. I'm not strong on this one, but multiplicity is the one rule with opposite defaults for unsupported and supported Properties.\n\nI apologize for the fuss over a small change, but I think the care is worth it.",
       "createdAt": "2026-10-27T00:03:58Z",
-      "updatedAt": "2026-10-27T00:06:02Z",
+      "updatedAt": "2026-10-27T17:18:58Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e404b9c72f23889f13b0389211e08465230d8502",
@@ -233435,7 +233495,21 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABUgsAYA",
+          "commit": {
+            "abbreviatedOid": "6e44334"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-27T17:18:58Z",
+          "updatedAt": "2026-10-27T17:18:58Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
