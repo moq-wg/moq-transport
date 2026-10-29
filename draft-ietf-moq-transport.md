@@ -4905,7 +4905,7 @@ When encoding an Object with a Delivery Mode of "Datagram" (see
 When 0x40 is set, it SHOULD set the two least significant bits to zero and the subscriber
 MUST ignore the bits.
 
-#### End of Range {#end-of-range}
+### End of Range {#end-of-range}
 
 When the Serialization Flags field indicates an End of Range (0x8C, 0x10C, or
 0x20C), the Group ID Delta and Object ID Delta fields are always present.
@@ -4914,7 +4914,7 @@ between the last serialized Object, if any, and the Location decoded from this
 indicator, inclusive, either do not exist (when Serialization Flags is 0x8C),
 are unknown (0x10C), or timed out (0x20C).
 
-##### ID Decoding {#end-of-range-id-decoding}
+#### ID Decoding {#end-of-range-id-decoding}
 
 If this End of Range indicator is the first entry after the FETCH_HEADER, both
 fields encode absolute IDs. Otherwise, the prior Group ID and prior Object ID
@@ -4935,7 +4935,7 @@ Object ID Delta and cannot omit it to indicate an increment of one.
 If either decoded ID is less than zero or greater than 2^64-1, the Subscriber
 MUST close the Session with `DELTA_ENCODING_OVERFLOW`.
 
-##### Prior Object Fields
+#### Prior Object Fields
 
 When an Object follows an End of Range indicator and uses flags that reference
 the "prior Object", the prior Object fields are determined as follows:
