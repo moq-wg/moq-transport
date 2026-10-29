@@ -3105,9 +3105,9 @@ Senders MUST NOT repeat the same Error Detail type in a message unless the
 type's definition explicitly allows multiple instances.  Receivers MUST allow
 duplicates of unknown Error Detail types.
 
-Error Details describe the request on the hop where the error occurred.  A
-Relay that propagates an upstream error downstream decides for each Error
-Detail whether it also applies to the downstream request.
+Error Details describe the request error in the Session where the error
+occurred.  A Relay that propagates an upstream error downstream decides for each
+Error Detail whether it also applies to the downstream request.
 
 #### REDIRECT {#error-detail-redirect}
 
