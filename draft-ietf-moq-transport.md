@@ -2421,19 +2421,31 @@ specifications and are registered in an IANA table {{iana}}. These
 specifications define the type and value of the property, along with any rules
 concerning processing, modification, caching and forwarding.
 
-If a Relay does not support a Property, it MUST NOT be modified, MUST be
-forwarded, and MUST be cached with the Track or Object, unless it is a Mandatory
-Track Property as described in {{mandatory-track-properties}}.  If a Track or Object
+If a Relay does not support a Property, unless it is a Mandatory Track
+Property as described in {{mandatory-track-properties}}, the Relay:
+
+* MUST NOT modify the Property.
+* MUST forward the Property.
+* MUST cache the Property with the Track or Object.
+* MUST allow multiple instances of the Property.
+
+If a Track or Object
 arrives with a different set of unknown properties than previously cached,
 the most recent set SHOULD replace any cached values, removing any unknown
 values not present in the new set.  Relays MUST NOT attempt to merge sets
 of unknown properties received in different messages.
 
 If a Relay supports a Property, it MUST follow the processing rules in the
-Property's definition.  Unless those rules permit otherwise, a Relay MUST NOT
-modify, add, or remove the Property; it MUST forward the Property to downstream
-subscribers and MUST cache it with the Track or Object if the Track or Object is
-cached.
+Property's definition.  Unless those rules permit otherwise:
+
+* A Relay MUST NOT modify, add, or remove the Property.
+* A Relay MUST forward the Property to downstream subscribers.
+* A Relay MUST cache the Property with the Track or Object if the Track or
+  Object is cached.
+* A Track or Object MUST NOT contain more than one instance of the Property.
+
+An endpoint that supports a Property and receives more instances of it than
+allowed MUST treat the Track as malformed (see {{malformed-tracks}}).
 
 Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
 Track Properties always appear as the final field in the messages that
@@ -5003,6 +5015,8 @@ include:
    other immutable properties.
 7. An Object is received with a different Delivery Mode than previously
    observed.
+8. A Track or Object contains more than one instance of a Property that does
+   not allow multiple instances (see {{properties}}).
 
 The above list of conditions is not considered exhaustive.
 
