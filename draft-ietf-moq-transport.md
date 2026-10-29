@@ -2096,8 +2096,22 @@ relay authorizes a user are outside the scope of this specification.
 The relay MUST have an `Established` upstream subscription before sending
 SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
-MUST withhold sending FETCH_OK until it does.  Relays MUST follow the
-constraints on LARGEST_OBJECT defined in {{largest-param}}.
+MUST withhold sending FETCH_OK until it does.
+
+A relay MUST set LARGEST_OBJECT ({{largest-param}}) to the largest of the
+following:
+
+1. Any LARGEST_OBJECT value received from the upstream publisher in
+   SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK or
+   PUBLISH_STATE_NOTIFY
+2. The largest Location of an Object received on an upstream subscription
+
+However, a relay MUST only compute the `Largest Object` from an upstream subscription
+that is currently unpaused, and is either unfiltered or has Location and/or Range
+filters that match or are wider than the downstream request. If such an upstream
+subscription does not exist, the relay MUST establish, widen or unpause an
+upstream subscription, or send a TRACK_STATUS, and use
+the resulting LARGEST_OBJECT parameter.
 
 Publishers maintain a list of `Established` downstream subscriptions for
 each Track. Relays use the Track Alias ({{track-alias}}) of an incoming Object
@@ -4139,17 +4153,7 @@ Publisher MUST include this parameter.
 If omitted from a message, the sending endpoint has not published or received
 any Objects in the Track.
 
-A relay MUST set LARGEST_OBJECT to the largest of the following:
-
-1. Any LARGEST_OBJECT value received from the upstream publisher in SUBSCRIBE_OK,
-PUBLISH, or REQUEST_UPDATE_OK
-2. The largest Location of an Object received on an upstream subscription
-
-However, a relay MUST only compute the `Largest Object` from an upstream subscription
-that is currently unpaused, and is either unfiltered or has Location and/or Range
-filters that match the downstream request. If such an upstream subscription does
-not exist, the relay MUST establish or unpause an upstream subscription and use
-the resulting LARGEST_OBJECT parameter.
+A relay sets LARGEST_OBJECT as described in {{subscriber-interactions}}.
 
 ### PAUSED Parameter {#paused-parameter}
 
