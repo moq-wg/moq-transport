@@ -278,7 +278,7 @@ sends a RESET_STREAM or RESET_STREAM_AT frame on that stream (see
 
 Most requests in MOQT are answered with a common REQUEST_OK
 ({{message-request-ok}}) or REQUEST_ERROR ({{message-request-error}}) message.
-This document uses the shorthand PUBLISH_OK, REQUEST_UPDATE_OK,
+This document uses the shorthand PUBLISH_OK, FETCH_OK, REQUEST_UPDATE_OK,
 TRACK_STATUS_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK and
 PUBLISH_NAMESPACE_OK to refer to a REQUEST_OK sent in response to the
 corresponding request type.  Likewise, it uses the shorthand SUBSCRIBE_ERROR,
@@ -782,9 +782,11 @@ an End Location, inclusive.  This range is specified by a Location Filter (see
 ({{largest-object}}) respectively.
 
 Objects with Locations larger than the `Largest Object` at the time the request
-is processed will not be retrieved by a FETCH.  The actual end of the FETCH
-response is indicated in the FETCH_OK End Location (see {{message-fetch-ok}}).
-Because `Largest Object` can identify an Object that is still arriving
+is processed will not be retrieved by a FETCH.  If `Largest Object` is within
+the requested range, the FETCH response ends at `Largest Object` and the
+publisher MUST include the LARGEST_OBJECT parameter ({{largest-param}}) in
+FETCH_OK.  Otherwise, the response ends at the requested End Location.  Because
+`Largest Object` can identify an Object that is still arriving
 ({{largest-object}}), a FETCH whose range includes `Largest Object` includes
 that Object in full; the publisher delivers the remainder as it becomes
 available.
@@ -792,8 +794,8 @@ available.
 The publisher MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
 FETCH.  The FETCH_OK or FETCH_ERROR can come at any time relative to object
 delivery.  The publisher MAY send Objects in response to a FETCH before the
-FETCH_OK message is sent, but the FETCH_OK MUST NOT be sent until the End
-Location is known.
+FETCH_OK message is sent, but the FETCH_OK MUST NOT be sent until the publisher
+knows whether `Largest Object` is within the requested range.
 
 If no Objects have been published for the track or Start Location is greater
 than the `Largest Object` ({{largest-object}}) the publisher MUST return
@@ -827,11 +829,13 @@ the Group and Object IDs in the response stream that are not otherwise marked
 indicate objects that do not exist (see {{object-states}}).  When one or more
 Range Filters are present, unmarked gaps indicate objects in the unknown state.
 
+In this section, End Location refers to the LARGEST_OBJECT in FETCH_OK if
+present, and the requested End Location otherwise (see {{fetch}}).
+
 For Ascending Group Order, and Descending Group Order where Start and End
 Location are in the same group, gaps include ranges between the Start
 Location and the first object in the stream; between objects in the stream; and
-between the last object in the stream and the End Location indicated in
-FETCH_OK.
+between the last object in the stream and the End Location.
 
 For Descending Group Order where Start and End Location are in different groups,
 the first expected Object in the stream is `{End Location.Group, 0}` and the
@@ -848,7 +852,10 @@ of Objects it will not serialize with an End of Range indicator (see
 {{end-of-range}}), identifying those Objects as non-existent, unknown, or timed
 out.  A publisher SHOULD NOT use `End of Non-Existent Range` in a FETCH response
 except to split a range of Objects that will not be serialized into those that are
-known not to exist and those with unknown or timed out status.
+known not to exist and those with unknown or timed out status.  The publisher
+MUST follow an Object known to end the Track with `End of Track`, and MUST
+follow the last Object in the response with `End of Group` if it is known to
+end its Group (see {{end-of-range}}).
 
 If a Publisher receives a FETCH with a range that includes one or more Objects
 with unknown state, it indicates the range of unknown Objects (`End of Unknown
@@ -996,8 +1003,9 @@ omitted. The filter is evaluated using the rules for a Fetch in
 {{location-filter}}, so the fill range never extends beyond `Largest
 Object`. When the subscription has no Location filter, or the LOCATION_FILTER
 inside FILL_PARAMETERS has Location Filter Type 0x00 (None), the fill range is
-the entire track up to `Largest Object`.  The subscriber learns the `Largest Object` from the
-`LARGEST_OBJECT` parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.
+the entire track up to `Largest Object`.  The subscriber learns the `Largest
+Object` from the `LARGEST_OBJECT` parameter in SUBSCRIBE_OK, PUBLISH or
+REQUEST_UPDATE_OK.
 
 Because the fill range is specified independently of the subscription's
 Location filter, a subscriber can retrieve a range of Groups prior to
@@ -1011,10 +1019,9 @@ FILL_PARAMETERS override them for the fill fetch stream.  FILL_TIMEOUT (see
 {{fill-timeout}}) applies to fill fetch streams in the same way it applies to a
 FETCH.
 
-The FETCH_HEADER on the fill fetch stream carries the Request ID of the message
-that initiated it: the SUBSCRIBE Request ID for the initial fill, or the
-REQUEST_UPDATE Request ID for a subsequent fill.  As a result of
-REQUEST_UPDATE, a subscription can have
+The FETCH_HEADER on the fill fetch stream carries the subscription's Request
+ID for an initial fill, or the REQUEST_UPDATE Request ID for a subsequent
+fill.  As a result of REQUEST_UPDATE, a subscription can have
 multiple fill fetch streams open at once, each identified by its Request ID;
 opening a new fill fetch stream does not implicitly cancel any previously
 opened fill fetch streams.
@@ -1028,8 +1035,8 @@ with an open-ended fill range, which the publisher will end at Largest Object.
 ### Opening and Closing Fill Fetch Streams
 
 A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
-REQUEST_UPDATE that carries FILL_PARAMETERS while the subscription is not
-paused (see {{pausing-subscriptions}}).
+REQUEST_UPDATE, or sends a PUBLISH, that carries FILL_PARAMETERS while the
+subscription is not paused (see {{pausing-subscriptions}}).
 
 - FILL_PARAMETERS carried while the subscription is paused opens no fill fetch
   stream.  Resuming the subscription without re-sending FILL_PARAMETERS does
@@ -1745,10 +1752,10 @@ begin with any other message type unless negotiated. If they do, the peer MUST
 close the Session with `UNEXPECTED_MESSAGE`. Objects are sent on unidirectional
 streams.
 
-As such, a client can initiate a MOQT session, subscribe, and
-start publishing Objects all in parallel. When this is done before the
-handshake completes using 0-RTT, the security implications described in
-{{zero-rtt}} apply.
+As such, a client can initiate a MOQT session and send requests in parallel.
+However, there are restrictions on these requests as described in {{message-setup}}.
+When this is done before the handshake completes using 0-RTT, the security
+implications described in {{zero-rtt}} apply.
 
 Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
@@ -1760,14 +1767,6 @@ are established.
 A control stream MUST NOT be closed at the underlying transport layer during the
 session's lifetime.  If the control stream is closed, the peer MUST close the
 session with `CLOSED_CONTROL_STREAM`.
-
-Prior to receiving the peer's SETUP message, it's unknown what extensions
-a peer will support. Message Parameters requiring negotiation SHOULD NOT
-be used prior to receiving the peer's SETUP message unless the application
-requires the extension or the endpoint knows the peer supports the
-extension. If an unsupported Message Parameter is used, the peer will be
-unable to process it and will close the session with `INVALID_PARAMETER`. See
-{{message-params}}.
 
 ### 0-RTT {#zero-rtt}
 
@@ -2736,7 +2735,7 @@ formatted as follows:
 ~~~
 MOQT Control Message {
   Message Type (vi64),
-  Message Length (16),
+  Message Length (vi64),
   Message Body (..),
 }
 ~~~
@@ -2779,7 +2778,7 @@ new request stream.
 |--------|------------------------------------------------|------------------|
 | 0x16   | FETCH ({{message-fetch}})                      | Request, First   |
 |--------|------------------------------------------------|------------------|
-| 0x18   | FETCH_OK ({{message-fetch-ok}})                | Request          |
+| 0x18   | RESERVED (FETCH_OK in <= 22)                   | Request          |
 |--------|------------------------------------------------|------------------|
 | 0xD    | TRACK_STATUS ({{message-track-status}})        | Request, First   |
 |--------|------------------------------------------------|------------------|
@@ -2808,7 +2807,11 @@ Control messages have a length to simplify parsing, but no control messages
 are intended to be ignored. The length is set to the number of bytes in the
 Message Body, which is defined by each message type.  If the length does not
 match the length of the Message Body, the receiver MUST close the session with
-`MALFORMED_MESSAGE`.
+`MALFORMED_MESSAGE`.  An endpoint MUST NOT send a control message with a length
+larger than the peer's MAX_CONTROL_MESSAGE_SIZE ({{max-control-message-size}}).
+If an endpoint receives a control message with a length larger than its
+MAX_CONTROL_MESSAGE_SIZE, it MUST close the session with
+`FIELD_LENGTH_EXCEEDED`.
 
 ## SETUP {#message-setup}
 
@@ -2817,6 +2820,8 @@ stream (see {{session-init}}); it allows the endpoints to agree on the initial
 configuration before any other control messages are exchanged. An endpoint that
 is not offering extensions which modify control message semantics MAY pipeline
 other control messages after SETUP without waiting for the peer's SETUP.
+Endpoints SHOULD NOT send such requests (and related Objects) that offer such
+extensions before receiving the peer SETUP.
 
 The messages contain a sequence of key-value pairs called Setup Options; the
 semantics and format of which can vary based on whether the client or server is
@@ -2828,7 +2833,7 @@ The wire format of the Setup message is as follows:
 ~~~
 SETUP Message {
   Type (vi64) = 0x2F00,
-  Length (16),
+  Length (vi64),
   Setup Options (..) ...,
 }
 ~~~
@@ -2963,6 +2968,15 @@ If an endpoint receives a REQUEST_UPDATE on a stream that already has
 MAX_REQUEST_UPDATES outstanding REQUEST_UPDATEs, it MUST close the session
 with `TOO_MANY_REQUEST_UPDATES`.
 
+### MAX_CONTROL_MESSAGE_SIZE {#max-control-message-size}
+
+The MAX_CONTROL_MESSAGE_SIZE option (Option Type 0x09) communicates the maximum
+length, in bytes, of a control message the endpoint is willing to receive (see
+{{message}}).  The value is encoded as a variable-length integer and MUST be at
+least 65535.  If not present, the default value is 65535.  Until an endpoint
+receives the peer's SETUP, it uses the default value, including for SETUP
+itself.
+
 
 ## GOAWAY {#message-goaway}
 
@@ -3004,7 +3018,7 @@ control stream or on a single request stream.
 ~~~
 GOAWAY Message {
   Type (vi64) = 0x10,
-  Length (16),
+  Length (vi64),
   New Session URI Length (vi64),
   New Session URI (..),
   Timeout (vi64),
@@ -3034,14 +3048,14 @@ GOAWAY Message {
 
 ## REQUEST_OK {#message-request-ok}
 
-The REQUEST_OK message is sent in response to PUBLISH, REQUEST_UPDATE,
+The REQUEST_OK message is sent in response to PUBLISH, FETCH, REQUEST_UPDATE,
 TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
 requests.
 
 ~~~
 REQUEST_OK Message {
   Type (vi64) = 0x7,
-  Length (16),
+  Length (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...,
   Track Properties (..),
@@ -3053,6 +3067,7 @@ REQUEST_OK Message {
   parameters that can appear depend on the request being answered:
 
   * PUBLISH_OK: EXPIRES
+  * FETCH_OK: EXPIRES, LARGEST_OBJECT
   * REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT
   * TRACK_STATUS_OK: EXPIRES, LARGEST_OBJECT
   * SUBSCRIBE_NAMESPACE_OK: EXPIRES
@@ -3062,8 +3077,9 @@ REQUEST_OK Message {
 * Track Properties : A sequence of Properties. See {{properties}}. The
   length of Track Properties is the remaining length of the message
   after parsing all previous fields. Track Properties are populated in
-  TRACK_STATUS_OK; they are empty in PUBLISH_OK, REQUEST_UPDATE_OK,
-  SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an endpoint
+  TRACK_STATUS_OK and FETCH_OK; they are empty in PUBLISH_OK,
+  REQUEST_UPDATE_OK, SUBSCRIBE_NAMESPACE_OK and PUBLISH_NAMESPACE_OK.  If an
+  endpoint
   receives Track Properties in one of these messages it MUST close the
   session with `INVALID_FIELD`.
 
@@ -3073,13 +3089,69 @@ The REQUEST_ERROR message is sent in response to any request (SUBSCRIBE, FETCH,
 PUBLISH, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS,
 REQUEST_UPDATE).
 
-### Redirect Structure {#redirect-structure}
-
-A Redirect provides a way for an endpoint to direct the peer to retry a
-request at a different URI and/or for a different Full Track Name.
+### REQUEST_ERROR Message Format
 
 ~~~
-Redirect {
+REQUEST_ERROR Message {
+  Type (vi64) = 0x5,
+  Length (vi64),
+  Error Code (vi64),
+  Retry Interval (vi64),
+  Error Reason (Reason Phrase),
+  Error Details (..) ...,
+}
+~~~
+{: #moq-transport-request-error format title="MOQT REQUEST_ERROR Message"}
+
+* Error Code: Identifies an integer error code for request failure.
+
+* Retry Interval: The minimum time (in milliseconds) before the request SHOULD be
+  sent again, plus one. If the value is 0, the request SHOULD NOT be retried.
+
+* Error Reason: Provides a text description of the request error. See
+ {{reason-phrase}}.
+
+* Error Details: Structured information about the error, serialized as
+  Key-Value-Pairs ({{moq-key-value-pair}}) spanning the remainder of the
+  message, bounded by the message Length field.  See {{error-details}}.
+
+If a request is retryable with the same parameters at a later time, the sender
+of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
+the risk of synchronized retry storms, the sender can apply randomization to
+each retry interval so that retries are spread out over time.  A Retry Interval
+value of 1 indicates the request can be retried immediately.
+
+The error codes used in REQUEST_ERROR are defined in {{request-error-codes}}.
+
+### Error Details {#error-details}
+
+Error Details carry structured information that helps the requester act on a
+REQUEST_ERROR.  Each Error Detail type specifies which Error Codes it can
+accompany.  Error Detail types are registered in the "MOQT Error Detail Types"
+registry ({{iana-error-details}}).
+
+Receivers MUST ignore unknown Error Detail types, and MUST ignore a known
+Error Detail type that accompanies an Error Code it is not defined for.
+Senders MUST NOT repeat the same Error Detail type in a message unless the
+type's definition explicitly allows multiple instances.  Receivers MUST allow
+duplicates of unknown Error Detail types.
+
+Error Details describe the request error in the Session where the error
+occurred.  A Relay that propagates an upstream error downstream decides for each
+Error Detail whether it also applies to the downstream request.
+
+#### REDIRECT {#error-detail-redirect}
+
+The REDIRECT Error Detail directs the requester to retry a request at a
+different URI and/or for a different Full Track Name.  It accompanies Error
+Code `REDIRECT` and MUST be present when the Error Code is `REDIRECT`.  An
+endpoint that receives a REQUEST_ERROR with Error Code `REDIRECT` and no
+REDIRECT Error Detail MUST close the session with `MALFORMED_MESSAGE`.
+
+~~~
+REDIRECT Error Detail {
+  Type (vi64) = 0x01,
+  Length (vi64),
   Connect URI Length (vi64),
   Connect URI (..),
   Track Namespace (..),
@@ -3101,38 +3173,16 @@ Redirect {
   an endpoint that receives a non-empty Track Name in a Redirect for a
   namespace-scoped request MUST close the session with `INVALID_FIELD`.
 
-### REQUEST_ERROR Message Format
+#### UNSUPPORTED_PROPERTY {#error-detail-unsupported-property}
 
-~~~
-REQUEST_ERROR Message {
-  Type (vi64) = 0x5,
-  Length (16),
-  Error Code (vi64),
-  Retry Interval (vi64),
-  Error Reason (Reason Phrase),
-  [Redirect (Redirect),]
-}
-~~~
-{: #moq-transport-request-error format title="MOQT REQUEST_ERROR Message"}
-
-* Error Code: Identifies an integer error code for request failure.
-
-* Retry Interval: The minimum time (in milliseconds) before the request SHOULD be
-  sent again, plus one. If the value is 0, the request SHOULD NOT be retried.
-
-* Error Reason: Provides a text description of the request error. See
- {{reason-phrase}}.
-
-* Redirect: Present only when Error Code is REDIRECT. See
-  {{redirect-structure}}.
-
-If a request is retryable with the same parameters at a later time, the sender
-of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
-the risk of synchronized retry storms, the sender can apply randomization to
-each retry interval so that retries are spread out over time.  A Retry Interval
-value of 1 indicates the request can be retried immediately.
-
-The error codes used in REQUEST_ERROR are defined in {{request-error-codes}}.
+The UNSUPPORTED_PROPERTY Error Detail (Type 0x02) contains the Property Type
+(vi64) of a Mandatory Track Property ({{mandatory-track-properties}}) that the
+sender does not understand.  It accompanies Error Code `UNSUPPORTED_EXTENSION`.
+A sender that rejects a request with `UNSUPPORTED_EXTENSION` SHOULD include
+one UNSUPPORTED_PROPERTY Error Detail for each Mandatory Track Property it does
+not understand.  Multiple instances of this type are allowed.  A Relay that
+propagates `UNSUPPORTED_EXTENSION` downstream SHOULD include the
+UNSUPPORTED_PROPERTY Error Details it received.
 
 ## REQUEST_UPDATE {#message-request-update}
 
@@ -3177,7 +3227,7 @@ The format of REQUEST_UPDATE is as follows:
 ~~~
 REQUEST_UPDATE Message {
   Type (vi64) = 0x2,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
@@ -3257,7 +3307,7 @@ The format of SUBSCRIBE is as follows:
 ~~~
 SUBSCRIBE Message {
   Type (vi64) = 0x3,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
@@ -3294,7 +3344,7 @@ bidi stream for successful subscriptions.
 ~~~
 SUBSCRIBE_OK Message {
   Type (vi64) = 0x4,
-  Length (16),
+  Length (vi64),
   Track Alias (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...,
@@ -3320,7 +3370,7 @@ authorized to publish this track.
 ~~~
 PUBLISH Message {
   Type (vi64) = 0x1D,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
@@ -3346,8 +3396,9 @@ PUBLISH Message {
 * Parameters: The parameters are defined in {{message-params}}. The parameters
   that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
   AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
-  PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
-  governing delivery, such as PAUSED, GROUP_ORDER, SUBSCRIBER_PRIORITY,
+  PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER and
+  FILL_PARAMETERS.  Those governing delivery, such as PAUSED, GROUP_ORDER,
+  SUBSCRIBER_PRIORITY,
   SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
   inform the Subscriber of the initial Subscription parameters.
   If the PUBLISH is the result of a SUBSCRIBE_TRACKS, the parameters are handled
@@ -3415,7 +3466,7 @@ The format of `PUBLISH_DONE` is as follows:
 ~~~
 PUBLISH_DONE Message {
   Type (vi64) = 0xB,
-  Length (16),
+  Length (vi64),
   Status Code (vi64),
   Stream Count (vi64),
   Error Reason (Reason Phrase)
@@ -3480,7 +3531,7 @@ The format of PUBLISH_STATE_NOTIFY is as follows:
 ~~~
 PUBLISH_STATE_NOTIFY Message {
   Type (vi64) = 0x22,
-  Length (16),
+  Length (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -3501,7 +3552,7 @@ The format of FETCH is as follows:
 ~~~
 FETCH Message {
   Type (vi64) = 0x16,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
@@ -3524,41 +3575,6 @@ FETCH Message {
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, SUBGROUP_FILTER,
   OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER and
   INCLUDE_PROPERTIES.
-
-## FETCH_OK {#message-fetch-ok}
-
-A publisher sends a FETCH_OK as the first message on the bidi stream in response
-to a successful fetch.
-
-~~~
-FETCH_OK Message {
-  Type (vi64) = 0x18,
-  Length (16),
-  End Of Track (8),
-  End Location (Location),
-  Number of Parameters (vi64),
-  Parameters (..) ...
-  Track Properties (..),
-}
-~~~
-{: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
-
-* End Of Track: 1 if all Objects have been published on this Track, and
-  the End Location is the final Object in the Track, 0 if not. If an endpoint
-  receives any other value, it MUST close the session with `INVALID_FIELD`.
-
-* End Location: The end of the range covered by the FETCH response, inclusive.
-  This is the End Location from the FETCH request Location Filter parameter unless
-  the requested range extends beyond Largest Object at the time
-  the request was processed, or the last Object in the Track.
-  If End Location is smaller than the Start Location in the corresponding FETCH
-  the receiver MUST close the session with `INVALID_FIELD`.
-
-* Parameters: The parameters are defined in {{message-params}}.  The only
-  parameter that can appear in a FETCH_OK is EXPIRES.
-
-* Track Properties : A sequence of Properties. See {{properties}}.
-
 
 ## TRACK_STATUS {#message-track-status}
 
@@ -3593,7 +3609,7 @@ matching a Track Namespace Prefix.
 ~~~
 PUBLISH_NAMESPACE Message {
   Type (vi64) = 0x6,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace Prefix (..),
   Number of Parameters (vi64),
@@ -3620,7 +3636,7 @@ published namespaces, as well as future updates to the set.
 ~~~
 SUBSCRIBE_NAMESPACE Message {
   Type (vi64) = 0x50,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace Prefix (..),
   Number of Parameters (vi64),
@@ -3652,7 +3668,7 @@ with the updated Parameters.
 ~~~
 NAMESPACE Message {
   Type (vi64) = 0x8,
-  Length (16),
+  Length (vi64),
   Track Namespace Suffix (..),
   Number of Parameters (vi64),
   Parameters (..) ...
@@ -3678,7 +3694,7 @@ in the 'Track Namespace Suffix'.
 ~~~
 NAMESPACE_DONE Message {
   Type (vi64) = 0xE,
-  Length (16),
+  Length (vi64),
   Track Namespace Suffix (..)
 }
 ~~~
@@ -3697,7 +3713,7 @@ namespaces, as well as future track publications within those namespaces.
 ~~~
 SUBSCRIBE_TRACKS Message {
   Type (vi64) = 0x51,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace Prefix (..),
   Number of Parameters (vi64),
@@ -3731,7 +3747,7 @@ response to a SUBSCRIBE_TRACKS, so only the namespace tuples after the
 ~~~
 PUBLISH_SKIPPED Message {
   Type (vi64) = 0xF,
-  Length (16),
+  Length (vi64),
   Track Namespace Suffix (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -3794,7 +3810,8 @@ unexpected duplicate parameters and close the session with `INVALID_PARAMETER`
 if found.
 
 The number of Message Parameters is not specifically limited, but the total
-length of a control message is limited to 2^16-1 bytes.
+length of a control message is limited by MAX_CONTROL_MESSAGE_SIZE
+({{max-control-message-size}}).
 
 Message Parameters in SUBSCRIBE and FETCH MUST NOT cause the
 publisher to alter the payload of the objects it sends, as that would violate
@@ -4081,11 +4098,11 @@ TRACK_PROPERTY_FILTER {
 ### FILL PARAMETERS Parameter {#fill-parameters}
 
 The FILL_PARAMETERS parameter (Parameter Type 0x23) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_TRACKS, or REQUEST_UPDATE (for a subscription) message. Its value is a
-Number of Parameters (vi64) followed by that many Parameters that apply to the
-fill fetch stream (see {{fill-semantics}}), encoded as if they were Parameters
-for a separate message (see {{message-params}}).  A fill fetch stream is opened
-only when FILL_PARAMETERS is present.
+SUBSCRIBE_TRACKS, PUBLISH, or REQUEST_UPDATE (for a subscription) message. Its
+value is a Number of Parameters (vi64) followed by that many Parameters that
+apply to the fill fetch stream (see {{fill-semantics}}), encoded as if they were
+Parameters for a separate message (see {{message-params}}).  A fill fetch stream
+is opened only when FILL_PARAMETERS is present.
 
 The following parameters MAY appear inside FILL_PARAMETERS:
 
@@ -4144,14 +4161,16 @@ does not expire or expires at an unknown time.
 ### LARGEST OBJECT Parameter {#largest-param}
 
 The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
-in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, or
+in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, FETCH_OK, or
 PUBLISH_STATE_NOTIFY.  It contains the `Largest Object`
 ({{largest-object}}) in the Track from the perspective of the sending
 endpoint. If Objects have been published on this Track the
-Publisher MUST include this parameter.
+Publisher MUST include this parameter, except in FETCH_OK, where it is
+only required when `Largest Object` is within the requested range (see
+{{fetch}}).
 
-If omitted from a message, the sending endpoint has not published or received
-any Objects in the Track.
+If omitted from a message other than FETCH_OK, the sending endpoint has not
+published or received any Objects in the Track.
 
 A relay sets LARGEST_OBJECT as described in {{subscriber-interactions}}.
 
@@ -4853,7 +4872,7 @@ format:
 The Serialization Flags field defines the serialization of the Object. It is
 a variable-length integer. When less than 128, the bits represent flags
 described in {{fetch-serialization-flags}}. When 128 or greater, the value
-signals a range indicator; the defined values are:
+signals an indicator; the defined values are:
 
 **Reserved Serialization Flags values:**
 
@@ -4861,6 +4880,8 @@ Value | Meaning
 0x8C  | End of Non-Existent Range
 0x10C | End of Unknown Range
 0x20C | End of Timed-Out Range
+0x80  | End of Group
+0x81  | End of Track
 
 If an endpoint receives any other value greater than 127, it MUST close the
 session with `MALFORMED_OBJECT`.
@@ -4922,6 +4943,11 @@ When Serialization Flags indicates an End of Range (e.g. values 0x8C, 0x10C, or
 Properties are not present. All Objects with Locations between the last
 serialized Object, if any, and this Location, inclusive, either do not exist
 (when Serialization Flags is 0x8C), are unknown (0x10C), or timed out (0x20C).
+
+When Serialization Flags is 0x80 (End of Group) or 0x81 (End of Track), no
+other fields are present.  The prior Object is the last Object in its Group, or
+in the Track, respectively.  End of Track also indicates End of Group.  The
+prior Object ID becomes 2^64-1.
 
 When an Object follows an End of Range indicator and uses flags that reference
 the "prior Object", the prior Object fields are determined as follows:
@@ -5007,8 +5033,7 @@ include:
    Group remains unknown.
 5. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
-   with Status END_OF_TRACK or the last Object sent in a FETCH whose response
-   indicated End of Track.
+   with Status END_OF_TRACK.
 6. The same Object is received more than once with different Payload or
    other immutable properties.
 7. An Object is received with a different Delivery Mode than previously
@@ -5132,8 +5157,8 @@ TRUNCATED_OBJECT (0x203):
 : A data stream ended with a FIN in the middle of an Object.
 
 MALFORMED_MESSAGE (0x300):
-: A control message cannot be parsed, for example its length does not match
-  its contents.
+: A control message cannot be parsed or is missing a required element, for
+  example its length does not match its contents.
 
 INVALID_FIELD (0x301):
 : A control message was parsed, but a field has a value that is not allowed.
@@ -5205,11 +5230,13 @@ sender SHOULD use the Retry Interval to indicate when the request can be retried
 UNSUPPORTED_EXTENSION:
 : The track contains a Mandatory Track Property
 (see {{mandatory-track-properties}}) that the endpoint does not understand.
+The UNSUPPORTED_PROPERTY Error Detail ({{error-detail-unsupported-property}})
+identifies which property.
 
 REDIRECT:
 : The request cannot be fulfilled by this endpoint, but could succeed at the
-location specified in the Redirect structure. The requester SHOULD establish a
-new session to the provided URI (if present) and retry the request using the
+location specified in the REDIRECT Error Detail ({{error-detail-redirect}}).
+The requester SHOULD establish a new session to the provided URI (if present) and retry the request using the
 Redirect target. A Retry Interval of 0 indicates the original request SHOULD NOT be retried as sent;
 it does not prevent the requester from following a Redirect to a different
 URI or Redirect target. This error code can appear in
@@ -5351,6 +5378,7 @@ The following registries include GREASE reservations:
 - Properties ({{iana-properties}})
 - Session Termination Error Codes ({{iana-session-termination}})
 - REQUEST_ERROR Codes ({{iana-request-error}})
+- Error Detail Types ({{iana-error-details}})
 - PUBLISH_DONE Codes ({{iana-publish-done}})
 - Stream Reset Error Codes ({{iana-reset-stream}})
 - MOQT Auth Token Type
@@ -5365,6 +5393,8 @@ arbitrary values. Endpoints MUST ignore unknown Setup Options as specified
 in {{message-setup}}.
 
 Unknown Properties MUST be handled as specified in {{properties}}.
+
+Unknown Error Detail types MUST be ignored as specified in {{error-details}}.
 
 Receipt of an unknown error code in any error context (Session Termination,
 REQUEST_ERROR, PUBLISH_DONE, or Data Stream Reset) MUST be treated as
@@ -5587,6 +5617,12 @@ might be starved indefinitely during congestion.  The publisher and
 subscriber MUST cancel a stream, preferably the one with the lowest
 priority, after reaching a resource limit.
 
+A larger MAX_CONTROL_MESSAGE_SIZE ({{max-control-message-size}}) allows larger
+Parameters, such as Authorization Tokens, but an endpoint that buffers complete
+control messages commits that much memory per stream.  Such an endpoint needs
+to grant enough flow control for a complete message on each stream, or the
+endpoints can deadlock.
+
 
 ## Timeouts  {#security-timeouts}
 
@@ -5790,6 +5826,7 @@ This registry is initially empty.
 | 0x06 | MAX_FILTER_RANGES | {{max-filter-ranges}} |
 | 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
 | 0x08 | MAX_REQUEST_UPDATES | {{max-request-updates}} |
+| 0x09 | MAX_CONTROL_MESSAGE_SIZE | {{max-control-message-size}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 Endpoints MUST ignore unknown Setup Options as specified in
@@ -5931,6 +5968,22 @@ Each registration must include:
 | Specification | Reference to the defining specification |
 
 This document does not define any initial entries.
+
+## Error Detail Types {#iana-error-details}
+
+This document establishes the "MOQT Error Detail Types" registry, governing
+the Type field of Error Details in REQUEST_ERROR ({{error-details}}).
+
+| Type | Name | Specification |
+|-----:|:-----|:--------------|
+| 0x01 | REDIRECT | {{error-detail-redirect}} |
+| 0x02 | UNSUPPORTED_PROPERTY | {{error-detail-unsupported-property}} |
+| 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
+
+New Error Detail types are registered using the Specification Required
+policy ({{!RFC8126, Section 4.6}}).  Provisional registrations are
+permitted to allow experimentation and avoid codepoint collisions
+between independent implementations.
 
 ## Error Codes {#iana-error-codes}
 
