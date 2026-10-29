@@ -180,6 +180,7 @@ Table of Contents
        9.1.5.  MOQT IMPLEMENTATION
        9.1.6.  MAX FILTER RANGES
        9.1.7.  MAX_REQUEST_UPDATES
+       9.1.8.  MAX_CONTROL_MESSAGE_SIZE
      9.2.  GOAWAY
      9.3.  REQUEST_OK
      9.4.  REQUEST_ERROR
@@ -3146,7 +3147,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    MOQT Control Message {
      Message Type (vi64),
-     Message Length (16),
+     Message Length (vi64),
      Message Body (..),
    }
 
@@ -3220,7 +3221,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    The length is set to the number of bytes in the Message Body, which
    is defined by each message type.  If the length does not match the
    length of the Message Body, the receiver MUST close the session with
-   MALFORMED_MESSAGE.
+   MALFORMED_MESSAGE.  An endpoint MUST NOT send a control message with
+   a length larger than the peer's MAX_CONTROL_MESSAGE_SIZE
+   (Section 9.1.8).  If an endpoint receives a control message with a
+   length larger than its MAX_CONTROL_MESSAGE_SIZE, it MUST close the
+   session with FIELD_LENGTH_EXCEEDED.
 
 9.1.  SETUP
 
@@ -3240,7 +3245,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    SETUP Message {
      Type (vi64) = 0x2F00,
-     Length (16),
+     Length (vi64),
      Setup Options (..) ...,
    }
 
@@ -3385,6 +3390,15 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    MAX_REQUEST_UPDATES outstanding REQUEST_UPDATEs, it MUST close the
    session with TOO_MANY_REQUEST_UPDATES.
 
+9.1.8.  MAX_CONTROL_MESSAGE_SIZE
+
+   The MAX_CONTROL_MESSAGE_SIZE option (Option Type 0x09) communicates
+   the maximum length, in bytes, of a control message the endpoint is
+   willing to receive (see Section 9).  The value is encoded as a
+   variable-length integer and MUST be at least 65535.  If not present,
+   the default value is 65535.  Until an endpoint receives the peer's
+   SETUP, it uses the default value, including for SETUP itself.
+
 9.2.  GOAWAY
 
    An endpoint sends a GOAWAY message on its control stream to inform
@@ -3428,7 +3442,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    GOAWAY Message {
      Type (vi64) = 0x10,
-     Length (16),
+     Length (vi64),
      New Session URI Length (vi64),
      New Session URI (..),
      Timeout (vi64),
@@ -3468,7 +3482,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    REQUEST_OK Message {
      Type (vi64) = 0x7,
-     Length (16),
+     Length (vi64),
      Number of Parameters (vi64),
      Parameters (..) ...,
      Track Properties (..),
@@ -3510,7 +3524,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    REQUEST_ERROR Message {
      Type (vi64) = 0x5,
-     Length (16),
+     Length (vi64),
      Error Code (vi64),
      Retry Interval (vi64),
      Error Reason (Reason Phrase),
@@ -3649,7 +3663,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    REQUEST_UPDATE Message {
      Type (vi64) = 0x2,
-     Length (16),
+     Length (vi64),
      Request ID (vi64),
      Number of Parameters (vi64),
      Parameters (..) ...
@@ -3739,7 +3753,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    SUBSCRIBE Message {
      Type (vi64) = 0x3,
-     Length (16),
+     Length (vi64),
      Request ID (vi64),
      Track Namespace (..),
      Track Name Length (vi64),
@@ -3777,7 +3791,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    SUBSCRIBE_OK Message {
      Type (vi64) = 0x4,
-     Length (16),
+     Length (vi64),
      Track Alias (vi64),
      Number of Parameters (vi64),
      Parameters (..) ...,
@@ -3803,7 +3817,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    PUBLISH Message {
      Type (vi64) = 0x1D,
-     Length (16),
+     Length (vi64),
      Request ID (vi64),
      Track Namespace (..),
      Track Name Length (vi64),
@@ -3903,7 +3917,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    PUBLISH_DONE Message {
      Type (vi64) = 0xB,
-     Length (16),
+     Length (vi64),
      Status Code (vi64),
      Stream Count (vi64),
      Error Reason (Reason Phrase)
@@ -3974,7 +3988,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    PUBLISH_STATE_NOTIFY Message {
      Type (vi64) = 0x22,
-     Length (16),
+     Length (vi64),
      Number of Parameters (vi64),
      Parameters (..) ...
    }
@@ -3995,7 +4009,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    FETCH Message {
      Type (vi64) = 0x16,
-     Length (16),
+     Length (vi64),
      Request ID (vi64),
      Track Namespace (..),
      Track Name Length (vi64),
@@ -4027,7 +4041,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    FETCH_OK Message {
      Type (vi64) = 0x18,
-     Length (16),
+     Length (vi64),
      End Of Track (8),
      End Location (Location),
      Number of Parameters (vi64),
@@ -4091,7 +4105,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    PUBLISH_NAMESPACE Message {
      Type (vi64) = 0x6,
-     Length (16),
+     Length (vi64),
      Request ID (vi64),
      Track Namespace Prefix (..),
      Number of Parameters (vi64),
@@ -4117,7 +4131,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    SUBSCRIBE_NAMESPACE Message {
      Type (vi64) = 0x50,
-     Length (16),
+     Length (vi64),
      Request ID (vi64),
      Track Namespace Prefix (..),
      Number of Parameters (vi64),
@@ -4148,7 +4162,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    NAMESPACE Message {
      Type (vi64) = 0x8,
-     Length (16),
+     Length (vi64),
      Track Namespace Suffix (..),
      Number of Parameters (vi64),
      Parameters (..) ...
@@ -4172,7 +4186,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    NAMESPACE_DONE Message {
      Type (vi64) = 0xE,
-     Length (16),
+     Length (vi64),
      Track Namespace Suffix (..)
    }
 
@@ -4191,7 +4205,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    SUBSCRIBE_TRACKS Message {
      Type (vi64) = 0x51,
-     Length (16),
+     Length (vi64),
      Request ID (vi64),
      Track Namespace Prefix (..),
      Number of Parameters (vi64),
@@ -4227,7 +4241,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    PUBLISH_SKIPPED Message {
      Type (vi64) = 0xF,
-     Length (16),
+     Length (vi64),
      Track Namespace Suffix (..),
      Track Name Length (vi64),
      Track Name (..),
@@ -4296,7 +4310,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    with INVALID_PARAMETER if found.
 
    The number of Message Parameters is not specifically limited, but the
-   total length of a control message is limited to 2^16-1 bytes.
+   total length of a control message is limited by
+   MAX_CONTROL_MESSAGE_SIZE (Section 9.1.8).
 
    Message Parameters in SUBSCRIBE and FETCH MUST NOT cause the
    publisher to alter the payload of the objects it sends, as that would
@@ -6219,6 +6234,12 @@ EXT 1 and EXT N can be modified or removed by Relays
    publisher and subscriber MUST cancel a stream, preferably the one
    with the lowest priority, after reaching a resource limit.
 
+   A larger MAX_CONTROL_MESSAGE_SIZE (Section 9.1.8) allows larger
+   Parameters, such as Authorization Tokens, but an endpoint that
+   buffers complete control messages commits that much memory per
+   stream.  Such an endpoint needs to grant enough flow control for a
+   complete message on each stream, or the endpoints can deadlock.
+
 15.6.  Timeouts
 
    Implementations are advised to use timeouts to prevent resource
@@ -6446,6 +6467,8 @@ EXT 1 and EXT N can be modified or removed by Relays
       |            0x07 | MOQT_IMPLEMENTATION       | Section 9.1.5 |
       +-----------------+---------------------------+---------------+
       |            0x08 | MAX_REQUEST_UPDATES       | Section 9.1.7 |
+      +-----------------+---------------------------+---------------+
+      |            0x09 | MAX_CONTROL_MESSAGE_SIZE  | Section 9.1.8 |
       +-----------------+---------------------------+---------------+
       | 0x7f * N + 0x9D | Reserved for greasing     | Section 13    |
       +-----------------+---------------------------+---------------+

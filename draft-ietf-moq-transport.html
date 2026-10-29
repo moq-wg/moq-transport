@@ -1538,6 +1538,9 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1.2.7">
                     <p id="section-toc.1-1.9.2.1.2.7.1"><a href="#section-9.1.7" class="auto internal xref">9.1.7</a>.  <a href="#name-max_request_updates" class="internal xref">MAX_REQUEST_UPDATES</a></p>
 </li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1.2.8">
+                    <p id="section-toc.1-1.9.2.1.2.8.1"><a href="#section-9.1.8" class="auto internal xref">9.1.8</a>.  <a href="#name-max_control_message_size" class="internal xref">MAX_CONTROL_MESSAGE_SIZE</a></p>
+</li>
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
@@ -5130,7 +5133,7 @@ formatted as follows:<a href="#section-9-1" class="pilcrow">¶</a></p>
 <pre>
 MOQT Control Message {
   Message Type (vi64),
-  Message Length (16),
+  Message Length (vi64),
   Message Body (..),
 }
 </pre>
@@ -5287,7 +5290,11 @@ Control messages have a length to simplify parsing, but no control messages
 are intended to be ignored. The length is set to the number of bytes in the
 Message Body, which is defined by each message type.  If the length does not
 match the length of the Message Body, the receiver <span class="bcp14">MUST</span> close the session with
-<code>MALFORMED_MESSAGE</code>.<a href="#section-9-5" class="pilcrow">¶</a></p>
+<code>MALFORMED_MESSAGE</code>.  An endpoint <span class="bcp14">MUST NOT</span> send a control message with a length
+larger than the peer's MAX_CONTROL_MESSAGE_SIZE (<a href="#max-control-message-size" class="auto internal xref">Section 9.1.8</a>).
+If an endpoint receives a control message with a length larger than its
+MAX_CONTROL_MESSAGE_SIZE, it <span class="bcp14">MUST</span> close the session with
+<code>FIELD_LENGTH_EXCEEDED</code>.<a href="#section-9-5" class="pilcrow">¶</a></p>
 <div id="message-setup">
 <section id="section-9.1">
         <h3 id="name-setup">
@@ -5309,7 +5316,7 @@ Setup Options.<a href="#section-9.1-2" class="pilcrow">¶</a></p>
 <pre>
 SETUP Message {
   Type (vi64) = 0x2F00,
-  Length (16),
+  Length (vi64),
   Setup Options (..) ...,
 }
 </pre>
@@ -5460,6 +5467,19 @@ MAX_REQUEST_UPDATES outstanding REQUEST_UPDATEs, it <span class="bcp14">MUST</sp
 with <code>TOO_MANY_REQUEST_UPDATES</code>.<a href="#section-9.1.7-4" class="pilcrow">¶</a></p>
 </section>
 </div>
+<div id="max-control-message-size">
+<section id="section-9.1.8">
+          <h4 id="name-max_control_message_size">
+<a href="#section-9.1.8" class="section-number selfRef">9.1.8. </a><a href="#name-max_control_message_size" class="section-name selfRef">MAX_CONTROL_MESSAGE_SIZE</a>
+          </h4>
+<p id="section-9.1.8-1">The MAX_CONTROL_MESSAGE_SIZE option (Option Type 0x09) communicates the maximum
+length, in bytes, of a control message the endpoint is willing to receive (see
+<a href="#message" class="auto internal xref">Section 9</a>).  The value is encoded as a variable-length integer and <span class="bcp14">MUST</span> be at
+least 65535.  If not present, the default value is 65535.  Until an endpoint
+receives the peer's SETUP, it uses the default value, including for SETUP
+itself.<a href="#section-9.1.8-1" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="message-goaway">
@@ -5502,7 +5522,7 @@ control stream or on a single request stream.<a href="#section-9.2-6" class="pil
 <pre>
 GOAWAY Message {
   Type (vi64) = 0x10,
-  Length (16),
+  Length (vi64),
   New Session URI Length (vi64),
   New Session URI (..),
   Timeout (vi64),
@@ -5553,7 +5573,7 @@ requests.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
 <pre>
 REQUEST_OK Message {
   Type (vi64) = 0x7,
-  Length (16),
+  Length (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...,
   Track Properties (..),
@@ -5620,7 +5640,7 @@ REQUEST_UPDATE).<a href="#section-9.4-1" class="pilcrow">¶</a></p>
 <pre>
 REQUEST_ERROR Message {
   Type (vi64) = 0x5,
-  Length (16),
+  Length (vi64),
   Error Code (vi64),
   Retry Interval (vi64),
   Error Reason (Reason Phrase),
@@ -5777,7 +5797,7 @@ limited by the MAX_REQUEST_UPDATES Setup Option (<a href="#max-request-updates" 
 <pre>
 REQUEST_UPDATE Message {
   Type (vi64) = 0x2,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
@@ -5886,7 +5906,7 @@ fill range on a fill fetch stream (see <a href="#fill-semantics" class="auto int
 <pre>
 SUBSCRIBE Message {
   Type (vi64) = 0x3,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
@@ -5938,7 +5958,7 @@ bidi stream for successful subscriptions.<a href="#section-9.7-1" class="pilcrow
 <pre>
 SUBSCRIBE_OK Message {
   Type (vi64) = 0x4,
-  Length (16),
+  Length (vi64),
   Track Alias (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...,
@@ -5979,7 +5999,7 @@ authorized to publish this track.<a href="#section-9.8-1" class="pilcrow">¶</a>
 <pre>
 PUBLISH Message {
   Type (vi64) = 0x1D,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
@@ -6082,7 +6102,7 @@ authorized it has expired <span class="bcp14">SHOULD</span> send PUBLISH_DONE wi
 <pre>
 PUBLISH_DONE Message {
   Type (vi64) = 0xB,
-  Length (16),
+  Length (vi64),
   Status Code (vi64),
   Stream Count (vi64),
   Error Reason (Reason Phrase)
@@ -6155,7 +6175,7 @@ Track at which the change took effect.<a href="#section-9.10-5" class="pilcrow">
 <pre>
 PUBLISH_STATE_NOTIFY Message {
   Type (vi64) = 0x22,
-  Length (16),
+  Length (vi64),
   Number of Parameters (vi64),
   Parameters (..) ...
 }
@@ -6188,7 +6208,7 @@ publisher to request a range of already published objects within a track.<a href
 <pre>
 FETCH Message {
   Type (vi64) = 0x16,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace (..),
   Track Name Length (vi64),
@@ -6236,7 +6256,7 @@ to a successful fetch.<a href="#section-9.12-1" class="pilcrow">¶</a></p>
 <pre>
 FETCH_OK Message {
   Type (vi64) = 0x18,
-  Length (16),
+  Length (vi64),
   End Of Track (8),
   End Location (Location),
   Number of Parameters (vi64),
@@ -6313,7 +6333,7 @@ matching a Track Namespace Prefix.<a href="#section-9.14-1" class="pilcrow">¶</
 <pre>
 PUBLISH_NAMESPACE Message {
   Type (vi64) = 0x6,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace Prefix (..),
   Number of Parameters (vi64),
@@ -6355,7 +6375,7 @@ published namespaces, as well as future updates to the set.<a href="#section-9.1
 <pre>
 SUBSCRIBE_NAMESPACE Message {
   Type (vi64) = 0x50,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace Prefix (..),
   Number of Parameters (vi64),
@@ -6401,7 +6421,7 @@ with the updated Parameters.<a href="#section-9.16-2" class="pilcrow">¶</a></p>
 <pre>
 NAMESPACE Message {
   Type (vi64) = 0x8,
-  Length (16),
+  Length (vi64),
   Track Namespace Suffix (..),
   Number of Parameters (vi64),
   Parameters (..) ...
@@ -6441,7 +6461,7 @@ in the 'Track Namespace Suffix'.<a href="#section-9.17-1" class="pilcrow">¶</a>
 <pre>
 NAMESPACE_DONE Message {
   Type (vi64) = 0xE,
-  Length (16),
+  Length (vi64),
   Track Namespace Suffix (..)
 }
 </pre>
@@ -6473,7 +6493,7 @@ namespaces, as well as future track publications within those namespaces.<a href
 <pre>
 SUBSCRIBE_TRACKS Message {
   Type (vi64) = 0x51,
-  Length (16),
+  Length (vi64),
   Request ID (vi64),
   Track Namespace Prefix (..),
   Number of Parameters (vi64),
@@ -6522,7 +6542,7 @@ response to a SUBSCRIBE_TRACKS, so only the namespace tuples after the
 <pre>
 PUBLISH_SKIPPED Message {
   Type (vi64) = 0xF,
-  Length (16),
+  Length (vi64),
   Track Namespace Suffix (..),
   Track Name Length (vi64),
   Track Name (..),
@@ -6611,7 +6631,8 @@ be sent in a single message. Receivers <span class="bcp14">SHOULD</span> check t
 unexpected duplicate parameters and close the session with <code>INVALID_PARAMETER</code>
 if found.<a href="#section-9.20-8" class="pilcrow">¶</a></p>
 <p id="section-9.20-9">The number of Message Parameters is not specifically limited, but the total
-length of a control message is limited to 2^16-1 bytes.<a href="#section-9.20-9" class="pilcrow">¶</a></p>
+length of a control message is limited by MAX_CONTROL_MESSAGE_SIZE
+(<a href="#max-control-message-size" class="auto internal xref">Section 9.1.8</a>).<a href="#section-9.20-9" class="pilcrow">¶</a></p>
 <p id="section-9.20-10">Message Parameters in SUBSCRIBE and FETCH <span class="bcp14">MUST NOT</span> cause the
 publisher to alter the payload of the objects it sends, as that would violate
 the track uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.5</a>.<a href="#section-9.20-10" class="pilcrow">¶</a></p>
@@ -9057,6 +9078,11 @@ flight.<a href="#section-15.5-3" class="pilcrow">¶</a></p>
 might be starved indefinitely during congestion.  The publisher and
 subscriber <span class="bcp14">MUST</span> cancel a stream, preferably the one with the lowest
 priority, after reaching a resource limit.<a href="#section-15.5-4" class="pilcrow">¶</a></p>
+<p id="section-15.5-5">A larger MAX_CONTROL_MESSAGE_SIZE (<a href="#max-control-message-size" class="auto internal xref">Section 9.1.8</a>) allows larger
+Parameters, such as Authorization Tokens, but an endpoint that buffers complete
+control messages commits that much memory per stream.  Such an endpoint needs
+to grant enough flow control for a complete message on each stream, or the
+endpoints can deadlock.<a href="#section-15.5-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="security-timeouts">
@@ -9364,6 +9390,13 @@ Required policy (<span>[<a href="#RFC8126" class="cite xref">RFC8126</a>], <a hr
               <td class="text-left" rowspan="1" colspan="1">MAX_REQUEST_UPDATES</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <a href="#max-request-updates" class="auto internal xref">Section 9.1.7</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x09</td>
+              <td class="text-left" rowspan="1" colspan="1">MAX_CONTROL_MESSAGE_SIZE</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#max-control-message-size" class="auto internal xref">Section 9.1.8</a>
 </td>
             </tr>
             <tr>
