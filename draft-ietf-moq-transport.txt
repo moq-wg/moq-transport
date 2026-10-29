@@ -1293,7 +1293,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    LOCATION_FILTER inside FILL_PARAMETERS has Location Filter Type 0x00
    (None), the fill range is the entire track up to Largest Object.  The
    subscriber learns the Largest Object from the LARGEST_OBJECT
-   parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.
+   parameter in SUBSCRIBE_OK, PUBLISH or REQUEST_UPDATE_OK.
 
    Because the fill range is specified independently of the
    subscription's Location filter, a subscriber can retrieve a range of
@@ -1307,13 +1307,12 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    fetch stream.  FILL_TIMEOUT (see Section 9.20.5) applies to fill
    fetch streams in the same way it applies to a FETCH.
 
-   The FETCH_HEADER on the fill fetch stream carries the Request ID of
-   the message that initiated it: the SUBSCRIBE Request ID for the
-   initial fill, or the REQUEST_UPDATE Request ID for a subsequent fill.
-   As a result of REQUEST_UPDATE, a subscription can have multiple fill
-   fetch streams open at once, each identified by its Request ID;
-   opening a new fill fetch stream does not implicitly cancel any
-   previously opened fill fetch streams.
+   The FETCH_HEADER on the fill fetch stream carries the subscription's
+   Request ID for an initial fill, or the REQUEST_UPDATE Request ID for
+   a subsequent fill.  As a result of REQUEST_UPDATE, a subscription can
+   have multiple fill fetch streams open at once, each identified by its
+   Request ID; opening a new fill fetch stream does not implicitly
+   cancel any previously opened fill fetch streams.
 
    An object delivered on the fill fetch stream is *fill-delivered*.
    When the fill range overlaps the subscription's Location filter, an
@@ -1325,8 +1324,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 3.4.1.  Opening and Closing Fill Fetch Streams
 
    A publisher opens a fill fetch stream when it processes a SUBSCRIBE
-   or REQUEST_UPDATE that carries FILL_PARAMETERS while the subscription
-   is not paused (see Section 3.1.1).
+   or REQUEST_UPDATE, or sends a PUBLISH, that carries FILL_PARAMETERS
+   while the subscription is not paused (see Section 3.1.1).
 
    *  FILL_PARAMETERS carried while the subscription is paused opens no
       fill fetch stream.  Resuming the subscription without re-sending
@@ -3845,9 +3844,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       parameters that can appear in a PUBLISH are
       OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
       SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT, PAUSED,
-      SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
-      governing delivery, such as PAUSED, GROUP_ORDER,
-      SUBSCRIBER_PRIORITY, SUBGROUP_DELIVERY_TIMEOUT,
+      SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER and
+      FILL_PARAMETERS.  Those governing delivery, such as PAUSED,
+      GROUP_ORDER, SUBSCRIBER_PRIORITY, SUBGROUP_DELIVERY_TIMEOUT,
       OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER, inform the Subscriber
       of the initial Subscription parameters.  If the PUBLISH is the
       result of a SUBSCRIBE_TRACKS, the parameters are handled as
@@ -4624,10 +4623,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 9.20.15.  FILL PARAMETERS Parameter
 
    The FILL_PARAMETERS parameter (Parameter Type 0x23) MAY appear in a
-   SUBSCRIBE, SUBSCRIBE_TRACKS, or REQUEST_UPDATE (for a subscription)
-   message.  Its value is a Number of Parameters (vi64) followed by that
-   many Parameters that apply to the fill fetch stream (see
-   Section 3.4), encoded as if they were Parameters for a separate
+   SUBSCRIBE, SUBSCRIBE_TRACKS, PUBLISH, or REQUEST_UPDATE (for a
+   subscription) message.  Its value is a Number of Parameters (vi64)
+   followed by that many Parameters that apply to the fill fetch stream
+   (see Section 3.4), encoded as if they were Parameters for a separate
    message (see Section 9.20).  A fill fetch stream is opened only when
    FILL_PARAMETERS is present.
 

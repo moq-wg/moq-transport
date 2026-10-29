@@ -3064,8 +3064,9 @@ omitted. The filter is evaluated using the rules for a Fetch in
 <a href="#location-filter" class="auto internal xref">Section 9.20.9</a>, so the fill range never extends beyond <code>Largest
 Object</code>. When the subscription has no Location filter, or the LOCATION_FILTER
 inside FILL_PARAMETERS has Location Filter Type 0x00 (None), the fill range is
-the entire track up to <code>Largest Object</code>.  The subscriber learns the <code>Largest Object</code> from the
-<code>LARGEST_OBJECT</code> parameter in SUBSCRIBE_OK or REQUEST_UPDATE_OK.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+the entire track up to <code>Largest Object</code>.  The subscriber learns the <code>Largest
+Object</code> from the <code>LARGEST_OBJECT</code> parameter in SUBSCRIBE_OK, PUBLISH or
+REQUEST_UPDATE_OK.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
 <p id="section-3.4-3">Because the fill range is specified independently of the subscription's
 Location filter, a subscriber can retrieve a range of Groups prior to
 <code>Largest Object</code> while the subscription itself starts at the Next Group.  If
@@ -3076,10 +3077,9 @@ subscriber priority, range filters and authorization; parameters carried inside
 FILL_PARAMETERS override them for the fill fetch stream.  FILL_TIMEOUT (see
 <a href="#fill-timeout" class="auto internal xref">Section 9.20.5</a>) applies to fill fetch streams in the same way it applies to a
 FETCH.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
-<p id="section-3.4-5">The FETCH_HEADER on the fill fetch stream carries the Request ID of the message
-that initiated it: the SUBSCRIBE Request ID for the initial fill, or the
-REQUEST_UPDATE Request ID for a subsequent fill.  As a result of
-REQUEST_UPDATE, a subscription can have
+<p id="section-3.4-5">The FETCH_HEADER on the fill fetch stream carries the subscription's Request
+ID for an initial fill, or the REQUEST_UPDATE Request ID for a subsequent
+fill.  As a result of REQUEST_UPDATE, a subscription can have
 multiple fill fetch streams open at once, each identified by its Request ID;
 opening a new fill fetch stream does not implicitly cancel any previously
 opened fill fetch streams.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
@@ -3094,8 +3094,8 @@ with an open-ended fill range, which the publisher will end at Largest Object.<a
 <a href="#section-3.4.1" class="section-number selfRef">3.4.1. </a><a href="#name-opening-and-closing-fill-fe" class="section-name selfRef">Opening and Closing Fill Fetch Streams</a>
           </h4>
 <p id="section-3.4.1-1">A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
-REQUEST_UPDATE that carries FILL_PARAMETERS while the subscription is not
-paused (see <a href="#pausing-subscriptions" class="auto internal xref">Section 3.1.1</a>).<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
+REQUEST_UPDATE, or sends a PUBLISH, that carries FILL_PARAMETERS while the
+subscription is not paused (see <a href="#pausing-subscriptions" class="auto internal xref">Section 3.1.1</a>).<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.4.1-2.1">
               <p id="section-3.4.1-2.1.1">FILL_PARAMETERS carried while the subscription is paused opens no fill fetch
@@ -6034,8 +6034,9 @@ PUBLISH Message {
             <p id="section-9.8-3.5.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>. The parameters
 that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
 AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
-PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER and GROUP_ORDER.  Those
-governing delivery, such as PAUSED, GROUP_ORDER, SUBSCRIBER_PRIORITY,
+PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER and
+FILL_PARAMETERS.  Those governing delivery, such as PAUSED, GROUP_ORDER,
+SUBSCRIBER_PRIORITY,
 SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
 inform the Subscriber of the initial Subscription parameters.
 If the PUBLISH is the result of a SUBSCRIBE_TRACKS, the parameters are handled
@@ -7017,11 +7018,11 @@ TRACK_PROPERTY_FILTER {
 <a href="#section-9.20.15" class="section-number selfRef">9.20.15. </a><a href="#name-fill-parameters-parameter" class="section-name selfRef">FILL PARAMETERS Parameter</a>
           </h4>
 <p id="section-9.20.15-1">The FILL_PARAMETERS parameter (Parameter Type 0x23) <span class="bcp14">MAY</span> appear in a SUBSCRIBE,
-SUBSCRIBE_TRACKS, or REQUEST_UPDATE (for a subscription) message. Its value is a
-Number of Parameters (vi64) followed by that many Parameters that apply to the
-fill fetch stream (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>), encoded as if they were Parameters
-for a separate message (see <a href="#message-params" class="auto internal xref">Section 9.20</a>).  A fill fetch stream is opened
-only when FILL_PARAMETERS is present.<a href="#section-9.20.15-1" class="pilcrow">¶</a></p>
+SUBSCRIBE_TRACKS, PUBLISH, or REQUEST_UPDATE (for a subscription) message. Its
+value is a Number of Parameters (vi64) followed by that many Parameters that
+apply to the fill fetch stream (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>), encoded as if they were
+Parameters for a separate message (see <a href="#message-params" class="auto internal xref">Section 9.20</a>).  A fill fetch stream
+is opened only when FILL_PARAMETERS is present.<a href="#section-9.20.15-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.15-2">The following parameters <span class="bcp14">MAY</span> appear inside FILL_PARAMETERS:<a href="#section-9.20.15-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-7">
             <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
