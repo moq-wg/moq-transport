@@ -4927,11 +4927,6 @@ Order. If Group ID Delta is zero, the Object ID is the prior Object ID plus
 Object ID Delta + 1. When Group ID Delta is nonzero, the Object ID Delta field
 contains the absolute Object ID in the new Group.
 
-An Object ID Delta of zero therefore advances the Object ID by one within the
-same Group. The +1 offset differs from the +2 offset for Objects within a Group
-in {{fetch-serialization-flags}} because End of Range indicators always include
-Object ID Delta and cannot omit it to indicate an increment of one.
-
 If either decoded ID is less than zero or greater than 2^64-1, the Subscriber
 MUST close the Session with `DELTA_ENCODING_OVERFLOW`.
 
