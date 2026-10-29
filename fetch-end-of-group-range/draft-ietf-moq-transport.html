@@ -3926,10 +3926,10 @@ SUBSCRIBE_NAMESPACE, and SUBSCRIBE_TRACKS. Bidirectional streams <span class="bc
 begin with any other message type unless negotiated. If they do, the peer <span class="bcp14">MUST</span>
 close the Session with <code>UNEXPECTED_MESSAGE</code>. Objects are sent on unidirectional
 streams.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
-<p id="section-6.3-3">As such, a client can initiate a MOQT session, subscribe, and
-start publishing Objects all in parallel. When this is done before the
-handshake completes using 0-RTT, the security implications described in
-<a href="#zero-rtt" class="auto internal xref">Section 6.3.1</a> apply.<a href="#section-6.3-3" class="pilcrow">¶</a></p>
+<p id="section-6.3-3">As such, a client can initiate a MOQT session and send requests in parallel.
+However, there are restrictions on these requests as described in <a href="#message-setup" class="auto internal xref">Section 9.1</a>.
+When this is done before the handshake completes using 0-RTT, the security
+implications described in <a href="#zero-rtt" class="auto internal xref">Section 6.3.1</a> apply.<a href="#section-6.3-3" class="pilcrow">¶</a></p>
 <p id="section-6.3-4">Unidirectional streams containing Objects or bidirectional stream(s) beginning
 with a request message could arrive prior to the control streams, in which case
 the data <span class="bcp14">SHOULD</span> be buffered until both control streams arrive and setup is
@@ -3939,13 +3939,6 @@ are established.<a href="#section-6.3-4" class="pilcrow">¶</a></p>
 <p id="section-6.3-5">A control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer during the
 session's lifetime.  If the control stream is closed, the peer <span class="bcp14">MUST</span> close the
 session with <code>CLOSED_CONTROL_STREAM</code>.<a href="#section-6.3-5" class="pilcrow">¶</a></p>
-<p id="section-6.3-6">Prior to receiving the peer's SETUP message, it's unknown what extensions
-a peer will support. Message Parameters requiring negotiation <span class="bcp14">SHOULD NOT</span>
-be used prior to receiving the peer's SETUP message unless the application
-requires the extension or the endpoint knows the peer supports the
-extension. If an unsupported Message Parameter is used, the peer will be
-unable to process it and will close the session with <code>INVALID_PARAMETER</code>. See
-<a href="#message-params" class="auto internal xref">Section 9.19</a>.<a href="#section-6.3-6" class="pilcrow">¶</a></p>
 <div id="zero-rtt">
 <section id="section-6.3.1">
           <h4 id="name-0-rtt">
@@ -5307,7 +5300,9 @@ MAX_CONTROL_MESSAGE_SIZE, it <span class="bcp14">MUST</span> close the session w
 stream (see <a href="#session-init" class="auto internal xref">Section 6.3</a>); it allows the endpoints to agree on the initial
 configuration before any other control messages are exchanged. An endpoint that
 is not offering extensions which modify control message semantics <span class="bcp14">MAY</span> pipeline
-other control messages after SETUP without waiting for the peer's SETUP.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+other control messages after SETUP without waiting for the peer's SETUP.
+Endpoints <span class="bcp14">SHOULD NOT</span> send such requests (and related Objects) that offer such
+extensions before receiving the peer SETUP.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.1-2">The messages contain a sequence of key-value pairs called Setup Options; the
 semantics and format of which can vary based on whether the client or server is
 sending.  To ensure future extensibility of MOQT, endpoints <span class="bcp14">MUST</span> ignore unknown
