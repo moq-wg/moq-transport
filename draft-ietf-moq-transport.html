@@ -1550,10 +1550,10 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.9.2.4.1"><a href="#section-9.4" class="auto internal xref">9.4</a>.  <a href="#name-request_error" class="internal xref">REQUEST_ERROR</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.4.2.1">
-                    <p id="section-toc.1-1.9.2.4.2.1.1"><a href="#section-9.4.1" class="auto internal xref">9.4.1</a>.  <a href="#name-redirect-structure" class="internal xref">Redirect Structure</a></p>
+                    <p id="section-toc.1-1.9.2.4.2.1.1"><a href="#section-9.4.1" class="auto internal xref">9.4.1</a>.  <a href="#name-request_error-message-forma" class="internal xref">REQUEST_ERROR Message Format</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.4.2.2">
-                    <p id="section-toc.1-1.9.2.4.2.2.1"><a href="#section-9.4.2" class="auto internal xref">9.4.2</a>.  <a href="#name-request_error-message-forma" class="internal xref">REQUEST_ERROR Message Format</a></p>
+                    <p id="section-toc.1-1.9.2.4.2.2.1"><a href="#section-9.4.2" class="auto internal xref">9.4.2</a>.  <a href="#name-error-details" class="internal xref">Error Details</a></p>
 </li>
                 </ul>
 </li>
@@ -1903,19 +1903,22 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                 <p id="section-toc.1-1.16.2.10.1"><a href="#section-16.10" class="auto internal xref">16.10</a>. <a href="#name-session-level-track-names" class="internal xref">Session-Level Track Names</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.11">
-                <p id="section-toc.1-1.16.2.11.1"><a href="#section-16.11" class="auto internal xref">16.11</a>. <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
+                <p id="section-toc.1-1.16.2.11.1"><a href="#section-16.11" class="auto internal xref">16.11</a>. <a href="#name-error-detail-types" class="internal xref">Error Detail Types</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.12">
+                <p id="section-toc.1-1.16.2.12.1"><a href="#section-16.12" class="auto internal xref">16.12</a>. <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.11.2.1">
-                    <p id="section-toc.1-1.16.2.11.2.1.1"><a href="#section-16.11.1" class="auto internal xref">16.11.1</a>.  <a href="#name-session-termination-error-c" class="internal xref">Session Termination Error Codes</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.12.2.1">
+                    <p id="section-toc.1-1.16.2.12.2.1.1"><a href="#section-16.12.1" class="auto internal xref">16.12.1</a>.  <a href="#name-session-termination-error-c" class="internal xref">Session Termination Error Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.11.2.2">
-                    <p id="section-toc.1-1.16.2.11.2.2.1"><a href="#section-16.11.2" class="auto internal xref">16.11.2</a>.  <a href="#name-request_error-codes" class="internal xref">REQUEST_ERROR Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.12.2.2">
+                    <p id="section-toc.1-1.16.2.12.2.2.1"><a href="#section-16.12.2" class="auto internal xref">16.12.2</a>.  <a href="#name-request_error-codes" class="internal xref">REQUEST_ERROR Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.11.2.3">
-                    <p id="section-toc.1-1.16.2.11.2.3.1"><a href="#section-16.11.3" class="auto internal xref">16.11.3</a>.  <a href="#name-publish_done-codes" class="internal xref">PUBLISH_DONE Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.12.2.3">
+                    <p id="section-toc.1-1.16.2.12.2.3.1"><a href="#section-16.12.3" class="auto internal xref">16.12.3</a>.  <a href="#name-publish_done-codes" class="internal xref">PUBLISH_DONE Codes</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.11.2.4">
-                    <p id="section-toc.1-1.16.2.11.2.4.1"><a href="#section-16.11.4" class="auto internal xref">16.11.4</a>.  <a href="#name-stream-reset-error-codes-2" class="internal xref">Stream Reset Error Codes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.12.2.4">
+                    <p id="section-toc.1-1.16.2.12.2.4.1"><a href="#section-16.12.4" class="auto internal xref">16.12.4</a>.  <a href="#name-stream-reset-error-codes-2" class="internal xref">Stream Reset Error Codes</a></p>
 </li>
                 </ul>
 </li>
@@ -5606,51 +5609,14 @@ session with <code>INVALID_FIELD</code>.<a href="#section-9.3-3.2.1" class="pilc
 <p id="section-9.4-1">The REQUEST_ERROR message is sent in response to any request (SUBSCRIBE, FETCH,
 PUBLISH, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS,
 REQUEST_UPDATE).<a href="#section-9.4-1" class="pilcrow">¶</a></p>
-<div id="redirect-structure">
-<section id="section-9.4.1">
-          <h4 id="name-redirect-structure">
-<a href="#section-9.4.1" class="section-number selfRef">9.4.1. </a><a href="#name-redirect-structure" class="section-name selfRef">Redirect Structure</a>
-          </h4>
-<p id="section-9.4.1-1">A Redirect provides a way for an endpoint to direct the peer to retry a
-request at a different URI and/or for a different Full Track Name.<a href="#section-9.4.1-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-9.4.1-2">
-<pre>
-Redirect {
-  Connect URI Length (vi64),
-  Connect URI (..),
-  Track Namespace (..),
-  Track Name Length (vi64),
-  Track Name (..),
-}
-</pre><a href="#section-9.4.1-2" class="pilcrow">¶</a>
-</div>
-<ul class="normal">
-<li class="normal" id="section-9.4.1-3.1">
-              <p id="section-9.4.1-3.1.1">Connect URI: The URI to connect to for the redirected request. If the length is
-zero, the requester <span class="bcp14">SHOULD</span> use the current session's URI. If a server
-receives a Redirect with a non-zero Connect URI Length it <span class="bcp14">MUST</span> close the
-session with <code>ROLE_VIOLATION</code>.<a href="#section-9.4.1-3.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.4.1-3.2">
-              <p id="section-9.4.1-3.2.1">Track Namespace and Track Name: The Track Namespace and Track Name to use
-for the redirected request, together referred to as the Redirect target.<a href="#section-9.4.1-3.2.1" class="pilcrow">¶</a></p>
-<p id="section-9.4.1-3.2.2">
-Track Name is not meaningful for namespace-scoped requests
-(SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and <span class="bcp14">MUST</span> be empty;
-an endpoint that receives a non-empty Track Name in a Redirect for a
-namespace-scoped request <span class="bcp14">MUST</span> close the session with <code>INVALID_FIELD</code>.<a href="#section-9.4.1-3.2.2" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-</section>
-</div>
 <div id="requesterror-message-format">
-<section id="section-9.4.2">
+<section id="section-9.4.1">
           <h4 id="name-request_error-message-forma">
-<a href="#section-9.4.2" class="section-number selfRef">9.4.2. </a><a href="#name-request_error-message-forma" class="section-name selfRef">REQUEST_ERROR Message Format</a>
+<a href="#section-9.4.1" class="section-number selfRef">9.4.1. </a><a href="#name-request_error-message-forma" class="section-name selfRef">REQUEST_ERROR Message Format</a>
           </h4>
 <span id="name-moqt-request_error-message"></span><div id="moq-transport-request-error">
 <figure id="figure-9">
-            <div class="alignLeft art-text artwork" id="section-9.4.2-1.1">
+            <div class="alignLeft art-text artwork" id="section-9.4.1-1.1">
 <pre>
 REQUEST_ERROR Message {
   Type (vi64) = 0x5,
@@ -5658,7 +5624,7 @@ REQUEST_ERROR Message {
   Error Code (vi64),
   Retry Interval (vi64),
   Error Reason (Reason Phrase),
-  [Redirect (Redirect),]
+  Error Details (..) ...,
 }
 </pre>
 </div>
@@ -5667,28 +5633,105 @@ REQUEST_ERROR Message {
             </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-9.4.2-2.1">
-              <p id="section-9.4.2-2.1.1">Error Code: Identifies an integer error code for request failure.<a href="#section-9.4.2-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.4.1-2.1">
+              <p id="section-9.4.1-2.1.1">Error Code: Identifies an integer error code for request failure.<a href="#section-9.4.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.4.2-2.2">
-              <p id="section-9.4.2-2.2.1">Retry Interval: The minimum time (in milliseconds) before the request <span class="bcp14">SHOULD</span> be
-sent again, plus one. If the value is 0, the request <span class="bcp14">SHOULD NOT</span> be retried.<a href="#section-9.4.2-2.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.4.1-2.2">
+              <p id="section-9.4.1-2.2.1">Retry Interval: The minimum time (in milliseconds) before the request <span class="bcp14">SHOULD</span> be
+sent again, plus one. If the value is 0, the request <span class="bcp14">SHOULD NOT</span> be retried.<a href="#section-9.4.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.4.2-2.3">
-              <p id="section-9.4.2-2.3.1">Error Reason: Provides a text description of the request error. See
- <a href="#reason-phrase" class="auto internal xref">Section 8.5</a>.<a href="#section-9.4.2-2.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.4.1-2.3">
+              <p id="section-9.4.1-2.3.1">Error Reason: Provides a text description of the request error. See
+ <a href="#reason-phrase" class="auto internal xref">Section 8.5</a>.<a href="#section-9.4.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.4.2-2.4">
-              <p id="section-9.4.2-2.4.1">Redirect: Present only when Error Code is REDIRECT. See
-<a href="#redirect-structure" class="auto internal xref">Section 9.4.1</a>.<a href="#section-9.4.2-2.4.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.4.1-2.4">
+              <p id="section-9.4.1-2.4.1">Error Details: Structured information about the error, serialized as
+Key-Value-Pairs (<a href="#moq-key-value-pair" class="auto internal xref">Figure 3</a>) spanning the remainder of the
+message, bounded by the message Length field.  See <a href="#error-details" class="auto internal xref">Section 9.4.2</a>.<a href="#section-9.4.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-9.4.2-3">If a request is retryable with the same parameters at a later time, the sender
+<p id="section-9.4.1-3">If a request is retryable with the same parameters at a later time, the sender
 of REQUEST_ERROR includes a non-zero Retry Interval in the message. To minimize
 the risk of synchronized retry storms, the sender can apply randomization to
 each retry interval so that retries are spread out over time.  A Retry Interval
-value of 1 indicates the request can be retried immediately.<a href="#section-9.4.2-3" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-4">The error codes used in REQUEST_ERROR are defined in <a href="#request-error-codes" class="auto internal xref">Section 12.3</a>.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
+value of 1 indicates the request can be retried immediately.<a href="#section-9.4.1-3" class="pilcrow">¶</a></p>
+<p id="section-9.4.1-4">The error codes used in REQUEST_ERROR are defined in <a href="#request-error-codes" class="auto internal xref">Section 12.3</a>.<a href="#section-9.4.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="error-details">
+<section id="section-9.4.2">
+          <h4 id="name-error-details">
+<a href="#section-9.4.2" class="section-number selfRef">9.4.2. </a><a href="#name-error-details" class="section-name selfRef">Error Details</a>
+          </h4>
+<p id="section-9.4.2-1">Error Details carry structured information that helps the requester act on a
+REQUEST_ERROR.  Each Error Detail type specifies which Error Codes it can
+accompany.  Error Detail types are registered in the "MOQT Error Detail Types"
+registry (<a href="#iana-error-details" class="auto internal xref">Section 16.11</a>).<a href="#section-9.4.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-2">Receivers <span class="bcp14">MUST</span> ignore unknown Error Detail types, and <span class="bcp14">MUST</span> ignore a known
+Error Detail type that accompanies an Error Code it is not defined for.
+Senders <span class="bcp14">MUST NOT</span> repeat the same Error Detail type in a message unless the
+type's definition explicitly allows multiple instances.  Receivers <span class="bcp14">MUST</span> allow
+duplicates of unknown Error Detail types.<a href="#section-9.4.2-2" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-3">Error Details describe the request error in the Session where the error
+occurred.  A Relay that propagates an upstream error downstream decides for each
+Error Detail whether it also applies to the downstream request.<a href="#section-9.4.2-3" class="pilcrow">¶</a></p>
+<div id="error-detail-redirect">
+<section id="section-9.4.2.1">
+            <h5 id="name-redirect">
+<a href="#section-9.4.2.1" class="section-number selfRef">9.4.2.1. </a><a href="#name-redirect" class="section-name selfRef">REDIRECT</a>
+            </h5>
+<p id="section-9.4.2.1-1">The REDIRECT Error Detail directs the requester to retry a request at a
+different URI and/or for a different Full Track Name.  It accompanies Error
+Code <code>REDIRECT</code> and <span class="bcp14">MUST</span> be present when the Error Code is <code>REDIRECT</code>.  An
+endpoint that receives a REQUEST_ERROR with Error Code <code>REDIRECT</code> and no
+REDIRECT Error Detail <span class="bcp14">MUST</span> close the session with <code>MALFORMED_MESSAGE</code>.<a href="#section-9.4.2.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-9.4.2.1-2">
+<pre>
+REDIRECT Error Detail {
+  Type (vi64) = 0x01,
+  Length (vi64),
+  Connect URI Length (vi64),
+  Connect URI (..),
+  Track Namespace (..),
+  Track Name Length (vi64),
+  Track Name (..),
+}
+</pre><a href="#section-9.4.2.1-2" class="pilcrow">¶</a>
+</div>
+<ul class="normal">
+<li class="normal" id="section-9.4.2.1-3.1">
+                <p id="section-9.4.2.1-3.1.1">Connect URI: The URI to connect to for the redirected request. If the length is
+zero, the requester <span class="bcp14">SHOULD</span> use the current session's URI. If a server
+receives a Redirect with a non-zero Connect URI Length it <span class="bcp14">MUST</span> close the
+session with <code>ROLE_VIOLATION</code>.<a href="#section-9.4.2.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-9.4.2.1-3.2">
+                <p id="section-9.4.2.1-3.2.1">Track Namespace and Track Name: The Track Namespace and Track Name to use
+for the redirected request, together referred to as the Redirect target.<a href="#section-9.4.2.1-3.2.1" class="pilcrow">¶</a></p>
+<p id="section-9.4.2.1-3.2.2">
+Track Name is not meaningful for namespace-scoped requests
+(SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and <span class="bcp14">MUST</span> be empty;
+an endpoint that receives a non-empty Track Name in a Redirect for a
+namespace-scoped request <span class="bcp14">MUST</span> close the session with <code>INVALID_FIELD</code>.<a href="#section-9.4.2.1-3.2.2" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+</section>
+</div>
+<div id="error-detail-unsupported-property">
+<section id="section-9.4.2.2">
+            <h5 id="name-unsupported_property">
+<a href="#section-9.4.2.2" class="section-number selfRef">9.4.2.2. </a><a href="#name-unsupported_property" class="section-name selfRef">UNSUPPORTED_PROPERTY</a>
+            </h5>
+<p id="section-9.4.2.2-1">The UNSUPPORTED_PROPERTY Error Detail (Type 0x02) contains the Property Type
+(vi64) of a Mandatory Track Property (<a href="#mandatory-track-properties" class="auto internal xref">Section 3.7</a>) that the
+sender does not understand.  It accompanies Error Code <code>UNSUPPORTED_EXTENSION</code>.
+A sender that rejects a request with <code>UNSUPPORTED_EXTENSION</code> <span class="bcp14">SHOULD</span> include
+one UNSUPPORTED_PROPERTY Error Detail for each Mandatory Track Property it does
+not understand.  Multiple instances of this type are allowed.  A Relay that
+propagates <code>UNSUPPORTED_EXTENSION</code> downstream <span class="bcp14">SHOULD</span> include the
+UNSUPPORTED_PROPERTY Error Details it received.<a href="#section-9.4.2.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 </section>
@@ -8390,8 +8433,8 @@ not Normal.<a href="#section-12.2-6.38.1" class="pilcrow">¶</a></p>
           <dd class="break"></dd>
 <dt id="section-12.2-6.41">MALFORMED_MESSAGE (0x300):</dt>
           <dd style="margin-left: 1.5em" id="section-12.2-6.42">
-            <p id="section-12.2-6.42.1">A control message cannot be parsed, for example its length does not match
-its contents.<a href="#section-12.2-6.42.1" class="pilcrow">¶</a></p>
+            <p id="section-12.2-6.42.1">A control message cannot be parsed or is missing a required element, for
+example its length does not match its contents.<a href="#section-12.2-6.42.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-12.2-6.43">INVALID_FIELD (0x301):</dt>
@@ -8450,7 +8493,7 @@ FIELD_LENGTH_EXCEEDED in preference to the other codes.<a href="#section-12.2-7"
         </h3>
 <p id="section-12.3-1">The application <span class="bcp14">SHOULD</span> use a relevant error code in REQUEST_ERROR
 (<a href="#message-request-error" class="auto internal xref">Section 9.4</a>), as defined below and assigned in
-<a href="#iana-request-error" class="auto internal xref">Section 16.11.2</a>. Most codepoints have identical meanings for various
+<a href="#iana-request-error" class="auto internal xref">Section 16.12.2</a>. Most codepoints have identical meanings for various
 request types, but some have request-specific meanings.<a href="#section-12.3-1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-12.3-2">
           <dt id="section-12.3-2.1">INTERNAL_ERROR:</dt>
@@ -8501,14 +8544,16 @@ sender <span class="bcp14">SHOULD</span> use the Retry Interval to indicate when
 <dt id="section-12.3-2.17">UNSUPPORTED_EXTENSION:</dt>
           <dd style="margin-left: 1.5em" id="section-12.3-2.18">
             <p id="section-12.3-2.18.1">The track contains a Mandatory Track Property
-(see <a href="#mandatory-track-properties" class="auto internal xref">Section 3.7</a>) that the endpoint does not understand.<a href="#section-12.3-2.18.1" class="pilcrow">¶</a></p>
+(see <a href="#mandatory-track-properties" class="auto internal xref">Section 3.7</a>) that the endpoint does not understand.
+The UNSUPPORTED_PROPERTY Error Detail (<a href="#error-detail-unsupported-property" class="auto internal xref">Section 9.4.2.2</a>)
+identifies which property.<a href="#section-12.3-2.18.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-12.3-2.19">REDIRECT:</dt>
           <dd style="margin-left: 1.5em" id="section-12.3-2.20">
             <p id="section-12.3-2.20.1">The request cannot be fulfilled by this endpoint, but could succeed at the
-location specified in the Redirect structure. The requester <span class="bcp14">SHOULD</span> establish a
-new session to the provided URI (if present) and retry the request using the
+location specified in the REDIRECT Error Detail (<a href="#error-detail-redirect" class="auto internal xref">Section 9.4.2.1</a>).
+The requester <span class="bcp14">SHOULD</span> establish a new session to the provided URI (if present) and retry the request using the
 Redirect target. A Retry Interval of 0 indicates the original request <span class="bcp14">SHOULD NOT</span> be retried as sent;
 it does not prevent the requester from following a Redirect to a different
 URI or Redirect target. This error code can appear in
@@ -8729,19 +8774,22 @@ integer values of N (that is, 0x9D, 0x11C, ..., 0x3fffffffffffffde).<a href="#se
           <p id="section-13-4.2.1">Properties (<a href="#iana-properties" class="auto internal xref">Section 16.8</a>)<a href="#section-13-4.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.3">
-          <p id="section-13-4.3.1">Session Termination Error Codes (<a href="#iana-session-termination" class="auto internal xref">Section 16.11.1</a>)<a href="#section-13-4.3.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.3.1">Session Termination Error Codes (<a href="#iana-session-termination" class="auto internal xref">Section 16.12.1</a>)<a href="#section-13-4.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.4">
-          <p id="section-13-4.4.1">REQUEST_ERROR Codes (<a href="#iana-request-error" class="auto internal xref">Section 16.11.2</a>)<a href="#section-13-4.4.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.4.1">REQUEST_ERROR Codes (<a href="#iana-request-error" class="auto internal xref">Section 16.12.2</a>)<a href="#section-13-4.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.5">
-          <p id="section-13-4.5.1">PUBLISH_DONE Codes (<a href="#iana-publish-done" class="auto internal xref">Section 16.11.3</a>)<a href="#section-13-4.5.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.5.1">Error Detail Types (<a href="#iana-error-details" class="auto internal xref">Section 16.11</a>)<a href="#section-13-4.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.6">
-          <p id="section-13-4.6.1">Stream Reset Error Codes (<a href="#iana-reset-stream" class="auto internal xref">Section 16.11.4</a>)<a href="#section-13-4.6.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.6.1">PUBLISH_DONE Codes (<a href="#iana-publish-done" class="auto internal xref">Section 16.12.3</a>)<a href="#section-13-4.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-13-4.7">
-          <p id="section-13-4.7.1">MOQT Auth Token Type<a href="#section-13-4.7.1" class="pilcrow">¶</a></p>
+          <p id="section-13-4.7.1">Stream Reset Error Codes (<a href="#iana-reset-stream" class="auto internal xref">Section 16.12.4</a>)<a href="#section-13-4.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-13-4.8">
+          <p id="section-13-4.8.1">MOQT Auth Token Type<a href="#section-13-4.8.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-13-5">Because new values in these registries can be defined without negotiation,
@@ -8752,11 +8800,12 @@ following rules apply:<a href="#section-13-5" class="pilcrow">¶</a></p>
 arbitrary values. Endpoints <span class="bcp14">MUST</span> ignore unknown Setup Options as specified
 in <a href="#message-setup" class="auto internal xref">Section 9.1</a>.<a href="#section-13-6" class="pilcrow">¶</a></p>
 <p id="section-13-7">Unknown Properties <span class="bcp14">MUST</span> be handled as specified in <a href="#properties" class="auto internal xref">Section 8.4</a>.<a href="#section-13-7" class="pilcrow">¶</a></p>
-<p id="section-13-8">Receipt of an unknown error code in any error context (Session Termination,
+<p id="section-13-8">Unknown Error Detail types <span class="bcp14">MUST</span> be ignored as specified in <a href="#error-details" class="auto internal xref">Section 9.4.2</a>.<a href="#section-13-8" class="pilcrow">¶</a></p>
+<p id="section-13-9">Receipt of an unknown error code in any error context (Session Termination,
 REQUEST_ERROR, PUBLISH_DONE, or Data Stream Reset) <span class="bcp14">MUST</span> be treated as
 equivalent to <code>INTERNAL_ERROR</code> for that context. An endpoint <span class="bcp14">MUST NOT</span> close
 the session because it received an unknown error code in a REQUEST_ERROR
-or PUBLISH_DONE.<a href="#section-13-8" class="pilcrow">¶</a></p>
+or PUBLISH_DONE.<a href="#section-13-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="transport-considerations">
@@ -9875,18 +9924,64 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 <p id="section-16.10-4">This document does not define any initial entries.<a href="#section-16.10-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="iana-error-codes">
+<div id="iana-error-details">
 <section id="section-16.11">
+        <h3 id="name-error-detail-types">
+<a href="#section-16.11" class="section-number selfRef">16.11. </a><a href="#name-error-detail-types" class="section-name selfRef">Error Detail Types</a>
+        </h3>
+<p id="section-16.11-1">This document establishes the "MOQT Error Detail Types" registry, governing
+the Type field of Error Details in REQUEST_ERROR (<a href="#error-details" class="auto internal xref">Section 9.4.2</a>).<a href="#section-16.11-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-19">
+          <caption><a href="#table-19" class="selfRef">Table 19</a></caption>
+<thead>
+            <tr>
+              <th class="text-right" rowspan="1" colspan="1">Type</th>
+              <th class="text-left" rowspan="1" colspan="1">Name</th>
+              <th class="text-left" rowspan="1" colspan="1">Specification</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x01</td>
+              <td class="text-left" rowspan="1" colspan="1">REDIRECT</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#error-detail-redirect" class="auto internal xref">Section 9.4.2.1</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x02</td>
+              <td class="text-left" rowspan="1" colspan="1">UNSUPPORTED_PROPERTY</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#error-detail-unsupported-property" class="auto internal xref">Section 9.4.2.2</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x7f * N + 0x9D</td>
+              <td class="text-left" rowspan="1" colspan="1">Reserved for greasing</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#grease" class="auto internal xref">Section 13</a>
+</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-16.11-3">New Error Detail types are registered using the Specification Required
+policy (<span>[<a href="#RFC8126" class="cite xref">RFC8126</a>], <a href="https://rfc-editor.org/rfc/rfc8126#section-4.6" class="relref">Section 4.6</a></span>).  Provisional registrations are
+permitted to allow experimentation and avoid codepoint collisions
+between independent implementations.<a href="#section-16.11-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-error-codes">
+<section id="section-16.12">
         <h3 id="name-error-codes">
-<a href="#section-16.11" class="section-number selfRef">16.11. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
+<a href="#section-16.12" class="section-number selfRef">16.12. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
         </h3>
 <div id="iana-session-termination">
-<section id="section-16.11.1">
+<section id="section-16.12.1">
           <h4 id="name-session-termination-error-c">
-<a href="#section-16.11.1" class="section-number selfRef">16.11.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
+<a href="#section-16.12.1" class="section-number selfRef">16.12.1. </a><a href="#name-session-termination-error-c" class="section-name selfRef">Session Termination Error Codes</a>
           </h4>
-<table class="center" id="table-19">
-            <caption><a href="#table-19" class="selfRef">Table 19</a></caption>
+<table class="center" id="table-20">
+            <caption><a href="#table-20" class="selfRef">Table 20</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -10138,12 +10233,12 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 </section>
 </div>
 <div id="iana-request-error">
-<section id="section-16.11.2">
+<section id="section-16.12.2">
           <h4 id="name-request_error-codes">
-<a href="#section-16.11.2" class="section-number selfRef">16.11.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
+<a href="#section-16.12.2" class="section-number selfRef">16.12.2. </a><a href="#name-request_error-codes" class="section-name selfRef">REQUEST_ERROR Codes</a>
           </h4>
-<table class="center" id="table-20">
-            <caption><a href="#table-20" class="selfRef">Table 20</a></caption>
+<table class="center" id="table-21">
+            <caption><a href="#table-21" class="selfRef">Table 21</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -10290,12 +10385,12 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 </section>
 </div>
 <div id="iana-publish-done">
-<section id="section-16.11.3">
+<section id="section-16.12.3">
           <h4 id="name-publish_done-codes">
-<a href="#section-16.11.3" class="section-number selfRef">16.11.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
+<a href="#section-16.12.3" class="section-number selfRef">16.12.3. </a><a href="#name-publish_done-codes" class="section-name selfRef">PUBLISH_DONE Codes</a>
           </h4>
-<table class="center" id="table-21">
-            <caption><a href="#table-21" class="selfRef">Table 21</a></caption>
+<table class="center" id="table-22">
+            <caption><a href="#table-22" class="selfRef">Table 22</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
@@ -10386,12 +10481,12 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 </section>
 </div>
 <div id="iana-reset-stream">
-<section id="section-16.11.4">
+<section id="section-16.12.4">
           <h4 id="name-stream-reset-error-codes-2">
-<a href="#section-16.11.4" class="section-number selfRef">16.11.4. </a><a href="#name-stream-reset-error-codes-2" class="section-name selfRef">Stream Reset Error Codes</a>
+<a href="#section-16.12.4" class="section-number selfRef">16.12.4. </a><a href="#name-stream-reset-error-codes-2" class="section-name selfRef">Stream Reset Error Codes</a>
           </h4>
-<table class="center" id="table-22">
-            <caption><a href="#table-22" class="selfRef">Table 22</a></caption>
+<table class="center" id="table-23">
+            <caption><a href="#table-23" class="selfRef">Table 23</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Name</th>
