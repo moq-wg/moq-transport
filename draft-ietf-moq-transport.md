@@ -1031,12 +1031,12 @@ A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
 REQUEST_UPDATE that carries FILL_PARAMETERS while the subscription is not
 paused (see {{pausing-subscriptions}}).
 
-- FILL_PARAMETERS carried while the subscription is paused opens no fill fetch
-  stream.  Resuming the subscription without re-sending FILL_PARAMETERS does
-  not open one either.
 - A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open a new fill
   fetch stream.
 - When the subscription is cancelled, the publisher MUST reset any open fill fetch streams.
+
+{{paused-parameter}} describes the interaction between FILL_PARAMETERS and
+PAUSED.
 
 The publisher signals that the fill is complete by closing the stream with a
 FIN once all objects in the fill range have been delivered.  Because there is
@@ -3964,6 +3964,13 @@ hence the start Location is `{Largest Object.Group + 1 - StartGroup, 0}`. For ex
 If a relative start group results in a computed absolute group less than 0, the
 computed value is set to 0; if greater than 2^64 - 1, it is set to 2^64 - 1.
 
+The Largest Object used in the computation is the value of the parameter in the
+SUBSCRIBE_OK, FETCH_OK, or REQUEST_UPDATE_OK in response to the message that
+contains the LARGEST_OBJECT parameter. If LOCATION_FILTER is provided in
+PUBLISH_STATE_NOTIFY, the filter anchors off the LARGEST_OBJECT included in the
+same message. If LARGEST_OBJECT is omitted, all objects will have a location
+larger than LARGEST_OBJECT.
+
 Otherwise, all fields are absolute.  EndGroupDelta is delta
 encoded from StartGroup, but both the start and end groups are absolute, not
 relative to `Largest Object`.  If StartGroup + EndGroupDelta exceeds 2^64 - 1,
@@ -4073,6 +4080,9 @@ fill fetch stream (see {{fill-semantics}}), encoded as if they were Parameters
 for a separate message (see {{message-params}}).  A fill fetch stream is opened
 only when FILL_PARAMETERS is present.
 
+See {{paused-parameter}} for the description of how the PAUSED state of the
+subscription interacts with FILL_PARAMETERS.
+
 The following parameters MAY appear inside FILL_PARAMETERS:
 
 | Parameter Type | Parameter Name | Specification |
@@ -4101,8 +4111,10 @@ it are not considered to appear in the enclosing message for the purposes of
 inside FILL_PARAMETERS.
 
 FILL_PARAMETERS is not retained as subscription state. It applies only to the
-message that carries it, so the sticky-parameter rules in
-{{message-request-update}} do not apply to it.
+message that carries it. Its presence or absence in subsequent REQUEST_UPDATE
+messages has no effect existing fill fetch streams. The presence of another
+FILL_PARAMETERS parameter in REQUEST_UPDATE spawns a different fill fetch
+stream.
 
 ### EXPIRES Parameter {#expires}
 
@@ -4145,13 +4157,16 @@ A relay MUST set LARGEST_OBJECT to the largest of the following:
 PUBLISH, or REQUEST_UPDATE_OK
 2. The largest Location of an Object received on an upstream subscription
 
+See {{paused-parameter}} for how LARGEST_OBJECT with relative values interacts
+with the PAUSED parameter.
+
 ### PAUSED Parameter {#paused-parameter}
 
 The PAUSED parameter (Parameter Type 0x11) is a uint8. It MAY appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
-PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
-specifies whether affected subscriptions are paused (see
-{{pausing-subscriptions}}).
+PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It specifies whether
+affected subscriptions are paused (see {{pausing-subscriptions}}).
+
 The allowed values are 0 (unpaused) or 1 (paused). If an endpoint receives
 a value outside this range, it MUST close the session with `INVALID_PARAMETER`.
 
@@ -4164,6 +4179,15 @@ the value for the subscription remains unchanged.  If the parameter is omitted
 from any other message, the default value is 0.  When sent in
 PUBLISH_STATE_NOTIFY, it reports whether the subscription is paused at the
 publisher.
+
+A FILL_PARAMETERS parameter is ignored if it arrives when PAUSED is set to 1,
+or if the same message sets PAUSED to 1.  However, further changes to PAUSED
+have no effect on existing fill fetches for that subscription.
+
+LOCATION_FILTER parameters are not affected by changes to PAUSED state, except
+that objects are not actually delivered to a subscription if paused. In
+particular, relative LOCATION_FILTERs do not update their bounds when PAUSED
+state changes.
 
 ### NEW GROUP REQUEST Parameter {#new-group-request}
 
