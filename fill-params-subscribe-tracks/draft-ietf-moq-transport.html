@@ -29,11 +29,11 @@ agnostic and can be used for a wide range of use cases.
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.12.2
+    platformdirs 4.13.4
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.9.1
+    wcwidth 0.9.2
 -->
 <link href="draft-ietf-moq-transport.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 19 April 2027</td>
+<td class="center">Expires 2 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-16" class="published">16 October 2026</time>
+<time datetime="2026-10-29" class="published">29 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-19">19 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-02">2 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 19 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 2 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1665,7 +1665,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                     <p id="section-toc.1-1.9.2.20.2.17.1"><a href="#section-9.20.17" class="auto internal xref">9.20.17</a>. <a href="#name-largest-object-parameter" class="internal xref">LARGEST OBJECT Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.20.2.18">
-                    <p id="section-toc.1-1.9.2.20.2.18.1"><a href="#section-9.20.18" class="auto internal xref">9.20.18</a>. <a href="#name-forward-parameter" class="internal xref">FORWARD Parameter</a></p>
+                    <p id="section-toc.1-1.9.2.20.2.18.1"><a href="#section-9.20.18" class="auto internal xref">9.20.18</a>. <a href="#name-paused-parameter" class="internal xref">PAUSED Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.20.2.19">
                     <p id="section-toc.1-1.9.2.20.2.19.1"><a href="#section-9.20.19" class="auto internal xref">9.20.19</a>. <a href="#name-new-group-request-parameter" class="internal xref">NEW GROUP REQUEST Parameter</a></p>
@@ -2731,10 +2731,10 @@ not send Objects on a paused subscription, and does send them when it is not
 paused.  Control messages, such as PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.9</a>), are
 sent regardless of whether the subscription is paused.<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-3.1.1-2">The initiator of the subscription sets the initial state by including the
-FORWARD parameter (<a href="#forward-parameter" class="auto internal xref">Section 9.20.18</a>) in PUBLISH or SUBSCRIBE. The
+PAUSED parameter (<a href="#paused-parameter" class="auto internal xref">Section 9.20.18</a>) in PUBLISH or SUBSCRIBE. The
 subscriber can pause an <code>Established</code> subscription by sending REQUEST_UPDATE
-with FORWARD set to 0, or resume it by sending REQUEST_UPDATE with FORWARD set
-to 1.<a href="#section-3.1.1-2" class="pilcrow">¶</a></p>
+with PAUSED set to 1, or resume it by sending REQUEST_UPDATE with PAUSED set
+to 0.<a href="#section-3.1.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscription-state-management">
@@ -2850,6 +2850,8 @@ Location is known.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.2-4">If no Objects have been published for the track or Start Location is greater
 than the <code>Largest Object</code> (<a href="#largest-object" class="auto internal xref">Section 3.1.4</a>) the publisher <span class="bcp14">MUST</span> return
 FETCH_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+<p id="section-3.2-5">If the Location filter is relative (see <a href="#location-filter" class="auto internal xref">Section 9.20.9</a>), the publisher
+<span class="bcp14">MUST</span> return REQUEST_ERROR with error code <code>INVALID_RANGE</code>.<a href="#section-3.2-5" class="pilcrow">¶</a></p>
 <div id="fetch-object-delivery">
 <section id="section-3.2.1">
           <h4 id="name-fetch-object-delivery">
@@ -2899,12 +2901,8 @@ out.  A publisher <span class="bcp14">SHOULD NOT</span> use <code>End of Non-Exi
 except to split a range of Objects that will not be serialized into those that are
 known not to exist and those with unknown or timed out status.<a href="#section-3.2.2-6" class="pilcrow">¶</a></p>
 <p id="section-3.2.2-7">If a Publisher receives a FETCH with a range that includes one or more Objects
-with unknown state, it can choose to reset the FETCH data stream with
-UNKNOWN_OBJECT_STATUS (<a href="#stream-reset-codes" class="auto internal xref">Section 12.5</a>), or indicate the range of unknown
-Objects (<code>End of Unknown Range</code>, see <a href="#end-of-range" class="auto internal xref">Section 11.4.1.2</a>) and continue serving
-other known Objects.  When resetting the stream, the publisher can do so
-immediately or after previously sent objects are delivered.  If it has not yet
-sent FETCH_OK, it can send FETCH_ERROR in addition to resetting the stream.<a href="#section-3.2.2-7" class="pilcrow">¶</a></p>
+with unknown state, it indicates the range of unknown Objects (<code>End of Unknown
+Range</code>, see <a href="#end-of-range" class="auto internal xref">Section 11.4.1.2</a>) and continues serving other known Objects.<a href="#section-3.2.2-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relay-fetch-handling">
@@ -2916,8 +2914,8 @@ sent FETCH_OK, it can send FETCH_ERROR in addition to resetting the stream.<a hr
 sending objects immediately in response to a FETCH.  When a relay encounters
 Objects within the requested range that are not immediately available and have
 unknown status, it issues one or more upstream FETCHes to retrieve them.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.2.3-2">If an upstream FETCH fails, the relay indicates the range of unknown Objects or
-resets the FETCH data stream, as described above.<a href="#section-3.2.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.2.3-2">If an upstream FETCH fails, the relay indicates the range of unknown Objects,
+as described above, unless the Track is malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-3.2.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.2.3-3">The Fill Timeout (see <a href="#fill-timeout" class="auto internal xref">Section 9.20.5</a>) represents a total budget
 for all upstream FETCHes generated by a single request. If the budget is
 exhausted, the relay reports any remaining unavailable Objects as Timed-Out gaps
@@ -3034,11 +3032,11 @@ and does not evaluate Track Properties in PUBLISH messages.<a href="#section-3.3
 to further restrict which tracks and objects pass all filter criteria.
 This includes all Range Filters <a href="#range-filters" class="auto internal xref">Section 3.3.2</a> and Location
 Filters <a href="#location-filters" class="auto internal xref">Section 3.3.1</a>, which can be evaluated in any order.
-The Forward parameter is also a type of filter.  The publisher <span class="bcp14">MUST</span>
+The Paused parameter is also a type of filter.  The publisher <span class="bcp14">MUST</span>
 forward only objects that pass all filters.<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.3.3-2">
 <pre>
-Pass = Forward AND Location Filters AND Range Filters
+Pass = (NOT Paused) AND Location Filters AND Range Filters
 </pre><a href="#section-3.3.3-2" class="pilcrow">¶</a>
 </div>
 </section>
@@ -3216,12 +3214,15 @@ the resulting Subscriptions can be filtered by any Range Filter.<a href="#sectio
           <h4 id="name-parameters-on-subscribe_tra">
 <a href="#section-3.6.2" class="section-number selfRef">3.6.2. </a><a href="#name-parameters-on-subscribe_tra" class="section-name selfRef">Parameters on SUBSCRIBE_TRACKS</a>
           </h4>
-<p id="section-3.6.2-1">Any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid
-in SUBSCRIBE_TRACKS, unless otherwise specified. These parameters are used by the
-publisher as the initial Subscription parameters when a PUBLISH is sent as a result of
-SUBSCRIBE_TRACKS, and explicitly communicated in the PUBLISH.
-When a Parameter is omitted from the SUBSCRIBE_TRACKS and resulting PUBLISH,
-the Subscription uses the default value.<a href="#section-3.6.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.6.2-1">The parameters that can appear in SUBSCRIBE_TRACKS are listed in
+<a href="#message-subscribe-tracks" class="auto internal xref">Section 9.18</a>.  AUTHORIZATION_TOKEN and TRACK_PROPERTY_FILTER
+apply to the SUBSCRIBE_TRACKS itself.  The publisher uses the others as the
+initial Subscription parameters when a PUBLISH is sent as a result of
+SUBSCRIBE_TRACKS, and includes those in the PUBLISH.
+When a Parameter is omitted from the SUBSCRIBE_TRACKS and resulting
+PUBLISH, the Subscription uses the default value.  Parameters that only apply
+to a SUBSCRIBE for a single Track, such as RENDEZVOUS_TIMEOUT and
+NEW_GROUP_REQUEST, cannot appear in SUBSCRIBE_TRACKS.<a href="#section-3.6.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.6.2-2">To join Tracks initiated via the resulting PUBLISHes, the subscriber can
 specify a Location Filter and optionally include FILL_PARAMETERS in the
 SUBSCRIBE_TRACKS, or in a REQUEST_UPDATE following PUBLISH_OK, as described
@@ -3255,11 +3256,12 @@ that track.<a href="#section-3.6.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.7-1">Property types in the range 0x4000-0x7FFF are designated as Mandatory Track
 Properties. These properties <span class="bcp14">MUST</span> have Track scope. Mandatory Track Properties
 have special handling rules that prevent tracks with required properties from
-being forwarded to or processed by endpoints that do not understand them.<a href="#section-3.7-1" class="pilcrow">¶</a></p>
+being forwarded to or processed by endpoints that do not understand them.
+Grease values (<a href="#grease" class="auto internal xref">Section 13</a>) in this range are not Mandatory Track Properties.<a href="#section-3.7-1" class="pilcrow">¶</a></p>
 <p id="section-3.7-2">An Object received with a Mandatory Track Property as an Object Property is
 malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-3.7-2" class="pilcrow">¶</a></p>
 <p id="section-3.7-3">When an endpoint receives a Mandatory Track Property in PUBLISH,
-SUBSCRIBE_OK, or FETCH_OK that it does not
+SUBSCRIBE_OK, FETCH_OK, or TRACK_STATUS_OK that it does not
 understand, it <span class="bcp14">MUST NOT</span> process or forward that track:<a href="#section-3.7-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.7-4.1">
@@ -3279,6 +3281,11 @@ sent a FETCH_OK or FETCH_ERROR downstream, it <span class="bcp14">MUST</span> se
 error code UNSUPPORTED_EXTENSION to the downstream fetch requester.  If the
 relay has already forwarded data on a fetch stream, it <span class="bcp14">MUST</span> reset the stream.<a href="#section-3.7-4.3.1" class="pilcrow">¶</a></p>
 </li>
+          <li class="normal" id="section-3.7-4.4">
+            <p id="section-3.7-4.4.1">For TRACK_STATUS_OK messages: if the subscriber is a relay with pending
+downstream TRACK_STATUS requests, it <span class="bcp14">MUST</span> send TRACK_STATUS_ERROR with error
+code UNSUPPORTED_EXTENSION to the downstream requesters.<a href="#section-3.7-4.4.1" class="pilcrow">¶</a></p>
+</li>
         </ul>
 <p id="section-3.7-5">A publisher that knows a subscriber does not support a Mandatory Track Property
 <span class="bcp14">SHOULD</span> take the following action:<a href="#section-3.7-5" class="pilcrow">¶</a></p>
@@ -3291,7 +3298,11 @@ UNSUPPORTED_EXTENSION.<a href="#section-3.7-6.1.1" class="pilcrow">¶</a></p>
             <p id="section-3.7-6.2.1">For FETCH: respond with FETCH_ERROR with error code UNSUPPORTED_EXTENSION.<a href="#section-3.7-6.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.7-6.3">
-            <p id="section-3.7-6.3.1">For PUBLISH: do not publish the track to that subscriber.<a href="#section-3.7-6.3.1" class="pilcrow">¶</a></p>
+            <p id="section-3.7-6.3.1">For TRACK_STATUS: respond with TRACK_STATUS_ERROR with error code
+UNSUPPORTED_EXTENSION.<a href="#section-3.7-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.7-6.4">
+            <p id="section-3.7-6.4.1">For PUBLISH: do not publish the track to that subscriber.<a href="#section-3.7-6.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3325,30 +3336,33 @@ PUBLISH_NAMESPACE for it. A Relay has additional requirements on which
 publishers receive these requests; see <a href="#publisher-interactions" class="auto internal xref">Section 7.6</a>.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <p id="section-4.1-2">The receiver verifies the publisher is authorized to publish tracks under this
 prefix.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
-<p id="section-4.1-3">A subscriber <span class="bcp14">MUST</span> send exactly one PUBLISH_NAMESPACE_OK or
+<p id="section-4.1-3">A publisher can send more than one PUBLISH_NAMESPACE for the same Track
+Namespace Prefix in a session.  The namespace remains published until all of
+them are withdrawn.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">A subscriber <span class="bcp14">MUST</span> send exactly one PUBLISH_NAMESPACE_OK or
 PUBLISH_NAMESPACE_ERROR as the first message on the bidi stream in response to
 a PUBLISH_NAMESPACE. The publisher <span class="bcp14">SHOULD</span> close the session with
-<code>UNEXPECTED_MESSAGE</code> if it receives more than one.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
-<p id="section-4.1-4">An endpoint <span class="bcp14">SHOULD</span> report the reception of a PUBLISH_NAMESPACE_OK or
+<code>UNEXPECTED_MESSAGE</code> if it receives more than one.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-5">An endpoint <span class="bcp14">SHOULD</span> report the reception of a PUBLISH_NAMESPACE_OK or
 PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
-namespace.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
-<p id="section-4.1-5">If a subscriber
+namespace.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.1-6">If a subscriber
 has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
 namespace for a given track, it <span class="bcp14">SHOULD</span> only request the Track from the sender(s) of those
-PUBLISH_NAMESPACE messages.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
-<p id="section-4.1-6">A PUBLISH_NAMESPACE is withdrawn by cancelling the request
+PUBLISH_NAMESPACE messages.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
+<p id="section-4.1-7">A PUBLISH_NAMESPACE is withdrawn by cancelling the request
 (see <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>), although it is not a protocol error for
 the subscriber to send a SUBSCRIBE, FETCH or TRACK_STATUS message for a track
-in a namespace after the namespace is withdrawn.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
-<p id="section-4.1-7">A subscriber can cancel the request (see <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>) to revoke
+in a namespace after the namespace is withdrawn.<a href="#section-4.1-7" class="pilcrow">¶</a></p>
+<p id="section-4.1-8">A subscriber can cancel the request (see <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>) to revoke
 acceptance of a PUBLISH_NAMESPACE. If the reason for cancellation is expiration
 of authorization credentials, the publisher can send PUBLISH_NAMESPACE again
-on a new bidi stream with refreshed authorization.<a href="#section-4.1-7" class="pilcrow">¶</a></p>
-<p id="section-4.1-8">While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
+on a new bidi stream with refreshed authorization.<a href="#section-4.1-8" class="pilcrow">¶</a></p>
+<p id="section-4.1-9">While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
 subscribers, it is not a full-fledged routing protocol and does not protect
 against loops. In particular, PUBLISH_NAMESPACE <span class="bcp14">SHOULD NOT</span>
-be used to find paths through richly connected networks of relays.<a href="#section-4.1-8" class="pilcrow">¶</a></p>
+be used to find paths through richly connected networks of relays.<a href="#section-4.1-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscribing-to-namespaces">
@@ -4076,9 +4090,11 @@ PUBLISH_NAMESPACE, REQUEST_UPDATE, and TRACK_STATUS message consumes a
 Request ID. Only
 request messages include a Request ID; response messages do not, since
 they are sent on the same bidirectional stream as the request.<a href="#section-6.4.2.1-3" class="pilcrow">¶</a></p>
-<p id="section-6.4.2.1-4">If an endpoint receives a Request ID where the least significant bit is
-incorrect for the sender, or a duplicate Request ID, it <span class="bcp14">MUST</span> close the
-session with <code>INVALID_REQUEST_ID</code>.<a href="#section-6.4.2.1-4" class="pilcrow">¶</a></p>
+<p id="section-6.4.2.1-4">An endpoint <span class="bcp14">MUST NOT</span> reuse a Request ID within a session.  If an endpoint
+receives a Request ID where the least significant bit is incorrect for the
+sender, it <span class="bcp14">MUST</span> close the session with <code>INVALID_REQUEST_ID</code>.  If an endpoint
+detects a duplicate Request ID, it <span class="bcp14">MUST</span> close the session with
+<code>INVALID_REQUEST_ID</code>.<a href="#section-6.4.2.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="graceful-request-closure">
@@ -4418,7 +4434,7 @@ Track Name is matched exactly against existing upstream subscriptions.<a href="#
 <p id="section-7.6-6">Namespace Prefix Matching (<a href="#namespace-prefix-matching" class="auto internal xref">Section 2.4.2</a>) is further used to
 decide which publishers receive a SUBSCRIBE and which subscribers receive a
 PUBLISH.<a href="#section-7.6-6" class="pilcrow">¶</a></p>
-<p id="section-7.6-7">Relays <span class="bcp14">MUST</span> send SUBSCRIBE messages to all matching publishers. This includes
+<p id="section-7.6-7">Relays <span class="bcp14">MUST</span> send at least one SUBSCRIBE to each matching publisher. This includes
 matching both Established subscriptions on the Full Track Name and Namespace
 Prefix Matching against published Namespaces.<a href="#section-7.6-7" class="pilcrow">¶</a></p>
 <p id="section-7.6-8">When a Relay needs to make an upstream FETCH request, it determines the
@@ -4449,7 +4465,8 @@ if paused.<a href="#section-7.6-12" class="pilcrow">¶</a></p>
 <p id="section-7.6-13">When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
 matches one or more existing subscriptions to other upstream sessions, it <span class="bcp14">MUST</span>
 send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
-matching subscription. A Relay does not send PUBLISH_NAMESPACE to a subscriber;
+matching subscription, unless it already has a subscription to that Track from
+that publisher. A Relay does not send PUBLISH_NAMESPACE to a subscriber;
 it advertises namespaces by sending NAMESPACE in response to a matching
 SUBSCRIBE_NAMESPACE (see <a href="#subscribing-to-namespaces" class="auto internal xref">Section 4.2</a>).<a href="#section-7.6-13" class="pilcrow">¶</a></p>
 <p id="section-7.6-14">If a Session is closed due to an unknown or invalid control message or Object,
@@ -5556,7 +5573,7 @@ parameters that can appear depend on the request being answered:<a href="#sectio
                 <p id="section-9.3-3.1.2.2.1">REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT<a href="#section-9.3-3.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.3-3.1.2.3">
-                <p id="section-9.3-3.1.2.3.1">TRACK_STATUS_OK: LARGEST_OBJECT<a href="#section-9.3-3.1.2.3.1" class="pilcrow">¶</a></p>
+                <p id="section-9.3-3.1.2.3.1">TRACK_STATUS_OK: EXPIRES, LARGEST_OBJECT<a href="#section-9.3-3.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.3-3.1.2.4">
                 <p id="section-9.3-3.1.2.4.1">SUBSCRIBE_NAMESPACE_OK: EXPIRES<a href="#section-9.3-3.1.2.4.1" class="pilcrow">¶</a></p>
@@ -5738,7 +5755,7 @@ parameters that can appear depend on the request being updated:<a href="#section
 <ul class="normal">
 <li class="normal" id="section-9.5-10.2.2.1">
                 <p id="section-9.5-10.2.2.1.1">Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
-SUBGROUP_DELIVERY_TIMEOUT, FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
+SUBGROUP_DELIVERY_TIMEOUT, PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
 FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
 OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST<a href="#section-9.5-10.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
@@ -5752,7 +5769,7 @@ OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST<a href="#section-9.5-10.2.2.1.1" class
                 <p id="section-9.5-10.2.2.4.1">SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN, TRACK_NAMESPACE_PREFIX<a href="#section-9.5-10.2.2.4.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.5-10.2.2.5">
-                <p id="section-9.5-10.2.2.5.1">SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, FORWARD, TRACK_PROPERTY_FILTER,
+                <p id="section-9.5-10.2.2.5.1">SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, PAUSED, TRACK_PROPERTY_FILTER,
 TRACK_NAMESPACE_PREFIX<a href="#section-9.5-10.2.2.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
@@ -5854,7 +5871,7 @@ SUBSCRIBE Message {
           <li class="normal" id="section-9.6-4.4">
             <p id="section-9.6-4.4.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  The parameters
 that can appear in a SUBSCRIBE are OBJECT_DELIVERY_TIMEOUT,
-AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, FORWARD,
+AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, PAUSED,
 SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
 SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
 NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.<a href="#section-9.6-4.4.1" class="pilcrow">¶</a></p>
@@ -5954,9 +5971,9 @@ PUBLISH Message {
             <p id="section-9.8-3.5.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>. The parameters
 that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
 AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
-FORWARD, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER and
-FILL_PARAMETERS.  Those
-governing delivery, such as FORWARD, GROUP_ORDER, SUBSCRIBER_PRIORITY,
+PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER and
+FILL_PARAMETERS.  Those governing delivery, such as PAUSED, GROUP_ORDER,
+SUBSCRIBER_PRIORITY,
 SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
 inform the Subscriber of the initial Subscription parameters.
 If the PUBLISH is the result of a SUBSCRIBE_TRACKS, the parameters are handled
@@ -6109,7 +6126,7 @@ PUBLISH_STATE_NOTIFY Message {
 <ul class="normal">
 <li class="normal" id="section-9.10-9.1">
             <p id="section-9.10-9.1.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  The parameters
-that can appear in a PUBLISH_STATE_NOTIFY are LARGEST_OBJECT, FORWARD and
+that can appear in a PUBLISH_STATE_NOTIFY are LARGEST_OBJECT, PAUSED and
 LOCATION_FILTER.<a href="#section-9.10-9.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -6205,8 +6222,8 @@ If End Location is smaller than the Start Location in the corresponding FETCH
 the receiver <span class="bcp14">MUST</span> close the session with <code>INVALID_FIELD</code>.<a href="#section-9.12-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.12-3.3">
-            <p id="section-9.12-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  No parameters
-are currently defined for FETCH_OK.<a href="#section-9.12-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.12-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>.  The only
+parameter that can appear in a FETCH_OK is EXPIRES.<a href="#section-9.12-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.12-3.4">
             <p id="section-9.12-3.4.1">Track Properties : A sequence of Properties. See <a href="#properties" class="auto internal xref">Section 8.4</a>.<a href="#section-9.12-3.4.1" class="pilcrow">¶</a></p>
@@ -6439,9 +6456,10 @@ namespaces known to the publisher.<a href="#section-9.18-3.2.1" class="pilcrow">
             <p id="section-9.18-3.3.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.20</a>, though they
 are handled differently from the same Parameters on Subscriptions, as outlined
 below.  The parameters that can appear in a SUBSCRIBE_TRACKS are
-AUTHORIZATION_TOKEN, FORWARD, GROUP_ORDER, SUBGROUP_FILTER, OBJECTID_FILTER,
-PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER,
-INCLUDE_PROPERTIES and FILL_PARAMETERS.<a href="#section-9.18-3.3.1" class="pilcrow">¶</a></p>
+OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT,
+PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
+SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
+TRACK_PROPERTY_FILTER and INCLUDE_PROPERTIES.<a href="#section-9.18-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -6593,7 +6611,8 @@ defined in <a href="#auth-token-compression" class="auto internal xref">Section 
 <a href="#section-9.20.3" class="section-number selfRef">9.20.3. </a><a href="#name-subgroup_delivery_timeout-p" class="section-name selfRef">SUBGROUP_DELIVERY_TIMEOUT Parameter</a>
           </h4>
 <p id="section-9.20.3-1">The SUBGROUP_DELIVERY_TIMEOUT parameter (Parameter Type 0x06) is a varint. It
-<span class="bcp14">MAY</span> appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
+<span class="bcp14">MAY</span> appear in a SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, or REQUEST_UPDATE (for a
+subscription) message.  Its
 semantics are defined in <a href="#delivery-timeouts" class="auto internal xref">Section 5.2</a>.<a href="#section-9.20.3-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.3-2">This parameter is intended to be specific to a subscription, so it <span class="bcp14">SHOULD NOT</span>
 be forwarded upstream by a relay that intends to serve multiple subscriptions
@@ -6606,7 +6625,8 @@ for the same track.<a href="#section-9.20.3-2" class="pilcrow">¶</a></p>
 <a href="#section-9.20.4" class="section-number selfRef">9.20.4. </a><a href="#name-object_delivery_timeout-par" class="section-name selfRef">OBJECT_DELIVERY_TIMEOUT Parameter</a>
           </h4>
 <p id="section-9.20.4-1">The OBJECT_DELIVERY_TIMEOUT parameter (Parameter Type 0x02) is a varint. It
-<span class="bcp14">MAY</span> appear in a SUBSCRIBE, PUBLISH, or REQUEST_UPDATE message.  Its
+<span class="bcp14">MAY</span> appear in a SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, or REQUEST_UPDATE (for a
+subscription) message.  Its
 semantics are defined in <a href="#delivery-timeouts" class="auto internal xref">Section 5.2</a>.<a href="#section-9.20.4-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.4-2">This parameter is intended to be specific to a subscription, so it <span class="bcp14">SHOULD NOT</span>
 be forwarded upstream by a relay that intends to serve multiple subscriptions
@@ -6618,9 +6638,9 @@ for the same track.<a href="#section-9.20.4-2" class="pilcrow">¶</a></p>
           <h4 id="name-fill-timeout-parameter">
 <a href="#section-9.20.5" class="section-number selfRef">9.20.5. </a><a href="#name-fill-timeout-parameter" class="section-name selfRef">FILL TIMEOUT Parameter</a>
           </h4>
-<p id="section-9.20.5-1">The FILL_TIMEOUT parameter (Parameter Type 0x0A) <span class="bcp14">MAY</span> appear in a FETCH message,
-or inside a FILL_PARAMETERS parameter (see <a href="#fill-parameters" class="auto internal xref">Section 9.20.15</a>), where it
-applies to the fill fetch stream.<a href="#section-9.20.5-1" class="pilcrow">¶</a></p>
+<p id="section-9.20.5-1">The FILL_TIMEOUT parameter (Parameter Type 0x0A) is a varint. It <span class="bcp14">MAY</span> appear in
+a FETCH message, or inside a FILL_PARAMETERS parameter (see
+<a href="#fill-parameters" class="auto internal xref">Section 9.20.15</a>), where it applies to the fill fetch stream.<a href="#section-9.20.5-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.5-2">It is the maximum total duration in milliseconds a relay <span class="bcp14">SHOULD</span> spend waiting
 for upstream sources to provide Objects that are not immediately available
 before reporting them as Timed-Out gaps in the FETCH response (see <a href="#fetch" class="auto internal xref">Section 3.2</a>).<a href="#section-9.20.5-2" class="pilcrow">¶</a></p>
@@ -6638,8 +6658,8 @@ shorter timeout without informing the subscriber.<a href="#section-9.20.5-4" cla
           <h4 id="name-rendezvous-timeout-paramete">
 <a href="#section-9.20.6" class="section-number selfRef">9.20.6. </a><a href="#name-rendezvous-timeout-paramete" class="section-name selfRef">RENDEZVOUS TIMEOUT Parameter</a>
           </h4>
-<p id="section-9.20.6-1">The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) <span class="bcp14">MAY</span> appear in a
-SUBSCRIBE message.<a href="#section-9.20.6-1" class="pilcrow">¶</a></p>
+<p id="section-9.20.6-1">The RENDEZVOUS_TIMEOUT parameter (Parameter Type 0x04) is a varint. It <span class="bcp14">MAY</span>
+appear in a SUBSCRIBE message.<a href="#section-9.20.6-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.6-2">It is the duration in milliseconds the subscriber is willing to wait for a
 publisher to become available. This applies when a relay receives a SUBSCRIBE
 for a Track that has no current publisher.<a href="#section-9.20.6-2" class="pilcrow">¶</a></p>
@@ -6664,8 +6684,9 @@ error code DOES_NOT_EXIST if no publisher is available<a href="#section-9.20.6-5
 <a href="#section-9.20.7" class="section-number selfRef">9.20.7. </a><a href="#name-subscriber-priority-paramet" class="section-name selfRef">SUBSCRIBER PRIORITY Parameter</a>
           </h4>
 <p id="section-9.20.7-1">The SUBSCRIBER_PRIORITY parameter (Parameter Type 0x20) is a uint8. It <span class="bcp14">MAY</span>
-appear in a SUBSCRIBE, PUBLISH, FETCH, or REQUEST_UPDATE
-(for a subscription or FETCH). It is an integer expressing the priority of a
+appear in a SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, FETCH, or REQUEST_UPDATE
+(for a subscription or FETCH), or inside a FILL_PARAMETERS parameter (see
+<a href="#fill-parameters" class="auto internal xref">Section 9.20.15</a>). It is an integer expressing the priority of a
 subscription relative to other subscriptions and fetch responses in the same
 session. Lower numbers get higher priority. See <a href="#priorities" class="auto internal xref">Section 5.1</a>.<a href="#section-9.20.7-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.7-2">If omitted from SUBSCRIBE or FETCH, the publisher uses the value 128.<a href="#section-9.20.7-2" class="pilcrow">¶</a></p>
@@ -6696,8 +6717,9 @@ the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).<a h
 <a href="#section-9.20.9" class="section-number selfRef">9.20.9. </a><a href="#name-location-filter-parameter" class="section-name selfRef">LOCATION FILTER Parameter</a>
           </h4>
 <p id="section-9.20.9-1">The LOCATION_FILTER parameter (Parameter Type 0x21) <span class="bcp14">MAY</span> appear in a FETCH,
-SUBSCRIBE, PUBLISH, REQUEST_UPDATE (for a subscription) or
-PUBLISH_STATE_NOTIFY message. It is a Location Filter (see
+SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, REQUEST_UPDATE (for a subscription) or
+PUBLISH_STATE_NOTIFY message, or inside a FILL_PARAMETERS parameter (see
+<a href="#fill-parameters" class="auto internal xref">Section 9.20.15</a>). It is a Location Filter (see
 <a href="#location-filters" class="auto internal xref">Section 3.3.1</a>).<a href="#section-9.20.9-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.9-2">A Location filter parameter has the following structure:<a href="#section-9.20.9-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.20.9-3">
@@ -6931,13 +6953,12 @@ TRACK_PROPERTY_FILTER {
           <h4 id="name-fill-parameters-parameter">
 <a href="#section-9.20.15" class="section-number selfRef">9.20.15. </a><a href="#name-fill-parameters-parameter" class="section-name selfRef">FILL PARAMETERS Parameter</a>
           </h4>
-<p id="section-9.20.15-1">The FILL_PARAMETERS parameter (Parameter Type 0x23) uses length-prefixed
-encoding. It <span class="bcp14">MAY</span> appear in a SUBSCRIBE, SUBSCRIBE_TRACKS, PUBLISH or
-REQUEST_UPDATE (for a subscription)
-message. Its value is a sequence of Parameters that apply to the fill fetch
-stream (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>), encoded as if they were Parameters for a
-separate message (see <a href="#message-parameters" class="auto internal xref">Section 16.7</a>).  Its presence is what requests a
-fill fetch stream; a subscription with no FILL_PARAMETERS opens none.<a href="#section-9.20.15-1" class="pilcrow">¶</a></p>
+<p id="section-9.20.15-1">The FILL_PARAMETERS parameter (Parameter Type 0x23) <span class="bcp14">MAY</span> appear in a SUBSCRIBE,
+SUBSCRIBE_TRACKS, PUBLISH, or REQUEST_UPDATE (for a subscription) message. Its
+value is a Number of Parameters (vi64) followed by that many Parameters that
+apply to the fill fetch stream (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>), encoded as if they were
+Parameters for a separate message (see <a href="#message-params" class="auto internal xref">Section 9.20</a>).  A fill fetch stream
+is opened only when FILL_PARAMETERS is present.<a href="#section-9.20.15-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.15-2">The following parameters <span class="bcp14">MAY</span> appear inside FILL_PARAMETERS:<a href="#section-9.20.15-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-7">
             <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
@@ -7029,21 +7050,22 @@ message that carries it, so the sticky-parameter rules in
 <a href="#section-9.20.16" class="section-number selfRef">9.20.16. </a><a href="#name-expires-parameter" class="section-name selfRef">EXPIRES Parameter</a>
           </h4>
 <p id="section-9.20.16-1">The EXPIRES parameter (Parameter Type 0x8) is a varint. It <span class="bcp14">MAY</span> appear in
-SUBSCRIBE_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE_NAMESPACE_OK, SUBSCRIBE_TRACKS_OK,
-PUBLISH_NAMESPACE_OK, or REQUEST_UPDATE_OK. It encodes the time
+PUBLISH, SUBSCRIBE_OK, FETCH_OK, or any REQUEST_OK. It encodes the time
 in milliseconds after which the sender of the parameter will terminate
-the subscription. The sender will terminate the subscription using PUBLISH_DONE
-or by cancelling the request (see <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>).  This value is advisory and the sender
-can terminate the subscription prior to or after the expiry time.<a href="#section-9.20.16-1" class="pilcrow">¶</a></p>
-<p id="section-9.20.16-2">The receiver of the parameter can attempt to extend the subscription by sending
+the request (see <a href="#message-publish-done" class="auto internal xref">Section 9.9</a> and <a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>).
+This value is advisory and the sender
+can terminate the request prior to or after the expiry time.<a href="#section-9.20.16-1" class="pilcrow">¶</a></p>
+<p id="section-9.20.16-2">EXPIRES in TRACK_STATUS_OK indicates the value the sender would have included
+in a SUBSCRIBE_OK for the same Track.<a href="#section-9.20.16-2" class="pilcrow">¶</a></p>
+<p id="section-9.20.16-3">The receiver of the parameter can attempt to extend the request by sending
 a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
 more updated AUTHORIZATION_TOKENs, it <span class="bcp14">SHOULD</span> include those in the
 REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
 value in REQUEST_UPDATE_OK. Relays that send this parameter and applications that
 receive it <span class="bcp14">MAY</span> introduce jitter to prevent many endpoints from updating
-simultaneously.<a href="#section-9.20.16-2" class="pilcrow">¶</a></p>
-<p id="section-9.20.16-3">If the EXPIRES parameter is 0 or is not present in a message, the subscription
-does not expire or expires at an unknown time.<a href="#section-9.20.16-3" class="pilcrow">¶</a></p>
+simultaneously.<a href="#section-9.20.16-3" class="pilcrow">¶</a></p>
+<p id="section-9.20.16-4">If the EXPIRES parameter is 0 or is not present in a message, the request
+does not expire or expires at an unknown time.<a href="#section-9.20.16-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="largest-param">
@@ -7071,24 +7093,24 @@ PUBLISH, or REQUEST_UPDATE_OK<a href="#section-9.20.17-4.1.1" class="pilcrow">¶
           </ol>
 </section>
 </div>
-<div id="forward-parameter">
+<div id="paused-parameter">
 <section id="section-9.20.18">
-          <h4 id="name-forward-parameter">
-<a href="#section-9.20.18" class="section-number selfRef">9.20.18. </a><a href="#name-forward-parameter" class="section-name selfRef">FORWARD Parameter</a>
+          <h4 id="name-paused-parameter">
+<a href="#section-9.20.18" class="section-number selfRef">9.20.18. </a><a href="#name-paused-parameter" class="section-name selfRef">PAUSED Parameter</a>
           </h4>
-<p id="section-9.20.18-1">The FORWARD parameter (Parameter Type 0x10) is a uint8. It <span class="bcp14">MAY</span> appear in
+<p id="section-9.20.18-1">The PAUSED parameter (Parameter Type 0x11) is a uint8. It <span class="bcp14">MAY</span> appear in
 SUBSCRIBE, REQUEST_UPDATE (for a subscription or a SUBSCRIBE_TRACKS request),
 PUBLISH, SUBSCRIBE_TRACKS and PUBLISH_STATE_NOTIFY. It
 specifies whether affected subscriptions are paused (see
 <a href="#pausing-subscriptions" class="auto internal xref">Section 3.1.1</a>).
-The allowed values are 0 (don't forward) or 1 (forward). If an endpoint receives
+The allowed values are 0 (unpaused) or 1 (paused). If an endpoint receives
 a value outside this range, it <span class="bcp14">MUST</span> close the session with <code>INVALID_PARAMETER</code>.<a href="#section-9.20.18-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.18-2">In the case of a REQUEST_UPDATE for SUBSCRIBE_TRACKS, it specifies whether
 future subscriptions that match the prefix are paused. Existing
 subscriptions are unaffected.<a href="#section-9.20.18-2" class="pilcrow">¶</a></p>
 <p id="section-9.20.18-3">If the parameter is omitted from REQUEST_UPDATE or PUBLISH_STATE_NOTIFY,
 the value for the subscription remains unchanged.  If the parameter is omitted
-from any other message, the default value is 1.  When sent in
+from any other message, the default value is 0.  When sent in
 PUBLISH_STATE_NOTIFY, it reports whether the subscription is paused at the
 publisher.<a href="#section-9.20.18-3" class="pilcrow">¶</a></p>
 </section>
@@ -7102,11 +7124,10 @@ publisher.<a href="#section-9.20.18-3" class="pilcrow">¶</a></p>
 in SUBSCRIBE or REQUEST_UPDATE for a subscription.  It represents the largest Group
 ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
 subscriber has no Group information for the Track.  A subscriber <span class="bcp14">MUST NOT</span> send
-this parameter in REQUEST_UPDATE if the Track did not
-include the DYNAMIC_GROUPS Property with value 1.  A subscriber <span class="bcp14">MAY</span>
+this parameter in REQUEST_UPDATE if it has received the Track's Properties and
+they did not include the DYNAMIC_GROUPS Property with value 1.  A subscriber <span class="bcp14">MAY</span>
 include this parameter in SUBSCRIBE without foreknowledge of support.  If the
-original publisher does not support dynamic Groups, it ignores the parameter in that
-case.<a href="#section-9.20.19-1" class="pilcrow">¶</a></p>
+original publisher does not support dynamic Groups, it ignores the parameter.<a href="#section-9.20.19-1" class="pilcrow">¶</a></p>
 <p id="section-9.20.19-2">When an Original Publisher that supports dynamic Groups receives a
 NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
 it <span class="bcp14">SHOULD</span> end the current Group and begin a new Group as soon as practical.  The
@@ -8027,7 +8048,7 @@ Group ID would be less than 0 or greater than 2^64-1, the Subscriber <span class
 close the Session with <code>DELTA_ENCODING_OVERFLOW</code>.<a href="#section-11.4.1.1-6" class="pilcrow">¶</a></p>
 <p id="section-11.4.1.1-7">When the Group ID Delta field is present, the Object ID is the value of Object ID Delta if
 present. When the Group ID Delta field is not present, the Object ID is the prior Object's ID
-plus the Object ID Delta if present. If Object ID Delta is not present, the Object ID is the
+plus the Object ID Delta + 2 if present. If Object ID Delta is not present, the Object ID is the
 prior Object's ID plus one, regardless of which group it belongs to. If the computed Object ID
 would be greater than 2^64-1, the Subscriber <span class="bcp14">MUST</span> close the Session with
 <code>DELTA_ENCODING_OVERFLOW</code>.<a href="#section-11.4.1.1-7" class="pilcrow">¶</a></p>
@@ -8669,26 +8690,20 @@ PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section
 is being terminated (see <a href="#delivery-timeouts" class="auto internal xref">Section 5.2</a>).<a href="#section-12.5-2.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.5-2.13">UNKNOWN_OBJECT_STATUS (0x6):</dt>
+<dt id="section-12.5-2.13">EXPIRED_AUTH_TOKEN (0x7):</dt>
           <dd style="margin-left: 1.5em" id="section-12.5-2.14">
-            <p id="section-12.5-2.14.1">In response to a FETCH, the publisher is unable to determine the status
-of the next Object in the requested range.<a href="#section-12.5-2.14.1" class="pilcrow">¶</a></p>
+            <p id="section-12.5-2.14.1">The authorization token for the request has expired.<a href="#section-12.5-2.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.5-2.15">EXPIRED_AUTH_TOKEN (0x7):</dt>
+<dt id="section-12.5-2.15">EXCESSIVE_LOAD (0x9):</dt>
           <dd style="margin-left: 1.5em" id="section-12.5-2.16">
-            <p id="section-12.5-2.16.1">The authorization token for the request has expired.<a href="#section-12.5-2.16.1" class="pilcrow">¶</a></p>
+            <p id="section-12.5-2.16.1">The endpoint is overloaded and is resetting this stream.<a href="#section-12.5-2.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.5-2.17">EXCESSIVE_LOAD (0x9):</dt>
+<dt id="section-12.5-2.17">MALFORMED_TRACK (0x12):</dt>
           <dd style="margin-left: 1.5em" id="section-12.5-2.18">
-            <p id="section-12.5-2.18.1">The endpoint is overloaded and is resetting this stream.<a href="#section-12.5-2.18.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-12.5-2.19">MALFORMED_TRACK (0x12):</dt>
-          <dd style="margin-left: 1.5em" id="section-12.5-2.20">
-            <p id="section-12.5-2.20.1">A relay publisher detected that the track was malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-12.5-2.20.1" class="pilcrow">¶</a></p>
+            <p id="section-12.5-2.18.1">A relay publisher detected that the track was malformed (see
+<a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-12.5-2.18.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -9433,10 +9448,10 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
 </td>
             </tr>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">0x10</td>
-              <td class="text-left" rowspan="1" colspan="1">FORWARD</td>
+              <td class="text-left" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">PAUSED</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#forward-parameter" class="auto internal xref">Section 9.20.18</a>
+                <a href="#paused-parameter" class="auto internal xref">Section 9.20.18</a>
 </td>
             </tr>
             <tr>
@@ -10395,13 +10410,6 @@ registration policy is Specification Required (per <span>[<a href="#RFC8126" cla
 </td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">UNKNOWN_OBJECT_STATUS</td>
-                <td class="text-center" rowspan="1" colspan="1">0x6</td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#stream-reset-codes" class="auto internal xref">Section 12.5</a>
-</td>
-              </tr>
-              <tr>
                 <td class="text-left" rowspan="1" colspan="1">EXPIRED_AUTH_TOKEN</td>
                 <td class="text-center" rowspan="1" colspan="1">0x7</td>
                 <td class="text-left" rowspan="1" colspan="1">
@@ -10598,7 +10606,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
         <dd>
-<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-09</span>, <time datetime="2026-09-24" class="refDate">24 September 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-09">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-09</a>&gt;</span>. </dd>
+<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-10</span>, <time datetime="2026-10-28" class="refDate">28 October 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-10">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-10</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-http2">[I-D.ietf-webtrans-http2]</dt>
         <dd>
