@@ -1804,6 +1804,23 @@ Subscriptions on the replaying client's behalf.
 Relays MAY defer initiating upstream subscriptions until the handshake is complete
 or reject 0-RTT entirely to mitigate resource exhaustion from replayed packets.
 
+#### Setup Options in 0-RTT {#zero-rtt-setup}
+
+A client MUST NOT send 0-RTT data unless it stored the Setup Options from the
+server's SETUP in the session that issued the session ticket.  The client MUST
+comply with these values until it receives the server's SETUP, which then
+replaces them.  The client MAY use any extension that the remembered Setup
+Options and its own SETUP negotiate (see {{extension-negotiation}}).
+
+A server MUST NOT accept 0-RTT unless a client complying with the remembered
+Setup Options would not violate its current ones.  For example, its
+MAX_FILTER_RANGES has not decreased and it still supports every remembered
+extension.  The server can remember the Setup Options it sent or store them,
+integrity-protected, in the session ticket.  After accepting 0-RTT, the server's
+SETUP MUST NOT reduce a remembered limit or withdraw support for a remembered
+extension.  A client that receives such a SETUP MUST close the session with
+`INCOMPATIBLE_SETUP`.
+
 ### Extension Negotiation {#extension-negotiation}
 
 Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
@@ -2800,7 +2817,8 @@ configuration before any other control messages are exchanged. An endpoint that
 is not offering extensions which modify control message semantics MAY pipeline
 other control messages after SETUP without waiting for the peer's SETUP.
 Endpoints SHOULD NOT send such requests (and related Objects) that offer such
-extensions before receiving the peer SETUP.
+extensions before receiving the peer SETUP, except as described in
+{{zero-rtt-setup}}.
 
 The messages contain a sequence of key-value pairs called Setup Options; the
 semantics and format of which can vary based on whether the client or server is
@@ -5150,6 +5168,10 @@ TOO_MANY_REQUEST_UPDATES (0x1B):
   communicated via the MAX_REQUEST_UPDATES Setup Option
   ({{max-request-updates}}).
 
+INCOMPATIBLE_SETUP (0x1C):
+: After accepting 0-RTT, the server's SETUP reduced a remembered limit or
+  withdrew support for a remembered extension ({{zero-rtt-setup}}).
+
 INVALID_STREAM_HEADER (0x200):
 : A data stream or datagram has an unknown type or invalid Type Flags.
 
@@ -6019,6 +6041,7 @@ between independent implementations.
 | INVALID_AUTHORITY          | 0x19 | {{session-termination-codes}} |
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination-codes}} |
 | TOO_MANY_REQUEST_UPDATES   | 0x1B | {{session-termination-codes}} |
+| INCOMPATIBLE_SETUP         | 0x1C | {{session-termination-codes}} |
 | INVALID_STREAM_HEADER      | 0x200 | {{session-termination-codes}} |
 | MALFORMED_OBJECT           | 0x201 | {{session-termination-codes}} |
 | INVALID_OBJECT_STATUS      | 0x202 | {{session-termination-codes}} |
