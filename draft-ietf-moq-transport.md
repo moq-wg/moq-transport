@@ -2601,13 +2601,14 @@ example.2enet-team2-project_x--report
 
 Auth payloads are carried in the AUTH_PAYLOAD message parameter
 (see {{auth-payload}}) and the AUTH_PAYLOAD Setup Option (see
-{{setup-auth-payload}}).  Both use the wire format and semantics defined in this
-section.
+{{setup-auth-payload}}). Both use the wire format and semantics defined in this
+section. Payload types can define authorization tokens, proofs, challenges,
+or responses; their contents and processing rules are defined by the payload
+type specification.
 
 The value is an Auth Payload structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Payload
-Type and Payload Value in future messages. The Auth Payload structure is serialized as
-follows:
+Type and Payload Value in future messages. The structure is serialized as follows:
 
 ~~~
 Auth Payload {
@@ -2651,8 +2652,9 @@ provided. The Payload Value MAY be discarded after processing.
   {{iana-auth-payload-type}}). Type 0 is reserved to indicate that the type is not defined in the
   table and is negotiated out-of-band between client and receiver.
 
-* Payload Value - the payload of the auth payload. The contents and serialization of this
-  payload are defined by the Payload Type.
+* Payload Value - the opaque content of the auth payload. Its serialization and
+  processing rules, including freshness and reuse requirements, are defined by
+  the Payload Type.
 
 If the Auth Payload structure cannot be decoded, including an unknown Alias Type, the
 receiver MUST close the Session with `MALFORMED_AUTH_PAYLOAD`.  The receiver of
@@ -2662,8 +2664,8 @@ register an Alias which is already registered MUST close the Session with
 that is not currently registered MUST reject the message with
 `UNKNOWN_AUTH_PAYLOAD_ALIAS`.
 
-The receiver of a message containing a well-formed Auth Payload structure that is
-otherwise invalid MUST reject that message with an `MALFORMED_AUTH_PAYLOAD`
+The receiver of a message containing a well-formed Auth Payload structure that
+is otherwise invalid MUST reject that message with a `MALFORMED_AUTH_PAYLOAD`
 error.
 
 The receiver of a message carrying an auth payload with Alias Type
@@ -2679,20 +2681,22 @@ future or due to some other property becoming fulfilled which currently
 isn't. The size of a registered cache entry includes the length of the Payload
 Value, regardless of whether it is stored.
 
-If a receiver detects that an auth payload has expired, it MUST retain
-the registered Alias until it is deleted by the sender, though it MAY discard
-other state associated with the payload that is no longer needed.  Expiration does
-not affect the size occupied by a payload in the payload cache.  Any message that
-references an expired payload with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_PAYLOAD`.
+If a receiver determines that an auth payload has expired according to its
+Payload Type, it MUST retain the registered Alias until it is deleted by the
+sender, though it MAY discard other state associated with the payload that is
+no longer needed. Expiration does not affect the size occupied by a payload in
+the cache. Any message that references an expired payload with Alias Type
+USE_ALIAS fails with `EXPIRED_AUTH_PAYLOAD`.
 
 Using an Alias to refer to a previously registered Payload Type and Value is for
 efficiency only and has the same effect as if the Payload Type and Value was
-included directly.  Retiring an Alias that was previously used to authorize a
+included directly. Retiring an Alias that was previously used to authorize a
 message has no retroactive effect on the original authorization, nor does it
-prevent that same Payload Type and Value from being re-registered.
+prevent that same Payload Type and Value from being re-registered. Caching a
+payload does not grant authorization or bypass its freshness and reuse rules.
 
-Senders of payloads SHOULD only register payloads which they intend to re-use during
-the Session and SHOULD retire previously registered payloads once their utility
+Senders SHOULD only register payloads which they intend to re-use during the
+Session and SHOULD retire previously registered payloads once their utility
 has passed.
 
 By registering a payload, the sender is requiring the receiver to store the Payload
@@ -2896,8 +2900,8 @@ initiation.
 
 The AUTH_PAYLOAD Setup Option (Option Type 0x03) is functionally
 equivalent to the AUTH_PAYLOAD message parameter, see {{auth-payload}}.
-The endpoint can specify one or more auth payloads in SETUP
-that the peer can use to authorize MOQT session establishment.
+The endpoint can specify one or more auth payloads in SETUP for session
+authorization, including tokens and proofs as defined by their payload types.
 
 The option value is an Auth Payload structure, whose wire format and semantics are
 defined in {{auth-payload-compression}}.
@@ -3452,8 +3456,8 @@ potentially not delivering some late objects to the application.  The
 subscriber SHOULD send STOP_SENDING on all streams related to the subscription
 when it deletes subscription state.
 
-A publisher that ends a subscription because the auth payload that
-authorized it has expired SHOULD send PUBLISH_DONE with status code
+A publisher that ends a subscription because an auth payload required for
+continued authorization has expired SHOULD send PUBLISH_DONE with status code
 `EXPIRED_AUTH_PAYLOAD`.
 
 The format of `PUBLISH_DONE` is as follows:
@@ -3831,10 +3835,12 @@ Message Parameters to appear in Setup messages.
 
 The AUTH_PAYLOAD parameter (Parameter Type 0x03) uses Length-prefixed
 encoding. It MAY appear in a PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
-SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
-parameter conveys information to authorize the sender to perform the operation
-carrying the parameter. This Parameter MUST NOT be copied from a SUBSCRIBE_TRACKS
-to the resulting PUBLISH message Parameters.
+SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH
+message. This parameter carries auth payloads used by the applicable
+authorization scheme, including tokens, proofs, challenges, or responses. The
+payload type defines how the content is processed in the context of the message.
+This Parameter MUST NOT be copied from a SUBSCRIBE_TRACKS to the resulting
+PUBLISH message Parameters.
 
 The parameter value is an Auth Payload structure, whose wire format and semantics are
 defined in {{auth-payload-compression}}.
@@ -4146,8 +4152,8 @@ EXPIRES in TRACK_STATUS_OK indicates the value the sender would have included
 in a SUBSCRIBE_OK for the same Track.
 
 The receiver of the parameter can attempt to extend the request by sending
-a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
-more updated auth payloads, it SHOULD include those in the
+a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has updated
+auth payloads for continued authorization, it SHOULD include those in the
 REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
 value in REQUEST_UPDATE_OK. Relays that send this parameter and applications that
 receive it MAY introduce jitter to prevent many endpoints from updating
@@ -5131,7 +5137,8 @@ UNKNOWN_AUTH_PAYLOAD_ALIAS (0x17):
   {{auth-payload-compression}}).
 
 EXPIRED_AUTH_PAYLOAD (0x18):
-: An auth payload has expired ({{auth-payload-compression}}).
+: An auth payload has expired according to its Payload Type
+  ({{auth-payload-compression}}).
 
 INVALID_AUTHORITY (0x19):
 : The specified AUTHORITY does not correspond to this server or cannot be
@@ -5206,7 +5213,7 @@ INTERNAL_ERROR:
 
 UNAUTHORIZED:
 : The subscriber is not authorized to perform the requested action on the given
-track.  This might be retryable if the auth payload is not yet valid.
+track. This might be retryable if a required auth payload is not yet valid.
 
 TIMEOUT:
 : The subscription could not be completed before an implementation specific
@@ -5221,7 +5228,8 @@ MALFORMED_AUTH_PAYLOAD:
   {{auth-payload-compression}}).
 
 EXPIRED_AUTH_PAYLOAD:
-: An auth payload has expired ({{auth-payload-compression}}).
+: An auth payload has expired according to its Payload Type
+  ({{auth-payload-compression}}).
 
 GOING_AWAY:
 : The endpoint has received a GOAWAY and MAY reject new requests.
@@ -5311,8 +5319,8 @@ EXPIRED (0x6):
 : The publisher reached the timeout specified in SUBSCRIBE_OK.
 
 EXPIRED_AUTH_PAYLOAD (0x7):
-: The auth payload that authorized the subscription has expired
-  (see {{message-publish-done}}).
+: An auth payload required for continued authorization of the subscription has
+  expired (see {{message-publish-done}}).
 
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
@@ -5351,7 +5359,7 @@ TOO_FAR_BEHIND (0x5):
   is being terminated (see {{delivery-timeouts}}).
 
 EXPIRED_AUTH_PAYLOAD (0x7):
-: The auth payload for the request has expired.
+: An auth payload required to authorize the request has expired.
 
 EXCESSIVE_LOAD (0x9):
 : The endpoint is overloaded and is resetting this stream.
@@ -5517,25 +5525,23 @@ certificate as an input to authorization decisions; the granularity and policy
 of such authorization is out of scope for this document.
 ### Auth Payloads {#sec-auth-payloads}
 
-MOQT has functionality to carry auth payloads as message
-parameters. These payloads can vary based on the application
-requirements. Two variants of auth payloads have already
-been defined for MOQT, and more are expected in the future. The
-current payloads are Privacy Pass Authentication for Media over QUIC
-{{PPA}} and Authentication scheme for MOQT using Common Access Tokens
-{{CAT}}.
+MOQT carries auth payloads in the AUTH_PAYLOAD message parameter and Setup
+Option. Payload types define tokens, proofs, challenges, and responses, along
+with their processing rules. Authorization tokens are one kind of auth payload.
+Token schemes already defined for MOQT include Privacy Pass Authentication for
+Media over QUIC {{PPA}} and Authentication scheme for MOQT using Common Access
+Tokens {{CAT}}.
 
-Tokens are expected to contain information about which actions and
-which resources the endpoint providing the token is authorized to
-perform and access. Relays will verify the
-tokens to ensure that the request is authorized.
+Tokens are expected to contain information about which actions and resources
+the endpoint providing the token is authorized to perform and access. Relays
+verify the tokens and any accompanying proofs or responses according to the
+applicable authorization scheme to ensure that the request is authorized.
 
 ### Replay Attacks
 
-Replay protection for auth payloads is the responsibility of
-the specific payload type used. Token schemes such as {{CAT}} and
-{{PPA}} include requirements for relays when processing auth payloads and
-requests.
+Replay protection for auth payloads is the responsibility of the applicable
+payload type specification. Token schemes such as {{CAT}} and {{PPA}} include
+requirements for relays when processing auth payloads and requests.
 
 ### Preventing Impersonation {#preventing-impersonation}
 
