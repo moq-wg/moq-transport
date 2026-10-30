@@ -1132,7 +1132,8 @@ The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
 
 A SUBSCRIBE_TRACKS is cancelled as described in
-{{request-cancellation}}.
+{{request-cancellation}}.  Cancelling a SUBSCRIBE_TRACKS has no effect on
+existing subscriptions.
 Cancelling SUBSCRIBE_TRACKS does not prohibit original publishers
 from sending further PUBLISH messages, but relays MUST NOT
 send any further PUBLISH messages to a client without knowing the client is
@@ -3195,7 +3196,8 @@ each successful update, but it is not required to process
 intermediate states individually. If the coalesced REQUEST_UPDATE
 results in an error, only a single REQUEST_UPDATE_ERROR will be
 sent and the sender of the REQUEST_UPDATEs will not always be
-able to determine which caused an error.
+able to determine which caused an error.  A receiver MUST NOT coalesce a
+REQUEST_UPDATE containing a parameter whose definition prohibits coalescing.
 
 REQUEST_UPDATE messages MUST be processed in order to guarantee
 consistent behavior. The receiver of a REQUEST_UPDATE MUST respond with
@@ -3279,9 +3281,13 @@ SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS by including the
 TRACK_NAMESPACE_PREFIX parameter ({{track-namespace-prefix-param}}) in a
 REQUEST_UPDATE.  If the update is accepted, NAMESPACE and NAMESPACE_DONE
 messages following the REQUEST_OK will contain Track Namespace suffixes
-relative to the updated prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
-no effect on existing subscriptions.  If the subscriber is no longer
-interested it can cancel the corresponding bidirectional stream.
+relative to the updated prefix.  For a SUBSCRIBE_NAMESPACE, the REQUEST_OK
+implies a NAMESPACE_DONE for each advertised namespace that no longer matches
+the prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
+no effect on existing subscriptions, and the publisher MUST NOT send another
+PUBLISH for a Track it already published for that SUBSCRIBE_TRACKS.  If the
+subscriber is no longer interested in a Track it can cancel the corresponding
+bidirectional stream.
 
 ## SUBSCRIBE {#message-subscribe-req}
 
@@ -4226,7 +4232,9 @@ outstanding until the Largest Group increases.
 The TRACK_NAMESPACE_PREFIX parameter (Parameter Type 0x34) uses the Track
 Namespace encoding described in {{track-namespace-structure}}.  It MAY appear in
 REQUEST_UPDATE for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It
-updates the Track Namespace Prefix for that subscription.
+updates the Track Namespace Prefix for that subscription.  A REQUEST_UPDATE
+containing TRACK_NAMESPACE_PREFIX cannot be coalesced with other
+REQUEST_UPDATEs (see {{message-request-update}}).
 
 ### SUBSCRIBE_TRACKS_ID Parameter {#subscribe-tracks-id}
 
