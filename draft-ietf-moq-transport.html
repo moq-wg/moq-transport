@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 2 May 2027</td>
+<td class="center">Expires 3 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-29" class="published">29 October 2026</time>
+<time datetime="2026-10-30" class="published">30 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-05-02">2 May 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-03">3 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 2 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 3 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1674,7 +1674,10 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                     <p id="section-toc.1-1.9.2.19.2.20.1"><a href="#section-9.19.20" class="auto internal xref">9.19.20</a>. <a href="#name-track_namespace_prefix-para" class="internal xref">TRACK_NAMESPACE_PREFIX Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.19.2.21">
-                    <p id="section-toc.1-1.9.2.19.2.21.1"><a href="#section-9.19.21" class="auto internal xref">9.19.21</a>. <a href="#name-include_properties-paramete" class="internal xref">INCLUDE_PROPERTIES Parameter</a></p>
+                    <p id="section-toc.1-1.9.2.19.2.21.1"><a href="#section-9.19.21" class="auto internal xref">9.19.21</a>. <a href="#name-subscribe_tracks_id-paramet" class="internal xref">SUBSCRIBE_TRACKS_ID Parameter</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.19.2.22">
+                    <p id="section-toc.1-1.9.2.19.2.22.1"><a href="#section-9.19.22" class="auto internal xref">9.19.22</a>. <a href="#name-include_properties-paramete" class="internal xref">INCLUDE_PROPERTIES Parameter</a></p>
 </li>
                 </ul>
 </li>
@@ -3196,10 +3199,9 @@ message on the response half of the stream, then it <span class="bcp14">MUST</sp
 send PUBLISH messages on new bidirectional streams for tracks matching the
 Namespace Prefix. If it is an error, the stream will be closed via FIN after
 SUBSCRIBE_TRACKS_ERROR is sent.<a href="#section-3.6-4" class="pilcrow">¶</a></p>
-<p id="section-3.6-5">Within a session, if a publisher receives a SUBSCRIBE_TRACKS with a
-Track Namespace Prefix that shares a common prefix with an established
-SUBSCRIBE_TRACKS, it <span class="bcp14">MUST</span> respond with SUBSCRIBE_TRACKS_ERROR with error code
-<code>PREFIX_OVERLAP</code>.<a href="#section-3.6-5" class="pilcrow">¶</a></p>
+<p id="section-3.6-5">Each PUBLISH sent as a result of a SUBSCRIBE_TRACKS carries the
+SUBSCRIBE_TRACKS_ID parameter (<a href="#subscribe-tracks-id" class="auto internal xref">Section 9.19.21</a>).  If a Track matches
+more than one SUBSCRIBE_TRACKS, the publisher sends a PUBLISH for each.<a href="#section-3.6-5" class="pilcrow">¶</a></p>
 <p id="section-3.6-6">The publisher <span class="bcp14">MUST</span> ensure the subscriber is authorized to perform this
 namespace subscription.<a href="#section-3.6-6" class="pilcrow">¶</a></p>
 <p id="section-3.6-7">A SUBSCRIBE_TRACKS is cancelled as described in
@@ -3403,22 +3405,18 @@ On error, the stream is immediately closed via FIN.<a href="#section-4.2-5" clas
 <p id="section-4.2-6">The namespace in a NAMESPACE message is itself a prefix; tracks can exist in
 namespaces matching it.  A NAMESPACE_DONE indicates the publisher intends to
 stop serving new subscriptions for tracks within that namespace.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
-<p id="section-4.2-7">Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
-Track Namespace Prefix that shares a common prefix with an established
-SUBSCRIBE_NAMESPACE, it <span class="bcp14">MUST</span> respond with SUBSCRIBE_NAMESPACE_ERROR with
-error code <code>PREFIX_OVERLAP</code>.<a href="#section-4.2-7" class="pilcrow">¶</a></p>
-<p id="section-4.2-8">The publisher <span class="bcp14">MUST NOT</span> send NAMESPACE_DONE for a namespace suffix before the
+<p id="section-4.2-7">The publisher <span class="bcp14">MUST NOT</span> send NAMESPACE_DONE for a namespace suffix before the
 corresponding NAMESPACE. If a subscriber receives a NAMESPACE_DONE before the
-corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session with <code>UNEXPECTED_MESSAGE</code>.<a href="#section-4.2-8" class="pilcrow">¶</a></p>
-<p id="section-4.2-9">A subscriber can receive a PUBLISH_NAMESPACE on a request stream for a
+corresponding NAMESPACE, it <span class="bcp14">MUST</span> close the session with <code>UNEXPECTED_MESSAGE</code>.<a href="#section-4.2-7" class="pilcrow">¶</a></p>
+<p id="section-4.2-8">A subscriber can receive a PUBLISH_NAMESPACE on a request stream for a
 namespace that falls within an active SUBSCRIBE_NAMESPACE prefix. This
 occurs when SUBSCRIBE_NAMESPACE or its response is in flight at the same time
 as a PUBLISH_NAMESPACE, or when an original publisher sends PUBLISH_NAMESPACE
 to advertise namespaces within the prefix being discovered. Such a
 PUBLISH_NAMESPACE is valid and <span class="bcp14">MAY</span> carry an AUTHORIZATION TOKEN parameter.
-Its lifetime is independent of the SUBSCRIBE_NAMESPACE stream.<a href="#section-4.2-9" class="pilcrow">¶</a></p>
-<p id="section-4.2-10">A SUBSCRIBE_NAMESPACE is cancelled as described in
-<a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>, by resetting or sending STOP_SENDING on the stream.<a href="#section-4.2-10" class="pilcrow">¶</a></p>
+Its lifetime is independent of the SUBSCRIBE_NAMESPACE stream.<a href="#section-4.2-8" class="pilcrow">¶</a></p>
+<p id="section-4.2-9">A SUBSCRIBE_NAMESPACE is cancelled as described in
+<a href="#request-cancellation" class="auto internal xref">Section 6.4.2.3</a>, by resetting or sending STOP_SENDING on the stream.<a href="#section-4.2-9" class="pilcrow">¶</a></p>
 <div id="namespace-subscription-authorization">
 <section id="section-4.2.1">
           <h4 id="name-namespace-subscription-auth">
@@ -4411,8 +4409,7 @@ or closing namespace subscriptions with the error NAMESPACE_TOO_LARGE.
 Relays <span class="bcp14">MAY</span> likewise limit the load imposed by subscribers, by rejecting or
 closing namespace subscriptions with CONFLICTING_FILTERS if too many disjoint
 filters are requested on downstream subscriptions across a large number of
-subscribers, or with PREFIX_OVERLAP if different subscribers force an
-aggregated upstream subscription to overlap.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
+subscribers.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="publisher-interactions">
@@ -5895,13 +5892,9 @@ responder <span class="bcp14">MUST</span> close the bidi stream (see <a href="#g
 <p id="section-9.5.2-1">A subscriber can update the Track Namespace Prefix of an established
 SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS by including the
 TRACK_NAMESPACE_PREFIX parameter (<a href="#track-namespace-prefix-param" class="auto internal xref">Section 9.19.20</a>) in a
-REQUEST_UPDATE.  The overlap restriction applies independently per type: the
-new prefix <span class="bcp14">MUST NOT</span> share a common prefix with any other active
-SUBSCRIBE_NAMESPACE (for a SUBSCRIBE_NAMESPACE update) or SUBSCRIBE_TRACKS
-(for a SUBSCRIBE_TRACKS update) in the same session.  If the update is
-accepted, NAMESPACE and NAMESPACE_DONE messages following the
-REQUEST_OK will contain Track Namespace suffixes relative to the
-updated prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
+REQUEST_UPDATE.  If the update is accepted, NAMESPACE and NAMESPACE_DONE
+messages following the REQUEST_OK will contain Track Namespace suffixes
+relative to the updated prefix.  Updating the prefix of a SUBSCRIBE_TRACKS has
 no effect on existing subscriptions.  If the subscriber is no longer
 interested it can cancel the corresponding bidirectional stream.<a href="#section-9.5.2-1" class="pilcrow">¶</a></p>
 </section>
@@ -6053,9 +6046,9 @@ PUBLISH Message {
             <p id="section-9.8-3.5.1">Parameters: The parameters are defined in <a href="#message-params" class="auto internal xref">Section 9.19</a>. The parameters
 that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
 AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
-PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER and
-FILL_PARAMETERS.  Those governing delivery, such as PAUSED, GROUP_ORDER,
-SUBSCRIBER_PRIORITY,
+PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS
+and SUBSCRIBE_TRACKS_ID.  Those governing delivery, such as PAUSED,
+GROUP_ORDER, SUBSCRIBER_PRIORITY,
 SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
 inform the Subscriber of the initial Subscription parameters.
 If the PUBLISH is the result of a SUBSCRIBE_TRACKS, the parameters are handled
@@ -7190,25 +7183,32 @@ outstanding until the Largest Group increases.<a href="#section-9.19.19-8" class
 <p id="section-9.19.20-1">The TRACK_NAMESPACE_PREFIX parameter (Parameter Type 0x34) uses the Track
 Namespace encoding described in <a href="#track-namespace-structure" class="auto internal xref">Section 8.7</a>.  It <span class="bcp14">MAY</span> appear in
 REQUEST_UPDATE for a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS request.  It
-updates the Track Namespace Prefix for that subscription.  If the new prefix
-would share a common prefix with another active subscription of the same type
-in the same session, the receiver <span class="bcp14">MUST</span> respond with REQUEST_ERROR with error
-code <code>PREFIX_OVERLAP</code>.<a href="#section-9.19.20-1" class="pilcrow">¶</a></p>
+updates the Track Namespace Prefix for that subscription.<a href="#section-9.19.20-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="subscribe-tracks-id">
+<section id="section-9.19.21">
+          <h4 id="name-subscribe_tracks_id-paramet">
+<a href="#section-9.19.21" class="section-number selfRef">9.19.21. </a><a href="#name-subscribe_tracks_id-paramet" class="section-name selfRef">SUBSCRIBE_TRACKS_ID Parameter</a>
+          </h4>
+<p id="section-9.19.21-1">The SUBSCRIBE_TRACKS_ID parameter (Parameter Type 0x36) is a varint. It
+appears only in a PUBLISH sent as a result of a SUBSCRIBE_TRACKS, and contains
+that SUBSCRIBE_TRACKS's Request ID.<a href="#section-9.19.21-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="include-properties-param">
-<section id="section-9.19.21">
+<section id="section-9.19.22">
           <h4 id="name-include_properties-paramete">
-<a href="#section-9.19.21" class="section-number selfRef">9.19.21. </a><a href="#name-include_properties-paramete" class="section-name selfRef">INCLUDE_PROPERTIES Parameter</a>
+<a href="#section-9.19.22" class="section-number selfRef">9.19.22. </a><a href="#name-include_properties-paramete" class="section-name selfRef">INCLUDE_PROPERTIES Parameter</a>
           </h4>
-<p id="section-9.19.21-1">The INCLUDE_PROPERTIES parameter (Parameter Type 0x35) is a uint8. It <span class="bcp14">MAY</span> appear
+<p id="section-9.19.22-1">The INCLUDE_PROPERTIES parameter (Parameter Type 0x35) is a uint8. It <span class="bcp14">MAY</span> appear
 in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS. It specifies whether the
 OK message sent in response includes Track Properties or whether the resulting PUBLISH
 messages include Track Properties in the case of SUBSCRIBE_TRACKS. If INCLUDE_PROPERTIES
 is 0, the Track Properties are still present in the message, but they <span class="bcp14">SHOULD</span> be empty.
 The allowed values are 0 (do not send Properties) or 1 (send Properties), and the
 default is 1. If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span> close the
-session with <code>INVALID_PARAMETER</code>.<a href="#section-9.19.21-1" class="pilcrow">¶</a></p>
+session with <code>INVALID_PARAMETER</code>.<a href="#section-9.19.22-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -8600,25 +8600,17 @@ to PUBLISH or PUBLISH_NAMESPACE, unless otherwise noted.<a href="#section-12.3-5
 </dl>
 <p id="section-12.3-7">Errors below can only be used in response to one message type.<a href="#section-12.3-7" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-12.3-8">
-          <dt id="section-12.3-8.1">PREFIX_OVERLAP:</dt>
+          <dt id="section-12.3-8.1">NAMESPACE_TOO_LARGE:</dt>
           <dd style="margin-left: 1.5em" id="section-12.3-8.2">
             <p id="section-12.3-8.2.1">In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
-shares a common prefix with another subscription of the same type in the same session.
-SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS have independent overlap spaces, so a
-SUBSCRIBE_NAMESPACE and a SUBSCRIBE_TRACKS may share the same prefix.<a href="#section-12.3-8.2.1" class="pilcrow">¶</a></p>
+matches more publishers than the relay is willing to enumerate.<a href="#section-12.3-8.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.3-8.3">NAMESPACE_TOO_LARGE:</dt>
+<dt id="section-12.3-8.3">CONFLICTING_FILTERS:</dt>
           <dd style="margin-left: 1.5em" id="section-12.3-8.4">
-            <p id="section-12.3-8.4.1">In response to SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS, the namespace prefix
-matches more publishers than the relay is willing to enumerate.<a href="#section-12.3-8.4.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-12.3-8.5">CONFLICTING_FILTERS:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.3-8.6">
-            <p id="section-12.3-8.6.1">In response to SUBSCRIBE_TRACKS, the filter parameters conflict among
+            <p id="section-12.3-8.4.1">In response to SUBSCRIBE_TRACKS, the filter parameters conflict among
 too many subscribers to aggregate the subscription upstream or otherwise
-efficiently service it.<a href="#section-12.3-8.6.1" class="pilcrow">¶</a></p>
+efficiently service it.<a href="#section-12.3-8.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -9624,7 +9616,14 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
               <td class="text-left" rowspan="1" colspan="1">0x35</td>
               <td class="text-left" rowspan="1" colspan="1">INCLUDE_PROPERTIES</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#include-properties-param" class="auto internal xref">Section 9.19.21</a>
+                <a href="#include-properties-param" class="auto internal xref">Section 9.19.22</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x36</td>
+              <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_TRACKS_ID</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#subscribe-tracks-id" class="auto internal xref">Section 9.19.21</a>
 </td>
             </tr>
           </tbody>
@@ -10334,13 +10333,6 @@ between independent implementations.<a href="#section-16.11-3" class="pilcrow">�
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">UNINTERESTED</td>
                 <td class="text-center" rowspan="1" colspan="1">0x20</td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#request-error-codes" class="auto internal xref">Section 12.3</a>
-</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">PREFIX_OVERLAP</td>
-                <td class="text-center" rowspan="1" colspan="1">0x30</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#request-error-codes" class="auto internal xref">Section 12.3</a>
 </td>
