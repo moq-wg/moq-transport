@@ -1148,7 +1148,7 @@ the resulting Subscriptions can be filtered by any Range Filter.
 ### Parameters on SUBSCRIBE_TRACKS {#parameters-on-subscribe-tracks}
 
 The parameters that can appear in SUBSCRIBE_TRACKS are listed in
-{{message-subscribe-tracks}}.  AUTHORIZATION_TOKEN and TRACK_PROPERTY_FILTER
+{{message-subscribe-tracks}}.  AUTH_PAYLOAD and TRACK_PROPERTY_FILTER
 apply to the SUBSCRIBE_TRACKS itself.  The publisher uses the others as the
 initial Subscription parameters when a PUBLISH is sent as a result of
 SUBSCRIBE_TRACKS, and includes those in the PUBLISH.
@@ -1322,7 +1322,7 @@ namespace that falls within an active SUBSCRIBE_NAMESPACE prefix. This
 occurs when SUBSCRIBE_NAMESPACE or its response is in flight at the same time
 as a PUBLISH_NAMESPACE, or when an original publisher sends PUBLISH_NAMESPACE
 to advertise namespaces within the prefix being discovered. Such a
-PUBLISH_NAMESPACE is valid and MAY carry an AUTHORIZATION TOKEN parameter.
+PUBLISH_NAMESPACE is valid and MAY carry an AUTH_PAYLOAD parameter.
 Its lifetime is independent of the SUBSCRIBE_NAMESPACE stream.
 
 A SUBSCRIBE_NAMESPACE is cancelled as described in
@@ -2601,120 +2601,124 @@ example.2enet-team2-project_x--report
   Track name: report
 ~~~
 
-## Authorization Token Compression {#auth-token-compression}
+## Auth Payload Compression {#auth-payload-compression}
 
-Authorization tokens are carried in the AUTHORIZATION TOKEN message parameter
-(see {{authorization-token}}) and the AUTHORIZATION TOKEN Setup Option (see
-{{setup-auth-token}}).  Both use the wire format and semantics defined in this
-section.
+Auth payloads are carried in the AUTH_PAYLOAD message parameter
+(see {{auth-payload}}) and the AUTH_PAYLOAD Setup Option (see
+{{setup-auth-payload}}). Both use the wire format and semantics defined in this
+section. Payload types can define authorization tokens, proofs, challenges,
+or responses; their contents and processing rules are defined by the payload
+type specification.
 
-The value is a Token structure containing an optional Session-specific
-Alias. The Alias allows the sender to reference a previously transmitted Token
-Type and Token Value in future messages. The Token structure is serialized as
-follows:
+The value is an Auth Payload structure containing an optional Session-specific
+Alias. The Alias allows the sender to reference a previously transmitted Payload
+Type and Payload Value in future messages. The structure is serialized as follows:
 
 ~~~
-Token {
+Auth Payload {
   Alias Type (vi64),
-  [Token Alias (vi64),]
-  [Token Type (vi64),]
-  [Token Value (..)]
+  [Payload Alias (vi64),]
+  [Payload Type (vi64),]
+  [Payload Value (..)]
 }
 ~~~
-{: #moq-token format title="Token structure"}
+{: #auth-payload-structure format title="Auth Payload structure"}
 
 * Alias Type - an integer defining both the serialization and the processing
   behavior of the receiver. This Alias type has the following code points:
 
 DELETE (0x0):
-: There is an Alias but no Type or Value. This Alias and the Token Value it was
+: There is an Alias but no Type or Value. This Alias and the Payload Value it was
 previously associated with MUST be retired. Retiring removes them from the pool
-of actively registered tokens.
+of actively registered payloads.
 
 REGISTER (0x1):
 : There is an Alias, a Type and a Value. This Alias MUST be associated with the
-Token Value for the duration of the Session or it is deleted. This action is
-termed "registering" the Token.
+Payload Value for the duration of the Session or it is deleted. This action is
+termed "registering" the payload.
 
 USE_ALIAS (0x2):
-: There is an Alias but no Type or Value. Use the Token Type and Value
+: There is an Alias but no Type or Value. Use the Payload Type and Value
 previously registered with this Alias.
 
 USE_VALUE (0x3):
-: There is no Alias and there is a Type and Value. Use the Token Value as
-provided. The Token Value MAY be discarded after processing.
+: There is no Alias and there is a Type and Value. Use the Payload Value as
+provided. The Payload Value MAY be discarded after processing.
 
-* Token Alias - a Session-specific integer identifier that references a Token
-  Type and Token Value. There are separate Alias spaces for the client and server (e.g.: they
-  can each register Alias=1). Once a Token Alias has been registered, it cannot
+* Payload Alias - a Session-specific integer identifier that references a Payload
+  Type and Payload Value. There are separate Alias spaces for the client and server (e.g.: they
+  can each register Alias=1). Once a Payload Alias has been registered, it cannot
   be re-registered by the same endpoint in the Session without first being
-  deleted. Use of the Token Alias is optional.
+  deleted. Use of the Payload Alias is optional.
 
-* Token Type - a numeric identifier for the type of Token payload being
-  transmitted. This type is defined by the IANA table "MOQT Auth Token Type" (see
-  {{iana}}). Type 0 is reserved to indicate that the type is not defined in the
+* Payload Type - a numeric identifier for the type of auth payload being
+  transmitted. This type is defined by the IANA table "MOQT Auth Payload Type" (see
+  {{iana-auth-payload-type}}). Type 0 is reserved to indicate that the type is not defined in the
   table and is negotiated out-of-band between client and receiver.
 
-* Token Value - the payload of the Token. The contents and serialization of this
-  payload are defined by the Token Type.
+* Payload Value - the opaque content of the auth payload. Its serialization and
+  processing rules, including freshness and reuse requirements, are defined by
+  the Payload Type.
 
-If the Token structure cannot be decoded, including an unknown Alias Type, the
-receiver MUST close the Session with `MALFORMED_AUTH_TOKEN`.  The receiver of
+If the Auth Payload structure cannot be decoded, including an unknown Alias Type, the
+receiver MUST close the Session with `MALFORMED_AUTH_PAYLOAD`.  The receiver of
 a message attempting to
 register an Alias which is already registered MUST close the Session with
-`DUPLICATE_AUTH_TOKEN_ALIAS`. The receiver of a message referencing an Alias
+`DUPLICATE_AUTH_PAYLOAD_ALIAS`. The receiver of a message referencing an Alias
 that is not currently registered MUST reject the message with
-`UNKNOWN_AUTH_TOKEN_ALIAS`.
+`UNKNOWN_AUTH_PAYLOAD_ALIAS`.
 
-The receiver of a message containing a well-formed Token structure that is
-otherwise invalid MUST reject that message with an `MALFORMED_AUTH_TOKEN`
+The receiver of a message containing a well-formed Auth Payload structure that
+is otherwise invalid MUST reject that message with a `MALFORMED_AUTH_PAYLOAD`
 error.
 
-The receiver of a message carrying an Authorization Token with Alias Type
-REGISTER that does not result in a Session error MUST register the Token Alias
-in the token cache, even if the message fails for other reasons, including
+The receiver of a message carrying an auth payload with Alias Type
+REGISTER that does not result in a Session error MUST register the Payload Alias
+in the payload cache, even if the message fails for other reasons, including
 `Unauthorized`.  This allows senders to pipeline messages that refer to
-previously registered tokens without potentially terminating the entire Session.
+previously registered payloads without potentially terminating the entire Session.
 A receiver MAY store an error code (eg: `UNAUTHORIZED` or
-`MALFORMED_AUTH_TOKEN`) in place of the Token Type and Token Alias if any future
-message referencing the Token Alias will result in that error. However, it is
-important to not store an error code for a token that might be valid in the
+`MALFORMED_AUTH_PAYLOAD`) in place of the Payload Type and Payload Alias if any future
+message referencing the Payload Alias will result in that error. However, it is
+important to not store an error code for a payload that might be valid in the
 future or due to some other property becoming fulfilled which currently
-isn't. The size of a registered cache entry includes the length of the Token
+isn't. The size of a registered cache entry includes the length of the Payload
 Value, regardless of whether it is stored.
 
-If a receiver detects that an authorization token has expired, it MUST retain
-the registered Alias until it is deleted by the sender, though it MAY discard
-other state associated with the token that is no longer needed.  Expiration does
-not affect the size occupied by a token in the token cache.  Any message that
-references an expired token with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_TOKEN`.
+If a receiver determines that an auth payload has expired according to its
+Payload Type, it MUST retain the registered Alias until it is deleted by the
+sender, though it MAY discard other state associated with the payload that is
+no longer needed. Expiration does not affect the size occupied by a payload in
+the cache. Any message that references an expired payload with Alias Type
+USE_ALIAS fails with `EXPIRED_AUTH_PAYLOAD`.
 
-Using an Alias to refer to a previously registered Token Type and Value is for
-efficiency only and has the same effect as if the Token Type and Value was
-included directly.  Retiring an Alias that was previously used to authorize a
+Using an Alias to refer to a previously registered Payload Type and Value is for
+efficiency only and has the same effect as if the Payload Type and Value was
+included directly. Retiring an Alias that was previously used to authorize a
 message has no retroactive effect on the original authorization, nor does it
-prevent that same Token Type and Value from being re-registered.
+prevent that same Payload Type and Value from being re-registered. Caching a
+payload does not grant authorization or bypass its freshness and reuse rules.
 
-Senders of tokens SHOULD only register tokens which they intend to re-use during
-the Session and SHOULD retire previously registered tokens once their utility
+Senders SHOULD only register payloads which they intend to re-use during the
+Session and SHOULD retire previously registered payloads once their utility
 has passed.
 
-By registering a Token, the sender is requiring the receiver to store the Token
-Alias and Token Value until they are deleted, or the Session ends. The receiver
+By registering a payload, the sender is requiring the receiver to store the Payload
+Alias and Payload Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a Setup Option defining the
-MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
+MAX_AUTH_PAYLOAD_CACHE_SIZE limit (see {{max-auth-payload-cache-size}}) it is
 willing to accept. If a registration outside of SETUP is attempted that would
 cause this limit to be exceeded, the receiver MUST terminate the Session with
-an `AUTH_TOKEN_CACHE_OVERFLOW` error.  Registrations in SETUP are handled as
-described in {{setup-auth-token}}.
+an `AUTH_PAYLOAD_CACHE_OVERFLOW` error.  Registrations in SETUP are handled as
+described in {{setup-auth-payload}}.
 
-An Authorization Token MAY be repeated within a message as long as the
-combination of Token Type and Token Value are unique after resolving any
+AUTH_PAYLOAD MAY be repeated within a message as long as the
+combination of Payload Type and Payload Value are unique after resolving any
 aliases.
 
-Messages carrying an Authorization Token can appear on different
+Messages carrying an auth payload can appear on different
 control streams. Because stream processing order can be different than send order, the
-receiver and sender can have inconsistent views of the token cache state.
+receiver and sender can have inconsistent views of the payload cache state.
 
 Senders MUST NOT send USE_ALIAS on one control stream for an alias registered on a
 different stream until the sender has received a response to the message
@@ -2882,40 +2886,40 @@ URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the option. If a PATH does not conform to
 these rules, the session MUST be closed with `MALFORMED_PATH`.
 
-### MAX_AUTH_TOKEN_CACHE_SIZE {#max-auth-token-cache-size}
+### MAX_AUTH_PAYLOAD_CACHE_SIZE {#max-auth-payload-cache-size}
 
-The MAX_AUTH_TOKEN_CACHE_SIZE option (Option Type 0x04) communicates the
-maximum size in bytes of all actively registered Authorization tokens that the
+The MAX_AUTH_PAYLOAD_CACHE_SIZE option (Option Type 0x04) communicates the
+maximum size in bytes of all actively registered auth payloads that the
 endpoint is willing to store per Session. This option is optional. The default
-value is 0 which prohibits the use of token Aliases.
+value is 0 which prohibits the use of payload Aliases.
 
-The token size is calculated as 16 bytes + the size of the Token Value field
-(see {{moq-token}}). The total size as restricted by the
-MAX_AUTH_TOKEN_CACHE_SIZE option is calculated as the sum of the token sizes
-for all registered tokens (Alias Type value of 0x01) minus the sum of the token
-sizes for all deregistered tokens (Alias Type value of 0x00), since Session
+The payload size is calculated as 16 bytes + the size of the Payload Value field
+(see {{auth-payload-structure}}). The total size as restricted by the
+MAX_AUTH_PAYLOAD_CACHE_SIZE option is calculated as the sum of the payload sizes
+for all registered payloads (Alias Type value of 0x01) minus the sum of the payload
+sizes for all deregistered payloads (Alias Type value of 0x00), since Session
 initiation.
 
-### AUTHORIZATION TOKEN {#setup-auth-token}
+### AUTH_PAYLOAD {#setup-auth-payload}
 
-The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is functionally
-equivalent to the AUTHORIZATION TOKEN message parameter, see {{authorization-token}}.
-The endpoint can specify one or more tokens in SETUP
-that the peer can use to authorize MOQT session establishment.
+The AUTH_PAYLOAD Setup Option (Option Type 0x03) is functionally
+equivalent to the AUTH_PAYLOAD message parameter, see {{auth-payload}}.
+The endpoint can specify one or more auth payloads in SETUP for session
+authorization, including tokens and proofs as defined by their payload types.
 
-The option value is a Token structure, whose wire format and semantics are
-defined in {{auth-token-compression}}.
+The option value is an Auth Payload structure, whose wire format and semantics are
+defined in {{auth-payload-compression}}.
 
 If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a SETUP
 message, it MUST close the session with `ROLE_VIOLATION`.
 
-If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with Alias
-Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
-the session with `AUTH_TOKEN_CACHE_OVERFLOW`.  Instead, it MUST treat the
+If an endpoint receives an AUTH_PAYLOAD option in SETUP with Alias
+Type REGISTER that exceeds its MAX_AUTH_PAYLOAD_CACHE_SIZE, it MUST NOT fail
+the session with `AUTH_PAYLOAD_CACHE_OVERFLOW`.  Instead, it MUST treat the
 option as Alias Type USE_VALUE.  Since each endpoint's SETUP may be sent before
 the peer's SETUP is received, the sender MUST handle registration failures
-of this kind by purging any Token Aliases that failed to register based on the
-peer's MAX_AUTH_TOKEN_CACHE_SIZE option in SETUP (or the default value of 0).
+of this kind by purging any Payload Aliases that failed to register based on the
+peer's MAX_AUTH_PAYLOAD_CACHE_SIZE option in SETUP (or the default value of 0).
 
 ### MOQT IMPLEMENTATION {#moqt-implementation}
 
@@ -3239,14 +3243,14 @@ REQUEST_UPDATE Message {
 * Parameters: The parameters are defined in {{message-params}}.  The
   parameters that can appear depend on the request being updated:
 
-  * Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
+  * Subscription: OBJECT_DELIVERY_TIMEOUT, AUTH_PAYLOAD,
     SUBGROUP_DELIVERY_TIMEOUT, PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
     FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
     OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST
-  * FETCH: AUTHORIZATION_TOKEN, SUBSCRIBER_PRIORITY
-  * PUBLISH_NAMESPACE: AUTHORIZATION_TOKEN
-  * SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN, TRACK_NAMESPACE_PREFIX
-  * SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, PAUSED, TRACK_PROPERTY_FILTER,
+  * FETCH: AUTH_PAYLOAD, SUBSCRIBER_PRIORITY
+  * PUBLISH_NAMESPACE: AUTH_PAYLOAD
+  * SUBSCRIBE_NAMESPACE: AUTH_PAYLOAD, TRACK_NAMESPACE_PREFIX
+  * SUBSCRIBE_TRACKS: AUTH_PAYLOAD, PAUSED, TRACK_PROPERTY_FILTER,
     TRACK_NAMESPACE_PREFIX
 
   Range Filters are only allowed from the subscriber (see {{range-filters}}).
@@ -3326,7 +3330,7 @@ SUBSCRIBE Message {
 
 * Parameters: The parameters are defined in {{message-params}}.  The parameters
   that can appear in a SUBSCRIBE are OBJECT_DELIVERY_TIMEOUT,
-  AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, PAUSED,
+  AUTH_PAYLOAD, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, PAUSED,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
   SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
   NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
@@ -3394,7 +3398,7 @@ PUBLISH Message {
 
 * Parameters: The parameters are defined in {{message-params}}. The parameters
   that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
-  AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
+  AUTH_PAYLOAD, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
   PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS
   and SUBSCRIBE_TRACKS_ID.  Those governing delivery, such as PAUSED,
   GROUP_ORDER, SUBSCRIBER_PRIORITY,
@@ -3456,9 +3460,9 @@ potentially not delivering some late objects to the application.  The
 subscriber SHOULD send STOP_SENDING on all streams related to the subscription
 when it deletes subscription state.
 
-A publisher that ends a subscription because the authorization token that
-authorized it has expired SHOULD send PUBLISH_DONE with status code
-`EXPIRED_AUTH_TOKEN`.
+A publisher that ends a subscription because an auth payload required for
+continued authorization has expired SHOULD send PUBLISH_DONE with status code
+`EXPIRED_AUTH_PAYLOAD`.
 
 The format of `PUBLISH_DONE` is as follows:
 
@@ -3570,7 +3574,7 @@ FETCH Message {
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Parameters: The parameters are defined in {{message-params}}.  The parameters
-  that can appear in a FETCH are AUTHORIZATION_TOKEN, FILL_TIMEOUT,
+  that can appear in a FETCH are AUTH_PAYLOAD, FILL_TIMEOUT,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, SUBGROUP_FILTER,
   OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER and
   INCLUDE_PROPERTIES.
@@ -3583,7 +3587,7 @@ new bidi stream to obtain information about the current status of a given track.
 The TRACK_STATUS message format is identical to the SUBSCRIBE message
 ({{message-subscribe-req}}), but subscriber parameters related to Track
 delivery (e.g. SUBSCRIBER_PRIORITY) are not included.  The parameters that can
-appear in a TRACK_STATUS are AUTHORIZATION_TOKEN and INCLUDE_PROPERTIES.
+appear in a TRACK_STATUS are AUTH_PAYLOAD and INCLUDE_PROPERTIES.
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create downstream subscription
@@ -3624,7 +3628,7 @@ PUBLISH_NAMESPACE Message {
   {{namespace-prefix-matching}}).
 
 * Parameters: The parameters are defined in {{message-params}}.  The only
-  parameter that can appear in a PUBLISH_NAMESPACE is AUTHORIZATION_TOKEN.
+  parameter that can appear in a PUBLISH_NAMESPACE is AUTH_PAYLOAD.
 
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
@@ -3651,7 +3655,7 @@ SUBSCRIBE_NAMESPACE Message {
   {{namespace-prefix-matching}}).
 
 * Parameters: The parameters are defined in {{message-params}}.  The only
-  parameter that can appear in a SUBSCRIBE_NAMESPACE is AUTHORIZATION_TOKEN.
+  parameter that can appear in a SUBSCRIBE_NAMESPACE is AUTH_PAYLOAD.
 
 ## NAMESPACE {#message-namespace}
 
@@ -3730,7 +3734,7 @@ SUBSCRIBE_TRACKS Message {
 * Parameters: The parameters are defined in {{message-params}}, though they
   are handled differently from the same Parameters on Subscriptions, as outlined
   below.  The parameters that can appear in a SUBSCRIBE_TRACKS are
-  OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT,
+  OBJECT_DELIVERY_TIMEOUT, AUTH_PAYLOAD, SUBGROUP_DELIVERY_TIMEOUT,
   PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
   SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
   TRACK_PROPERTY_FILTER and INCLUDE_PROPERTIES.
@@ -3831,17 +3835,19 @@ endpoint MUST close the session with `INVALID_PARAMETER`.
 Note that since Setup Options use a separate namespace, it is impossible for
 Message Parameters to appear in Setup messages.
 
-### AUTHORIZATION TOKEN Parameter {#authorization-token}
+### AUTH_PAYLOAD Parameter {#auth-payload}
 
-The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) uses Length-prefixed
+The AUTH_PAYLOAD parameter (Parameter Type 0x03) uses Length-prefixed
 encoding. It MAY appear in a PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
-SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
-parameter conveys information to authorize the sender to perform the operation
-carrying the parameter. This Parameter MUST NOT be copied from a SUBSCRIBE_TRACKS
-to the resulting PUBLISH message Parameters.
+SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH
+message. This parameter carries auth payloads used by the applicable
+authorization scheme, including tokens, proofs, challenges, or responses. The
+payload type defines how the content is processed in the context of the message.
+This Parameter MUST NOT be copied from a SUBSCRIBE_TRACKS to the resulting
+PUBLISH message Parameters.
 
-The parameter value is a Token structure, whose wire format and semantics are
-defined in {{auth-token-compression}}.
+The parameter value is an Auth Payload structure, whose wire format and semantics are
+defined in {{auth-payload-compression}}.
 
 ### SUBGROUP_DELIVERY_TIMEOUT Parameter {#subgroup-delivery-timeout}
 
@@ -4150,8 +4156,8 @@ EXPIRES in TRACK_STATUS_OK indicates the value the sender would have included
 in a SUBSCRIBE_OK for the same Track.
 
 The receiver of the parameter can attempt to extend the request by sending
-a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
-more updated AUTHORIZATION_TOKENs, it SHOULD include those in the
+a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has updated
+auth payloads for continued authorization, it SHOULD include those in the
 REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
 value in REQUEST_UPDATE_OK. Relays that send this parameter and applications that
 receive it MAY introduce jitter to prevent many endpoints from updating
@@ -5121,23 +5127,24 @@ DATA_STREAM_TIMEOUT (0x12):
   times out waiting for a new object header on an open subgroup stream, it
   MAY send a STOP_SENDING on that stream or terminate the subscription.
 
-AUTH_TOKEN_CACHE_OVERFLOW (0x13):
-: The Session limit {{max-auth-token-cache-size}} of the size of all
-  registered Authorization tokens has been exceeded.
+AUTH_PAYLOAD_CACHE_OVERFLOW (0x13):
+: The Session limit {{max-auth-payload-cache-size}} of the size of all
+  registered auth payloads has been exceeded.
 
-DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
-: Authorization Token attempted to register an Alias that was in use (see
-  {{auth-token-compression}}).
+DUPLICATE_AUTH_PAYLOAD_ALIAS (0x14):
+: Auth payload attempted to register an Alias that was in use (see
+  {{auth-payload-compression}}).
 
-MALFORMED_AUTH_TOKEN (0x16):
-: Invalid Auth Token serialization (see {{auth-token-compression}}).
+MALFORMED_AUTH_PAYLOAD (0x16):
+: Invalid auth payload serialization (see {{auth-payload-compression}}).
 
-UNKNOWN_AUTH_TOKEN_ALIAS (0x17):
-: No registered token found for the provided Alias (see
-  {{auth-token-compression}}).
+UNKNOWN_AUTH_PAYLOAD_ALIAS (0x17):
+: No registered payload found for the provided Alias (see
+  {{auth-payload-compression}}).
 
-EXPIRED_AUTH_TOKEN (0x18):
-: Authorization token has expired ({{auth-token-compression}}).
+EXPIRED_AUTH_PAYLOAD (0x18):
+: An auth payload has expired according to its Payload Type
+  ({{auth-payload-compression}}).
 
 INVALID_AUTHORITY (0x19):
 : The specified AUTHORITY does not correspond to this server or cannot be
@@ -5212,7 +5219,7 @@ INTERNAL_ERROR:
 
 UNAUTHORIZED:
 : The subscriber is not authorized to perform the requested action on the given
-track.  This might be retryable if the authorization token is not yet valid.
+track. This might be retryable if a required auth payload is not yet valid.
 
 TIMEOUT:
 : The subscription could not be completed before an implementation specific
@@ -5222,12 +5229,13 @@ TIMEOUT:
 NOT_SUPPORTED:
 : The endpoint does not support the type of request.
 
-MALFORMED_AUTH_TOKEN:
-: Invalid Auth Token serialization during registration (see
-  {{auth-token-compression}}).
+MALFORMED_AUTH_PAYLOAD:
+: Invalid auth payload serialization during registration (see
+  {{auth-payload-compression}}).
 
-EXPIRED_AUTH_TOKEN:
-: Authorization token has expired ({{auth-token-compression}}).
+EXPIRED_AUTH_PAYLOAD:
+: An auth payload has expired according to its Payload Type
+  ({{auth-payload-compression}}).
 
 GOING_AWAY:
 : The endpoint has received a GOAWAY and MAY reject new requests.
@@ -5316,9 +5324,9 @@ TOO_FAR_BEHIND (0x5):
 EXPIRED (0x6):
 : The publisher reached the timeout specified in SUBSCRIBE_OK.
 
-EXPIRED_AUTH_TOKEN (0x7):
-: The authorization token that authorized the subscription has expired
-  (see {{message-publish-done}}).
+EXPIRED_AUTH_PAYLOAD (0x7):
+: An auth payload required for continued authorization of the subscription has
+  expired (see {{message-publish-done}}).
 
 MALFORMED_TRACK (0x12):
 : A relay publisher detected that the track was malformed (see
@@ -5356,8 +5364,8 @@ TOO_FAR_BEHIND (0x5):
 : The corresponding subscription has exceeded the publisher's resource limits and
   is being terminated (see {{delivery-timeouts}}).
 
-EXPIRED_AUTH_TOKEN (0x7):
-: The authorization token for the request has expired.
+EXPIRED_AUTH_PAYLOAD (0x7):
+: An auth payload required to authorize the request has expired.
 
 EXCESSIVE_LOAD (0x9):
 : The endpoint is overloaded and is resetting this stream.
@@ -5384,7 +5392,7 @@ The following registries include GREASE reservations:
 - Error Detail Types ({{iana-error-details}})
 - PUBLISH_DONE Codes ({{iana-publish-done}})
 - Stream Reset Error Codes ({{iana-reset-stream}})
-- MOQT Auth Token Type
+- MOQT Auth Payload Type
 
 Because new values in these registries can be defined without negotiation,
 implementations MUST handle unknown values gracefully. Endpoints MUST NOT
@@ -5521,27 +5529,25 @@ identity.
 Once a peer is authenticated, an application MAY use attributes in the peer's
 certificate as an input to authorization decisions; the granularity and policy
 of such authorization is out of scope for this document.
-### Authorization Tokens {#sec-tokens}
+### Auth Payloads {#sec-auth-payloads}
 
-MOQT has functionality to carry Authorization tokens as message
-parameters. These tokens can vary based on the application
-requirements. Two variants of authorization tokens have already
-been defined for MOQT, and more are expected in the future. The
-current tokens are Privacy Pass Authentication for Media over QUIC
-{{PPA}} and Authentication scheme for MOQT using Common Access Tokens
-{{CAT}}.
+MOQT carries auth payloads in the AUTH_PAYLOAD message parameter and Setup
+Option. Payload types define tokens, proofs, challenges, and responses, along
+with their processing rules. Authorization tokens are one kind of auth payload.
+Token schemes already defined for MOQT include Privacy Pass Authentication for
+Media over QUIC {{PPA}} and Authentication scheme for MOQT using Common Access
+Tokens {{CAT}}.
 
-Tokens are expected to contain information about which actions and
-which resources the endpoint providing the token is authorized to
-perform and access. Relays will verify the
-token to ensure that the request is authorized.
+Tokens are expected to contain information about which actions and resources
+the endpoint providing the token is authorized to perform and access. Relays
+verify the tokens and any accompanying proofs or responses according to the
+applicable authorization scheme to ensure that the request is authorized.
 
 ### Replay Attacks
 
-Replay protection for authorization tokens is the responsibility of
-the specific token scheme used. Token schemes such as {{CAT}} and
-{{PPA}} include requirements for relays when processing tokens and
-requests.
+Replay protection for auth payloads is the responsibility of the applicable
+payload type specification. Token schemes such as {{CAT}} and {{PPA}} include
+requirements for relays when processing auth payloads and requests.
 
 ### Preventing Impersonation {#preventing-impersonation}
 
@@ -5621,7 +5627,7 @@ subscriber MUST cancel a stream, preferably the one with the lowest
 priority, after reaching a resource limit.
 
 A larger MAX_CONTROL_MESSAGE_SIZE ({{max-control-message-size}}) allows larger
-Parameters, such as Authorization Tokens, but an endpoint that buffers complete
+Parameters, such as AUTH_PAYLOAD, but an endpoint that buffers complete
 control messages commits that much memory per stream.  Such an endpoint needs
 to grant enough flow control for a complete message on each stream, or the
 endpoints can deadlock.
@@ -5823,8 +5829,8 @@ This registry is initially empty.
 | Type | Name | Specification |
 |-----:|:-----|:--------------|
 | 0x01 | PATH | {{path}} |
-| 0x03 | AUTHORIZATION_TOKEN | {{setup-auth-token}} |
-| 0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | {{max-auth-token-cache-size}} |
+| 0x03 | AUTH_PAYLOAD | {{setup-auth-payload}} |
+| 0x04 | MAX_AUTH_PAYLOAD_CACHE_SIZE | {{max-auth-payload-cache-size}} |
 | 0x05 | AUTHORITY | {{authority}} |
 | 0x06 | MAX_FILTER_RANGES | {{max-filter-ranges}} |
 | 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
@@ -5842,20 +5848,20 @@ between independent implementations.  There is no reserved range for
 private or application-specific use; implementations that need custom
 Setup Options SHOULD request a provisional registration.
 
-## Authorization Token Alias Type
+## Auth Payload Alias Type
 
 | Code | Name       | Specification
 |-----:|:-----------|------------------------|
-| 0x0  | DELETE     | {{auth-token-compression}}
-| 0x1  | REGISTER   | {{auth-token-compression}}
-| 0x2  | USE_ALIAS  | {{auth-token-compression}}
-| 0x3  | USE_VALUE  | {{auth-token-compression}}
+| 0x0  | DELETE     | {{auth-payload-compression}}
+| 0x1  | REGISTER   | {{auth-payload-compression}}
+| 0x2  | USE_ALIAS  | {{auth-payload-compression}}
+| 0x3  | USE_VALUE  | {{auth-payload-compression}}
 
-## MOQT Auth Token Type {#iana-auth-token-type}
+## MOQT Auth Payload Type {#iana-auth-payload-type}
 
 | Code | Name       | Specification |
 |-----:|:-----------|:--------------|
-| 0x0  | Reserved   | {{auth-token-compression}} |
+| 0x0  | Reserved   | {{auth-payload-compression}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 ## Message Parameters
@@ -5863,7 +5869,7 @@ Setup Options SHOULD request a provisional registration.
 | Parameter Type | Parameter Name | Specification |
 |----------------|----------------|---------------|
 | 0x02 | OBJECT_DELIVERY_TIMEOUT | {{object-delivery-timeout}} |
-| 0x03 | AUTHORIZATION_TOKEN | {{authorization-token}} |
+| 0x03 | AUTH_PAYLOAD | {{auth-payload}} |
 | 0x04 | RENDEZVOUS_TIMEOUT | {{rendezvous-timeout}} |
 | 0x06 | SUBGROUP_DELIVERY_TIMEOUT | {{subgroup-delivery-timeout}} |
 | 0x08 | EXPIRES | {{expires}} |
@@ -5993,42 +5999,42 @@ between independent implementations.
 
 ### Session Termination Error Codes {#iana-session-termination}
 
-| Name                       | Code | Specification           |
-|:---------------------------|:----:|:------------------------|
-| NO_ERROR                   | 0x0  | {{session-termination-codes}} |
-| INTERNAL_ERROR             | 0x1  | {{session-termination-codes}} |
-| UNAUTHORIZED               | 0x2  | {{session-termination-codes}} |
-| PROTOCOL_VIOLATION         | 0x3  | {{session-termination-codes}} |
-| INVALID_REQUEST_ID         | 0x4  | {{session-termination-codes}} |
-| DUPLICATE_TRACK_ALIAS      | 0x5  | {{session-termination-codes}} |
-| MALFORMED_KEY_VALUE        | 0x6  | {{session-termination-codes}} |
-| INVALID_PATH               | 0x8  | {{session-termination-codes}} |
-| MALFORMED_PATH             | 0x9  | {{session-termination-codes}} |
-| GOAWAY_TIMEOUT             | 0x10 | {{session-termination-codes}} |
-| CONTROL_MESSAGE_TIMEOUT    | 0x11 | {{session-termination-codes}} |
-| DATA_STREAM_TIMEOUT        | 0x12 | {{session-termination-codes}} |
-| AUTH_TOKEN_CACHE_OVERFLOW  | 0x13 | {{session-termination-codes}} |
-| DUPLICATE_AUTH_TOKEN_ALIAS | 0x14 | {{session-termination-codes}} |
-| MALFORMED_AUTH_TOKEN       | 0x16 | {{session-termination-codes}} |
-| UNKNOWN_AUTH_TOKEN_ALIAS   | 0x17 | {{session-termination-codes}} |
-| EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination-codes}} |
-| INVALID_AUTHORITY          | 0x19 | {{session-termination-codes}} |
-| MALFORMED_AUTHORITY        | 0x1A | {{session-termination-codes}} |
-| TOO_MANY_REQUEST_UPDATES   | 0x1B | {{session-termination-codes}} |
-| INVALID_STREAM_HEADER      | 0x200 | {{session-termination-codes}} |
-| MALFORMED_OBJECT           | 0x201 | {{session-termination-codes}} |
-| INVALID_OBJECT_STATUS      | 0x202 | {{session-termination-codes}} |
-| TRUNCATED_OBJECT           | 0x203 | {{session-termination-codes}} |
-| MALFORMED_MESSAGE          | 0x300 | {{session-termination-codes}} |
-| INVALID_FIELD              | 0x301 | {{session-termination-codes}} |
-| INVALID_TRACK_NAMESPACE    | 0x302 | {{session-termination-codes}} |
-| UNEXPECTED_MESSAGE         | 0x303 | {{session-termination-codes}} |
-| ROLE_VIOLATION             | 0x304 | {{session-termination-codes}} |
-| INVALID_PARAMETER          | 0x305 | {{session-termination-codes}} |
-| CLOSED_CONTROL_STREAM      | 0x306 | {{session-termination-codes}} |
-| DELTA_ENCODING_OVERFLOW    | 0x400 | {{session-termination-codes}} |
-| FIELD_LENGTH_EXCEEDED      | 0x401 | {{session-termination-codes}} |
-| Reserved for greasing      | 0x7f * N + 0x9D | {{grease}} |
+| Name                         | Code | Specification           |
+|:-----------------------------|:----:|:------------------------|
+| NO_ERROR                     | 0x0  | {{session-termination-codes}} |
+| INTERNAL_ERROR               | 0x1  | {{session-termination-codes}} |
+| UNAUTHORIZED                 | 0x2  | {{session-termination-codes}} |
+| PROTOCOL_VIOLATION           | 0x3  | {{session-termination-codes}} |
+| INVALID_REQUEST_ID           | 0x4  | {{session-termination-codes}} |
+| DUPLICATE_TRACK_ALIAS        | 0x5  | {{session-termination-codes}} |
+| MALFORMED_KEY_VALUE          | 0x6  | {{session-termination-codes}} |
+| INVALID_PATH                 | 0x8  | {{session-termination-codes}} |
+| MALFORMED_PATH               | 0x9  | {{session-termination-codes}} |
+| GOAWAY_TIMEOUT               | 0x10 | {{session-termination-codes}} |
+| CONTROL_MESSAGE_TIMEOUT      | 0x11 | {{session-termination-codes}} |
+| DATA_STREAM_TIMEOUT          | 0x12 | {{session-termination-codes}} |
+| AUTH_PAYLOAD_CACHE_OVERFLOW  | 0x13 | {{session-termination-codes}} |
+| DUPLICATE_AUTH_PAYLOAD_ALIAS | 0x14 | {{session-termination-codes}} |
+| MALFORMED_AUTH_PAYLOAD       | 0x16 | {{session-termination-codes}} |
+| UNKNOWN_AUTH_PAYLOAD_ALIAS   | 0x17 | {{session-termination-codes}} |
+| EXPIRED_AUTH_PAYLOAD         | 0x18 | {{session-termination-codes}} |
+| INVALID_AUTHORITY            | 0x19 | {{session-termination-codes}} |
+| MALFORMED_AUTHORITY          | 0x1A | {{session-termination-codes}} |
+| TOO_MANY_REQUEST_UPDATES     | 0x1B | {{session-termination-codes}} |
+| INVALID_STREAM_HEADER        | 0x200 | {{session-termination-codes}} |
+| MALFORMED_OBJECT             | 0x201 | {{session-termination-codes}} |
+| INVALID_OBJECT_STATUS        | 0x202 | {{session-termination-codes}} |
+| TRUNCATED_OBJECT             | 0x203 | {{session-termination-codes}} |
+| MALFORMED_MESSAGE            | 0x300 | {{session-termination-codes}} |
+| INVALID_FIELD                | 0x301 | {{session-termination-codes}} |
+| INVALID_TRACK_NAMESPACE      | 0x302 | {{session-termination-codes}} |
+| UNEXPECTED_MESSAGE           | 0x303 | {{session-termination-codes}} |
+| ROLE_VIOLATION               | 0x304 | {{session-termination-codes}} |
+| INVALID_PARAMETER            | 0x305 | {{session-termination-codes}} |
+| CLOSED_CONTROL_STREAM        | 0x306 | {{session-termination-codes}} |
+| DELTA_ENCODING_OVERFLOW      | 0x400 | {{session-termination-codes}} |
+| FIELD_LENGTH_EXCEEDED        | 0x401 | {{session-termination-codes}} |
+| Reserved for greasing        | 0x7f * N + 0x9D | {{grease}} |
 
 ### REQUEST_ERROR Codes {#iana-request-error}
 
@@ -6038,8 +6044,8 @@ between independent implementations.
 | UNAUTHORIZED               | 0x1  | {{request-error-codes}} |
 | TIMEOUT                    | 0x2  | {{request-error-codes}} |
 | NOT_SUPPORTED              | 0x3  | {{request-error-codes}} |
-| MALFORMED_AUTH_TOKEN       | 0x4  | {{request-error-codes}} |
-| EXPIRED_AUTH_TOKEN         | 0x5  | {{request-error-codes}} |
+| MALFORMED_AUTH_PAYLOAD     | 0x4  | {{request-error-codes}} |
+| EXPIRED_AUTH_PAYLOAD       | 0x5  | {{request-error-codes}} |
 | GOING_AWAY                 | 0x6  | {{request-error-codes}} |
 | EXCESSIVE_LOAD             | 0x9  | {{request-error-codes}} |
 | DOES_NOT_EXIST             | 0x10 | {{request-error-codes}} |
@@ -6055,18 +6061,18 @@ between independent implementations.
 
 ### PUBLISH_DONE Codes {#iana-publish-done}
 
-| Name               | Code | Specification            |
-|:-------------------|:----:|:-------------------------|
-| INTERNAL_ERROR     | 0x0  | {{publish-done-codes}} |
-| UNAUTHORIZED       | 0x1  | {{publish-done-codes}} |
-| TRACK_ENDED        | 0x2  | {{publish-done-codes}} |
-| GOING_AWAY         | 0x4  | {{publish-done-codes}} |
-| TOO_FAR_BEHIND     | 0x5  | {{publish-done-codes}} |
-| EXPIRED            | 0x6  | {{publish-done-codes}} |
-| EXPIRED_AUTH_TOKEN | 0x7  | {{publish-done-codes}} |
-| UPDATE_FAILED      | 0x8  | {{publish-done-codes}} |
-| EXCESSIVE_LOAD     | 0x9  | {{publish-done-codes}} |
-| MALFORMED_TRACK    | 0x12 | {{publish-done-codes}} |
+| Name                  | Code | Specification            |
+|:----------------------|:----:|:-------------------------|
+| INTERNAL_ERROR        | 0x0  | {{publish-done-codes}} |
+| UNAUTHORIZED          | 0x1  | {{publish-done-codes}} |
+| TRACK_ENDED           | 0x2  | {{publish-done-codes}} |
+| GOING_AWAY            | 0x4  | {{publish-done-codes}} |
+| TOO_FAR_BEHIND        | 0x5  | {{publish-done-codes}} |
+| EXPIRED               | 0x6  | {{publish-done-codes}} |
+| EXPIRED_AUTH_PAYLOAD  | 0x7  | {{publish-done-codes}} |
+| UPDATE_FAILED         | 0x8  | {{publish-done-codes}} |
+| EXCESSIVE_LOAD        | 0x9  | {{publish-done-codes}} |
+| MALFORMED_TRACK       | 0x12 | {{publish-done-codes}} |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
 
 ### Stream Reset Error Codes {#iana-reset-stream}
@@ -6079,7 +6085,7 @@ between independent implementations.
 | SESSION_CLOSED        | 0x3  | {{stream-reset-codes}}   |
 | GOING_AWAY            | 0x4  | {{stream-reset-codes}}   |
 | TOO_FAR_BEHIND        | 0x5  | {{stream-reset-codes}}   |
-| EXPIRED_AUTH_TOKEN    | 0x7  | {{stream-reset-codes}}   |
+| EXPIRED_AUTH_PAYLOAD  | 0x7  | {{stream-reset-codes}}   |
 | EXCESSIVE_LOAD        | 0x9  | {{stream-reset-codes}}   |
 | MALFORMED_TRACK       | 0x12 | {{stream-reset-codes}}   |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
@@ -6149,7 +6155,7 @@ Issue and pull request numbers are listed with a leading octothorp.
   (#1911, #1918)
 * Clarify that FETCH_OK End Location is inclusive (#1910)
 * Clarify how extensions declare support in SETUP (#1921)
-* Scope the auth token cache overflow rule to non-SETUP registrations (#1927)
+* Scope the auth payload cache overflow rule to non-SETUP registrations (#1927)
 * Relay-to-relay communication is out of scope (#1931)
 
 ## Since draft-ietf-moq-transport-20
@@ -6163,7 +6169,7 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Promote each Setup Option to its own section (#1896)
 * Collect Session Termination, Request Error, and Publish Done codes into
   Error Handling (#1879, #1880, #1881)
-* Extract common wire format sections: Authorization Token Compression, Track
+* Extract common wire format sections: Auth Payload Compression, Track
   Namespace, Location Filter, and Range Filter (#1882, #1887, #1888, #1892)
 * Remove the Connection URL, Stream Cancellation, and Examples sections (#1878)
 * Restructuring pull requests that also made editorial clarifications are
@@ -6181,7 +6187,7 @@ Issue and pull request numbers are listed with a leading octothorp.
   carry the FETCH range in LOCATION_FILTER instead of message fields (#1809)
 * Add PUBLISH_STATE_NOTIFY message (#1820)
 * Add INCLUDE_PROPERTIES parameter (#1813, #1847)
-* PUBLISH can carry Subscription Parameters, and AUTHORIZATION TOKEN is never
+* PUBLISH can carry Subscription Parameters, and AUTH_PAYLOAD is never
   copied from SUBSCRIBE_TRACKS (#1834)
 * Subscription parameters appear in REQUEST_UPDATE, not PUBLISH_OK (#1790)
 * Allow FORWARD on a REQUEST_UPDATE for SUBSCRIBE_TRACKS (#1812)
@@ -6348,7 +6354,7 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Allow zero-element namespaces (#1472)
 * Clarify EXPIRES parameter update mechanism (#1448)
 * Remove TRACK_STATUS from REQUEST_UPDATE (#1436)
-* Define how to use auth token cache safely with multiple streams (#1430)
+* Define how to use auth payload cache safely with multiple streams (#1430)
 * Constrain encoding/parsing of track namespace and names (#1512)
 * Reserve Property type ranges for application-specific use (#1473)
 * Make EndGroup in Subscription Filters a delta (#1470)
@@ -6518,7 +6524,7 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Explain Malformed Tracks and what to do with them (#938)
 * Allow End of Group to be indicated in a normal Object (#1011)
 * Relays MUST have an upstream subscription to send SUBSCRIBE_OK (#1017)
-* Allow AUTHORIZATION TOKEN in CLIENT_SETUP, SERVER_SETUP and
+* Allow AUTH_PAYLOAD in CLIENT_SETUP, SERVER_SETUP and
   other fixes (#1013)
 * Add PUBLISH for publisher initiated subscriptions (#995) and
   fix the PUBLISH codepoints (#1048, #1051)
@@ -6549,5 +6555,5 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Objects that Do Not Exist cannot have extensions when sent on the wire
 * Specified error codes for resetting data streams
 * Defined an Object Header Extension for communicating a known Group ID gap
-* Replaced AUTHORIZATION_INFO with AUTHORIZATION_TOKEN, which has more structure,
+* Replaced AUTHORIZATION_INFO with AUTH_PAYLOAD, which has more structure,
   compression, and additional Auth related error codes (#760)
