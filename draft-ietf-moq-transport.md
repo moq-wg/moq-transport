@@ -2442,6 +2442,10 @@ modify, add, or remove the Property; it MUST forward the Property to downstream
 subscribers and MUST cache it with the Track or Object if the Track or Object is
 cached.
 
+An endpoint that supports a Property and receives it outside its scope (e.g. a
+Track-only Property as an Object Property) MUST treat the Track as malformed
+(see {{malformed-tracks}}).
+
 Properties are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
 Track Properties always appear as the final field in the messages that
 carry them; their length is the remaining bytes of the message after all
@@ -5041,6 +5045,8 @@ include:
    other immutable properties.
 7. An Object is received with a different Delivery Mode than previously
    observed.
+8. A supported Property is received outside its scope, such as a Track-only
+   Property received as an Object Property (see {{properties}}).
 
 The above list of conditions is not considered exhaustive.
 
