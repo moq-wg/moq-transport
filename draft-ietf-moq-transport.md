@@ -5006,6 +5006,8 @@ include:
    other immutable properties.
 7. An Object is received with a different Delivery Mode than previously
    observed.
+8. A supported Property is received outside its scope, such as a Track-only
+   Property received as an Object Property (see {{properties}}).
 
 The above list of conditions is not considered exhaustive.
 
