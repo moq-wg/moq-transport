@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 3 May 2027</td>
+<td class="center">Expires 4 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-30" class="published">30 October 2026</time>
+<time datetime="2026-10-31" class="published">31 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-05-03">3 May 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-04">4 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 3 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 4 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -4806,32 +4806,35 @@ Property's definition.  Unless those rules permit otherwise, a Relay <span class
 modify, add, or remove the Property; it <span class="bcp14">MUST</span> forward the Property to downstream
 subscribers and <span class="bcp14">MUST</span> cache it with the Track or Object if the Track or Object is
 cached.<a href="#section-8.4-4" class="pilcrow">¶</a></p>
-<p id="section-8.4-5">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 3</a>).
+<p id="section-8.4-5">An endpoint that supports a Property and receives it outside its scope (e.g. a
+Track-only Property as an Object Property) <span class="bcp14">MUST</span> treat the Track as malformed
+(see <a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-8.4-5" class="pilcrow">¶</a></p>
+<p id="section-8.4-6">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 3</a>).
 Track Properties always appear as the final field in the messages that
 carry them; their length is the remaining bytes of the message after all
 preceding fields have been consumed. Object Properties (<a href="#object-properties" class="auto internal xref">Section 11.1.2</a>)
-are preceded by an explicit length field.<a href="#section-8.4-5" class="pilcrow">¶</a></p>
-<p id="section-8.4-6">Property types are registered in the IANA table 'MOQ Properties'.
-See <a href="#iana" class="auto internal xref">Section 16</a>.<a href="#section-8.4-6" class="pilcrow">¶</a></p>
-<p id="section-8.4-7">Certain Property type ranges are reserved for application-specific
-use and will never be allocated by IANA in future MOQT specifications:<a href="#section-8.4-7" class="pilcrow">¶</a></p>
+are preceded by an explicit length field.<a href="#section-8.4-6" class="pilcrow">¶</a></p>
+<p id="section-8.4-7">Property types are registered in the IANA table 'MOQ Properties'.
+See <a href="#iana" class="auto internal xref">Section 16</a>.<a href="#section-8.4-7" class="pilcrow">¶</a></p>
+<p id="section-8.4-8">Certain Property type ranges are reserved for application-specific
+use and will never be allocated by IANA in future MOQT specifications:<a href="#section-8.4-8" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.4-8.1">
-            <p id="section-8.4-8.1.1">0x78 to 0x7F (1-byte encoding): 8 code points for applications with
-tight space constraints<a href="#section-8.4-8.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.4-9.1">
+            <p id="section-8.4-9.1.1">0x78 to 0x7F (1-byte encoding): 8 code points for applications with
+tight space constraints<a href="#section-8.4-9.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.4-8.2">
-            <p id="section-8.4-8.2.1">0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including grease
-<a href="#grease" class="auto internal xref">Section 13</a>) for applications with moderate space constraints<a href="#section-8.4-8.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.4-9.2">
+            <p id="section-8.4-9.2.1">0x3800 to 0x3FFF (2-byte encoding): 2048 code points (including grease
+<a href="#grease" class="auto internal xref">Section 13</a>) for applications with moderate space constraints<a href="#section-8.4-9.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.4-9">Applications <span class="bcp14">MAY</span> use code points in these ranges without registration for
+<p id="section-8.4-10">Applications <span class="bcp14">MAY</span> use code points in these ranges without registration for
 format-specific metadata or other application-defined purposes. Relays that
 do not understand the application format <span class="bcp14">MUST</span> forward these properties
 unchanged but <span class="bcp14">MUST NOT</span> attempt to interpret their semantic meaning. Different
 applications using the same code point in these ranges may assign different
 meanings; the interpretation depends on the track or application
-context known to the publisher and subscriber.<a href="#section-8.4-9" class="pilcrow">¶</a></p>
+context known to the publisher and subscriber.<a href="#section-8.4-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="reason-phrase">
@@ -8260,6 +8263,10 @@ other immutable properties.<a href="#section-12.1-2.6.1" class="pilcrow">¶</a><
           <li id="section-12.1-2.7">
             <p id="section-12.1-2.7.1">An Object is received with a different Delivery Mode than previously
 observed.<a href="#section-12.1-2.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-12.1-2.8">
+            <p id="section-12.1-2.8.1">A supported Property is received outside its scope, such as a Track-only
+Property received as an Object Property (see <a href="#properties" class="auto internal xref">Section 8.4</a>).<a href="#section-12.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-12.1-3">The above list of conditions is not considered exhaustive.<a href="#section-12.1-3" class="pilcrow">¶</a></p>

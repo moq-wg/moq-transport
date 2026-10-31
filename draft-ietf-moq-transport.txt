@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 3 May 2027                                        I. Swett, Ed.
+Expires: 4 May 2027                                        I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         30 October 2026
+                                                         31 October 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 May 2027.
+   This Internet-Draft will expire on 4 May 2027.
 
 Copyright Notice
 
@@ -2867,6 +2867,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    the Property to downstream subscribers and MUST cache it with the
    Track or Object if the Track or Object is cached.
 
+   An endpoint that supports a Property and receives it outside its
+   scope (e.g. a Track-only Property as an Object Property) MUST treat
+   the Track as malformed (see Section 12.1).
+
    Properties are serialized as Key-Value-Pairs (see Figure 3).  Track
    Properties always appear as the final field in the messages that
    carry them; their length is the remaining bytes of the message after
@@ -5664,6 +5668,10 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    7.  An Object is received with a different Delivery Mode than
        previously observed.
+
+   8.  A supported Property is received outside its scope, such as a
+       Track-only Property received as an Object Property (see
+       Section 8.4).
 
    The above list of conditions is not considered exhaustive.
 
