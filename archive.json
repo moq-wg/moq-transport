@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-29T04:57:57.968276+00:00",
+  "timestamp": "2026-11-01T05:05:37.612908+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -162,6 +162,11 @@
       "name": "Filters",
       "description": "Issues related to the Object and Track Filters proposal(s)",
       "color": "369b6d"
+    },
+    {
+      "name": "Next Draft",
+      "description": "",
+      "color": "ff991c"
     }
   ],
   "issues": [
@@ -51014,7 +51019,7 @@
       ],
       "body": "draft has text that says \n\n> Relays MAY ignore subsequently received Objects or MAY use them to\n> update certain cached fields. Implementations that update the cache\n> need to protect against cache poisoning. The only Object fields that\n> can be updated are the following:\n> 1. Object can transition from existing to not existing in cases\n> where the object is no longer available.\n> 2. Object Properties can be added, removed or updated, subject to\n> the constraints of the specific property.\n\nI think this is going to turn out be a bad idea on two axis.\n\n1. it is going to be insanity to allow things to go from non existing to existing. Other places we say that is not allowed \n\n2. allowing properties to change is going to be a very brittle particularly if only something do it. I think these need be described as the relay ignore any future properties from objects that are currently in cache and uses the cache values. \n\nWe need to phrase carefully because a relay might add a property like the NTP time it sent the object but for what it stores in cache, I think it need to never change. We also don't want clients relying on cache behavior that not all relays support. ",
       "createdAt": "2026-06-14T16:23:57Z",
-      "updatedAt": "2026-10-24T17:09:51Z",
+      "updatedAt": "2026-10-30T19:04:53Z",
       "closedAt": null,
       "comments": [
         {
@@ -51051,6 +51056,20 @@
           "body": "What do we want to do about updating Track Properties in the cache?",
           "createdAt": "2026-10-18T18:33:29Z",
           "updatedAt": "2026-10-18T18:33:29Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Discussed 10/26:  The working group decided that the existing behavior in the spec -- update cached properties wholesale-- is the desired behavior, both for Track and Object Properties.  This is a reversal of the decision from the 8/24 interim (CC: @fluffy, since you weren't there, you filed this issue, and specifically called out potential hazards).\n\nWith respect to updating track properties while the track is still live, I can imagine some implementation differences e.g. in how/when MAX_CACHE_DURATION or OBJECT_DELIVERY_TIMEOUT is applied to open subgroups.  This would also allow updating the DEFAULT_PUBLISHER_PRIORITY if not specifically excluded -- see #1270",
+          "createdAt": "2026-10-30T18:50:19Z",
+          "updatedAt": "2026-10-30T18:50:19Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "There aren't minutes but I'm going to take claude's summary of the YouTube transcript and paste it here.  If you are mentioned and think it doesn't represent your point, please correct:  @mzanaty @ianswett @martinduke @suhasHere @englishm-ietf  @gloinul \n\n  - Relays may add properties (Mo, Mike). People wanted relays to be able to add track properties,\n    such as a geo tag or an attestation of an auth blob. Relays that don't coordinate will add\n    different ones. So copies of the same track arriving via different relays can legitimately\n    differ, and treating that as malformed would make the track undeliverable. Mo said that's why\n    the current text says to take the latest set as a whole and not merge.\n  - Objects can arrive by redundant paths (Mo). Mutable properties can differ between relay paths,\n    so you can't say MUST NOT or SHOULD NOT about differing copies.\n  - A relay that inserts properties must update its cache (Suhas). Otherwise the cache doesn't\n    reflect the source of truth from then on. Suhas also wanted to keep application logic out of\n    relays.\n  - Relays can't judge correctness anyway (Suhas). A relay can't tell a legitimate change from a\n    bad one. Suhas's example was a codec property flipping from H.264 to AV1 mid-stream, where\n    only the end application suffers. A publisher that needs a property to stay fixed should\n    protect it with authentication or crypto.\n  - Immutability is end-to-end (Mo, Suhas). Properties that must not change, like signatures or\n    AAD inputs, already go in the immutable block. Everything else is mutable by definition, so\n    relays should just replace the whole set when they see a change and leave enforcement to\n    endpoints.\n  - The HTTP analogy (Martin): an HTTP cache would generally update headers on a new copy, though\n    \"sometimes\" it says headers can't change.\n\n  Concerns raised against, or caveats\n\n  - Poisoning (Suhas, recalling the earlier interim). The original \"don't update\" decision was\n    meant to stop someone sending a good object and then a copy with poisoned properties.\n  - Semantic coupling (you). Your timestamp draft is the example. If a track property defines how\n    object properties or object IDs are interpreted, a new track property set could reinterpret\n    objects already delivered. The suggested fix was to let each property's definition say what\n    happens, and relays can't change properties defined as original-publisher-only.\n  - Churn (Ian). Ian was concerned about flip-flopping on an earlier decision, but had no\n    conceptual objection.\n  - Object properties changing at all (Magnus). Magnus struggled to see why object properties\n    would need to change and thought not allowing it was simpler, but deferred to cache\n    implementers.\n  - Multiple publishers (Martin Duke). Endpoints can't enforce immutability when there are\n    multiple publishers and the relay forwards only one copy, so the relay has to do something to\n    protect the end subscriber. This went unresolved.\n\n  Left open: the immutable block\n\n  You asked whether a relay should replace a whole immutable block when a new copy differs. Suhas\n  said yes if it came from the or from the original publisher, but relays can't verify that; only the end\n  subscriber can, at decryption.",
+          "createdAt": "2026-10-30T19:04:53Z",
+          "updatedAt": "2026-10-30T19:04:53Z"
         }
       ]
     },
@@ -52111,7 +52130,7 @@
       "id": "I_kwDOG2Ho4M8AAAABFdXHcw",
       "title": "Errors from missing data timeouts",
       "url": "https://github.com/moq-wg/moq-transport/issues/1743",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "fluffy",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -52122,8 +52141,8 @@
       ],
       "body": "The draft says\n\n> Implementations are advised to use timeouts to prevent resource\n> exhaustion attacks by a peer that does not send expected data within\n> an expected time. Each implementation is expected to set its own\n> timeouts.\n\nI think we need more guidance on how to set these and the bounds as this sounds like it likely to lead to high unpredictable results in deployments. \n\n",
       "createdAt": "2026-06-15T01:07:56Z",
-      "updatedAt": "2026-10-16T02:42:06Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-29T14:59:31Z",
+      "closedAt": "2026-10-29T14:59:31Z",
       "comments": [
         {
           "author": "ianswett",
@@ -52412,7 +52431,7 @@
       "id": "I_kwDOG2Ho4M8AAAABHGEa0g",
       "title": "Revisit prohibition on SUB_NS/TRACKS prefix overlap",
       "url": "https://github.com/moq-wg/moq-transport/issues/1792",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "sharmafb",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -52421,8 +52440,8 @@
       ],
       "body": "In sections 10.18 (SUBSCRIBE_NAMESPACE) and sections 10.19 (SUBSCRIBE_TRACKS), we use \"shares a common prefix\" to describe illegal requests. However, this is misleading. For example, (foo, bar, baz) and (foo, cat, dog) share a common prefix, but I think they should be legal.",
       "createdAt": "2026-06-29T19:43:09Z",
-      "updatedAt": "2026-10-16T02:40:02Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T18:33:40Z",
+      "closedAt": "2026-10-30T18:33:40Z",
       "comments": [
         {
           "author": "afrind",
@@ -53958,7 +53977,7 @@
       ],
       "body": "MOQT has Track and Object property scopes but nothing \"in between\", i.e. no general way to attach metadata to a Subgroup or a Group.\n\nSubgroup scope is being emulated for SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT which, \"as an Object Property on the first object in a subgroup, [override] the Track-level value for that subgroup\". And the scope for object property PRIOR_GROUP_ID_GAP is weird, but definitely not scoped to a given object.\n\nUsing object properties as emulation for wider than object scope has a number of problems.\n1. Mid-group join may miss them\n2. A fetch range may be mid-group\n\nboth of those existed for long time, but reading group without the beginning could be considered transient state, but \n\n3. Filters may exclude this metadata even in \"steady-state\". \n\nFrom general extensibility standpoint, I am missing this metadata when trying to build application on top of MOQT, and first-object as group emulation is, at minimum, hacky. I feel this is a missing extension point and should be there given that object model is the foundation of moqt. \n\nIt seems relatively easy to add subgroup properties, given that subgroup headers exist, but the single-byte bit-field compressed type is practically full.\nTrue group-level would require more significant changes in the data plane. As would some other generic data-plane metadata carrier. But both of those could bring more resilient mechanism to add metadata. \n\nI understand that this may be quite heavy change, possibly past-deadline, but I feel this should have a dedicated general discussion.\n\nDo people think we should have an additional extension point for metadata in data-plane? Which/where/how? \n",
       "createdAt": "2026-08-24T17:11:49Z",
-      "updatedAt": "2026-10-25T14:24:15Z",
+      "updatedAt": "2026-10-30T18:36:33Z",
       "closedAt": null,
       "comments": [
         {
@@ -54093,6 +54112,13 @@
           "body": "First-object properties\n\nThe main problem: I need a way to mark which properties are first-object properties and which are not. This can't be part of the property definition, because relays must handle it correctly for unknown properties too.\n\nOptions I can think of:\n\n- Put them in the subgroup header. Essentially, the same as my current PR.\n- Put them in a separate part of the object encoding. Then we need to signal that the object has this extra part:\n  - a flag in the subgroup header saying the first object is different, or\n  - a bit in the property type.\n- Add a special marker \"property\" that separates first-object properties from normal properties in the property array.\n  - e.g. a 2-byte Key-Value-Pair with 0 length?\n\nDo you prefer one of these, or can you think of a better one?",
           "createdAt": "2026-10-25T14:24:15Z",
           "updatedAt": "2026-10-25T14:24:15Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@michalhosna I was thinking we would carve out property ranges that indicate which are subgroup properties.",
+          "createdAt": "2026-10-30T18:36:33Z",
+          "updatedAt": "2026-10-30T18:36:33Z"
         }
       ]
     },
@@ -54274,7 +54300,7 @@
       "id": "I_kwDOG2Ho4M8AAAABPVcs5Q",
       "title": "FETCH doesn't need an End Location or End of Track",
       "url": "https://github.com/moq-wg/moq-transport/issues/1897",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -54285,8 +54311,8 @@
       ],
       "body": "Especially now that Fill-Fetch has landed (#1673), it's odd to have an End Location in FETCH_OK.\n\nThe End Location is the end of the specified range, unless it's relative or the end of the Fetch goes past Largest Object, in which case you end at Largest Object.\n\nIt's also odd to have 'End Of Track' IMO, because it's another difference with Fill-Fetch and it's not clear it's always necessary and might cause the FETCH_OK to take longer.  ie: Say I receive a FETCH for a single Group in the past, and I'm not currently subscribed to the Track, I don't know whether it has ended yet or not, so I'd need to figure that out.\n\nObservation from reviewing #1895",
       "createdAt": "2026-09-02T12:48:45Z",
-      "updatedAt": "2026-10-15T03:32:41Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-29T18:33:17Z",
+      "closedAt": "2026-10-29T18:33:17Z",
       "comments": [
         {
           "author": "afrind",
@@ -54603,7 +54629,7 @@
       "id": "I_kwDOG2Ho4M8AAAABQLAiog",
       "title": "Largest Object and the end of group",
       "url": "https://github.com/moq-wg/moq-transport/issues/1934",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -54612,8 +54638,8 @@
       ],
       "body": "Assume the latest object received by the relay is `{5, 12}`, and it has the end of group bit set.  What is the value of the Largest Object?  Is it `{5, 12}`, or `{5, UINT64_MAX}`?\n\nFrom the current text, I think it's the earlier.\n\nFrom the semantics we expect from fetch, I would assume it's actually the latter, since you know objects `{5, k}` do not exist for all `k > 12`.",
       "createdAt": "2026-09-08T00:14:00Z",
-      "updatedAt": "2026-10-16T14:15:59Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-29T18:35:17Z",
+      "closedAt": "2026-10-29T18:35:17Z",
       "comments": [
         {
           "author": "afrind",
@@ -54872,7 +54898,7 @@
       "id": "I_kwDOG2Ho4M8AAAABR2AFiw",
       "title": "NEW_GROUP_REQUEST with a value of Group ID far in the future",
       "url": "https://github.com/moq-wg/moq-transport/issues/1948",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -54883,8 +54909,8 @@
       ],
       "body": "What should an original publisher do?  A relay?\n\nDoes sending uint64_max mean that a relay will never send a NEW_GROUP_REQUEST again?",
       "createdAt": "2026-09-17T20:36:21Z",
-      "updatedAt": "2026-10-01T19:15:45Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T19:37:36Z",
+      "closedAt": "2026-10-30T19:37:36Z",
       "comments": [
         {
           "author": "afrind",
@@ -54913,6 +54939,13 @@
           "body": "@vasilvv did I convince you this isn't an issue or you want to discuss this in Seattle",
           "createdAt": "2026-10-01T19:15:42Z",
           "updatedAt": "2026-10-01T19:15:42Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Yeah it's probably not an issue in practice.",
+          "createdAt": "2026-10-30T19:37:36Z",
+          "updatedAt": "2026-10-30T19:37:36Z"
         }
       ]
     },
@@ -54971,7 +55004,7 @@
       "id": "I_kwDOG2Ho4M8AAAABSQLYCw",
       "title": "UNSUPPORTED_EXTENSION  error does not say which extension is the problem",
       "url": "https://github.com/moq-wg/moq-transport/issues/1951",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "fluffy",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -54980,8 +55013,8 @@
       ],
       "body": "\nWhen a client receives an UNSUPPORTED_EXTENSION  error, it should be able to tell which extension caused the problem. ",
       "createdAt": "2026-09-20T19:12:26Z",
-      "updatedAt": "2026-10-15T03:30:10Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-29T18:17:59Z",
+      "closedAt": "2026-10-29T18:17:59Z",
       "comments": [
         {
           "author": "afrind",
@@ -55044,7 +55077,7 @@
       "id": "I_kwDOG2Ho4M8AAAABTjQrqA",
       "title": "Relay can report stale Largest Object to new subscriptions of a track that's paused upstream",
       "url": "https://github.com/moq-wg/moq-transport/issues/1958",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kidq330",
       "authorAssociation": "NONE",
       "assignees": [],
@@ -55053,8 +55086,8 @@
       ],
       "body": "Was playing around with generating a quint model for the draft and found this trace (1 object per group):\n\nRelay has a paused upstream subscription for the track. Its Largest Object is (0,0).\nOrigin publishes (1,0), not sent because of the pause ([\u00a73.1](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.1)). Largest Object is (0,0) at the relay and (1,0) at the origin.\nDownstream subscriber sends SUBSCRIBE, Next Object, Forward=1.\nRelay responds with SUBSCRIBE_OK, Largest Object (0,0) ([\u00a77.5](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-7.5), [\u00a79.20.18](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-9.20.18)). Next Object is relative to the relay ([\u00a73.1.3](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.1.3)).\nRelay resumes the upstream with REQUEST_UPDATE Forward=1 ([\u00a77.5](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-7.5)). Origin responds with REQUEST_UPDATE_OK, Largest Object (1,0).\nOrigin publishes (2,0), relay forwards it to the subscriber.\n\nThis is legal per draft-21, but the subscriber holds a stale Largest Object and has no way of knowing there is a discontinuity, or that it would have to FETCH (1,0). A fill does not help, because its range is [bounded by the same Largest Object](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-3.4-2), so it ends at (0,0). [\u00a79.20.18](https://www.ietf.org/archive/id/draft-ietf-moq-transport-21.html#section-9.20.18) lists REQUEST_UPDATE_OK as an input to the relay's Largest Object, but nothing requires the relay to wait for it before sending SUBSCRIBE_OK.\n\nI was able to get moxygen to reproduce this behaviour with a relay unit test: https://github.com/kidq330/moxygen/commit/c2ee229362cfa8bcf3022690a240f1aa983f9846",
       "createdAt": "2026-09-27T22:53:45Z",
-      "updatedAt": "2026-10-16T02:35:54Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-29T20:25:44Z",
+      "closedAt": "2026-10-29T20:25:44Z",
       "comments": [
         {
           "author": "afrind",
@@ -55210,7 +55243,7 @@
       "id": "I_kwDOG2Ho4M8AAAABULL5wg",
       "title": "FILL_PARAMETERS unclear",
       "url": "https://github.com/moq-wg/moq-transport/issues/1962",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "lminiero",
       "authorAssociation": "NONE",
       "assignees": [],
@@ -55220,8 +55253,8 @@
       ],
       "body": "I'm having trouble understanding all the ways FILL_PARAMETERS can be used. I _think_ I implemented it correctly for SUBSCRIBE and REQUEST_UPDATE, but the text is unclear when it comes to SUBSCRIBE_TRACKS.\n\nIn 10.20.1, the text says:\n\n> To join Tracks initiated via the resulting PUBLISHes, the subscriber can specify a Location Filter and optionally include FILL_PARAMETERS, as described in [Section 5.1.6](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-20#joining-tracks).\n\nThis seems to suggest that you can add a FILL_PARAMETERS to the SUBSCRIBE_TRACKS request, and those will somehow automatically apply to all the PUBLISH triggered accordingly, which seems wrong: the text also says FILL_PARAMETERS can only appear in SUBSCRIBE and REQUEST_UPDATE for subscriptions, and that \"any Parameter that can be specified on a Subscription (ie: in SUBSCRIBE) is valid in SUBSCRIBE_TRACKS, unless otherwise specified\", but it still seems flaky.\n\nI wonder if the intended flow when SUBSCRIBE_TRACKS is involved is actually this?\n\n1. subscriber sends SUBSCRIBE_TRACKS\n2. PUBLISH is triggered\n3. subscriber sends REQUEST_UPDATE with FILL_PARAMETERS, after the REQUEST_OK",
       "createdAt": "2026-09-30T15:24:18Z",
-      "updatedAt": "2026-10-15T03:28:39Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-29T18:24:11Z",
+      "closedAt": "2026-10-29T18:24:11Z",
       "comments": [
         {
           "author": "afrind",
@@ -55303,7 +55336,7 @@
       "id": "I_kwDOG2Ho4M8AAAABVMhePw",
       "title": "REDIRECT and request GOAWAY are conceptually similar but syntactically different",
       "url": "https://github.com/moq-wg/moq-transport/issues/1968",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -55314,8 +55347,8 @@
       ],
       "body": "A request level GOAWAY and a REQUEST_ERROR redirect are both intended to send the requester somewhere else. One applies before REQUEST_OK and the other after.\n\nFunctionally, I don't understand what is different about the REQUEST_ERROR use case that makes a Full Track Name appropriate that doesn't also apply to request-level GOAWAY.\n\nIn terms of wire image, REQUEST_ERROR has several more error cases to handle this special use case, and APIs to communicate REQUEST_ERROR to the application need a highly conditional field. I would much rather have GOAWAY as a message that can begin the response direction of a stream (with timeout = 0, if need be) than make REQUEST_ERROR processing more complex.",
       "createdAt": "2026-10-05T18:52:32Z",
-      "updatedAt": "2026-10-22T18:04:47Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-29T18:17:34Z",
+      "closedAt": "2026-10-29T18:17:34Z",
       "comments": [
         {
           "author": "afrind",
@@ -55677,7 +55710,7 @@
       "id": "I_kwDOG2Ho4M8AAAABXAEaAQ",
       "title": "Fill-Fetch isn't compatible with coalescing REQUEST_UPDATEs",
       "url": "https://github.com/moq-wg/moq-transport/issues/1992",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -55687,8 +55720,8 @@
       ],
       "body": "In #1540 we added the ability to coalesce REQUEST_UPDATEs before applying them.\n\nFor things like Subscriber Priority or Location Filter, this coalescing seems quite straightforward, but for Fill-Fetch, I believe you could end up missing Fill-Fetch streams and there for receiving a REQUEST_UPDATE_OK, but not getting the Objects you asked for.",
       "createdAt": "2026-10-13T22:14:17Z",
-      "updatedAt": "2026-10-21T15:04:51Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T19:37:42Z",
+      "closedAt": "2026-10-30T18:53:17Z",
       "comments": [
         {
           "author": "afrind",
@@ -55759,6 +55792,13 @@
           "body": "> 11\\. > If I send 10,000 REQUEST_UPDATEs\n>      \n>      \n>      Aren't you lucky the publisher [can limit concurrent request updates](https://github.com/moq-wg/moq-transport/blob/main/draft-ietf-moq-transport.md#max_request_updates-max-request-updates)!\n\nI know, I liked my approach of coalescing REQUEST_UPDATEs, but it's defeated by Fill-Fetch.",
           "createdAt": "2026-10-21T15:04:51Z",
           "updatedAt": "2026-10-21T15:04:51Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Thinking about this more, I'd like to consider whether this is really the correct solution, but I'll file a different issue with a clearer problem statement.",
+          "createdAt": "2026-10-30T19:37:42Z",
+          "updatedAt": "2026-10-30T19:37:42Z"
         }
       ]
     },
@@ -55794,7 +55834,7 @@
       "id": "I_kwDOG2Ho4M8AAAABXemqWA",
       "title": "Is the 16 bit control message length too limiting for PQ tokens?",
       "url": "https://github.com/moq-wg/moq-transport/issues/1998",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -55803,8 +55843,8 @@
       ],
       "body": "",
       "createdAt": "2026-10-15T17:06:29Z",
-      "updatedAt": "2026-10-16T02:08:58Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-29T18:21:07Z",
+      "closedAt": "2026-10-29T18:21:07Z",
       "comments": [
         {
           "author": "fluffy",
@@ -55844,7 +55884,7 @@
       ],
       "body": "\nThis is just too ripe for abuse ",
       "createdAt": "2026-10-15T20:40:30Z",
-      "updatedAt": "2026-10-24T17:10:08Z",
+      "updatedAt": "2026-10-30T19:16:57Z",
       "closedAt": null,
       "comments": [
         {
@@ -55853,6 +55893,13 @@
           "body": "@fluffy can you explain the ways in which this is different from an HTTP 3xx redirect to a POST?\n\nThat said I don't really have a use-case, it's just a little more text to say this is an error of some kind.",
           "createdAt": "2026-10-16T02:21:39Z",
           "updatedAt": "2026-10-16T02:21:39Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Claude's summary of Monday's transcript.  Please correct if needed:  @martinduke @suhasHere @mzanaty.  \"You\" below means \"me == afrind\".\n\n  In HTTP, a server can redirect a POST to a different path, because the resource is\n  the same and has just moved. The question is whether MoQT redirect should have the same\n  ability, e.g. answering a PUBLISH for foo/bar with \"re-send this as new/foo/bar.\"\n\n  - Martin : can see why it'd be useful, but sees an attack vector, because redirects\n    aren't authenticated. You pointed out the same attack applies to HTTP redirects, which got the\n    HTTP-will-never-work-for-video joke.\n  - You: PUBLISH_NAMESPACE is different from PUBLISH. For PUBLISH_NAMESPACE, the other side saying\n    \"your tracks are actually in this other namespace\" is strange. For PUBLISH, \"we don't put\n    those here anymore, put them over there\" is closer to why POST supports redirect.\n  - Suhas: is building a MoQ-based load balancer and thinks redirect helps there. But the common\n    case is \"foo/bar, go to relay 3\", meaning a different URI with the same namespace. Suhas\n    hasn't thought through rewriting foo/bar to bar/something or x/y, and can't yet justify\n    flipping the whole namespace (Alice's video becoming Bob's video). Redirecting anything under\n    a matching prefix does have a use case.\n  - You: so Suhas wants to change the connect URI, not normally the namespace. You don't have an\n    immediate use case either, and maybe the answer is to remove the capability. Large deployments\n    do this when reorganizing legacy paths (\"old client didn't get the memo\"), and you'd like to\n    keep the lessons HTTP learned the hard way.\n  - Mo: asked whether PUBLISH, like SUBSCRIBE, requires the relay to wait for the upstream\n    response before answering downstream.\n    - You said no. A relay can accept a PUBLISH immediately: PUBLISH fans out where SUBSCRIBE fans\n      in, so \"end to end\" would mean waiting for every subscriber. Also, with PAUSED=0 objects\n      flow before the OK anyway.\n    - Mo concluded that since the relay can steer what happens downstream, a namespace-changing\n      redirect could be useful.\n  - Your aside on end-to-end encryption: your agent pointed out that secure objects use the full\n    track name in the AAD, so an object minted under foo/bar can't simply be moved to another\n    name. Suhas said that was relevant to a different point, and it was dropped.\n  - Assad: is there protection on who you can redirect to? Does the new session know it was\n    redirected? You said the session sees the redirect and can choose whether to follow it. Assad\n    compared it to HTTP, where the client protects itself by refusing certain redirects depending\n    on the type of request.\n  - You: that's wandering into CORS territory.\n  - Martin, in chat: \"This capability requires a security analysis that cannot happen in this\n    call. Namespaces are tied to authentication.\" You agreed.\n\n  Outcome: tabled to IETF 127. You'll ask HTTP/CORS people what they wish they'd known before\n  going further.",
+          "createdAt": "2026-10-30T19:16:57Z",
+          "updatedAt": "2026-10-30T19:16:57Z"
         }
       ]
     },
@@ -55870,16 +55917,24 @@
       ],
       "body": "The REDIRECT error code says relays may follow or forward a Redirect from upstream:\n\nhttps://github.com/moq-wg/moq-transport/blob/1e8472a201c624c485d70eadf4d3e03f836e4a4e/draft-ietf-moq-transport.md?plain=1#L5185-L5190\n\n#1997 refines forwarding and caching, but leaves following unspecified.\n\nIf a relay follows a Redirect that changes the Full Track Name from A to B:\n\n- Which key are the received Objects cached under?\n- How does this interact with Malformed Tracks?\n\nIt seems the relay should be required to forward a Redirect that changes the Full Track Name.\nWhat use case needs a relay to follow it instead?\n\n------\n\nAlso, this endpoint-to-peer spelling is a little bit weird.\nhttps://github.com/moq-wg/moq-transport/blob/1e8472a201c624c485d70eadf4d3e03f836e4a4e/draft-ietf-moq-transport.md?plain=1#L3047-L3048",
       "createdAt": "2026-10-15T21:39:45Z",
-      "updatedAt": "2026-10-26T02:58:21Z",
+      "updatedAt": "2026-10-30T19:18:21Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Claude summary of 10/26 transcript.  Please correct @michalhosna @mzanaty @vasilvv  (You means me -- afrind)\n\n - Michael (issue author): discussed it with Victor, and they agreed it has to be either\n    must-follow or never-follow. As redirect is currently written, never-follow / always-forward\n    is the only workable option. The alternative is a way for the sender to say whether\n    intermediaries should follow. \"Should a relay follow?\" and \"should it forward to the original\n    requester?\" have very different semantics.\n  - You: your HTTP proxies don't follow origin redirects internally, precisely to avoid these\n    problems, so you're landing where Michael and Victor did: relays don't follow.\n    - You then raised a counterpoint: the end subscriber can't do anything either, since it came\n      to the relay.\n  - Michael: a URI change and a track-name change are very different. One is in-session; the other\n    isn't. The problem exists for both, so there are really four cases: {follow, forward} \u00d7\n    {different URI, different track name}. Each probably needs its own handling rather than being\n    merged into one mechanism.\n  - Mo: there are two distinct uses of redirect:\n    - Content-level: the content itself moved. Relays shouldn't participate, because the relay\n      network doesn't make content decisions. This should be handled out of band, end to end, from\n      whatever source of truth produced the URI and track name in the first place, such as a\n      catalog.\n    - Service-level: GOAWAY-like moves and load balancing. These belong in MoQT, and it makes\n      sense for relays to steer them.\n    - Separate the two.\n  - Michael: agrees they're different use cases, but thinks both may be needed in core, because\n    many extensions will rely on content-level redirect. Michael linked it to Gwendal's issue and\n    to watermarking. If you need special per-subscriber or per-group tracks but still have to obey\n    immutability rules, a relay or application relay needs to be able to do a content redirect.\n  - You: you had intended to propose killing content-level redirect and saying all redirects go to\n    a new service, until Michael's point. Your takeaway is that content-level redirect is needed,\n    at least as an extensibility point, but the draft should treat it differently from\n    service-level redirect.\n\n  Outcome: open, with no decision. The consensus direction is to separate service-level redirect\n  (URI change, relay may steer) from content-level redirect (track name change). Relays not\n  following name-changing redirects had support from Michael, Victor (via Michael) and you, but\n  wasn't decided.\n\n",
+          "createdAt": "2026-10-30T19:18:21Z",
+          "updatedAt": "2026-10-30T19:18:21Z"
+        }
+      ]
     },
     {
       "number": 2001,
       "id": "I_kwDOG2Ho4M8AAAABXiVwYQ",
       "title": "Define rules for updating the prefix in SUB_NS and SUB_TRACKS",
       "url": "https://github.com/moq-wg/moq-transport/issues/2001",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "fluffy",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -55888,8 +55943,8 @@
       ],
       "body": "\nIf the publish has the ID of the subscribe namespace, if you kill one sub_ns and make a new one, you need to make all new publish for all the track that overlap the sub_ns. This seems bad. \n\nHopefully Alan will remember what this all means \n\n",
       "createdAt": "2026-10-15T21:49:28Z",
-      "updatedAt": "2026-10-16T22:37:54Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T18:53:15Z",
+      "closedAt": "2026-10-30T18:53:15Z",
       "comments": [
         {
           "author": "afrind",
@@ -55921,7 +55976,7 @@
       ],
       "body": "The current draft says, in [Section 12.1 (Malformed Tracks)](https://www.ietf.org/archive/id/draft-ietf-moq-transport-22.html#section-12.1-4) of draft-22:\n\n> When a subscriber detects a Malformed Track, it MUST cancel any\n> corresponding subscription or fetches for that Track from that\n> publisher\n\nand\n\n> If a relay detects a Malformed Track, it MUST immediately terminate\n> downstream subscriptions with PUBLISH_DONE and reset any fetch streams\n> with Status Code MALFORMED_TRACK.\n\nI am interested in redundant publishers (two encoders publishing the same Track, see #1037). A relay MUST subscribe to both encoders. If the encoders assign the same IDs but produce one Object differently, the relay MUST treat the Track as Malformed and terminate every downstream subscription. In short, a second encoder makes the Track less available than a single encoder.\n\n#1084 raised the same problem and closed because a relay cannot tell a faulty publisher from a correct one. In my view, both encoders are legitimate. Any consistent choice between them keeps the Track running.\n\nA relay (or an end subscriber) can survive a temporary divergence between publishers. 1/ it can take each Group from the publisher whose copy arrives first and, if the two publishers diverge, ignore the other one until the next Group. Because Groups are join points, the conflict stays within one Group. 2/ cancel only the upstream subscription that delivered the conflicting Object. 3/ each publisher declares its role (for example Main or Backup) as a parameter on PUBLISH or PUBLISH_NAMESPACE, so that every receiver keeps the same copy and knows which publisher to cancel/ignore.\n\nThe subscriber rule is already scoped to \"that publisher\", so a subscriber can cancel the publisher that delivered the conflicting Object and keep the other one. The relay rule removes that option, because the relay must still terminate every downstream subscription. I propose we replace the relay MUST with a SHOULD. If the WG also wants to allow ignoring a diverging publisher until the next Group, the same MUST -> SHOULD should apply to the subscriber.",
       "createdAt": "2026-10-16T11:53:11Z",
-      "updatedAt": "2026-10-26T21:07:45Z",
+      "updatedAt": "2026-10-30T15:01:12Z",
       "closedAt": null,
       "comments": [
         {
@@ -56028,6 +56083,13 @@
           "body": "My concern with the opt-in is that every relay would have to carry two entirely different data-plane logics, one for immutable invariants and one for these new ones, with different buffering, caching and retries etc. \n\nI think this can be done with no MOQT change:\n\n**Setup**\n- Encoders publish `track_main` and `track_backup` as separate tracks.\n- Each reconciliation point (edge, app relay, \u2026), say A and B, subscribes to both and picks a source per group. It can use the same rules as proposed above (role preference, timeout or holdback, whole groups).\n- Each publishes the result under its own name, e.g. `relayA--track_combined`.\n\n**Subscribe**\n- The player subscribes to a well-known name, e.g. `track_combined`.\n- The reconciliation point replies with REDIRECT to its own name, and the player subscribes to `relayA--track_combined`.\n\n**Reconnect**\n- Back to A: same redirect, same name, same bytes. The player can resume mid-group.\n- To B: different name, so a new track. Possible loss of the rest of the current group, the same as the opt-in proposal's failover.\n\n**Properties**\n- No wire change. MOQT immutability compatible.\n- New logic only at the reconciliation points\n- No coordination between reconciliation points\n- No redundancy logic in the player.\n- Deployments choose where to reconcile: near users (resiliency) or where the two tracks first meet (saves bandwidth). It composes with pausing/filtering.\n\nThis could be standardized as a separate spec on top of MOQT.\n\n**Question**\nWhat am I missing? What use-case would be better covered by forcing this at the transport level?",
           "createdAt": "2026-10-26T21:07:45Z",
           "updatedAt": "2026-10-26T21:07:45Z"
+        },
+        {
+          "author": "riedlse",
+          "authorAssociation": "NONE",
+          "body": "Not forcing, opting in. Without the property a relay runs exactly one data plane, the one it runs today. With it, the only change is a restriction on the existing failover: take each Group whole from one source and never resume mid-Group. In moq-dev that is the mid-Group takeover in the resume path being skipped, not a second set of buffering, caching and retry logic.\n\nWhat the redirect design costs, for our shape of deployment:\n\n1. The reconciliation point publishes under its own name, so content identity changes per reconciler. relayA--track_combined and relayB--track_combined are two tracks with two caches at every tier between the reconciler and the player. The relay-aggregation argument that kept the OR filters in the draft (N downstream subscriptions, one upstream) runs the other way here: each reconciler multiplies the cache. We run linear channels with one program track and tens to hundreds of cohort ad tracks per channel; per-reconciler naming multiplies all of them.\n\n2. REDIRECT plus a name change on reconnect is redundancy logic in the player under another name: it has to know that relayB--track_combined continues relayA--track_combined, and that the rest of the current Group is gone. That is the knowledge we were trying to keep out of the player.\n\n3. Reconnect to B loses the rest of the in-flight Group. Same as the opt-in, so no gain there, and the same bound: one Group.\n\nWhat I think we agree on: the reconciliation rule (whole Groups, one source at a time, a holdback) can be a separate spec, and the place the two publishers first meet is already the relay in moq-dev's route model. What has to be visible on the wire, in whichever document, is the publisher's promise: identical bytes (first copy wins, mid-Group resume is safe) or interchangeable Groups (switch only at a boundary). Only the publisher knows which one it is making, and a relay cannot infer it from the bytes until it is too late. That one property is the transport-level part; everything else can sit on top.\n",
+          "createdAt": "2026-10-30T15:01:12Z",
+          "updatedAt": "2026-10-30T15:01:12Z"
         }
       ]
     },
@@ -56152,7 +56214,7 @@
       "id": "I_kwDOG2Ho4M8AAAABYZ4jyA",
       "title": "Properties: no consequence for a Property used outside its scope",
       "url": "https://github.com/moq-wg/moq-transport/issues/2028",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "michalhosna",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -56161,8 +56223,8 @@
       ],
       "body": "Each Property has a scope (Track, Object, or both). The spec doesn't generally say what happens when a Property appears outside its scope.\n\n- Mandatory Track Property as an Object Property: malformed\n- PRIOR_GROUP_ID_GAP / PRIOR_OBJECT_ID_GAP: \"only applies to Objects, not Tracks\", no consequence\n- Track-only Properties (DEFAULT_PUBLISHER_PRIORITY, MAX_CACHE_DURATION, DYNAMIC_GROUPS) sent as Object Properties: no rule at all\n\nI think we need a general rule for how a subscriber handles this.\n\nPossibly related: #1936.",
       "createdAt": "2026-10-19T22:42:23Z",
-      "updatedAt": "2026-10-20T00:11:57Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-31T13:38:55Z",
+      "closedAt": "2026-10-31T13:38:55Z",
       "comments": [
         {
           "author": "afrind",
@@ -56214,7 +56276,7 @@
       ],
       "body": "Filters can change the last transmitted object in a subgroup mid-stream, meaning the EOG bit encoding would be incorrect.\n\n===\n\nExample\nGroup 5 has one subgroup with objects 0 and 1.\n\nThe original publisher begins Group 5 with a subgroup header (EOG bit set) and (5, 0).\n\nThe subscriber sends REQUEST_UPDATE so that there is now an OBJECTID filter for zero only.\n\nThe original publisher produces (5, 1), which is the end of the group. It can' t be delivered because of the filter. So the options are.\n\n1) FIN the stream, giving the subscriber incorrect information about the group.\n\n2) RESET the stream, which might prevent delivery of object 0.\n\n3) RESET the stream and then resend object 0 on a new stream without EOG bit, then FIN\n\n4) Temporarily pretend it didn't get the filter, sending (5, 1) with FIN. Compliance isn't enforceable so I believe this would not be a PROTOCOL_ERROR.\n\n===\n\nA single-object stream is safe, even if the one object is later filtered out, because the stream can simply be reset.\n\nThis was  not a problem when Subscriptions always ended on a group boundary.\n\nIIUC, the main motivation for this encoding is for single-object groups. If we restrict the encoding to that (or even single-object subgroups), this edge case goes away. Alternatively,  we could mess with the meaning of FIN in filtered subscriptions, which would be hard to reason about, or require the reset-and-resend maneuver.\n\n\n\n\n\n",
       "createdAt": "2026-10-21T00:45:42Z",
-      "updatedAt": "2026-10-26T15:59:57Z",
+      "updatedAt": "2026-10-30T19:25:07Z",
       "closedAt": null,
       "comments": [
         {
@@ -56293,6 +56355,13 @@
           "body": "> 9\\. The smallest amount of text on this is to just say \"When you are using filters, all bets are off.  You know nothing\", which might actually be true, but doesn't resolve Martin's existential angst about this feature.  It is consistent with how FETCH works with filters though.\n>     The second smallest change is to say that a relay uses RESET/_AT when filters filter out the final object in the group.  This is maybe what the draft already says.\n>     Or we could make the receipt of a second object on the stream with this bit an error (does that include a redundant object status EOG?).  Is it also an error of _no_ objects are received before the FIN?  Filters might also produce that outcome, though perhaps a publisher shouldn't open the stream in that case?  Some relays might relay the opening of a stream before receiving an object (I think mine does).  It does convey to the subscribers the existence of the subgroup, and possibly subgroup level properties, if we add them.\n\nI am really not a fan of \"here is an MOQ mechanism, but if you use it a bunch of other mechanisms break.\" It is a janky way to design a protocol and feels like a passive-aggressive way of saying the mechanism is bad. Granted, we already did this with non-increasing Group IDs, and I don't love where we ended up on that.\n\nOptions 2-4 in the OP are the ones that aren't bad.",
           "createdAt": "2026-10-26T15:59:57Z",
           "updatedAt": "2026-10-26T15:59:57Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Discussed 10/26:\n\nI'll write a PR that scopes EOG bit in SG to single object subgroups.  Need to think about what might happen if the publisher / relay opens the sg, but it's then filtered out.  Possibly the pub/relay could insert an explicit EOG status?\n\nAlso:\n\n1. Make it clear that filters don't apply to status markers, these cannot be filtered out\n2. Make it clear that EOG status _can_ be inserted even when the last real object in the group was filtered out\n\nAs an individual, I'm maybe slightly sad to lose the EOG bit in multi-object subgroups.  Right now, a single SG / G is common, and putting the bit up-front means the relay/cache and end subscriber learn something even if the tail of the group gets reset.",
+          "createdAt": "2026-10-30T19:25:07Z",
+          "updatedAt": "2026-10-30T19:25:07Z"
         }
       ]
     },
@@ -56401,6 +56470,40 @@
           "body": "What if there's no Subscription at all?  The current draft isn't clear on whether that causes the whole SUBSCRIBE to go upstream or not?\n\nI'm happy with the cases of \"I wanted 3 groups back but go 1 or 2\", but I'm sad about cases where I get nothing from the past and end up with a Largest Group SUBSCRIBE.  I think something like PR #2033 is a better solution than trying to fine-tune the semantics of Fill Timeout.  After we do that, we can decide if we still want Fill Timeout.",
           "createdAt": "2026-10-25T19:56:05Z",
           "updatedAt": "2026-10-25T19:56:05Z"
+        }
+      ]
+    },
+    {
+      "number": 2048,
+      "id": "I_kwDOG2Ho4M8AAAABbSI5Cg",
+      "title": "Fill-Fetch can send a lot of extra Objects with no (fast) way of cancelling them",
+      "url": "https://github.com/moq-wg/moq-transport/issues/2048",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Needs Discussion",
+        "Fetch"
+      ],
+      "body": "This is somewhat related to #1992 but the use case of interest is seeking within a Video.\n\nIf a user seeks a few times in short succession, I think we they want the most recent seek first and I'm not sure they want any of the Objects from the other seeks at all.  It seemed convenient to not cancel the Fill stream, but it means you can spend a few RTTs sending useless Objects.\n\nIt also creates a potential DDoS vector and it enables use cases that are completely different from Joining a Track.  The original goal of Fill-Fetch was for Joining a Track (replacing Joining Fetch), not a Fetch-stream factory.\n\nAs a corollary, I'm not sure the resolution of #1992 is the right one.  It might be better to allow coalescing them in this case for exactly this reason?\n\nI'd suggest we cancel the Fill stream when Forward=0 or upon an Update that changes the Location Filter to avoid having an unlimited number of Fetches associated with a SUBSCRIBE and fix this oversending issue.",
+      "createdAt": "2026-10-30T19:46:46Z",
+      "updatedAt": "2026-10-31T14:45:04Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> it enables use cases that are completely different from Joining a Track\n\nYes it was pitched this way in London -- e.g. you can use multiple REQUEST_UPDATE+fill as a mechanism to load successive past ranges.  Pipelining them is a potential feature, limited by MAX_REQUEST_UPDATES.  It's true you there's a min 1-RTT before you can cancel a fill today (you have to wait for the stream before you can STOP_SENDING).\n\nThe first question is whether the working group wants to allow more than one parallel fill.  If not, then sure, we can change then 1992 resolution.  If we're keeping it, then we can either live with the current limitation, or add FILL_CANCEL on the SUBSCRIBE stream.\n\nIt's somewhat related, but I've also been wondering if the PAUSED restriction on fill is necessary and/or useful.  e.g. maybe it's fine to ask for a fill on a paused subscription?",
+          "createdAt": "2026-10-30T21:48:27Z",
+          "updatedAt": "2026-10-30T21:48:27Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> 2\\. > it enables use cases that are completely different from Joining a Track\n>     \n>     Yes it was pitched this way in London -- e.g. you can use multiple REQUEST_UPDATE+fill as a mechanism to load successive past ranges.  Pipelining them is a potential feature, limited by MAX_REQUEST_UPDATES.  It's true you there's a min 1-RTT before you can cancel a fill today (you have to wait for the stream before you can STOP_SENDING).\n\nIn retrospect, I think that's going beyond what Fill-Fetch should be trying to do, and you'd be better off with the pacing proposal or another approach (basic flow control?) to limit how fast one receives past data.\n\n>     The first question is whether the working group wants to allow more than one parallel fill.  If not, then sure, we can change then 1992 resolution.  If we're keeping it, then we can either live with the current limitation, or add FILL_CANCEL on the SUBSCRIBE stream.\n>     It's somewhat related, but I've also been wondering if the PAUSED restriction on fill is necessary and/or useful.  e.g. maybe it's fine to ask for a fill on a paused subscription?\n\nGood question, I'm not sure on the paused Subscription thing.\n\nI'm also inclined to think we should not allow Location filter in Fill-Fetch params.  I don't think there's a use case for it, except for 'it might be useful' and it makes Subscribe with Fill into a weird thing that's far beyond what Joining Fetch ever was.  When we first proposed this, I don't think Location Filter had landed, but now that it is, I think we should disallow it.\n\n",
+          "createdAt": "2026-10-31T14:45:03Z",
+          "updatedAt": "2026-10-31T14:45:03Z"
         }
       ]
     }
@@ -212926,7 +213029,7 @@
       "id": "PR_kwDOG2Ho4M7nxgEN",
       "title": "Add guidance on missing data timeout scenarios and bounds ",
       "url": "https://github.com/moq-wg/moq-transport/pull/1776",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -212936,14 +213039,14 @@
       ],
       "body": "fixes #1743 ",
       "createdAt": "2026-06-18T04:29:00Z",
-      "updatedAt": "2026-10-24T17:07:56Z",
+      "updatedAt": "2026-10-29T14:59:50Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "385398b17544f9655450b514d506f430d81feebe",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "snk-1743",
       "headRefOid": "3e6d63ecb10c022248c14c35c11c73bf99bad18f",
-      "closedAt": null,
+      "closedAt": "2026-10-29T14:59:46Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -212961,6 +213064,13 @@
           "body": "See alternate proposal in https://github.com/moq-wg/moq-transport/pull/2040",
           "createdAt": "2026-10-24T17:07:56Z",
           "updatedAt": "2026-10-24T17:07:56Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Fixed in #2040",
+          "createdAt": "2026-10-29T14:59:46Z",
+          "updatedAt": "2026-10-29T14:59:46Z"
         }
       ],
       "reviews": [
@@ -224276,7 +224386,7 @@
       "id": "PR_kwDOG2Ho4M8AAAABCQktow",
       "title": "add warning about fancy setup options (Editorial)",
       "url": "https://github.com/moq-wg/moq-transport/pull/1904",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -224287,17 +224397,19 @@
       ],
       "body": "The current text implies you can send requests in parallel with a SETUP with arbitrary options. It's important to have a pointer to the section that adds restrictions about this.\r\n\r\nAlso, it now just refers to \"requests\" instead of naming certain request types at random.",
       "createdAt": "2026-09-04T20:53:56Z",
-      "updatedAt": "2026-10-26T18:16:38Z",
+      "updatedAt": "2026-10-29T18:27:37Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "1e8472a201c624c485d70eadf4d3e03f836e4a4e",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "pre-setup-request",
       "headRefOid": "2ca66cc9cb8bfdd4a98aaec72290e2ffc53ecf09",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-10-29T18:27:37Z",
+      "mergedAt": "2026-10-29T18:27:37Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "3bad28252d359d8b5f23258ee0e3347a34223759"
+      },
       "comments": [
         {
           "author": "martinduke",
@@ -224531,6 +224643,19 @@
               "updatedAt": "2026-10-26T18:16:38Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU-v0tA",
+          "commit": {
+            "abbreviatedOid": "2ca66cc"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T18:27:20Z",
+          "updatedAt": "2026-10-29T18:27:20Z",
+          "comments": []
         }
       ]
     },
@@ -228722,26 +228847,29 @@
       "id": "PR_kwDOG2Ho4M8AAAABH2_R_Q",
       "title": "Fix relay largest object cache for downstream subscriptions",
       "url": "https://github.com/moq-wg/moq-transport/pull/1978",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Editorial & Minor Design"
+        "Editorial & Minor Design",
+        "Next Draft"
       ],
       "body": "Fixes #1958\r\n\r\nThis PR addresses the issue where a relay could report a stale `Largest Object` to new downstream subscriptions when the upstream subscription was paused or had disjoint filters.\r\n\r\n---\r\n*PR created automatically by Jules for task [12924797730877371990](https://jules.google.com/task/12924797730877371990) started by @ianswett*",
       "createdAt": "2026-10-11T21:12:54Z",
-      "updatedAt": "2026-10-21T05:06:21Z",
+      "updatedAt": "2026-10-29T20:25:46Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "eba3302cf2430f88ca1566da32b832020441ab1d",
+      "baseRefOid": "0048b68dd66f45a56347ffdd883a374b46f304fe",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "fix-issue-1958-largest-object-cache-12924797730877371990",
-      "headRefOid": "b8e6a088dacb3b7e78aac9f5869391d58940f977",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "9e56ea534fb2a6fb3a8ce643b2cfc1acbb670d94",
+      "closedAt": "2026-10-29T20:25:43Z",
+      "mergedAt": "2026-10-29T20:25:43Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "b5124f6f7958ce8b25d81f4ef012c18a3ccc8f7e"
+      },
       "comments": [],
       "reviews": [
         {
@@ -228788,6 +228916,45 @@
               "updatedAt": "2026-10-13T17:27:59Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU-yWBA",
+          "commit": {
+            "abbreviatedOid": "3f35b06"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T18:30:37Z",
+          "updatedAt": "2026-10-29T18:30:37Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU-zMqA",
+          "commit": {
+            "abbreviatedOid": "3f35b06"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T18:31:45Z",
+          "updatedAt": "2026-10-29T18:31:45Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU_OY-A",
+          "commit": {
+            "abbreviatedOid": "3f35b06"
+          },
+          "author": "sandarsh",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T19:03:21Z",
+          "updatedAt": "2026-10-29T19:03:21Z",
+          "comments": []
         }
       ]
     },
@@ -229986,11 +230153,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Editorial & Minor Design"
+        "Editorial & Minor Design",
+        "BLOCKED"
       ],
       "body": "Fixes #1582\n\nOpen questions:\n* Do we want to cache permanent errors and redirects? On one hand, those are the cases where the caching is most efficient; on the other hand, permanently caching those means an incorrect redirect is stuck forever.\n* What is the cache key?  Track makes sense for 99%, but FETCH requests may theoretically vary on other parameters.\n* Does PUBLISH need a different treatment?",
       "createdAt": "2026-10-15T06:43:36Z",
-      "updatedAt": "2026-10-22T18:28:31Z",
+      "updatedAt": "2026-10-29T18:39:30Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "1e8472a201c624c485d70eadf4d3e03f836e4a4e",
@@ -230476,7 +230644,7 @@
       "id": "PR_kwDOG2Ho4M8AAAABI2g-Wg",
       "title": "Allow FILL_PARAMETERS in SUBSCRIBE_TRACKS and PUBLISH",
       "url": "https://github.com/moq-wg/moq-transport/pull/2007",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -230486,17 +230654,19 @@
       ],
       "body": "FILL_PARAMETERS can appear in SUBSCRIBE_TRACKS, and is communicated in each resulting PUBLISH like other SUBSCRIBE_TRACKS parameters.  A publisher can include FILL_PARAMETERS in any PUBLISH, which opens a fill fetch stream when the subscription is not paused.\n\nFixes: #1962",
       "createdAt": "2026-10-16T13:22:39Z",
-      "updatedAt": "2026-10-24T15:57:31Z",
+      "updatedAt": "2026-10-29T18:24:17Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "1e8472a201c624c485d70eadf4d3e03f836e4a4e",
+      "baseRefOid": "e404b9c72f23889f13b0389211e08465230d8502",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "fill-params-subscribe-tracks",
-      "headRefOid": "2e6643a31a99f85495803edfabc9dc882e03f34d",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "e0fa9196ca1bdfef2488dbe2dbe49d66908e3b0e",
+      "closedAt": "2026-10-29T18:24:10Z",
+      "mergedAt": "2026-10-29T18:24:10Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "616bcfe971e5c6eda7e751975691e9789f2e02e1"
+      },
       "comments": [
         {
           "author": "afrind",
@@ -230656,7 +230826,7 @@
       "id": "PR_kwDOG2Ho4M8AAAABI2uQag",
       "title": "Remove End Location and End Of Track from FETCH_OK and replace it with REQUEST_OK",
       "url": "https://github.com/moq-wg/moq-transport/pull/2009",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -230666,17 +230836,19 @@
       ],
       "body": "FETCH_OK no longer carries End Of Track or End Location.\r\n\r\n- If Largest Object is within the requested range, the response ends\r\n  there and FETCH_OK includes LARGEST_OBJECT.  Otherwise, the response\r\n  ends at the requested End Location.  FETCH_OK is not sent until the\r\n  publisher knows which case applies.\r\n- A publisher that knows the Track has ended within the requested range\r\n  ends the response with a End of Track serialization flag.\r\n- Gap rules use LARGEST_OBJECT (if present) or the requested End\r\n  Location in place of the FETCH_OK End Location.\r\n\r\nWith those fields removed, FETCH_OK has the same format as REQUEST_OK,\r\nso the second commit makes FETCH_OK a shorthand for a REQUEST_OK sent\r\nin response to FETCH and reserves message type 0x18.\r\n\r\nFixes: #1897\r\n\r\n",
       "createdAt": "2026-10-16T13:40:31Z",
-      "updatedAt": "2026-10-24T15:53:31Z",
+      "updatedAt": "2026-10-29T18:35:30Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "1e8472a201c624c485d70eadf4d3e03f836e4a4e",
+      "baseRefOid": "616bcfe971e5c6eda7e751975691e9789f2e02e1",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "remove-fetch-ok-end-location",
-      "headRefOid": "4ed7ce5414b1446024d75644418e49f92f5f42d0",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "51cc314ef87b8487a1afd63918a9d13e6484e8f6",
+      "closedAt": "2026-10-29T18:33:16Z",
+      "mergedAt": "2026-10-29T18:33:16Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "236d1d688a8d7d6ac9b117fd1a7b7bef7c5caefc"
+      },
       "comments": [],
       "reviews": [
         {
@@ -230871,7 +231043,7 @@
       "id": "PR_kwDOG2Ho4M8AAAABI20TEA",
       "title": "Add structured Error Details to REQUEST_ERROR",
       "url": "https://github.com/moq-wg/moq-transport/pull/2010",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -230880,17 +231052,19 @@
       ],
       "body": "Replace the REDIRECT-only conditional field in REQUEST_ERROR with Error Details: Key-Value-Pairs spanning the rest of the message, bounded by the message Length.  Unknown types are ignored.  The Redirect structure moves into a REDIRECT Error Detail.  Add the MOQT Error Detail Types registry.\n\nFixes: #1968",
       "createdAt": "2026-10-16T13:48:44Z",
-      "updatedAt": "2026-10-26T15:00:05Z",
+      "updatedAt": "2026-10-29T18:18:09Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7fc5f7c47c71ba29b39178302e4dd98f70d964e6",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "request-error-details",
-      "headRefOid": "f011c71124080b074509814dff7c348b53e3177c",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "83384c8c506d3f41ea0e8ef8818f2cd399a578c1",
+      "closedAt": "2026-10-29T18:17:32Z",
+      "mergedAt": "2026-10-29T18:17:32Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "4b76e744a0dd960b6a30763456c3d6fb4e5f19be"
+      },
       "comments": [
         {
           "author": "afrind",
@@ -231018,6 +231192,59 @@
               "updatedAt": "2026-10-26T15:00:05Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU7jriA",
+          "commit": {
+            "abbreviatedOid": "f011c71"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T14:40:31Z",
+          "updatedAt": "2026-10-29T14:40:31Z",
+          "comments": [
+            {
+              "originalPosition": 73,
+              "body": "done",
+              "createdAt": "2026-10-29T14:40:31Z",
+              "updatedAt": "2026-10-29T14:40:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU7j8jA",
+          "commit": {
+            "abbreviatedOid": "f011c71"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T14:40:48Z",
+          "updatedAt": "2026-10-29T14:40:49Z",
+          "comments": [
+            {
+              "originalPosition": 103,
+              "body": "This is bigger than this PR, since it touches some other pieces.  Let's follow up?",
+              "createdAt": "2026-10-29T14:40:48Z",
+              "updatedAt": "2026-10-29T14:40:49Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU-nEJA",
+          "commit": {
+            "abbreviatedOid": "83384c8"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T18:16:27Z",
+          "updatedAt": "2026-10-29T18:16:27Z",
+          "comments": []
         }
       ]
     },
@@ -231026,7 +231253,7 @@
       "id": "PR_kwDOG2Ho4M8AAAABI20kNg",
       "title": "Identify the unsupported property in UNSUPPORTED_EXTENSION",
       "url": "https://github.com/moq-wg/moq-transport/pull/2011",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -231036,17 +231263,19 @@
       ],
       "body": "Add an UNSUPPORTED_PROPERTY Error Detail carrying the Property Type of each Mandatory Track Property the sender does not understand, and say UNSUPPORTED_EXTENSION SHOULD include it.\n\nFixes: #1951",
       "createdAt": "2026-10-16T13:49:07Z",
-      "updatedAt": "2026-10-25T00:58:06Z",
+      "updatedAt": "2026-10-29T18:18:03Z",
       "baseRepository": "moq-wg/moq-transport",
-      "baseRefName": "request-error-details",
-      "baseRefOid": "f011c71124080b074509814dff7c348b53e3177c",
+      "baseRefName": "main",
+      "baseRefOid": "4b76e744a0dd960b6a30763456c3d6fb4e5f19be",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "unsupported-extension-details",
-      "headRefOid": "931cc6f55c21e277b3225dc86edd3eaafb985af0",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "94af98a40e53e20806310ef3a18d04cfe7659813",
+      "closedAt": "2026-10-29T18:17:57Z",
+      "mergedAt": "2026-10-29T18:17:57Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "1ec3a6e9d1df1e96133428bb0da4546fcda5dd52"
+      },
       "comments": [],
       "reviews": [
         {
@@ -231095,7 +231324,7 @@
       "id": "PR_kwDOG2Ho4M8AAAABI3FiZg",
       "title": "Mark the end of a complete Group in FETCH",
       "url": "https://github.com/moq-wg/moq-transport/pull/2013",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -231105,17 +231334,19 @@
       ],
       "body": "Extend the End of Track rule to Groups: if the last Object in the response is known to end its Group, the publisher follows it with an End of Group serialization flag.\r\n\r\nFixes: #1934",
       "createdAt": "2026-10-16T14:11:47Z",
-      "updatedAt": "2026-10-24T15:53:50Z",
+      "updatedAt": "2026-10-29T18:35:21Z",
       "baseRepository": "moq-wg/moq-transport",
-      "baseRefName": "remove-fetch-ok-end-location",
-      "baseRefOid": "4ed7ce5414b1446024d75644418e49f92f5f42d0",
+      "baseRefName": "main",
+      "baseRefOid": "236d1d688a8d7d6ac9b117fd1a7b7bef7c5caefc",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "fetch-end-of-group-range",
-      "headRefOid": "64b28e70721157bebd3bde4151b0a1add9cc2a1d",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "9e702bc37b2005a99b19f2a2a03dc532d623f006",
+      "closedAt": "2026-10-29T18:35:16Z",
+      "mergedAt": "2026-10-29T18:35:15Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "0048b68dd66f45a56347ffdd883a374b46f304fe"
+      },
       "comments": [],
       "reviews": [
         {
@@ -231448,7 +231679,7 @@
       "id": "PR_kwDOG2Ho4M8AAAABI3PL8Q",
       "title": "Use a varint length for control messages",
       "url": "https://github.com/moq-wg/moq-transport/pull/2017",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -231458,17 +231689,19 @@
       ],
       "body": "Control message Length is a varint, bounded by a new MAX_CONTROL_MESSAGE_SIZE Setup Option that defaults to 65535.\n\nFixes: #1998",
       "createdAt": "2026-10-16T14:24:40Z",
-      "updatedAt": "2026-10-19T15:29:52Z",
+      "updatedAt": "2026-10-29T18:21:10Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "1e8472a201c624c485d70eadf4d3e03f836e4a4e",
+      "baseRefOid": "1ec3a6e9d1df1e96133428bb0da4546fcda5dd52",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "varint-control-message-length",
-      "headRefOid": "cc0de7ad57d37127dd0acc0d45ea83d93bc6b85f",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "062239e77f37f4379d390d52bafd3f50fc780d89",
+      "closedAt": "2026-10-29T18:21:06Z",
+      "mergedAt": "2026-10-29T18:21:06Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "361983dd44660f4e69c04ec632c9d602f2d12348"
+      },
       "comments": [
         {
           "author": "afrind",
@@ -231599,26 +231832,29 @@
       "id": "PR_kwDOG2Ho4M8AAAABJHLngA",
       "title": "Allow overlapping namespace subscriptions",
       "url": "https://github.com/moq-wg/moq-transport/pull/2018",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Design"
+        "Design",
+        "Next Draft"
       ],
       "body": "Remove the prefix overlap prohibition for SUBSCRIBE_NAMESPACE and SUBSCRIBE_TRACKS, along with PREFIX_OVERLAP.  Add a SUBSCRIBE_TRACKS_ID parameter so each PUBLISH sent as a result of a SUBSCRIBE_TRACKS identifies it.\n\nFixes: #1792",
       "createdAt": "2026-10-18T04:53:52Z",
-      "updatedAt": "2026-10-24T15:58:29Z",
+      "updatedAt": "2026-10-30T18:53:33Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "1e8472a201c624c485d70eadf4d3e03f836e4a4e",
+      "baseRefOid": "b5124f6f7958ce8b25d81f4ef012c18a3ccc8f7e",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "allow-prefix-overlap",
-      "headRefOid": "3e102871fadf17d92d0b3b863a524b9a5d18dcc5",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "8721bf787d33693c142541d565d28f9c7c094024",
+      "closedAt": "2026-10-30T18:33:38Z",
+      "mergedAt": "2026-10-30T18:33:38Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "a729bf2a03134f283ca7b77b87c63e0ef48d4dc3"
+      },
       "comments": [
         {
           "author": "afrind",
@@ -231714,6 +231950,19 @@
           "createdAt": "2026-10-24T05:13:17Z",
           "updatedAt": "2026-10-24T05:13:17Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVJpszg",
+          "commit": {
+            "abbreviatedOid": "c4aea74"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-30T15:13:08Z",
+          "updatedAt": "2026-10-30T15:13:08Z",
+          "comments": []
         }
       ]
     },
@@ -231722,27 +231971,30 @@
       "id": "PR_kwDOG2Ho4M8AAAABJHLvhQ",
       "title": "Define the effects of updating a namespace subscription prefix",
       "url": "https://github.com/moq-wg/moq-transport/pull/2019",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
         "Editorial & Minor Design",
-        "Merge Ready"
+        "Merge Ready",
+        "Next Draft"
       ],
       "body": "A SUBSCRIBE_NAMESPACE prefix update implicitly ends namespaces that no longer match.  A SUBSCRIBE_TRACKS prefix update does not re-PUBLISH Tracks already published, and neither updating nor cancelling a SUBSCRIBE_TRACKS affects existing subscriptions.\n\nFixes: #2001",
       "createdAt": "2026-10-18T04:54:20Z",
-      "updatedAt": "2026-10-24T16:30:28Z",
+      "updatedAt": "2026-10-30T18:53:28Z",
       "baseRepository": "moq-wg/moq-transport",
-      "baseRefName": "allow-prefix-overlap",
-      "baseRefOid": "3e102871fadf17d92d0b3b863a524b9a5d18dcc5",
+      "baseRefName": "main",
+      "baseRefOid": "a729bf2a03134f283ca7b77b87c63e0ef48d4dc3",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "namespace-prefix-update",
-      "headRefOid": "09545b55bab8f00492e467b77591c2d688463dad",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "342fe3516d10560a1d1334f86df85c5777de9e89",
+      "closedAt": "2026-10-30T18:53:14Z",
+      "mergedAt": "2026-10-30T18:53:14Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "88b345246980aab66f0a4dc24b1f29c9d1d9cafe"
+      },
       "comments": [
         {
           "author": "sharmafb",
@@ -231998,22 +232250,45 @@
       "assignees": [],
       "labels": [
         "Object Model",
-        "Design"
+        "Design",
+        "Next Draft"
       ],
       "body": "Add a Gone state for Objects the publisher knows it can no longer deliver.  Gone can be cached, and receiving a gone Object later is not an error.  Publishers only signal non-existence for Objects that have never existed and never will, and receiving an Object recorded as not existing (or vice versa) makes the Track malformed.  Add an Object state diagram and End of Gone Range (0x40C) for FETCH.\n\nFixes: #1704\nFixes: #1376",
       "createdAt": "2026-10-18T05:25:06Z",
-      "updatedAt": "2026-10-26T16:56:07Z",
+      "updatedAt": "2026-11-01T04:49:09Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "092ba9af68ac005fe0011ba1881fe97bb72ab038",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "object-lost-state",
-      "headRefOid": "1e2eb44da6a1a5dc2ac279a0a006df34b748edc2",
+      "headRefOid": "702c8ba545f0639d2b8b93f977bbd2a154ea13ef",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I think this is probably fine, and I greatly prefer the name 'Gone' to 'Lost', but I still find this difficult to reason about.\r\n\r\n@ianswett I added more detail based on Monday's discussion, see if you like it any better now?",
+          "createdAt": "2026-10-29T14:57:33Z",
+          "updatedAt": "2026-10-29T14:57:33Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think my biggest complain about this PR is the name \"Gone\".  I would naively assume that it would mean the object is permanently gone (similar to HTTP 410 Gone), which is the opposite of we are trying to convey here.  \"Unavailable\"?\r\n\r\nMy second complain is that the diagram is confusing; in reality, the only thing we ban is E<->DNE change.",
+          "createdAt": "2026-10-31T16:50:24Z",
+          "updatedAt": "2026-10-31T16:50:24Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@vasilvv : regarding the name, I'm not sure it's meaningfully different from HTTP's Gone.  \r\n\r\n> access to the target resource is no longer available at the origin server and that this condition is likely to be permanent\r\n\r\nUnavailable doesn't feel right to me since it implies that the sender _might_ be able to procure it later, which is not what it's for.  I'm open to other names.  It's Halloween so maybe a good candy?  Twix are popular.\r\n\r\nRegarding the diagram, we can remove it for now since it's strictly editorial to add it later.  For that matter so is the name, but it would be good to try to get it right.",
+          "createdAt": "2026-11-01T04:49:09Z",
+          "updatedAt": "2026-11-01T04:49:09Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M8AAAABS8zTtg",
@@ -232190,6 +232465,46 @@
               "body": "So based on WG meeting discussion I understand that the meaning is slightly more complex than what Gone implies, and have relation to HTTP's usage. To my understanding what this means. The original publisher do no longer know what the status was for this object. Therefore asking again will most likely not help, thus why it can be cached and propagated downstream. However, another another relay may have a cached copy or state of the object.  ",
               "createdAt": "2026-10-26T16:56:07Z",
               "updatedAt": "2026-10-26T16:56:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU7z9dA",
+          "commit": {
+            "abbreviatedOid": "1e2eb44"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T14:57:07Z",
+          "updatedAt": "2026-10-29T14:57:08Z",
+          "comments": [
+            {
+              "originalPosition": 14,
+              "body": "@gloinul I tried to explain in more detail.  Please take another look and see if it reads better to you now.",
+              "createdAt": "2026-10-29T14:57:07Z",
+              "updatedAt": "2026-10-29T14:57:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVM-H4Q",
+          "commit": {
+            "abbreviatedOid": "702c8ba"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T19:46:10Z",
+          "updatedAt": "2026-10-30T19:46:10Z",
+          "comments": [
+            {
+              "originalPosition": 37,
+              "body": "Shouldn't there be an arrow from E to DNE?",
+              "createdAt": "2026-10-30T19:46:10Z",
+              "updatedAt": "2026-10-30T19:46:10Z"
             }
           ]
         }
@@ -232562,17 +232877,18 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "Editorial & Minor Design"
+        "Design",
+        "Next Draft"
       ],
       "body": "Fixes #2026\n",
       "createdAt": "2026-10-20T19:37:25Z",
-      "updatedAt": "2026-10-27T18:43:26Z",
+      "updatedAt": "2026-10-30T19:33:28Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e404b9c72f23889f13b0389211e08465230d8502",
       "headRepository": "sharmafb/moq-transport",
       "headRefName": "issue-2026-fetch-range-deltas",
-      "headRefOid": "e604383501747a0cb1a2e104ac4068796ab6c678",
+      "headRefOid": "166ba4521de15802d0df431989ae380b1ddc9750",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -232644,6 +232960,65 @@
               "updatedAt": "2026-10-27T18:40:28Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU8QWnw",
+          "commit": {
+            "abbreviatedOid": "e604383"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T15:25:36Z",
+          "updatedAt": "2026-10-29T15:27:57Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "Five # is deeper than we want.  Might need to consider a reorganization here.",
+              "createdAt": "2026-10-29T15:25:36Z",
+              "updatedAt": "2026-10-29T15:27:57Z"
+            },
+            {
+              "originalPosition": 33,
+              "body": "Ok i understand now, but either we can drop this para or just keep it to a single sentence in the previous one.",
+              "createdAt": "2026-10-29T15:27:41Z",
+              "updatedAt": "2026-10-29T15:27:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU-8YEQ",
+          "commit": {
+            "abbreviatedOid": "e604383"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T18:42:35Z",
+          "updatedAt": "2026-10-29T18:44:10Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "I think we could reduce the intent of \"End of Range\"?",
+              "createdAt": "2026-10-29T18:42:35Z",
+              "updatedAt": "2026-10-29T18:44:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVMZSJw",
+          "commit": {
+            "abbreviatedOid": "166ba45"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-30T18:55:11Z",
+          "updatedAt": "2026-10-30T18:55:11Z",
+          "comments": []
         }
       ]
     },
@@ -232657,12 +233032,13 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "Needs Discussion",
         "Subscribe",
         "Design"
       ],
       "body": "When a subscriber joins at the current Group or a past Group, allow the Publisher to deliver some or all past Groups with Subscribe-style delivery.\r\n\r\n* Only when `FILL_PARAMETERS` omits `LOCATION_FILTER`.\r\n* Subscribe style delivery starts at `FIRST_SUBSCRIBE_GROUP` and prior Groups are delivered on the Fill-Fetch stream\r\n\r\nFixes #1358",
       "createdAt": "2026-10-21T05:13:56Z",
-      "updatedAt": "2026-10-23T19:27:33Z",
+      "updatedAt": "2026-10-29T18:42:47Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "c4579d7254e931db6aeda098c7c88332b6a0e0b8",
@@ -232896,11 +233272,12 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "Editorial & Minor Design"
+        "Editorial & Minor Design",
+        "Next Draft"
       ],
       "body": "Being explicit here helps implementers.",
       "createdAt": "2026-10-23T18:51:31Z",
-      "updatedAt": "2026-10-26T19:47:42Z",
+      "updatedAt": "2026-10-30T15:40:01Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "c4579d7254e931db6aeda098c7c88332b6a0e0b8",
@@ -232911,7 +233288,22 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think this is fine but don't understand what was wrong with the old text that said you MUST include it?  Was following that onerous, harmful or nonsensical in some messages?",
+          "createdAt": "2026-10-29T15:23:25Z",
+          "updatedAt": "2026-10-29T15:23:25Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> I think this is fine but don't understand what was wrong with the old text that said you MUST include it? Was following that onerous, harmful or nonsensical in some messages?\r\n\r\nI'm responding to Suhas's review. If the editors/authors agree on what they want me to say, I'm happy to do either.",
+          "createdAt": "2026-10-29T16:20:08Z",
+          "updatedAt": "2026-10-29T16:20:08Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M8AAAABT8TdlA",
@@ -233145,6 +233537,19 @@
               "updatedAt": "2026-10-26T19:47:42Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVKAcBg",
+          "commit": {
+            "abbreviatedOid": "ad06c77"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "I'm not sure FETCH should always have to return Largest Object, but I guess that's its own issue.",
+          "createdAt": "2026-10-30T15:40:00Z",
+          "updatedAt": "2026-10-30T15:40:00Z",
+          "comments": []
         }
       ]
     },
@@ -233218,7 +233623,7 @@
       "id": "PR_kwDOG2Ho4M8AAAABKdwq4w",
       "title": "Require Property definitions to say whether duplicates are allowed",
       "url": "https://github.com/moq-wg/moq-transport/pull/2038",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -233227,14 +233632,14 @@
       ],
       "body": "Fixes: #2027",
       "createdAt": "2026-10-24T16:49:09Z",
-      "updatedAt": "2026-10-26T16:04:27Z",
+      "updatedAt": "2026-10-29T15:03:57Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7fc5f7c47c71ba29b39178302e4dd98f70d964e6",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "property-duplicates",
       "headRefOid": "98bc06dbf4a6b2fb1b892d0caa3819f1c6625093",
-      "closedAt": null,
+      "closedAt": "2026-10-29T15:03:53Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -233252,6 +233657,13 @@
           "body": "It feels clunky to me. It also doesn't address the existing properties (separate PRs?). \r\nI'll try to post my own PR shortly. ",
           "createdAt": "2026-10-26T16:04:27Z",
           "updatedAt": "2026-10-26T16:04:27Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "#2044 looks better to me",
+          "createdAt": "2026-10-29T15:03:53Z",
+          "updatedAt": "2026-10-29T15:03:53Z"
         }
       ],
       "reviews": []
@@ -233261,26 +233673,30 @@
       "id": "PR_kwDOG2Ho4M8AAAABKdwyeA",
       "title": "Treat a Property used outside its scope as a malformed Track",
       "url": "https://github.com/moq-wg/moq-transport/pull/2039",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Editorial & Minor Design"
+        "Editorial & Minor Design",
+        "Merge Ready",
+        "Next Draft"
       ],
       "body": "Fixes: #2028",
       "createdAt": "2026-10-24T16:49:26Z",
-      "updatedAt": "2026-10-25T17:51:26Z",
+      "updatedAt": "2026-10-31T13:38:56Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7fc5f7c47c71ba29b39178302e4dd98f70d964e6",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "property-scope",
-      "headRefOid": "952f4e44f2ef3f2f5a578c6dd65a061ae2ea7b28",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "7442d91fddb407162c6061782297bb229c7a61da",
+      "closedAt": "2026-10-31T13:38:53Z",
+      "mergedAt": "2026-10-31T13:38:53Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "98180f7af00a384421c8abc6240da29d8665b6a1"
+      },
       "comments": [
         {
           "author": "afrind",
@@ -233303,6 +233719,45 @@
           "createdAt": "2026-10-25T17:51:26Z",
           "updatedAt": "2026-10-25T17:51:26Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU_ZecA",
+          "commit": {
+            "abbreviatedOid": "952f4e4"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T19:16:50Z",
+          "updatedAt": "2026-10-29T19:16:50Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU_aUtw",
+          "commit": {
+            "abbreviatedOid": "952f4e4"
+          },
+          "author": "sandarsh",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T19:17:48Z",
+          "updatedAt": "2026-10-29T19:17:48Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVJ9hug",
+          "commit": {
+            "abbreviatedOid": "952f4e4"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-30T15:36:34Z",
+          "updatedAt": "2026-10-30T15:36:34Z",
+          "comments": []
         }
       ]
     },
@@ -233311,7 +233766,7 @@
       "id": "PR_kwDOG2Ho4M8AAAABKd5H-g",
       "title": "Describe where timeouts apply and the tradeoffs in setting them",
       "url": "https://github.com/moq-wg/moq-transport/pull/2040",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -233320,17 +233775,19 @@
       ],
       "body": "Fixes: #1743",
       "createdAt": "2026-10-24T17:07:36Z",
-      "updatedAt": "2026-10-27T00:27:26Z",
+      "updatedAt": "2026-10-29T14:59:56Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7fc5f7c47c71ba29b39178302e4dd98f70d964e6",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "missing-data-timeouts",
       "headRefOid": "a26cc48c94c32dd32fde9c14606a4fb7caf8f884",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-10-29T14:59:29Z",
+      "mergedAt": "2026-10-29T14:59:29Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "ea0085e83a46fa43cddfd6e29442de9a4061a54d"
+      },
       "comments": [],
       "reviews": [
         {
@@ -233384,17 +233841,18 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Editorial & Minor Design"
+        "Editorial & Minor Design",
+        "Next Draft"
       ],
       "body": "Fixes: #1637",
       "createdAt": "2026-10-24T17:31:12Z",
-      "updatedAt": "2026-10-27T00:31:03Z",
+      "updatedAt": "2026-10-31T13:55:54Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7fc5f7c47c71ba29b39178302e4dd98f70d964e6",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "request-stream-credit",
-      "headRefOid": "f8b7fcf0c6c6668b7080f800165cf78eb988ce5d",
+      "headRefOid": "7845ee129fb6bff84375e5d0c9b814b6b7e7fcac",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -233413,6 +233871,90 @@
           "createdAt": "2026-10-27T00:31:03Z",
           "updatedAt": "2026-10-27T00:31:03Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVJ1udw",
+          "commit": {
+            "abbreviatedOid": "f8b7fcf"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Some editorial suggestions.  As much as I don't want to add more error codes, I'll admit this seems potentially actionable.",
+          "createdAt": "2026-10-30T15:27:49Z",
+          "updatedAt": "2026-10-30T15:33:24Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "I'm not sure I like this text, as it implies that one should make multiple upstream FETCHes at once for a single incoming FETCH.  Sometimes you might want to do that, but it seems very implementation dependent.  I'd prefer to not add this sentence.",
+              "createdAt": "2026-10-30T15:27:49Z",
+              "updatedAt": "2026-10-30T15:33:24Z"
+            },
+            {
+              "originalPosition": 16,
+              "body": "```suggestion\nEach request opens a new bidirectional stream, and\n```",
+              "createdAt": "2026-10-30T15:28:27Z",
+              "updatedAt": "2026-10-30T15:33:24Z"
+            },
+            {
+              "originalPosition": 16,
+              "body": "In HTTP load balancers, the typical solution is to open another connection.  I'm not sure if we want to discuss/advise that here?",
+              "createdAt": "2026-10-30T15:31:15Z",
+              "updatedAt": "2026-10-30T15:33:24Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVM3WGg",
+          "commit": {
+            "abbreviatedOid": "f8b7fcf"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T19:35:17Z",
+          "updatedAt": "2026-10-30T19:38:14Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "Yeah, I think I agree.  A relay might have some options here, but there are tradeoffs, and we're probably better not saying anything.",
+              "createdAt": "2026-10-30T19:35:17Z",
+              "updatedAt": "2026-10-30T19:38:14Z"
+            },
+            {
+              "originalPosition": 16,
+              "body": "I guess we don't call REQUEST_UDPATE a request, do we.",
+              "createdAt": "2026-10-30T19:35:35Z",
+              "updatedAt": "2026-10-30T19:38:14Z"
+            },
+            {
+              "originalPosition": 16,
+              "body": "When the receiver of the request is a client, opening more connections is not a viable solution.  So we could say something, but we'd have to caveat it that way, and discuss the tradeoffs of when you might want to wait vs open more.  Maybe slightly leaning against saying anything.",
+              "createdAt": "2026-10-30T19:38:10Z",
+              "updatedAt": "2026-10-30T19:38:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVR53KQ",
+          "commit": {
+            "abbreviatedOid": "f8b7fcf"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T13:55:53Z",
+          "updatedAt": "2026-10-31T13:55:54Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "None of the HTTP specs mention this case, and I'm inclined to match that.  It's not always possible (clients) and has potentially bad side effects (loss of prioritization, shared congestion control).\r\n\r\nHTTP actually goes one step further and says _don't_ open more than one conn per address. ",
+              "createdAt": "2026-10-31T13:55:53Z",
+              "updatedAt": "2026-10-31T13:55:54Z"
+            }
+          ]
         }
       ]
     },
@@ -233421,26 +233963,30 @@
       "id": "PR_kwDOG2Ho4M8AAAABKeHp-Q",
       "title": "Prohibit coalescing REQUEST_UPDATEs that contain FILL_PARAMETERS",
       "url": "https://github.com/moq-wg/moq-transport/pull/2042",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Editorial & Minor Design"
+        "Editorial & Minor Design",
+        "Merge Ready",
+        "Next Draft"
       ],
       "body": "Fixes: #1992",
       "createdAt": "2026-10-24T17:40:37Z",
-      "updatedAt": "2026-10-27T16:51:22Z",
+      "updatedAt": "2026-10-30T18:53:23Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "namespace-prefix-update",
-      "baseRefOid": "09545b55bab8f00492e467b77591c2d688463dad",
+      "baseRefOid": "342fe3516d10560a1d1334f86df85c5777de9e89",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "fill-params-no-coalesce",
-      "headRefOid": "1cb9bd43ef6efd7a1a1aabc52f00492358caa2f2",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "50763c686b7d778639d3e91fe8f52c2c138d02dc",
+      "closedAt": "2026-10-30T18:53:15Z",
+      "mergedAt": "2026-10-30T18:53:15Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "f6a1b6b8ce35385125a305ae1a5b85a21c40faae"
+      },
       "comments": [],
       "reviews": [
         {
@@ -233468,6 +234014,19 @@
           "createdAt": "2026-10-27T16:51:22Z",
           "updatedAt": "2026-10-27T16:51:22Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU_KiHA",
+          "commit": {
+            "abbreviatedOid": "301b5f5"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T18:59:09Z",
+          "updatedAt": "2026-10-29T18:59:09Z",
+          "comments": []
         }
       ]
     },
@@ -233480,10 +234039,14 @@
       "author": "michalhosna",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial & Minor Design",
+        "Merge Ready",
+        "Next Draft"
+      ],
       "body": "Fixes #2027. Alternative to #2038.\n\nThe diff is smaller than it looks; review commit by commit.\n\nThe lists are an editorial call: I do think that this many MUSTs read better as bullet lists. They also highlight that the two lists are worded differently, even though, until now, they seemed to mean the same thing.\n\nCompared to #2038:\n\n- The rules are in the appropriate paragraphs.\n- The default leaves existing definitions unchanged. I'm not strong on this one, but multiplicity is the one rule with opposite defaults for unsupported and supported Properties.\n\nI apologize for the fuss over a small change, but I think the care is worth it.",
       "createdAt": "2026-10-27T00:03:58Z",
-      "updatedAt": "2026-10-27T17:18:58Z",
+      "updatedAt": "2026-10-30T15:56:24Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e404b9c72f23889f13b0389211e08465230d8502",
@@ -233508,8 +234071,204 @@
           "createdAt": "2026-10-27T17:18:58Z",
           "updatedAt": "2026-10-27T17:18:58Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU76rpw",
+          "commit": {
+            "abbreviatedOid": "6e44334"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T15:03:36Z",
+          "updatedAt": "2026-10-29T15:03:36Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABU_B2bA",
+          "commit": {
+            "abbreviatedOid": "6e44334"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T18:48:45Z",
+          "updatedAt": "2026-10-29T18:48:45Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVKNE3Q",
+          "commit": {
+            "abbreviatedOid": "6e44334"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-30T15:56:24Z",
+          "updatedAt": "2026-10-30T15:56:24Z",
+          "comments": []
         }
       ]
+    },
+    {
+      "number": 2045,
+      "id": "PR_kwDOG2Ho4M8AAAABLkQ9OQ",
+      "title": "Describe Setup Options in 0-RTT",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2045",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Design"
+      ],
+      "body": "A 0-RTT client has not yet received the server's SETUP.  It uses the Setup Options remembered from the session that issued the ticket, and the server only accepts 0-RTT if those remain compatible.  Add INCOMPATIBLE_SETUP for a server SETUP that breaks them.",
+      "createdAt": "2026-10-29T15:48:48Z",
+      "updatedAt": "2026-10-31T13:14:55Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "3bad28252d359d8b5f23258ee0e3347a34223759",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "setup-0rtt-remember",
+      "headRefOid": "cc4103bd6f2eb9f79082097af22649df9d4935d2",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVAOiwg",
+          "commit": {
+            "abbreviatedOid": "cc4103b"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T20:26:20Z",
+          "updatedAt": "2026-10-29T20:26:20Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVKEPTA",
+          "commit": {
+            "abbreviatedOid": "cc4103b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Overall I'm ok with this, but I don't think we want to require remembering all Setup Options.",
+          "createdAt": "2026-10-30T15:44:54Z",
+          "updatedAt": "2026-10-30T15:49:39Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "I think we should be more specific about which SETUP options are intended to be remembered and honored by the server on the next connection, like QUIC does.\n\nRemembering MAX_CONTROL_MESSAGE_SIZE might be helpful, but probably not AUTHORIZATION_TOKEN or MOQT_IMPLEMENTATION?\n\nhttps://github.com/moq-wg/moq-transport/blob/main/draft-ietf-moq-transport.md#authority-authority",
+              "createdAt": "2026-10-30T15:44:54Z",
+              "updatedAt": "2026-10-30T15:49:39Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVRvKyw",
+          "commit": {
+            "abbreviatedOid": "cc4103b"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T13:14:55Z",
+          "updatedAt": "2026-10-31T13:14:55Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "Why would a server have sent an authorization token?  You are probably right we should exempt it here.  I'm wondering what the interaction with the server remembering the client's token is - if the token is expired, does 0-RTT also fail?",
+              "createdAt": "2026-10-31T13:14:55Z",
+              "updatedAt": "2026-10-31T13:14:55Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2047,
+      "id": "PR_kwDOG2Ho4M8AAAABL19VBw",
+      "title": "Rename AUTHORIZATION_TOKEN to AUTH_PAYLOAD",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2047",
+      "state": "OPEN",
+      "author": "sharmafb",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Implements the AUTH_PAYLOAD container naming and generalization presented at\nthe October interim.\n\nThe commits are separated for review:\n\n- Mechanical terminology substitutions throughout identifiers and prose,\n  including Authorization tokens -> Auth payloads, structures, fields,\n  registries, cache options, auth error codes, and references.\n- Added or rewritten language describing payload kinds, processing, freshness,\n  reuse, and continued authorization. Unchanged paragraphs retain their\n  original wrapping.\n\nWire encoding and numeric code points are unchanged.\n\nValidation: both commits build as HTML and text (`make`), `git diff --check`\npasses, and removing incidental reflow leaves the document's wording unchanged.\n",
+      "createdAt": "2026-10-30T19:11:23Z",
+      "updatedAt": "2026-10-30T23:09:22Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "f6a1b6b8ce35385125a305ae1a5b85a21c40faae",
+      "headRepository": "sharmafb/moq-transport",
+      "headRefName": "auth-payload-rename",
+      "headRefOid": "d086a42cc31624530b86744a212e102ffdbb7d61",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "For ease of readability, can you separate the all pure rename bits into their own commits?  Then we can more easily see the diff of the semantic changes",
+          "createdAt": "2026-10-30T19:33:06Z",
+          "updatedAt": "2026-10-30T19:33:06Z"
+        },
+        {
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I separated it out into two commits. The first commit is just a simple renaming change, while the second commit changes some of the surrounding language that seemed to imply that it could just carry tokens.",
+          "createdAt": "2026-10-30T23:09:22Z",
+          "updatedAt": "2026-10-30T23:09:22Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 2049,
+      "id": "PR_kwDOG2Ho4M8AAAABL4ZWMQ",
+      "title": "Default FILL_PARAMETERS Group Order to Ascending",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2049",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "A fill fetch stream uses Ascending when GROUP_ORDER is omitted from FILL_PARAMETERS, rather than inheriting the subscription's Group Order.",
+      "createdAt": "2026-10-30T23:19:00Z",
+      "updatedAt": "2026-10-30T23:20:37Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "f6a1b6b8ce35385125a305ae1a5b85a21c40faae",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "fill-group-order-default",
+      "headRefOid": "7e4da815e7f679295323af5d47cd9e3e38bfcfb2",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The problem is happens when the SUBSCRIBE omits group order and includes a FILL that also omits.  FETCH streams need to be in an order the SUBSCRIBER is aware of.  I could also say if omitted from FILL, defaults to subscription value, unless that's omitted -> Ascending.  But this seemed simpler.",
+          "createdAt": "2026-10-30T23:20:37Z",
+          "updatedAt": "2026-10-30T23:20:37Z"
+        }
+      ],
+      "reviews": []
     }
   ]
 }
