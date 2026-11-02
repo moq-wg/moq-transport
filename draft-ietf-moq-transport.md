@@ -1969,10 +1969,6 @@ The Application MUST NOT publish tracks or namespaces whose first
 field is `.session`. Relays MUST NOT forward requests for session-level
 tracks and namespaces to other sessions.
 
-The empty track name in the `.session` namespace is defined to not exist.
-A request with a Track Namespace whose first field is `.session` and an
-empty Track Name MUST be rejected with DOES_NOT_EXIST.
-
 An endpoint that receives a request for an unrecognized session-level track
 or namespace MUST reject it with REQUEST_ERROR using error code
 DOES_NOT_EXIST rather than passing it to the Application.
