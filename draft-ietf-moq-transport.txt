@@ -4753,13 +4753,14 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    MAY appear in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK,
    TRACK_STATUS_OK, FETCH_OK, or PUBLISH_STATE_NOTIFY.  It contains the
    Largest Object (Section 3.1.4) in the Track from the perspective of
-   the sending endpoint.  If Objects have been published on this Track
-   the Publisher MUST include this parameter, except in FETCH_OK, where
-   it is only required when Largest Object is within the requested range
-   (see Section 3.2).
+   the sending endpoint.  If the sending endpoint has published or
+   received any Objects in the Track, it MUST include this parameter in
+   the above messages it sends, except in FETCH_OK, where it is only
+   required when Largest Object is within the requested range (see
+   Section 3.2).
 
-   If omitted from a message other than FETCH_OK, the sending endpoint
-   has not published or received any Objects in the Track.
+   If omitted from a message where it is otherwise required, the sending
+   endpoint has not published or received any Objects in the Track.
 
    A relay sets LARGEST_OBJECT as described in Section 7.5.
 

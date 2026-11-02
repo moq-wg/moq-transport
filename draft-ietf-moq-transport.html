@@ -7193,12 +7193,12 @@ does not expire or expires at an unknown time.<a href="#section-9.19.16-4" class
 in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, FETCH_OK, or
 PUBLISH_STATE_NOTIFY.  It contains the <code>Largest Object</code>
 (<a href="#largest-object" class="auto internal xref">Section 3.1.4</a>) in the Track from the perspective of the sending
-endpoint. If Objects have been published on this Track the
-Publisher <span class="bcp14">MUST</span> include this parameter, except in FETCH_OK, where it is
-only required when <code>Largest Object</code> is within the requested range (see
-<a href="#fetch" class="auto internal xref">Section 3.2</a>).<a href="#section-9.19.17-1" class="pilcrow">¶</a></p>
-<p id="section-9.19.17-2">If omitted from a message other than FETCH_OK, the sending endpoint has not
-published or received any Objects in the Track.<a href="#section-9.19.17-2" class="pilcrow">¶</a></p>
+endpoint. If the sending endpoint has published or received any Objects in the
+Track, it <span class="bcp14">MUST</span> include this parameter in the above messages it sends, except in
+FETCH_OK, where it is only required when <code>Largest Object</code> is within the
+requested range (see <a href="#fetch" class="auto internal xref">Section 3.2</a>).<a href="#section-9.19.17-1" class="pilcrow">¶</a></p>
+<p id="section-9.19.17-2">If omitted from a message where it is otherwise required, the sending endpoint
+has not published or received any Objects in the Track.<a href="#section-9.19.17-2" class="pilcrow">¶</a></p>
 <p id="section-9.19.17-3">A relay sets LARGEST_OBJECT as described in <a href="#subscriber-interactions" class="auto internal xref">Section 7.5</a>.<a href="#section-9.19.17-3" class="pilcrow">¶</a></p>
 </section>
 </div>
