@@ -394,8 +394,10 @@ the Object returns to Unknown.
     +----------------+     +----------------+
     |     Exists     |     | Does Not Exist |
     +----------------+     +----------------+
+
+Transitions to Unknown after cache expiry are not shown
 ~~~
-{: #object-state-diagram title="Object States"}
+{: #object-state-diagram title="Object States as observed by the receiver"}
 
 A gap in the observed Object IDs does not by itself convey any information about
 the skipped Objects. Skipped Objects remain in the Unknown state until they are
