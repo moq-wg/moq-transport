@@ -3936,7 +3936,8 @@ Objects (see {{priorities}}). The allowed values are Ascending (0x1) or Descendi
 close the session with `INVALID_PARAMETER`.
 
 If omitted from SUBSCRIBE or SUBSCRIBE_TRACKS, the publisher's preference from
-the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).
+the Track is used. If omitted from FETCH or FILL_PARAMETERS, the receiver uses
+Ascending (0x1).
 
 ### LOCATION FILTER Parameter {#location-filter}
 
@@ -4121,8 +4122,9 @@ evaluated using the rules for a Fetch (see {{location-filter}}); it is
 independent of the subscription's own Location filter.
 
 A parameter that is omitted from FILL_PARAMETERS takes the value it has for the
-subscription; FILL_PARAMETERS therefore carries only the settings that
-differ. An endpoint that receives a parameter inside FILL_PARAMETERS that is not
+subscription, except GROUP_ORDER (see {{group-order}}); FILL_PARAMETERS
+therefore carries only the settings that differ. An endpoint that receives a
+parameter inside FILL_PARAMETERS that is not
 listed above MUST close the session with `INVALID_PARAMETER`.
 
 The value of FILL_PARAMETERS is a separate parameter scope. Parameters inside
