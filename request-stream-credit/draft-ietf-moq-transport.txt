@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 4 May 2027                                        I. Swett, Ed.
+Expires: 6 May 2027                                        I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         31 October 2026
+                                                         2 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 May 2027.
+   This Internet-Draft will expire on 6 May 2027.
 
 Copyright Notice
 
@@ -2473,12 +2473,14 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 7.4.  Request Stream Credit
 
    Each request opens a new bidirectional stream, and the peer limits
-   how many can be opened (e.g., with QUIC MAX_STREAMS).  A relay that
-   lacks stream credit to forward a request can fail it immediately with
-   UNAVAILABLE, or wait for credit and fail it with TIMEOUT if none
-   arrives.  Either response can include a Retry Interval.  Other
-   requests from the same peer can still succeed, since they might be
-   served from cache or by a different upstream.
+   how many can be opened (e.g., with QUIC MAX_STREAMS).  A single FETCH
+   can generate several upstream FETCHes, each needing its own stream
+   (see Section 3.2.3).  A relay that lacks stream credit to forward a
+   request can fail it immediately with UNAVAILABLE, or wait for credit
+   and fail it with TIMEOUT if none arrives.  Either response can
+   include a Retry Interval.  Other requests from the same peer can
+   still succeed, since they might be served from cache or by a
+   different upstream.
 
 7.5.  Subscriber Interactions
 
@@ -6986,9 +6988,9 @@ Informative References
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
               Progress, Internet-Draft, draft-ietf-moq-privacy-pass-
-              auth-03, 6 July 2026,
+              auth-04, 1 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
-              privacy-pass-auth-03>.
+              privacy-pass-auth-04>.
 
    [RFC1035]  Mockapetris, P., "Domain names - implementation and
               specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
