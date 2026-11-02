@@ -627,28 +627,59 @@ Table of Contents
 2.1.2.  Object States
 
    From the perspective of a subscriber or a cache, an Object can be in
-   three possible states:
+   four possible states:
 
    1.  The Object is known to not exist.  This state is permanent.  All
        signals that an Object does not exist are authoritative.
 
-   2.  The Object is known to exist.  From this state, it can transition
-       to not existing, but not vice versa.
+   2.  The Object is known to exist.
 
-   3.  The state of the Object is unknown, either because it has not yet
+   3.  The Object is Gone.  The original publisher cannot deliver the
+       Object and will not be able to, but does not know whether it
+       exists.
+
+   4.  The state of the Object is Unknown, either because it has not yet
        been received, or it has not yet been produced.
+
+   An Object moves to a state when the endpoint receives the Object or a
+   signal of that state.  When a cached Object or state expires (see
+   Section 10.3), the Object returns to Unknown.
+
+                      +---------+
+                      | Unknown |
+                      +---------+
+                       |   |   |
+           +-----------+   |   +-----------+
+           |               v               |
+           |           +-------+           |
+           |           | Gone  |           |
+           |           +-------+           |
+           |            |     |            |
+           |      +-----+     +-----+      |
+           v      v                 v      v
+       +----------------+     +----------------+
+       |     Exists     |     | Does Not Exist |
+       +----------------+     +----------------+
+
+   Transitions to Unknown after cache expiry are not shown
+
+            Figure 1: Object States as observed by the receiver
 
    A gap in the observed Object IDs does not by itself convey any
    information about the skipped Objects.  Skipped Objects remain in the
-   unknown state until they are received or their non-existence is
+   Unknown state until they are received or their non-existence is
    signalled, for example in a FETCH stream (see Section 11.4.1) or via
    a Prior Object ID Gap (see Section 10.9).
 
-   Since Objects can be delivered out of order, an endpoint can receive
-   an Object after it has already recorded that the Object does not
-   exist (e.g., via a FETCH gap from one source and delayed delivery via
-   a subscription).  This is not a protocol error and the Track is not
-   malformed.
+   A publisher MUST NOT signal that an Object does not exist unless it
+   knows the Object has never existed and never will; otherwise it
+   signals that the Object is Gone or Unknown.  For example, a publisher
+   that restarts without state and resumes a Track at a new Group, or
+   that retains only recent history, signals earlier Objects as Gone in
+   FETCH responses.  Only the original publisher originates Gone (see
+   Section 3.2.3).  Because another source can still hold a Gone Object,
+   receiving an Object that was recorded as Gone or Unknown is not an
+   error.
 
    Whenever the publisher communicates that certain objects do not
    exist, this fact is expressed as a contiguous range of non-existent
@@ -1117,7 +1148,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    gaps in the Group and Object IDs in the response stream that are not
    otherwise marked indicate objects that do not exist (see
    Section 2.1.2).  When one or more Range Filters are present, unmarked
-   gaps indicate objects in the unknown state.
+   gaps indicate objects in the Unknown state.
 
    In this section, End Location refers to the LARGEST_OBJECT in
    FETCH_OK if present, and the requested End Location otherwise (see
@@ -1143,16 +1174,16 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    When the cause of the gap differs from the default, the publisher
    marks the range of Objects it will not serialize with an End of Range
    indicator (see Section 11.4.2), identifying those Objects as non-
-   existent, unknown, or timed out.  A publisher SHOULD NOT use End of
-   Non-Existent Range in a FETCH response except to split a range of
-   Objects that will not be serialized into those that are known not to
-   exist and those with unknown or timed out status.  The publisher MUST
-   follow an Object known to end the Track with End of Track, and MUST
-   follow the last Object in the response with End of Group if it is
-   known to end its Group (see Section 11.4.2).
+   existent, Unknown, Gone, or timed out.  A publisher SHOULD NOT use
+   End of Non-Existent Range in a FETCH response except to split a range
+   of Objects that will not be serialized into those that are known not
+   to exist and those with Unknown, Gone or timed out status.  The
+   publisher MUST follow an Object known to end the Track with End of
+   Track, and MUST follow the last Object in the response with End of
+   Group if it is known to end its Group (see Section 11.4.2).
 
    If a Publisher receives a FETCH with a range that includes one or
-   more Objects with unknown state, it indicates the range of unknown
+   more Objects with Unknown state, it indicates the range of Unknown
    Objects (End of Unknown Range, see Section 11.4.2) and continues
    serving other known Objects.
 
@@ -1161,12 +1192,14 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    A relay that has cached objects from the beginning of the range MAY
    start sending objects immediately in response to a FETCH.  When a
    relay encounters Objects within the requested range that are not
-   immediately available and have unknown status, it issues one or more
-   upstream FETCHes to retrieve them.
+   immediately available and have Unknown status, it issues one or more
+   upstream FETCHes to retrieve them.  It does not issue upstream
+   FETCHes for Objects it has cached as Gone or as not existing.
 
-   If an upstream FETCH fails, the relay indicates the range of unknown
+   If an upstream FETCH fails, the relay indicates the range of Unknown
    Objects, as described above, unless the Track is malformed (see
-   Section 12.1).
+   Section 12.1).  A relay MUST NOT signal Objects as Gone unless it
+   received that signal from upstream.
 
    The Fill Timeout (see Section 9.19.5) represents a total budget for
    all upstream FETCHes generated by a single request.  If the budget is
@@ -1711,7 +1744,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
         |                          |------------------------->|
         |                          |                          |
 
-               Figure 1: Namespace discovery through a relay
+               Figure 2: Namespace discovery through a relay
 
    The NAMESPACE and NAMESPACE_DONE messages carry only the suffixes 42
    and 123, because the prefix example is already known from the
@@ -2409,14 +2442,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    received with the same Full Track Name, Group ID and Object ID,
    Relays MAY ignore subsequently received Objects or MAY use them to
    update certain cached fields.  Implementations that update the cache
-   need to protect against cache poisoning.  The only Object fields that
-   can be updated are the following:
-
-   1.  Object can transition from existing to not existing in cases
-       where the object is no longer available.
-
-   2.  Object Properties can be added, removed or updated, subject to
-       the constraints of the specific property.
+   need to protect against cache poisoning.  Only Object Properties can
+   be added, removed or updated, subject to the constraints of the
+   specific property.
 
    An endpoint that receives a duplicate Object with a different
    Delivery Mode, Subgroup ID, Priority or Payload MUST treat the track
@@ -2428,9 +2456,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    to an equivalent object with an End of Group status, or a Prior Group
    ID Gap property could be removed in FETCH, where it's redundant.
 
-   As described in Section 2.1, an endpoint can receive an Object after
-   it has already recorded that the Object does not exist.  A caching
-   relay SHOULD NOT cache or forward the Object in this case.
+   A relay MAY cache that a range of Objects is Gone (see
+   Section 2.1.2).  If it later receives one of those Objects, it can
+   cache and forward the Object.  A relay does not cache Unknown or
+   timed out ranges.
 
    A cache MUST store all fields of an Object defined in Section 2.1.1,
    with the exception of any Object Properties (Section 11.1.2) that
@@ -2798,7 +2827,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Object (vi64)
    }
 
-                        Figure 2: Location structure
+                        Figure 3: Location structure
 
    In this document, a Location can be expressed in the form of
    {GroupID, ObjectID}, where GroupID and ObjectID indicate the Group ID
@@ -2832,7 +2861,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Value (..)
    }
 
-                       Figure 3: MOQT Key-Value-Pair
+                       Figure 4: MOQT Key-Value-Pair
 
    *  Delta Type: an unsigned variable-length integer identifying the
       Type as a delta encoded value from the previous Type, if any.  The
@@ -2903,7 +2932,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    scope (e.g. a Track-only Property as an Object Property) MUST treat
    the Track as malformed (see Section 12.1).
 
-   Properties are serialized as Key-Value-Pairs (see Figure 3).  Track
+   Properties are serialized as Key-Value-Pairs (see Figure 4).  Track
    Properties always appear as the final field in the messages that
    carry them; their length is the remaining bytes of the message after
    all preceding fields have been consumed.  Object Properties
@@ -3079,7 +3108,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      [Token Value (..)]
    }
 
-                         Figure 4: Token structure
+                         Figure 5: Token structure
 
    *  Alias Type - an integer defining both the serialization and the
       processing behavior of the receiver.  This Alias type has the
@@ -3202,7 +3231,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Message Body (..),
    }
 
-                       Figure 5: MOQT Control Message
+                       Figure 6: MOQT Control Message
 
    The following Message Types are defined.  The Stream column indicates
    which stream type each message is sent on: Control indicates the
@@ -3302,9 +3331,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Setup Options (..) ...,
    }
 
-                        Figure 6: MOQT SETUP Message
+                        Figure 7: MOQT SETUP Message
 
-   Setup Options are serialized as Key-Value-Pairs Figure 3, spanning
+   Setup Options are serialized as Key-Value-Pairs Figure 4, spanning
    the entire message payload, bounded by the message Length field.
    Setup Options use a namespace that is constant across all MOQT
    versions, separate from Message Parameters.  Receivers MUST ignore
@@ -3361,7 +3390,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    of token Aliases.
 
    The token size is calculated as 16 bytes + the size of the Token
-   Value field (see Figure 4).  The total size as restricted by the
+   Value field (see Figure 5).  The total size as restricted by the
    MAX_AUTH_TOKEN_CACHE_SIZE option is calculated as the sum of the
    token sizes for all registered tokens (Alias Type value of 0x01)
    minus the sum of the token sizes for all deregistered tokens (Alias
@@ -3501,7 +3530,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Timeout (vi64),
    }
 
-                       Figure 7: MOQT GOAWAY Message
+                       Figure 8: MOQT GOAWAY Message
 
    *  New Session URI: When received by a client, indicates where the
       client can connect to continue this session or re-issue this
@@ -3541,7 +3570,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Track Properties (..),
    }
 
-                     Figure 8: MOQT REQUEST_OK Message
+                     Figure 9: MOQT REQUEST_OK Message
 
    *  Parameters: The parameters are defined in Section 9.19.  The
       parameters that can appear depend on the request being answered:
@@ -3586,7 +3615,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Error Details (..) ...,
    }
 
-                    Figure 9: MOQT REQUEST_ERROR Message
+                   Figure 10: MOQT REQUEST_ERROR Message
 
    *  Error Code: Identifies an integer error code for request failure.
 
@@ -3598,7 +3627,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       See Section 8.5.
 
    *  Error Details: Structured information about the error, serialized
-      as Key-Value-Pairs (Figure 3) spanning the remainder of the
+      as Key-Value-Pairs (Figure 4) spanning the remainder of the
       message, bounded by the message Length field.  See Section 9.4.2.
 
    If a request is retryable with the same parameters at a later time,
@@ -3726,7 +3755,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                   Figure 10: MOQT REQUEST_UPDATE Message
+                   Figure 11: MOQT REQUEST_UPDATE Message
 
    *  Request ID: See Section 6.4.2.1.
 
@@ -3819,7 +3848,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                     Figure 11: MOQT SUBSCRIBE Message
+                     Figure 12: MOQT SUBSCRIBE Message
 
    *  Request ID: See Section 6.4.2.1.
 
@@ -3855,7 +3884,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Track Properties (..),
    }
 
-                    Figure 12: MOQT SUBSCRIBE_OK Message
+                    Figure 13: MOQT SUBSCRIBE_OK Message
 
    *  Track Alias: The identifer used for this track in Subgroups or
       Datagrams (see Section 3.1.3).
@@ -3885,7 +3914,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Track Properties (..),
    }
 
-                      Figure 13: MOQT PUBLISH Message
+                      Figure 14: MOQT PUBLISH Message
 
    *  Request ID: See Section 6.4.2.1.
 
@@ -3980,7 +4009,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Error Reason (Reason Phrase)
    }
 
-                    Figure 14: MOQT PUBLISH_DONE Message
+                    Figure 15: MOQT PUBLISH_DONE Message
 
    *  Status Code: An integer status code indicating why the
       subscription ended.
@@ -4050,7 +4079,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                Figure 15: MOQT PUBLISH_STATE_NOTIFY Message
+                Figure 16: MOQT PUBLISH_STATE_NOTIFY Message
 
    *  Parameters: The parameters are defined in Section 9.19.  The
       parameters that can appear in a PUBLISH_STATE_NOTIFY are
@@ -4075,7 +4104,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                       Figure 16: MOQT FETCH Message
+                       Figure 17: MOQT FETCH Message
 
    *  Request ID: See Section 6.4.2.1.
 
@@ -4134,7 +4163,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                 Figure 17: MOQT PUBLISH_NAMESPACE Message
+                 Figure 18: MOQT PUBLISH_NAMESPACE Message
 
    *  Request ID: See Section 6.4.2.1.
 
@@ -4160,7 +4189,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                Figure 18: MOQT SUBSCRIBE_NAMESPACE Message
+                Figure 19: MOQT SUBSCRIBE_NAMESPACE Message
 
    *  Request ID: See Section 6.4.2.1.
 
@@ -4190,7 +4219,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                     Figure 19: MOQT NAMESPACE Message
+                     Figure 20: MOQT NAMESPACE Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 8.7 after removing namespace
@@ -4212,7 +4241,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Track Namespace Suffix (..)
    }
 
-                   Figure 20: MOQT NAMESPACE_DONE Message
+                   Figure 21: MOQT NAMESPACE_DONE Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 8.7.  The namespace begins with
@@ -4234,7 +4263,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Parameters (..) ...
    }
 
-                  Figure 21: MOQT SUBSCRIBE_TRACKS Message
+                  Figure 22: MOQT SUBSCRIBE_TRACKS Message
 
    *  Request ID: See Section 6.4.2.1.
 
@@ -4269,7 +4298,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Track Name (..),
    }
 
-                  Figure 22: MOQT PUBLISH_SKIPPED Message
+                  Figure 23: MOQT PUBLISH_SKIPPED Message
 
    *  Track Namespace Suffix: Specifies the final portion of a track's
       namespace as defined in Section 8.7.  The namespace begins with
@@ -4288,7 +4317,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Value (..)
    }
 
-                        Figure 23: Message Parameter
+                        Figure 24: Message Parameter
 
    Type Delta: The difference between this Parameter Type and the
    previous Parameter Type in the message, or the Parameter Type itself
@@ -4615,7 +4644,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    The OBJECT_PROPERTY_FILTER parameter (Type 0x28) selects objects with
    required Ranges of Property Value for a required Object Property Type
-   which MUST be even, i.e. a single integer value (see Figure 3),
+   which MUST be even, i.e. a single integer value (see Figure 4),
    otherwise the endpoint MUST reject this with REQUEST_ERROR with error
    code INVALID_FILTER.  See Section 3.3.2 and Section 8.6.
 
@@ -4631,7 +4660,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    The TRACK_PROPERTY_FILTER parameter (Type 0x29) selects tracks with
    required Ranges of Property Value for a required Track Property Type
-   which MUST be even, i.e. a single integer value (see Figure 3),
+   which MUST be even, i.e. a single integer value (see Figure 4),
    otherwise the endpoint MUST reject this with REQUEST_ERROR with error
    code INVALID_FILTER.  See Section 3.3.2 and Section 8.6.
 
@@ -4867,8 +4896,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    or fetch after the specified number of milliseconds has elapsed since
    the beginning of the Object was received.  This means Objects earlier
    in a multi-object stream will expire earlier than Objects later in
-   the stream.  Once Objects have expired from cache, their state
-   becomes unknown (see Section 2.1).
+   the stream.  The same limit applies to cached Does Not Exist and Gone
+   states.
 
    If MAX_CACHE_DURATION is not sent by the publisher, the Objects can
    be cached until implementation constraints cause them to be evicted.
@@ -4912,7 +4941,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 10.7.  Immutable Properties
 
    Immutable Properties (Property Type 0xB) is a Track or Object
-   Property that contains a sequence of Key-Value-Pairs (see Figure 3)
+   Property that contains a sequence of Key-Value-Pairs (see Figure 4)
    that are themselves Track or Object Properties, respectively.
 
    Immutable Properties {
@@ -5112,7 +5141,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    authentication schemes.
 
    Object Properties are serialized as a length in bytes followed by
-   Key-Value-Pairs (see Figure 3).
+   Key-Value-Pairs (see Figure 4).
 
    Object Properties {
      Properties Length (vi64),
@@ -5158,7 +5187,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      [Object Payload (..),]
    }
 
-                      Figure 24: MOQT OBJECT_DATAGRAM
+                      Figure 25: MOQT OBJECT_DATAGRAM
 
    The Type Flags field in the OBJECT_DATAGRAM is a variable-length
    integer that encodes a set of flags.  All values defined in this
@@ -5244,7 +5273,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      [Publisher Priority (8),]
    }
 
-                      Figure 25: MOQT SUBGROUP_HEADER
+                      Figure 26: MOQT SUBGROUP_HEADER
 
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Delivery Mode = Subgroup.
@@ -5338,7 +5367,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      [Object Payload (..),]
    }
 
-                   Figure 26: MOQT Subgroup Object Fields
+                   Figure 27: MOQT Subgroup Object Fields
 
 11.3.2.  Closing Subgroup Streams
 
@@ -5468,7 +5497,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      Request ID (vi64),
    }
 
-                        Figure 27: MOQT FETCH_HEADER
+                        Figure 28: MOQT FETCH_HEADER
 
    Each Object sent on a FETCH stream after the FETCH_HEADER has the
    following format:
@@ -5484,7 +5513,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      [Object Payload (..),]
    }
 
-                    Figure 28: MOQT Fetch Object Fields
+                    Figure 29: MOQT Fetch Object Fields
 
    The Serialization Flags field defines the serialization of the
    Object.  It is a variable-length integer.  When less than 128, the
@@ -5501,6 +5530,8 @@ EXT 1 and EXT N can be modified or removed by Relays
                    | 0x10C | End of Unknown Range      |
                    +-------+---------------------------+
                    | 0x20C | End of Timed-Out Range    |
+                   +-------+---------------------------+
+                   | 0x40C | End of Gone Range         |
                    +-------+---------------------------+
                    | 0x80  | End of Group              |
                    +-------+---------------------------+
@@ -5591,12 +5622,12 @@ EXT 1 and EXT N can be modified or removed by Relays
 11.4.2.  End of Range
 
    When the Serialization Flags field indicates an End of Range (0x8C,
-   0x10C, or 0x20C), the Group ID Delta and Object ID Delta fields are
-   always present.  Subgroup ID, Priority and Properties are not
-   present.  All Objects with Locations between the last serialized
+   0x10C, 0x20C, or 0x40C), the Group ID Delta and Object ID Delta
+   fields are always present.  Subgroup ID, Priority and Properties are
+   not present.  All Objects with Locations between the last serialized
    Object, if any, and the Location decoded from this indicator,
    inclusive, either do not exist (when Serialization Flags is 0x8C),
-   are unknown (0x10C), or timed out (0x20C).
+   are Unknown (0x10C), are timed out (0x20C), or are Gone (0x40C).
 
 11.4.2.1.  ID Decoding
 
@@ -5661,7 +5692,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      Padding Data (..) = 0x00..
    }
 
-                       Figure 29: MOQT Padding Stream
+                       Figure 30: MOQT Padding Stream
 
    The receiver MUST discard all data received on a padding stream to
    prevent exhausting flow control.
@@ -5680,7 +5711,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      Padding Data (..) = 0x00..
    }
 
-                      Figure 30: MOQT Padding Datagram
+                      Figure 31: MOQT Padding Datagram
 
    The receiver MUST discard all data received in a padding datagram.
 
@@ -5693,40 +5724,44 @@ EXT 1 and EXT N can be modified or removed by Relays
    malformed.  Some example conditions that constitute a malformed track
    when detected by a receiver include:
 
-   1.  An Object with a particular Subgroup ID is received, but its
-       Publisher Priority is different from that of the previous Object
-       with the same Subgroup ID.
+   1.   An Object with a particular Subgroup ID is received, but its
+        Publisher Priority is different from that of the previous Object
+        with the same Subgroup ID.
 
-   2.  An Object is received whose Object ID is larger than the final
-       Object in the Subgroup.  The final Object in a Subgroup is the
-       last Object received on a Subgroup stream before a FIN.
+   2.   An Object is received whose Object ID is larger than the final
+        Object in the Subgroup.  The final Object in a Subgroup is the
+        last Object received on a Subgroup stream before a FIN.
 
-   3.  A Subgroup is received over multiple transport streams terminated
-       by FIN with different final Objects.
+   3.   A Subgroup is received over multiple transport streams
+        terminated by FIN with different final Objects.
 
-   4.  An Object is received in a Group whose Object ID is larger than
-       the final Object in the Group.  The final Object in a Group is
-       the Object with Status END_OF_GROUP, or the last Object before a
-       FIN in a Subgroup which has the END_OF_GROUP bit set.  If the end
-       of a Group is implicitly determined via a gap in a FETCH
-       response, the final Object in the Group remains unknown.
+   4.   An Object is received in a Group whose Object ID is larger than
+        the final Object in the Group.  The final Object in a Group is
+        the Object with Status END_OF_GROUP, or the last Object before a
+        FIN in a Subgroup which has the END_OF_GROUP bit set.  If the
+        end of a Group is implicitly determined via a gap in a FETCH
+        response, the final Object in the Group remains unknown.
 
-   5.  An Object is received whose Group and Object ID are larger than
-       the final Object in the Track.  The final Object in a Track is
-       the Object with Status END_OF_TRACK.
+   5.   An Object is received whose Group and Object ID are larger than
+        the final Object in the Track.  The final Object in a Track is
+        the Object with Status END_OF_TRACK.
 
-   6.  The same Object is received more than once with different Payload
-       or other immutable properties.
+   6.   The same Object is received more than once with different
+        Payload or other immutable properties.
 
-   7.  An Object is received with a different Delivery Mode than
-       previously observed.
+   7.   An Object is received with a different Delivery Mode than
+        previously observed.
 
-   8.  A supported Property is received outside its scope, such as a
-       Track-only Property received as an Object Property (see
-       Section 8.4).
+   8.   A supported Property is received outside its scope, such as a
+        Track-only Property received as an Object Property (see
+        Section 8.4).
 
-   9.  A Track or Object contains more than one instance of a Property
-       that does not allow multiple instances (see Section 8.4).
+   9.   A Track or Object contains more than one instance of a Property
+        that does not allow multiple instances (see Section 8.4).
+
+   10.  An Object is received after it has been recorded as not
+        existing, or is signalled as not existing after it was received
+        (see Section 2.1.2).
 
    The above list of conditions is not considered exhaustive.
 
@@ -5774,7 +5809,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    DUPLICATE_TRACK_ALIAS (0x5):  The endpoint attempted to use a Track
       Alias that was already in use.
 
-   MALFORMED_KEY_VALUE (0x6):  A Key-Value-Pair (Figure 3), such as a
+   MALFORMED_KEY_VALUE (0x6):  A Key-Value-Pair (Figure 4), such as a
       Setup Option or a Property, has a Value that does not match the
       definition of its Type.
 

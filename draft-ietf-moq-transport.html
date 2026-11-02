@@ -2395,7 +2395,7 @@ authentication.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
           <h4 id="name-object-states">
 <a href="#section-2.1.2" class="section-number selfRef">2.1.2. </a><a href="#name-object-states" class="section-name selfRef">Object States</a>
           </h4>
-<p id="section-2.1.2-1">From the perspective of a subscriber or a cache, an Object can be in three
+<p id="section-2.1.2-1">From the perspective of a subscriber or a cache, an Object can be in four
 possible states:<a href="#section-2.1.2-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-2.1.2-2">
 <li id="section-2.1.2-2.1">
@@ -2403,27 +2403,64 @@ possible states:<a href="#section-2.1.2-1" class="pilcrow">¶</a></p>
 that an Object does not exist are authoritative.<a href="#section-2.1.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-2.1.2-2.2">
-              <p id="section-2.1.2-2.2.1">The Object is known to exist. From this state, it can transition to not
-existing, but not vice versa.<a href="#section-2.1.2-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-2.1.2-2.2.1">The Object is known to exist.<a href="#section-2.1.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-2.1.2-2.3">
-              <p id="section-2.1.2-2.3.1">The state of the Object is unknown, either because it has not yet been
-received, or it has not yet been produced.<a href="#section-2.1.2-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-2.1.2-2.3.1">The Object is Gone.  The original publisher cannot deliver the Object and
+will not be able to, but does not know whether it exists.<a href="#section-2.1.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-2.1.2-2.4">
+              <p id="section-2.1.2-2.4.1">The state of the Object is Unknown, either because it has not yet been
+received, or it has not yet been produced.<a href="#section-2.1.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-2.1.2-3">A gap in the observed Object IDs does not by itself convey any information about
-the skipped Objects. Skipped Objects remain in the unknown state until they are
+<p id="section-2.1.2-3">An Object moves to a state when the endpoint receives the Object or a signal of
+that state.  When a cached Object or state expires (see <a href="#max-cache-duration" class="auto internal xref">Section 10.3</a>),
+the Object returns to Unknown.<a href="#section-2.1.2-3" class="pilcrow">¶</a></p>
+<span id="name-object-states-as-observed-b"></span><div id="object-state-diagram">
+<figure id="figure-1">
+            <div class="alignLeft art-text artwork" id="section-2.1.2-4.1">
+<pre>
+                   +---------+
+                   | Unknown |
+                   +---------+
+                    |   |   |
+        +-----------+   |   +-----------+
+        |               v               |
+        |           +-------+           |
+        |           | Gone  |           |
+        |           +-------+           |
+        |            |     |            |
+        |      +-----+     +-----+      |
+        v      v                 v      v
+    +----------------+     +----------------+
+    |     Exists     |     | Does Not Exist |
+    +----------------+     +----------------+
+
+Transitions to Unknown after cache expiry are not shown
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-object-states-as-observed-b" class="selfRef">Object States as observed by the receiver</a>
+            </figcaption></figure>
+</div>
+<p id="section-2.1.2-5">A gap in the observed Object IDs does not by itself convey any information about
+the skipped Objects. Skipped Objects remain in the Unknown state until they are
 received or their non-existence is signalled, for example in a FETCH stream (see
-<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>) or via a Prior Object ID Gap (see <a href="#prior-object-id-gap" class="auto internal xref">Section 10.9</a>).<a href="#section-2.1.2-3" class="pilcrow">¶</a></p>
-<p id="section-2.1.2-4">Since Objects can be delivered out of order, an endpoint can receive an Object
-after it has already recorded that the Object does not exist (e.g., via a FETCH
-gap from one source and delayed delivery via a subscription).  This is not a
-protocol error and the Track is not malformed.<a href="#section-2.1.2-4" class="pilcrow">¶</a></p>
-<p id="section-2.1.2-5">Whenever the publisher communicates that certain objects do not exist, this
+<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>) or via a Prior Object ID Gap (see <a href="#prior-object-id-gap" class="auto internal xref">Section 10.9</a>).<a href="#section-2.1.2-5" class="pilcrow">¶</a></p>
+<p id="section-2.1.2-6">A publisher <span class="bcp14">MUST NOT</span> signal that an Object does not exist unless it knows the
+Object has never existed and never will; otherwise it signals that the Object is
+Gone or Unknown.  For example, a publisher that restarts without state and
+resumes a Track at a new Group, or that retains only recent history, signals
+earlier Objects as Gone in FETCH responses.  Only the original publisher
+originates Gone (see <a href="#relay-fetch-handling" class="auto internal xref">Section 3.2.3</a>).  Because another source can
+still hold a Gone Object, receiving an Object that was recorded as Gone or
+Unknown is not an error.<a href="#section-2.1.2-6" class="pilcrow">¶</a></p>
+<p id="section-2.1.2-7">Whenever the publisher communicates that certain objects do not exist, this
 fact is expressed as a contiguous range of non-existent objects and
 by including Properties indicating the group/object gaps; MOQT
 implementers should take that into account when selecting appropriate data
-structures.<a href="#section-2.1.2-5" class="pilcrow">¶</a></p>
+structures.<a href="#section-2.1.2-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2894,7 +2931,7 @@ not have the Object in cache).<a href="#section-3.2.2-1" class="pilcrow">¶</a><
 <p id="section-3.2.2-2">Unless the request included Range Filters (see <a href="#range-filters" class="auto internal xref">Section 3.3.2</a>), any gaps in
 the Group and Object IDs in the response stream that are not otherwise marked
 indicate objects that do not exist (see <a href="#object-states" class="auto internal xref">Section 2.1.2</a>).  When one or more
-Range Filters are present, unmarked gaps indicate objects in the unknown state.<a href="#section-3.2.2-2" class="pilcrow">¶</a></p>
+Range Filters are present, unmarked gaps indicate objects in the Unknown state.<a href="#section-3.2.2-2" class="pilcrow">¶</a></p>
 <p id="section-3.2.2-3">In this section, End Location refers to the LARGEST_OBJECT in FETCH_OK if
 present, and the requested End Location otherwise (see <a href="#fetch" class="auto internal xref">Section 3.2</a>).<a href="#section-3.2.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.2.2-4">For Ascending Group Order, and Descending Group Order where Start and End
@@ -2911,15 +2948,15 @@ multiple logical gaps: the tail of <code>A.Group</code>; all skipped groups; and
 by a FIN.<a href="#section-3.2.2-6" class="pilcrow">¶</a></p>
 <p id="section-3.2.2-7">When the cause of the gap differs from the default, the publisher marks the range
 of Objects it will not serialize with an End of Range indicator (see
-<a href="#end-of-range" class="auto internal xref">Section 11.4.2</a>), identifying those Objects as non-existent, unknown, or timed
-out.  A publisher <span class="bcp14">SHOULD NOT</span> use <code>End of Non-Existent Range</code> in a FETCH response
+<a href="#end-of-range" class="auto internal xref">Section 11.4.2</a>), identifying those Objects as non-existent, Unknown, Gone, or
+timed out.  A publisher <span class="bcp14">SHOULD NOT</span> use <code>End of Non-Existent Range</code> in a FETCH response
 except to split a range of Objects that will not be serialized into those that are
-known not to exist and those with unknown or timed out status.  The publisher
-<span class="bcp14">MUST</span> follow an Object known to end the Track with <code>End of Track</code>, and <span class="bcp14">MUST</span>
-follow the last Object in the response with <code>End of Group</code> if it is known to
-end its Group (see <a href="#end-of-range" class="auto internal xref">Section 11.4.2</a>).<a href="#section-3.2.2-7" class="pilcrow">¶</a></p>
+known not to exist and those with Unknown, Gone or timed out status.  The
+publisher <span class="bcp14">MUST</span> follow an Object known to end the Track with <code>End of Track</code>, and
+<span class="bcp14">MUST</span> follow the last Object in the response with <code>End of Group</code> if it is known
+to end its Group (see <a href="#end-of-range" class="auto internal xref">Section 11.4.2</a>).<a href="#section-3.2.2-7" class="pilcrow">¶</a></p>
 <p id="section-3.2.2-8">If a Publisher receives a FETCH with a range that includes one or more Objects
-with unknown state, it indicates the range of unknown Objects (<code>End of Unknown
+with Unknown state, it indicates the range of Unknown Objects (<code>End of Unknown
 Range</code>, see <a href="#end-of-range" class="auto internal xref">Section 11.4.2</a>) and continues serving other known Objects.<a href="#section-3.2.2-8" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2931,9 +2968,13 @@ Range</code>, see <a href="#end-of-range" class="auto internal xref">Section 11.
 <p id="section-3.2.3-1">A relay that has cached objects from the beginning of the range <span class="bcp14">MAY</span> start
 sending objects immediately in response to a FETCH.  When a relay encounters
 Objects within the requested range that are not immediately available and have
-unknown status, it issues one or more upstream FETCHes to retrieve them.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.2.3-2">If an upstream FETCH fails, the relay indicates the range of unknown Objects,
-as described above, unless the Track is malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-3.2.3-2" class="pilcrow">¶</a></p>
+Unknown status, it issues one or more upstream FETCHes to retrieve them.  It
+does not issue upstream FETCHes for Objects it has cached as Gone or as not
+existing.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.3-2">If an upstream FETCH fails, the relay indicates the range of Unknown Objects,
+as described above, unless the Track is malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).
+A relay <span class="bcp14">MUST NOT</span> signal Objects as Gone unless it received that signal from
+upstream.<a href="#section-3.2.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.2.3-3">The Fill Timeout (see <a href="#fill-timeout" class="auto internal xref">Section 9.19.5</a>) represents a total budget
 for all upstream FETCHes generated by a single request. If the budget is
 exhausted, the relay reports any remaining unavailable Objects as Timed-Out gaps
@@ -3465,7 +3506,7 @@ namespace, which the relay passes on as it arrives.  When the publisher
 withdraws that advertisement, the relay tells the subscriber the namespace is
 gone.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
 <span id="name-namespace-discovery-through"></span><div id="namespace-discovery-flow">
-<figure id="figure-1">
+<figure id="figure-2">
           <div class="alignLeft art-text artwork" id="section-4.3-2.1">
 <pre>
  Publisher                    Relay                   Subscriber
@@ -3496,7 +3537,7 @@ gone.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
      |                          |                          |
 </pre>
 </div>
-<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
 <a href="#name-namespace-discovery-through" class="selfRef">Namespace discovery through a relay</a>
           </figcaption></figure>
 </div>
@@ -4252,31 +4293,22 @@ cases built on relay to relay communication, are out of scope.<a href="#section-
 Name, Group ID and Object ID. If multiple objects are received with the same
 Full Track Name, Group ID and Object ID, Relays <span class="bcp14">MAY</span> ignore subsequently received
 Objects or <span class="bcp14">MAY</span> use them to update certain cached fields. Implementations that
-update the cache need to protect against cache poisoning.  The only Object
-fields that can be updated are the following:<a href="#section-7.1-2" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-7.1-3">
-<li id="section-7.1-3.1">
-            <p id="section-7.1-3.1.1">Object can transition from existing to not existing in cases where the
-object is no longer available.<a href="#section-7.1-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-7.1-3.2">
-            <p id="section-7.1-3.2.1">Object Properties can be added, removed or updated, subject
-to the constraints of the specific property.<a href="#section-7.1-3.2.1" class="pilcrow">¶</a></p>
-</li>
-        </ol>
-<p id="section-7.1-4">An endpoint that receives a duplicate Object with a different Delivery
-Mode, Subgroup ID, Priority or Payload <span class="bcp14">MUST</span> treat the track as Malformed.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
-<p id="section-7.1-5">For ranges of objects that do not exist, relays <span class="bcp14">MAY</span> change the representation
+update the cache need to protect against cache poisoning.  Only Object
+Properties can be added, removed or updated, subject to the constraints of the
+specific property.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-3">An endpoint that receives a duplicate Object with a different Delivery
+Mode, Subgroup ID, Priority or Payload <span class="bcp14">MUST</span> treat the track as Malformed.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
+<p id="section-7.1-4">For ranges of objects that do not exist, relays <span class="bcp14">MAY</span> change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
 change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
 of Group status, or a Prior Group ID Gap property could be removed in FETCH,
-where it's redundant.<a href="#section-7.1-5" class="pilcrow">¶</a></p>
-<p id="section-7.1-6">As described in <a href="#model-object" class="auto internal xref">Section 2.1</a>, an endpoint can receive an Object after it has
-already recorded that the Object does not exist.  A caching relay <span class="bcp14">SHOULD NOT</span>
-cache or forward the Object in this case.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
-<p id="section-7.1-7">A cache <span class="bcp14">MUST</span> store all fields of an Object defined in <a href="#object-header" class="auto internal xref">Section 2.1.1</a>,
+where it's redundant.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
+<p id="section-7.1-5">A relay <span class="bcp14">MAY</span> cache that a range of Objects is Gone (see <a href="#object-states" class="auto internal xref">Section 2.1.2</a>).  If
+it later receives one of those Objects, it can cache and forward the Object.  A
+relay does not cache Unknown or timed out ranges.<a href="#section-7.1-5" class="pilcrow">¶</a></p>
+<p id="section-7.1-6">A cache <span class="bcp14">MUST</span> store all fields of an Object defined in <a href="#object-header" class="auto internal xref">Section 2.1.1</a>,
 with the exception of any Object Properties (<a href="#object-properties" class="auto internal xref">Section 11.1.2</a>)
-that specify otherwise.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
+that specify otherwise.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="paused-subscription-handling">
@@ -4726,7 +4758,7 @@ encoding as described above.<a href="#section-8.1-9.2.1" class="pilcrow">¶</a><
         </h3>
 <p id="section-8.2-1">Location identifies a particular Object in a Group within a Track.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
 <span id="name-location-structure-2"></span><div id="moq-location">
-<figure id="figure-2">
+<figure id="figure-3">
           <div class="alignLeft art-text artwork" id="section-8.2-2.1">
 <pre>
 Location {
@@ -4735,7 +4767,7 @@ Location {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
 <a href="#name-location-structure-2" class="selfRef">Location structure</a>
           </figcaption></figure>
 </div>
@@ -4765,7 +4797,7 @@ with <code>DELTA_ENCODING_OVERFLOW</code>.<a href="#section-8.3-2" class="pilcro
 <p id="section-8.3-3">Key-Value-Pair is used in both the data plane and control plane, but
 is optimized for use in the data plane.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-key-value-pair"></span><div id="moq-key-value-pair">
-<figure id="figure-3">
+<figure id="figure-4">
           <div class="alignLeft art-text artwork" id="section-8.3-4.1">
 <pre>
 Key-Value-Pair {
@@ -4775,7 +4807,7 @@ Key-Value-Pair {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
 <a href="#name-moqt-key-value-pair" class="selfRef">MOQT Key-Value-Pair</a>
           </figcaption></figure>
 </div>
@@ -4858,7 +4890,7 @@ allowed <span class="bcp14">MUST</span> treat the Track as malformed (see <a hre
 <p id="section-8.4-9">An endpoint that supports a Property and receives it outside its scope (e.g. a
 Track-only Property as an Object Property) <span class="bcp14">MUST</span> treat the Track as malformed
 (see <a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-8.4-9" class="pilcrow">¶</a></p>
-<p id="section-8.4-10">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 3</a>).
+<p id="section-8.4-10">Properties are serialized as Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 4</a>).
 Track Properties always appear as the final field in the messages that
 carry them; their length is the remaining bytes of the message after all
 preceding fields have been consumed. Object Properties (<a href="#object-properties" class="auto internal xref">Section 11.1.2</a>)
@@ -5055,7 +5087,7 @@ Alias. The Alias allows the sender to reference a previously transmitted Token
 Type and Token Value in future messages. The Token structure is serialized as
 follows:<a href="#section-8.9-2" class="pilcrow">¶</a></p>
 <span id="name-token-structure"></span><div id="moq-token">
-<figure id="figure-4">
+<figure id="figure-5">
           <div class="alignLeft art-text artwork" id="section-8.9-3.1">
 <pre>
 Token {
@@ -5066,7 +5098,7 @@ Token {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
+<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
 <a href="#name-token-structure" class="selfRef">Token structure</a>
           </figcaption></figure>
 </div>
@@ -5191,7 +5223,7 @@ that alias has not received a response.<a href="#section-8.9-17" class="pilcrow"
 defined in <a href="#session-init" class="auto internal xref">Section 6.3</a>.  Every message on a control or request stream is
 formatted as follows:<a href="#section-9-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-control-message"></span><div id="moq-transport-message-format">
-<figure id="figure-5">
+<figure id="figure-6">
         <div class="alignLeft art-text artwork" id="section-9-2.1">
 <pre>
 MOQT Control Message {
@@ -5201,7 +5233,7 @@ MOQT Control Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
+<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
 <a href="#name-moqt-control-message" class="selfRef">MOQT Control Message</a>
         </figcaption></figure>
 </div>
@@ -5376,7 +5408,7 @@ sending.  To ensure future extensibility of MOQT, endpoints <span class="bcp14">
 Setup Options.<a href="#section-9.1-2" class="pilcrow">¶</a></p>
 <p id="section-9.1-3">The wire format of the Setup message is as follows:<a href="#section-9.1-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-setup-message"></span><div id="moq-transport-setup-format">
-<figure id="figure-6">
+<figure id="figure-7">
           <div class="alignLeft art-text artwork" id="section-9.1-4.1">
 <pre>
 SETUP Message {
@@ -5386,11 +5418,11 @@ SETUP Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
+<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
 <a href="#name-moqt-setup-message" class="selfRef">MOQT SETUP Message</a>
           </figcaption></figure>
 </div>
-<p id="section-9.1-5">Setup Options are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 3</a>,
+<p id="section-9.1-5">Setup Options are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 4</a>,
 spanning the entire message payload, bounded by the message Length field.
 Setup Options use a namespace that is constant across all MOQT versions,
 separate from Message Parameters.  Receivers <span class="bcp14">MUST</span> ignore unrecognized Setup
@@ -5447,7 +5479,7 @@ maximum size in bytes of all actively registered Authorization tokens that the
 endpoint is willing to store per Session. This option is optional. The default
 value is 0 which prohibits the use of token Aliases.<a href="#section-9.1.3-1" class="pilcrow">¶</a></p>
 <p id="section-9.1.3-2">The token size is calculated as 16 bytes + the size of the Token Value field
-(see <a href="#moq-token" class="auto internal xref">Figure 4</a>). The total size as restricted by the
+(see <a href="#moq-token" class="auto internal xref">Figure 5</a>). The total size as restricted by the
 MAX_AUTH_TOKEN_CACHE_SIZE option is calculated as the sum of the token sizes
 for all registered tokens (Alias Type value of 0x01) minus the sum of the token
 sizes for all deregistered tokens (Alias Type value of 0x00), since Session
@@ -5582,7 +5614,7 @@ error code (e.g., REQUEST_ERROR with error code GOING_AWAY).<a href="#section-9.
 (<a href="#session-termination-codes" class="auto internal xref">Section 12.2</a>) if it receives more than one GOAWAY on the
 control stream or on a single request stream.<a href="#section-9.2-6" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
-<figure id="figure-7">
+<figure id="figure-8">
           <div class="alignLeft art-text artwork" id="section-9.2-7.1">
 <pre>
 GOAWAY Message {
@@ -5594,7 +5626,7 @@ GOAWAY Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
+<figcaption><a href="#figure-8" class="selfRef">Figure 8</a>:
 <a href="#name-moqt-goaway-message" class="selfRef">MOQT GOAWAY Message</a>
           </figcaption></figure>
 </div>
@@ -5633,7 +5665,7 @@ reset the request stream before the indicated timeout has elapsed.<a href="#sect
 TRACK_STATUS, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS and PUBLISH_NAMESPACE
 requests.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_ok-message"></span><div id="moq-transport-request-ok">
-<figure id="figure-8">
+<figure id="figure-9">
           <div class="alignLeft art-text artwork" id="section-9.3-2.1">
 <pre>
 REQUEST_OK Message {
@@ -5645,7 +5677,7 @@ REQUEST_OK Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-8" class="selfRef">Figure 8</a>:
+<figcaption><a href="#figure-9" class="selfRef">Figure 9</a>:
 <a href="#name-moqt-request_ok-message" class="selfRef">MOQT REQUEST_OK Message</a>
           </figcaption></figure>
 </div>
@@ -5704,7 +5736,7 @@ REQUEST_UPDATE).<a href="#section-9.4-1" class="pilcrow">¶</a></p>
 <a href="#section-9.4.1" class="section-number selfRef">9.4.1. </a><a href="#name-request_error-message-forma" class="section-name selfRef">REQUEST_ERROR Message Format</a>
           </h4>
 <span id="name-moqt-request_error-message"></span><div id="moq-transport-request-error">
-<figure id="figure-9">
+<figure id="figure-10">
             <div class="alignLeft art-text artwork" id="section-9.4.1-1.1">
 <pre>
 REQUEST_ERROR Message {
@@ -5717,7 +5749,7 @@ REQUEST_ERROR Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-9" class="selfRef">Figure 9</a>:
+<figcaption><a href="#figure-10" class="selfRef">Figure 10</a>:
 <a href="#name-moqt-request_error-message" class="selfRef">MOQT REQUEST_ERROR Message</a>
             </figcaption></figure>
 </div>
@@ -5735,7 +5767,7 @@ sent again, plus one. If the value is 0, the request <span class="bcp14">SHOULD 
 </li>
             <li class="normal" id="section-9.4.1-2.4">
               <p id="section-9.4.1-2.4.1">Error Details: Structured information about the error, serialized as
-Key-Value-Pairs (<a href="#moq-key-value-pair" class="auto internal xref">Figure 3</a>) spanning the remainder of the
+Key-Value-Pairs (<a href="#moq-key-value-pair" class="auto internal xref">Figure 4</a>) spanning the remainder of the
 message, bounded by the message Length field.  See <a href="#error-details" class="auto internal xref">Section 9.4.2</a>.<a href="#section-9.4.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
@@ -5862,7 +5894,7 @@ limited by the MAX_REQUEST_UPDATES Setup Option (<a href="#max-request-updates" 
 <p id="section-9.5-7">There is no generic mechanism to remove a parameter from a request.<a href="#section-9.5-7" class="pilcrow">¶</a></p>
 <p id="section-9.5-8">The format of REQUEST_UPDATE is as follows:<a href="#section-9.5-8" class="pilcrow">¶</a></p>
 <span id="name-moqt-request_update-message"></span><div id="moq-transport-request-update-format">
-<figure id="figure-10">
+<figure id="figure-11">
           <div class="alignLeft art-text artwork" id="section-9.5-9.1">
 <pre>
 REQUEST_UPDATE Message {
@@ -5874,7 +5906,7 @@ REQUEST_UPDATE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-10" class="selfRef">Figure 10</a>:
+<figcaption><a href="#figure-11" class="selfRef">Figure 11</a>:
 <a href="#name-moqt-request_update-message" class="selfRef">MOQT REQUEST_UPDATE Message</a>
           </figcaption></figure>
 </div>
@@ -5971,7 +6003,7 @@ FILL_PARAMETERS parameter (see <a href="#fill-parameters" class="auto internal x
 fill range on a fill fetch stream (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>).<a href="#section-9.6-1" class="pilcrow">¶</a></p>
 <p id="section-9.6-2">The format of SUBSCRIBE is as follows:<a href="#section-9.6-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-message"></span><div id="moq-transport-subscribe-format">
-<figure id="figure-11">
+<figure id="figure-12">
           <div class="alignLeft art-text artwork" id="section-9.6-3.1">
 <pre>
 SUBSCRIBE Message {
@@ -5986,7 +6018,7 @@ SUBSCRIBE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-11" class="selfRef">Figure 11</a>:
+<figcaption><a href="#figure-12" class="selfRef">Figure 12</a>:
 <a href="#name-moqt-subscribe-message" class="selfRef">MOQT SUBSCRIBE Message</a>
           </figcaption></figure>
 </div>
@@ -6023,7 +6055,7 @@ specified, and start sending objects.<a href="#section-9.6-5" class="pilcrow">¶
 <p id="section-9.7-1">A publisher sends a SUBSCRIBE_OK as the first response message on the
 bidi stream for successful subscriptions.<a href="#section-9.7-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_ok-message"></span><div id="moq-transport-subscribe-ok">
-<figure id="figure-12">
+<figure id="figure-13">
           <div class="alignLeft art-text artwork" id="section-9.7-2.1">
 <pre>
 SUBSCRIBE_OK Message {
@@ -6036,7 +6068,7 @@ SUBSCRIBE_OK Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-12" class="selfRef">Figure 12</a>:
+<figcaption><a href="#figure-13" class="selfRef">Figure 13</a>:
 <a href="#name-moqt-subscribe_ok-message" class="selfRef">MOQT SUBSCRIBE_OK Message</a>
           </figcaption></figure>
 </div>
@@ -6064,7 +6096,7 @@ that can appear in a SUBSCRIBE_OK are EXPIRES and LARGEST_OBJECT.<a href="#secti
 to initiate a subscription for a Track. The receiver verifies the publisher is
 authorized to publish this track.<a href="#section-9.8-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish-message"></span><div id="moq-transport-publish-format">
-<figure id="figure-13">
+<figure id="figure-14">
           <div class="alignLeft art-text artwork" id="section-9.8-2.1">
 <pre>
 PUBLISH Message {
@@ -6081,7 +6113,7 @@ PUBLISH Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-13" class="selfRef">Figure 13</a>:
+<figcaption><a href="#figure-14" class="selfRef">Figure 14</a>:
 <a href="#name-moqt-publish-message" class="selfRef">MOQT PUBLISH Message</a>
           </figcaption></figure>
 </div>
@@ -6168,7 +6200,7 @@ authorized it has expired <span class="bcp14">SHOULD</span> send PUBLISH_DONE wi
 <code>EXPIRED_AUTH_TOKEN</code>.<a href="#section-9.9-6" class="pilcrow">¶</a></p>
 <p id="section-9.9-7">The format of <code>PUBLISH_DONE</code> is as follows:<a href="#section-9.9-7" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_done-message"></span><div id="moq-transport-subscribe-fin-format">
-<figure id="figure-14">
+<figure id="figure-15">
           <div class="alignLeft art-text artwork" id="section-9.9-8.1">
 <pre>
 PUBLISH_DONE Message {
@@ -6180,7 +6212,7 @@ PUBLISH_DONE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-14" class="selfRef">Figure 14</a>:
+<figcaption><a href="#figure-15" class="selfRef">Figure 15</a>:
 <a href="#name-moqt-publish_done-message" class="selfRef">MOQT PUBLISH_DONE Message</a>
           </figcaption></figure>
 </div>
@@ -6241,7 +6273,7 @@ Track at which the change took effect.<a href="#section-9.10-5" class="pilcrow">
 <p id="section-9.10-6">This message is informative and no action is required by the recipient.<a href="#section-9.10-6" class="pilcrow">¶</a></p>
 <p id="section-9.10-7">The format of PUBLISH_STATE_NOTIFY is as follows:<a href="#section-9.10-7" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_state_notify-m"></span><div id="moq-transport-ps-notify-format">
-<figure id="figure-15">
+<figure id="figure-16">
           <div class="alignLeft art-text artwork" id="section-9.10-8.1">
 <pre>
 PUBLISH_STATE_NOTIFY Message {
@@ -6252,7 +6284,7 @@ PUBLISH_STATE_NOTIFY Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-15" class="selfRef">Figure 15</a>:
+<figcaption><a href="#figure-16" class="selfRef">Figure 16</a>:
 <a href="#name-moqt-publish_state_notify-m" class="selfRef">MOQT PUBLISH_STATE_NOTIFY Message</a>
           </figcaption></figure>
 </div>
@@ -6274,7 +6306,7 @@ LOCATION_FILTER.<a href="#section-9.10-9.1.1" class="pilcrow">¶</a></p>
 publisher to request a range of already published objects within a track.<a href="#section-9.11-1" class="pilcrow">¶</a></p>
 <p id="section-9.11-2">The format of FETCH is as follows:<a href="#section-9.11-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-message"></span><div id="moq-transport-fetch-format">
-<figure id="figure-16">
+<figure id="figure-17">
           <div class="alignLeft art-text artwork" id="section-9.11-3.1">
 <pre>
 FETCH Message {
@@ -6289,7 +6321,7 @@ FETCH Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-16" class="selfRef">Figure 16</a>:
+<figcaption><a href="#figure-17" class="selfRef">Figure 17</a>:
 <a href="#name-moqt-fetch-message" class="selfRef">MOQT FETCH Message</a>
           </figcaption></figure>
 </div>
@@ -6349,7 +6381,7 @@ REQUEST_UPDATE.<a href="#section-9.12-4" class="pilcrow">¶</a></p>
 new bidi stream to advertise that it has tracks available in namespaces
 matching a Track Namespace Prefix.<a href="#section-9.13-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_namespace-mess"></span><div id="moq-transport-pub-ns-format">
-<figure id="figure-17">
+<figure id="figure-18">
           <div class="alignLeft art-text artwork" id="section-9.13-2.1">
 <pre>
 PUBLISH_NAMESPACE Message {
@@ -6362,7 +6394,7 @@ PUBLISH_NAMESPACE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-17" class="selfRef">Figure 17</a>:
+<figcaption><a href="#figure-18" class="selfRef">Figure 18</a>:
 <a href="#name-moqt-publish_namespace-mess" class="selfRef">MOQT PUBLISH_NAMESPACE Message</a>
           </figcaption></figure>
 </div>
@@ -6391,7 +6423,7 @@ parameter that can appear in a PUBLISH_NAMESPACE is AUTHORIZATION_TOKEN.<a href=
 bidirectional stream to a publisher to request the current set of matching
 published namespaces, as well as future updates to the set.<a href="#section-9.14-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_namespace-me"></span><div id="moq-transport-subscribe-ns-format">
-<figure id="figure-18">
+<figure id="figure-19">
           <div class="alignLeft art-text artwork" id="section-9.14-2.1">
 <pre>
 SUBSCRIBE_NAMESPACE Message {
@@ -6404,7 +6436,7 @@ SUBSCRIBE_NAMESPACE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-18" class="selfRef">Figure 18</a>:
+<figcaption><a href="#figure-19" class="selfRef">Figure 19</a>:
 <a href="#name-moqt-subscribe_namespace-me" class="selfRef">MOQT SUBSCRIBE_NAMESPACE Message</a>
           </figcaption></figure>
 </div>
@@ -6437,7 +6469,7 @@ in the 'Track Namespace Suffix'.<a href="#section-9.15-1" class="pilcrow">¶</a>
 <p id="section-9.15-2">When Parameters of a NAMESPACE change, the NAMESPACE message is sent again
 with the updated Parameters.<a href="#section-9.15-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-namespace-message"></span><div id="moq-transport-ns-format">
-<figure id="figure-19">
+<figure id="figure-20">
           <div class="alignLeft art-text artwork" id="section-9.15-3.1">
 <pre>
 NAMESPACE Message {
@@ -6449,7 +6481,7 @@ NAMESPACE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-19" class="selfRef">Figure 19</a>:
+<figcaption><a href="#figure-20" class="selfRef">Figure 20</a>:
 <a href="#name-moqt-namespace-message" class="selfRef">MOQT NAMESPACE Message</a>
           </figcaption></figure>
 </div>
@@ -6477,7 +6509,7 @@ a SUBSCRIBE_NAMESPACE,
 so only the namespace tuples after the 'Track Namespace Prefix' are included
 in the 'Track Namespace Suffix'.<a href="#section-9.16-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-namespace_done-message"></span><div id="moq-transport-ns-done-format">
-<figure id="figure-20">
+<figure id="figure-21">
           <div class="alignLeft art-text artwork" id="section-9.16-2.1">
 <pre>
 NAMESPACE_DONE Message {
@@ -6487,7 +6519,7 @@ NAMESPACE_DONE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-20" class="selfRef">Figure 20</a>:
+<figcaption><a href="#figure-21" class="selfRef">Figure 21</a>:
 <a href="#name-moqt-namespace_done-message" class="selfRef">MOQT NAMESPACE_DONE Message</a>
           </figcaption></figure>
 </div>
@@ -6509,7 +6541,7 @@ with the 'Track Namespace Prefix' specified in <a href="#message-subscribe-ns" c
 stream to a publisher to request PUBLISH messages for all tracks within matching
 namespaces, as well as future track publications within those namespaces.<a href="#section-9.17-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_tracks-messa"></span><div id="moq-transport-subscribe-tracks-format">
-<figure id="figure-21">
+<figure id="figure-22">
           <div class="alignLeft art-text artwork" id="section-9.17-2.1">
 <pre>
 SUBSCRIBE_TRACKS Message {
@@ -6522,7 +6554,7 @@ SUBSCRIBE_TRACKS Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-21" class="selfRef">Figure 21</a>:
+<figcaption><a href="#figure-22" class="selfRef">Figure 22</a>:
 <a href="#name-moqt-subscribe_tracks-messa" class="selfRef">MOQT SUBSCRIBE_TRACKS Message</a>
           </figcaption></figure>
 </div>
@@ -6558,7 +6590,7 @@ SUBSCRIBE_TRACKS's Track Namespace. All PUBLISH_SKIPPED messages are in
 response to a SUBSCRIBE_TRACKS, so only the namespace tuples after the
 'Track Namespace Prefix' are included in the 'Track Namespace Suffix'.<a href="#section-9.18-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-publish_skipped-messag"></span><div id="moq-transport-publish-blocked-format">
-<figure id="figure-22">
+<figure id="figure-23">
           <div class="alignLeft art-text artwork" id="section-9.18-2.1">
 <pre>
 PUBLISH_SKIPPED Message {
@@ -6570,7 +6602,7 @@ PUBLISH_SKIPPED Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-22" class="selfRef">Figure 22</a>:
+<figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
 <a href="#name-moqt-publish_skipped-messag" class="selfRef">MOQT PUBLISH_SKIPPED Message</a>
           </figcaption></figure>
 </div>
@@ -6594,7 +6626,7 @@ with the 'Track Namespace Prefix' specified in <a href="#message-subscribe-track
 <p id="section-9.19-1">Some control messages include a field that encodes optional Message Parameters.
 Message Parameters are serialized as follows:<a href="#section-9.19-1" class="pilcrow">¶</a></p>
 <span id="name-message-parameter"></span><div id="moq-message-param">
-<figure id="figure-23">
+<figure id="figure-24">
           <div class="alignLeft art-text artwork" id="section-9.19-2.1">
 <pre>
 Message Parameter {
@@ -6603,7 +6635,7 @@ Message Parameter {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
+<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
 <a href="#name-message-parameter" class="selfRef">Message Parameter</a>
           </figcaption></figure>
 </div>
@@ -6992,7 +7024,7 @@ PRIORITY_FILTER {
 <p id="section-9.19.13-1">The OBJECT_PROPERTY_FILTER parameter (Type 0x28) selects objects with
 required Ranges of Property Value for a required Object Property
 Type which <span class="bcp14">MUST</span> be even, i.e. a single integer value
-(see <a href="#moq-key-value-pair" class="auto internal xref">Figure 3</a>), otherwise the endpoint <span class="bcp14">MUST</span> reject this with
+(see <a href="#moq-key-value-pair" class="auto internal xref">Figure 4</a>), otherwise the endpoint <span class="bcp14">MUST</span> reject this with
 REQUEST_ERROR with error code INVALID_FILTER. See <a href="#range-filters" class="auto internal xref">Section 3.3.2</a> and
 <a href="#range-filter-structure" class="auto internal xref">Section 8.6</a>.<a href="#section-9.19.13-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.19.13-2">
@@ -7016,7 +7048,7 @@ OBJECT_PROPERTY_FILTER {
 <p id="section-9.19.14-1">The TRACK_PROPERTY_FILTER parameter (Type 0x29) selects tracks with
 required Ranges of Property Value for a required Track Property
 Type which <span class="bcp14">MUST</span> be even, i.e. a single integer value
-(see <a href="#moq-key-value-pair" class="auto internal xref">Figure 3</a>), otherwise the endpoint <span class="bcp14">MUST</span> reject this with
+(see <a href="#moq-key-value-pair" class="auto internal xref">Figure 4</a>), otherwise the endpoint <span class="bcp14">MUST</span> reject this with
 REQUEST_ERROR with error code INVALID_FILTER. See <a href="#range-filters" class="auto internal xref">Section 3.3.2</a> and
 <a href="#range-filter-structure" class="auto internal xref">Section 8.6</a>.<a href="#section-9.19.14-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.19.14-2">
@@ -7321,9 +7353,8 @@ the number of milliseconds an Object can be served from a cache. If present, the
 relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through this
 subscription or fetch after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier in a
-multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes unknown (see
-<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-10.3-2" class="pilcrow">¶</a></p>
+multi-object stream will expire earlier than Objects later in the stream.  The
+same limit applies to cached Does Not Exist and Gone states.<a href="#section-10.3-2" class="pilcrow">¶</a></p>
 <p id="section-10.3-3">If MAX_CACHE_DURATION is not sent by the publisher, the Objects
 can be cached until implementation constraints cause them to be evicted.<a href="#section-10.3-3" class="pilcrow">¶</a></p>
 </section>
@@ -7377,7 +7408,7 @@ the session with <code>MALFORMED_KEY_VALUE</code>.<a href="#section-10.6-1" clas
 <a href="#section-10.7" class="section-number selfRef">10.7. </a><a href="#name-immutable-properties" class="section-name selfRef">Immutable Properties</a>
         </h3>
 <p id="section-10.7-1">Immutable Properties (Property Type 0xB) is a Track or Object Property that
-contains a sequence of Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 3</a>) that are
+contains a sequence of Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 4</a>) that are
 themselves Track or Object Properties, respectively.<a href="#section-10.7-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-10.7-2">
 <pre>
@@ -7594,7 +7625,7 @@ and not as an Object Property.<a href="#section-11.1.2-2" class="pilcrow">¶</a>
 to relays, but not modified by them, <span class="bcp14">SHOULD</span> be placed in Immutable Properties
 (<a href="#immutable-properties" class="auto internal xref">Section 10.7</a>), which enables end-to-end authentication schemes.<a href="#section-11.1.2-3" class="pilcrow">¶</a></p>
 <p id="section-11.1.2-4">Object Properties are serialized as a length in bytes followed by
-Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 3</a>).<a href="#section-11.1.2-4" class="pilcrow">¶</a></p>
+Key-Value-Pairs (see <a href="#moq-key-value-pair" class="auto internal xref">Figure 4</a>).<a href="#section-11.1.2-4" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-11.1.2-5">
 <pre>
 Object Properties {
@@ -7635,7 +7666,7 @@ will exceed the maximum datagram size of a downstream session and be dropped.<a 
           </h4>
 <p id="section-11.2.1-1">An <code>OBJECT_DATAGRAM</code> carries a single object in a datagram.<a href="#section-11.2.1-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_datagram"></span><div id="object-datagram-format">
-<figure id="figure-24">
+<figure id="figure-25">
             <div class="alignLeft art-text artwork" id="section-11.2.1-2.1">
 <pre>
 OBJECT_DATAGRAM {
@@ -7650,7 +7681,7 @@ OBJECT_DATAGRAM {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
+<figcaption><a href="#figure-25" class="selfRef">Figure 25</a>:
 <a href="#name-moqt-object_datagram" class="selfRef">MOQT OBJECT_DATAGRAM</a>
             </figcaption></figure>
 </div>
@@ -7739,7 +7770,7 @@ and <code>Subgroup ID</code> in the SUBGROUP_HEADER.<a href="#section-11.3.1-1" 
 <p id="section-11.3.1-2">See <a href="#unknown-track-alias" class="auto internal xref">Section 3.1.3.1</a> for handling of subgroups with unknown Track
 Aliases.<a href="#section-11.3.1-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup_header"></span><div id="object-header-format">
-<figure id="figure-25">
+<figure id="figure-26">
             <div class="alignLeft art-text artwork" id="section-11.3.1-3.1">
 <pre>
 SUBGROUP_HEADER {
@@ -7751,7 +7782,7 @@ SUBGROUP_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-25" class="selfRef">Figure 25</a>:
+<figcaption><a href="#figure-26" class="selfRef">Figure 26</a>:
 <a href="#name-moqt-subgroup_header" class="selfRef">MOQT SUBGROUP_HEADER</a>
             </figcaption></figure>
 </div>
@@ -7844,7 +7875,7 @@ previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
 unless there is a Prior Object ID Gap property (see
 <a href="#prior-object-id-gap" class="auto internal xref">Section 10.9</a>).<a href="#section-11.3.1-12" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
-<figure id="figure-26">
+<figure id="figure-27">
             <div class="alignLeft art-text artwork" id="section-11.3.1-13.1">
 <pre>
 {
@@ -7856,7 +7887,7 @@ unless there is a Prior Object ID Gap property (see
 }
 </pre>
 </div>
-<figcaption><a href="#figure-26" class="selfRef">Figure 26</a>:
+<figcaption><a href="#figure-27" class="selfRef">Figure 27</a>:
 <a href="#name-moqt-subgroup-object-fields" class="selfRef">MOQT Subgroup Object Fields</a>
             </figcaption></figure>
 </div>
@@ -7985,7 +8016,7 @@ as defined in <a href="#stream-reset-codes" class="auto internal xref">Section 1
 <p id="section-11.4.1-1">When a stream begins with <code>FETCH_HEADER</code>, all objects on the stream belong to the
 track requested in the message identified by <code>Request ID</code>.<a href="#section-11.4.1-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_header"></span><div id="fetch-header-format">
-<figure id="figure-27">
+<figure id="figure-28">
             <div class="alignLeft art-text artwork" id="section-11.4.1-2.1">
 <pre>
 FETCH_HEADER {
@@ -7994,14 +8025,14 @@ FETCH_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-27" class="selfRef">Figure 27</a>:
+<figcaption><a href="#figure-28" class="selfRef">Figure 28</a>:
 <a href="#name-moqt-fetch_header" class="selfRef">MOQT FETCH_HEADER</a>
             </figcaption></figure>
 </div>
 <p id="section-11.4.1-3">Each Object sent on a FETCH stream after the FETCH_HEADER has the following
 format:<a href="#section-11.4.1-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-object-fields"></span><div id="object-fetch-format">
-<figure id="figure-28">
+<figure id="figure-29">
             <div class="alignLeft art-text artwork" id="section-11.4.1-4.1">
 <pre>
 {
@@ -8016,7 +8047,7 @@ format:<a href="#section-11.4.1-3" class="pilcrow">¶</a></p>
 }
 </pre>
 </div>
-<figcaption><a href="#figure-28" class="selfRef">Figure 28</a>:
+<figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
 <a href="#name-moqt-fetch-object-fields" class="selfRef">MOQT Fetch Object Fields</a>
             </figcaption></figure>
 </div>
@@ -8045,6 +8076,10 @@ signals an indicator; the defined values are:<a href="#section-11.4.1-5" class="
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">0x20C</td>
                 <td class="text-left" rowspan="1" colspan="1">End of Timed-Out Range</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x40C</td>
+                <td class="text-left" rowspan="1" colspan="1">End of Gone Range</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">0x80</td>
@@ -8163,12 +8198,12 @@ When 0x40 is set, it <span class="bcp14">SHOULD</span> set the two least signifi
           <h4 id="name-end-of-range">
 <a href="#section-11.4.2" class="section-number selfRef">11.4.2. </a><a href="#name-end-of-range" class="section-name selfRef">End of Range</a>
           </h4>
-<p id="section-11.4.2-1">When the Serialization Flags field indicates an End of Range (0x8C, 0x10C, or
-0x20C), the Group ID Delta and Object ID Delta fields are always present.
-Subgroup ID, Priority and Properties are not present. All Objects with Locations
-between the last serialized Object, if any, and the Location decoded from this
-indicator, inclusive, either do not exist (when Serialization Flags is 0x8C),
-are unknown (0x10C), or timed out (0x20C).<a href="#section-11.4.2-1" class="pilcrow">¶</a></p>
+<p id="section-11.4.2-1">When the Serialization Flags field indicates an End of Range (0x8C, 0x10C,
+0x20C, or 0x40C), the Group ID Delta and Object ID Delta fields are always
+present. Subgroup ID, Priority and Properties are not present. All Objects with
+Locations between the last serialized Object, if any, and the Location decoded
+from this indicator, inclusive, either do not exist (when Serialization Flags is
+0x8C), are Unknown (0x10C), are timed out (0x20C), or are Gone (0x40C).<a href="#section-11.4.2-1" class="pilcrow">¶</a></p>
 <div id="end-of-range-id-decoding">
 <section id="section-11.4.2.1">
             <h5 id="name-id-decoding">
@@ -8242,7 +8277,7 @@ streams at a lower priority than any control stream or Object data.<a href="#sec
 padding data. The stream begins with the stream type, followed by zero or more
 bytes that <span class="bcp14">MUST</span> all be set to zero.<a href="#section-11.5.1-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-padding-stream"></span><div id="padding-format">
-<figure id="figure-29">
+<figure id="figure-30">
             <div class="alignLeft art-text artwork" id="section-11.5.1-2.1">
 <pre>
 PADDING STREAM {
@@ -8251,7 +8286,7 @@ PADDING STREAM {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
+<figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
 <a href="#name-moqt-padding-stream" class="selfRef">MOQT Padding Stream</a>
             </figcaption></figure>
 </div>
@@ -8270,7 +8305,7 @@ without affecting any MOQT application state.<a href="#section-11.5.1-4" class="
 The datagram contains the type followed by zero or more bytes that <span class="bcp14">MUST</span> all be
 set to zero.<a href="#section-11.5.2-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-padding-datagram"></span><div id="padding-datagram-format">
-<figure id="figure-30">
+<figure id="figure-31">
             <div class="alignLeft art-text artwork" id="section-11.5.2-2.1">
 <pre>
 PADDING DATAGRAM {
@@ -8279,7 +8314,7 @@ PADDING DATAGRAM {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
+<figcaption><a href="#figure-31" class="selfRef">Figure 31</a>:
 <a href="#name-moqt-padding-datagram" class="selfRef">MOQT Padding Datagram</a>
             </figcaption></figure>
 </div>
@@ -8347,6 +8382,10 @@ Property received as an Object Property (see <a href="#properties" class="auto i
           <li id="section-12.1-2.9">
             <p id="section-12.1-2.9.1">A Track or Object contains more than one instance of a Property that does
 not allow multiple instances (see <a href="#properties" class="auto internal xref">Section 8.4</a>).<a href="#section-12.1-2.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-12.1-2.10">
+            <p id="section-12.1-2.10.1">An Object is received after it has been recorded as not existing, or is
+signalled as not existing after it was received (see <a href="#object-states" class="auto internal xref">Section 2.1.2</a>).<a href="#section-12.1-2.10.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-12.1-3">The above list of conditions is not considered exhaustive.<a href="#section-12.1-3" class="pilcrow">¶</a></p>
@@ -8419,7 +8458,7 @@ bit for the sender, or a duplicate Request ID. See <a href="#request-id" class="
           <dd class="break"></dd>
 <dt id="section-12.2-6.5">MALFORMED_KEY_VALUE (0x6):</dt>
           <dd style="margin-left: 1.5em" id="section-12.2-6.6">
-            <p id="section-12.2-6.6.1">A Key-Value-Pair (<a href="#moq-key-value-pair" class="auto internal xref">Figure 3</a>), such as a Setup Option or a
+            <p id="section-12.2-6.6.1">A Key-Value-Pair (<a href="#moq-key-value-pair" class="auto internal xref">Figure 4</a>), such as a Setup Option or a
 Property, has a Value that does not match the definition of its Type.<a href="#section-12.2-6.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
