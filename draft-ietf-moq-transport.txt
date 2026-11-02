@@ -154,13 +154,14 @@ Table of Contents
      7.1.  Caching Relays
      7.2.  Paused Subscription Handling
      7.3.  Multiple Publishers
-     7.4.  Subscriber Interactions
-       7.4.1.  Graceful Subscriber Relay Switchover
-     7.5.  Relay Resource Protection in Large Namespaces
-     7.6.  Publisher Interactions
-       7.6.1.  Graceful Publisher Relay Switchover
-     7.7.  Relay Track Handling
-     7.8.  Relay Object Handling
+     7.4.  Request Stream Credit
+     7.5.  Subscriber Interactions
+       7.5.1.  Graceful Subscriber Relay Switchover
+     7.6.  Relay Resource Protection in Large Namespaces
+     7.7.  Publisher Interactions
+       7.7.1.  Graceful Publisher Relay Switchover
+     7.8.  Relay Track Handling
+     7.9.  Relay Object Handling
    8.  Notational Conventions and Common Structures
      8.1.  Variable-Length Integers
      8.2.  Location Structure
@@ -1559,7 +1560,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    carries (see Section 2.4.2).  A subscriber MAY send SUBSCRIBE, FETCH
    or TRACK_STATUS for tracks in a namespace without having received a
    PUBLISH_NAMESPACE for it.  A Relay has additional requirements on
-   which publishers receive these requests; see Section 7.6.
+   which publishers receive these requests; see Section 7.7.
 
    The receiver verifies the publisher is authorized to publish tracks
    under this prefix.
@@ -2472,7 +2473,19 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    The Relay SHOULD attempt to deduplicate Objects before forwarding,
    subject to implementation constraints.
 
-7.4.  Subscriber Interactions
+7.4.  Request Stream Credit
+
+   Each request opens a new bidirectional stream, and the peer limits
+   how many can be opened (e.g., with QUIC MAX_STREAMS).  A single FETCH
+   can generate several upstream FETCHes, each needing its own stream
+   (see Section 3.2.3).  A relay that lacks stream credit to forward a
+   request can fail it immediately with UNAVAILABLE, or wait for credit
+   and fail it with TIMEOUT if none arrives.  Either response can
+   include a Retry Interval.  Other requests from the same peer can
+   still succeed, since they might be served from cache or by a
+   different upstream.
+
+7.5.  Subscriber Interactions
 
    Subscribers request Tracks by sending a SUBSCRIBE (see Section 9.6)
    or FETCH (see Section 9.11) control message for each Track of
@@ -2541,7 +2554,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    can be prohibitively expensive, Relays are not required or expected
    to do so.
 
-7.4.1.  Graceful Subscriber Relay Switchover
+7.5.1.  Graceful Subscriber Relay Switchover
 
    This section describes a behavior that a Subscriber MAY implement to
    improve user experience when a relay sends a GOAWAY or the Subscriber
@@ -2555,7 +2568,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    subscriptions to the old relay can be cancelled (see
    Section 6.4.2.3).
 
-7.5.  Relay Resource Protection in Large Namespaces
+7.6.  Relay Resource Protection in Large Namespaces
 
    Relays SHOULD aggregate and propagate filters upstream on
    subscriptions, especially namespace subscriptions, to conserve and
@@ -2567,7 +2580,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    if too many disjoint filters are requested on downstream
    subscriptions across a large number of subscribers.
 
-7.6.  Publisher Interactions
+7.7.  Publisher Interactions
 
    There are two ways to publish through a relay:
 
@@ -2657,7 +2670,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    force an unrelated Session, which might be handling other
    subscriptions, to be closed.
 
-7.6.1.  Graceful Publisher Relay Switchover
+7.7.1.  Graceful Publisher Relay Switchover
 
    This section describes a behavior that a publisher MAY implement to
    improve user experience when a relay sends a GOAWAY or the publisher
@@ -2675,13 +2688,13 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Ideally, the subscriptions downstream from the relay do not observe
    this change, and keep receiving the Objects on the same subscription.
 
-7.7.  Relay Track Handling
+7.8.  Relay Track Handling
 
    A relay MUST include all Properties associated with a Track when
    sending any PUBLISH, SUBSCRIBE_OK, TRACK_STATUS_OK, or FETCH_OK,
    unless allowed by the property's specification (see Section 8.4).
 
-7.8.  Relay Object Handling
+7.9.  Relay Object Handling
 
    MOQT encodes the delivery information in the Object header
    (Section 2.1.1).  A relay MUST NOT modify Object fields when
@@ -3470,7 +3483,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    Sending a GOAWAY does not prevent the sender from initiating new
    requests, though the sender SHOULD avoid initiating requests unless
-   required by migration (see (Section 7.4.1 and Section 7.6.1).  An
+   required by migration (see (Section 7.5.1 and Section 7.7.1).  An
    endpoint that receives a GOAWAY MAY reject new requests with an
    appropriate error code (e.g., REQUEST_ERROR with error code
    GOING_AWAY).
@@ -4101,7 +4114,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    Relays without an Established subscription MAY forward TRACK_STATUS
    to one or more publishers, or MAY initiate a subscription (subject to
-   authorization) as described in Section 7.6 to determine the response.
+   authorization) as described in Section 7.7 to determine the response.
    The publisher does not send PUBLISH_DONE for this request, and the
    subscriber cannot send REQUEST_UPDATE.
 
@@ -4723,7 +4736,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    If omitted from a message other than FETCH_OK, the sending endpoint
    has not published or received any Objects in the Track.
 
-   A relay sets LARGEST_OBJECT as described in Section 7.4.
+   A relay sets LARGEST_OBJECT as described in Section 7.5.
 
 9.19.18.  PAUSED Parameter
 
@@ -5869,6 +5882,12 @@ EXT 1 and EXT N can be modified or removed by Relays
       request at this time.  The sender SHOULD use the Retry Interval to
       indicate when the request can be retried.
 
+   UNAVAILABLE:  The responder cannot fulfill this request at this time,
+      but might be able to later; for example, a relay lacks stream
+      credit to forward it upstream (see Section 7.4).  The sender
+      SHOULD use the Retry Interval to indicate when the request can be
+      retried.
+
    UNSUPPORTED_EXTENSION:  The track contains a Mandatory Track Property
       (see Section 3.7) that the endpoint does not understand.  The
       UNSUPPORTED_PROPERTY Error Detail (Section 9.4.2.2) identifies
@@ -6853,6 +6872,8 @@ EXT 1 and EXT N can be modified or removed by Relays
         | GOING_AWAY            |       0x6       | Section 12.3  |
         +-----------------------+-----------------+---------------+
         | EXCESSIVE_LOAD        |       0x9       | Section 12.3  |
+        +-----------------------+-----------------+---------------+
+        | UNAVAILABLE           |       0xA       | Section 12.3  |
         +-----------------------+-----------------+---------------+
         | DOES_NOT_EXIST        |       0x10      | Section 12.3  |
         +-----------------------+-----------------+---------------+
