@@ -861,7 +861,7 @@ If a Publisher receives a FETCH with a range that includes one or more Objects
 with unknown state, it indicates the range of unknown Objects (`End of Unknown
 Range`, see {{end-of-range}}) and continues serving other known Objects.
 
-### Relay Fetch Handling
+### Relay Fetch Handling {#relay-fetch-handling}
 
 A relay that has cached objects from the beginning of the range MAY start
 sending objects immediately in response to a FETCH.  When a relay encounters
@@ -2077,6 +2077,17 @@ publisher to reject or disconnect.
 Relays MUST handle Objects for the same Track from multiple publishers and
 forward them to matching `Established` subscriptions. The Relay SHOULD attempt to
 deduplicate Objects before forwarding, subject to implementation constraints.
+
+## Request Stream Credit {#request-stream-credit}
+
+Each request opens a new bidirectional stream, and the peer limits how many can
+be opened (e.g., with QUIC MAX_STREAMS).  A single FETCH can generate several
+upstream FETCHes, each needing its own stream (see {{relay-fetch-handling}}).  A
+relay that lacks stream credit to forward a request can fail it immediately with
+`UNAVAILABLE`, or wait for credit and fail it with `TIMEOUT` if none arrives.
+Either response can include a Retry Interval.  Other requests from the same peer
+can still succeed, since they might be served from cache or by a different
+upstream.
 
 ## Subscriber Interactions
 
@@ -5250,6 +5261,12 @@ EXCESSIVE_LOAD:
 : The responder is overloaded and cannot process the request at this time. The
 sender SHOULD use the Retry Interval to indicate when the request can be retried.
 
+UNAVAILABLE:
+: The responder cannot fulfill this request at this time, but might be able to
+later; for example, a relay lacks stream credit to forward it upstream (see
+{{request-stream-credit}}).  The sender SHOULD use the Retry Interval to
+indicate when the request can be retried.
+
 UNSUPPORTED_EXTENSION:
 : The track contains a Mandatory Track Property
 (see {{mandatory-track-properties}}) that the endpoint does not understand.
@@ -6056,6 +6073,7 @@ between independent implementations.
 | EXPIRED_AUTH_TOKEN         | 0x5  | {{request-error-codes}} |
 | GOING_AWAY                 | 0x6  | {{request-error-codes}} |
 | EXCESSIVE_LOAD             | 0x9  | {{request-error-codes}} |
+| UNAVAILABLE                | 0xA  | {{request-error-codes}} |
 | DOES_NOT_EXIST             | 0x10 | {{request-error-codes}} |
 | INVALID_RANGE              | 0x11 | {{request-error-codes}} |
 | MALFORMED_TRACK            | 0x12 | {{request-error-codes}} |
