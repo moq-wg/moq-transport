@@ -854,7 +854,7 @@ If a Publisher receives a FETCH with a range that includes one or more Objects
 with unknown state, it indicates the range of unknown Objects (`End of Unknown
 Range`, see {{end-of-range}}) and continues serving other known Objects.
 
-### Relay Fetch Handling
+### Relay Fetch Handling {#relay-fetch-handling}
 
 A relay that has cached objects from the beginning of the range MAY start
 sending objects immediately in response to a FETCH.  When a relay encounters
@@ -2085,12 +2085,13 @@ deduplicate Objects before forwarding, subject to implementation constraints.
 
 ## Request Stream Credit {#request-stream-credit}
 
-Each request opens a new bidirectional stream, and
-the peer limits how many can be opened (e.g., with QUIC MAX_STREAMS).  A relay
-that lacks stream credit to forward a request can fail it immediately with
+Each request opens a new bidirectional stream, and the peer limits how many can
+be opened (e.g., with QUIC MAX_STREAMS).  A single FETCH can generate several
+upstream FETCHes, each needing its own stream (see {{relay-fetch-handling}}).  A
+relay that lacks stream credit to forward a request can fail it immediately with
 `UNAVAILABLE`, or wait for credit and fail it with `TIMEOUT` if none arrives.
-Either response can include a Retry Interval.  Other requests from the same
-peer can still succeed, since they might be served from cache or by a different
+Either response can include a Retry Interval.  Other requests from the same peer
+can still succeed, since they might be served from cache or by a different
 upstream.
 
 ## Subscriber Interactions
