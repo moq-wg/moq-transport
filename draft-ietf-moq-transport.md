@@ -1977,8 +1977,9 @@ request, leaving the rest of the session in place; see {{message-goaway}}.
 
 The server sends a GOAWAY message, signaling the client to establish a new
 session and migrate any `Established` subscriptions. The GOAWAY message optionally
-contains a new URI for the new session, otherwise the current URI is
-reused. The GOAWAY message contains a Timeout indicating how long, in
+contains a new URI that the client MAY use for the new session, subject to
+{{redirect-security}}. If no URI is provided, the current URI is reused.
+The GOAWAY message contains a Timeout indicating how long, in
 milliseconds, the sender intends to wait before closing the session. The sender
 SHOULD close the session with `GOAWAY_TIMEOUT` after the indicated timeout if
 there are still open subscriptions or fetches on a connection.
@@ -2145,11 +2146,12 @@ This section describes a behavior that a Subscriber MAY implement to improve
 user experience when a relay sends a GOAWAY or the Subscriber switches between
 networks, such as WiFi to Cellular, and QUIC Connection Migration is not possible.
 
-When a subscriber receives the GOAWAY message, it starts the process
-of connecting to a new relay and sending the SUBSCRIBE requests for
-all `Established` subscriptions to the new relay. The new relay will send a
-response to the subscribes and if they are successful, the subscriptions
-to the old relay can be cancelled (see {{request-cancellation}}).
+When a subscriber chooses to migrate after receiving a GOAWAY message, it
+starts the process of connecting to a new relay selected according to
+{{redirect-security}} and sending the SUBSCRIBE requests for all `Established`
+subscriptions to the new relay. The new relay will send a response to the
+subscribes and if they are successful, the subscriptions to the old relay can
+be cancelled (see {{request-cancellation}}).
 
 
 ## Relay Resource Protection in Large Namespaces {#large-namespaces}
@@ -2253,10 +2255,10 @@ This section describes a behavior that a publisher MAY implement to improve
 user experience when a relay sends a GOAWAY or the publisher switches between
 networks, such as WiFi to Cellular, and QUIC Connection Migration is not possible.
 
-A new Session is established, to a new URI if specified in a GOAWAY. The
-publisher sends PUBLISH_NAMESPACE and/or PUBLISH messages to begin publishing
-on the new Session, but it does not immediately stop publishing Objects on the
-old Session.
+A new Session is established to a destination selected by the client in
+accordance with {{redirect-security}}. The publisher sends PUBLISH_NAMESPACE
+and/or PUBLISH messages to begin publishing on the new Session, but it does
+not immediately stop publishing Objects on the old Session.
 
 Once the subscriptions have migrated over to the new session, the publisher
 can stop publishing Objects on the old session. The relay will attempt
@@ -3005,7 +3007,8 @@ specific request on a session at the specified URI (or the current session if no
 URI is provided), and close the old request stream using the appropriate
 mechanism (e.g. FIN, stream reset, or PUBLISH_DONE).  This allows, for example,
 moving the publishers and subscribers of a set of tracks to a common relay
-without draining their entire session.
+without draining their entire session. Use of a provided URI is subject to
+{{redirect-security}}.
 
 The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually unsubscribe from each existing subscription, while a
@@ -3037,12 +3040,13 @@ GOAWAY Message {
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
 
 * New Session URI: When received by a client, indicates where the client can
-  connect to continue this session or re-issue this request.  The client MUST
-  use this URI for the new session if provided. If the URI is zero bytes long,
-  the current URI is reused instead. The new session URI SHOULD use the same scheme
-  as the current URI to ensure compatibility.  The maximum length of the New
-  Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
-  maximum, it MUST close the session with `FIELD_LENGTH_EXCEEDED`.
+  connect to continue this session or re-issue this request.  The client MAY
+  use this URI for the new session if provided, subject to {{redirect-security}}.
+  If the URI is zero bytes long, the current URI is reused instead. The new
+  session URI SHOULD use the same scheme as the current URI to ensure
+  compatibility. The maximum length of the New Session URI is 8,192 bytes.
+  If an endpoint receives a length exceeding the maximum, it MUST close the
+  session with `FIELD_LENGTH_EXCEEDED`.
 
   If a server receives a GOAWAY with a non-zero New Session URI Length it MUST
   close the session with `ROLE_VIOLATION`.
@@ -3173,7 +3177,8 @@ REDIRECT Error Detail {
 * Connect URI: The URI to connect to for the redirected request. If the length is
   zero, the requester SHOULD use the current session's URI. If a server
   receives a Redirect with a non-zero Connect URI Length it MUST close the
-  session with `ROLE_VIOLATION`.
+  session with `ROLE_VIOLATION`. Use of a non-empty Connect URI is subject to
+  {{redirect-security}}.
 
 * Track Namespace and Track Name: The Track Namespace and Track Name to use
   for the redirected request, together referred to as the Redirect target.
@@ -5259,7 +5264,8 @@ identifies which property.
 REDIRECT:
 : The request cannot be fulfilled by this endpoint, but could succeed at the
 location specified in the REDIRECT Error Detail ({{error-detail-redirect}}).
-The requester SHOULD establish a new session to the provided URI (if present) and retry the request using the
+The requester SHOULD establish a new session to the provided URI (if present),
+subject to {{redirect-security}}, and retry the request using the
 Redirect target. A Retry Interval of 0 indicates the original request SHOULD NOT be retried as sent;
 it does not prevent the requester from following a Redirect to a different
 URI or Redirect target. This error code can appear in
@@ -5502,6 +5508,23 @@ the number of active subscriptions and enforce limits to prevent
 resource exhaustion from a single subscriber or session.
 
 TODO: Describe Cache Poisoning attacks
+
+## Redirection {#redirect-security}
+
+A malicious server can use GOAWAY or REDIRECT to send many clients to a
+victim, overloading it with connection attempts.
+
+Before opening a connection or Transport Session to a provided URI, clients
+MUST have reasonable assurances that the destination is authorized for the
+intended application and MOQT scope ({{track-scope}}). These can come from
+configuration or service discovery trusted independently of the redirecting
+server. Verifying that server's identity alone is not enough. HTTP alternative
+services use a similar check ({{?RFC7838, Section 2.1}}).
+
+Clients MAY ignore the URI, choose another destination under application
+policy, or decline to migrate or retry. This applies to GOAWAY on control and
+request streams and to Connect URIs in REDIRECT Error Details. Authorized
+destinations can still be overloaded.
 
 ## Communication Security
 
