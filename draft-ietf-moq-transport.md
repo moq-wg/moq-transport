@@ -6204,6 +6204,58 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 
 Issue and pull request numbers are listed with a leading octothorp.
 
+## Since draft-ietf-moq-transport-22
+
+**Session and Control Plane**
+
+* Encode FILL_PARAMETERS as a count of Parameters instead of a length (#2015)
+* Use a varint control message Length and add MAX_CONTROL_MESSAGE_SIZE (#2017)
+* Remove End Location and End Of Track from FETCH_OK, making it a REQUEST_OK
+  (#2009)
+* A relative Location filter in FETCH is an `INVALID_RANGE` error (#1960)
+* Rename the FORWARD parameter to PAUSED, with a new ID and inverted
+  semantics (#2002)
+* Process and respond to REQUEST_UPDATEs in order (#1938)
+* Prohibit coalescing REQUEST_UPDATEs that contain FILL_PARAMETERS (#2042)
+* Fix how a relay computes LARGEST_OBJECT for downstream requests (#1978)
+* Allow overlapping namespace subscriptions and add SUBSCRIBE_TRACKS_ID (#2018)
+* Define the effects of updating a SUBSCRIBE_NAMESPACE or SUBSCRIBE_TRACKS
+  prefix (#2019)
+* Restrict SUBSCRIBE_TRACKS to an explicit list of parameters (#1995)
+* Allow duplicate PUBLISH_NAMESPACE for the same prefix (#2021)
+* Add Parameters to NAMESPACE (#1858)
+* Allow FILL_PARAMETERS in SUBSCRIBE_TRACKS and PUBLISH (#2007)
+* Allow EXPIRES in every OK message (#1994)
+* Replace `PROTOCOL_VIOLATION` with specific session error codes (#1773)
+* Add Error Details to REQUEST_ERROR, including REDIRECT (#2010)
+* Add the UNSUPPORTED_PROPERTY Error Detail (#2011)
+* Handle unknown Mandatory Track Properties in TRACK_STATUS_OK (#2016)
+* Add `EXPIRED_AUTH_TOKEN` PUBLISH_DONE code (#1970)
+* Add `UNAVAILABLE` request error code, for relays without stream credit
+  (#2041)
+* Only the receiver of a request can send GOAWAY on its request stream (#1966)
+* Receivers are not required to detect every duplicate Request ID (#1993)
+* Track Names MUST NOT be empty (#1954)
+* Allow NEW_GROUP_REQUEST before DYNAMIC_GROUPS is known (#2008)
+
+**Data Plane Wire Format and Handling**
+
+* Add a Gone Object state and End of Gone Range (#2022)
+* Delta encode FETCH End of Range indicators (#2031)
+* Add 2 to the Object ID Delta for FETCH Objects within a Group (#2006)
+* Mark the end of a complete Group in FETCH with End of Group (#2013)
+* Remove the `UNKNOWN_OBJECT_STATUS` stream reset code (#2004)
+* A supported Property received outside its scope makes the Track malformed
+  (#2039)
+* Define whether Properties can appear more than once by default (#2044)
+* Set the SUBGROUP_HEADER PROPERTIES bit if any later Object might include
+  Properties (#1915)
+* Grease values are not Mandatory Track Properties (#2037)
+
+**Notable Editorial Changes**
+
+* Describe where timeouts apply and the tradeoffs in setting them (#2040)
+
 ## Since draft-ietf-moq-transport-21
 
 **Session and Control Plane**
