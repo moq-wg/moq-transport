@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 2 May 2027                                        I. Swett, Ed.
+Expires: 6 May 2027                                        I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         29 October 2026
+                                                         2 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 May 2027.
+   This Internet-Draft will expire on 6 May 2027.
 
 Copyright Notice
 
@@ -656,7 +656,9 @@ Table of Contents
        |     Exists     |     | Does Not Exist |
        +----------------+     +----------------+
 
-                          Figure 1: Object States
+   Transitions to Unknown after cache expiry are not shown
+
+            Figure 1: Object States as observed by the receiver
 
    A gap in the observed Object IDs does not by itself convey any
    information about the skipped Objects.  Skipped Objects remain in the
@@ -6995,9 +6997,9 @@ Informative References
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
               Progress, Internet-Draft, draft-ietf-moq-privacy-pass-
-              auth-03, 6 July 2026,
+              auth-04, 1 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
-              privacy-pass-auth-03>.
+              privacy-pass-auth-04>.
 
    [RFC1035]  Mockapetris, P., "Domain names - implementation and
               specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
