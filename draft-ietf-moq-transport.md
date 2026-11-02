@@ -4215,13 +4215,13 @@ The LARGEST_OBJECT parameter (Parameter Type 0x9) is a Location. It MAY appear
 in SUBSCRIBE_OK, PUBLISH, REQUEST_UPDATE_OK, TRACK_STATUS_OK, FETCH_OK, or
 PUBLISH_STATE_NOTIFY.  It contains the `Largest Object`
 ({{largest-object}}) in the Track from the perspective of the sending
-endpoint. If Objects have been published on this Track the
-Publisher MUST include this parameter, except in FETCH_OK, where it is
-only required when `Largest Object` is within the requested range (see
-{{fetch}}).
+endpoint. If the sending endpoint has published or received any Objects in the
+Track, it MUST include this parameter in the above messages it sends, except in
+FETCH_OK, where it is only required when `Largest Object` is within the
+requested range (see {{fetch}}).
 
-If omitted from a message other than FETCH_OK, the sending endpoint has not
-published or received any Objects in the Track.
+If omitted from a message where it is otherwise required, the sending endpoint
+has not published or received any Objects in the Track.
 
 A relay sets LARGEST_OBJECT as described in {{subscriber-interactions}}.
 
