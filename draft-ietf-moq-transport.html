@@ -4206,15 +4206,12 @@ messages or stream types.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
 <p id="section-6.5-2">The Application <span class="bcp14">MUST NOT</span> publish tracks or namespaces whose first
 field is <code>.session</code>. Relays <span class="bcp14">MUST NOT</span> forward requests for session-level
 tracks and namespaces to other sessions.<a href="#section-6.5-2" class="pilcrow">¶</a></p>
-<p id="section-6.5-3">The empty track name in the <code>.session</code> namespace is defined to not exist.
-A request with a Track Namespace whose first field is <code>.session</code> and an
-empty Track Name <span class="bcp14">MUST</span> be rejected with DOES_NOT_EXIST.<a href="#section-6.5-3" class="pilcrow">¶</a></p>
-<p id="section-6.5-4">An endpoint that receives a request for an unrecognized session-level track
+<p id="section-6.5-3">An endpoint that receives a request for an unrecognized session-level track
 or namespace <span class="bcp14">MUST</span> reject it with REQUEST_ERROR using error code
-DOES_NOT_EXIST rather than passing it to the Application.<a href="#section-6.5-4" class="pilcrow">¶</a></p>
-<p id="section-6.5-5">The track names and namespaces available under the <code>.session</code> namespace are
+DOES_NOT_EXIST rather than passing it to the Application.<a href="#section-6.5-3" class="pilcrow">¶</a></p>
+<p id="section-6.5-4">The track names and namespaces available under the <code>.session</code> namespace are
 defined by extensions to this specification and registered with IANA (see
-<a href="#iana-session-level-tracks" class="auto internal xref">Section 16.10</a>).<a href="#section-6.5-5" class="pilcrow">¶</a></p>
+<a href="#iana-session-level-tracks" class="auto internal xref">Section 16.10</a>).<a href="#section-6.5-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="session-termination">
