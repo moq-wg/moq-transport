@@ -558,7 +558,10 @@ namespaces without breaking older implementations.
 A Track Namespace whose first field is exactly `.` (a single period, 0x2e)
 is reserved and MUST NOT be used for any purpose; endpoints MUST NOT publish
 tracks or namespaces under it and MUST reject requests referencing it with
-DOES_NOT_EXIST.
+REQUEST_ERROR, using error code UNINTERESTED for PUBLISH and PUBLISH_NAMESPACE
+and DOES_NOT_EXIST otherwise.  An endpoint MUST ignore a NAMESPACE or
+NAMESPACE_DONE whose full Track Namespace (prefix and suffix) has `.` as its
+first field.
 
 ## Scope {#track-scope}
 
@@ -1970,8 +1973,10 @@ field is `.session`. Relays MUST NOT forward requests for session-level
 tracks and namespaces to other sessions.
 
 An endpoint that receives a request for an unrecognized session-level track
-or namespace MUST reject it with REQUEST_ERROR using error code
-DOES_NOT_EXIST rather than passing it to the Application.
+or namespace MUST reject it with REQUEST_ERROR rather than passing it to the
+Application, using error code UNINTERESTED for PUBLISH and PUBLISH_NAMESPACE
+and DOES_NOT_EXIST otherwise.  An endpoint that receives a NAMESPACE or
+NAMESPACE_DONE for an unrecognized session-level namespace MUST ignore it.
 
 The track names and namespaces available under the `.session` namespace are
 defined by extensions to this specification and registered with IANA (see
