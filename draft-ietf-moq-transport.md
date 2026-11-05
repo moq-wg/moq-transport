@@ -3020,10 +3020,9 @@ with `TOO_MANY_REQUEST_UPDATES`.
 The MAX_CONTROL_MESSAGE_SIZE option (Option Type 0x0A) communicates the maximum
 length, in bytes, of a control message the endpoint is willing to receive (see
 {{message}}).  The value is encoded as a variable-length integer and MUST be at
-least 65535.  An endpoint that receives a smaller value MUST close the session
-with `MALFORMED_KEY_VALUE`.  If not present, the default value is 65535.  Until
-an endpoint receives the peer's SETUP, it uses the default value, including for
-SETUP itself.
+least 65535.  If not present, the default value is 65535.  Until an endpoint
+receives the peer's SETUP, it uses the default value, including for SETUP
+itself.
 
 
 ## GOAWAY {#message-goaway}
