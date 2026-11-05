@@ -1018,8 +1018,7 @@ to further restrict which tracks and objects pass all filter criteria.
 This includes all Range Filters {{range-filters}} and Location
 Filters {{location-filters}}, which can be evaluated in any order.
 The Paused parameter is also a type of filter.  The publisher MUST
-forward only objects that pass all filters.  Filters apply only to Objects with
-Normal status.
+forward only objects that pass all filters.
 
 ~~~
 Pass = (NOT Paused) AND Location Filters AND Range Filters
