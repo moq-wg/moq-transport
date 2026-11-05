@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 May 2027                                        I. Swett, Ed.
+Expires: 9 May 2027                                        I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         3 November 2026
+                                                         5 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 May 2027.
+   This Internet-Draft will expire on 9 May 2027.
 
 Copyright Notice
 
@@ -3473,11 +3473,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    The MAX_CONTROL_MESSAGE_SIZE option (Option Type 0x0A) communicates
    the maximum length, in bytes, of a control message the endpoint is
    willing to receive (see Section 9).  The value is encoded as a
-   variable-length integer and MUST be at least 65535.  An endpoint that
-   receives a smaller value MUST close the session with
-   MALFORMED_KEY_VALUE.  If not present, the default value is 65535.
-   Until an endpoint receives the peer's SETUP, it uses the default
-   value, including for SETUP itself.
+   variable-length integer and MUST be at least 65535.  If not present,
+   the default value is 65535.  Until an endpoint receives the peer's
+   SETUP, it uses the default value, including for SETUP itself.
 
 9.2.  GOAWAY
 
