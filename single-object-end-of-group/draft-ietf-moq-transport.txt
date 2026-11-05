@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 May 2027                                        I. Swett, Ed.
+Expires: 9 May 2027                                        I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         3 November 2026
+                                                         5 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 May 2027.
+   This Internet-Draft will expire on 9 May 2027.
 
 Copyright Notice
 
@@ -1320,8 +1320,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    This includes all Range Filters Section 3.3.2 and Location Filters
    Section 3.3.1, which can be evaluated in any order.  The Paused
    parameter is also a type of filter.  The publisher MUST forward only
-   objects that pass all filters.  Filters apply only to Objects with
-   Normal status.
+   objects that pass all filters.
 
    Pass = (NOT Paused) AND Location Filters AND Range Filters
 
