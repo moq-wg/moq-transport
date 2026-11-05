@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-03T05:52:45.275936+00:00",
+  "timestamp": "2026-11-05T05:48:23.047192+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -14583,11 +14583,12 @@
       ],
       "labels": [
         "Needs PR",
+        "Parked",
         "Security/DoS"
       ],
       "body": "\r\nIn the security section, we should think about the type of DDOS attacks that can be made against the relays, and then check we have the right things in place for the relays to mitigate them. ",
       "createdAt": "2024-02-08T22:23:02Z",
-      "updatedAt": "2026-10-15T03:39:22Z",
+      "updatedAt": "2026-11-03T17:24:58Z",
       "closedAt": null,
       "comments": [
         {
@@ -14603,6 +14604,13 @@
           "body": "See also security considerations from #869 and ensure they are addressed here or in #1827",
           "createdAt": "2026-10-15T03:39:22Z",
           "updatedAt": "2026-10-15T03:39:22Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Marking Parked just for workflow purposes since we're not actively discussing a lot.  Can unpark when we bring more focus here.",
+          "createdAt": "2026-11-03T17:24:53Z",
+          "updatedAt": "2026-11-03T17:24:53Z"
         }
       ]
     },
@@ -39687,17 +39695,18 @@
       "url": "https://github.com/moq-wg/moq-transport/issues/1206",
       "state": "OPEN",
       "author": "mzanaty",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [
         "mzanaty"
       ],
       "labels": [
         "Needs PR",
+        "Needs Discussion",
         "Filters"
       ],
       "body": "Many important use cases can benefit from the ability to filter or select objects across multiple tracks in a namespace. A few examples below.\n\n1. Meetings\n    100 person meeting, but subscribers only want to see and hear the last 4 active speakers (voice activity computed by each publisher).\n\n2. Security Cameras\n    100 live cameras, but a human viewer can only monitor the top 4 most suspicious activity scores (computed by each camera).\n\n3. Viral Videos\n    100 live video feeds, but subscribers only want to see the top 4 most popular (upvotes sent to each publisher).\n\n4. Sensors (or other non-media cases)\n    100 temperature sensors, but staff can only monitor the top 4 hottest (computed by each sensor).\n\n5. Feedback Tracks (media or non-media)\n    100 subscribers send feedback tracks to a publisher, but the publisher only wants one feedback signal or a count of subscribers.\n\n6. ABR Videos (a different animal which may not be tamed the same way)\n     10 resolutions, but the subscriber only wants the one with highest quality within current bandwidth limits.\n\nToday, these require a central server/cloud to receive all tracks from all publishers, filter them, then republish the selected tracks to all subscribers. This floods the ingest relay network and central server with excessive traffic that will be discarded. Traffic not discarded is centrally bottlenecked or hairpinned and incurs higher latency compared to direct relay network routing.\n\nAlternatively, publishers can only publish their computed selection scores as metadata tracks to the central server which then republishes the selected metadata tracks to all subscribers who must rapidly un/subscribe to the real media tracks indicated in the selected metadata tracks. This metadata can still be excessive (consider 100k not 100 pubs), cause a sustained storm of control messages and relay state churn, and add even higher latency to selections.\n\nTo address these use cases efficiently and scalably, the relay network can filter or select objects across multiple tracks in a namespace. This can guarantee pruned paths that never exceed the final selected small number of tracks regardless of how many publishers are sending.\n\nDesign options for how to achieve this will be presented in the Toronto interim.",
       "createdAt": "2025-09-05T06:54:40Z",
-      "updatedAt": "2026-05-19T16:33:21Z",
+      "updatedAt": "2026-11-03T17:45:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -42038,11 +42047,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Needs PR"
+        "Needs PR",
+        "Needs Discussion"
       ],
       "body": "\nAt some point we might want to consider if this is needed ",
       "createdAt": "2025-09-24T20:43:13Z",
-      "updatedAt": "2026-10-15T21:20:17Z",
+      "updatedAt": "2026-11-03T17:45:08Z",
       "closedAt": null,
       "comments": [
         {
@@ -43824,12 +43834,13 @@
       ],
       "labels": [
         "Needs PR",
+        "Needs Discussion",
         "Subscribe",
         "Joining Fetch Dissent"
       ],
       "body": "Assuming Joining FETCH stays as is, there is an optimization to joining at the current Group that I believe is worth considering.\n\nJust because there is a Largest Object, doesn't mean all Objects less than that are available.  This means that a Joining FETCH could be blocked waiting for Objects the Relay has never seen.\n\nFor example, if there was a base layer and a temporal enhancement layer, and the base layer was higher priority, a Relay might have all of the base layer and none of the enhancement layer.  If a Joining FETCH came in, the Subscriber would receive the first Object in the base layer and then be stuck there until the enhancement layer started arriving.\n\nIn some cases, this is just underutilizing the available bandwidth, but in other cases if the enhancement layer doesn't arrive within the delivery timeout, the playback can't begin.\n\nIn contrast, if both the Joining FETCH and SUBSCRIBE start at the beginning of the current Group, the FETCH could skip over any Objects (PR #1331) that are not yet available and then they'd be delivered via SUBSCRIBE.\n\nThe farther back in time the FETCH is, the less likely this is an issue, but I think it could be a substantial issue for the \"Join at the current Group\" case that we expect to be extremely common.",
       "createdAt": "2025-11-05T22:52:36Z",
-      "updatedAt": "2026-10-27T07:37:40Z",
+      "updatedAt": "2026-11-03T17:44:51Z",
       "closedAt": null,
       "comments": [
         {
@@ -47396,11 +47407,13 @@
         "afrind"
       ],
       "labels": [
-        "Needs PR"
+        "Needs PR",
+        "Needs Discussion",
+        "Switch"
       ],
       "body": "We need to at least add the text about how request ID dependencies interact with timeouts and stream being reset, also add a note that one cannot rely on those because of this.\n\nI also have an alternative design I would like us to consider, quoting from #1389:\n> * A message `WAIT_FOR x` causes the receiver to stop reading control stream until `x` is triggered, or timeout occurs.\n> * A message `UNBLOCK x` causes all `WAIT_FOR x` messages to unblock.\n> * Messages can occur on any control stream.\n> * We need some text about state tracking.\n\nThe main advantage is that it decouples the blocking from request processing, and you can move it to the parser level (where it arguably belongs).",
       "createdAt": "2026-03-02T23:42:05Z",
-      "updatedAt": "2026-07-15T01:30:41Z",
+      "updatedAt": "2026-11-03T17:25:52Z",
       "closedAt": null,
       "comments": [
         {
@@ -50381,13 +50394,12 @@
         "afrind"
       ],
       "labels": [
-        "Needs PR",
         "Extensibility",
         "BLOCKED"
       ],
       "body": "Draft say\n\n> New versions of MOQT MUST specify which existing extensions can be\n> used with that version. New extensions MUST specify the existing\n> versions with which they can be used.\n\nneed an IANA table to do this. ",
       "createdAt": "2026-06-14T14:30:26Z",
-      "updatedAt": "2026-10-20T19:10:41Z",
+      "updatedAt": "2026-11-03T17:45:57Z",
       "closedAt": null,
       "comments": [
         {
@@ -51014,12 +51026,11 @@
       "assignees": [],
       "labels": [
         "Needs PR",
-        "Needs Discussion",
         "Past Deadline"
       ],
       "body": "draft has text that says \n\n> Relays MAY ignore subsequently received Objects or MAY use them to\n> update certain cached fields. Implementations that update the cache\n> need to protect against cache poisoning. The only Object fields that\n> can be updated are the following:\n> 1. Object can transition from existing to not existing in cases\n> where the object is no longer available.\n> 2. Object Properties can be added, removed or updated, subject to\n> the constraints of the specific property.\n\nI think this is going to turn out be a bad idea on two axis.\n\n1. it is going to be insanity to allow things to go from non existing to existing. Other places we say that is not allowed \n\n2. allowing properties to change is going to be a very brittle particularly if only something do it. I think these need be described as the relay ignore any future properties from objects that are currently in cache and uses the cache values. \n\nWe need to phrase carefully because a relay might add a property like the NTP time it sent the object but for what it stores in cache, I think it need to never change. We also don't want clients relying on cache behavior that not all relays support. ",
       "createdAt": "2026-06-14T16:23:57Z",
-      "updatedAt": "2026-10-30T19:04:53Z",
+      "updatedAt": "2026-11-03T17:43:57Z",
       "closedAt": null,
       "comments": [
         {
@@ -52117,13 +52128,22 @@
       "assignees": [],
       "labels": [
         "Needs PR",
+        "Parked",
         "Security/DoS"
       ],
       "body": "This should be expanded to consider \n\n- number of connections for a user \n- ingress bandwidth\n- egress bandwidth \n- ingress rate of objects\n- egress rate of objects\n- rate of controll messages\n- cache usage \n\n",
       "createdAt": "2026-06-15T01:05:46Z",
-      "updatedAt": "2026-06-15T04:21:39Z",
+      "updatedAt": "2026-11-03T17:25:27Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Marking Parked temporarily until we bring more focus on this area.",
+          "createdAt": "2026-11-03T17:25:22Z",
+          "updatedAt": "2026-11-03T17:25:22Z"
+        }
+      ]
     },
     {
       "number": 1743,
@@ -54160,7 +54180,7 @@
       "id": "I_kwDOG2Ho4M8AAAABOudSjg",
       "title": "Interest in an extension for atomic subscription bundles?",
       "url": "https://github.com/moq-wg/moq-transport/issues/1860",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "sharmafb",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -54169,8 +54189,8 @@
       ],
       "body": "As of now, I can see that there is some discussion to have the ability to switch individual tracks (e.g: #1675). However, there are potentially use cases where we might want an atomic switch between two sets of tracks.\n\nFor example, sports streams may have three tracks: video, commentary audio, and captions. If someone wants to switch from watching tennis to soccer, having \"atomic subscription bundle\" functionality could prevent duplicate data transmission and bandwidth wastage.\n\nAnother example: A security dashboard might show tiled views from multiple cameras (each one is its own track). If the viewer switches from \"floor 1\" to \"office\", we'd avoid a partially rendered scene and wasted bandwidth by having an \"atomic subscription bundle\".\n\nWould anyone be interested if I write an extension for this?",
       "createdAt": "2026-08-28T23:36:02Z",
-      "updatedAt": "2026-09-15T21:03:14Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-03T17:48:53Z",
+      "closedAt": "2026-11-03T17:48:53Z",
       "comments": [
         {
           "author": "sharmafb",
@@ -54178,6 +54198,13 @@
           "body": "I wrote a draft for this: https://datatracker.ietf.org/doc/draft-sharma-moq-atomic-subscription-bundles/",
           "createdAt": "2026-09-15T21:03:13Z",
           "updatedAt": "2026-09-15T21:03:13Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm closing this issue. Please utilize the mailing list, rather than the MOQT github to propose and discuss extensions, unless MOQT needs additional work to support the extension.",
+          "createdAt": "2026-11-03T17:48:53Z",
+          "updatedAt": "2026-11-03T17:48:53Z"
         }
       ]
     },
@@ -54213,13 +54240,15 @@
       "state": "OPEN",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "afrind"
+      ],
       "labels": [
         "Needs Discussion"
       ],
       "body": "Since we originally discussed using Subscribe ID or Track Alias, Parameters and Track Properties were created.\n\nThere are some known problems with using Track Alias in SUBSCRIBE:\n1) It delays Object delivery if the SUBSCRIBE_OK arrives after the first Object.\n2) In cases when a Track Alias might be reused, it creates complexity, see PR #1856 \n3) It makes resource management of unknown tracks more complex, see https://github.com/englishm/moq-relay-dos/issues/29\n\nMaking Track Alias a Parameter is a fairly straightforward change.",
       "createdAt": "2026-09-01T02:13:17Z",
-      "updatedAt": "2026-10-10T00:09:05Z",
+      "updatedAt": "2026-11-03T17:43:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -54418,7 +54447,7 @@
       "id": "I_kwDOG2Ho4M8AAAABPx3JmA",
       "title": "Interest in an extension for cache availability and cache status",
       "url": "https://github.com/moq-wg/moq-transport/issues/1907",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "sharmafb",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -54427,8 +54456,8 @@
       ],
       "body": "I would like to gauge interest in an extension providing two related signals:\n\n* Cache availability: An indication that a relay has all, some, none, or an unknown portion of the requested content cached.\n* Cache status: An indication of whether delivered content came from the local cache, was fetched from upstream, or could not be obtained.\n\nThe initial design could reuse existing messages rather than introduce new message types:\n* A request parameter on TRACK_STATUS could ask about local cache availability. The response would be carried as a parameter on TRACK_STATUS_OK\n* A FETCH could request Cache-Status, with the result returned on FETCH_OK.",
       "createdAt": "2026-09-04T22:55:08Z",
-      "updatedAt": "2026-09-15T19:40:41Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-03T17:48:08Z",
+      "closedAt": "2026-11-03T17:48:08Z",
       "comments": [
         {
           "author": "kixelated",
@@ -54485,6 +54514,13 @@
           "body": "Sounds like there's more support for cache status than cache availability. Anyway, I made a new draft that includes both as negotiable capabilities: https://datatracker.ietf.org/doc/draft-sharma-moq-cache-signaling/",
           "createdAt": "2026-09-15T19:40:40Z",
           "updatedAt": "2026-09-15T19:40:40Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm closing this issue.  Please utilize the mailing list, rather than the MOQT github to propose and discuss extensions, unless MOQT needs additional work to support the extension.",
+          "createdAt": "2026-11-03T17:48:08Z",
+          "updatedAt": "2026-11-03T17:48:08Z"
         }
       ]
     },
@@ -54573,11 +54609,12 @@
       "labels": [
         "Needs PR",
         "Needs Discussion",
-        "Subscribe"
+        "Subscribe",
+        "Parked"
       ],
       "body": "Payloads can be much larger than object metadata/properties and may not be of interest.\n\nTop Tracks Filter would be an ideal consumer of this - a relay need only ingest the metadata from all publishers until it knows the track is actually passing a filter.",
       "createdAt": "2026-09-08T00:05:57Z",
-      "updatedAt": "2026-11-02T00:44:15Z",
+      "updatedAt": "2026-11-03T17:17:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -54628,6 +54665,13 @@
           "body": "Thinking about this more, do we think this would be difficult to add later as an extension?  On a hop-by-hop level, it seems trivial to negotiate, but if an end subscriber requests a Subscription without the payloads, and an upstream session doesn't support it, the relay is stuck retrieving the entire Subscription.  That's a bummer.\n\nBesides this one concern, I'd rather not add this to the core MoQ draft, since there are no compelling use cases at the moment.",
           "createdAt": "2026-11-02T00:44:15Z",
           "updatedAt": "2026-11-02T00:44:15Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Parking this for now, since there isn't strong deman.",
+          "createdAt": "2026-11-03T17:17:02Z",
+          "updatedAt": "2026-11-03T17:17:02Z"
         }
       ]
     },
@@ -55505,11 +55549,12 @@
       "assignees": [],
       "labels": [
         "Needs PR",
+        "Needs Discussion",
         "Fetch"
       ],
       "body": "This was fine before Mandatory to Implement Properties, but now it's unclear.  If e.g. the MTI property changes how the parser interprets the FETCH stream, then we need to hold parsing til the OK arrives.\n\nWe specifically wanted to allow _sending_ fetch data before the OK, although part of the reason is that FETCH_OK has End Location, which may require an upstream trip if the relay didn't have a live view.  However, that might change with #1897, which would narrow that cases why FETCH_OK might ever be delayed.\n\nStill, it would be nice if we could just leave it like it is now.\n",
       "createdAt": "2026-10-12T21:48:52Z",
-      "updatedAt": "2026-10-15T03:25:39Z",
+      "updatedAt": "2026-11-03T17:45:23Z",
       "closedAt": null,
       "comments": [
         {
@@ -55983,7 +56028,7 @@
       ],
       "body": "The current draft says, in [Section 12.1 (Malformed Tracks)](https://www.ietf.org/archive/id/draft-ietf-moq-transport-22.html#section-12.1-4) of draft-22:\n\n> When a subscriber detects a Malformed Track, it MUST cancel any\n> corresponding subscription or fetches for that Track from that\n> publisher\n\nand\n\n> If a relay detects a Malformed Track, it MUST immediately terminate\n> downstream subscriptions with PUBLISH_DONE and reset any fetch streams\n> with Status Code MALFORMED_TRACK.\n\nI am interested in redundant publishers (two encoders publishing the same Track, see #1037). A relay MUST subscribe to both encoders. If the encoders assign the same IDs but produce one Object differently, the relay MUST treat the Track as Malformed and terminate every downstream subscription. In short, a second encoder makes the Track less available than a single encoder.\n\n#1084 raised the same problem and closed because a relay cannot tell a faulty publisher from a correct one. In my view, both encoders are legitimate. Any consistent choice between them keeps the Track running.\n\nA relay (or an end subscriber) can survive a temporary divergence between publishers. 1/ it can take each Group from the publisher whose copy arrives first and, if the two publishers diverge, ignore the other one until the next Group. Because Groups are join points, the conflict stays within one Group. 2/ cancel only the upstream subscription that delivered the conflicting Object. 3/ each publisher declares its role (for example Main or Backup) as a parameter on PUBLISH or PUBLISH_NAMESPACE, so that every receiver keeps the same copy and knows which publisher to cancel/ignore.\n\nThe subscriber rule is already scoped to \"that publisher\", so a subscriber can cancel the publisher that delivered the conflicting Object and keep the other one. The relay rule removes that option, because the relay must still terminate every downstream subscription. I propose we replace the relay MUST with a SHOULD. If the WG also wants to allow ignoring a diverging publisher until the next Group, the same MUST -> SHOULD should apply to the subscriber.",
       "createdAt": "2026-10-16T11:53:11Z",
-      "updatedAt": "2026-11-02T18:51:31Z",
+      "updatedAt": "2026-11-03T20:21:39Z",
       "closedAt": null,
       "comments": [
         {
@@ -56104,6 +56149,20 @@
           "body": "@riedlse I agree that the publisher's promise is the part that belongs in the transport. \n\nTwo options are now on the table. @michalhosna's option needs no change to MOQT. Michal and I explored it last week. It deserves its own draft on the concept of Application Relays. The option is workable. Though, it requires catalog signaling to tell reconciliation points which tracks to combine, one track name per reconciliation point, and changes in other areas such as token scope.\n\nThe second option is a publisher opt-in in MOQT. For that option, I propose to revise the REDUNDANT_PUBLISHERS property of [my earlier comment](https://github.com/moq-wg/moq-transport/issues/2003#issuecomment-6288962846) on four points:\n1. The property becomes a Mandatory Track Property. A relay that does not understand it MUST NOT process or forward the Track. No relay can then mix two publishers silently.\n2. A Setup Option advertises support, as @afrind suggested on #1939. A publisher does not send the Track to a peer that has not advertised the option.\n3. Every relay that understands the property builds each Group from one upstream, including when it fills its cache or serves a FETCH. A relay that loses that upstream mid-Group resumes at the next Group.\n4. PUBLISHER_ROLE becomes optional. It serves one selection algorithm, with a main publisher and ranked backups. That algorithm makes reconciliation deterministic, so relays on disjoint paths converge on the same publisher.\n\n@wilaw Your holdback and the Selection_Timeout are two forms of a timeout-based algorithm. The timeout can count Objects or time. I lean toward time, because redundant encoder setups usually delay the backup encoder by a fixed interval (ReAP suggests half a segment). The unit is open for discussion.\n\n@afrind This could be the example extension for Mandatory Track Properties that you asked for on the list. Should I write it up as a short draft before the San Francisco meetings? Co-authors are welcome.",
           "createdAt": "2026-11-02T18:51:30Z",
           "updatedAt": "2026-11-02T18:51:30Z"
+        },
+        {
+          "author": "riedlse",
+          "authorAssociation": "NONE",
+          "body": "@gwendalsimon +1 to all four revisions, and yes, I'd like to co-author. I can take the relay-behaviour section, since that's where I've been reading moq-dev's failover against this. With the I-D cutoff behind us, a GitHub draft we can point to in SF works for me.\n\nTwo things I'd want that section to settle:\n\n1. **The truncated Group.** When a relay loses its upstream mid-Group, point 3 has it resume at the next Group, so the rest of the in-flight Group can't be delivered on that path. As of #2022 the relay has no state it may signal for that tail: only the original publisher originates Gone, and End of Group would claim an end the relay doesn't know. That leaves Unknown, which isn't cached, so every later FETCH for the tail goes upstream again, at every tier. I think the draft should let a relay that switched upstreams signal the rest of that Group as Gone. It fits what Gone already allows, since another source can still hold a Gone Object.\n\n2. **Endpoints that neither cache nor forward.** The Mandatory Track Property rule applies to every endpoint, not only relays: a player that doesn't understand the property must cancel the subscription, and with the Setup Option a relay won't send it the Track at all. Nothing changes for a player, because each Group it receives already comes from one publisher, but it still has to recognize the code point and advertise the option before it can play. For an operator with many third-party players, that gates turning the property on. The draft should say that such an endpoint only has to recognize and advertise, so player stacks can ship it as a no-op ahead of time.\n\nOn the timeout unit, +1 to time. Our Groups are one Object each (0.5 s CMAF fragments), so an Object count would mean whole Groups for us and a fraction of a Group on a 60-Object track. Time means the same thing on both.\n",
+          "createdAt": "2026-11-03T18:41:10Z",
+          "updatedAt": "2026-11-03T18:41:10Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@gwendalsimon \n\n> This could be the example extension for Mandatory Track Properties that you asked for on the list\n\nI would appreciate it if you can do this.  Thanks",
+          "createdAt": "2026-11-03T20:21:39Z",
+          "updatedAt": "2026-11-03T20:21:39Z"
         }
       ]
     },
@@ -56286,12 +56345,11 @@
       "assignees": [],
       "labels": [
         "Needs PR",
-        "Needs Discussion",
         "Object Model"
       ],
       "body": "Filters can change the last transmitted object in a subgroup mid-stream, meaning the EOG bit encoding would be incorrect.\n\n===\n\nExample\nGroup 5 has one subgroup with objects 0 and 1.\n\nThe original publisher begins Group 5 with a subgroup header (EOG bit set) and (5, 0).\n\nThe subscriber sends REQUEST_UPDATE so that there is now an OBJECTID filter for zero only.\n\nThe original publisher produces (5, 1), which is the end of the group. It can' t be delivered because of the filter. So the options are.\n\n1) FIN the stream, giving the subscriber incorrect information about the group.\n\n2) RESET the stream, which might prevent delivery of object 0.\n\n3) RESET the stream and then resend object 0 on a new stream without EOG bit, then FIN\n\n4) Temporarily pretend it didn't get the filter, sending (5, 1) with FIN. Compliance isn't enforceable so I believe this would not be a PROTOCOL_ERROR.\n\n===\n\nA single-object stream is safe, even if the one object is later filtered out, because the stream can simply be reset.\n\nThis was  not a problem when Subscriptions always ended on a group boundary.\n\nIIUC, the main motivation for this encoding is for single-object groups. If we restrict the encoding to that (or even single-object subgroups), this edge case goes away. Alternatively,  we could mess with the meaning of FIN in filtered subscriptions, which would be hard to reason about, or require the reset-and-resend maneuver.\n\n\n\n\n\n",
       "createdAt": "2026-10-21T00:45:42Z",
-      "updatedAt": "2026-11-01T23:54:01Z",
+      "updatedAt": "2026-11-03T18:46:35Z",
       "closedAt": null,
       "comments": [
         {
@@ -56392,11 +56450,12 @@
         "ianswett"
       ],
       "labels": [
+        "Needs Discussion",
         "Fetch"
       ],
       "body": "In Fetch-Fill, it's possible that while delivering some of the Objects, others become permanently unavailable.\n\nIf those Objects are past the initial Largest Object, there's no way to indicate that they're unavailable in the same way Fetch can.\n\nFor example, if one does a Fetch-Fill to join 20 seconds behind the latest Object and has enough bandwidth to catch up, but it takes time (ie: 10s), then if the Objects the Fetch-Fill said would be delivered via Subscribe are permanently unavailable, it's unclear what to do.",
       "createdAt": "2026-10-22T01:55:37Z",
-      "updatedAt": "2026-11-02T00:45:04Z",
+      "updatedAt": "2026-11-03T17:26:41Z",
       "closedAt": null,
       "comments": [
         {
@@ -56448,11 +56507,12 @@
         "ianswett"
       ],
       "labels": [
+        "Needs Discussion",
         "Joining Fetch Dissent"
       ],
       "body": "The original goal of FILL_TIMEOUT was that it would speed up joining Tracks, but in practice it's very difficult to pick a good value.\n\nIt's tempting to pick 0, but then you won't get any Objects in the past if they're not cached, so you'll burn an RTT trying to join a Track.  We seem keen to save that RTT, so that's not helpful.  You're relying on the Relay's cache state, and if there's nothing in cache and/or the relay has no Subscription, you won't get any Objects from the beginning of the Group.\n\nOne could set the Fill Timeout to the Delivery Timeout, but can end poorly. ie: relay waits for the Fill Timeout for an earlier Object and by the time it sends the most recent Objects, it\u2019s too late.\n\nTLDR: Trying to make FETCH do SUBSCRIBE style delivery doesn\u2019t work\n\n\nAn alternative perspective is that Relays will ensure they have enough cache to provide useful responses immediately, which I generally agree with, but in that case FILL_TIMEOUT still isn't helpful, except maybe if a client tries to join more Groups back than the cache?\n\nThis is a more recent offshoot of #1358 ",
       "createdAt": "2026-10-24T22:17:24Z",
-      "updatedAt": "2026-11-02T17:43:43Z",
+      "updatedAt": "2026-11-03T17:26:44Z",
       "closedAt": null,
       "comments": [
         {
@@ -56550,6 +56610,40 @@
       "body": "On one hand, we say:\n\n> Each Track Name MUST contain at least one byte. If an endpoint receives a Track Name with a length of 0, it MUST close the session with a PROTOCOL_VIOLATION.\n\nThis makes it sound like an unconditional rule on anything serialized as a track name.  But on the other hand, we do allow that field to be empty for redirects, and explicitly specify that\n\n> Track Name is not meaningful for namespace-scoped requests (SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, SUBSCRIBE_TRACKS) and MUST be empty\n\nDo we want to call this out?",
       "createdAt": "2026-11-02T22:12:54Z",
       "updatedAt": "2026-11-02T22:12:54Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 2054,
+      "id": "I_kwDOG2Ho4M8AAAABcL_qeQ",
+      "title": "MAX_CONTROL_MESSAGE_SIZE (0x09) is an odd Setup Option type but is described as a varint",
+      "url": "https://github.com/moq-wg/moq-transport/issues/2054",
+      "state": "OPEN",
+      "author": "zshenker",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [
+        "Needs PR"
+      ],
+      "body": "\u00a79.1.8 defines MAX_CONTROL_MESSAGE_SIZE as Setup Option Type 0x09, and says:\n\n> The value is encoded as a variable-length integer and MUST be at least 65535.\n\nSetup Options are Key-Value-Pairs, and \u00a78.3 makes a pair's encoding depend on the parity of its Type:\n\n> Length: Only present when Type is odd.\n\nSo on the wire, 0x09 is a Length followed by a byte value. The varint described in \u00a79.1.8 has to sit inside that byte value. Every other numeric Setup Option has an even type and a bare varint value: MAX_AUTH_TOKEN_CACHE_SIZE (0x04), MAX_FILTER_RANGES (0x06) and MAX_REQUEST_UPDATES (0x08). 0x09 looks like it was simply the next free codepoint after 0x08 when #2017 added it.\n\nAs written, the text is consistent: an implementation can encode 0x09 as Length + varint. But the two sections are easy to read apart. An implementer who follows only \u00a79.1.8 might write a bare varint. A peer that follows \u00a78.3 then reads that varint as a Length, and the rest of the SETUP is misparsed or the session fails. The option is new in -23, so there are no deployed implementations to stay compatible with.\n\nTwo possible fixes:\n\n1. **Renumber it to an even type** (for example 0x0A), so the value is a bare varint like the other numeric options. This is my preference: it matches the existing pattern and removes the ambiguity.\n2. **Keep 0x09 and say so explicitly** in \u00a79.1.8: \"Because the Option Type is odd, the value is length-prefixed; the Length covers a single variable-length integer, and a receiver MUST close the session with MALFORMED_KEY_VALUE if the value is not exactly one variable-length integer.\"\n\nSeparately, \u00a79.1.8 says the value \"MUST be at least 65535\" but doesn't say what a receiver does otherwise. \u00a712.2 defines MALFORMED_KEY_VALUE as a Key-Value-Pair, \"such as a Setup Option\", whose Value doesn't match its Type's definition. The Track Properties in \u00a710.4\u2013\u00a710.6 already use that code for out-of-range values. Suggest stating the same here: a receiver that gets a MAX_CONTROL_MESSAGE_SIZE below 65535, or a value that isn't a single variable-length integer, MUST close the session with MALFORMED_KEY_VALUE.\n",
+      "createdAt": "2026-11-03T16:16:50Z",
+      "updatedAt": "2026-11-03T17:26:08Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 2059,
+      "id": "I_kwDOG2Ho4M8AAAABccjMKQ",
+      "title": "How does INCLUDE_PROPERTIES interact with Mandatory Track Properties?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/2059",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The current definition implies that they are not sent, which feels somewhat against the spirit of Mandatory Track Properties.  I don't have an opinion either way, someone who understands the motivation behind both of those features should probably chime in here.\n\n(regardless of what we decide, there should be at least an editorial PR telling you which way it goes)",
+      "createdAt": "2026-11-04T13:43:26Z",
+      "updatedAt": "2026-11-04T13:44:05Z",
       "closedAt": null,
       "comments": []
     }
@@ -234700,6 +234794,166 @@
           "body": "",
           "createdAt": "2026-11-02T22:19:34Z",
           "updatedAt": "2026-11-02T22:19:34Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 2055,
+      "id": "PR_kwDOG2Ho4M8AAAABMnTuiw",
+      "title": "Make MAX_CONTROL_MESSAGE_SIZE an even Setup Option type",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2055",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Odd Key-Value-Pair types are length-prefixed, but the option is a single varint like the other numeric Setup Options. Move it to 0x0A and require MALFORMED_KEY_VALUE for values below 65535.\n\nFixes: #2054",
+      "createdAt": "2026-11-03T17:15:03Z",
+      "updatedAt": "2026-11-03T17:59:35Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "0f807dff80111065203d2d737b6134ed9192b0f8",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "max-control-message-size-type",
+      "headRefOid": "7eaf82361391f6119cda1a3b0cb10db539a7ce35",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABVybooA",
+          "commit": {
+            "abbreviatedOid": "7eaf823"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-03T17:59:35Z",
+          "updatedAt": "2026-11-03T17:59:35Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 2056,
+      "id": "PR_kwDOG2Ho4M8AAAABModmaw",
+      "title": "Handle reserved namespaces in NAMESPACE messages",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2056",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "A SUBSCRIBE_NAMESPACE with an empty prefix can produce NAMESPACE and NAMESPACE_DONE messages for reserved namespaces, which cannot be rejected with REQUEST_ERROR. Ignore those for the `.` namespace and for unrecognized session-level namespaces. Use UNINTERESTED when rejecting reserved PUBLISH and PUBLISH_NAMESPACE.\n\nFixes: #1943",
+      "createdAt": "2026-11-03T18:45:23Z",
+      "updatedAt": "2026-11-04T17:30:21Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "0f807dff80111065203d2d737b6134ed9192b0f8",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "reserved-namespace-messages",
+      "headRefOid": "2cf813a27d7e2c4c832033be4b045bc87a0e516a",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABWBZYfQ",
+          "commit": {
+            "abbreviatedOid": "2cf813a"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-04T17:30:21Z",
+          "updatedAt": "2026-11-04T17:30:21Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 2057,
+      "id": "PR_kwDOG2Ho4M8AAAABModwyA",
+      "title": "Replace cached Properties wholesale on update",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2057",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Relays SHOULD replace cached Track and Object Properties with the most recently received set rather than ignoring updates, consolidating the rule previously split between Caching Relays and Properties. Differing Immutable Properties make the track Malformed.\n\nFixes: #1703",
+      "createdAt": "2026-11-03T18:45:35Z",
+      "updatedAt": "2026-11-04T17:49:09Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "0f807dff80111065203d2d737b6134ed9192b0f8",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "cache-property-updates",
+      "headRefOid": "9e0b36504a821e45a258e7685182391252b7dc0e",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABWBoUmA",
+          "commit": {
+            "abbreviatedOid": "9e0b365"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-04T17:49:09Z",
+          "updatedAt": "2026-11-04T17:49:09Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 2058,
+      "id": "PR_kwDOG2Ho4M8AAAABMoefkA",
+      "title": "Limit the END_OF_GROUP bit to single-Object subgroups",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2058",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Filters can remove the final Object of a Group after a Subgroup stream with END_OF_GROUP set has been opened, so a FIN no longer identifies the end of the Group. Restrict the bit to a single Object, make a second Object Malformed, and require a reset if the Object is not sent. Filters apply only to Normal Objects, so End of Group status can still be delivered.\n\nFixes: #2032\n\nOne question is whether we should allow a non-normal object (e.g. EOG/EOT) on a sg with EOG bit set.  I initially said no here.",
+      "createdAt": "2026-11-03T18:46:25Z",
+      "updatedAt": "2026-11-04T18:17:09Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "0f807dff80111065203d2d737b6134ed9192b0f8",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "single-object-end-of-group",
+      "headRefOid": "810d222e862d6be0f01a12e9ed3f5b13190bcb4d",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABWCAhxg",
+          "commit": {
+            "abbreviatedOid": "810d222"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-04T18:17:09Z",
+          "updatedAt": "2026-11-04T18:17:09Z",
           "comments": []
         }
       ]
