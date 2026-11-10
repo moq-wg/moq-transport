@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-08T05:11:27.131631+00:00",
+  "timestamp": "2026-11-10T06:35:05.400744+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -229395,7 +229395,7 @@
       ],
       "body": "This proposes a way have a common framework for extensions like Top-N, SSTS and unifies with Switch From. \r\n\r\nSome slides that help explain this are at \r\nhttps://cisco.app.box.com/s/q48fxo9zeibkvonlf42uncc16m9z891j\r\n\r\n",
       "createdAt": "2026-10-12T18:47:14Z",
-      "updatedAt": "2026-10-26T16:25:41Z",
+      "updatedAt": "2026-11-09T11:49:47Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
@@ -229413,6 +229413,13 @@
           "body": "> Having now read through this PR, I think it overshoots the stated intention of providing a framework for selection sets. It does also attempts to incorporate Top-N and SSTS functionality in one single PR. I see that it enables one to more easily evaluate that those mechanism may function. But, they also makes it harder to evaluate if the frame work's API surface if the right one.\r\n\r\nAs you note, clearly we would move the extensible algorithms out to other drafts. I just think having them in the PR right now makes it easier to review how this works and what it would look like. I can certainly add some clarification of what the API looks like. Thoughts on what text is needed for that ?",
           "createdAt": "2026-10-14T13:48:16Z",
           "updatedAt": "2026-10-14T13:48:16Z"
+        },
+        {
+          "author": "yuyou",
+          "authorAssociation": "NONE",
+          "body": "@fluffy @wilaw @mzanaty \r\n\r\nSee the slides: https://docs.google.com/presentation/d/1kgl6MIxr6Q0jG2lFWQltD792HGBMnxwbIEE7-FqJMsU/edit?usp=sharing\r\n\r\n\r\nTried to help and bring together the current options and approaches for Top-N, SSTS, and conditional range filters into a unified overview or conceptual model for discussion and design.\r\n\r\n",
+          "createdAt": "2026-11-09T11:46:24Z",
+          "updatedAt": "2026-11-09T11:49:47Z"
         }
       ],
       "reviews": [
