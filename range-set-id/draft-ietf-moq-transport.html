@@ -3059,9 +3059,10 @@ There are five Range Filter parameter types, 0x25-0x29.  They share the
 encoding specified in <a href="#range-filter-structure" class="auto internal xref">Section 8.6</a>.<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.3.2-2">An object matches the filter if its value falls within any Range (i.e., Ranges
 are OR'd within a filter parameter).<a href="#section-3.3.2-2" class="pilcrow">¶</a></p>
-<p id="section-3.3.2-3">Each Range Filter parameter carries a SetID, which identifies the filter
-set it belongs to.  Filter sets combine parameters into boolean
-expressions; see <a href="#filter-sets" class="auto internal xref">Section 3.3.3</a>.<a href="#section-3.3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.3.2-3">One or more Range filters can be grouped into a FilterSet, and
+an Object passes the Range filters if they pass through
+any FilterSet.  For more details on how FilterSets filter Objects
+and how they can be updated, see <a href="#filter-sets" class="auto internal xref">Section 3.3.3</a>.<a href="#section-3.3.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.3.2-4">The Track Property filter parameter <span class="bcp14">MAY</span> appear multiple times in a
 SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
 All other filter parameters <span class="bcp14">MAY</span> appear multiple times in a FETCH, SUBSCRIBE,
@@ -3091,8 +3092,10 @@ and does not evaluate Track Properties in PUBLISH messages.<a href="#section-3.3
           <h4 id="name-filter-sets">
 <a href="#section-3.3.3" class="section-number selfRef">3.3.3. </a><a href="#name-filter-sets" class="section-name selfRef">Filter Sets</a>
           </h4>
-<p id="section-3.3.3-1">A Range Filter can express boolean combinations across Track or Object
-properties and Object header fields using filter sets.  Each Range
+<p id="section-3.3.3-1">FilterSets allow Range Filters to match boolean combinations of Track
+properties or combinations of Object properties and Object header
+fields using filter sets.  SetIDs are not shared between Object Property
+Filters and Range Filters on Objects. Each Range
 Filter parameter carries an 8-bit SetID (0-255) that identifies the set
 it belongs to.<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3.3-2">The evaluation rules are:<a href="#section-3.3.3-2" class="pilcrow">¶</a></p>
