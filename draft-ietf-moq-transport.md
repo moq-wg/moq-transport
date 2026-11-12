@@ -978,9 +978,10 @@ encoding specified in {{range-filter-structure}}.
 An object matches the filter if its value falls within any Range (i.e., Ranges
 are OR'd within a filter parameter).
 
-Each Range Filter parameter carries a SetID, which identifies the filter
-set it belongs to.  Filter sets combine parameters into boolean
-expressions; see {{filter-sets}}.
+One or more Range filters can be grouped into a FilterSet, and
+an Object passes the Range filters if they pass through
+any FilterSet.  For more details on how FilterSets filter Objects
+and how they can be updated, see {{filter-sets}}.
 
 The Track Property filter parameter MAY appear multiple times in a
 SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
@@ -1011,8 +1012,10 @@ and does not evaluate Track Properties in PUBLISH messages.
 
 ### Filter Sets {#filter-sets}
 
-A Range Filter can express boolean combinations across Track or Object
-properties and Object header fields using filter sets.  Each Range
+FilterSets allow Range Filters to match boolean combinations of Track
+properties or combinations of Object properties and Object header
+fields using filter sets.  SetIDs are not shared between Object Property
+Filters and Range Filters on Objects. Each Range
 Filter parameter carries an 8-bit SetID (0-255) that identifies the set
 it belongs to.
 
