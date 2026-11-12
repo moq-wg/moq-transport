@@ -3017,7 +3017,7 @@ with `TOO_MANY_REQUEST_UPDATES`.
 
 ### MAX_CONTROL_MESSAGE_SIZE {#max-control-message-size}
 
-The MAX_CONTROL_MESSAGE_SIZE option (Option Type 0x09) communicates the maximum
+The MAX_CONTROL_MESSAGE_SIZE option (Option Type 0x0A) communicates the maximum
 length, in bytes, of a control message the endpoint is willing to receive (see
 {{message}}).  The value is encoded as a variable-length integer and MUST be at
 least 65535.  If not present, the default value is 65535.  Until an endpoint
@@ -5908,7 +5908,7 @@ This registry is initially empty.
 | 0x06 | MAX_FILTER_RANGES | {{max-filter-ranges}} |
 | 0x07 | MOQT_IMPLEMENTATION | {{moqt-implementation}} |
 | 0x08 | MAX_REQUEST_UPDATES | {{max-request-updates}} |
-| 0x09 | MAX_CONTROL_MESSAGE_SIZE | {{max-control-message-size}} |
+| 0x0A | MAX_CONTROL_MESSAGE_SIZE | {{max-control-message-size}} |
 | 0x7f * N + 0x9D | Reserved for greasing | {{grease}} |
 
 Endpoints MUST ignore unknown Setup Options as specified in
