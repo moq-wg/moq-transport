@@ -171,13 +171,13 @@ Table of Contents
      8.6.  Range Filter Structure
      8.7.  Track Namespace Structure
      8.8.  Representing Namespace and Track Names
-     8.9.  Authorization Token Compression
+     8.9.  Authorization Payload Compression
    9.  Control Messages
      9.1.  SETUP
        9.1.1.  AUTHORITY
        9.1.2.  PATH
-       9.1.3.  MAX_AUTH_TOKEN_CACHE_SIZE
-       9.1.4.  AUTHORIZATION TOKEN
+       9.1.3.  MAX_AUTH_PAYLOAD_CACHE_SIZE
+       9.1.4.  AUTHORIZATION_PAYLOAD
        9.1.5.  MOQT IMPLEMENTATION
        9.1.6.  MAX FILTER RANGES
        9.1.7.  MAX_REQUEST_UPDATES
@@ -205,7 +205,7 @@ Table of Contents
      9.18. PUBLISH_SKIPPED
      9.19. Control Message Parameters
        9.19.1.  Parameter Scope
-       9.19.2.  AUTHORIZATION TOKEN Parameter
+       9.19.2.  AUTHORIZATION_PAYLOAD Parameter
        9.19.3.  SUBGROUP_DELIVERY_TIMEOUT Parameter
        9.19.4.  OBJECT_DELIVERY_TIMEOUT Parameter
        9.19.5.  FILL TIMEOUT Parameter
@@ -286,8 +286,8 @@ Table of Contents
      16.2.  Media Type Registration
      16.3.  MOQT URI Fragment Types
      16.4.  Setup Options
-     16.5.  Authorization Token Alias Type
-     16.6.  MOQT Auth Token Type
+     16.5.  Authorization Payload Alias Type
+     16.6.  MOQT Authorization Payload Type
      16.7.  Message Parameters
      16.8.  Properties
      16.9.  Object Status
@@ -1496,8 +1496,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 3.6.2.  Parameters on SUBSCRIBE_TRACKS
 
    The parameters that can appear in SUBSCRIBE_TRACKS are listed in
-   Section 9.17.  AUTHORIZATION_TOKEN and TRACK_PROPERTY_FILTER apply to
-   the SUBSCRIBE_TRACKS itself.  The publisher uses the others as the
+   Section 9.17.  AUTHORIZATION_PAYLOAD and TRACK_PROPERTY_FILTER apply
+   to the SUBSCRIBE_TRACKS itself.  The publisher uses the others as the
    initial Subscription parameters when a PUBLISH is sent as a result of
    SUBSCRIBE_TRACKS, and includes those in the PUBLISH.  When a
    Parameter is omitted from the SUBSCRIBE_TRACKS and resulting PUBLISH,
@@ -1680,7 +1680,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    the same time as a PUBLISH_NAMESPACE, or when an original publisher
    sends PUBLISH_NAMESPACE to advertise namespaces within the prefix
    being discovered.  Such a PUBLISH_NAMESPACE is valid and MAY carry an
-   AUTHORIZATION TOKEN parameter.  Its lifetime is independent of the
+   AUTHORIZATION_PAYLOAD parameter.  Its lifetime is independent of the
    SUBSCRIBE_NAMESPACE stream.
 
    A SUBSCRIBE_NAMESPACE is cancelled as described in Section 6.4.2.3,
@@ -3085,126 +3085,129 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
      Namespace tuples: (example.net, team2, project_x)
      Track name: report
 
-8.9.  Authorization Token Compression
+8.9.  Authorization Payload Compression
 
-   Authorization tokens are carried in the AUTHORIZATION TOKEN message
-   parameter (see Section 9.19.2) and the AUTHORIZATION TOKEN Setup
-   Option (see Section 9.1.4).  Both use the wire format and semantics
-   defined in this section.
+   Authorization payloads are carried in the AUTHORIZATION_PAYLOAD
+   message parameter (see Section 9.19.2) and the AUTHORIZATION_PAYLOAD
+   Setup Option (see Section 9.1.4).  Both use the wire format and
+   semantics defined in this section.
 
-   The value is a Token structure containing an optional Session-
-   specific Alias.  The Alias allows the sender to reference a
-   previously transmitted Token Type and Token Value in future messages.
-   The Token structure is serialized as follows:
+   The value is an Authorization Payload structure containing an
+   optional Session-specific Alias.  The Alias allows the sender to
+   reference a previously transmitted Payload Type and Payload Value in
+   future messages.  The Authorization Payload structure is serialized
+   as follows:
 
-   Token {
+   Authorization Payload {
      Alias Type (vi64),
-     [Token Alias (vi64),]
-     [Token Type (vi64),]
-     [Token Value (..)]
+     [Payload Alias (vi64),]
+     [Payload Type (vi64),]
+     [Payload Value (..)]
    }
 
-                         Figure 5: Token structure
+                 Figure 5: Authorization Payload structure
 
    *  Alias Type - an integer defining both the serialization and the
       processing behavior of the receiver.  This Alias type has the
       following code points:
 
    DELETE (0x0):  There is an Alias but no Type or Value.  This Alias
-      and the Token Value it was previously associated with MUST be
+      and the Payload Value it was previously associated with MUST be
       retired.  Retiring removes them from the pool of actively
-      registered tokens.
+      registered payloads.
 
    REGISTER (0x1):  There is an Alias, a Type and a Value.  This Alias
-      MUST be associated with the Token Value for the duration of the
+      MUST be associated with the Payload Value for the duration of the
       Session or it is deleted.  This action is termed "registering" the
-      Token.
+      Authorization Payload.
 
    USE_ALIAS (0x2):  There is an Alias but no Type or Value.  Use the
-      Token Type and Value previously registered with this Alias.
+      Payload Type and Value previously registered with this Alias.
 
    USE_VALUE (0x3):  There is no Alias and there is a Type and Value.
-      Use the Token Value as provided.  The Token Value MAY be discarded
-      after processing.
+      Use the Payload Value as provided.  The Payload Value MAY be
+      discarded after processing.
 
-   *  Token Alias - a Session-specific integer identifier that
-      references a Token Type and Token Value.  There are separate Alias
-      spaces for the client and server (e.g.: they can each register
-      Alias=1).  Once a Token Alias has been registered, it cannot be
-      re-registered by the same endpoint in the Session without first
-      being deleted.  Use of the Token Alias is optional.
+   *  Payload Alias - a Session-specific integer identifier that
+      references a Payload Type and Payload Value.  There are separate
+      Alias spaces for the client and server (e.g.: they can each
+      register Alias=1).  Once a Payload Alias has been registered, it
+      cannot be re-registered by the same endpoint in the Session
+      without first being deleted.  Use of the Payload Alias is
+      optional.
 
-   *  Token Type - a numeric identifier for the type of Token payload
-      being transmitted.  This type is defined by the IANA table "MOQT
-      Auth Token Type" (see Section 16).  Type 0 is reserved to indicate
-      that the type is not defined in the table and is negotiated out-
-      of-band between client and receiver.
+   *  Payload Type - a numeric identifier for the type of authorization
+      payload being transmitted.  This type is defined by the IANA table
+      "MOQT Authorization Payload Type" (see Section 16).  Type 0 is
+      reserved to indicate that the type is not defined in the table and
+      is negotiated out-of-band between client and receiver.
 
-   *  Token Value - the payload of the Token.  The contents and
-      serialization of this payload are defined by the Token Type.
+   *  Payload Value - the payload of the Authorization Payload.  The
+      contents and serialization of this payload are defined by the
+      Payload Type.
 
-   If the Token structure cannot be decoded, including an unknown Alias
-   Type, the receiver MUST close the Session with MALFORMED_AUTH_TOKEN.
-   The receiver of a message attempting to register an Alias which is
-   already registered MUST close the Session with
-   DUPLICATE_AUTH_TOKEN_ALIAS.  The receiver of a message referencing an
-   Alias that is not currently registered MUST reject the message with
-   UNKNOWN_AUTH_TOKEN_ALIAS.
+   If the Authorization Payload structure cannot be decoded, including
+   an unknown Alias Type, the receiver MUST close the Session with
+   MALFORMED_AUTH_PAYLOAD.  The receiver of a message attempting to
+   register an Alias which is already registered MUST close the Session
+   with DUPLICATE_AUTH_PAYLOAD_ALIAS.  The receiver of a message
+   referencing an Alias that is not currently registered MUST reject the
+   message with UNKNOWN_AUTH_PAYLOAD_ALIAS.
 
-   The receiver of a message containing a well-formed Token structure
-   that is otherwise invalid MUST reject that message with an
-   MALFORMED_AUTH_TOKEN error.
+   The receiver of a message containing a well-formed Authorization
+   Payload structure that is otherwise invalid MUST reject that message
+   with an MALFORMED_AUTH_PAYLOAD error.
 
-   The receiver of a message carrying an Authorization Token with Alias
-   Type REGISTER that does not result in a Session error MUST register
-   the Token Alias in the token cache, even if the message fails for
-   other reasons, including Unauthorized.  This allows senders to
-   pipeline messages that refer to previously registered tokens without
-   potentially terminating the entire Session.  A receiver MAY store an
-   error code (eg: UNAUTHORIZED or MALFORMED_AUTH_TOKEN) in place of the
-   Token Type and Token Alias if any future message referencing the
-   Token Alias will result in that error.  However, it is important to
-   not store an error code for a token that might be valid in the future
-   or due to some other property becoming fulfilled which currently
-   isn't.  The size of a registered cache entry includes the length of
-   the Token Value, regardless of whether it is stored.
+   The receiver of a message carrying an Authorization Payload with
+   Alias Type REGISTER that does not result in a Session error MUST
+   register the Payload Alias in the payload cache, even if the message
+   fails for other reasons, including Unauthorized.  This allows senders
+   to pipeline messages that refer to previously registered payloads
+   without potentially terminating the entire Session.  A receiver MAY
+   store an error code (eg: UNAUTHORIZED or MALFORMED_AUTH_PAYLOAD) in
+   place of the Payload Type and Payload Alias if any future message
+   referencing the Payload Alias will result in that error.  However, it
+   is important to not store an error code for a payload that might be
+   valid in the future or due to some other property becoming fulfilled
+   which currently isn't.  The size of a registered cache entry includes
+   the length of the Payload Value, regardless of whether it is stored.
 
-   If a receiver detects that an authorization token has expired, it
+   If a receiver detects that an authorization payload has expired, it
    MUST retain the registered Alias until it is deleted by the sender,
-   though it MAY discard other state associated with the token that is
+   though it MAY discard other state associated with the payload that is
    no longer needed.  Expiration does not affect the size occupied by a
-   token in the token cache.  Any message that references an expired
-   token with Alias Type USE_ALIAS fails with EXPIRED_AUTH_TOKEN.
+   payload in the payload cache.  Any message that references an expired
+   payload with Alias Type USE_ALIAS fails with EXPIRED_AUTH_PAYLOAD.
 
-   Using an Alias to refer to a previously registered Token Type and
-   Value is for efficiency only and has the same effect as if the Token
-   Type and Value was included directly.  Retiring an Alias that was
-   previously used to authorize a message has no retroactive effect on
-   the original authorization, nor does it prevent that same Token Type
-   and Value from being re-registered.
+   Using an Alias to refer to a previously registered Payload Type and
+   Value is for efficiency only and has the same effect as if the
+   Payload Type and Value was included directly.  Retiring an Alias that
+   was previously used to authorize a message has no retroactive effect
+   on the original authorization, nor does it prevent that same Payload
+   Type and Value from being re-registered.
 
-   Senders of tokens SHOULD only register tokens which they intend to
-   re-use during the Session and SHOULD retire previously registered
-   tokens once their utility has passed.
+   Senders of payloads SHOULD only register payloads which they intend
+   to re-use during the Session and SHOULD retire previously registered
+   payloads once their utility has passed.
 
-   By registering a Token, the sender is requiring the receiver to store
-   the Token Alias and Token Value until they are deleted, or the
-   Session ends.  The receiver can protect its resources by sending a
-   Setup Option defining the MAX_AUTH_TOKEN_CACHE_SIZE limit (see
-   Section 9.1.3) it is willing to accept.  If a registration outside of
-   SETUP is attempted that would cause this limit to be exceeded, the
-   receiver MUST terminate the Session with an AUTH_TOKEN_CACHE_OVERFLOW
-   error.  Registrations in SETUP are handled as described in
-   Section 9.1.4.
+   By registering an Authorization Payload, the sender is requiring the
+   receiver to store the Payload Alias and Payload Value until they are
+   deleted, or the Session ends.  The receiver can protect its resources
+   by sending a Setup Option defining the MAX_AUTH_PAYLOAD_CACHE_SIZE
+   limit (see Section 9.1.3) it is willing to accept.  If a registration
+   outside of SETUP is attempted that would cause this limit to be
+   exceeded, the receiver MUST terminate the Session with an
+   AUTH_PAYLOAD_CACHE_OVERFLOW error.  Registrations in SETUP are
+   handled as described in Section 9.1.4.
 
-   An Authorization Token MAY be repeated within a message as long as
-   the combination of Token Type and Token Value are unique after
+   An Authorization Payload MAY be repeated within a message as long as
+   the combination of Payload Type and Payload Value are unique after
    resolving any aliases.
 
-   Messages carrying an Authorization Token can appear on different
+   Messages carrying an Authorization Payload can appear on different
    control streams.  Because stream processing order can be different
    than send order, the receiver and sender can have inconsistent views
-   of the token cache state.
+   of the payload cache state.
 
    Senders MUST NOT send USE_ALIAS on one control stream for an alias
    registered on a different stream until the sender has received a
@@ -3377,42 +3380,43 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    query portion of the URI to the option.  If a PATH does not conform
    to these rules, the session MUST be closed with MALFORMED_PATH.
 
-9.1.3.  MAX_AUTH_TOKEN_CACHE_SIZE
+9.1.3.  MAX_AUTH_PAYLOAD_CACHE_SIZE
 
-   The MAX_AUTH_TOKEN_CACHE_SIZE option (Option Type 0x04) communicates
-   the maximum size in bytes of all actively registered Authorization
-   tokens that the endpoint is willing to store per Session.  This
-   option is optional.  The default value is 0 which prohibits the use
-   of token Aliases.
+   The MAX_AUTH_PAYLOAD_CACHE_SIZE option (Option Type 0x04)
+   communicates the maximum size in bytes of all actively registered
+   Authorization payloads that the endpoint is willing to store per
+   Session.  This option is optional.  The default value is 0 which
+   prohibits the use of payload Aliases.
 
-   The token size is calculated as 16 bytes + the size of the Token
+   The payload size is calculated as 16 bytes + the size of the Payload
    Value field (see Figure 5).  The total size as restricted by the
-   MAX_AUTH_TOKEN_CACHE_SIZE option is calculated as the sum of the
-   token sizes for all registered tokens (Alias Type value of 0x01)
-   minus the sum of the token sizes for all deregistered tokens (Alias
-   Type value of 0x00), since Session initiation.
+   MAX_AUTH_PAYLOAD_CACHE_SIZE option is calculated as the sum of the
+   payload sizes for all registered payloads (Alias Type value of 0x01)
+   minus the sum of the payload sizes for all deregistered payloads
+   (Alias Type value of 0x00), since Session initiation.
 
-9.1.4.  AUTHORIZATION TOKEN
+9.1.4.  AUTHORIZATION_PAYLOAD
 
-   The AUTHORIZATION TOKEN Setup Option (Option Type 0x03) is
-   functionally equivalent to the AUTHORIZATION TOKEN message parameter,
-   see Section 9.19.2.  The endpoint can specify one or more tokens in
-   SETUP that the peer can use to authorize MOQT session establishment.
+   The AUTHORIZATION_PAYLOAD Setup Option (Option Type 0x03) is
+   functionally equivalent to the AUTHORIZATION_PAYLOAD message
+   parameter, see Section 9.19.2.  The endpoint can specify one or more
+   payloads in SETUP that the peer can use to authorize MOQT session
+   establishment.
 
-   The option value is a Token structure, whose wire format and
-   semantics are defined in Section 8.9.
+   The option value is an Authorization Payload structure, whose wire
+   format and semantics are defined in Section 8.9.
 
    If a server receives Alias Type DELETE (0x0) or USE_ALIAS (0x2) in a
    SETUP message, it MUST close the session with ROLE_VIOLATION.
 
-   If an endpoint receives an AUTHORIZATION TOKEN option in SETUP with
-   Alias Type REGISTER that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it
-   MUST NOT fail the session with AUTH_TOKEN_CACHE_OVERFLOW.  Instead,
+   If an endpoint receives an AUTHORIZATION_PAYLOAD option in SETUP with
+   Alias Type REGISTER that exceeds its MAX_AUTH_PAYLOAD_CACHE_SIZE, it
+   MUST NOT fail the session with AUTH_PAYLOAD_CACHE_OVERFLOW.  Instead,
    it MUST treat the option as Alias Type USE_VALUE.  Since each
    endpoint's SETUP may be sent before the peer's SETUP is received, the
    sender MUST handle registration failures of this kind by purging any
-   Token Aliases that failed to register based on the peer's
-   MAX_AUTH_TOKEN_CACHE_SIZE option in SETUP (or the default value of
+   Payload Aliases that failed to register based on the peer's
+   MAX_AUTH_PAYLOAD_CACHE_SIZE option in SETUP (or the default value of
    0).
 
 9.1.5.  MOQT IMPLEMENTATION
@@ -3758,20 +3762,20 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    *  Parameters: The parameters are defined in Section 9.19.  The
       parameters that can appear depend on the request being updated:
 
-      -  Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
+      -  Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_PAYLOAD,
          SUBGROUP_DELIVERY_TIMEOUT, PAUSED, SUBSCRIBER_PRIORITY,
          LOCATION_FILTER, FILL_PARAMETERS, SUBGROUP_FILTER,
          OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
          NEW_GROUP_REQUEST
 
-      -  FETCH: AUTHORIZATION_TOKEN, SUBSCRIBER_PRIORITY
+      -  FETCH: AUTHORIZATION_PAYLOAD, SUBSCRIBER_PRIORITY
 
-      -  PUBLISH_NAMESPACE: AUTHORIZATION_TOKEN
+      -  PUBLISH_NAMESPACE: AUTHORIZATION_PAYLOAD
 
-      -  SUBSCRIBE_NAMESPACE: AUTHORIZATION_TOKEN,
+      -  SUBSCRIBE_NAMESPACE: AUTHORIZATION_PAYLOAD,
          TRACK_NAMESPACE_PREFIX
 
-      -  SUBSCRIBE_TRACKS: AUTHORIZATION_TOKEN, PAUSED,
+      -  SUBSCRIBE_TRACKS: AUTHORIZATION_PAYLOAD, PAUSED,
          TRACK_PROPERTY_FILTER, TRACK_NAMESPACE_PREFIX
 
       Range Filters are only allowed from the subscriber (see
@@ -3856,11 +3860,12 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    *  Parameters: The parameters are defined in Section 9.19.  The
       parameters that can appear in a SUBSCRIBE are
-      OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN, RENDEZVOUS_TIMEOUT,
-      SUBGROUP_DELIVERY_TIMEOUT, PAUSED, SUBSCRIBER_PRIORITY,
-      LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS, SUBGROUP_FILTER,
-      OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-      NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
+      OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_PAYLOAD,
+      RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, PAUSED,
+      SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER,
+      FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER,
+      PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST and
+      INCLUDE_PROPERTIES.
 
    On successful subscription, the publisher MUST reply with a
    SUBSCRIBE_OK, allowing the subscriber to determine the start group/
@@ -3925,7 +3930,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    *  Parameters: The parameters are defined in Section 9.19.  The
       parameters that can appear in a PUBLISH are
-      OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_TOKEN,
+      OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_PAYLOAD,
       SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT, PAUSED,
       SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS
       and SUBSCRIBE_TRACKS_ID.  Those governing delivery, such as
@@ -3991,9 +3996,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    on all streams related to the subscription when it deletes
    subscription state.
 
-   A publisher that ends a subscription because the authorization token
-   that authorized it has expired SHOULD send PUBLISH_DONE with status
-   code EXPIRED_AUTH_TOKEN.
+   A publisher that ends a subscription because the authorization
+   payload that authorized it has expired SHOULD send PUBLISH_DONE with
+   status code EXPIRED_AUTH_PAYLOAD.
 
    The format of PUBLISH_DONE is as follows:
 
@@ -4111,7 +4116,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       (Section 2.4.1).
 
    *  Parameters: The parameters are defined in Section 9.19.  The
-      parameters that can appear in a FETCH are AUTHORIZATION_TOKEN,
+      parameters that can appear in a FETCH are AUTHORIZATION_PAYLOAD,
       FILL_TIMEOUT, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER,
       SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
       OBJECT_PROPERTY_FILTER and INCLUDE_PROPERTIES.
@@ -4125,7 +4130,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    The TRACK_STATUS message format is identical to the SUBSCRIBE message
    (Section 9.6), but subscriber parameters related to Track delivery
    (e.g. SUBSCRIBER_PRIORITY) are not included.  The parameters that can
-   appear in a TRACK_STATUS are AUTHORIZATION_TOKEN and
+   appear in a TRACK_STATUS are AUTHORIZATION_PAYLOAD and
    INCLUDE_PROPERTIES.
 
    The receiver of a TRACK_STATUS message treats it identically as if it
@@ -4168,7 +4173,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    *  Parameters: The parameters are defined in Section 9.19.  The only
       parameter that can appear in a PUBLISH_NAMESPACE is
-      AUTHORIZATION_TOKEN.
+      AUTHORIZATION_PAYLOAD.
 
 9.14.  SUBSCRIBE_NAMESPACE
 
@@ -4194,7 +4199,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    *  Parameters: The parameters are defined in Section 9.19.  The only
       parameter that can appear in a SUBSCRIBE_NAMESPACE is
-      AUTHORIZATION_TOKEN.
+      AUTHORIZATION_PAYLOAD.
 
 9.15.  NAMESPACE
 
@@ -4271,7 +4276,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       they are handled differently from the same Parameters on
       Subscriptions, as outlined below.  The parameters that can appear
       in a SUBSCRIBE_TRACKS are OBJECT_DELIVERY_TIMEOUT,
-      AUTHORIZATION_TOKEN, SUBGROUP_DELIVERY_TIMEOUT, PAUSED,
+      AUTHORIZATION_PAYLOAD, SUBGROUP_DELIVERY_TIMEOUT, PAUSED,
       SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER,
       FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER,
       PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER and
@@ -4380,18 +4385,18 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    namespace, it is impossible for Message Parameters to appear in Setup
    messages.
 
-9.19.2.  AUTHORIZATION TOKEN Parameter
+9.19.2.  AUTHORIZATION_PAYLOAD Parameter
 
-   The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) uses Length-
-   prefixed encoding.  It MAY appear in a PUBLISH, SUBSCRIBE,
+   The AUTHORIZATION_PAYLOAD parameter (Parameter Type 0x03) uses
+   Length-prefixed encoding.  It MAY appear in a PUBLISH, SUBSCRIBE,
    REQUEST_UPDATE, SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS,
    PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message.  This parameter
    conveys information to authorize the sender to perform the operation
    carrying the parameter.  This Parameter MUST NOT be copied from a
    SUBSCRIBE_TRACKS to the resulting PUBLISH message Parameters.
 
-   The parameter value is a Token structure, whose wire format and
-   semantics are defined in Section 8.9.
+   The parameter value is an Authorization Payload structure, whose wire
+   format and semantics are defined in Section 8.9.
 
 9.19.3.  SUBGROUP_DELIVERY_TIMEOUT Parameter
 
@@ -4738,7 +4743,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    The receiver of the parameter can attempt to extend the request by
    sending a REQUEST_UPDATE with 0 or more updated parameters.  If the
-   receiver has one or more updated AUTHORIZATION_TOKENs, it SHOULD
+   receiver has one or more updated AUTHORIZATION_PAYLOADs, it SHOULD
    include those in the REQUEST_UPDATE.  If the extension is granted,
    the sender includes a new EXPIRES value in REQUEST_UPDATE_OK.  Relays
    that send this parameter and applications that receive it MAY
@@ -5830,19 +5835,20 @@ EXT 1 and EXT N can be modified or removed by Relays
       a new object header on an open subgroup stream, it MAY send a
       STOP_SENDING on that stream or terminate the subscription.
 
-   AUTH_TOKEN_CACHE_OVERFLOW (0x13):  The Session limit Section 9.1.3 of
-      the size of all registered Authorization tokens has been exceeded.
+   AUTH_PAYLOAD_CACHE_OVERFLOW (0x13):  The Session limit Section 9.1.3
+      of the size of all registered Authorization payloads has been
+      exceeded.
 
-   DUPLICATE_AUTH_TOKEN_ALIAS (0x14):  Authorization Token attempted to
-      register an Alias that was in use (see Section 8.9).
+   DUPLICATE_AUTH_PAYLOAD_ALIAS (0x14):  Authorization Payload attempted
+      to register an Alias that was in use (see Section 8.9).
 
-   MALFORMED_AUTH_TOKEN (0x16):  Invalid Auth Token serialization (see
-      Section 8.9).
+   MALFORMED_AUTH_PAYLOAD (0x16):  Invalid Authorization Payload
+      serialization (see Section 8.9).
 
-   UNKNOWN_AUTH_TOKEN_ALIAS (0x17):  No registered token found for the
-      provided Alias (see Section 8.9).
+   UNKNOWN_AUTH_PAYLOAD_ALIAS (0x17):  No registered payload found for
+      the provided Alias (see Section 8.9).
 
-   EXPIRED_AUTH_TOKEN (0x18):  Authorization token has expired
+   EXPIRED_AUTH_PAYLOAD (0x18):  Authorization payload has expired
       (Section 8.9).
 
    INVALID_AUTHORITY (0x19):  The specified AUTHORITY does not
@@ -5915,7 +5921,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    UNAUTHORIZED:  The subscriber is not authorized to perform the
       requested action on the given track.  This might be retryable if
-      the authorization token is not yet valid.
+      the authorization payload is not yet valid.
 
    TIMEOUT:  The subscription could not be completed before an
       implementation specific timeout.  For example, a relay could not
@@ -5923,10 +5929,11 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    NOT_SUPPORTED:  The endpoint does not support the type of request.
 
-   MALFORMED_AUTH_TOKEN:  Invalid Auth Token serialization during
-      registration (see Section 8.9).
+   MALFORMED_AUTH_PAYLOAD:  Invalid Authorization Payload serialization
+      during registration (see Section 8.9).
 
-   EXPIRED_AUTH_TOKEN:  Authorization token has expired (Section 8.9).
+   EXPIRED_AUTH_PAYLOAD:  Authorization payload has expired
+      (Section 8.9).
 
    GOING_AWAY:  The endpoint has received a GOAWAY and MAY reject new
       requests.
@@ -6015,8 +6022,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    EXPIRED (0x6):  The publisher reached the timeout specified in
       SUBSCRIBE_OK.
 
-   EXPIRED_AUTH_TOKEN (0x7):  The authorization token that authorized
-      the subscription has expired (see Section 9.9).
+   EXPIRED_AUTH_PAYLOAD (0x7):  The authorization payload that
+      authorized the subscription has expired (see Section 9.9).
 
    MALFORMED_TRACK (0x12):  A relay publisher detected that the track
       was malformed (see Section 12.1).
@@ -6050,8 +6057,8 @@ EXT 1 and EXT N can be modified or removed by Relays
       the publisher's resource limits and is being terminated (see
       Section 5.2).
 
-   EXPIRED_AUTH_TOKEN (0x7):  The authorization token for the request
-      has expired.
+   EXPIRED_AUTH_PAYLOAD (0x7):  The authorization payload for the
+      request has expired.
 
    EXCESSIVE_LOAD (0x9):  The endpoint is overloaded and is resetting
       this stream.
@@ -6085,7 +6092,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    *  Stream Reset Error Codes (Section 16.12.4)
 
-   *  MOQT Auth Token Type
+   *  MOQT Authorization Payload Type
 
    Because new values in these registries can be defined without
    negotiation, implementations MUST handle unknown values gracefully.
@@ -6179,7 +6186,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    Publishers, including Relays, require authorization to prevent
    unauthorized subscriptions to content.  Subscription requests can
-   carry authorization tokens (see Section 15.3) to prove the
+   carry authorization payloads (see Section 15.3) to prove the
    subscriber's right to access specific tracks or namespaces.  Relays
    that aggregate subscriptions from multiple downstream subscribers
    MUST ensure each subscriber is independently authorized.
@@ -6228,14 +6235,15 @@ EXT 1 and EXT N can be modified or removed by Relays
    Once a peer is authenticated, an application MAY use attributes in
    the peer's certificate as an input to authorization decisions; the
    granularity and policy of such authorization is out of scope for this
-   document. ### Authorization Tokens {#sec-tokens}
+   document. ### Authorization Payloads {#sec-payloads}
 
-   MOQT has functionality to carry Authorization tokens as message
-   parameters.  These tokens can vary based on the application
-   requirements.  Two variants of authorization tokens have already been
-   defined for MOQT, and more are expected in the future.  The current
-   tokens are Privacy Pass Authentication for Media over QUIC [PPA] and
-   Authentication scheme for MOQT using Common Access Tokens [CAT].
+   MOQT has functionality to carry Authorization payloads as message
+   parameters.  These payloads can vary based on the application
+   requirements.  Two variants of authorization payloads have already
+   been defined for MOQT, and more are expected in the future.  The
+   current payloads are Privacy Pass Authentication for Media over QUIC
+   [PPA] and Authentication scheme for MOQT using Common Access Tokens
+   [CAT].
 
    Tokens are expected to contain information about which actions and
    which resources the endpoint providing the token is authorized to
@@ -6244,7 +6252,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 15.3.2.  Replay Attacks
 
-   Replay protection for authorization tokens is the responsibility of
+   Replay protection for authorization payloads is the responsibility of
    the specific token scheme used.  Token schemes such as [CAT] and
    [PPA] include requirements for relays when processing tokens and
    requests.
@@ -6327,7 +6335,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    with the lowest priority, after reaching a resource limit.
 
    A larger MAX_CONTROL_MESSAGE_SIZE (Section 9.1.8) allows larger
-   Parameters, such as Authorization Tokens, but an endpoint that
+   Parameters, such as Authorization Payloads, but an endpoint that
    buffers complete control messages commits that much memory per
    stream.  Such an endpoint needs to grant enough flow control for a
    complete message on each stream, or the endpoints can deadlock.
@@ -6543,27 +6551,27 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 16.4.  Setup Options
 
-      +=================+===========================+===============+
-      |            Type | Name                      | Specification |
-      +=================+===========================+===============+
-      |            0x01 | PATH                      | Section 9.1.2 |
-      +-----------------+---------------------------+---------------+
-      |            0x03 | AUTHORIZATION_TOKEN       | Section 9.1.4 |
-      +-----------------+---------------------------+---------------+
-      |            0x04 | MAX_AUTH_TOKEN_CACHE_SIZE | Section 9.1.3 |
-      +-----------------+---------------------------+---------------+
-      |            0x05 | AUTHORITY                 | Section 9.1.1 |
-      +-----------------+---------------------------+---------------+
-      |            0x06 | MAX_FILTER_RANGES         | Section 9.1.6 |
-      +-----------------+---------------------------+---------------+
-      |            0x07 | MOQT_IMPLEMENTATION       | Section 9.1.5 |
-      +-----------------+---------------------------+---------------+
-      |            0x08 | MAX_REQUEST_UPDATES       | Section 9.1.7 |
-      +-----------------+---------------------------+---------------+
-      |            0x0A | MAX_CONTROL_MESSAGE_SIZE  | Section 9.1.8 |
-      +-----------------+---------------------------+---------------+
-      | 0x7f * N + 0x9D | Reserved for greasing     | Section 13    |
-      +-----------------+---------------------------+---------------+
+     +=================+=============================+===============+
+     |            Type | Name                        | Specification |
+     +=================+=============================+===============+
+     |            0x01 | PATH                        | Section 9.1.2 |
+     +-----------------+-----------------------------+---------------+
+     |            0x03 | AUTHORIZATION_PAYLOAD       | Section 9.1.4 |
+     +-----------------+-----------------------------+---------------+
+     |            0x04 | MAX_AUTH_PAYLOAD_CACHE_SIZE | Section 9.1.3 |
+     +-----------------+-----------------------------+---------------+
+     |            0x05 | AUTHORITY                   | Section 9.1.1 |
+     +-----------------+-----------------------------+---------------+
+     |            0x06 | MAX_FILTER_RANGES           | Section 9.1.6 |
+     +-----------------+-----------------------------+---------------+
+     |            0x07 | MOQT_IMPLEMENTATION         | Section 9.1.5 |
+     +-----------------+-----------------------------+---------------+
+     |            0x08 | MAX_REQUEST_UPDATES         | Section 9.1.7 |
+     +-----------------+-----------------------------+---------------+
+     |            0x0A | MAX_CONTROL_MESSAGE_SIZE    | Section 9.1.8 |
+     +-----------------+-----------------------------+---------------+
+     | 0x7f * N + 0x9D | Reserved for greasing       | Section 13    |
+     +-----------------+-----------------------------+---------------+
 
                                   Table 11
 
@@ -6577,7 +6585,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    private or application-specific use; implementations that need custom
    Setup Options SHOULD request a provisional registration.
 
-16.5.  Authorization Token Alias Type
+16.5.  Authorization Payload Alias Type
 
                    +======+===========+===============+
                    | Code | Name      | Specification |
@@ -6593,7 +6601,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                                  Table 12
 
-16.6.  MOQT Auth Token Type
+16.6.  MOQT Authorization Payload Type
 
         +=================+=======================+===============+
         |            Code | Name                  | Specification |
@@ -6612,7 +6620,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      +================+===========================+=================+
      | 0x02           | OBJECT_DELIVERY_TIMEOUT   | Section 9.19.4  |
      +----------------+---------------------------+-----------------+
-     | 0x03           | AUTHORIZATION_TOKEN       | Section 9.19.2  |
+     | 0x03           | AUTHORIZATION_PAYLOAD     | Section 9.19.2  |
      +----------------+---------------------------+-----------------+
      | 0x04           | RENDEZVOUS_TIMEOUT        | Section 9.19.6  |
      +----------------+---------------------------+-----------------+
@@ -6831,125 +6839,125 @@ EXT 1 and EXT N can be modified or removed by Relays
 
 16.12.1.  Session Termination Error Codes
 
-     +============================+=================+===============+
-     | Name                       |       Code      | Specification |
-     +============================+=================+===============+
-     | NO_ERROR                   |       0x0       | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | INTERNAL_ERROR             |       0x1       | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | UNAUTHORIZED               |       0x2       | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | PROTOCOL_VIOLATION         |       0x3       | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | INVALID_REQUEST_ID         |       0x4       | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | DUPLICATE_TRACK_ALIAS      |       0x5       | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | MALFORMED_KEY_VALUE        |       0x6       | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | INVALID_PATH               |       0x8       | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | MALFORMED_PATH             |       0x9       | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | GOAWAY_TIMEOUT             |       0x10      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | CONTROL_MESSAGE_TIMEOUT    |       0x11      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | DATA_STREAM_TIMEOUT        |       0x12      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | AUTH_TOKEN_CACHE_OVERFLOW  |       0x13      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | DUPLICATE_AUTH_TOKEN_ALIAS |       0x14      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | MALFORMED_AUTH_TOKEN       |       0x16      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | UNKNOWN_AUTH_TOKEN_ALIAS   |       0x17      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | EXPIRED_AUTH_TOKEN         |       0x18      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | INVALID_AUTHORITY          |       0x19      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | MALFORMED_AUTHORITY        |       0x1A      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | TOO_MANY_REQUEST_UPDATES   |       0x1B      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | INVALID_STREAM_HEADER      |      0x200      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | MALFORMED_OBJECT           |      0x201      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | INVALID_OBJECT_STATUS      |      0x202      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | TRUNCATED_OBJECT           |      0x203      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | MALFORMED_MESSAGE          |      0x300      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | INVALID_FIELD              |      0x301      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | INVALID_TRACK_NAMESPACE    |      0x302      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | UNEXPECTED_MESSAGE         |      0x303      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | ROLE_VIOLATION             |      0x304      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | INVALID_PARAMETER          |      0x305      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | CLOSED_CONTROL_STREAM      |      0x306      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | DELTA_ENCODING_OVERFLOW    |      0x400      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | FIELD_LENGTH_EXCEEDED      |      0x401      | Section 12.2  |
-     +----------------------------+-----------------+---------------+
-     | Reserved for greasing      | 0x7f * N + 0x9D | Section 13    |
-     +----------------------------+-----------------+---------------+
+    +==============================+=================+===============+
+    | Name                         |       Code      | Specification |
+    +==============================+=================+===============+
+    | NO_ERROR                     |       0x0       | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | INTERNAL_ERROR               |       0x1       | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | UNAUTHORIZED                 |       0x2       | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | PROTOCOL_VIOLATION           |       0x3       | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | INVALID_REQUEST_ID           |       0x4       | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | DUPLICATE_TRACK_ALIAS        |       0x5       | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | MALFORMED_KEY_VALUE          |       0x6       | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | INVALID_PATH                 |       0x8       | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | MALFORMED_PATH               |       0x9       | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | GOAWAY_TIMEOUT               |       0x10      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | CONTROL_MESSAGE_TIMEOUT      |       0x11      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | DATA_STREAM_TIMEOUT          |       0x12      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | AUTH_PAYLOAD_CACHE_OVERFLOW  |       0x13      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | DUPLICATE_AUTH_PAYLOAD_ALIAS |       0x14      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | MALFORMED_AUTH_PAYLOAD       |       0x16      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | UNKNOWN_AUTH_PAYLOAD_ALIAS   |       0x17      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | EXPIRED_AUTH_PAYLOAD         |       0x18      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | INVALID_AUTHORITY            |       0x19      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | MALFORMED_AUTHORITY          |       0x1A      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | TOO_MANY_REQUEST_UPDATES     |       0x1B      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | INVALID_STREAM_HEADER        |      0x200      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | MALFORMED_OBJECT             |      0x201      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | INVALID_OBJECT_STATUS        |      0x202      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | TRUNCATED_OBJECT             |      0x203      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | MALFORMED_MESSAGE            |      0x300      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | INVALID_FIELD                |      0x301      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | INVALID_TRACK_NAMESPACE      |      0x302      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | UNEXPECTED_MESSAGE           |      0x303      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | ROLE_VIOLATION               |      0x304      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | INVALID_PARAMETER            |      0x305      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | CLOSED_CONTROL_STREAM        |      0x306      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | DELTA_ENCODING_OVERFLOW      |      0x400      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | FIELD_LENGTH_EXCEEDED        |      0x401      | Section 12.2  |
+    +------------------------------+-----------------+---------------+
+    | Reserved for greasing        | 0x7f * N + 0x9D | Section 13    |
+    +------------------------------+-----------------+---------------+
 
                                  Table 20
 
 16.12.2.  REQUEST_ERROR Codes
 
-        +=======================+=================+===============+
-        | Name                  |       Code      | Specification |
-        +=======================+=================+===============+
-        | INTERNAL_ERROR        |       0x0       | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | UNAUTHORIZED          |       0x1       | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | TIMEOUT               |       0x2       | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | NOT_SUPPORTED         |       0x3       | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | MALFORMED_AUTH_TOKEN  |       0x4       | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | EXPIRED_AUTH_TOKEN    |       0x5       | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | GOING_AWAY            |       0x6       | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | EXCESSIVE_LOAD        |       0x9       | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | UNAVAILABLE           |       0xA       | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | DOES_NOT_EXIST        |       0x10      | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | INVALID_RANGE         |       0x11      | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | MALFORMED_TRACK       |       0x12      | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | UNINTERESTED          |       0x20      | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | NAMESPACE_TOO_LARGE   |       0x31      | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | UNSUPPORTED_EXTENSION |       0x33      | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | REDIRECT              |       0x34      | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | CONFLICTING_FILTERS   |       0x35      | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | INVALID_FILTER        |       0x36      | Section 12.3  |
-        +-----------------------+-----------------+---------------+
-        | Reserved for greasing | 0x7f * N + 0x9D | Section 13    |
-        +-----------------------+-----------------+---------------+
+       +========================+=================+===============+
+       | Name                   |       Code      | Specification |
+       +========================+=================+===============+
+       | INTERNAL_ERROR         |       0x0       | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | UNAUTHORIZED           |       0x1       | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | TIMEOUT                |       0x2       | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | NOT_SUPPORTED          |       0x3       | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | MALFORMED_AUTH_PAYLOAD |       0x4       | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | EXPIRED_AUTH_PAYLOAD   |       0x5       | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | GOING_AWAY             |       0x6       | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | EXCESSIVE_LOAD         |       0x9       | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | UNAVAILABLE            |       0xA       | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | DOES_NOT_EXIST         |       0x10      | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | INVALID_RANGE          |       0x11      | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | MALFORMED_TRACK        |       0x12      | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | UNINTERESTED           |       0x20      | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | NAMESPACE_TOO_LARGE    |       0x31      | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | UNSUPPORTED_EXTENSION  |       0x33      | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | REDIRECT               |       0x34      | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | CONFLICTING_FILTERS    |       0x35      | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | INVALID_FILTER         |       0x36      | Section 12.3  |
+       +------------------------+-----------------+---------------+
+       | Reserved for greasing  | 0x7f * N + 0x9D | Section 13    |
+       +------------------------+-----------------+---------------+
 
-                                  Table 21
+                                 Table 21
 
 16.12.3.  PUBLISH_DONE Codes
 
@@ -6968,7 +6976,7 @@ EXT 1 and EXT N can be modified or removed by Relays
         +-----------------------+-----------------+---------------+
         | EXPIRED               |       0x6       | Section 12.4  |
         +-----------------------+-----------------+---------------+
-        | EXPIRED_AUTH_TOKEN    |       0x7       | Section 12.4  |
+        | EXPIRED_AUTH_PAYLOAD  |       0x7       | Section 12.4  |
         +-----------------------+-----------------+---------------+
         | UPDATE_FAILED         |       0x8       | Section 12.4  |
         +-----------------------+-----------------+---------------+
@@ -6998,7 +7006,7 @@ EXT 1 and EXT N can be modified or removed by Relays
         +-----------------------+-----------------+---------------+
         | TOO_FAR_BEHIND        |       0x5       | Section 12.5  |
         +-----------------------+-----------------+---------------+
-        | EXPIRED_AUTH_TOKEN    |       0x7       | Section 12.5  |
+        | EXPIRED_AUTH_PAYLOAD  |       0x7       | Section 12.5  |
         +-----------------------+-----------------+---------------+
         | EXCESSIVE_LOAD        |       0x9       | Section 12.5  |
         +-----------------------+-----------------+---------------+
