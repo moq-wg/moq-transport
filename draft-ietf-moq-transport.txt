@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 6 May 2027                                        I. Swett, Ed.
+Expires: 16 May 2027                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         2 November 2026
+                                                        12 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 May 2027.
+   This Internet-Draft will expire on 16 May 2027.
 
 Copyright Notice
 
@@ -3470,7 +3470,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
 9.1.8.  MAX_CONTROL_MESSAGE_SIZE
 
-   The MAX_CONTROL_MESSAGE_SIZE option (Option Type 0x09) communicates
+   The MAX_CONTROL_MESSAGE_SIZE option (Option Type 0x0A) communicates
    the maximum length, in bytes, of a control message the endpoint is
    willing to receive (see Section 9).  The value is encoded as a
    variable-length integer and MUST be at least 65535.  If not present,
@@ -6560,7 +6560,7 @@ EXT 1 and EXT N can be modified or removed by Relays
       +-----------------+---------------------------+---------------+
       |            0x08 | MAX_REQUEST_UPDATES       | Section 9.1.7 |
       +-----------------+---------------------------+---------------+
-      |            0x09 | MAX_CONTROL_MESSAGE_SIZE  | Section 9.1.8 |
+      |            0x0A | MAX_CONTROL_MESSAGE_SIZE  | Section 9.1.8 |
       +-----------------+---------------------------+---------------+
       | 0x7f * N + 0x9D | Reserved for greasing     | Section 13    |
       +-----------------+---------------------------+---------------+
@@ -7066,9 +7066,9 @@ Normative References
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
               Framework", Work in Progress, Internet-Draft, draft-ietf-
-              webtrans-overview-13, 6 July 2026,
+              webtrans-overview-14, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-13>.
+              webtrans-overview-14>.
 
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
@@ -7125,18 +7125,18 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-16, 6 July 2026,
+              ietf-webtrans-http3-17, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-16>.
+              webtrans-http3-17>.
 
 Informative References
 
-   [CAT]      Law, W., Lemmons, C., Simon, G., and S. Nandakumar,
+   [CAT]      Lemmons, C., Simon, G., Nandakumar, S., and W. Law,
               "Authorization scheme for MOQT using Common Access
               Tokens", Work in Progress, Internet-Draft, draft-ietf-moq-
-              c4m-01, 18 June 2026,
+              c4m-02, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-
-              01>.
+              02>.
 
    [I-D.draft-jennings-moq-quicr-proto]
               Jennings, C. F., Nandakumar, S., and C. Huitema, "QuicR -
@@ -7178,9 +7178,9 @@ Informative References
    [I-D.ietf-webtrans-http2]
               Frindell, A., Kinnear, E., Pauly, T., Thomson, M.,
               Vasiliev, V., and W. Xie, "WebTransport over HTTP/2", Work
-              in Progress, Internet-Draft, draft-ietf-webtrans-http2-15,
-              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
-              ietf-webtrans-http2-15>.
+              in Progress, Internet-Draft, draft-ietf-webtrans-http2-16,
+              2 November 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-webtrans-http2-16>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in

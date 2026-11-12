@@ -17,23 +17,23 @@ reliability. MOQT operates both point-to-point and through intermediate relays,
 enabling scalable low-latency delivery. Despite its name, MOQT is media
 agnostic and can be used for a wide range of use cases. 
     " name="description">
-<meta content="xml2rfc 3.34.1" name="generator">
+<meta content="xml2rfc 3.35.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.34.1
-    Python 3.14.8
-    ConfigArgParse 1.8.0
+  xml2rfc 3.35.0
+    Python 3.14.10
+    ConfigArgParse 1.9.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.13.4
+    platformdirs 4.14.3
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.9.2
+    wcwidth 0.9.4
 -->
 <link href="draft-ietf-moq-transport.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1034,7 +1034,7 @@ svg {
   & :is([stroke="white"], [stroke^="#fff"]) {
     stroke: var(--background-color);
   }
-  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+  & :is([fill="black"], [fill^="#000"], :not([fill], [fill] *)) {
     fill: var(--text-color);
   }
   & :is([fill="white"], [fill^="#fff"]) {
@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 6 May 2027</td>
+<td class="center">Expires 16 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-11-02" class="published">2 November 2026</time>
+<time datetime="2026-11-12" class="published">12 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-05-06">6 May 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-16">16 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 6 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 16 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3755,7 +3755,7 @@ aware that all of the objects on the subgroup have been published
 of the original publisher, through being notified of this fact by the
 application).  If the timer expires before the underlying transport
 stream reaches "all data committed" state
-(<span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13#section-4.3" class="relref">Section 4.3</a></span>), the implementation
+(<span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-14#section-4.3" class="relref">Section 4.3</a></span>), the implementation
 <span class="bcp14">MUST</span> reset the stream.  This ensures that MOQT can time out subgroups
 where all of the data has been sent but not yet fully delivered due to
 packet loss.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
@@ -3907,7 +3907,7 @@ WebTransport session as described in <a href="#webtransport" class="auto interna
 <p id="section-6.2-1">This document defines a protocol that can be used interchangeably both
 over a QUIC connection directly <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>, and over WebTransport
 <span>[<a href="#WebTransport" class="cite xref">WebTransport</a>]</span>.  Both provide streams and datagrams with similar
-semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13#section-4" class="relref">Section 4</a></span>); thus, the
+semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-14#section-4" class="relref">Section 4</a></span>); thus, the
 main difference lies in how the servers are identified and how the
 connection is established. When MOQT runs directly over QUIC or over
 WebTransport on HTTP/3, the QUIC DATAGRAM extension (<span>[<a href="#RFC9221" class="cite xref">RFC9221</a>]</span>)
@@ -3921,7 +3921,7 @@ substantially from a deployment over QUIC.<a href="#section-6.2-2" class="pilcro
 transports, such as TCP, and applications using MOQT might need to fallback
 to another protocol when QUIC or WebTransport aren't available.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
 <p id="section-6.2-4">MOQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-3.3" class="relref">Section 3.3</a></span>) to perform version negotiation.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-17#section-3.3" class="relref">Section 3.3</a></span>) to perform version negotiation.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
 <p id="section-6.2-5">The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> for the final version of this specification
 is <code>moqt</code>.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
 <p id="section-6.2-6">[[RFC editor: please remove the remainder of this section before publication.]]<a href="#section-6.2-6" class="pilcrow">¶</a></p>
@@ -3940,8 +3940,8 @@ URI by replacing the scheme with <code>https</code>.
 For example, <code>moqt://example.com/path</code> becomes
 <code>https://example.com/path</code>. The client sends an extended CONNECT request to this
 URI to establish a WebTransport session, as described in
-(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-3" class="relref">Section 3</a></span>). The client includes MOQT protocol identifiers in
-the WT-Available-Protocols header (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-3.3" class="relref">Section 3.3</a></span>).<a href="#section-6.2.1-1" class="pilcrow">¶</a></p>
+(<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-17#section-3" class="relref">Section 3</a></span>). The client includes MOQT protocol identifiers in
+the WT-Available-Protocols header (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-17#section-3.3" class="relref">Section 3.3</a></span>).<a href="#section-6.2.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="native-quic">
@@ -4225,7 +4225,7 @@ defined by extensions to this specification and registered with IANA (see
 <p id="section-6.6-1">The Transport Session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION_CLOSE frame
 (<span>[<a href="#QUIC" class="cite xref">QUIC</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-19.19" class="relref">Section 19.19</a></span>).  When WebTransport is used, the session is
-closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16#section-6" class="relref">Section 6</a></span>).<a href="#section-6.6-1" class="pilcrow">¶</a></p>
+closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-17#section-6" class="relref">Section 6</a></span>).<a href="#section-6.6-1" class="pilcrow">¶</a></p>
 <p id="section-6.6-2">The error codes used when terminating a Session are defined in
 <a href="#session-termination-codes" class="auto internal xref">Section 12.2</a>.<a href="#section-6.6-2" class="pilcrow">¶</a></p>
 <p id="section-6.6-3">An endpoint <span class="bcp14">MAY</span> choose to treat a subscription or request specific error as a
@@ -5569,7 +5569,7 @@ with <code>TOO_MANY_REQUEST_UPDATES</code>.<a href="#section-9.1.7-4" class="pil
           <h4 id="name-max_control_message_size">
 <a href="#section-9.1.8" class="section-number selfRef">9.1.8. </a><a href="#name-max_control_message_size" class="section-name selfRef">MAX_CONTROL_MESSAGE_SIZE</a>
           </h4>
-<p id="section-9.1.8-1">The MAX_CONTROL_MESSAGE_SIZE option (Option Type 0x09) communicates the maximum
+<p id="section-9.1.8-1">The MAX_CONTROL_MESSAGE_SIZE option (Option Type 0x0A) communicates the maximum
 length, in bytes, of a control message the endpoint is willing to receive (see
 <a href="#message" class="auto internal xref">Section 9</a>).  The value is encoded as a variable-length integer and <span class="bcp14">MUST</span> be at
 least 65535.  If not present, the default value is 65535.  Until an endpoint
@@ -9504,7 +9504,7 @@ Required policy (<span>[<a href="#RFC8126" class="cite xref">RFC8126</a>], <a hr
 </td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x09</td>
+              <td class="text-right" rowspan="1" colspan="1">0x0A</td>
               <td class="text-left" rowspan="1" colspan="1">MAX_CONTROL_MESSAGE_SIZE</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <a href="#max-control-message-size" class="auto internal xref">Section 9.1.8</a>
@@ -10804,7 +10804,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
-<span class="refAuthor">Kinnear, E.</span> and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-13</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-13</a>&gt;</span>. </dd>
+<span class="refAuthor">Kinnear, E.</span> and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-14</span>, <time datetime="2026-11-02" class="refDate">2 November 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-14">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-14</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="QUIC">[QUIC]</dt>
         <dd>
@@ -10852,7 +10852,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="WebTransport">[WebTransport]</dt>
       <dd>
-<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"WebTransport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http3-16</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-16</a>&gt;</span>. </dd>
+<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"WebTransport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http3-17</span>, <time datetime="2026-11-02" class="refDate">2 November 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-17">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-17</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -10865,7 +10865,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dl class="references">
 <dt id="CAT">[CAT]</dt>
         <dd>
-<span class="refAuthor">Law, W.</span>, <span class="refAuthor">Lemmons, C.</span>, <span class="refAuthor">Simon, G.</span>, and <span class="refAuthor">S. Nandakumar</span>, <span class="refTitle">"Authorization scheme for MOQT using Common Access Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-c4m-01</span>, <time datetime="2026-06-18" class="refDate">18 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-01">https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-01</a>&gt;</span>. </dd>
+<span class="refAuthor">Lemmons, C.</span>, <span class="refAuthor">Simon, G.</span>, <span class="refAuthor">Nandakumar, S.</span>, and <span class="refAuthor">W. Law</span>, <span class="refTitle">"Authorization scheme for MOQT using Common Access Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-c4m-02</span>, <time datetime="2026-11-02" class="refDate">2 November 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-02">https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-02</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.draft-jennings-moq-quicr-proto">[I-D.draft-jennings-moq-quicr-proto]</dt>
         <dd>
@@ -10889,7 +10889,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-http2">[I-D.ietf-webtrans-http2]</dt>
         <dd>
-<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, <span class="refAuthor">Pauly, T.</span>, <span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Vasiliev, V.</span>, and <span class="refAuthor">W. Xie</span>, <span class="refTitle">"WebTransport over HTTP/2"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http2-15</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http2-15">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http2-15</a>&gt;</span>. </dd>
+<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, <span class="refAuthor">Pauly, T.</span>, <span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Vasiliev, V.</span>, and <span class="refAuthor">W. Xie</span>, <span class="refTitle">"WebTransport over HTTP/2"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http2-16</span>, <time datetime="2026-11-02" class="refDate">2 November 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http2-16">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http2-16</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PPA">[PPA]</dt>
         <dd>
